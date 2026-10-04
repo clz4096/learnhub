@@ -11,14 +11,19 @@ import { withDefaults } from './options';
 import type { PlacementAnswer } from './placement';
 
 /** Bump when the shape changes, and add the migration from the previous version. */
-export const PROGRESS_VERSION = 1;
+export const PROGRESS_VERSION = 2;
 
 export interface Settings {
   budgetMinutes: number;
   implicitCredit: boolean;
+  /** Course id to its share of new-lesson time; a course not listed weighs 1 (`planSession`). */
+  courseWeights: Record<string, number>;
 }
 
-export const DEFAULT_SETTINGS: Readonly<Settings> = { budgetMinutes: 60, implicitCredit: true };
+export const DEFAULT_SETTINGS: Readonly<Settings> = { budgetMinutes: 60, implicitCredit: true, courseWeights: {} };
+
+/** Course weights above this are a typo, not a preference: 100 to 1 is already all of the time. */
+export const MAX_COURSE_WEIGHT = 100;
 
 export const HISTORY_KINDS = ['placement', 'lesson', 'review', 'quiz'] as const;
 export type HistoryKind = (typeof HISTORY_KINDS)[number];
@@ -31,17 +36,52 @@ export interface HistoryEntry {
   correct: boolean;
 }
 
+export const SESSION_TASK_KINDS = ['review', 'lesson', 'quiz'] as const;
+export type SessionTaskKind = (typeof SESSION_TASK_KINDS)[number];
+
+/** One task of a stored session plan, with how it went. */
+export interface SessionTask {
+  kind: SessionTaskKind;
+  /** One id for a review or lesson; the quiz items for a quiz. */
+  topicIds: string[];
+  minutes: number;
+  reason: string;
+  /** The course charged for a lesson, when the session has several courses. */
+  course?: string;
+  done: boolean;
+  /** Null until done. */
+  passed: boolean | null;
+}
+
+/**
+ * The plan for one day, kept so a reload or a second device shows the same tasks instead
+ * of a fresh plan from the changed memory.
+ */
+export interface SessionRecord {
+  /** The learner's local calendar day, YYYY-MM-DD. */
+  day: string;
+  /** ms since the epoch; the plan was made for this time. */
+  startedAt: number;
+  tasks: SessionTask[];
+}
+
 export interface Progress {
   version: typeof PROGRESS_VERSION;
+  /** The document's id: one learner, possibly several courses. */
   courseId: string;
   createdAt: number;
   updatedAt: number;
   settings: Settings;
+  /** The chosen course ids, in the order the planner breaks ties. Empty until chosen. */
+  courses: string[];
   /** Null until placement starts. */
   placement: { answers: PlacementAnswer[]; done: boolean } | null;
   memory: Record<string, MemoryState>;
   learnedSinceQuiz: string[];
   history: HistoryEntry[];
+  /** Lesson minutes charged to each course so far: `planSession`'s `courseMinutes`. */
+  courseMinutes: Record<string, number>;
+  session: SessionRecord | null;
 }
 
 export type Result<T> =
@@ -51,8 +91,17 @@ export type Result<T> =
 /** Upgrades a document from version n to n + 1. May throw; import catches it. */
 export type Migration = (doc: Record<string, unknown>) => Record<string, unknown>;
 
-/** Version n to the migration from n to n + 1. Empty while version 1 is the only one. */
-export const MIGRATIONS: Readonly<Record<number, Migration>> = {};
+/**
+ * Version n to the migration from n to n + 1.
+ * 1 to 2: several courses at once (design decision 14) added the chosen courses, course
+ * weights, minutes per course, and the stored session; a version 1 document had none.
+ */
+export const MIGRATIONS: Readonly<Record<number, Migration>> = {
+  1: (d) => {
+    const settings = isObj(d.settings) ? { ...d.settings, courseWeights: {} } : d.settings;
+    return { ...d, version: 2, settings, courses: [], courseMinutes: {}, session: null };
+  },
+};
 
 export interface ImportOptions {
   /** Topic ids in the current course. Memory for other ids is dropped with a warning (a topic was removed). */
@@ -66,9 +115,12 @@ export interface ImportOptions {
 export const MAX_IMPORT_BYTES = 20_000_000;
 
 export function newProgress(courseId: string, now: number, settings: Partial<Settings> = {}): Progress {
+  const s = withDefaults(DEFAULT_SETTINGS, settings);
   return {
     version: PROGRESS_VERSION, courseId, createdAt: now, updatedAt: now,
-    settings: withDefaults(DEFAULT_SETTINGS, settings), placement: null, memory: {}, learnedSinceQuiz: [], history: [],
+    // A copy, so documents never share the default's weights object.
+    settings: { ...s, courseWeights: { ...s.courseWeights } },
+    courses: [], placement: null, memory: {}, learnedSinceQuiz: [], history: [], courseMinutes: {}, session: null,
   };
 }
 
@@ -80,6 +132,10 @@ export function exportProgress(p: Readonly<Progress>): string {
 // Same shape as the graph's topic ids. Also rules out "__proto__" as a memory key, which
 // would otherwise set the record's prototype when copied.
 const TOPIC_ID_RE = /^[a-z][a-z0-9]*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)+$/;
+// Course ids are kebab case, like `ia-probability`; this also rules out "__proto__".
+const COURSE_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_REASON = 2000;
 
 type Obj = Record<string, unknown>;
 
@@ -133,21 +189,89 @@ function checkId(c: Checker, x: unknown, path: string): x is string {
   return c.need(typeof x === 'string' && TOPIC_ID_RE.test(x), path, 'a topic id like "prob.bayes-formula"', x);
 }
 
-function checkV1(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
-  const TOP = ['version', 'courseId', 'createdAt', 'updatedAt', 'settings', 'placement', 'memory', 'learnedSinceQuiz', 'history'];
+function checkCourseId(c: Checker, x: unknown, path: string): x is string {
+  return c.need(typeof x === 'string' && COURSE_ID_RE.test(x) && x.length <= 100, path, 'a course id like "ia-probability"', x);
+}
+
+/** A record of course id to a finite number in [0, max]; bad entries are errors. */
+function checkCourseNumbers(c: Checker, x: unknown, path: string, max: number, what: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (!c.need(isObj(x), path, 'an object', x)) return out;
+  for (const [k, v] of Object.entries(x as Obj)) {
+    const p = `${path}[${JSON.stringify(k)}]`;
+    if (!checkCourseId(c, k, `${p} key`)) continue;
+    if (c.need(isNum(v) && v >= 0 && v <= max, p, what, v)) out[k] = v as number;
+  }
+  return out;
+}
+
+function checkSession(c: Checker, x: unknown): SessionRecord | null {
+  if (x === null) return null;
+  if (!c.need(isObj(x), '$.session', 'an object or null', x)) return null;
+  const o = x as Obj;
+  c.extraKeys(o, ['day', 'startedAt', 'tasks'], '$.session');
+  c.need(typeof o.day === 'string' && DAY_RE.test(o.day), '$.session.day', 'a day like "2026-10-04"', o.day);
+  c.need(isNum(o.startedAt), '$.session.startedAt', 'a time in ms', o.startedAt);
+  const tasks: SessionTask[] = [];
+  if (c.need(Array.isArray(o.tasks), '$.session.tasks', 'an array', o.tasks)) {
+    (o.tasks as unknown[]).forEach((t, i) => {
+      const path = `$.session.tasks[${i}]`;
+      if (!c.need(isObj(t), path, 'an object', t)) return;
+      const k = t as Obj;
+      c.extraKeys(k, ['kind', 'topicIds', 'minutes', 'reason', 'course', 'done', 'passed'], path);
+      const ids = Array.isArray(k.topicIds) ? (k.topicIds as unknown[]) : null;
+      const ok = [
+        c.need((SESSION_TASK_KINDS as readonly unknown[]).includes(k.kind), `${path}.kind`, SESSION_TASK_KINDS.join(', '), k.kind),
+        c.need(ids !== null && ids.length > 0, `${path}.topicIds`, 'a non-empty array', k.topicIds)
+          && (ids as unknown[]).map((id, j) => checkId(c, id, `${path}.topicIds[${j}]`)).every(Boolean),
+        c.need(isNum(k.minutes) && k.minutes > 0 && k.minutes <= 24 * 60, `${path}.minutes`, 'minutes in (0, 1440]', k.minutes),
+        c.need(typeof k.reason === 'string' && k.reason.length <= MAX_REASON, `${path}.reason`, `text of at most ${MAX_REASON} characters`, k.reason),
+        k.course === undefined || checkCourseId(c, k.course, `${path}.course`),
+        c.need(typeof k.done === 'boolean', `${path}.done`, 'true or false', k.done),
+        c.need(k.passed === null || typeof k.passed === 'boolean', `${path}.passed`, 'true, false, or null', k.passed),
+      ].every(Boolean);
+      if (!ok) return;
+      const task: SessionTask = {
+        kind: k.kind as SessionTaskKind, topicIds: [...(ids as string[])], minutes: k.minutes as number, reason: k.reason as string,
+        done: k.done as boolean, passed: k.passed as boolean | null,
+      };
+      if (k.course !== undefined) task.course = k.course as string;
+      tasks.push(task);
+    });
+  }
+  return { day: o.day as string, startedAt: o.startedAt as number, tasks };
+}
+
+function checkV2(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
+  const TOP = [
+    'version', 'courseId', 'createdAt', 'updatedAt', 'settings', 'courses', 'placement', 'memory', 'learnedSinceQuiz', 'history',
+    'courseMinutes', 'session',
+  ];
   c.extraKeys(d, TOP, '$');
   c.need(typeof d.courseId === 'string' && d.courseId.trim() !== '' && d.courseId.length <= 200, '$.courseId', 'a non-empty string', d.courseId);
   c.need(isNum(d.createdAt), '$.createdAt', 'a time in ms', d.createdAt);
   c.need(isNum(d.updatedAt), '$.updatedAt', 'a time in ms', d.updatedAt);
 
-  let settings: Settings = { ...DEFAULT_SETTINGS };
+  let settings: Settings = { ...DEFAULT_SETTINGS, courseWeights: {} };
   if (c.need(isObj(d.settings), '$.settings', 'an object', d.settings)) {
     const s = d.settings as Obj;
-    c.extraKeys(s, ['budgetMinutes', 'implicitCredit'], '$.settings');
+    c.extraKeys(s, ['budgetMinutes', 'implicitCredit', 'courseWeights'], '$.settings');
     c.need(isNum(s.budgetMinutes) && s.budgetMinutes > 0 && s.budgetMinutes <= 24 * 60, '$.settings.budgetMinutes', 'minutes in (0, 1440]', s.budgetMinutes);
     c.need(typeof s.implicitCredit === 'boolean', '$.settings.implicitCredit', 'true or false', s.implicitCredit);
-    settings = { budgetMinutes: s.budgetMinutes as number, implicitCredit: s.implicitCredit as boolean };
+    const courseWeights = checkCourseNumbers(c, s.courseWeights, '$.settings.courseWeights', MAX_COURSE_WEIGHT, `a weight in [0, ${MAX_COURSE_WEIGHT}]`);
+    settings = { budgetMinutes: s.budgetMinutes as number, implicitCredit: s.implicitCredit as boolean, courseWeights };
   }
+
+  const courses: string[] = [];
+  if (c.need(Array.isArray(d.courses), '$.courses', 'an array', d.courses)) {
+    (d.courses as unknown[]).forEach((id, i) => {
+      if (!checkCourseId(c, id, `$.courses[${i}]`)) return;
+      if (courses.includes(id)) c.errors.push(`$.courses[${i}]: ${JSON.stringify(id)} is listed twice`);
+      else courses.push(id);
+    });
+  }
+  const courseMinutes = checkCourseNumbers(c, d.courseMinutes, '$.courseMinutes', Number.MAX_SAFE_INTEGER, 'minutes, 0 or more');
+  const session = checkSession(c, d.session);
 
   let placement: Progress['placement'] = null;
   if (d.placement !== null && c.need(isObj(d.placement), '$.placement', 'an object or null', d.placement)) {
@@ -217,7 +341,7 @@ function checkV1(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progres
   if (c.errors.length > 0) return null;
   return {
     version: PROGRESS_VERSION, courseId: d.courseId as string, createdAt: d.createdAt as number, updatedAt: d.updatedAt as number,
-    settings, placement, memory, learnedSinceQuiz, history,
+    settings, courses, placement, memory, learnedSinceQuiz, history, courseMinutes, session,
   };
 }
 
@@ -262,7 +386,7 @@ export function importProgress(input: unknown, options: ImportOptions = {}): Res
 
     const c = new Checker();
     const known = options.knownTopicIds === undefined ? null : new Set(options.knownTopicIds);
-    const p = checkV1(c, d, known);
+    const p = checkV2(c, d, known);
     return p === null ? { ok: false, errors: c.errors } : { ok: true, value: p, warnings: c.warnings };
   } catch (e) {
     // Validation is written not to throw; this is the backstop the contract promises.

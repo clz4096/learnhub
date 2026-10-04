@@ -1,6 +1,6 @@
 /** Area `sets`. Set notation, then countable unions for the countable additivity axiom, and set-builder notation for CST Discrete Mathematics. */
 import type { Topic } from '@learnhub/mastery';
-import { CST, CST_DM, CST_NUMBERS, GCSE, GCSE_PROB, TRIPOS } from '../sources';
+import { CST, CST_DM, CST_NUMBERS, GCSE, GCSE_PROB, STEP, STEP_SET_NOTATION, TRIPOS } from '../sources';
 
 export const sets: Topic[] = [
   {
@@ -29,11 +29,20 @@ export const sets: Topic[] = [
     id: 'sets.comprehension',
     title: 'Membership and set-builder notation',
     summary: 'Read and write sets as {x in A | P(x)}, and decide membership from the defining property.',
-    level: 'tripos-ia',
+    level: 'a-level',
     area: 'sets',
     prereqs: ['pre.set-notation'],
     encompasses: { 'pre.set-notation': 0.4 },
-    sources: [{ doc: CST, course: CST_DM, section: CST_NUMBERS, note: 'Syllabus: "Sets: membership and comprehension".', verified: true }],
+    sources: [
+      {
+        doc: STEP,
+        course: 'STEP Mathematics 2',
+        section: STEP_SET_NOTATION,
+        note: 'Page 32. The table defines membership (is an element of) and writes sets in set-builder form: Q as {p/q : p in Z, q in N} and [a, b] as {x in R : a <= x <= b}. The Papers column reads "2, 3" with no bullet, so the notation is in the A level guidance, not a STEP addition.',
+        verified: true,
+      },
+      { doc: CST, course: CST_DM, section: CST_NUMBERS, note: 'Syllabus: "Sets: membership and comprehension".', verified: true },
+    ],
     estMinutes: 15,
   },
 ];

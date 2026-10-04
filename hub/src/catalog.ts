@@ -1,6 +1,6 @@
 // The shape of site/catalog.json (written by scripts/assemble.mjs) and plain-language labels.
 
-export type Level = 'visualizer' | 'simulator' | 'simulator-with-real-check' | 'build-the-model-lab' | 'research-instrument';
+export type Level = 'visualizer' | 'simulator' | 'simulator-with-real-check' | 'build-the-model-lab' | 'research-instrument' | 'course';
 export type Status = 'ready' | 'beta' | 'planned';
 
 export interface Material {
@@ -33,6 +33,7 @@ const LEVEL_LABELS: Record<Level, string> = {
   'simulator-with-real-check': 'Simulator, checked on real hardware',
   'build-the-model-lab': 'Lab: build the model yourself',
   'research-instrument': 'Research instrument',
+  course: 'Course: lessons, practice, and review',
 };
 
 const TRACK_LABELS: Record<string, string> = {

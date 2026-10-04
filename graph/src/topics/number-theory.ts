@@ -137,7 +137,7 @@ export const numberTheory: Topic[] = [
       doc: CST,
       course: CST_DM,
       section: CST_NUMBERS,
-      note: 'Syllabus: "Euclid\'s Algorithm and Theorem". The page does not state the theorem; this is the usual statement under that name, to check against the 2026-27 notes.',
+      note: 'Syllabus: "Euclid\'s Algorithm and Theorem". The page does not state the theorem. The official 2023-24 exercise solutions (Discrete Mathematics Exercises 3, M. Fiore, https://www.cl.cam.ac.uk/teaching/2324/DiscMath/solutions/DiscMaths3_Sols.pdf) use "Euclid\'s Theorem" in the coprime form (from m/g dividing (n/g)(i - j) with gcd(m/g, n/g) = 1, conclude m/g divides i - j) and in the prime form (p divides (n - 1)(n + 1), so p divides one factor). That matches this statement, with the prime case as a corollary.',
       verified: true,
     }],
     estMinutes: 20,

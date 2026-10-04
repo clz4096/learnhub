@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { DAY_MS, newMemory } from './memory';
 import {
-  MemoryStorage, PROGRESS_VERSION, exportProgress, importProgress, loadProgress, newProgress, saveProgress,
+  MIGRATIONS, MemoryStorage, PROGRESS_VERSION, exportProgress, importProgress, loadProgress, newProgress, saveProgress,
   type Progress, type ProgressStorage,
 } from './progress';
 
@@ -16,7 +16,30 @@ function sample(): Progress {
     { at: NOW, kind: 'placement', topicId: 'pre.fractions', correct: true },
     { at: NOW + DAY_MS, kind: 'review', topicId: 'pre.indices', correct: false },
   ];
+  p.courses = ['ia-probability', 'cst-discrete-maths'];
+  p.settings.courseWeights = { 'cst-discrete-maths': 2 };
+  p.courseMinutes = { 'ia-probability': 30, 'cst-discrete-maths': 15 };
+  p.session = {
+    day: '2026-10-05',
+    startedAt: NOW + DAY_MS,
+    tasks: [
+      { kind: 'review', topicIds: ['pre.indices'], minutes: 3, reason: 'Review: due today.', done: true, passed: false },
+      { kind: 'lesson', topicIds: ['pre.sequences'], minutes: 15, reason: 'New topic.', course: 'ia-probability', done: false, passed: null },
+      { kind: 'quiz', topicIds: ['pre.fractions', 'pre.indices'], minutes: 4, reason: 'Quiz.', done: false, passed: null },
+    ],
+  };
   return p;
+}
+
+/** The sample as a version 1 document: no courses, weights, minutes, or session. */
+function sampleV1(): Record<string, any> {
+  const d = JSON.parse(exportProgress(sample()));
+  d.version = 1;
+  delete d.courses;
+  delete d.courseMinutes;
+  delete d.session;
+  delete d.settings.courseWeights;
+  return d;
 }
 
 /** The parsed export with one change applied, for malformed-input cases. */
@@ -46,8 +69,17 @@ describe('export and import', () => {
   it('a new document has the current version and default settings', () => {
     const p = newProgress('probstats', NOW);
     expect(p.version).toBe(PROGRESS_VERSION);
-    expect(p.settings).toEqual({ budgetMinutes: 60, implicitCredit: true });
+    expect(p.settings).toEqual({ budgetMinutes: 60, implicitCredit: true, courseWeights: {} });
+    expect(p.courses).toEqual([]);
+    expect(p.courseMinutes).toEqual({});
+    expect(p.session).toBeNull();
     expect(importProgress(exportProgress(p)).ok).toBe(true);
+  });
+
+  it('new documents never share the default weights object', () => {
+    const a = newProgress('a', NOW);
+    a.settings.courseWeights['x-y'] = 3;
+    expect(newProgress('b', NOW).settings.courseWeights).toEqual({});
   });
 
   it('exports readable, newline-terminated JSON', () => {
@@ -66,7 +98,7 @@ describe('malformed input never throws and says what is wrong', () => {
     ['an array', '[]', /got an array/],
     ['undefined', undefined, /got undefined/],
     ['no version', mutate((d) => { delete d.version; }), /\$\.version: expected a version number/],
-    ['string version', mutate((d) => { d.version = '1'; }), /\$\.version: expected a version number, got "1"/],
+    ['string version', mutate((d) => { d.version = '2'; }), /\$\.version: expected a version number, got "2"/],
     ['newer version', mutate((d) => { d.version = 99; }), /newer build/],
     ['version 0 with no migration', mutate((d) => { d.version = 0; }), /no migration from version 0/],
     ['negative reps', mutate((d) => { d.memory['pre.fractions'].reps = -1; }), /\$\.memory\["pre\.fractions"\]\.reps: expected a non-negative integer, got -1/],
@@ -86,6 +118,17 @@ describe('malformed input never throws and says what is wrong', () => {
     ['placement answer without time', mutate((d) => { delete d.placement.answers[0].at; }), /\$\.placement\.answers\[0\]\.at/],
     ['placement as string', mutate((d) => { d.placement = 'done'; }), /\$\.placement: expected an object or null/],
     ['learnedSinceQuiz entry not an id', mutate((d) => { d.learnedSinceQuiz = [3]; }), /learnedSinceQuiz\[0\]/],
+    ['courses not an array', mutate((d) => { d.courses = 'ia-probability'; }), /\$\.courses: expected an array/],
+    ['course id with spaces', mutate((d) => { d.courses = ['IA Probability']; }), /\$\.courses\[0\]: expected a course id/],
+    ['course listed twice', mutate((d) => { d.courses = ['a', 'a']; }), /\$\.courses\[1\]: "a" is listed twice/],
+    ['negative weight', mutate((d) => { d.settings.courseWeights = { a: -1 }; }), /courseWeights\["a"\]: expected a weight in \[0, 100\]/],
+    ['weight key __proto__', '{"version":2,"courseId":"c","createdAt":0,"updatedAt":0,"settings":{"budgetMinutes":60,"implicitCredit":true,"courseWeights":{"__proto__":1}},"courses":[],"placement":null,"memory":{},"learnedSinceQuiz":[],"history":[],"courseMinutes":{},"session":null}', /__proto__/],
+    ['minutes as string', mutate((d) => { d.courseMinutes = { a: '30' }; }), /\$\.courseMinutes\["a"\]: expected minutes/],
+    ['session as string', mutate((d) => { d.session = 'today'; }), /\$\.session: expected an object or null/],
+    ['session day not a date', mutate((d) => { d.session.day = 'Monday'; }), /\$\.session\.day/],
+    ['session task with no topics', mutate((d) => { d.session.tasks[0].topicIds = []; }), /\$\.session\.tasks\[0\]\.topicIds: expected a non-empty array/],
+    ['session task of unknown kind', mutate((d) => { d.session.tasks[0].kind = 'nap'; }), /\$\.session\.tasks\[0\]\.kind/],
+    ['session task passed as string', mutate((d) => { d.session.tasks[1].passed = 'yes'; }), /\$\.session\.tasks\[1\]\.passed/],
   ];
   for (const [name, input, re] of cases) {
     it(name, () => {
@@ -143,17 +186,27 @@ describe('warnings for recoverable input', () => {
 });
 
 describe('migrations', () => {
-  // Version 1 is the first version, so the shipped table is empty. These exercise the
-  // migration path with a test-only version 0 that lacked settings.
+  // A test-only version 0 that lacked settings, chained onto the shipped migrations.
   const migrations = {
+    ...MIGRATIONS,
     0: (d: Record<string, unknown>) => ({ ...d, version: 1, settings: { budgetMinutes: 60, implicitCredit: true } }),
   };
 
-  it('migrates an older document forward and validates the result', () => {
-    const v0 = mutate((d) => { d.version = 0; delete d.settings; });
+  it('migrates version 1 to 2 with no courses, even weights, no minutes, and no session', () => {
+    const r = importProgress(JSON.stringify(sampleV1()));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.warnings).toEqual([]);
+    expect(r.value).toEqual({ ...sample(), courses: [], courseMinutes: {}, session: null, settings: { ...sample().settings, courseWeights: {} } });
+  });
+
+  it('migrates through every version in turn and validates the result', () => {
+    const v0 = sampleV1();
+    v0.version = 0;
+    delete v0.settings;
     const r = importProgress(v0, { migrations });
     expect(r.ok).toBe(true);
-    if (r.ok) expect(r.value).toEqual(sample());
+    if (r.ok) expect(r.value.settings).toEqual({ budgetMinutes: 60, implicitCredit: true, courseWeights: {} });
   });
 
   it('reports a migration that throws', () => {
@@ -182,7 +235,7 @@ describe('storage', () => {
 
   it('load reports corrupt stored data instead of throwing', async () => {
     const s = new MemoryStorage();
-    await s.put('probstats', '{"version":1,');
+    await s.put('probstats', '{"version":2,');
     const r = await loadProgress(s, 'probstats');
     expect(r.ok).toBe(false);
   });

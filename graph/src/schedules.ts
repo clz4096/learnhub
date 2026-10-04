@@ -42,7 +42,7 @@ export const CST_DISCRETE_MATHS_SLICE: readonly ScheduleSection[] = [
       { text: 'existential quantification', topics: ['logic.quantifiers', 'logic.nested-quantifiers'] },
       { text: 'disjunction', topics: ['logic.connectives', 'proof.cases'] },
       { text: 'negation', topics: ['logic.connectives', 'logic.negating-quantifiers'] },
-      { text: 'Logical deduction: proof strategies and patterns', topics: ['proof.direct', 'proof.cases', 'proof.contrapositive', 'proof.quantifier-patterns'] },
+      { text: 'Logical deduction: proof strategies and patterns', topics: ['proof.direct', 'proof.cases', 'proof.counterexample', 'proof.contrapositive', 'proof.quantifier-patterns'] },
       { text: 'scratch work', topics: ['proof.direct'] },
       { text: 'logical equivalences', topics: ['logic.equivalences', 'proof.contrapositive'] },
       { text: 'Proof by contradiction', topics: ['proof.contradiction'] },

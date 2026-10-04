@@ -28,7 +28,7 @@ export type Classification = 'known' | 'unknown' | 'unclassified';
 export type PlacementStrategy = 'split' | 'entry-points';
 
 export interface PlacementOptions {
-  /** Questions before placement stops. */
+  /** Questions before placement stops. Default `placementBudget` of the closure size. */
   budget: number;
   strategy: PlacementStrategy;
 }
@@ -50,6 +50,23 @@ export const DEFAULT_ENTRY_LEVEL: Level = 'step';
  * starting at the entry points (see `bestSplit` and placement.test.ts).
  */
 export const DEFAULT_PLACEMENT_OPTIONS: Readonly<PlacementOptions> = { budget: 30, strategy: 'split' };
+
+/**
+ * The default budget for a closure of `closureSize` topics: one question per two topics,
+ * and never fewer than the 30 measured on the probstats slice (60 topics), so a single
+ * course of that size keeps 30.
+ *
+ * A fixed 30 placed only 45% of truthful simulated learners exactly over both courses at
+ * once (98 topics, owner decision on CST review call 12). Measured on 1,000 truthful
+ * learners, split strategy: the 98-topic union needs 40 for 100% exact (38 gives 97.5%),
+ * so ceil(98 / 2) = 49 leaves 9 questions of margin. Discrete Mathematics alone (51
+ * topics) needs 20 and gets 30. The budget is only a cap: a truthful learner stops as
+ * soon as every topic is classified (32.7 questions on average over both courses), so
+ * the margin costs a learner nothing unless their answers contradict each other.
+ */
+export function placementBudget(closureSize: number): number {
+  return Math.max(DEFAULT_PLACEMENT_OPTIONS.budget, Math.ceil(closureSize / 2));
+}
 
 /** Precomputed ancestor and descendant sets over the course closure; placement asks for them on every step. */
 export interface PlacementGraph {
@@ -162,7 +179,7 @@ export function nextProbe(
   answers: readonly PlacementAnswer[],
   options?: Partial<PlacementOptions>,
 ): string | null {
-  const opts = withDefaults(DEFAULT_PLACEMENT_OPTIONS, options);
+  const opts = withDefaults({ ...DEFAULT_PLACEMENT_OPTIONS, budget: placementBudget(g.order.length) }, options);
   if (answers.length >= opts.budget) return null;
   const c = classify(g, answers);
   const open = (id: string): boolean => c.get(id) === 'unclassified';

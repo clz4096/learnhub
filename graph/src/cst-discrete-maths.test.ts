@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  DEFAULT_PLACEMENT_OPTIONS, LEVELS, measurePlacement, placementGraph, runPlacement, type PlacementStrategy, type Topic,
+  DEFAULT_PLACEMENT_OPTIONS, LEVELS, measurePlacement, placementBudget, placementGraph, runPlacement, type PlacementStrategy, type Topic,
 } from '@learnhub/mastery';
 import { courseById, courseTargets, coursesClosure } from './courses';
 import { CST_DISCRETE_MATHS_SLICE } from './schedules';
@@ -105,7 +105,7 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
     const pg = placementGraph(topics, { targets: courseTargets(topics, dm) });
     const low = new Set(pg.topics.filter((t) => LEVELS.indexOf(t.level) <= LEVELS.indexOf('step')).map((t) => t.id));
     expect(new Set(pg.entries.flatMap((id) => [id, ...(pg.anc.get(id) ?? [])]))).toEqual(low);
-    expect(low.size).toBe(26);
+    expect(low.size).toBe(27);
     expect(pg.entries).toHaveLength(9);
   });
 
@@ -125,16 +125,24 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
     }
   }
 
-  // Measured: 100% exact at 40 questions, 47% at the default 30. The shortfall at 30 is
-  // all under-placement, so the default budget is safe but leaves known topics to learn.
-  it('split places every truthful random learner exactly within 40 questions', () => {
-    const m = measurePlacement(topics, { learners: 500, errorRate: 0, budget: 40, strategy: 'split', seed: 1, targets });
+  // Measured (review call 12): 100% exact at 40 questions, 45% at a fixed 30. The default
+  // budget scales with the closure, ceil(98 / 2) = 49 here, so it places everyone exactly.
+  it('the default budget for both courses is 49', () => {
+    expect(placementBudget(g.order.length)).toBe(49);
+  });
+
+  it('split places every truthful random learner exactly within the default budget, using at most 40 questions', () => {
+    const m = measurePlacement(topics, { learners: 500, errorRate: 0, budget: placementBudget(g.order.length), strategy: 'split', seed: 1, targets });
     expect(m.exact).toBe(1);
     expect(m.maxQuestions).toBeLessThanOrEqual(40);
   });
 
-  it('at the default budget it never over-places', () => {
+  it('even at the old fixed 30 it never over-places', () => {
     const m = measurePlacement(topics, { learners: 500, errorRate: 0, budget: DEFAULT_PLACEMENT_OPTIONS.budget, strategy: 'split', seed: 1, targets });
     expect(m.meanOverPlaced).toBe(0);
+  });
+
+  it('keeps 30 for one course of the probstats size or smaller', () => {
+    for (const c of [ia, dm]) expect(placementBudget(placementGraph(topics, { targets: courseTargets(topics, c) }).order.length)).toBe(30);
   });
 });

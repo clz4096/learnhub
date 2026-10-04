@@ -66,7 +66,7 @@ Each tool declares itself in `sims/<id>/sim.json`. The hub reads only these file
 }
 ```
 
-`level` uses the ladder from our discussion: `visualizer`, `simulator`, `simulator-with-real-check`, `build-the-model-lab`, `research-instrument`. `status` is `ready`, `beta`, or `planned` (planned tools show on the catalog as coming soon, which doubles as the roadmap).
+`level` uses the ladder from our discussion: `visualizer`, `simulator`, `simulator-with-real-check`, `build-the-model-lab`, `research-instrument`, plus `course` for the mastery courses (`mastery/DESIGN.md`). `status` is `ready`, `beta`, or `planned`. Only ready tools are listed (decision 4). Beta tools are built and served at `sims/<id>/` but not listed, so the owner can try them before calling them ready (2026-10-04).
 
 ## Build and deploy
 

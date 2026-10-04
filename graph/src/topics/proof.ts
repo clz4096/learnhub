@@ -62,13 +62,16 @@ export const proof: Topic[] = [
     area: 'proof',
     prereqs: ['proof.direct'],
     encompasses: { 'proof.direct': 0.3, 'pre.algebraic-argument': 0.3 },
-    sources: [{
-      doc: STEP,
-      course: 'STEP Mathematics 1',
-      section: M1_PROOF,
-      note: 'Spec: "Disproof by counter-example." The CST syllabus does not name it; its objectives ask students to "prove and disprove mathematical statements".',
-      verified: true,
-    }],
+    sources: [
+      { doc: STEP, course: 'STEP Mathematics 1', section: M1_PROOF, note: 'Spec: "Disproof by counter-example."', verified: true },
+      {
+        doc: CST,
+        course: CST_DM,
+        section: CST_PROOF,
+        note: 'Syllabus: "Logical deduction: proof strategies and patterns". A counterexample is the pattern for disproving a for all statement; the objectives ask students to "prove and disprove mathematical statements".',
+        verified: true,
+      },
+    ],
     estMinutes: 10,
   },
   {

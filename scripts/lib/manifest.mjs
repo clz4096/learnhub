@@ -4,7 +4,8 @@ import path from 'node:path';
 
 export const REPO_URL = 'https://github.com/clz4096/learnhub';
 
-export const LEVELS = ['visualizer', 'simulator', 'simulator-with-real-check', 'build-the-model-lab', 'research-instrument'];
+// `course` is a mastery course (mastery/DESIGN.md): lessons, practice, and spaced review over a knowledge graph.
+export const LEVELS = ['visualizer', 'simulator', 'simulator-with-real-check', 'build-the-model-lab', 'research-instrument', 'course'];
 export const STATUSES = ['ready', 'beta', 'planned'];
 
 const FIELDS = ['id', 'title', 'summary', 'tracks', 'level', 'minutes', 'lessons', 'build', 'out', 'materials', 'status'];

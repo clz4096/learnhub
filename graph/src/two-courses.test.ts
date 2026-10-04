@@ -2,7 +2,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import {
-  DEFAULT_SCHEDULER_OPTIONS, measurePlacement, simulate, type CourseShare, type PlacementMeasure, type SimResult,
+  DEFAULT_SCHEDULER_OPTIONS, measurePlacement, placementBudget, placementGraph, simulate, type CourseShare, type PlacementMeasure, type SimResult,
 } from '@learnhub/mastery';
 import { courseById, courseTargets, coursesClosure } from './courses';
 import { topics } from './topics';
@@ -55,7 +55,8 @@ describe('two courses at an even split (simulation)', { timeout: 120_000 }, () =
 
   it('SIMULATION-two-courses.md is regenerated from these runs (checked, not written, under CI)', () => {
     const targets = courses.flatMap((c) => [...c.targets]);
-    const placement = [30, 40].map((budget) => measurePlacement(topics, { learners: 1000, errorRate: 0, budget, strategy: 'split', seed: 1, targets }));
+    const scaled = placementBudget(placementGraph(topics, { targets }).order.length);
+    const placement = [30, 40, scaled].map((budget) => measurePlacement(topics, { learners: 1000, errorRate: 0, budget, strategy: 'split', seed: 1, targets }));
     const md = render(runs, beforeFirst, placement);
     expect(md).not.toMatch(/[\u2013\u2014]/);
     const path = new URL('../SIMULATION-two-courses.md', import.meta.url);
@@ -102,7 +103,7 @@ function render(rs: readonly SimResult[], early: readonly SimResult[], placement
   p();
   p('## Placement over both courses');
   p();
-  p('Truthful random learners (the `SIMULATION.md` model), split strategy. Unclassified topics at the budget count as not known.');
+  p(`Truthful random learners (the \`SIMULATION.md\` model), split strategy. Unclassified topics at the budget count as not known. The last row is the default budget, \`placementBudget\` of the ${topics.length}-topic union: max(30, ceil(${topics.length} / 2)).`);
   p();
   p('| budget | learners | placed exactly | mean over-placed | mean under-placed | mean questions | max questions |');
   p('|---|---|---|---|---|---|---|');

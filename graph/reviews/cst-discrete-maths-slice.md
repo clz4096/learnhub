@@ -1,6 +1,6 @@
 # CST Discrete Mathematics slice graph: review
 
-Dated 2026-10-04. Status: review gate for the second course (design decision 14). Topic list and edges only; no lessons, problems, or UI. Built on the shared graph (decision 10) and from scratch (decision 11).
+Dated 2026-10-04. Status: approved by the owner on 2026-10-04, with the changes listed under "Decisions" applied (design decision 14). Topic list and edges only; no lessons, problems, or UI. Built on the shared graph (decision 10) and from scratch (decision 11).
 
 ## What the slice covers
 
@@ -11,9 +11,9 @@ The data lives in `graph/src/topics/` (new areas `logic.ts`, `proof.ts`, `number
 | level | new topics | minutes | hours | in the course closure | minutes | hours |
 |---|---|---|---|---|---|---|
 | pre-a-level | 5 | 70 | 1.2 | 11 | 165 | 2.8 |
-| a-level | 7 | 115 | 1.9 | 12 | 200 | 3.3 |
+| a-level | 8 | 130 | 2.2 | 13 | 215 | 3.6 |
 | step | 1 | 15 | 0.3 | 3 | 55 | 0.9 |
-| tripos-ia | 25 | 455 | 7.6 | 25 | 455 | 7.6 |
+| tripos-ia | 24 | 440 | 7.3 | 24 | 440 | 7.3 |
 | **total** | **38** | **655** | **10.9** | **51** | **875** | **14.6** |
 
 The closure is the 38 new topics plus 13 reused from the probability slice (220 minutes). The minutes are first-learning time only. The shared graph now has 98 topics; the two courses' closures cover all of them, with 13 in both.
@@ -23,7 +23,7 @@ The closure is the 38 new topics plus 13 reused from the probability slice (220 
 | `doc` | document |
 |---|---|
 | `cst-courses-2026-27` | [Course pages 2026-27](https://www.cl.cam.ac.uk/teaching/2627/), Department of Computer Science and Technology. This slice cites the [Discrete Mathematics page](https://www.cl.cam.ac.uk/teaching/2627/DiscMath/) (principal lecturer Dr Jon Sterling, Part IA CST, 24 hours), course `CST IA Discrete Mathematics`, sections `Proof` and `Numbers` as printed (without "[5 lectures]"). Read 2026-10-04. |
-| `step-spec-2026` | STEP specification, version 1.3, OCR, re-fetched 2026-10-04. Cited for Mathematics 1, Section A: Pure Mathematics, headings "Proof" and "Algebra and functions". |
+| `step-spec-2026` | STEP specification, version 1.3, OCR, re-fetched 2026-10-04. Cited for Mathematics 1, Section A: Pure Mathematics, headings "Proof" and "Algebra and functions", and for the notation list (chapter "Notation and Required Formulae", heading "Notation", table "Set notation", page 32). |
 | `dfe-gcse-maths-2013` | GCSE subject content, DfE. Cited for "Number: Structure and calculation" items 2 and 4, and "Algebra: Notation, vocabulary and manipulation" item 6. |
 
 ### Levels
@@ -40,7 +40,7 @@ Prerequisites are direct edges only; the validator reports no redundant edge. "C
 | 2 | `pre.prime-factorisation` | Prime factorisation | pre-a-level | `pre.primes-and-factors`, `pre.indices` | GCSE: Number: Structure and calculation | 15 |
 | 3 | `pre.hcf-lcm` | Highest common factor and lowest common multiple | pre-a-level | `pre.prime-factorisation` | GCSE: Number: Structure and calculation | 15 |
 | 4 | `pre.remainders` | Quotient and remainder | pre-a-level | `pre.primes-and-factors` | GCSE: Number: Structure and calculation | 10 |
-| 5 | `sets.comprehension` | Membership and set-builder notation | tripos-ia | `pre.set-notation` | CST: Discrete Mathematics, Numbers | 15 |
+| 5 | `sets.comprehension` | Membership and set-builder notation | a-level | `pre.set-notation` | STEP spec: Notation and Required Formulae, Notation, Set notation; CST: Discrete Mathematics, Numbers | 15 |
 | 6 | `comb.binomial-theorem-proof` | Proving the binomial theorem by induction | tripos-ia | `comb.binomial-theorem`, `comb.binomial-identities`, `alg.proof-by-induction` | CST: Discrete Mathematics, Numbers | 20 |
 | 7 | `logic.connectives` | And, or, and not | a-level | none (root) | STEP spec: M1 Pure: Algebra and functions; CST: Discrete Mathematics, Proof | 15 |
 | 8 | `logic.implication` | Implication | a-level | `logic.connectives` | STEP spec: M1 Pure: Proof; CST: Discrete Mathematics, Proof | 15 |
@@ -52,7 +52,7 @@ Prerequisites are direct edges only; the validator reports no redundant edge. "C
 | 14 | `pre.algebraic-argument` | Algebraic arguments about integers | pre-a-level | `pre.algebraic-manipulation`, `pre.primes-and-factors` | GCSE: Algebra: Notation, vocabulary and manipulation | 15 |
 | 15 | `proof.direct` | Direct proof | a-level | `logic.implication`, `pre.algebraic-argument` | STEP spec: M1 Pure: Proof; CST: Discrete Mathematics, Proof | 20 |
 | 16 | `proof.cases` | Proof by cases | a-level | `proof.direct` | STEP spec: M1 Pure: Proof; CST: Discrete Mathematics, Proof | 15 |
-| 17 | `proof.counterexample` | Disproof by counterexample | a-level | `proof.direct` | STEP spec: M1 Pure: Proof | 10 |
+| 17 | `proof.counterexample` | Disproof by counterexample | a-level | `proof.direct` | STEP spec: M1 Pure: Proof; CST: Discrete Mathematics, Proof | 10 |
 | 18 | `proof.contradiction` | Proof by contradiction | a-level | `proof.direct` | STEP spec: M1 Pure: Proof; CST: Discrete Mathematics, Proof | 20 |
 | 19 | `proof.infinitely-many-primes` | There are infinitely many primes | a-level | `proof.contradiction`, `pre.prime-factorisation`, `pre.remainders` | STEP spec: M1 Pure: Proof; CST: Discrete Mathematics, Numbers | 20 |
 | 20 | `proof.contrapositive` | Proof by contrapositive | tripos-ia | `logic.equivalences`, `proof.direct` | CST: Discrete Mathematics, Proof | 15 |
@@ -103,7 +103,7 @@ Every phrase of the two sections maps to at least one topic citing that section,
 | Proof | conjunction | `logic.connectives` |
 | Proof | disjunction | `logic.connectives`, `proof.cases` |
 | Proof | negation | `logic.connectives`, `logic.negating-quantifiers` |
-| Proof | Logical deduction: proof strategies and patterns | `proof.direct`, `proof.cases`, `proof.contrapositive`, `proof.quantifier-patterns` |
+| Proof | Logical deduction: proof strategies and patterns | `proof.direct`, `proof.cases`, `proof.counterexample`, `proof.contrapositive`, `proof.quantifier-patterns` |
 | Proof | scratch work | `proof.direct` |
 | Proof | logical equivalences | `logic.equivalences`, `proof.contrapositive` |
 | Proof | Proof by contradiction | `proof.contradiction` |
@@ -347,7 +347,7 @@ graph TD
   pre_prime_factorisation["Prime factorisation"]:::prealevel
   pre_hcf_lcm["Highest common factor and lowest common multiple"]:::prealevel
   pre_remainders["Quotient and remainder"]:::prealevel
-  sets_comprehension["Membership and set-builder notation"]:::triposia
+  sets_comprehension["Membership and set-builder notation"]:::alevel
   comb_binomial_theorem_proof["Proving the binomial theorem by induction"]:::triposia
   pre_indices(["Laws of indices"]):::ext
   pre_set_notation(["Sets and Venn diagrams"]):::ext
@@ -371,7 +371,7 @@ graph TD
 
 ## Placement test entry points
 
-For Discrete Mathematics alone, the entry points (highest topics at or below STEP on each branch) are 9 topics covering all 26 pre-A-level, A-level, and STEP topics of its closure:
+For Discrete Mathematics alone, the entry points (highest topics at or below STEP on each branch) are 9 topics covering all 27 pre-A-level, A-level, and STEP topics of its closure:
 
 | probe | level | topics credited if correct |
 |---|---|---|
@@ -383,12 +383,12 @@ For Discrete Mathematics alone, the entry points (highest topics at or below STE
 | `alg.proof-by-induction` | step | 5 |
 | `pre.hcf-lcm` | pre-a-level | 4 |
 | `logic.iff` | step | 3 |
-| `pre.set-notation` | pre-a-level | 1 |
+| `sets.comprehension` | a-level | 2 |
 
 Implications:
 
-- **The STEP layer is thin.** Only 3 of the 51 topics are at STEP level, so placement moves from A-level proof methods almost straight into the Tripos. The Tripos topics whose prerequisites are all at or below STEP are `sets.comprehension`, `logic.equivalences`, and `comb.binomial-theorem-proof`: the first Tripos questions after a learner passes the entry points.
-- **Both courses at once need a bigger budget.** Over the union (98 topics), the default 30 questions place 45.2% of truthful simulated learners exactly and 40 questions place 100% (`SIMULATION-two-courses.md`). The shortfall at 30 is all under-placement, never over-placement, so the default is safe but leaves known topics to relearn. See question 12.
+- **The STEP layer is thin.** Only 3 of the 51 topics are at STEP level, so placement moves from A-level proof methods almost straight into the Tripos. The Tripos topics whose prerequisites are all at or below STEP are `logic.equivalences`, `logic.quantifiers`, `num.number-systems`, and `comb.binomial-theorem-proof`: the first Tripos questions after a learner passes the entry points.
+- **Both courses at once need a bigger budget.** Over the union (98 topics), a fixed 30 questions places 44.9% of truthful simulated learners exactly and 40 questions place 100% (`SIMULATION-two-courses.md`). The shortfall at 30 is all under-placement, never over-placement. Resolved by call 12: the default budget now scales with the closure and is 49 here.
 - **Truthful learners place exactly.** Learners who know nothing, everything, everything through STEP, or only the probability slice are placed exactly within 40 questions (split) or 45 (entry points); tests in `cst-discrete-maths.test.ts`.
 
 ## Two courses at once (simulation)
@@ -429,17 +429,28 @@ None. The whole shared graph (98 topics) validates with zero errors and zero war
 
 None. Every `section` was read on its page or in its PDF. Caveats that are not about section names:
 
-1. **Euclid's Theorem.** The syllabus says "Euclid's Algorithm and Theorem" without stating the theorem. `num.euclid-theorem` takes the usual statement under that name (if k divides mn and gcd(k, m) = 1 then k divides n). Check it against the 2026-27 notes.
+1. **Euclid's Theorem.** Resolved (call 4). The syllabus says "Euclid's Algorithm and Theorem" without stating the theorem. The official 2023-24 exercise solutions (Discrete Mathematics Exercises 3, M. Fiore, [PDF](https://www.cl.cam.ac.uk/teaching/2324/DiscMath/solutions/DiscMaths3_Sols.pdf)) use it in the coprime form and the prime form, which matches `num.euclid-theorem`.
 2. **Remainders at GCSE.** GCSE item 2 covers integer division but does not name the remainder; `pre.remainders` says so in its note.
 3. **Natural numbers.** STEP's notation list starts N at 1. Many CS courses start it at 0; the course page does not say. `num.number-systems` flags it.
-4. **Topics the syllabus implies but does not name:** `proof.strong-induction`, `num.modular-exponentiation`, `num.prime-binomial`, and `proof.counterexample` (STEP only). Each note says so.
+4. **Topics the syllabus implies but does not name:** `proof.strong-induction`, `num.modular-exponentiation`, and `num.prime-binomial`. Each note says so. `proof.counterexample` now cites "proof strategies and patterns" (call 8).
 
-## Judgement calls
+## Decisions (owner, 2026-10-04)
+
+All 14 calls approved as recommended, with four changes:
+
+- **Call 3:** `sets.comprehension` moved to A level. It now cites the STEP specification's notation list, chapter "Notation and Required Formulae", heading "Notation", table "Set notation" (page 32), as course `STEP Mathematics 2`. Read in the PDF on 2026-10-04: the table defines membership ("is an element of") and writes sets in set-builder form (Q as {p/q : p in Z, q in N}, and the intervals as {x in R : a <= x <= b}). Its Papers column reads "2, 3" with no bullet, so the notation is in the A level guidance, not a STEP addition. The CST citation stays. Effects: the Discrete Mathematics closure has 27 topics at or below STEP (was 26); `sets.comprehension` replaces `pre.set-notation` as the ninth entry point; the probability closure is unchanged.
+- **Call 8:** `proof.counterexample` now also cites CST Discrete Mathematics, section `Proof`, mapped to the syllabus phrase "Logical deduction: proof strategies and patterns" in `graph/src/schedules.ts`. It is now a course target, not only an ancestor. The closure is unchanged (51 topics).
+- **Call 12:** the placement budget scales with the closure: `placementBudget(n) = max(30, ceil(n / 2))` in `packages/mastery/src/placement.ts`, used by `nextProbe` when no budget is given. One course of the probstats size (60) or smaller keeps 30, and Discrete Mathematics alone (51) gets 30. Both courses (98) get 49. Measured on 1,000 truthful simulated learners, split strategy, seed 1: 44.9% exact at 30, 97.5% at 38, 100% at 40 and at 49, with at most 40 questions asked and 32.7 on average (`SIMULATION-two-courses.md`). Each course alone is placed 100% exactly at 30 (IA Probability needs 28, Discrete Mathematics 20). Tests: `packages/mastery/src/placement.test.ts` and `graph/src/cst-discrete-maths.test.ts`.
+- **Call 4:** resolved. The official 2023-24 exercise solutions (Discrete Mathematics Exercises 3, M. Fiore, [PDF](https://www.cl.cam.ac.uk/teaching/2324/DiscMath/solutions/DiscMaths3_Sols.pdf)) use "Euclid's Theorem" in the coprime form (from m/g dividing (n/g)(i - j) with gcd(m/g, n/g) = 1, conclude m/g divides i - j) and in the prime form (p divides (n - 1)(n + 1), so p divides one factor). The assumed statement (if k divides mn and gcd(k, m) = 1 then k divides n, with the prime case as a corollary) matches. Recorded in the topic's note, with the link; the source stays verified.
+
+After these changes the shared graph (98 topics) validates with zero errors and zero warnings. `SIMULATION.md` is unchanged. `SIMULATION-two-courses.md` was regenerated by running `npm test` in `graph` (outside CI the test rewrites it; under `CI=1` it checks it): the placement table gained the 49 row, and the 30 row moved from 45.2% to 44.9% because the A level move changed the placement graph. The day counts did not change.
+
+## Judgement calls (as raised before approval)
 
 1. **Granularity.** 25 Tripos topics for 10 lectures, 2.5 per lecture, plus 13 new foundations below the Tripos. Too coarse or too fine?
 2. **Logic at A level.** `logic.connectives` and `logic.implication` are A-level, citing STEP "Algebra and functions" (the 'and' and 'or' line) and STEP "Proof". Truth tables are not named in STEP. The alternative is Tripos-level topics citing only the CST page. A level puts them in placement's lower layer, where most learners would place out.
 3. **Set-builder notation at Tripos level.** `sets.comprehension` cites only the CST page, so it is Tripos IA, although STEP's notation list uses {x : ...}. Move it to A level?
-4. **Euclid's Theorem** (caveat 1): is the assumed statement right?
+4. **Euclid's Theorem** (caveat 1): is the assumed statement right? **Resolved:** yes, see Decisions, call 4.
 5. **Fermat's little theorem by the binomial route.** `num.fermat-little` is proved by induction on a, using that p divides pCk (`num.prime-binomial`), because this course proves the binomial theorem by induction. The other common proof multiplies the residues 1 to p - 1 by a; it would drop the counting edges and keep the inverse one. Either way it needs Euclid's lemma, so the graph puts it after gcd and Euclid, although the syllabus lists it in "Proof", before "Numbers". The graph orders by prerequisites, not lectures. Which proof?
 6. **Binomial theorem citation.** CST is cited on Pascal's rule and on the new induction proof, not on the A-level binomial theorem itself. Cite it there too?
 7. **Remainders as a GCSE root** (caveat 2). The alternative is to drop `pre.remainders` and let `num.division-theorem` start from nothing, which skips a foundation decision 11 asks for.

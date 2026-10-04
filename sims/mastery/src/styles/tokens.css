@@ -1,0 +1,134 @@
+/*
+ * Design tokens. The light theme matches the cache simulator and the hub; the dark theme
+ * keeps the same roles. Text colours meet WCAG AA (4.5:1) on --bg and --surface in both.
+ * The theme follows the device unless the learner picks one in Progress (data-theme).
+ */
+:root {
+  color-scheme: light;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --text: #1f2328;
+  --text-muted: #57606a;
+  --border: #d0d7de;
+  --border-strong: #8c959f;
+  --accent: #0b5cad;
+  --accent-hover: #094c8f;
+  --accent-text: #ffffff;
+  --accent-soft: #e3eefa;
+  --focus: #0b5cad;
+  --error: #b42318;
+  --error-bg: #fdecea;
+  --warning: #7a4d00;
+  --warning-bg: #fff4d6;
+  --good: #1a6b33;
+  --good-bg: #e3f4e8;
+
+  /* topic status on the map */
+  --st-mastered: #d7f0dd;
+  --st-mastered-line: #2e7d32;
+  --st-due: #fff1cc;
+  --st-due-line: #b26a00;
+  --st-ready: #e3eefa;
+  --st-ready-line: #0b5cad;
+  --st-locked: #f0f2f5;
+  --st-locked-line: #b6bec8;
+  --band-0: #f3f8f3;
+  --band-1: #f2f6fc;
+  --band-2: #fdf9ee;
+  --band-3: #fcf2f6;
+  --edge: #8c959f;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-math: 'STIX Two Math', 'Cambria Math', 'Times New Roman', Georgia, serif;
+  --text-sm: 0.8125rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --touch: 36px;
+  --page-w: 760px;
+}
+
+@media (max-width: 699px) {
+  :root { --touch: 44px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #0f1216;
+    --surface: #171b21;
+    --surface-2: #1f252d;
+    --text: #e6e9ed;
+    --text-muted: #a2abb6;
+    --border: #2f3740;
+    --border-strong: #5b6672;
+    --accent: #6cb0f5;
+    --accent-hover: #8fc3f8;
+    --accent-text: #0b1520;
+    --accent-soft: #16273a;
+    --focus: #8fc3f8;
+    --error: #ff9b8f;
+    --error-bg: #3a1714;
+    --warning: #f2c46b;
+    --warning-bg: #33270e;
+    --good: #7ed38f;
+    --good-bg: #123120;
+    --st-mastered: #173a22;
+    --st-mastered-line: #5fbf72;
+    --st-due: #3a2d0c;
+    --st-due-line: #e0a63a;
+    --st-ready: #142a42;
+    --st-ready-line: #6cb0f5;
+    --st-locked: #1c2128;
+    --st-locked-line: #3c4651;
+    --band-0: #131a15;
+    --band-1: #121823;
+    --band-2: #1b1810;
+    --band-3: #1d1419;
+    --edge: #5b6672;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f1216;
+  --surface: #171b21;
+  --surface-2: #1f252d;
+  --text: #e6e9ed;
+  --text-muted: #a2abb6;
+  --border: #2f3740;
+  --border-strong: #5b6672;
+  --accent: #6cb0f5;
+  --accent-hover: #8fc3f8;
+  --accent-text: #0b1520;
+  --accent-soft: #16273a;
+  --focus: #8fc3f8;
+  --error: #ff9b8f;
+  --error-bg: #3a1714;
+  --warning: #f2c46b;
+  --warning-bg: #33270e;
+  --good: #7ed38f;
+  --good-bg: #123120;
+  --st-mastered: #173a22;
+  --st-mastered-line: #5fbf72;
+  --st-due: #3a2d0c;
+  --st-due-line: #e0a63a;
+  --st-ready: #142a42;
+  --st-ready-line: #6cb0f5;
+  --st-locked: #1c2128;
+  --st-locked-line: #3c4651;
+  --band-0: #131a15;
+  --band-1: #121823;
+  --band-2: #1b1810;
+  --band-3: #1d1419;
+  --edge: #5b6672;
+}

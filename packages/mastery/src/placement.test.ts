@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Level, Topic } from './graph';
-import { classify, nextProbe, placementGraph, runPlacement, type PlacementAnswer } from './placement';
+import { DEFAULT_PLACEMENT_OPTIONS, classify, nextProbe, placementBudget, placementGraph, runPlacement, type PlacementAnswer } from './placement';
 
 function T(id: string, prereqs: string[] = []): Topic {
   return {
@@ -53,3 +53,25 @@ describe('placement on a chain is binary search', () => {
   });
 });
 
+
+describe('the default budget scales with the closure', () => {
+  it('is 30 up to 60 topics, then one question per two topics', () => {
+    expect(DEFAULT_PLACEMENT_OPTIONS.budget).toBe(30);
+    expect([1, 51, 60, 61, 62, 98, 200].map(placementBudget)).toEqual([30, 30, 30, 31, 31, 49, 100]);
+  });
+
+  // 98 unrelated roots: every answer classifies one topic, so only the budget stops placement.
+  const roots = Array.from({ length: 98 }, (_, i) => T(`t.r${i}`));
+  const g = placementGraph(roots);
+
+  it('nextProbe uses it when no budget is given', () => {
+    const { answers } = runPlacement(g, () => true, 0);
+    expect(answers).toHaveLength(49);
+    expect(nextProbe(g, answers.slice(0, 48))).not.toBeNull();
+    expect(nextProbe(g, answers)).toBeNull();
+  });
+
+  it('an explicit budget still wins', () => {
+    expect(runPlacement(g, () => true, 0, { budget: 30 }).answers).toHaveLength(30);
+  });
+});

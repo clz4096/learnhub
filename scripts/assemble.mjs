@@ -1,8 +1,10 @@
-// Assembles the static site in site/ from the hub build and every ready tool.
+// Assembles the static site in site/ from the hub build and every ready or beta tool.
 // Run after every workspace has built (the root `npm run build` does both).
 //
 //   site/index.html, assets/   the hub (hub/dist)
 //   site/catalog.json          ready tools, read by the hub at runtime
+//                              (beta tools are built and served but not listed, so the owner can try
+//                              them at sims/<id>/ before deciding they are ready)
 //   site/materials.css         tokens + materials page styles
 //   site/sims/<id>/            the tool's build output ("out" in sim.json)
 //   site/sims/<id>/materials/  each material rendered from Markdown
@@ -67,11 +69,12 @@ function assemble() {
     fail(e instanceof Error ? e.message : String(e));
   }
   const ready = manifests.filter((x) => x.manifest.status === 'ready');
+  const served = manifests.filter((x) => x.manifest.status === 'ready' || x.manifest.status === 'beta');
 
   // Check every input before touching site/, so a failed run leaves the last good site alone.
   if (!existsSync(path.join(HUB_DIST, 'index.html'))) fail('hub/dist/index.html is missing; build the hub first (npm run build)');
   const missing = [];
-  for (const { manifest: m } of ready) {
+  for (const { manifest: m } of served) {
     const out = path.join(ROOT, 'sims', m.id, m.out);
     if (!existsSync(path.join(out, 'index.html'))) missing.push(`sims/${m.id}/${m.out}/index.html (build output; run the tool's build)`);
     if (existsSync(path.join(out, 'materials'))) missing.push(`sims/${m.id}/${m.out}/materials must not exist: assemble writes rendered materials there`);
@@ -82,7 +85,7 @@ function assemble() {
   rmSync(SITE, { recursive: true, force: true });
   cpSync(HUB_DIST, SITE, { recursive: true });
 
-  for (const { manifest: m } of ready) {
+  for (const { manifest: m } of served) {
     const dest = path.join(SITE, 'sims', m.id);
     cpSync(path.join(ROOT, 'sims', m.id, m.out), dest, { recursive: true });
     if (m.materials.length) mkdirSync(path.join(dest, 'materials'));
@@ -105,8 +108,10 @@ function assemble() {
   writeFileSync(path.join(SITE, '.nojekyll'), '');
   writeFileSync(path.join(SITE, '404.html'), NOT_FOUND);
 
-  const skipped = manifests.length - ready.length;
-  console.log(`assemble: site/ has ${ready.length} tool(s)${skipped ? `, ${skipped} not ready and left out` : ''}: ${ready.map((x) => x.manifest.id).join(', ') || 'none'}`);
+  const beta = served.filter((x) => x.manifest.status === 'beta').map((x) => x.manifest.id);
+  const skipped = manifests.length - served.length;
+  console.log(`assemble: site/ has ${ready.length} listed tool(s): ${ready.map((x) => x.manifest.id).join(', ') || 'none'}`
+    + `${beta.length ? `; beta, served but not listed: ${beta.join(', ')}` : ''}${skipped ? `; ${skipped} planned and left out` : ''}`);
 }
 
 assemble();

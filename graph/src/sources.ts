@@ -42,6 +42,8 @@ export const IA_AXIOMATIC = 'Axiomatic approach';
 export const IA_LIMITS = 'Limits and convergence';
 export const M1_ALGEBRA = `${M1_PURE}, Algebra and functions`;
 export const M1_PROOF = `${M1_PURE}, Proof`;
+/** The notation list (page 32): chapter, heading, and table title as printed. */
+export const STEP_SET_NOTATION = 'Notation and Required Formulae, Notation, Set notation';
 
 // CST IA Discrete Mathematics, https://www.cl.cam.ac.uk/teaching/2627/DiscMath/ (read 2026-10-04).
 // Sections are the lecture headings as printed, without the lecture count.

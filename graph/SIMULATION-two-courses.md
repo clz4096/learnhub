@@ -24,9 +24,10 @@ Means over 5 seeds: 59.8 days to master `ia-probability`, 52.2 days to master `c
 
 ## Placement over both courses
 
-Truthful random learners (the `SIMULATION.md` model), split strategy. Unclassified topics at the budget count as not known.
+Truthful random learners (the `SIMULATION.md` model), split strategy. Unclassified topics at the budget count as not known. The last row is the default budget, `placementBudget` of the 98-topic union: max(30, ceil(98 / 2)).
 
 | budget | learners | placed exactly | mean over-placed | mean under-placed | mean questions | max questions |
 |---|---|---|---|---|---|---|
-| 30 | 1000 | 45.2% | 0.00 | 2.22 | 29.6 | 30 |
-| 40 | 1000 | 100.0% | 0.00 | 0.00 | 32.4 | 40 |
+| 30 | 1000 | 44.9% | 0.00 | 2.43 | 29.6 | 30 |
+| 40 | 1000 | 100.0% | 0.00 | 0.00 | 32.7 | 40 |
+| 49 | 1000 | 100.0% | 0.00 | 0.00 | 32.7 | 40 |
