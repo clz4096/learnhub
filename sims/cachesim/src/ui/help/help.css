@@ -60,3 +60,9 @@
 .layout-phone .help-keys tr { display: block; padding: var(--space-1) 0; border-bottom: 1px solid var(--border); }
 .layout-phone .help-keys th, .layout-phone .help-keys td { display: block; border: 0; padding: 0; }
 .layout-phone .help-keys td:nth-of-type(1)::before { content: 'Where: '; color: var(--text-muted); }
+
+.start-over { margin-top: var(--space-2); }
+.start-over summary { cursor: pointer; color: var(--error); font-weight: 600; }
+.start-over .field input { display: block; margin-top: var(--space-1); max-width: 16rem; width: 100%; }
+.btn-danger:not(:disabled) { background: var(--error); border-color: var(--error); color: #ffffff; }
+.btn.btn-danger:hover:not(:disabled) { background: #8f1c13; border-color: #8f1c13; }

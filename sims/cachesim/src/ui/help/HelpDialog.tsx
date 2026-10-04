@@ -7,6 +7,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { TermText } from '@/ui/Term';
 import { HELP_SECTIONS, LEARN_STEPS, type HelpSection } from '@/ui/help/content';
+import { StartOver } from '@/ui/help/StartOver';
 import { tryHelpAction } from '@/ui/help/actions';
 import { helpOpen } from '@/ui/help/state';
 import { setTourReturnFocus } from '@/ui/help/Tour';
@@ -87,6 +88,7 @@ function HelpPage() {
               {HELP_SECTIONS.map((s) => (
                 <li key={s.id}><button type="button" class="linklike small" onClick={() => jump(s.id)}>{s.title}</button></li>
               ))}
+              <li><button type="button" class="linklike small" onClick={() => jump('progress')}>Your progress</button></li>
             </ul>
           </nav>
 
@@ -127,6 +129,8 @@ function HelpPage() {
               )}
             </section>
           ))}
+
+          <StartOver />
         </div>
       </div>
     </div>

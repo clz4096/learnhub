@@ -53,7 +53,7 @@ Free is where the app starts. Pick a CPU under Hardware and a C++ loop under Wor
 
 ### Guided lessons
 
-Press **Guided** at the top. Each of the 10 lessons has a goal, steps whose buttons set up the simulator for you, what to notice, and a check question. The lessons build on each other, so start with lesson 1 and go in order. Your progress is saved in your browser.
+Press **Guided** at the top. Each of the 10 lessons has a goal, steps whose buttons set up the simulator for you, what to notice, and a check question. The lessons build on each other, so start with lesson 1 and go in order. Your progress is saved in your browser. To erase it and start again, open **Help**, go to **Your progress** at the end, open **Start over**, and type `start over` to confirm.
 
 *Try this:* opens lesson 1.
 
