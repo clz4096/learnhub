@@ -2,6 +2,11 @@
  * The knowledge map: every topic of the chosen courses, laid out in level bands from the
  * foundations at the top to the Tripos at the bottom, coloured by status. Zoom, filter by
  * course, or switch to a list. Selecting a topic shows its summary, sources, and status.
+ *
+ * Edges: with all of them drawn the map is a tangle, so by default only the selected
+ * topic's edges are drawn, to its prerequisites above and its dependents below, and none
+ * when nothing is selected. "Show all connections" draws every edge; the choice is kept
+ * per browser.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { contentFor } from '@learnhub/content';
@@ -18,13 +23,62 @@ export const STATUS_TEXT: Record<TopicStatus, string> = {
   mastered: 'Learned',
   due: 'Learned, review due',
   ready: 'Ready to learn',
+  unwritten: 'Lesson not written yet',
   locked: 'Locked: learn its prerequisites first',
 };
 
+export const ALL_EDGES_KEY = 'learnhub.mastery.map.allEdges';
+
+/** The stored "Show all connections" choice; off when storage is blocked or holds anything else. */
+export function readAllEdges(): boolean {
+  try {
+    return typeof localStorage !== 'undefined' && localStorage.getItem(ALL_EDGES_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeAllEdges(on: boolean): void {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    if (on) localStorage.setItem(ALL_EDGES_KEY, '1');
+    else localStorage.removeItem(ALL_EDGES_KEY);
+  } catch {
+    // Storage blocked: the choice lasts for this visit only.
+  }
+}
+
+export interface DrawnEdge {
+  from: string;
+  to: string;
+  /** `up`: from a prerequisite of the selected topic; `down`: to a topic that builds on it; null: unrelated. */
+  dir: 'up' | 'down' | null;
+}
+
+/** The edges to draw: the selected topic's own, or every edge when `all` is on. */
+export function edgesToDraw(edges: readonly { from: string; to: string }[], selected: string | null, all: boolean): DrawnEdge[] {
+  const out: DrawnEdge[] = [];
+  for (const e of edges) {
+    const dir = e.to === selected ? 'up' : e.from === selected ? 'down' : null;
+    if (all || dir !== null) out.push({ ...e, dir });
+  }
+  return out;
+}
+
 const AREA_ORDER = Object.keys(AREAS);
 
-/** Up to two lines of at most `max` characters, breaking at spaces; the rest is cut with an ellipsis. */
-export function wrap(title: string, max = 24): string[] {
+/** Label size in map units, and its line height; `.node text` in app.css matches. */
+const LABEL_PX = 15;
+const LINE_PX = 17;
+/**
+ * The zoom the map opens at: fit to the width, but never so small that labels drop below
+ * about 11 px on screen. At 1280 px, fitting all nine topics of the widest row needs 0.54,
+ * which draws labels at 8 px; the learner pans sideways instead, and Fit still shows it all.
+ */
+const READABLE_SCALE = 0.75;
+
+/** Up to `maxLines` lines of at most `max` characters, breaking at spaces; the rest is cut with an ellipsis. */
+export function wrap(title: string, max = 19, maxLines = 3): string[] {
   const words = title.split(' ');
   const lines: string[] = [''];
   for (const w of words) {
@@ -32,9 +86,9 @@ export function wrap(title: string, max = 24): string[] {
     if (cur === '' || cur.length + 1 + w.length <= max) lines[lines.length - 1] = cur === '' ? w : `${cur} ${w}`;
     else lines.push(w);
   }
-  if (lines.length <= 2) return lines;
-  const second = lines.slice(1).join(' ');
-  return [lines[0] as string, `${second.slice(0, max - 1).trimEnd()}…`];
+  if (lines.length <= maxLines) return lines;
+  const last = lines.slice(maxLines - 1).join(' ');
+  return [...lines.slice(0, maxLines - 1), `${last.slice(0, max - 1).trimEnd()}…`];
 }
 
 function Details({ p, id, status }: { p: Progress; id: string; status: TopicStatus | undefined }) {
@@ -77,17 +131,32 @@ export function MapView({ topicId }: { topicId: string | null }) {
   const [filter, setFilter] = useState<string>('all');
   const [mode, setMode] = useState<'graph' | 'list'>('graph');
   const [scale, setScale] = useState(0);
+  const [allEdges, setAllEdges] = useState(readAllEdges);
+  const toggleAllEdges = (on: boolean): void => {
+    setAllEdges(on);
+    writeAllEdges(on);
+  };
   const scroller = useRef<HTMLDivElement>(null);
   const courses = p?.courses ?? [];
   const shown = useMemo(() => closureTopics(filter === 'all' ? courses : [filter]), [filter, courses.join()]);
   const lay = useMemo(() => layout(shown, AREA_ORDER), [shown]);
   const status = useMemo(() => (p === null ? new Map<string, TopicStatus>() : statusMap(p, now())), [p]);
 
-  const fit = (): void => {
-    const w = scroller.current?.clientWidth ?? 800;
-    setScale(Math.max(0.3, Math.min(1, (w - 8) / lay.width)));
-  };
-  useLayoutEffect(() => { if (mode === 'graph') fit(); }, [lay, mode]);
+  const fitScale = (): number => Math.max(0.3, Math.min(1, ((scroller.current?.clientWidth ?? 800) - 8) / lay.width));
+  const fit = (): void => setScale(fitScale());
+  // Rows are centered, so a map wider than the screen opens at its middle, not its empty left edge.
+  const center = useRef(false);
+  useLayoutEffect(() => {
+    if (mode !== 'graph') return;
+    setScale(Math.max(READABLE_SCALE, fitScale()));
+    center.current = topicId === null;
+  }, [lay, mode]);
+  useEffect(() => {
+    const el = scroller.current;
+    if (!center.current || el === null || scale === 0) return;
+    center.current = false;
+    el.scrollLeft = Math.max(0, (lay.width * scale - el.clientWidth) / 2);
+  }, [scale, lay]);
 
   // Keep the selected topic in view.
   useEffect(() => {
@@ -144,6 +213,12 @@ export function MapView({ topicId }: { topicId: string | null }) {
             <button type="button" class={mode === 'list' ? 'on' : ''} aria-pressed={mode === 'list'} onClick={() => setMode('list')}>List</button>
           </div>
           {mode === 'graph' && (
+            <label class="toggle small all-edges">
+              <input type="checkbox" checked={allEdges} onChange={(e) => toggleAllEdges((e.currentTarget as HTMLInputElement).checked)} />
+              <span>Show all connections</span>
+            </label>
+          )}
+          {mode === 'graph' && (
             <div class="segmented" role="group" aria-label="Zoom">
               <button type="button" aria-label="Zoom out" onClick={() => setScale(Math.max(0.25, scale / 1.25))}>−</button>
               <button type="button" onClick={fit}>Fit</button>
@@ -156,8 +231,12 @@ export function MapView({ topicId }: { topicId: string | null }) {
         <span class="status-chip st-mastered">Learned {counts('mastered')}</span>
         <span class="status-chip st-due">Review due {counts('due')}</span>
         <span class="status-chip st-ready">Ready {counts('ready')}</span>
+        <span class="status-chip st-unwritten">Lesson not written yet {counts('unwritten')}</span>
         <span class="status-chip st-locked">Locked {counts('locked')}</span>
-        <span class="muted">{shown.length} topics. A dot marks a written lesson.</span>
+        <span class="muted">
+          {shown.length} topics. A dot marks a written lesson.
+          {mode === 'graph' && !allEdges && (topicId === null ? ' Choose a topic to see its connections.' : ' Lines show what the chosen topic builds on and what builds on it.')}
+        </span>
       </p>
       <div class="map-body">
         {mode === 'graph' ? (
@@ -184,7 +263,8 @@ export function MapView({ topicId }: { topicId: string | null }) {
                     <text class="band-label" x={8} y={b.y + 18}>{LEVEL_NAMES[b.level]}</text>
                   </g>
                 ))}
-                {lay.edges.map((e) => {
+                {/* Unrelated edges first, so the selected topic's are drawn on top. */}
+                {edgesToDraw(lay.edges, topicId, allEdges).sort((x, y) => Number(x.dir !== null) - Number(y.dir !== null)).map((e) => {
                   const a = lay.nodes.get(e.from);
                   const z = lay.nodes.get(e.to);
                   if (a === undefined || z === undefined) return null;
@@ -193,8 +273,8 @@ export function MapView({ topicId }: { topicId: string | null }) {
                   const x2 = z.x + NODE_W / 2;
                   const y2 = z.y;
                   const my = (y1 + y2) / 2;
-                  const hot = topicId !== null && (e.from === topicId || e.to === topicId);
-                  return <path key={`${e.from}>${e.to}`} class={`edge${hot ? ' hot' : ''}${topicId !== null && !hot ? ' faded' : ''}`} d={`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`} />;
+                  const cls = e.dir === null ? (topicId !== null ? ' faded' : '') : ` hot ${e.dir}`;
+                  return <path key={`${e.from}>${e.to}`} class={`edge${cls}`} d={`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`} />;
                 })}
                 {shown.map((t) => {
                   const n = lay.nodes.get(t.id);
@@ -214,7 +294,7 @@ export function MapView({ topicId }: { topicId: string | null }) {
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go({ view: 'map', topicId: t.id }); } }}
                     >
                       <rect width={NODE_W} height={NODE_H} rx={8} />
-                      {lines.map((l, i) => <text key={i} x={10} y={lines.length === 1 ? 29 : 20 + i * 15}>{l}</text>)}
+                      {lines.map((l, i) => <text key={i} x={10} y={(NODE_H - lines.length * LINE_PX) / 2 + LABEL_PX * 0.8 + i * LINE_PX}>{l}</text>)}
                       {contentFor(t.id) !== undefined && <circle class="has-lesson" cx={NODE_W - 9} cy={9} r={4} />}
                     </g>
                   );

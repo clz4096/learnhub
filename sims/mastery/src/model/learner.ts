@@ -7,8 +7,9 @@
  * courses, placement answers, memory, history, lesson minutes per course for the
  * planner's split, and today's session.
  */
+import { contentFor } from '@learnhub/content';
 import {
-  DAY_MS, dueTopics, frontier, newProgress, placedMemory, placementBudget, placementGraph, placementResult, planSession,
+  DAY_MS, classify, dueTopics, frontier, graphBudget, newProgress, placedMemory, placementGraph, placementResult, planSession,
   recordLesson, recordLessonFailure, recordReview, topoOrder,
   type HistoryEntry, type MemoryMap, type PlacementGraph, type Progress, type SessionRecord, type SessionTask, type Topic,
 } from '@learnhub/mastery';
@@ -29,6 +30,13 @@ export function startLearner(now: number, courses: readonly string[], budgetMinu
   return p;
 }
 
+/**
+ * Whether a topic's lesson and problems are written. Nothing is taken on the learner's
+ * word (design decisions 11 and 18), so a topic without them cannot be probed, scheduled,
+ * passed, or learned: it stays unknown until its content exists.
+ */
+export const hasContent = (topicId: string): boolean => contentFor(topicId) !== undefined;
+
 const touch = (p: Progress, now: number): Progress => ({ ...p, updatedAt: now });
 const log = (p: Progress, entries: readonly HistoryEntry[]): HistoryEntry[] => [...p.history, ...entries];
 
@@ -41,12 +49,16 @@ export function localDay(now: number): string {
 
 // ---------------------------------------------------------------- placement
 
+/** Placement over the chosen courses, asking only about topics with real problems. */
 export function placementGraphFor(p: Progress): PlacementGraph {
-  return placementGraph(ALL_TOPICS, { targets: [...closureOf(p.courses)] });
+  return placementGraph(ALL_TOPICS, { targets: [...closureOf(p.courses)], probeable: hasContent });
 }
 
-/** The default budget for the chosen courses (engine `placementBudget`). */
-export const budgetFor = (g: PlacementGraph): number => placementBudget(g.order.length);
+/**
+ * The default budget for the chosen courses: the engine's `placementBudget` of the topics
+ * placement can ask about, which caps it at their number.
+ */
+export const budgetFor = (g: PlacementGraph): number => graphBudget(g);
 
 export function answerPlacement(p: Progress, topicId: string, correct: boolean, now: number): Progress {
   const answers = [...(p.placement?.answers ?? []), { topicId, correct, at: now }];
@@ -81,6 +93,7 @@ function toTasks(p: Progress, now: number, budgetMinutes = p.settings.budgetMinu
     memory: p.memory,
     now,
     learnedSinceQuiz: p.learnedSinceQuiz,
+    teachable: hasContent,
     options: { budgetMinutes, implicitCredit: p.settings.implicitCredit },
   });
   return plan.tasks.map((t): SessionTask => {
@@ -139,11 +152,14 @@ function chargeTo(p: Progress, topicId: string, course: string | undefined): str
 /**
  * A lesson finished: passed makes the topic mastered and credits what it encompasses;
  * not passed flags the prerequisites it leans on for a check. Its minutes are charged
- * to its course either way, as the planner's split counts time spent.
+ * to its course either way, as the planner's split counts time spent. A topic without
+ * content has no practice to pass, so it cannot be learned: the call changes nothing
+ * but leaving its task for another day.
  */
 export function completeLesson(
   p: Progress, topicId: string, passed: boolean, now: number, taskIndex: number | null, minutes: number, course?: string,
 ): Progress {
+  if (!hasContent(topicId)) return touch({ ...p, session: markTask(p, taskIndex, null) }, now);
   const update = passed ? recordLesson(p.memory, ALL_TOPICS, topicId, now) : recordLessonFailure(p.memory, ALL_TOPICS, topicId, now);
   const charged = chargeTo(p, topicId, course);
   const courseMinutes = { ...p.courseMinutes };
@@ -196,13 +212,20 @@ export function skipTask(p: Progress, taskIndex: number, now: number): Progress 
 
 // ---------------------------------------------------------------- status
 
-export type TopicStatus = 'mastered' | 'due' | 'ready' | 'locked';
+/** `unwritten`: on the frontier, but its lesson is not written yet, so it cannot be learned or scheduled. */
+export type TopicStatus = 'mastered' | 'due' | 'ready' | 'unwritten' | 'locked';
 
 export function statusMap(p: Progress, now: number, within: readonly Topic[] = closureTopics(p.courses)): Map<string, TopicStatus> {
   const mastered = new Set(Object.keys(p.memory));
   const due = new Set(dueTopics(p.memory, now));
   const ready = new Set(frontier(within, mastered));
-  return new Map(within.map((t) => [t.id, due.has(t.id) ? 'due' : mastered.has(t.id) ? 'mastered' : ready.has(t.id) ? 'ready' : 'locked'] as const));
+  const of = (id: string): TopicStatus => {
+    if (due.has(id)) return 'due';
+    if (mastered.has(id)) return 'mastered';
+    if (ready.has(id)) return hasContent(id) ? 'ready' : 'unwritten';
+    return 'locked';
+  };
+  return new Map(within.map((t) => [t.id, of(t.id)] as const));
 }
 
 export interface CourseStats {
@@ -253,3 +276,71 @@ export function sessionTime(s: SessionRecord | null): { done: number; left: numb
 export const GRAPH_ORDER: readonly string[] = topoOrder(ALL_TOPICS);
 
 export const daysFrom = (now: number, due: number): number => Math.round((due - now) / DAY_MS);
+
+// ---------------------------------------------------------------- migration: no self-report
+
+/**
+ * Migration notes, gate 3 follow-up (design decisions 11 and 18). Before this build, a
+ * topic without content could be claimed as known: in placement ("I know this"), in a
+ * lesson ("I know this already"), and in reviews and quizzes ("I still know this"). The
+ * document (version 2) did not record which answers were self-reported: a self-reported
+ * placement answer, lesson pass, or review looks exactly like a real one. What does tell
+ * them apart is the topic: self-report was offered only where no content existed, and
+ * every topic with content was measured by real problems.
+ *
+ * So the rule is: only measured evidence counts, and a topic without content cannot be
+ * known. Concretely, this function
+ * - drops placement answers about topics without content (they can only have been
+ *   self-reported), so they credit nothing now or after the topic's content is written;
+ * - keeps a learned topic only if it has content and is backed by evidence: a passed
+ *   lesson in the history, or a known classification from the remaining (real) placement
+ *   answers. This also clears topics with content that were credited only because a
+ *   self-reported answer above them spread down to its ancestors;
+ * - drops those topics from the quiz queue, and today's unfinished tasks on topics that
+ *   are no longer schedulable.
+ * History and lesson minutes are kept: they record what happened and the time spent.
+ *
+ * The cost of a wrong removal is one lesson; the cost of a wrong keep is a gap under
+ * everything above it, so the rule errs toward removing. It is applied to every document
+ * loaded or imported and is idempotent, so it needs no version bump. One case it cannot
+ * catch: a self-reported lesson pass on a topic whose content is written before the
+ * document is ever opened by this build. Such a document is fixed the first time it is
+ * opened, which, for the single learner with one live copy, is the next visit.
+ */
+export function withoutSelfReport(p: Progress): { progress: Progress; dropped: string[] } {
+  const answers = p.placement?.answers ?? [];
+  const realAnswers = answers.filter((a) => hasContent(a.topicId));
+  // Classified over the whole graph, not the chosen closure: a topic's ancestors are the
+  // same in both, and courses may have changed since placement.
+  const placed = classify(placementGraph(ALL_TOPICS, { probeable: hasContent }), realAnswers);
+  const passed = new Set(p.history.filter((h) => h.kind === 'lesson' && h.correct).map((h) => h.topicId));
+  const measured = (id: string): boolean => hasContent(id) && (passed.has(id) || placed.get(id) === 'known');
+
+  const memory: MemoryMap = Object.fromEntries(Object.entries(p.memory).filter(([id]) => measured(id)));
+  const dropped = Object.keys(p.memory).filter((id) => memory[id] === undefined);
+  const schedulable = (id: string, kind: SessionTask['kind']): boolean => hasContent(id) && (kind === 'lesson' || memory[id] !== undefined);
+  let session = p.session;
+  if (session !== null) {
+    const tasks = session.tasks.flatMap((t): SessionTask[] => {
+      if (t.done) return [t];
+      const ids = t.topicIds.filter((id) => schedulable(id, t.kind));
+      if (ids.length === 0) return [];
+      // A quiz's minutes are per item, so they shrink with it.
+      return ids.length === t.topicIds.length ? [t] : [{ ...t, topicIds: ids, minutes: (t.minutes * ids.length) / t.topicIds.length }];
+    });
+    if (tasks.length !== session.tasks.length || tasks.some((t, i) => t !== session?.tasks[i])) session = { ...session, tasks };
+  }
+  const changed = dropped.length > 0 || realAnswers.length !== answers.length || session !== p.session
+    || p.learnedSinceQuiz.some((id) => memory[id] === undefined);
+  if (!changed) return { progress: p, dropped: [] };
+  return {
+    progress: {
+      ...p,
+      placement: p.placement === null ? null : { ...p.placement, answers: realAnswers },
+      memory,
+      learnedSinceQuiz: p.learnedSinceQuiz.filter((id) => memory[id] !== undefined),
+      session,
+    },
+    dropped,
+  };
+}

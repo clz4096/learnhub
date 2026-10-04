@@ -4,7 +4,6 @@
  * the time left and how today's lesson minutes split between the courses.
  */
 import { useEffect } from 'preact/hooks';
-import { contentFor } from '@learnhub/content';
 import type { SessionTask } from '@learnhub/mastery';
 import { shortName, titleOf } from '@/model/courses';
 import { ensureSession, localDay, planMore, replanToday, sessionTime } from '@/model/learner';
@@ -60,7 +59,6 @@ export function Today() {
 
       <ol class="tasks">
         {s.tasks.map((t, i) => {
-          const missing = t.kind === 'lesson' && contentFor(t.topicIds[0] as string) === undefined;
           return (
             <li key={i} class={`task task-${t.kind}${t.done ? ' done' : ''}${i === nextIndex ? ' next' : ''}`}>
               <div class="task-head">
@@ -70,7 +68,6 @@ export function Today() {
               </div>
               <h2 class="task-title">{taskTitle(t)}</h2>
               <p class="small reason">{t.reason}</p>
-              {missing && <p class="small muted">The lesson for this topic is not written yet.</p>}
               <div class="task-foot">
                 {t.done
                   ? <span class={`result ${t.passed === true ? 'good' : t.passed === false ? 'bad' : ''}`}>{result(t)}</span>

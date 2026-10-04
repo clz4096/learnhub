@@ -35,13 +35,18 @@ export type PracticeOutcome = 'continue' | 'mastered' | 'not-yet';
 
 export const freshPractice = (): PracticeState => ({ attempts: 0, streak: 0, results: [] });
 
-/** Records one answer. Mastered when the streak reaches the rule; not yet once the problems run out first. */
+/** Where a run stands: mastered when the streak reaches the rule; not yet once the problems run out first. */
+export function outcomeOf(state: PracticeState, rule: MasteryRule): PracticeOutcome {
+  if (state.streak >= rule.correctInARow) return 'mastered';
+  // Stop once even a perfect run of the problems left could not reach the streak.
+  if (state.attempts + (rule.correctInARow - state.streak) > rule.maxProblems) return 'not-yet';
+  return 'continue';
+}
+
+/** Records one answer. */
 export function answer(s: PracticeState, correct: boolean, rule: MasteryRule): { state: PracticeState; outcome: PracticeOutcome } {
   const state: PracticeState = { attempts: s.attempts + 1, streak: correct ? s.streak + 1 : 0, results: [...s.results, correct] };
-  if (state.streak >= rule.correctInARow) return { state, outcome: 'mastered' };
-  // Stop once even a perfect run of the problems left could not reach the streak.
-  if (state.attempts + (rule.correctInARow - state.streak) > rule.maxProblems) return { state, outcome: 'not-yet' };
-  return { state, outcome: 'continue' };
+  return { state, outcome: outcomeOf(state, rule) };
 }
 
 /** A review is two problems from different skills; it passes when both are right. */

@@ -6,9 +6,9 @@
 import { useState } from 'preact/hooks';
 import { MAX_COURSE_WEIGHT, exportProgress, importProgress, type Progress } from '@learnhub/mastery';
 import { ALL_COURSES, closureOf, courseOf, shortName } from '@/model/courses';
-import { MAX_MINUTES, MIN_MINUTES, courseStats, localDay } from '@/model/learner';
+import { MAX_MINUTES, MIN_MINUTES, courseStats, localDay, withoutSelfReport } from '@/model/learner';
 import { go } from '@/model/route';
-import { KNOWN_IDS, commit, erase, now, progress } from '@/model/store';
+import { KNOWN_IDS, commit, erase, now, progress, selfReportWarning } from '@/model/store';
 import { setTheme, theme, type Theme } from '@/model/theme';
 
 export const CONFIRM_PHRASE = 'start over';
@@ -133,7 +133,9 @@ export function ImportFile({ onDone }: { onDone?: () => void }) {
       setErrors(r.errors);
       return;
     }
-    setPending({ doc: r.value, warnings: r.warnings });
+    // A file exported before self-report was removed is migrated like a stored document.
+    const m = withoutSelfReport(r.value);
+    setPending({ doc: m.progress, warnings: m.dropped.length > 0 ? [...r.warnings, selfReportWarning(m.dropped)] : r.warnings });
   };
 
   const replace = (): void => {

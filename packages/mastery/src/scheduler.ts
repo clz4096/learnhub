@@ -21,6 +21,11 @@
  * closures (a shared foundation) is charged to the course that took it, so it is learned
  * once. A course with no lesson that fits yields the time to the next one; a course with
  * weight 0 gets no new lessons.
+ *
+ * `teachable` limits every task to topics the course can actually teach and test, for
+ * example those whose lesson and problems are written (design decision 18). Any other
+ * topic is never scheduled: no lesson, review, or quiz item. It still counts in the
+ * closure, so it blocks what builds on it until it becomes teachable.
  */
 import { courseClosure, courseTopics, type Targets } from './course';
 import { withDefaults } from './options';
@@ -105,6 +110,8 @@ export interface SessionInput {
   now: number;
   /** Topics learned since the last quiz, oldest first. */
   learnedSinceQuiz?: readonly string[];
+  /** Topics that may be scheduled at all (see the file comment). Default every topic. */
+  teachable?: (topicId: string) => boolean;
   options?: Partial<SchedulerOptions>;
 }
 
@@ -172,10 +179,11 @@ export function planSession(input: SessionInput): SessionPlan {
   const area = (id: string): string => byId.get(id)?.area ?? '';
   const budget = opts.budgetMinutes;
 
+  const teachable = input.teachable ?? ((): boolean => true);
   // Ids in memory outside the course closure, or no longer in the graph, are not reviewed here.
-  const due = dueTopics(memory, now).filter((id) => byId.has(id));
+  const due = dueTopics(memory, now).filter((id) => byId.has(id) && teachable(id));
 
-  const learned = (input.learnedSinceQuiz ?? []).filter((id) => memory[id] !== undefined && byId.has(id));
+  const learned = (input.learnedSinceQuiz ?? []).filter((id) => memory[id] !== undefined && byId.has(id) && teachable(id));
   const quizIds = learned.length >= opts.quizEvery ? learned.slice(-opts.quizMaxItems) : [];
   // A quiz item is an explicit review, so a due topic in the quiz needs no separate review.
   const inQuiz = new Set(quizIds);
@@ -201,7 +209,7 @@ export function planSession(input: SessionInput): SessionPlan {
   const chargedTo = new Map<string, string>();
   const areaCount = new Map<string, number>();
   let lessonMinutes = 0;
-  const candidates = frontier(topics, new Set(Object.keys(memory)));
+  const candidates = frontier(topics, new Set(Object.keys(memory))).filter(teachable);
 
   /** The best lesson that fits among `pool`, or null. */
   const pick = (pool: readonly string[]): { id: string; newly: string[]; ac: number } | null => {

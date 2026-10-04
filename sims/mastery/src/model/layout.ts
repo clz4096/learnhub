@@ -30,7 +30,8 @@ export interface Layout {
 }
 
 export const NODE_W = 168;
-export const NODE_H = 48;
+/** Tall enough for three lines of the map's 15 px labels. */
+export const NODE_H = 60;
 const GAP_X = 16;
 const GAP_Y = 36;
 const BAND_GAP = 28;

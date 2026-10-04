@@ -3,7 +3,7 @@ import { hrefOf, parseRoute, type Route } from '@/model/route';
 
 describe('routes', () => {
   const all: Route[] = [
-    { view: 'today' }, { view: 'start' }, { view: 'task', index: 3 }, { view: 'learn', topicId: 'pre.fractions' },
+    { view: 'today' }, { view: 'start' }, { view: 'placement' }, { view: 'task', index: 3 }, { view: 'learn', topicId: 'pre.fractions' },
     { view: 'map', topicId: null }, { view: 'map', topicId: 'num.gcd' }, { view: 'progress' },
     { view: 'glossary', termId: null }, { view: 'glossary', termId: 'union' },
   ];

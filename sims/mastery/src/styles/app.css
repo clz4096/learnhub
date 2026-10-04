@@ -59,7 +59,7 @@ input[type='checkbox'], input[type='radio'] { width: 18px; height: 18px; accent-
 .badge-review { background: var(--st-due); color: var(--text); }
 .badge-quiz { background: var(--st-mastered); color: var(--text); }
 .badge-course { background: var(--surface-2); color: var(--text); font-weight: 600; }
-.badge-self { background: var(--warning-bg); color: var(--warning); margin: 0 0 var(--space-2); }
+.badge-unwritten { background: var(--warning-bg); color: var(--warning); margin: 0 0 var(--space-2); }
 .term {
   background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; cursor: help;
   text-decoration: underline dotted var(--accent); text-underline-offset: 3px; text-align: left;
@@ -170,7 +170,7 @@ th { background: var(--surface-2); }
 .feedback.end { padding: var(--space-3) var(--space-4); }
 .feedback h3 { margin-top: 0; }
 .solution ol { margin-bottom: 0; }
-.self-report { background: var(--surface); border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); margin: 0 0 var(--space-3); }
+.not-written { background: var(--surface); border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); margin: 0 0 var(--space-3); }
 
 /* map */
 .map { max-width: none; }
@@ -178,6 +178,7 @@ th { background: var(--surface-2); }
 .map-head h1 { margin: 0; }
 .map-controls { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
 .map-controls select { width: auto; }
+.map-controls .all-edges { min-height: var(--touch); }
 .segmented { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius-md); overflow: hidden; }
 .segmented button { background: var(--surface); border: 0; min-height: var(--touch); min-width: var(--touch); padding: 0 var(--space-2); cursor: pointer; }
 .segmented button + button { border-left: 1px solid var(--border-strong); }
@@ -187,6 +188,7 @@ th { background: var(--surface-2); }
 .status-chip.st-mastered { background: var(--st-mastered); border-color: var(--st-mastered-line); }
 .status-chip.st-due { background: var(--st-due); border-color: var(--st-due-line); }
 .status-chip.st-ready { background: var(--st-ready); border-color: var(--st-ready-line); }
+.status-chip.st-unwritten { background: var(--st-locked); border-color: var(--st-ready-line); border-style: dashed; }
 .status-chip.st-locked { background: var(--st-locked); border-color: var(--st-locked-line); }
 .map-body { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--space-3); align-items: start; }
 .map-scroll { overflow: auto; height: calc(100vh - 210px); min-height: 360px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); touch-action: pan-x pan-y; cursor: grab; }
@@ -201,10 +203,11 @@ th { background: var(--surface-2); }
 .edge.faded { opacity: 0.12; }
 .node { cursor: pointer; }
 .node rect { stroke-width: 1.5; }
-.node text { font-size: 12px; fill: var(--text); pointer-events: none; }
+.node text { font-size: 15px; fill: var(--text); pointer-events: none; }
 .node.st-mastered rect { fill: var(--st-mastered); stroke: var(--st-mastered-line); }
 .node.st-due rect { fill: var(--st-due); stroke: var(--st-due-line); stroke-width: 2.5; }
 .node.st-ready rect { fill: var(--st-ready); stroke: var(--st-ready-line); stroke-width: 2.5; }
+.node.st-unwritten rect { fill: var(--st-locked); stroke: var(--st-ready-line); stroke-dasharray: 5 3; }
 .node.st-locked rect { fill: var(--st-locked); stroke: var(--st-locked-line); }
 .node.st-locked text { fill: var(--text-muted); }
 .node.selected rect { stroke: var(--text); stroke-width: 3; }
@@ -225,8 +228,12 @@ th { background: var(--surface-2); }
 .status-dot.st-mastered { background: var(--st-mastered-line); border-color: var(--st-mastered-line); }
 .status-dot.st-due { background: var(--st-due-line); border-color: var(--st-due-line); }
 .status-dot.st-ready { background: var(--st-ready); border-color: var(--st-ready-line); }
+.status-dot.st-unwritten { background: var(--st-locked); border-color: var(--st-ready-line); border-style: dashed; }
 .status-dot.st-locked { background: var(--st-locked); border-color: var(--st-locked-line); }
-.sheet-close { display: none; }
+.sheet-close { float: right; margin-left: var(--space-2); }
+.back-row { margin: 0 0 var(--space-2); }
+.linklike.back { min-height: var(--touch); }
+.linklike.back::before { content: '\2190\00a0'; }
 @media (max-width: 899px) {
   .map-body { grid-template-columns: minmax(0, 1fr); }
   .map-details { position: static; max-height: none; }

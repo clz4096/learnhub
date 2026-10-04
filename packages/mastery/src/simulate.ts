@@ -270,9 +270,13 @@ export interface PlacementMeasure {
  */
 export function measurePlacement(
   topics: readonly Topic[],
-  o: { learners: number; errorRate: number; budget: number; strategy: PlacementStrategy; seed: number; targets?: Targets },
+  o: {
+    learners: number; errorRate: number; budget: number; strategy: PlacementStrategy; seed: number; targets?: Targets;
+    /** Placement's `probeable`. Accuracy is then measured over the probeable topics only, the ones placement can classify. */
+    probeable?: (topicId: string) => boolean;
+  },
 ): PlacementMeasure {
-  const g = placementGraph(topics, { targets: o.targets });
+  const g = placementGraph(topics, { targets: o.targets, probeable: o.probeable });
   // Separate streams, so the learners are the same whatever the strategy asks.
   const who = mulberry32(o.seed);
   const noise = mulberry32(o.seed ^ 0x9e3779b9);
@@ -284,7 +288,7 @@ export function measurePlacement(
     }).result;
     const placed = new Set(r.mastered);
     let w = 0;
-    for (const id of g.order) {
+    for (const id of g.probeable) {
       if (placed.has(id) === known.has(id)) continue;
       w++;
       if (placed.has(id)) over++;

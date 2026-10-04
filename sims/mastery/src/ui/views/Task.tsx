@@ -1,16 +1,19 @@
 /**
  * Runs one task of today's session (a lesson, a review, or a quiz) and records the
  * result in the progress document. Reviews and quizzes use the same problem runtime as
- * practice. Topics without content yet fall back to a labelled self-report.
+ * practice. A topic without problems cannot be reviewed or quizzed; the planner never
+ * schedules one, and a stored plan that still holds one only offers to leave it.
  */
 import { useState } from 'preact/hooks';
 import { contentFor } from '@learnhub/content';
 import type { Progress, SessionTask } from '@learnhub/mastery';
 import { titleOf, topicOf } from '@/model/courses';
-import { completeLesson, completeQuiz, completeReview, skipTask } from '@/model/learner';
+import { completeLesson, completeQuiz, completeReview, hasContent, skipTask } from '@/model/learner';
+import { clearLearnSalt, learnSalt } from '@/model/lessonState';
 import { REVIEW_PROBLEMS, instanceAt } from '@/model/practice';
 import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
+import { BackLink } from '@/ui/BackLink';
 import { ProblemCard } from '@/ui/ProblemCard';
 import { LessonRunner, type LessonEnd } from '@/ui/views/Lesson';
 
@@ -39,19 +42,21 @@ function Done({ p, task, index }: { p: Progress; task: SessionTask; index: numbe
   );
 }
 
-function SelfCheck({ topicId, onAnswer }: { topicId: string; onAnswer: (known: boolean) => void }) {
-  const t = topicOf(topicId);
+/** A task with nothing to answer: its problems are not written, so all it can do is wait. */
+function NotWritten({ topicIds, onLeave }: { topicIds: readonly string[]; onLeave: () => void }) {
   return (
-    <div class="self-report">
-      <p class="badge badge-self">Self-report</p>
-      <p class="small muted">No questions are written for this topic yet, so this review asks you directly. Be honest: a miss only brings it back sooner.</p>
-      <p><strong>{t?.title}</strong>: {t?.summary}</p>
+    <div class="not-written">
+      <p class="badge badge-unwritten">Problems not written yet</p>
+      <p class="small muted">{topicIds.map((id) => topicOf(id)?.title ?? id).join(', ')}: no problems are written yet, so there is nothing to check. Leave it for another day.</p>
       <div class="actions">
-        <button type="button" class="btn btn-primary" onClick={() => onAnswer(true)}>I still know this</button>
-        <button type="button" class="btn" onClick={() => onAnswer(false)}>I have forgotten it</button>
+        <button type="button" class="btn btn-primary" onClick={onLeave}>Leave it for now</button>
       </div>
     </div>
   );
+}
+
+function leave(p: Progress, index: number): void {
+  void commit(skipTask(p, index, now())).then(() => after(p, index));
 }
 
 /** A review: two problems from different skills of one topic; it passes when both are right. */
@@ -64,11 +69,12 @@ function ReviewRunner({ p, task, index }: { p: Progress; task: SessionTask; inde
   };
   return (
     <section class="page review" aria-labelledby="rv-title">
+      <BackLink to={{ view: 'today' }} label="Back to today" />
       <p class="small muted">Review</p>
       <h1 id="rv-title">{titleOf(id)}</h1>
       <p class="small muted">{task.reason}</p>
       {c === undefined
-        ? <SelfCheck topicId={id} onAnswer={record} />
+        ? <NotWritten topicIds={[id]} onLeave={() => leave(p, index)} />
         : (
           <>
             <p class="small muted">Problem {results.length + 1} of {REVIEW_PROBLEMS}</p>
@@ -93,22 +99,32 @@ function ReviewRunner({ p, task, index }: { p: Progress; task: SessionTask; inde
 /** A quiz: one problem per topic; each answer is that topic's review. */
 function QuizRunner({ p, task, index }: { p: Progress; task: SessionTask; index: number }) {
   const [results, setResults] = useState<Record<string, boolean>>({});
+  // Only items with problems can be asked; the planner schedules no others.
+  const items = task.topicIds.filter(hasContent);
   const done = Object.keys(results).length;
-  const id = task.topicIds[done] as string;
+  const id = items[done];
+  if (id === undefined) {
+    return (
+      <section class="page quiz" aria-labelledby="qz-title">
+        <BackLink to={{ view: 'today' }} label="Back to today" />
+        <h1 id="qz-title">Quiz</h1>
+        <NotWritten topicIds={task.topicIds} onLeave={() => leave(p, index)} />
+      </section>
+    );
+  }
   const c = contentFor(id);
   const record = (correct: boolean): void => {
     const rs = { ...results, [id]: correct };
-    if (Object.keys(rs).length >= task.topicIds.length) void commit(completeQuiz(p, rs, now(), index));
+    if (Object.keys(rs).length >= items.length) void commit(completeQuiz(p, rs, now(), index));
     else setResults(rs);
   };
   return (
     <section class="page quiz" aria-labelledby="qz-title">
-      <p class="small muted">Quiz: item {done + 1} of {task.topicIds.length}, about {Math.round(task.minutes / task.topicIds.length)} minutes each</p>
-      <progress class="bar" max={task.topicIds.length} value={done} aria-label="Quiz progress" />
+      <BackLink to={{ view: 'today' }} label="Back to today" />
+      <p class="small muted">Quiz: item {done + 1} of {items.length}, about {Math.round(task.minutes / task.topicIds.length)} minutes each</p>
+      <progress class="bar" max={items.length} value={done} aria-label="Quiz progress" />
       <h1 id="qz-title">{titleOf(id)}</h1>
-      {c === undefined
-        ? <SelfCheck key={id} topicId={id} onAnswer={record} />
-        : <ProblemCard key={id} topicId={id} index={done} mode="quiz" instance={instanceAt(c, `quiz-${p.session?.startedAt ?? 0}-${index}`, done)} onDone={(r) => record(r.correct)} />}
+      {c !== undefined && <ProblemCard key={id} topicId={id} index={done} mode="quiz" instance={instanceAt(c, `quiz-${p.session?.startedAt ?? 0}-${index}`, done)} onDone={(r) => record(r.correct)} />}
     </section>
   );
 }
@@ -137,7 +153,8 @@ export function TaskView({ index }: { index: number }) {
       topicId={id}
       salt={`lesson-${p.session?.startedAt ?? 0}-${index}`}
       onEnd={end}
-      onSkip={() => { void commit(skipTask(p, index, now())).then(() => after(p, index)); }}
+      onSkip={() => leave(p, index)}
+      back={{ to: { view: 'today' }, label: 'Back to today' }}
     />
   );
 }
@@ -147,8 +164,8 @@ export function LearnView({ topicId }: { topicId: string }) {
   const p = progress.value;
   const t = topicOf(topicId);
   const [done, setDone] = useState<boolean | null>(null);
-  // Fixed for the visit, so problems do not change while they are answered.
-  const [salt] = useState(() => `learn-${now()}`);
+  // Fixed until the lesson ends, so problems do not change while they are answered or after leaving and coming back.
+  const [salt] = useState(() => learnSalt(topicId, now()));
   if (p === null || t === undefined) return <p class="page">Unknown topic.</p>;
   if (done !== null) {
     return (
@@ -166,8 +183,9 @@ export function LearnView({ topicId }: { topicId: string }) {
     <LessonRunner
       topicId={topicId}
       salt={salt}
-      onEnd={(e) => { void commit(completeLesson(p, topicId, e.passed, now(), null, t.estMinutes)).then(() => setDone(e.passed)); }}
+      onEnd={(e) => { clearLearnSalt(topicId); void commit(completeLesson(p, topicId, e.passed, now(), null, t.estMinutes)).then(() => setDone(e.passed)); }}
       onSkip={() => go({ view: 'map', topicId })}
+      back={{ to: { view: 'map', topicId }, label: 'Back to the map' }}
     />
   );
 }

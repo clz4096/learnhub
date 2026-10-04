@@ -9,7 +9,7 @@ import {
   type IdbFactoryLike, type Progress, type ProgressStorage,
 } from '@learnhub/mastery';
 import { ALL_TOPICS } from './courses';
-import { DOC_ID, STORAGE_KEY, hubSummary } from './learner';
+import { DOC_ID, STORAGE_KEY, hubSummary, withoutSelfReport } from './learner';
 
 export const HUB_KEY = 'learnhub.progress.mastery';
 export const DB_NAME = 'learnhub-mastery';
@@ -43,7 +43,18 @@ function browserIdb(): IdbFactoryLike | null {
 
 export const KNOWN_IDS: readonly string[] = ALL_TOPICS.map((t) => t.id);
 
-/** Opens storage and loads the document. A broken stored document is reported, never overwritten. */
+/** What `withoutSelfReport` removed, as a load or import warning. */
+export function selfReportWarning(dropped: readonly string[]): string {
+  const shown = dropped.slice(0, 12).join(', ');
+  const more = dropped.length > 12 ? `, and ${dropped.length - 12} more` : '';
+  return `${dropped.length} topic${dropped.length === 1 ? ' was' : 's were'} marked learned by self-report, not by real problems, and must be learned again: ${shown}${more}`;
+}
+
+/**
+ * Opens storage and loads the document. A broken stored document is reported, never
+ * overwritten. A document that still holds self-reported progress is migrated
+ * (`withoutSelfReport`) and saved straight away.
+ */
 export async function init(factory: IdbFactoryLike | null = browserIdb()): Promise<void> {
   storage = factory === null ? new MemoryStorage() : idbStorage(factory, DB_NAME, 'progress');
   volatile.value = factory === null;
@@ -54,8 +65,18 @@ export async function init(factory: IdbFactoryLike | null = browserIdb()): Promi
     loadState.value = 'error';
     return;
   }
-  loadWarnings.value = r.warnings;
-  progress.value = r.value;
+  const warnings = [...r.warnings];
+  let doc = r.value;
+  if (doc !== null) {
+    const m = withoutSelfReport(doc);
+    if (m.progress !== doc) {
+      doc = m.progress;
+      if (m.dropped.length > 0) warnings.push(selfReportWarning(m.dropped));
+      await commit(doc);
+    }
+  }
+  loadWarnings.value = warnings;
+  progress.value = doc;
   loadState.value = 'ready';
 }
 

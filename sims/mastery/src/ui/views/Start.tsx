@@ -1,8 +1,13 @@
 /**
  * Start: choose courses and daily minutes, then the placement test. Placement asks the
- * engine for the next topic to probe (`nextProbe`), uses a real problem where the topic
- * has content, and a clearly labelled self-report where it does not yet. Each answer is
- * saved as it is given, so a reload resumes the test.
+ * engine for the next topic to probe (`nextProbe`) and asks a real problem on it. Only
+ * topics with written problems are asked about; the rest count as not known until their
+ * lessons exist (design decisions 11 and 18). Each answer is saved as it is given, so a
+ * reload resumes the test.
+ *
+ * Two routes, so Back works: #/start is the courses and minutes step and #/placement the
+ * test. Going back from the test to change courses or minutes keeps the answers so far;
+ * the courses step then offers to resume the test or start it over.
  */
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { contentFor } from '@learnhub/content';
@@ -14,31 +19,48 @@ import {
 import { instanceAt, seedFor } from '@/model/practice';
 import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
+import { BackLink } from '@/ui/BackLink';
 import { ProblemCard } from '@/ui/ProblemCard';
 import { ImportFile } from '@/ui/views/ProgressView';
 
-export function Start() {
+/** `step` is the route's: the courses step, or placement (which needs courses chosen first). */
+export function Start({ step = 'placement' }: { step?: 'courses' | 'placement' }) {
   const p = progress.value;
-  if (p === null || p.courses.length === 0) return <ChooseCourses />;
+  if (p === null || p.courses.length === 0) return <ChooseCourses p={p} />;
+  if (p.placement?.done === true) return <PlacementDone p={p} />;
+  if (step === 'courses') return <ChooseCourses p={p} />;
   if (p.placement === null) return <PlacementIntro p={p} />;
-  if (!p.placement.done) return <Placement p={p} />;
-  return <PlacementDone p={p} />;
+  return <Placement p={p} />;
 }
 
-function ChooseCourses() {
-  const [courses, setCourses] = useState<string[]>([...DEFAULT_COURSES]);
-  const [minutes, setMinutes] = useState(String(DEFAULT_MINUTES));
+/** Back from placement to the courses step. */
+const BackToCourses = () => <BackLink to={{ view: 'start' }} label="Back to courses and minutes" />;
+
+function ChooseCourses({ p }: { p: Progress | null }) {
+  const chosen = p !== null && p.courses.length > 0;
+  const [courses, setCourses] = useState<string[]>(p !== null && chosen ? [...p.courses] : [...DEFAULT_COURSES]);
+  const [minutes, setMinutes] = useState(String(p !== null && chosen ? p.settings.budgetMinutes : DEFAULT_MINUTES));
+  const answered = p?.placement?.answers.length ?? 0;
   const m = Number(minutes);
   const minutesOk = Number.isInteger(m) && m >= MIN_MINUTES && m <= MAX_MINUTES;
   const ok = courses.length > 0 && minutesOk;
   const size = closureOf(courses).size;
 
   const toggle = (id: string): void => setCourses(courses.includes(id) ? courses.filter((c) => c !== id) : [...courses, id]);
-  const begin = (): void => {
+  /** Saves the choice and goes on to placement. `over` clears the answers so far. */
+  const begin = (over = false): void => {
     if (!ok) return;
     // Keep the courses in catalog order, which is the planner's tie order.
-    void commit(startLearner(now(), ALL_COURSES.map((c) => c.id).filter((id) => courses.includes(id)), m));
-    go({ view: 'start' });
+    const ids = ALL_COURSES.map((c) => c.id).filter((id) => courses.includes(id));
+    const t = now();
+    let next = p !== null && chosen
+      ? { ...p, courses: ids, settings: { ...p.settings, budgetMinutes: m }, updatedAt: t }
+      : startLearner(t, ids, m);
+    // Answers already given stay valid after a change of courses: placement ignores
+    // answers about topics outside the chosen courses.
+    if (over) next = { ...next, placement: { answers: [], done: false } };
+    void commit(next);
+    go({ view: 'placement' });
   };
 
   return (
@@ -67,7 +89,15 @@ function ChooseCourses() {
             onInput={(e) => setMinutes((e.currentTarget as HTMLInputElement).value)} />
           {!minutesOk && <span class="small error-text">Choose a whole number of minutes from {MIN_MINUTES} to {MAX_MINUTES}.</span>}
         </div>
-        <button type="submit" class="btn btn-primary" disabled={!ok}>Continue</button>
+        {answered > 0 ? (
+          <>
+            <p class="small muted">You have answered {answered} placement question{answered === 1 ? '' : 's'}. Resume keeps those answers.</p>
+            <div class="actions">
+              <button type="submit" class="btn btn-primary" disabled={!ok}>Resume placement</button>
+              <button type="button" class="btn" disabled={!ok} onClick={() => begin(true)}>Start placement over</button>
+            </div>
+          </>
+        ) : <button type="submit" class="btn btn-primary" disabled={!ok}>Continue</button>}
       </form>
       <section class="card import-start" aria-labelledby="imp-title">
         <h2 id="imp-title" class="small">Coming back with a progress file?</h2>
@@ -80,16 +110,16 @@ function ChooseCourses() {
 
 function PlacementIntro({ p }: { p: Progress }) {
   const g = useMemo(() => placementGraphFor(p), [p.courses.join()]);
-  const withContent = g.order.filter((id) => contentFor(id) !== undefined).length;
+  const withContent = g.probeable.size;
   const begin = (): void => {
     void commit({ ...p, placement: { answers: [], done: false } });
-    go({ view: 'start' });
   };
   const skip = (): void => {
     void commit(finishPlacement({ ...p, placement: { answers: [], done: false } }, now())).then(() => go({ view: 'today' }));
   };
   return (
     <section class="page start" aria-labelledby="place-title">
+      <BackToCourses />
       <h1 id="place-title">The placement test</h1>
       <p>
         Before the first lesson, a short test finds what you already know, so you do not relearn it. It asks about one
@@ -100,10 +130,10 @@ function PlacementIntro({ p }: { p: Progress }) {
         <li>It asks at most {budgetFor(g)} questions, usually fewer.</li>
         <li><strong>A wrong answer is fine.</strong> It only means that topic starts with a lesson. If you do not know, say so.</li>
         <li>
-          Lessons are written for {withContent} of the {g.order.length} topics so far. For those, you solve a real problem.
-          For the others, you tell it whether you know the topic. Those questions are marked <em>self-report</em>.
+          Lessons are written for {withContent} of the {g.order.length} topics so far, and every question is a real problem on
+          one of those. The other topics count as not known until their lessons are written.
         </li>
-        <li>Your answers are saved as you go. You can close the tab and come back.</li>
+        <li>Your answers are saved as you go. You can go back, or close the tab, and resume where you left off.</li>
       </ul>
       <div class="actions">
         <button type="button" class="btn btn-primary" onClick={begin}>Start the placement test</button>
@@ -132,10 +162,12 @@ function Placement({ p }: { p: Progress }) {
 
   return (
     <section class="page placement" aria-labelledby="pl-title">
+      <BackToCourses />
       <p class="small muted">Placement: question {n} of at most {budget}</p>
       <progress class="bar" max={budget} value={answers.length} aria-label="Placement progress" />
       <h1 id="pl-title">{t?.title ?? next}</h1>
-      {c !== undefined ? (
+      {/* nextProbe only returns topics with content (placementGraphFor's probeable). */}
+      {c !== undefined && (
         <ProblemCard
           key={`${next}-${n}`}
           index={n}
@@ -144,16 +176,6 @@ function Placement({ p }: { p: Progress }) {
           instance={instanceAt(c, seedFor('placement', p.createdAt), n)}
           onDone={(r) => record(r.correct)}
         />
-      ) : (
-        <div class="self-report">
-          <p class="badge badge-self">Self-report</p>
-          <p class="small muted">No questions are written for this topic yet, so tell it honestly whether you know it.</p>
-          <p><strong>{t?.title}</strong>: {t?.summary}</p>
-          <div class="actions">
-            <button type="button" class="btn btn-primary" onClick={() => record(true)}>I know this</button>
-            <button type="button" class="btn" onClick={() => record(false)}>I do not</button>
-          </div>
-        </div>
       )}
       <p class="small muted">Answers so far: {answers.filter((a) => a.correct).length} known, {answers.filter((a) => !a.correct).length} to learn.</p>
     </section>
@@ -171,7 +193,7 @@ function PlacementDone({ p }: { p: Progress }) {
         {r.mastered.length > 0 ? '; they come back as short reviews over the next days to check they stick' : ''}.
       </p>
       <p>Ready to learn now: {r.frontier.slice(0, 6).map(titleOf).join(', ')}{r.frontier.length > 6 ? `, and ${r.frontier.length - 6} more` : ''}.</p>
-      <p class="small muted">Courses: {p.courses.map(shortName).join(' and ')}. {p.settings.budgetMinutes} minutes a day.</p>
+      <p class="small muted">Courses: {p.courses.map(shortName).join(' and ')}. {p.settings.budgetMinutes} minutes a day. You can change both in Progress.</p>
       <button type="button" class="btn btn-primary" onClick={() => go({ view: 'today' })}>See today's plan</button>
     </section>
   );

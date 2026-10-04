@@ -11,6 +11,16 @@
  *
  * The state is just the list of answers; every function recomputes from it, so the state
  * serializes trivially and a resumed test picks up where it stopped.
+ *
+ * Only `probeable` topics are asked about (design decisions 11 and 18: a course without a
+ * real problem for a topic cannot measure it, and nothing is taken on the learner's word).
+ * The others are never probed, are classified as not known from the start, and no answer
+ * spreads to them. Answers still spread through them: a correct answer credits every
+ * probeable ancestor, however many unprobeable topics lie in between, since the ancestor
+ * relation is transitive. So placement runs on the probeable topics ordered by the
+ * graph's ancestor relation, and every count below (the budget, the exactness
+ * measurements) is over the probeable topics. With every topic probeable, the default,
+ * nothing changes.
  */
 import { courseTopics, type Targets } from './course';
 import { withDefaults } from './options';
@@ -38,6 +48,11 @@ export interface PlacementGraphOptions {
   targets?: Targets;
   /** Entry points are the highest topics at or below this level on each branch. */
   entryLevel?: Level;
+  /**
+   * Topics placement may ask about, for example those with a real problem written. The
+   * rest are never probed and stay not known. Default every topic.
+   */
+  probeable?: (topicId: string) => boolean;
 }
 
 export const DEFAULT_ENTRY_LEVEL: Level = 'step';
@@ -52,9 +67,12 @@ export const DEFAULT_ENTRY_LEVEL: Level = 'step';
 export const DEFAULT_PLACEMENT_OPTIONS: Readonly<PlacementOptions> = { budget: 30, strategy: 'split' };
 
 /**
- * The default budget for a closure of `closureSize` topics: one question per two topics,
- * and never fewer than the 30 measured on the probstats slice (60 topics), so a single
- * course of that size keeps 30.
+ * The default budget for `size` probeable topics (the whole closure when every topic is
+ * probeable): one question per two topics, and never fewer than the 30 measured on the
+ * probstats slice (60 topics), so a single course of that size keeps 30. Capped at `size`,
+ * since each question classifies at least the topic it asks about and only unclassified
+ * topics are asked: placement can never ask more, so a larger cap would only overstate
+ * the length of the test (10 probeable topics take at most 10 questions, not 30).
  *
  * A fixed 30 placed only 45% of truthful simulated learners exactly over both courses at
  * once (98 topics, owner decision on CST review call 12). Measured on 1,000 truthful
@@ -62,10 +80,12 @@ export const DEFAULT_PLACEMENT_OPTIONS: Readonly<PlacementOptions> = { budget: 3
  * so ceil(98 / 2) = 49 leaves 9 questions of margin. Discrete Mathematics alone (51
  * topics) needs 20 and gets 30. The budget is only a cap: a truthful learner stops as
  * soon as every topic is classified (32.7 questions on average over both courses), so
- * the margin costs a learner nothing unless their answers contradict each other.
+ * the margin costs a learner nothing unless their answers contradict each other. Those
+ * measurements had every topic probeable; with fewer, they hold for the probeable
+ * topics, ordered by ancestry in the full graph.
  */
-export function placementBudget(closureSize: number): number {
-  return Math.max(DEFAULT_PLACEMENT_OPTIONS.budget, Math.ceil(closureSize / 2));
+export function placementBudget(size: number): number {
+  return Math.min(Math.max(0, size), Math.max(DEFAULT_PLACEMENT_OPTIONS.budget, Math.ceil(size / 2)));
 }
 
 /** Precomputed ancestor and descendant sets over the course closure; placement asks for them on every step. */
@@ -77,6 +97,8 @@ export interface PlacementGraph {
   anc: ReadonlyMap<string, ReadonlySet<string>>;
   desc: ReadonlyMap<string, ReadonlySet<string>>;
   entries: readonly string[];
+  /** The topics placement may ask about, a subset of `order`. Placement sizes, budgets, and measurements count these. */
+  probeable: ReadonlySet<string>;
 }
 
 /**
@@ -92,12 +114,19 @@ export function placementGraph(all: readonly Topic[], options: PlacementGraphOpt
   const rank = new Map(order.map((id, i) => [id, i] as const));
   const anc = new Map(order.map((id) => [id, ancestors(topics, id)] as const));
   const desc = new Map(order.map((id) => [id, descendants(topics, id)] as const));
-  return { topics, order, rank, anc, desc, entries: entryPoints(topics, entryLevel, anc, desc, rank) };
+  const probeable = new Set(options.probeable === undefined ? order : order.filter(options.probeable));
+  const entries = entryPoints(topics, entryLevel, anc, desc, rank, probeable);
+  return { topics, order, rank, anc, desc, entries, probeable };
+}
+
+/** The default budget for this graph: `placementBudget` of its probeable topics. */
+export function graphBudget(g: PlacementGraph): number {
+  return placementBudget(g.probeable.size);
 }
 
 /**
- * Topics at or below `entryLevel` with no descendant at or below it: the highest point of
- * that layer on each branch. Ordered by how many topics a correct answer credits, largest
+ * Probeable topics at or below `entryLevel` with no probeable descendant at or below it:
+ * the highest point of that layer on each branch that placement can ask about. Ordered by how many topics a correct answer credits, largest
  * first, ties by topological order.
  */
 function entryPoints(
@@ -106,10 +135,11 @@ function entryPoints(
   anc: ReadonlyMap<string, ReadonlySet<string>>,
   desc: ReadonlyMap<string, ReadonlySet<string>>,
   rank: ReadonlyMap<string, number>,
+  probeable: ReadonlySet<string>,
 ): string[] {
   const cap = LEVELS.indexOf(entryLevel);
   const levelOf = new Map(topics.map((t) => [t.id, LEVELS.indexOf(t.level)] as const));
-  const low = (id: string): boolean => (levelOf.get(id) ?? Infinity) <= cap;
+  const low = (id: string): boolean => probeable.has(id) && (levelOf.get(id) ?? Infinity) <= cap;
   return topics
     .map((t) => t.id)
     .filter((id) => low(id) && ![...(desc.get(id) ?? [])].some(low))
@@ -119,17 +149,18 @@ function entryPoints(
 /**
  * Replays answers in order; each one overrides earlier answers on the topics it covers.
  * That keeps the known set closed under ancestors and the unknown set closed under
- * descendants even when noisy answers contradict each other.
- * Answers about ids not in the graph are ignored.
+ * descendants, among probeable topics, even when noisy answers contradict each other.
+ * Topics that are not probeable are 'unknown' whatever the answers. Answers about ids not
+ * in the graph, or not probeable, are ignored.
  */
 export function classify(g: PlacementGraph, answers: readonly PlacementAnswer[]): Map<string, Classification> {
-  const c = new Map<string, Classification>(g.order.map((id) => [id, 'unclassified'] as const));
+  const c = new Map<string, Classification>(g.order.map((id) => [id, g.probeable.has(id) ? 'unclassified' : 'unknown'] as const));
   for (const a of answers) {
-    if (!c.has(a.topicId)) continue;
+    if (!g.probeable.has(a.topicId)) continue;
     const status: Classification = a.correct ? 'known' : 'unknown';
     const spread = a.correct ? g.anc.get(a.topicId) : g.desc.get(a.topicId);
     c.set(a.topicId, status);
-    for (const id of spread ?? []) c.set(id, status);
+    for (const id of spread ?? []) if (g.probeable.has(id)) c.set(id, status);
   }
   return c;
 }
@@ -179,7 +210,7 @@ export function nextProbe(
   answers: readonly PlacementAnswer[],
   options?: Partial<PlacementOptions>,
 ): string | null {
-  const opts = withDefaults({ ...DEFAULT_PLACEMENT_OPTIONS, budget: placementBudget(g.order.length) }, options);
+  const opts = withDefaults({ ...DEFAULT_PLACEMENT_OPTIONS, budget: graphBudget(g) }, options);
   if (answers.length >= opts.budget) return null;
   const c = classify(g, answers);
   const open = (id: string): boolean => c.get(id) === 'unclassified';
@@ -203,8 +234,10 @@ export interface PlacementResult {
   mastered: string[];
   /** Topics ready to learn given `mastered`. */
   frontier: string[];
-  /** Left unclassified when the budget ran out; treated as not known. */
+  /** Probeable topics left unclassified when the budget ran out; treated as not known. */
   unclassified: string[];
+  /** Topics that are not probeable, so never asked about and not known. Topological order. */
+  notProbed: string[];
   questions: number;
 }
 
@@ -220,6 +253,7 @@ export function placementResult(g: PlacementGraph, answers: readonly PlacementAn
     mastered,
     frontier: frontier(g.topics, new Set(mastered)),
     unclassified: g.order.filter((id) => c.get(id) === 'unclassified'),
+    notProbed: g.order.filter((id) => !g.probeable.has(id)),
     questions: answers.length,
   };
 }

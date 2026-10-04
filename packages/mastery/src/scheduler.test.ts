@@ -252,3 +252,38 @@ describe('several courses: courseWeights', () => {
     expect(plan.tasks.every((t) => t.kind !== 'lesson' || t.course === undefined)).toBe(true);
   });
 });
+
+describe('teachable: only topics the course can teach are scheduled', () => {
+  // t.a and t.b are roots; t.c builds on t.a. Only t.b and t.c have a written lesson.
+  const g = [T('t.a'), T('t.b'), T('t.c', ['t.a'])];
+  const written = (id: string): boolean => id !== 't.a';
+
+  it('a frontier topic that is not teachable gets no lesson, and blocks what builds on it', () => {
+    const plan = planSession({ topics: g, memory: {}, now: NOW, teachable: written });
+    expect(lessons(plan.tasks)).toEqual(['t.b']);
+  });
+
+  it('by default every frontier topic is a candidate', () => {
+    expect(lessons(planSession({ topics: g, memory: {}, now: NOW }).tasks)).toEqual(['t.a', 't.b']);
+  });
+
+  it('a mastered topic that is not teachable is never reviewed or quizzed', () => {
+    const memory: MemoryMap = { 't.a': dueNow(), 't.b': dueNow(), 't.c': notDue() };
+    const plan = planSession({
+      topics: [...g, T('t.d'), T('t.e')], memory: { ...memory, 't.d': notDue(), 't.e': notDue() }, now: NOW,
+      learnedSinceQuiz: ['t.a', 't.b', 't.c', 't.d', 't.e'], teachable: written,
+    });
+    expect(reviews(plan.tasks)).toEqual([]);
+    expect(plan.tasks.find((t) => t.kind === 'quiz')).toMatchObject({ topicIds: ['t.b', 't.c', 't.d', 't.e'] });
+    expect(plan.tasks.flatMap((t) => (t.kind === 'quiz' ? t.topicIds : [t.topicId]))).not.toContain('t.a');
+  });
+
+  it('applies within each course of a split session', () => {
+    const g2 = [T('a.x', [], { area: 'a' }), T('a.y', [], { area: 'a' }), T('b.x', [], { area: 'b' })];
+    const plan = planSession({
+      topics: g2, courses: [{ id: 'A', targets: ['a.x', 'a.y'] }, { id: 'B', targets: ['b.x'] }], memory: {}, now: NOW,
+      teachable: (id) => id !== 'a.x',
+    });
+    expect(lessons(plan.tasks).sort()).toEqual(['a.y', 'b.x']);
+  });
+});

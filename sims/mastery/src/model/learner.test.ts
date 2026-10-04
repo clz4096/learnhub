@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { contentFor } from '@learnhub/content';
-import { DAY_MS, importProgress, exportProgress, type Progress } from '@learnhub/mastery';
-import { closureOf } from '@/model/courses';
+import { DAY_MS, importProgress, exportProgress, placedMemory, runPlacement, type Progress } from '@learnhub/mastery';
+import { closureOf, closureTopics } from '@/model/courses';
 import {
-  DEFAULT_COURSES, answerPlacement, completeLesson, completeQuiz, completeReview, ensureSession, finishPlacement, hubSummary,
-  localDay, placementGraphFor, planMore, replanToday, sessionTime, skipTask, startLearner, statusMap,
+  DEFAULT_COURSES, answerPlacement, budgetFor, completeLesson, completeQuiz, completeReview, ensureSession, finishPlacement, hasContent,
+  hubSummary, localDay, placementGraphFor, planMore, replanToday, sessionTime, skipTask, startLearner, statusMap, withoutSelfReport,
 } from '@/model/learner';
 
 const T0 = new Date(2026, 9, 4, 9, 0).getTime();
@@ -158,5 +158,185 @@ describe('status and the hub summary', () => {
     expect(now.get('pre.probability-scale')).toBe('ready');
     expect(now.get('num.fermat-little')).toBe('locked');
     expect(statusMap(p, T0 + 2 * DAY_MS).get('pre.fractions')).toBe('due');
+  });
+});
+
+// Topics with content, and one root without: these tests read the real graph and content,
+// so they say what holds for any content set rather than naming today's ten topics.
+const CONTENT = closureTopics(DEFAULT_COURSES).filter((t) => hasContent(t.id)).map((t) => t.id);
+const NO_CONTENT_ROOT = 'pre.primes-and-factors';
+const placing = (): Progress => ({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } });
+
+describe('placement asks only about topics with real problems', () => {
+  const g = placementGraphFor(startLearner(T0, DEFAULT_COURSES, 60));
+
+  it('covers the 98-topic union but probes only the topics with content, and its budget is their number', () => {
+    expect(g.order).toHaveLength(98);
+    expect([...g.probeable].sort()).toEqual([...CONTENT].sort());
+    expect(hasContent(NO_CONTENT_ROOT)).toBe(false);
+    // placementBudget is capped at the topics it can ask about: max(30, ceil(10 / 2)) would overstate it.
+    expect(budgetFor(g)).toBe(CONTENT.length);
+  });
+
+  // Every truthful learner: each knowledge state of the probeable topics that is closed under
+  // ancestors. Exhaustive, so this is the exact distribution, not a sample.
+  it('places every truthful learner exactly, asking only real problems, within the budget', () => {
+    const ids = [...g.probeable];
+    const states: Set<string>[] = [];
+    for (let mask = 0; mask < 1 << ids.length; mask++) {
+      const known = new Set(ids.filter((_, i) => (mask >> i) & 1));
+      if ([...known].every((id) => [...(g.anc.get(id) ?? [])].every((a) => !g.probeable.has(a) || known.has(a)))) states.push(known);
+    }
+    const questions: number[] = [];
+    for (const known of states) {
+      const { answers, result } = runPlacement(g, (id) => known.has(id), T0);
+      for (const a of answers) expect(hasContent(a.topicId)).toBe(true);
+      expect(new Set(result.mastered)).toEqual(known);
+      expect(result.unclassified).toEqual([]);
+      questions.push(result.questions);
+    }
+    // Four two-topic chains and two single topics: 3^4 * 2^2 states.
+    expect(states).toHaveLength(324);
+    expect(Math.max(...questions)).toBeLessThanOrEqual(budgetFor(g));
+    expect(Math.max(...questions)).toBe(10);
+    expect(Math.min(...questions)).toBe(6);
+    expect(questions.reduce((a, b) => a + b, 0) / questions.length).toBeCloseTo(8.67, 2);
+  });
+
+  it('topics without content are never credited, even below a known topic', () => {
+    const r = finishPlacement(answerPlacement(placing(), 'comb.factorial', true, T0), T0 + 1);
+    for (const id of Object.keys(r.memory)) expect(hasContent(id)).toBe(true);
+  });
+
+  it('an answer about a topic without content counts for nothing', () => {
+    const p = finishPlacement(answerPlacement(placing(), 'comb.combinations', true, T0), T0 + 1);
+    expect(p.memory).toEqual({});
+  });
+});
+
+describe('topics without content are never scheduled or learned', () => {
+  it('a learner who knows every written topic gets no new lessons, and none without content', () => {
+    let p = fresh();
+    p = { ...p, memory: placedMemory(CONTENT, T0) };
+    const s = ensureSession(p, T0).session;
+    for (const t of s?.tasks ?? []) for (const id of t.topicIds) expect(hasContent(id)).toBe(true);
+    expect(s?.tasks.filter((t) => t.kind === 'lesson')).toEqual([]);
+  });
+
+  it('across a month of passing everything, every task is on a topic with content', () => {
+    let p = fresh();
+    for (let d = 0; d < 30; d++) {
+      const day = T0 + d * DAY_MS;
+      p = ensureSession(p, day);
+      (p.session?.tasks ?? []).forEach((t, i) => {
+        for (const id of t.topicIds) expect(hasContent(id)).toBe(true);
+        if (t.kind === 'lesson') p = completeLesson(p, t.topicIds[0] as string, true, day, i, t.minutes, t.course);
+        else if (t.kind === 'review') p = completeReview(p, t.topicIds[0] as string, true, day, i);
+        else p = completeQuiz(p, Object.fromEntries(t.topicIds.map((id) => [id, true])), day, i);
+      });
+    }
+    expect(Object.keys(p.memory).sort()).toEqual([...CONTENT].sort());
+  });
+
+  it('a lesson on a topic without content cannot be passed', () => {
+    const p0 = ensureSession(fresh(), T0);
+    const p = completeLesson(p0, NO_CONTENT_ROOT, true, T0 + 1, 0, 15, 'cst-discrete-maths');
+    expect(p.memory[NO_CONTENT_ROOT]).toBeUndefined();
+    expect(p.learnedSinceQuiz).toEqual([]);
+    expect(p.courseMinutes).toEqual({});
+    expect(p.history).toEqual(p0.history);
+    expect(p.session?.tasks[0]).toMatchObject({ done: true, passed: null });
+  });
+
+  it('shows a frontier topic without content as unwritten, not ready', () => {
+    const st = statusMap(fresh(), T0);
+    expect(st.get(NO_CONTENT_ROOT)).toBe('unwritten');
+    expect(st.get('pre.fractions')).toBe('ready');
+  });
+});
+
+describe('migration: self-reported progress is removed', () => {
+  // A version 2 document from the build that offered self-report. comb.combinations has no
+  // content; its self-reported "known" spread to pre.product-rule and comb.factorial.
+  const legacy = (): Progress => {
+    let p = placing();
+    p = answerPlacement(p, 'pre.fractions', true, T0);
+    p = answerPlacement(p, 'comb.combinations', true, T0);
+    p = answerPlacement(p, NO_CONTENT_ROOT, true, T0);
+    // finishPlacement now ignores those answers, so build the memory the old build wrote.
+    p = { ...p, placement: { answers: p.placement?.answers ?? [], done: true } };
+    p = { ...p, memory: placedMemory(['pre.fractions', 'pre.product-rule', 'comb.factorial', NO_CONTENT_ROOT, 'comb.combinations'], T0) };
+    // A self-reported lesson on a topic without content, and a real one with content.
+    p = { ...p, memory: { ...p.memory, 'logic.implication': placedMemory(['logic.implication'], T0)['logic.implication'] as never } };
+    p = { ...p, history: [...p.history, { at: T0, kind: 'lesson', topicId: 'logic.implication', correct: true }] };
+    p = completeLesson(p, 'logic.connectives', true, T0, null, 15);
+    p = { ...p, learnedSinceQuiz: ['logic.implication', 'logic.connectives'] };
+    return p;
+  };
+
+  it('keeps only measured topics with content', () => {
+    const { progress: p, dropped } = withoutSelfReport(legacy());
+    expect(Object.keys(p.memory).sort()).toEqual(['logic.connectives', 'pre.fractions']);
+    expect(dropped.sort()).toEqual(['comb.combinations', 'comb.factorial', 'logic.implication', NO_CONTENT_ROOT, 'pre.product-rule'].sort());
+  });
+
+  it('drops placement answers about topics without content, so they can never count later', () => {
+    const { progress: p } = withoutSelfReport(legacy());
+    expect(p.placement?.answers.map((a) => a.topicId)).toEqual(['pre.fractions']);
+    expect(p.placement?.done).toBe(true);
+  });
+
+  it('keeps the history and lesson minutes, which record what happened', () => {
+    const before = legacy();
+    const { progress: p } = withoutSelfReport(before);
+    expect(p.history).toEqual(before.history);
+    expect(p.courseMinutes).toEqual(before.courseMinutes);
+  });
+
+  it('removes dropped topics from the quiz queue', () => {
+    expect(withoutSelfReport(legacy()).progress.learnedSinceQuiz).toEqual(['logic.connectives']);
+  });
+
+  it("removes today's unfinished tasks on topics that cannot be scheduled, and keeps finished ones", () => {
+    const base = legacy();
+    const p: Progress = {
+      ...base,
+      session: {
+        day: localDay(T0), startedAt: T0, tasks: [
+          { kind: 'lesson', topicIds: [NO_CONTENT_ROOT], minutes: 15, reason: 'r', done: true, passed: true },
+          { kind: 'lesson', topicIds: ['comb.permutations'], minutes: 15, reason: 'r', done: false, passed: null },
+          { kind: 'review', topicIds: ['comb.factorial'], minutes: 3, reason: 'r', done: false, passed: null },
+          { kind: 'review', topicIds: ['pre.fractions'], minutes: 3, reason: 'r', done: false, passed: null },
+          { kind: 'quiz', topicIds: ['pre.fractions', 'logic.implication', 'logic.connectives', 'comb.combinations'], minutes: 8, reason: 'r', done: false, passed: null },
+          { kind: 'lesson', topicIds: ['pre.indices'], minutes: 15, reason: 'r', done: false, passed: null },
+        ],
+      },
+    };
+    const tasks = withoutSelfReport(p).progress.session?.tasks ?? [];
+    expect(tasks.map((t) => [t.kind, t.topicIds, t.minutes])).toEqual([
+      ['lesson', [NO_CONTENT_ROOT], 15],
+      ['review', ['pre.fractions'], 3],
+      ['quiz', ['pre.fractions', 'logic.connectives'], 4],
+      ['lesson', ['pre.indices'], 15],
+    ]);
+  });
+
+  it('is idempotent, and leaves a clean document untouched', () => {
+    const once = withoutSelfReport(legacy()).progress;
+    const twice = withoutSelfReport(once);
+    expect(twice.progress).toBe(once);
+    expect(twice.dropped).toEqual([]);
+    const clean = ensureSession(fresh(), T0);
+    expect(withoutSelfReport(clean).progress).toBe(clean);
+  });
+
+  it('keeps topics placed by real answers, including ancestors with content', () => {
+    let p = answerPlacement(placing(), 'comb.factorial', true, T0);
+    p = finishPlacement(p, T0 + 1);
+    expect(withoutSelfReport(p).progress).toBe(p);
+  });
+
+  it('produces a valid document', () => {
+    expect(importProgress(exportProgress(withoutSelfReport(legacy()).progress)).ok).toBe(true);
   });
 });

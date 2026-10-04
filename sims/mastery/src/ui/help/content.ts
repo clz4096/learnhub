@@ -45,15 +45,15 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'placement',
     title: 'The placement test',
     paragraphs: [
-      'At the start, a short test finds what you already know. A right answer also counts the topics beneath it; a wrong one rules out the topics above it. Topics whose problems are not written yet ask you to report honestly whether you know them, and are labelled self-report.',
+      'At the start, a short test finds what you already know. A right answer also counts the topics beneath it; a wrong one rules out the topics above it. It asks only about topics whose problems are written; the others count as not known until their lessons exist, and are shown as "Lesson not written yet".',
     ],
   },
   {
     id: 'map',
     title: 'The map',
     paragraphs: [
-      'The map shows every topic of your courses, from the foundations at the top to the Tripos at the bottom. Green is learned, amber is due for review, blue is ready to learn, and grey is locked. A dot marks a topic whose lesson is written.',
-      'Choose a topic to see its summary, where Cambridge teaches it, and what it builds on. Use Zoom and the course filter, or switch to List to read it as text.',
+      'The map shows every topic of your courses, from the foundations at the top to the Tripos at the bottom. Green is learned, amber is due for review, blue is ready to learn, a dashed outline means the lesson is not written yet, and grey is locked. A dot marks a topic whose lesson is written.',
+      'Choose a topic to see its summary, where Cambridge teaches it, and what it builds on; lines then connect it to what it builds on and what builds on it. "Show all connections" draws every line. Use Zoom and the course filter, or switch to List to read it as text.',
     ],
   },
   {

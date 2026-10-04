@@ -1,19 +1,24 @@
 /**
  * A lesson: the explanation, worked examples revealed a step at a time, then practice
  * until the topic's mastery rule is met. Every number on the page comes from the content
- * package's code. A topic without content yet gets a labelled self-report instead.
+ * package's code. A topic without content yet says so and offers nothing to pass: it
+ * cannot be learned until its lesson is written (design decisions 11 and 18).
+ *
+ * The stage and the practice run are kept for the tab (`lessonState`), so leaving a
+ * lesson and coming back resumes it where it was.
  */
 import { useState } from 'preact/hooks';
 import { contentFor, type Block, type TopicContent, type WorkedExample } from '@learnhub/content';
 import { LEVEL_NAMES, sourceLinks, topicOf } from '@/model/courses';
-import { answer, freshPractice, instanceAt, type PracticeState } from '@/model/practice';
+import { clearPlace, loadPlace, savePlace, type LessonStage } from '@/model/lessonState';
+import { answer, freshPractice, instanceAt, outcomeOf, type PracticeState } from '@/model/practice';
 import { ProblemCard } from '@/ui/ProblemCard';
+import type { Route } from '@/model/route';
+import { BackLink } from '@/ui/BackLink';
 import { Rich } from '@/ui/Rich';
 
 export interface LessonEnd {
   passed: boolean;
-  /** True when the learner said they know it, with no lesson to check. */
-  selfReport: boolean;
 }
 
 function BlockView({ b }: { b: Block }) {
@@ -80,9 +85,19 @@ function Dots({ s, need }: { s: PracticeState; need: number }) {
   );
 }
 
-function Practice({ c, salt, onEnd }: { c: TopicContent; salt: string; onEnd: (passed: boolean) => void }) {
-  const [s, setS] = useState<PracticeState>(freshPractice());
-  const [ended, setEnded] = useState<boolean | null>(null);
+function Practice({ c, salt, initial, onChange, onEnd }: {
+  c: TopicContent;
+  salt: string;
+  initial: PracticeState;
+  onChange: (s: PracticeState) => void;
+  onEnd: (passed: boolean) => void;
+}) {
+  const [s, setS] = useState<PracticeState>(initial);
+  // A run restored after it ended shows its result again, so the result is never lost.
+  const [ended, setEnded] = useState<boolean | null>(() => {
+    const o = outcomeOf(initial, c.mastery);
+    return o === 'continue' ? null : o === 'mastered';
+  });
   const k = s.attempts;
   if (ended !== null) {
     return ended
@@ -108,6 +123,10 @@ function Practice({ c, salt, onEnd }: { c: TopicContent; salt: string; onEnd: (p
     <div class="practice">
       <Dots s={s} need={c.mastery.correctInARow} />
       <p class="small muted">Problem {k + 1}. Get {c.mastery.correctInARow} right in a row to learn the topic.</p>
+      <p class="small muted">
+        You can leave and come back: your place is kept while this tab is open. If the tab is closed, practice starts again
+        and the right-in-a-row count resets.
+      </p>
       <ProblemCard
         key={k}
         index={k}
@@ -117,6 +136,7 @@ function Practice({ c, salt, onEnd }: { c: TopicContent; salt: string; onEnd: (p
         onDone={(r) => {
           const next = answer(s, r.correct, c.mastery);
           setS(next.state);
+          onChange(next.state);
           if (next.outcome !== 'continue') setEnded(next.outcome === 'mastered');
         }}
       />
@@ -125,19 +145,33 @@ function Practice({ c, salt, onEnd }: { c: TopicContent; salt: string; onEnd: (p
 }
 
 /** The lesson for a topic. `salt` makes practice problems differ between sessions. */
-export function LessonRunner({ topicId, salt, onEnd, onSkip }: {
+export function LessonRunner({ topicId, salt, onEnd, onSkip, back }: {
   topicId: string;
   salt: string;
   onEnd: (e: LessonEnd) => void;
   onSkip: () => void;
+  /** Where Back goes, shown above the lesson. Leaving keeps the lesson's place. */
+  back?: { to: Route; label: string };
 }) {
   const t = topicOf(topicId);
   const c = contentFor(topicId);
-  const [stage, setStage] = useState<'learn' | 'examples' | 'practice'>('learn');
+  const placeKey = `${salt}.${topicId}`;
+  const [saved] = useState(() => loadPlace(placeKey));
+  const [stage, setStageState] = useState<LessonStage>(saved?.stage ?? 'learn');
+  const [practice, setPractice] = useState<PracticeState>(saved?.practice ?? freshPractice());
   if (t === undefined) return <p class="page">Unknown topic {topicId}.</p>;
+  const setStage = (st: LessonStage): void => {
+    setStageState(st);
+    savePlace(placeKey, { stage: st, practice });
+  };
+  const end = (e: LessonEnd): void => {
+    clearPlace(placeKey);
+    onEnd(e);
+  };
 
   const head = (
     <header class="lesson-head">
+      {back !== undefined && <BackLink to={back.to} label={back.label} />}
       <p class="small muted">{LEVEL_NAMES[t.level]} lesson, about {t.estMinutes} minutes</p>
       <h1>{t.title}</h1>
       {c !== undefined && <Rich as="p" class="goal" text={c.goal} />}
@@ -149,12 +183,11 @@ export function LessonRunner({ topicId, salt, onEnd, onSkip }: {
       <section class="page lesson">
         {head}
         <p>{t.summary}</p>
-        <div class="self-report">
-          <p class="badge badge-self">Self-report</p>
-          <p>The lesson for this topic is not written yet. If you already know it, say so and it counts as known, with reviews to check. Otherwise leave it for another day.</p>
+        <div class="not-written">
+          <p class="badge badge-unwritten">Lesson not written yet</p>
+          <p>This topic has no lesson or problems yet, so it cannot be learned here. It stays unlearned until they are written.</p>
           <Sources topicId={topicId} />
           <div class="actions">
-            <button type="button" class="btn" onClick={() => onEnd({ passed: true, selfReport: true })}>I know this already</button>
             <button type="button" class="btn btn-primary" onClick={onSkip}>Leave it for now</button>
           </div>
         </div>
@@ -186,7 +219,15 @@ export function LessonRunner({ topicId, salt, onEnd, onSkip }: {
           <button type="button" class="btn btn-primary" onClick={() => setStage('practice')}>Next: practice</button>
         </div>
       )}
-      {stage === 'practice' && <Practice c={c} salt={salt} onEnd={(passed) => onEnd({ passed, selfReport: false })} />}
+      {stage === 'practice' && (
+        <Practice
+          c={c}
+          salt={salt}
+          initial={practice}
+          onChange={(ps) => { setPractice(ps); savePlace(placeKey, { stage: 'practice', practice: ps }); }}
+          onEnd={(passed) => end({ passed })}
+        />
+      )}
     </section>
   );
 }

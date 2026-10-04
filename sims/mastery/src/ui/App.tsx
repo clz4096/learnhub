@@ -1,13 +1,19 @@
 /**
  * The app shell: header with navigation, the current view, and the dialogs. A new
- * learner (no courses yet) or one still in placement always sees Start.
+ * learner (no courses yet) or one still in placement sees the Start step for the route
+ * (#/start for courses and minutes, anything else for placement), or the glossary.
+ *
+ * Dialogs (help, a glossary term, the tour) close whenever the route changes, so the
+ * browser's Back never leaves one open over a view it does not belong to.
  */
 import { useEffect } from 'preact/hooks';
-import { go, listen, route, type Route } from '@/model/route';
+import { go, hrefOf, listen, route, type Route } from '@/model/route';
 import { loadErrors, loadState, loadWarnings, progress, saveError, volatile } from '@/model/store';
 import { HelpDialog, Tour } from '@/ui/help/Help';
-import { autoStartTour, helpOpen } from '@/ui/help/state';
+import { autoStartTour, closeTour, helpOpen, tour } from '@/ui/help/state';
+import { BackLink } from '@/ui/BackLink';
 import { TermDialog } from '@/ui/TermDialog';
+import { closeTerm } from '@/ui/termState';
 import { GlossaryView } from '@/ui/views/Glossary';
 import { MapView } from '@/ui/views/MapView';
 import { ProgressView, StartOver } from '@/ui/views/ProgressView';
@@ -23,7 +29,7 @@ const NAV: { id: 'today' | 'map' | 'progress' | 'glossary'; label: string; to: R
 ];
 
 function navOf(r: Route): string {
-  if (r.view === 'task' || r.view === 'today') return 'today';
+  if (r.view === 'task' || r.view === 'today' || r.view === 'start' || r.view === 'placement') return 'today';
   if (r.view === 'learn') return 'map';
   return r.view;
 }
@@ -31,9 +37,10 @@ function navOf(r: Route): string {
 function View({ r }: { r: Route }) {
   switch (r.view) {
     case 'today': return <Today />;
-    case 'start': return <Start />;
+    case 'start': return <Start step="courses" />;
+    case 'placement': return <Start step="placement" />;
     case 'task': return <TaskView index={r.index} />;
-    case 'learn': return <LearnView topicId={r.topicId} />;
+    case 'learn': return <LearnView key={r.topicId} topicId={r.topicId} />;
     case 'map': return <MapView topicId={r.topicId} />;
     case 'progress': return <ProgressView />;
     case 'glossary': return <GlossaryView termId={r.termId} />;
@@ -48,9 +55,25 @@ export function App() {
   const placed = setUp && p.placement?.done === true;
   const ready = loadState.value === 'ready';
 
+  // Declared before the tour's auto start, so arriving at Today closes nothing it opens.
+  const href = hrefOf(r);
+  useEffect(() => {
+    closeTerm();
+    helpOpen.value = false;
+    if (tour.value.open) closeTour();
+  }, [href]);
+
   useEffect(() => {
     if (ready && placed && r.view === 'today') autoStartTour();
   }, [ready, placed, r.view]);
+
+  // Before placement is done, any other URL shows a Start step: name that step in the URL
+  // (replacing, not adding, the entry), so Back from the test reaches the courses step
+  // instead of a URL that shows the test again.
+  useEffect(() => {
+    if (!ready || placed || r.view === 'start' || r.view === 'placement' || r.view === 'glossary') return;
+    go({ view: setUp ? 'placement' : 'start' }, { replace: true });
+  }, [ready, placed, setUp, href]);
 
   let body;
   if (loadState.value === 'loading') body = <p class="page">Loading your progress.</p>;
@@ -64,8 +87,16 @@ export function App() {
         <StartOver />
       </section>
     );
-  } else if (!placed && r.view !== 'glossary') body = <Start />;
-  else body = <View r={r} />;
+  } else if (!placed && r.view !== 'glossary') body = <Start step={r.view === 'start' ? 'courses' : 'placement'} />;
+  else if (!placed) {
+    // No navigation bar before placement is done, so the glossary needs its own way back.
+    body = (
+      <>
+        <div class="page"><BackLink to={{ view: setUp ? 'placement' : 'start' }} label={setUp ? 'Back to the placement test' : 'Back to the start'} /></div>
+        <View r={r} />
+      </>
+    );
+  } else body = <View r={r} />;
 
   const active = navOf(r);
   return (
