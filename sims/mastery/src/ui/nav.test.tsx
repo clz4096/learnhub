@@ -54,84 +54,106 @@ beforeEach(async () => {
 });
 afterEach(cleanup);
 
-describe('the start and the placement test', () => {
-  it('Back from the placement test returns to the courses step, which keeps the courses and minutes', async () => {
+describe('the start', () => {
+  it('offers the one course; choosing it goes straight to Today with the first lessons from scratch', async () => {
     render(<App />);
     expect(heading()).toBe('Welcome');
-    fireEvent.input(screen.getByLabelText('Minutes a day'), { target: { value: '45' } });
-    fireEvent.click(screen.getAllByRole('checkbox')[1] as HTMLElement);
-    click('Continue');
+    expect(screen.getAllByRole('radio').map((r) => r.closest('label')?.textContent)).toEqual(['Probability and Discrete Mathematics']);
+    click('Start learning');
     await flush();
-    expect(location.hash).toBe('#/placement');
-    expect(heading()).toBe('The placement test');
-    click('Start the placement test');
+    expect(location.hash).toBe('#/');
+    expect(heading()).toBe('Today');
+    await screen.findByText('Fractions and ratios');
     await flush();
-    expect(screen.getByText(/Placement: question 1/)).toBeTruthy();
+    expect(progress.value?.session?.tasks.map((t) => [t.kind, t.topicIds[0]])).toEqual([
+      ['lesson', 'pre.fractions'], ['lesson', 'pre.set-notation'], ['lesson', 'pre.product-rule'], ['lesson', 'logic.connectives'],
+    ]);
 
+    // Back does not reopen the start: a learner with a course is moved on to Today.
     await back();
-    expect(location.hash).toBe('#/start');
-    expect(heading()).toBe('Welcome');
-    expect((screen.getByLabelText('Minutes a day') as HTMLInputElement).value).toBe('45');
-    expect((screen.getAllByRole('checkbox') as HTMLInputElement[]).map((b) => b.checked)).toEqual([true, false]);
+    await waitFor(() => expect(location.hash).toBe('#/'));
+    expect(heading()).toBe('Today');
   });
 
-  it('answers are kept on the way back: Resume continues, Start placement over clears them', async () => {
-    await commit({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } });
-    go({ view: 'placement' });
-    render(<App />);
-    click(/^I do not know this/);
-    click('Next question');
-    await flush();
-    expect(screen.getByText(/Placement: question 2/)).toBeTruthy();
-
-    click('Back to courses and minutes');
-    expect(location.hash).toBe('#/start');
-    expect(screen.getByText(/You have answered 1 placement question/)).toBeTruthy();
-    click('Resume placement');
-    await flush();
-    expect(location.hash).toBe('#/placement');
-    expect(screen.getByText(/Placement: question 2/)).toBeTruthy();
-    expect(progress.value?.placement?.answers).toHaveLength(1);
-
-    await back();
-    click('Start placement over');
-    await flush();
-    expect(screen.getByText(/Placement: question 1/)).toBeTruthy();
-    expect(progress.value?.placement?.answers).toEqual([]);
-  });
-
-  it('the introduction has a Back too, and a reload shows the same step', async () => {
-    await commit(startLearner(T0, DEFAULT_COURSES, 60));
-    go({ view: 'placement' });
-    render(<App />);
-    expect(heading()).toBe('The placement test');
-    cleanup();
-    await init(idb);
-    render(<App />);
-    expect(heading()).toBe('The placement test');
-    click('Back to courses and minutes');
-    expect(heading()).toBe('Welcome');
-  });
-
-  it('the glossary before placement has a way back to the test', async () => {
-    await commit({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } });
+  it('the glossary before a course is chosen has a way back to the start', async () => {
     go({ view: 'glossary', termId: null });
     render(<App />);
-    // Before placement the navigation offers only Home and the glossary.
     expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Glossary']);
-    click('Back to the placement test');
-    expect(location.hash).toBe('#/placement');
-    expect(screen.getByText(/Placement: question 1/)).toBeTruthy();
+    click('Back to the start');
+    expect(location.hash).toBe('#/start');
+    expect(heading()).toBe('Welcome');
   });
 });
 
-describe('a placed learner', () => {
-  async function placed(): Promise<void> {
-    await commit(ensureSession(finishPlacement({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } }, T0), T0));
+describe('no route or control leads to a placement test', () => {
+  const noPlacement = (): void => {
+    expect(document.body.textContent).not.toMatch(/placement|placed/i);
+    expect(document.querySelector('a[href*="placement"]')).toBeNull();
+  };
+
+  it('for a new learner and a learner with a course, an old #/placement link and every view and the help say nothing of it', async () => {
+    for (const started of [false, true]) {
+      if (started) await commit(startLearner(T0, DEFAULT_COURSES, 60));
+      history.replaceState(null, '', '#/placement');
+      route.value = parseRoute('#/placement');
+      render(<App />);
+      await flush();
+      // An unknown route is Today for a learner with a course; a new learner is moved to Start.
+      expect(route.value.view).toBe(started ? 'today' : 'start');
+      expect(heading()).toBe(started ? 'Today' : 'Welcome');
+      noPlacement();
+      for (const a of [...document.querySelectorAll<HTMLAnchorElement>('nav.nav a')]) {
+        fireEvent.click(a);
+        await flush();
+        noPlacement();
+      }
+      click('Help');
+      noPlacement();
+      cleanup();
+    }
+  });
+});
+
+describe('progress saved by the placement test of earlier builds', () => {
+  const answer = (topicId: string, correct: boolean) => ({ topicId, correct, at: T0 });
+
+  it('mid-placement: the answers given are kept as results, and a reload goes to Today', async () => {
+    await commit({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [answer('comb.factorial', true), answer('pre.fractions', false)], done: false } });
+    await init(idb);
+    expect(progress.value?.placement).toMatchObject({ done: true, answers: [{ topicId: 'comb.factorial' }, { topicId: 'pre.fractions' }] });
+    expect(Object.keys(progress.value?.memory ?? {}).sort()).toEqual(['comb.factorial', 'pre.product-rule']);
+    history.replaceState(null, '', '#/placement');
+    route.value = parseRoute('#/placement');
+    render(<App />);
+    expect(route.value.view).toBe('today');
+    expect(heading()).toBe('Today');
+    await screen.findByText('Fractions and ratios');
+    expect(screen.queryByText('The product rule for counting')).toBeNull();
+    // The migrated document was saved, so the next load needs no migration.
+    await flush();
+    const saved = progress.value;
+    await init(idb);
+    expect(progress.value?.placement?.done).toBe(true);
+    expect(progress.value?.memory).toEqual(saved?.memory);
+  });
+
+  it('a finished placement keeps its results and goes to Today', async () => {
+    const done = finishPlacement({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [answer('comb.factorial', true)], done: false } }, T0);
+    await commit(done);
+    await init(idb);
+    expect(progress.value?.memory).toEqual(done.memory);
+    render(<App />);
+    expect(heading()).toBe('Today');
+  });
+});
+
+describe('a learner with a course', () => {
+  async function started(): Promise<void> {
+    await commit(ensureSession(startLearner(T0, DEFAULT_COURSES, 60), T0));
   }
 
   it('Back walks the views in order: Today, a lesson, the map, a topic, the glossary', async () => {
-    await placed();
+    await started();
     render(<App />);
     await screen.findByText('Fractions and ratios');
     click('Start');
@@ -157,18 +179,16 @@ describe('a placed learner', () => {
     expect(heading()).toBe('Today');
   });
 
-  it('the start steps show the placement result, not a broken or repeatable test', async () => {
-    await placed();
-    for (const view of ['start', 'placement'] as const) {
-      go({ view });
-      render(<App />);
-      expect(heading()).toBe('You are placed');
-      cleanup();
-    }
+  it('#/start shows Today, not the start screen again', async () => {
+    await started();
+    go({ view: 'start' });
+    render(<App />);
+    await waitFor(() => expect(location.hash).toBe('#/'));
+    expect(heading()).toBe('Today');
   });
 
   it('leaving a lesson mid-practice keeps its place, and says the count resets if the tab closes', async () => {
-    await placed();
+    await started();
     go({ view: 'task', index: 0 });
     render(<App />);
     click('Next: worked examples');
@@ -194,7 +214,7 @@ describe('a placed learner', () => {
   });
 
   it('a lesson opened from the map goes back to the map, and resumes where it was', async () => {
-    await placed();
+    await started();
     go({ view: 'map', topicId: 'pre.indices' });
     render(<App />);
     click('Learn it now');
@@ -207,7 +227,7 @@ describe('a placed learner', () => {
   });
 
   it('the map topic has Close, and Back from a topic returns to the map', async () => {
-    await placed();
+    await started();
     go({ view: 'map', topicId: null });
     go({ view: 'map', topicId: 'pre.fractions' });
     render(<App />);
@@ -216,7 +236,7 @@ describe('a placed learner', () => {
   });
 
   it('a dialog closes when Back changes the view', async () => {
-    await placed();
+    await started();
     go({ view: 'map', topicId: null });
     go({ view: 'progress' });
     render(<App />);
@@ -230,7 +250,7 @@ describe('a placed learner', () => {
   });
 
   it('a task that is not in the plan offers a way back', async () => {
-    await placed();
+    await started();
     go({ view: 'task', index: 99 });
     render(<App />);
     click('Back to today');
@@ -240,7 +260,7 @@ describe('a placed learner', () => {
 
 describe('the end of a lesson', () => {
   it('clears the saved place, so the next visit starts fresh', async () => {
-    await commit(ensureSession(finishPlacement({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } }, T0), T0));
+    await commit(ensureSession(startLearner(T0, DEFAULT_COURSES, 60), T0));
     go({ view: 'task', index: 0 });
     render(<App />);
     click('Next: worked examples');

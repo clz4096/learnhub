@@ -4,15 +4,14 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/preact';
 import { IDBFactory } from 'fake-indexeddb';
 import type { IdbFactoryLike } from '@learnhub/mastery';
 import { placedMemory, type Progress } from '@learnhub/mastery';
-import { DEFAULT_COURSES, finishPlacement, localDay, startLearner } from '@/model/learner';
+import { DEFAULT_COURSES, localDay, startLearner } from '@/model/learner';
+import { route } from '@/model/route';
 import { HUB_KEY, commit, flush, init, loadWarnings, progress, setClock } from '@/model/store';
 import { ProgressView, confirms } from '@/ui/views/ProgressView';
 import { Today } from '@/ui/views/Today';
 import { Start } from '@/ui/views/Start';
 import { LearnView, TaskView, quizConsequence, reviewConsequence } from '@/ui/views/Task';
 import { practiceConsequence } from '@/ui/views/Lesson';
-import { placementConsequence } from '@/ui/views/Start';
-import { contentFor } from '@learnhub/content';
 import { freshPractice } from '@/model/practice';
 import { ALL_EDGES_KEY, MapView, edgesToDraw, wrap } from '@/ui/views/MapView';
 import { ALL_TOPICS } from '@/model/courses';
@@ -28,38 +27,42 @@ beforeEach(async () => {
 });
 afterEach(cleanup);
 
-async function placedLearner(): Promise<void> {
-  await commit(finishPlacement({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } }, T0));
+async function startedLearner(): Promise<void> {
+  await commit(startLearner(T0, DEFAULT_COURSES, 60));
 }
 
 describe('Start', () => {
-  it('preselects both courses and 60 minutes', () => {
+  it('offers one course option, chosen, and 60 minutes', () => {
     render(<Start />);
-    const boxes = screen.getAllByRole('checkbox') as HTMLInputElement[];
-    expect(boxes.map((b) => b.checked)).toEqual([true, true]);
+    const options = screen.getAllByRole('radio') as HTMLInputElement[];
+    expect(options).toHaveLength(1);
+    expect(options[0]?.checked).toBe(true);
+    expect(screen.getByLabelText('Probability and Discrete Mathematics')).toBe(options[0]);
+    expect(screen.queryAllByRole('checkbox')).toEqual([]);
     expect((screen.getByLabelText('Minutes a day') as HTMLInputElement).value).toBe('60');
     expect(screen.getByText(/98 topics in all/)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/placement/i);
   });
 
-  it('refuses no course or minutes out of range', () => {
+  it('refuses minutes out of range', () => {
     render(<Start />);
     fireEvent.input(screen.getByLabelText('Minutes a day'), { target: { value: '5' } });
-    expect((screen.getByRole('button', { name: 'Continue' }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: 'Start learning' }) as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it('explains placement, says a wrong answer is fine, and gives the budget', async () => {
-    await commit(startLearner(T0, DEFAULT_COURSES, 60));
+  it('choosing it starts both courses from scratch and goes to Today', async () => {
     render(<Start />);
-    expect(screen.getByText(/A wrong answer is fine/)).toBeTruthy();
-    // Only the ten topics with written problems are asked about, so at most ten questions.
-    expect(screen.getByText(/at most 10 questions/)).toBeTruthy();
-    expect(screen.getByText(/Lessons are written for 10 of the 98 topics/)).toBeTruthy();
+    fireEvent.input(screen.getByLabelText('Minutes a day'), { target: { value: '45' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Start learning' }));
+    await flush();
+    expect(progress.value).toMatchObject({ courses: ['ia-probability', 'cst-discrete-maths'], memory: {}, placement: null, settings: { budgetMinutes: 45 } });
+    expect(route.value).toEqual({ view: 'today' });
   });
 });
 
 describe('Today', () => {
   it('plans the day with reasons, minutes left, and minutes per course', async () => {
-    await placedLearner();
+    await startedLearner();
     render(<Today />);
     expect(await screen.findByText('Fractions and ratios')).toBeTruthy();
     expect(screen.getAllByText('New topic: it has no prerequisites.')).toHaveLength(4);
@@ -78,7 +81,7 @@ describe('Progress', () => {
   });
 
   it('keeps erase disabled until the phrase is typed, then erases and clears the hub key', async () => {
-    await placedLearner();
+    await startedLearner();
     expect(localStorage.getItem(HUB_KEY)).not.toBeNull();
     render(<ProgressView />);
     const button = screen.getByRole('button', { name: 'Erase my progress' }) as HTMLButtonElement;
@@ -95,7 +98,7 @@ describe('Progress', () => {
   });
 
   it('settings change daily minutes and course weights', async () => {
-    await placedLearner();
+    await startedLearner();
     render(<ProgressView />);
     fireEvent.input(screen.getByLabelText('Minutes a day'), { target: { value: '45' } });
     const weights = document.querySelectorAll('input.weight');
@@ -128,22 +131,12 @@ describe('no view offers self-report', () => {
   const T = (kind: 'lesson' | 'review' | 'quiz', topicIds: string[]) => ({ kind, topicIds, minutes: 3, reason: 'r', done: false, passed: null });
   // A stored plan from before the migration, so the views meet topics without content.
   async function withSession(tasks: ReturnType<typeof T>[], memory: Progress['memory'] = {}): Promise<void> {
-    await placedLearner();
+    await startedLearner();
     const p = progress.value as Progress;
     await commit({ ...p, memory, session: { day: localDay(T0), startedAt: T0, tasks } });
   }
 
-  it('placement asks a real problem; its only shortcut is "I do not know this", which counts as not known', async () => {
-    await commit({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } });
-    render(<Start />);
-    expect(screen.getByRole('button', { name: 'Check' })).toBeTruthy();
-    expect(actions()).toEqual(['Check', 'I do not know this (starts this topic with a lesson)']);
-    expect(backLink()).toBe('Back to courses and minutes');
-    expectNoSelfReport();
-  });
-
-  it('the placement intro', async () => {
-    await commit(startLearner(T0, DEFAULT_COURSES, 60));
+  it('the start screen', () => {
     render(<Start />);
     expectNoSelfReport();
   });
@@ -158,7 +151,7 @@ describe('no view offers self-report', () => {
   });
 
   it('a lesson opened from the map without content offers nothing to pass', async () => {
-    await placedLearner();
+    await startedLearner();
     render(<LearnView topicId={NO_CONTENT} />);
     expect(actions()).toEqual(['Leave it for now']);
     expect(backLink()).toBe('Back to the map');
@@ -204,7 +197,7 @@ describe('no view offers self-report', () => {
   });
 
   it('today, the map, and progress', async () => {
-    await placedLearner();
+    await startedLearner();
     for (const view of [<Today />, <MapView topicId={NO_CONTENT} />, <MapView topicId={null} />, <ProgressView />]) {
       render(view);
       expectNoSelfReport();
@@ -217,7 +210,7 @@ describe('a stored document with self-reported progress', () => {
   it('is migrated on load, saved, and the learner is told what was removed', async () => {
     const idb = new IDBFactory() as unknown as IdbFactoryLike;
     await init(idb);
-    await placedLearner();
+    await startedLearner();
     const p = progress.value as Progress;
     await commit({ ...p, memory: placedMemory(['pre.fractions', 'pre.primes-and-factors'], T0) });
     await init(idb);
@@ -241,7 +234,7 @@ describe('map connections', () => {
   const paths = (): Element[] => [...document.querySelectorAll('path.edge')];
 
   it('draws nothing by default, the selected topic\'s edges highlighted when one is chosen', async () => {
-    await placedLearner();
+    await startedLearner();
     render(<MapView topicId={null} />);
     expect(paths()).toHaveLength(0);
     cleanup();
@@ -252,7 +245,7 @@ describe('map connections', () => {
   });
 
   it('"Show all connections" draws every edge, and is remembered', async () => {
-    await placedLearner();
+    await startedLearner();
     render(<MapView topicId={null} />);
     const box = screen.getByRole('checkbox', { name: 'Show all connections' }) as HTMLInputElement;
     expect(box.checked).toBe(false);
@@ -267,7 +260,7 @@ describe('map connections', () => {
   });
 
   it('works when storage is blocked', async () => {
-    await placedLearner();
+    await startedLearner();
     const get = Storage.prototype.getItem;
     const set = Storage.prototype.setItem;
     Storage.prototype.getItem = () => { throw new Error('blocked'); };
@@ -283,7 +276,7 @@ describe('map connections', () => {
   });
 
   it('shows a frontier topic without content as "Lesson not written yet" in the list and details', async () => {
-    await placedLearner();
+    await startedLearner();
     render(<MapView topicId="pre.primes-and-factors" />);
     fireEvent.click(screen.getByRole('button', { name: 'List' }));
     expect(screen.getAllByText('Lesson not written yet').length).toBeGreaterThanOrEqual(2);
@@ -329,15 +322,13 @@ describe('what one answer does to progress, as the result says it', () => {
     expect(reviewConsequence([true], 'correct')).toEqual({ effect: 'Both problems right: the review passes, and the next one is further away.', next: 'Finish the review' });
   });
 
-  it('quiz and placement', () => {
+  it('quiz', () => {
     expect(quizConsequence('Fractions', false, 'wrong')).toEqual({ effect: 'This counts as a missed review of Fractions: it comes back sooner.', next: 'Next item' });
     expect(quizConsequence('Fractions', true, 'correct').next).toBe('Finish the quiz');
-    expect(placementConsequence('wrong').effect).toBe('Saved. This topic starts with a lesson, and topics that build on it wait for it.');
-    expect(placementConsequence('correct').effect).toBe('Saved. This topic and the topics beneath it count as known.');
   });
 
   it('a wrong review answer shows the result above the button, with its effect, and is recorded only once both are answered', async () => {
-    await placedLearner();
+    await startedLearner();
     const p = progress.value as Progress;
     await commit({ ...p, memory: placedMemory(['pre.fractions'], T0 - 30 * 86_400_000), session: { day: localDay(T0), startedAt: T0, tasks: [{ kind: 'review', topicIds: ['pre.fractions'], minutes: 3, reason: 'r', done: false, passed: null }] } });
     render(<TaskView index={0} />);
@@ -348,20 +339,5 @@ describe('what one answer does to progress, as the result says it', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next problem' }));
     expect(screen.getByText('Problem 2 of 2')).toBeTruthy();
     expect(progress.value?.session?.tasks[0]?.done).toBe(false);
-  });
-
-  it('placement: a wrong answer shows the correct answer and what it does, and is saved as not known', async () => {
-    await commit({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } });
-    render(<Start />);
-    const topicId = document.querySelector('.problem')?.getAttribute('data-topic') as string;
-    expect(contentFor(topicId)).toBeDefined();
-    fireEvent.input(screen.getByLabelText('Your answer'), { target: { value: '987654321' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Check' }));
-    expect(document.querySelector('.result-head')?.textContent).toMatch(/Not right: the answer is/);
-    expect(screen.getByText(/Saved\. This topic starts with a lesson/)).toBeTruthy();
-    expect(document.body.textContent).not.toMatch(/solution below/);
-    fireEvent.click(screen.getByRole('button', { name: 'Next question' }));
-    await flush();
-    expect(progress.value?.placement?.answers).toEqual([expect.objectContaining({ topicId, correct: false })]);
   });
 });

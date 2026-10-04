@@ -1,7 +1,7 @@
 /**
  * One problem: the prompt, an input that fits the answer type, Check, then the result and
- * the worked solution. Used by lesson practice, reviews, quizzes, and placement, so every
- * answer in the app is graded by the same runtime (content/src/problem.ts).
+ * the worked solution. Used by lesson practice, reviews, and quizzes, so every answer in
+ * the app is graded by the same runtime (content/src/problem.ts).
  *
  * The answer rules (design pass 2, phase 0):
  * - Text that cannot be read is never graded: the field says so and keeps focus.
@@ -12,8 +12,7 @@
  * The result block sits directly under the answer and above the buttons, and is scrolled
  * into view. A wrong answer shows "Incorrect", the learner's answer beside the correct
  * one, the likely slip, the full worked solution, and one line on what it does to
- * progress (from the runner, which owns the rules). Placement shows the correct answer
- * and that line, but no solution (owner decision 2, 2026-10-04).
+ * progress (from the runner, which owns the rules).
  *
  * A screen reader hears one short assertive line ("Incorrect. Your answer 10. Correct
  * answer 5."). After a right answer focus goes to the button that moves on, so the fast
@@ -30,7 +29,7 @@ import { AnswerInput } from '@/ui/AnswerInput';
 import { Rich } from '@/ui/Rich';
 import { Tex } from '@/ui/Tex';
 
-export type CardMode = 'practice' | 'review' | 'quiz' | 'placement';
+export type CardMode = 'practice' | 'review' | 'quiz';
 
 /** How an answered problem ended, as the learner's measured result. */
 export type CardOutcome = 'correct' | 'wrong' | 'gave-up';
@@ -196,10 +195,9 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
     else setPicks((cur) => (cur.includes(opt) ? cur.filter((x) => x !== opt) : [...cur, opt]));
   };
   const many = a.kind === 'choice' && a.options.length > 6;
-  const placement = mode === 'placement';
   const outcome: CardOutcome | null = shown === 'right' ? 'correct' : shown === 'wrong' ? 'wrong' : shown === 'gave-up' ? 'gave-up' : null;
   const effect = outcome === null ? undefined : consequence?.(outcome);
-  const nextLabel = shown === 'broken' ? 'Get a fresh problem' : effect?.next ?? (placement ? 'Next question' : 'Next problem');
+  const nextLabel = shown === 'broken' ? 'Get a fresh problem' : effect?.next ?? 'Next problem';
 
   const notice = unread !== null
     ? <p class="small error-text">Could not read <code>{unread}</code>. Finish it or use the keypad.</p>
@@ -232,7 +230,6 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
     let head;
     if (shown === 'broken') head = 'This problem is broken, not your answer';
     else if (shown === 'right') head = 'Correct';
-    else if (placement) head = <>{shown === 'wrong' ? 'Not right: the answer is ' : 'The answer is '}{correctRich}</>;
     else head = shown === 'wrong' ? 'Incorrect' : 'Solution';
     block = (
       <div ref={blockRef} class={`result-block ${tone}`} role="group" aria-labelledby={headId} data-result={shown}>
@@ -242,21 +239,21 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
         </h3>
         {shown === 'broken' && <p>It does not count. A fresh problem on the same topic replaces it. ({fb?.feedback})</p>}
         {shown === 'right' && fb?.feedback !== undefined && <p>{fb.feedback}</p>}
-        {!placement && shown === 'wrong' && (
+        {shown === 'wrong' && (
           <div class="result-pair">
             <div><span>Your answer</span><strong>{yours}</strong></div>
             <div><span>Correct answer</span><strong>{correctShown}</strong></div>
           </div>
         )}
-        {!placement && shown === 'gave-up' && (
+        {shown === 'gave-up' && (
           <div class="result-pair one">
             <div><span>Correct answer</span><strong>{correctShown}</strong></div>
           </div>
         )}
-        {!placement && shown === 'wrong' && (fb?.misconception !== undefined
+        {shown === 'wrong' && (fb?.misconception !== undefined
           ? <p class="result-why"><strong>The likely slip:</strong> <Rich text={fb.misconception} /></p>
           : fb?.feedback !== undefined && <p class="result-why">{fb.feedback}</p>)}
-        {!placement && (shown === 'wrong' || shown === 'gave-up') && (
+        {(shown === 'wrong' || shown === 'gave-up') && (
           <div class="result-solution">
             <h4>Worked solution</h4>
             <ol>{instance.problem.solution.map((s, i) => <Rich key={i} as="li" text={s} />)}</ol>
@@ -331,11 +328,7 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
           {!checked && confirm === null && (
             <>
               <button type="submit" class="btn btn-primary" disabled={empty}>Check</button>
-              {(mode === 'placement' || mode === 'practice') && (
-                <button type="button" class="btn" onClick={giveUp}>
-                  {placement ? 'I do not know this (starts this topic with a lesson)' : 'Show me how (counts as a miss)'}
-                </button>
-              )}
+              {mode === 'practice' && <button type="button" class="btn" onClick={giveUp}>Show me how (counts as a miss)</button>}
             </>
           )}
           {checked && <button ref={nextRef} type="submit" class="btn btn-primary">{nextLabel}</button>}

@@ -4,12 +4,12 @@
  * rules are tested without a browser.
  *
  * One document per learner (the engine's Progress, version 2), holding the chosen
- * courses, placement answers, memory, history, lesson minutes per course for the
- * planner's split, and today's session.
+ * courses, placement answers from earlier builds, memory, history, lesson minutes per
+ * course for the planner's split, and today's session.
  */
 import { contentFor } from '@learnhub/content';
 import {
-  DAY_MS, classify, dueTopics, frontier, graphBudget, newProgress, placedMemory, placementGraph, placementResult, planSession,
+  DAY_MS, classify, dueTopics, frontier, newProgress, placedMemory, placementGraph, placementResult, planSession,
   recordLesson, recordLessonFailure, recordReview, topoOrder,
   type HistoryEntry, type MemoryMap, type PlacementGraph, type Progress, type SessionRecord, type SessionTask, type Topic,
 } from '@learnhub/mastery';
@@ -23,7 +23,15 @@ export const DEFAULT_MINUTES = 60;
 export const MIN_MINUTES = 10;
 export const MAX_MINUTES = 240;
 
-/** A fresh document with courses chosen and placement not started. */
+/**
+ * The choices on the start screen (design decision 20). Each is a set of courses taught
+ * together from their foundations; for now there is one.
+ */
+export const COURSE_OPTIONS = [
+  { id: 'probability-discrete', title: 'Probability and Discrete Mathematics', courses: DEFAULT_COURSES },
+] as const;
+
+/** A fresh document with courses chosen and nothing known. */
 export function startLearner(now: number, courses: readonly string[], budgetMinutes: number): Progress {
   const p = newProgress(DOC_ID, now, { budgetMinutes });
   p.courses = [...courses];
@@ -47,26 +55,14 @@ export function localDay(now: number): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-// ---------------------------------------------------------------- placement
-
-/** Placement over the chosen courses, asking only about topics with real problems. */
-export function placementGraphFor(p: Progress): PlacementGraph {
-  return placementGraph(ALL_TOPICS, { targets: [...closureOf(p.courses)], probeable: hasContent });
-}
+// ---------------------------------------------------------------- placement from earlier builds
 
 /**
- * The default budget for the chosen courses: the engine's `placementBudget` of the topics
- * placement can ask about, which caps it at their number.
+ * Earlier builds began with a placement test (removed by design decision 20). Its answers
+ * were measured, so they still count; this is the graph they are read against.
  */
-export const budgetFor = (g: PlacementGraph): number => graphBudget(g);
-
-export function answerPlacement(p: Progress, topicId: string, correct: boolean, now: number): Progress {
-  const answers = [...(p.placement?.answers ?? []), { topicId, correct, at: now }];
-  return touch({
-    ...p,
-    placement: { answers, done: false },
-    history: log(p, [{ at: now, kind: 'placement', topicId, correct }]),
-  }, now);
+function placementGraphFor(p: Progress): PlacementGraph {
+  return placementGraph(ALL_TOPICS, { targets: [...closureOf(p.courses)], probeable: hasContent });
 }
 
 /**
@@ -79,6 +75,15 @@ export function finishPlacement(p: Progress, now: number): Progress {
   const result = placementResult(g, answers);
   const memory = { ...p.memory, ...placedMemory(result.mastered.filter((id) => p.memory[id] === undefined), now) };
   return touch({ ...p, placement: { answers, done: true }, memory, session: null }, now);
+}
+
+/**
+ * Migration for decision 20: a document saved mid-placement keeps the answers given as
+ * results and goes on to Today. Applied to every document loaded or imported; any other
+ * document is returned as is, so it needs no version bump.
+ */
+export function finishOpenPlacement(p: Progress, now: number): Progress {
+  return p.courses.length > 0 && p.placement?.done === false ? finishPlacement(p, now) : p;
 }
 
 // ---------------------------------------------------------------- today's session
@@ -104,9 +109,9 @@ function toTasks(p: Progress, now: number, budgetMinutes = p.settings.budgetMinu
   });
 }
 
-/** Today's session, planned now if there is none for today yet. Null before placement is done. */
+/** Today's session, planned now if there is none for today yet. None before a course is chosen. */
 export function ensureSession(p: Progress, now: number): Progress {
-  if (!p.placement?.done || p.courses.length === 0) return p;
+  if (p.courses.length === 0) return p;
   const day = localDay(now);
   if (p.session !== null && p.session.day === day) return p;
   const session: SessionRecord = { day, startedAt: now, tasks: toTasks(p, now) };

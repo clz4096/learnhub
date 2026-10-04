@@ -1,6 +1,6 @@
 /**
- * Choosing problems: which generator and seed comes next in practice, a review, a quiz,
- * or placement, and the mastery rule's bookkeeping. Seeds mix the topic, the occasion,
+ * Choosing problems: which generator and seed comes next in practice, a review, or a
+ * quiz, and the mastery rule's bookkeeping. Seeds mix the topic, the occasion,
  * and the attempt number, so a problem is reproducible from its record but fresh on
  * another day.
  */

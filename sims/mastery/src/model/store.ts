@@ -9,7 +9,7 @@ import {
   type IdbFactoryLike, type Progress, type ProgressStorage,
 } from '@learnhub/mastery';
 import { ALL_TOPICS } from './courses';
-import { DOC_ID, STORAGE_KEY, hubSummary, withoutSelfReport } from './learner';
+import { DOC_ID, STORAGE_KEY, finishOpenPlacement, hubSummary, withoutSelfReport } from './learner';
 
 export const HUB_KEY = 'learnhub.progress.mastery';
 export const DB_NAME = 'learnhub-mastery';
@@ -52,8 +52,8 @@ export function selfReportWarning(dropped: readonly string[]): string {
 
 /**
  * Opens storage and loads the document. A broken stored document is reported, never
- * overwritten. A document that still holds self-reported progress is migrated
- * (`withoutSelfReport`) and saved straight away.
+ * overwritten. A document saved mid-placement or still holding self-reported progress is
+ * migrated (`finishOpenPlacement`, `withoutSelfReport`) and saved straight away.
  */
 export async function init(factory: IdbFactoryLike | null = browserIdb()): Promise<void> {
   storage = factory === null ? new MemoryStorage() : idbStorage(factory, DB_NAME, 'progress');
@@ -68,7 +68,7 @@ export async function init(factory: IdbFactoryLike | null = browserIdb()): Promi
   const warnings = [...r.warnings];
   let doc = r.value;
   if (doc !== null) {
-    const m = withoutSelfReport(doc);
+    const m = withoutSelfReport(finishOpenPlacement(doc, now()));
     if (m.progress !== doc) {
       doc = m.progress;
       if (m.dropped.length > 0) warnings.push(selfReportWarning(m.dropped));

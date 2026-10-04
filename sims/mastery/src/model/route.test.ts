@@ -3,7 +3,7 @@ import { hrefOf, parseRoute, type Route } from '@/model/route';
 
 describe('routes', () => {
   const all: Route[] = [
-    { view: 'today' }, { view: 'start' }, { view: 'placement' }, { view: 'task', index: 3 }, { view: 'learn', topicId: 'pre.fractions' },
+    { view: 'today' }, { view: 'start' }, { view: 'task', index: 3 }, { view: 'learn', topicId: 'pre.fractions' },
     { view: 'map', topicId: null }, { view: 'map', topicId: 'num.gcd' }, { view: 'progress' },
     { view: 'glossary', termId: null }, { view: 'glossary', termId: 'union' },
   ];
@@ -11,6 +11,8 @@ describe('routes', () => {
   it('falls back to Today on anything unknown or malformed', () => {
     expect(parseRoute('')).toEqual({ view: 'today' });
     expect(parseRoute('#/nope')).toEqual({ view: 'today' });
+    // The placement test is gone (design decision 20); an old link to it lands on Today.
+    expect(parseRoute('#/placement')).toEqual({ view: 'today' });
     expect(parseRoute('#/task/-1')).toEqual({ view: 'today' });
     expect(parseRoute('#/map/<script>')).toEqual({ view: 'map', topicId: null });
   });

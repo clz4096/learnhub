@@ -1,12 +1,12 @@
 /**
  * The app shell: header with navigation, the current view, and the dialogs. A new
- * learner (no courses yet) or one still in placement sees the Start step for the route
- * (#/start for courses and minutes, anything else for placement), or the glossary.
+ * learner (no course yet) sees the Start step on every route but the glossary; a learner
+ * with a course goes to Today, and #/start is no longer a step for them (decision 20).
  *
  * Every screen has the same way home (design decision 19a): the header is always shown,
  * its title goes home, and the navigation starts with Home. Home is the Start step until
- * placement is done (it offers to resume the test, whose answers are kept) and Today
- * after. Leaving a lesson or the test by Home keeps its place, as the Back links do.
+ * a course is chosen and Today after. Leaving a lesson by Home keeps its place, as the
+ * Back links do.
  *
  * Dialogs (help, a glossary term, the tour) close whenever the route changes, so the
  * browser's Back never leaves one open over a view it does not belong to.
@@ -29,15 +29,15 @@ import { Today } from '@/ui/views/Today';
 
 type NavId = 'home' | 'map' | 'progress' | 'glossary';
 
-/** Where Home goes: the Start step until placement is done, then Today. */
-export function homeRoute(placed: boolean): Route {
-  return placed ? { view: 'today' } : { view: 'start' };
+/** Where Home goes: the Start step until a course is chosen, then Today. */
+export function homeRoute(setUp: boolean): Route {
+  return setUp ? { view: 'today' } : { view: 'start' };
 }
 
-/** The navigation items: before placement only Home and the glossary can be visited. */
-function navItems(placed: boolean): { id: NavId; label: string; to: Route }[] {
+/** The navigation items: before a course is chosen only Home and the glossary can be visited. */
+function navItems(setUp: boolean): { id: NavId; label: string; to: Route }[] {
   const glossary = { id: 'glossary' as const, label: 'Glossary', to: { view: 'glossary', termId: null } as Route };
-  if (!placed) return [{ id: 'home', label: 'Home', to: homeRoute(false) }, glossary];
+  if (!setUp) return [{ id: 'home', label: 'Home', to: homeRoute(false) }, glossary];
   return [
     { id: 'home', label: 'Home', to: homeRoute(true) },
     { id: 'map', label: 'Map', to: { view: 'map', topicId: null } },
@@ -47,7 +47,7 @@ function navItems(placed: boolean): { id: NavId; label: string; to: Route }[] {
 }
 
 function navOf(r: Route): NavId {
-  if (r.view === 'task' || r.view === 'today' || r.view === 'start' || r.view === 'placement') return 'home';
+  if (r.view === 'task' || r.view === 'today' || r.view === 'start') return 'home';
   if (r.view === 'learn') return 'map';
   return r.view;
 }
@@ -68,8 +68,8 @@ function NavLink({ to, children, ...rest }: { to: Route; children: ComponentChil
 function View({ r }: { r: Route }) {
   switch (r.view) {
     case 'today': return <Today />;
-    case 'start': return <Start step="courses" />;
-    case 'placement': return <Start step="placement" />;
+    // A learner with a course has no start step: App moves the URL on to Today.
+    case 'start': return <Today />;
     case 'task': return <TaskView index={r.index} />;
     case 'learn': return <LearnView key={r.topicId} topicId={r.topicId} />;
     case 'map': return <MapView topicId={r.topicId} />;
@@ -83,7 +83,6 @@ export function App() {
   const r = route.value;
   const p = progress.value;
   const setUp = p !== null && p.courses.length > 0;
-  const placed = setUp && p.placement?.done === true;
   const ready = loadState.value === 'ready';
 
   // Declared before the tour's auto start, so arriving at Today closes nothing it opens.
@@ -95,19 +94,18 @@ export function App() {
   }, [href]);
 
   useEffect(() => {
-    if (ready && placed && r.view === 'today') autoStartTour();
-  }, [ready, placed, r.view]);
+    if (ready && setUp && r.view === 'today') autoStartTour();
+  }, [ready, setUp, r.view]);
 
-  // Before placement is done, any other URL shows a Start step: name that step in the URL
-  // (replacing, not adding, the entry), so Back from the test reaches the courses step
-  // instead of a URL that shows the test again.
+  // Name the view shown in the URL (replacing, not adding, the entry): Start for a new
+  // learner on any URL but the glossary, Today for a learner with a course at #/start.
   // The route is read when the effect runs, not when it was scheduled: a click on Home in
   // between must not be overwritten by a redirect meant for the URL before it.
   useEffect(() => {
     const now = route.peek().view;
-    if (!ready || placed || now === 'start' || now === 'placement' || now === 'glossary') return;
-    go({ view: setUp ? 'placement' : 'start' }, { replace: true });
-  }, [ready, placed, setUp, href]);
+    if (!ready) return;
+    if (setUp ? now === 'start' : now !== 'start' && now !== 'glossary') go(homeRoute(setUp), { replace: true });
+  }, [ready, setUp, href]);
 
   let body;
   if (loadState.value === 'loading') body = <p class="page">Loading your progress.</p>;
@@ -121,26 +119,26 @@ export function App() {
         <StartOver />
       </section>
     );
-  } else if (!placed && r.view !== 'glossary') body = <Start step={r.view === 'start' ? 'courses' : 'placement'} />;
-  else if (!placed) {
-    // Before placement the glossary is the only other place to go, so it also offers the way back to the test.
+  } else if (!setUp && r.view !== 'glossary') body = <Start />;
+  else if (!setUp) {
+    // Before a course is chosen the glossary is the only other place to go, so it also offers the way back.
     body = (
       <>
-        <div class="page"><BackLink to={{ view: setUp ? 'placement' : 'start' }} label={setUp ? 'Back to the placement test' : 'Back to the start'} /></div>
+        <div class="page"><BackLink to={{ view: 'start' }} label="Back to the start" /></div>
         <View r={r} />
       </>
     );
   } else body = <View r={r} />;
 
   const active = navOf(r);
-  const home = homeRoute(placed);
+  const home = homeRoute(setUp);
   return (
     <div class="app">
       <a class="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to content</a>
       <header class="top">
         <NavLink to={home} class="app-title">Mastery courses</NavLink>
         <nav class="nav" aria-label="Main">
-          {navItems(placed).map((n) => (
+          {navItems(setUp).map((n) => (
             <NavLink key={n.id} to={n.to} data-nav={n.id} class={active === n.id ? 'on' : ''} aria-current={active === n.id ? 'page' : undefined}>
               {n.label}
             </NavLink>

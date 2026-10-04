@@ -1,36 +1,64 @@
 import { describe, expect, it } from 'vitest';
 import { contentFor } from '@learnhub/content';
-import { DAY_MS, importProgress, exportProgress, placedMemory, runPlacement, type Progress } from '@learnhub/mastery';
+import { DAY_MS, importProgress, exportProgress, placedMemory, type Progress } from '@learnhub/mastery';
 import { closureOf, closureTopics } from '@/model/courses';
 import {
-  DEFAULT_COURSES, answerPlacement, budgetFor, completeLesson, completeQuiz, completeReview, ensureSession, finishPlacement, hasContent,
-  hubSummary, localDay, placementGraphFor, planMore, replanToday, sessionTime, skipTask, startLearner, statusMap, withoutSelfReport,
+  COURSE_OPTIONS, DEFAULT_COURSES, completeLesson, completeQuiz, completeReview, ensureSession, finishOpenPlacement, finishPlacement, hasContent,
+  hubSummary, localDay, planMore, replanToday, sessionTime, skipTask, startLearner, statusMap, withoutSelfReport,
 } from '@/model/learner';
 
 const T0 = new Date(2026, 9, 4, 9, 0).getTime();
-const fresh = (): Progress => finishPlacement({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } }, T0);
+const fresh = (): Progress => startLearner(T0, DEFAULT_COURSES, 60);
+
+/** A placement answer as earlier builds saved it; design decision 20 removed the test. */
+const answered = (p: Progress, topicId: string, correct: boolean): Progress => ({
+  ...p,
+  placement: { answers: [...(p.placement?.answers ?? []), { topicId, correct, at: T0 }], done: false },
+  history: [...p.history, { at: T0, kind: 'placement', topicId, correct }],
+});
 
 describe('a new learner', () => {
-  it('takes both courses at 60 minutes, with no placement yet', () => {
+  it('has one course option: Probability and Discrete Mathematics, both courses together', () => {
+    expect(COURSE_OPTIONS).toEqual([{ id: 'probability-discrete', title: 'Probability and Discrete Mathematics', courses: ['ia-probability', 'cst-discrete-maths'] }]);
+  });
+
+  it('takes both courses at 60 minutes, knowing nothing, with no placement', () => {
     const p = startLearner(T0, DEFAULT_COURSES, 60);
     expect(p.courses).toEqual(['ia-probability', 'cst-discrete-maths']);
     expect(p.settings.budgetMinutes).toBe(60);
     expect(p.placement).toBeNull();
+    expect(p.memory).toEqual({});
     expect(importProgress(exportProgress(p)).ok).toBe(true);
   });
 
-  it('placement covers the 98-topic union with a budget of 49', () => {
-    const g = placementGraphFor(startLearner(T0, DEFAULT_COURSES, 60));
-    expect(g.order).toHaveLength(98);
+  it('has no session before a course is chosen', () => {
+    const blank = { ...fresh(), courses: [] };
+    expect(ensureSession(blank, T0)).toBe(blank);
+  });
+});
+
+describe('migration: progress saved by the placement test of earlier builds', () => {
+  it('mid-placement: the answers given count as results, and the learner goes on to Today', () => {
+    const p = finishOpenPlacement(answered(answered(fresh(), 'comb.factorial', true), 'pre.fractions', false), T0 + 1);
+    expect(p.placement).toEqual({ answers: [expect.objectContaining({ topicId: 'comb.factorial' }), expect.objectContaining({ topicId: 'pre.fractions' })], done: true });
+    expect(Object.keys(p.memory).sort()).toEqual(['comb.factorial', 'pre.product-rule']);
+    expect(p.history.map((h) => h.kind)).toEqual(['placement', 'placement']);
+    const lessons = ensureSession(p, T0 + 1).session?.tasks.filter((t) => t.kind === 'lesson').map((t) => t.topicIds[0]) ?? [];
+    expect(lessons).toContain('pre.fractions');
+    expect(lessons).not.toContain('pre.product-rule');
+    expect(importProgress(exportProgress(p)).ok).toBe(true);
   });
 
-  it('placement answers are kept, and finishing credits the known topics and their ancestors', () => {
-    let p: Progress = { ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } };
-    p = answerPlacement(p, 'comb.factorial', true, T0);
-    p = finishPlacement(p, T0 + 1);
+  it('mid-placement with no answers yet starts from the foundations', () => {
+    const p = finishOpenPlacement({ ...fresh(), placement: { answers: [], done: false } }, T0);
     expect(p.placement?.done).toBe(true);
-    expect(Object.keys(p.memory).sort()).toEqual(['comb.factorial', 'pre.product-rule']);
-    expect(p.history.map((h) => h.kind)).toEqual(['placement']);
+    expect(p.memory).toEqual({});
+  });
+
+  it('a finished placement keeps its results; other documents are left as they are', () => {
+    const placed = finishPlacement(answered(fresh(), 'comb.factorial', true), T0);
+    for (const p of [placed, fresh(), { ...fresh(), courses: [] }]) expect(finishOpenPlacement(p, T0 + 1)).toBe(p);
+    expect(Object.keys(placed.memory).sort()).toEqual(['comb.factorial', 'pre.product-rule']);
   });
 });
 
@@ -165,51 +193,16 @@ describe('status and the hub summary', () => {
 // so they say what holds for any content set rather than naming today's ten topics.
 const CONTENT = closureTopics(DEFAULT_COURSES).filter((t) => hasContent(t.id)).map((t) => t.id);
 const NO_CONTENT_ROOT = 'pre.primes-and-factors';
-const placing = (): Progress => ({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } });
 
-describe('placement asks only about topics with real problems', () => {
-  const g = placementGraphFor(startLearner(T0, DEFAULT_COURSES, 60));
-
-  it('covers the 98-topic union but probes only the topics with content, and its budget is their number', () => {
-    expect(g.order).toHaveLength(98);
-    expect([...g.probeable].sort()).toEqual([...CONTENT].sort());
-    expect(hasContent(NO_CONTENT_ROOT)).toBe(false);
-    // placementBudget is capped at the topics it can ask about: max(30, ceil(10 / 2)) would overstate it.
-    expect(budgetFor(g)).toBe(CONTENT.length);
-  });
-
-  // Every truthful learner: each knowledge state of the probeable topics that is closed under
-  // ancestors. Exhaustive, so this is the exact distribution, not a sample.
-  it('places every truthful learner exactly, asking only real problems, within the budget', () => {
-    const ids = [...g.probeable];
-    const states: Set<string>[] = [];
-    for (let mask = 0; mask < 1 << ids.length; mask++) {
-      const known = new Set(ids.filter((_, i) => (mask >> i) & 1));
-      if ([...known].every((id) => [...(g.anc.get(id) ?? [])].every((a) => !g.probeable.has(a) || known.has(a)))) states.push(known);
-    }
-    const questions: number[] = [];
-    for (const known of states) {
-      const { answers, result } = runPlacement(g, (id) => known.has(id), T0);
-      for (const a of answers) expect(hasContent(a.topicId)).toBe(true);
-      expect(new Set(result.mastered)).toEqual(known);
-      expect(result.unclassified).toEqual([]);
-      questions.push(result.questions);
-    }
-    // Four two-topic chains and two single topics: 3^4 * 2^2 states.
-    expect(states).toHaveLength(324);
-    expect(Math.max(...questions)).toBeLessThanOrEqual(budgetFor(g));
-    expect(Math.max(...questions)).toBe(10);
-    expect(Math.min(...questions)).toBe(6);
-    expect(questions.reduce((a, b) => a + b, 0) / questions.length).toBeCloseTo(8.67, 2);
-  });
-
+describe('migrated placement answers credit only topics with real problems', () => {
   it('topics without content are never credited, even below a known topic', () => {
-    const r = finishPlacement(answerPlacement(placing(), 'comb.factorial', true, T0), T0 + 1);
+    expect(hasContent(NO_CONTENT_ROOT)).toBe(false);
+    const r = finishOpenPlacement(answered(fresh(), 'comb.factorial', true), T0 + 1);
     for (const id of Object.keys(r.memory)) expect(hasContent(id)).toBe(true);
   });
 
   it('an answer about a topic without content counts for nothing', () => {
-    const p = finishPlacement(answerPlacement(placing(), 'comb.combinations', true, T0), T0 + 1);
+    const p = finishOpenPlacement(answered(fresh(), 'comb.combinations', true), T0 + 1);
     expect(p.memory).toEqual({});
   });
 });
@@ -259,10 +252,10 @@ describe('migration: self-reported progress is removed', () => {
   // A version 2 document from the build that offered self-report. comb.combinations has no
   // content; its self-reported "known" spread to pre.product-rule and comb.factorial.
   const legacy = (): Progress => {
-    let p = placing();
-    p = answerPlacement(p, 'pre.fractions', true, T0);
-    p = answerPlacement(p, 'comb.combinations', true, T0);
-    p = answerPlacement(p, NO_CONTENT_ROOT, true, T0);
+    let p = fresh();
+    p = answered(p, 'pre.fractions', true);
+    p = answered(p, 'comb.combinations', true);
+    p = answered(p, NO_CONTENT_ROOT, true);
     // finishPlacement now ignores those answers, so build the memory the old build wrote.
     p = { ...p, placement: { answers: p.placement?.answers ?? [], done: true } };
     p = { ...p, memory: placedMemory(['pre.fractions', 'pre.product-rule', 'comb.factorial', NO_CONTENT_ROOT, 'comb.combinations'], T0) };
@@ -331,8 +324,7 @@ describe('migration: self-reported progress is removed', () => {
   });
 
   it('keeps topics placed by real answers, including ancestors with content', () => {
-    let p = answerPlacement(placing(), 'comb.factorial', true, T0);
-    p = finishPlacement(p, T0 + 1);
+    const p = finishPlacement(answered(fresh(), 'comb.factorial', true), T0 + 1);
     expect(withoutSelfReport(p).progress).toBe(p);
   });
 

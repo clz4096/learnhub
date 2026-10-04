@@ -197,31 +197,6 @@ describe('ProblemCard', () => {
     expect(done).toHaveBeenCalledWith({ outcome: 'gave-up', correct: false, response: null });
   });
 
-  it('placement shows right or wrong and the correct answer, with no promise of a solution below', () => {
-    const inst = seedWith(need(combine), '5');
-    const done = card(inst, 'placement', 'pre.indices');
-    type('10');
-    enter();
-    const head = screen.getByRole('heading', { name: /Not right: the answer is/ });
-    expect(head.textContent).toContain('5');
-    expect(document.activeElement).toBe(head);
-    expect(document.body.textContent).not.toMatch(/solution below/);
-    expect(document.querySelector('.result-solution')).toBeNull();
-    expect(announced()).toBe('Incorrect. Your answer 10. Correct answer 5.');
-    fireEvent.click(screen.getByRole('button', { name: 'Next question' }));
-    expect(done).toHaveBeenCalledWith({ outcome: 'wrong', correct: false, response: '10' });
-  });
-
-  it('placement offers "I do not know this", which shows the answer and counts as not known without a lecture', () => {
-    const done = card(need(add).instance(2), 'placement');
-    fireEvent.click(screen.getByRole('button', { name: 'I do not know this (starts this topic with a lesson)' }));
-    // By text: jsdom cannot compute accessible names through KaTeX's MathML.
-    expect(document.querySelector('.result-head')?.textContent).toMatch(/^iThe answer is/);
-    expect(document.querySelector('.result-solution')).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Next question' }));
-    expect(done).toHaveBeenCalledWith({ outcome: 'gave-up', correct: false, response: null });
-  });
-
   it('a broken problem is not the learner\'s miss: it says so and asks the runner for a fresh one', () => {
     const broken: Instance = {
       generatorId: 'broken',

@@ -19,8 +19,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'home',
     title: 'Getting around',
     paragraphs: [
-      'Home, first in the navigation, and the course title at the top both take you home from any screen: the start page until the placement test is done, then Today.',
-      'Leaving a lesson or the placement test this way keeps your place, as the Back links do. The browser\'s Back button works too, and Escape closes a dialog or the topic panel on the map.',
+      'Home, first in the navigation, and the course title at the top both take you home from any screen: the start page until you choose your course, then Today.',
+      'Leaving a lesson this way keeps your place, as the Back links do. The browser\'s Back button works too, and Escape closes a dialog or the topic panel on the map.',
     ],
   },
   {
@@ -49,13 +49,6 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     paragraphs: [
       'A review is two short problems on a topic you learned before. Passing pushes the next review further away; missing brings it back sooner. Practising a harder topic also counts as partial review of the topics beneath it, so reviews stay few.',
       'A quiz comes every few new topics: one problem on each recent topic, each counting as its review.',
-    ],
-  },
-  {
-    id: 'placement',
-    title: 'The placement test',
-    paragraphs: [
-      'At the start, a short test finds what you already know. After each question it tells you whether you were right and gives the correct answer. A right answer also counts the topics beneath it; a wrong one rules out the topics above it. It asks only about topics whose problems are written; the others count as not known until their lessons exist, and are shown as "Lesson not written yet".',
     ],
   },
   {

@@ -1,7 +1,7 @@
 {
   "id": "mastery",
   "title": "Mastery courses: IA Probability and Discrete Mathematics",
-  "summary": "Learn Cambridge IA Probability and CST Discrete Mathematics from scratch, with a placement test, daily sessions, practice that never runs out, and spaced review.",
+  "summary": "Learn Cambridge IA Probability and CST Discrete Mathematics from scratch, with daily sessions, practice that never runs out, and spaced review.",
   "tracks": ["MATH", "STATS", "ALGO"],
   "level": "course",
   "minutes": 60,

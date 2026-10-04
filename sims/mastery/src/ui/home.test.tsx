@@ -1,6 +1,6 @@
 /**
  * One universal way home (design decision 19a): on every route, in every state of the
- * learner, the header's title and the Home item go home (Start before placement is done,
+ * learner, the header's title and the Home item go home (Start before a course is chosen,
  * Today after), the browser's Back still returns to where the learner was, leaving by
  * Home keeps the place, and Escape closes every overlay.
  */
@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import { IDBFactory } from 'fake-indexeddb';
 import type { IdbFactoryLike } from '@learnhub/mastery';
-import { DEFAULT_COURSES, ensureSession, finishPlacement, startLearner } from '@/model/learner';
+import { DEFAULT_COURSES, ensureSession, startLearner } from '@/model/learner';
 import { loadPlace } from '@/model/lessonState';
 import { go, hrefOf, parseRoute, route, type Route } from '@/model/route';
 import { commit, flush, init, progress, setClock } from '@/model/store';
@@ -54,7 +54,6 @@ afterEach(cleanup);
 const ROUTES: Route[] = [
   { view: 'today' },
   { view: 'start' },
-  { view: 'placement' },
   { view: 'task', index: 0 },
   { view: 'task', index: 99 },
   { view: 'learn', topicId: 'pre.indices' },
@@ -68,19 +67,16 @@ const ROUTES: Route[] = [
 
 const STATES = {
   'a new learner': async (): Promise<void> => {},
-  'a learner in the placement test': async (): Promise<void> => {
-    await commit({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } });
-  },
-  'a placed learner': async (): Promise<void> => {
-    await commit(ensureSession(finishPlacement({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } }, T0), T0));
+  'a learner with a course': async (): Promise<void> => {
+    await commit(ensureSession(startLearner(T0, DEFAULT_COURSES, 60), T0));
   },
 } as const;
 
 describe('every route has a header with a way home', () => {
   for (const [state, setUp] of Object.entries(STATES)) {
-    const placed = state === 'a placed learner';
-    const home = placed ? '#/' : '#/start';
-    const homeHeading = placed ? 'Today' : 'Welcome';
+    const started = state === 'a learner with a course';
+    const home = started ? '#/' : '#/start';
+    const homeHeading = started ? 'Today' : 'Welcome';
     for (const r of ROUTES) {
       it(`${state}, at ${hrefOf(r)}: the title and Home go to ${home}`, async () => {
         await setUp();
@@ -105,18 +101,18 @@ describe('every route has a header with a way home', () => {
     }
   }
 
-  it('the navigation before placement is Home and Glossary; after, Home, Map, Progress, and Glossary', async () => {
+  it('the navigation before a course is chosen is Home and Glossary; after, Home, Map, Progress, and Glossary', async () => {
     render(<App />);
     expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Glossary']);
     cleanup();
-    await STATES['a placed learner']();
+    await STATES['a learner with a course']();
     render(<App />);
     expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Map', 'Progress', 'Glossary']);
     expect(homeItem().getAttribute('aria-current')).toBe('page');
   });
 
   it('a modified click on Home is left to the browser (open in a new tab)', async () => {
-    await STATES['a placed learner']();
+    await STATES['a learner with a course']();
     go({ view: 'progress' });
     render(<App />);
     const ev = new MouseEvent('click', { bubbles: true, cancelable: true, metaKey: true });
@@ -128,7 +124,7 @@ describe('every route has a header with a way home', () => {
 
 describe('Home and the browser history', () => {
   it('Back after Home returns to the lesson, which kept its place', async () => {
-    await STATES['a placed learner']();
+    await STATES['a learner with a course']();
     go({ view: 'task', index: 0 });
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Next: worked examples' }));
@@ -148,28 +144,8 @@ describe('Home and the browser history', () => {
     expect(screen.getByText(/^Problem 2\./)).toBeTruthy();
   });
 
-  it('leaving the placement test by Home keeps its answers, and Resume continues it', async () => {
-    await STATES['a learner in the placement test']();
-    go({ view: 'placement' });
-    render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /^I do not know this/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Next question' }));
-    await flush();
-    expect(screen.getByText(/Placement: question 2/)).toBeTruthy();
-
-    fireEvent.click(title());
-    await flush();
-    expect(location.hash).toBe('#/start');
-    expect(screen.getByText(/You have answered 1 placement question/)).toBeTruthy();
-    expect(progress.value?.placement?.answers).toHaveLength(1);
-
-    await back();
-    expect(location.hash).toBe('#/placement');
-    expect(screen.getByText(/Placement: question 2/)).toBeTruthy();
-  });
-
   it('Home on the home page adds no history entry', async () => {
-    await STATES['a placed learner']();
+    await STATES['a learner with a course']();
     render(<App />);
     const length = history.length;
     fireEvent.click(homeItem());
@@ -180,7 +156,7 @@ describe('Home and the browser history', () => {
   });
 
   it('the skip link moves focus to the content without changing the route', async () => {
-    await STATES['a placed learner']();
+    await STATES['a learner with a course']();
     go({ view: 'progress' });
     render(<App />);
     fireEvent.click(screen.getByText('Skip to content'));
@@ -193,7 +169,7 @@ describe('Escape closes every overlay', () => {
   const esc = (el: Element): void => { fireEvent.keyDown(el, { key: 'Escape' }); };
 
   it('the help dialog, a glossary term, and the tour', async () => {
-    await STATES['a placed learner']();
+    await STATES['a learner with a course']();
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Help' }));
     expect(helpOpen.value).toBe(true);
@@ -212,7 +188,7 @@ describe('Escape closes every overlay', () => {
   });
 
   it('the topic panel on the map, which a phone shows over the map', async () => {
-    await STATES['a placed learner']();
+    await STATES['a learner with a course']();
     go({ view: 'map', topicId: null });
     go({ view: 'map', topicId: 'pre.fractions' });
     render(<App />);
@@ -224,7 +200,7 @@ describe('Escape closes every overlay', () => {
   });
 
   it('Escape in a dialog over the map closes only the dialog', async () => {
-    await STATES['a placed learner']();
+    await STATES['a learner with a course']();
     go({ view: 'map', topicId: 'pre.fractions' });
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Help' }));
