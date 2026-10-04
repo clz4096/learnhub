@@ -1,0 +1,8 @@
+node_modules
+dist
+site
+.venv
+.DS_Store
+*.trace
+sims/*/bench/build
+sims/*/bench/results

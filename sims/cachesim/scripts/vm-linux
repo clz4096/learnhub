@@ -1,0 +1,331 @@
+#!/bin/sh
+# vm-linux: run scripts/verify inside a dedicated Ubuntu VM (Multipass), then
+# copy the results back into bench/results/ on this machine.
+#
+# Usage: scripts/vm-linux [command] [options] [bench ...]
+#   run      (default) create the VM if needed, install the toolchain on first
+#            use, copy bench/ and scripts/ in, run scripts/verify, copy
+#            bench/results/linux-*/ back, then stop the VM
+#   shell    open a shell in the VM (the repo copy is in ~/cachesim)
+#   stop     stop the VM
+#   delete   delete the VM and its disk (asks first unless --yes)
+#   status   show the VM's state, size, and memory use
+#
+# Options:
+#   --keep-running   leave the VM running after run or shell
+#   --yes            skip the delete confirmation
+#   -h, --help       show this help
+#   Bench names after the options limit the run, as with scripts/verify.
+#   BENCH_ARGS is passed through, for example BENCH_ARGS="--reps 3".
+#
+# VM size, used only when the VM is created (defaults in parentheses):
+#   CACHESIM_VM_CPUS (2)  CACHESIM_VM_MEM (3G)  CACHESIM_VM_DISK (10G)
+#
+# Why a copy and not a mount: mounts are slow under the qemu driver and would
+# let the VM write into this checkout. The sources go in as a tar stream
+# through `multipass transfer`, and only the results tree comes back.
+#
+# A VM shares the host's caches with every other process on the host, so its
+# timings show trends only. Hardware cache counters are usually not exposed to
+# the guest; cachegrind (a cache simulator) still works. The run records which
+# case applies in system.txt.
+#
+# POSIX sh: runs under macOS /bin/sh and Linux dash.
+set -eu
+
+VM=cachesim-linux
+IMAGE=24.04
+CPUS=${CACHESIM_VM_CPUS:-2}
+MEM=${CACHESIM_VM_MEM:-3G}
+DISK=${CACHESIM_VM_DISK:-10G}
+# Bump when the package list changes so existing VMs install the new set.
+PROVISION_MARK="cachesim-vm-provision-v1"
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+
+usage() { awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"; }
+
+CMD=run
+KEEP=0
+YES=0
+BENCHES=""
+for a in "$@"; do
+    case "$a" in
+        run | shell | stop | delete | status) CMD=$a ;;
+        --keep-running) KEEP=1 ;;
+        --yes | -y) YES=1 ;;
+        -h | --help) usage; exit 0 ;;
+        -*) echo "error: unknown option $a (see --help)" >&2; exit 2 ;;
+        *) BENCHES="${BENCHES:+$BENCHES }$a" ;;
+    esac
+done
+
+if ! command -v multipass >/dev/null 2>&1; then
+    echo "skipped: multipass not found, so no Linux VM can be created."
+    echo "  Install it from https://multipass.run (macOS: brew install --cask multipass),"
+    echo "  or run scripts/verify directly on a Linux machine."
+    exit 0
+fi
+
+now() { date +%s; }
+T_START=$(now)
+PHASE_T0=$T_START
+PHASE_NAME=""
+SUMMARY=""
+
+phase() {
+    PHASE_NAME=$1
+    PHASE_T0=$(now)
+    echo "== $1"
+}
+
+phase_done() {
+    dt=$(($(now) - PHASE_T0))
+    echo "   $PHASE_NAME: done in ${dt}s"
+    SUMMARY="${SUMMARY}  $PHASE_NAME: ${dt}s
+"
+}
+
+# Prints the VM's state (Running, Stopped, Suspended, ...) or nothing if absent.
+vm_state() {
+    multipass list --format csv 2>/dev/null | awk -F, -v n="$VM" '$1 == n { print $2 }'
+}
+
+vm_exec() { multipass exec -n "$VM" -- "$@"; }
+
+# Used memory in bytes from `multipass info`, or nothing if not reported.
+vm_mem_used() {
+    multipass info "$VM" --format json 2>/dev/null |
+        tr -d ' \n' | sed -n 's/.*"memory":{[^}]*"used":\([0-9][0-9]*\).*/\1/p'
+}
+
+human() { awk -v b="$1" 'BEGIN { printf "%.2f GiB", b / 1073741824 }'; }
+
+TMP=""
+SAMPLER=""
+STOP_ON_EXIT=0
+
+cleanup() {
+    rc=$?
+    trap - EXIT INT TERM
+    if [ -n "$SAMPLER" ]; then
+        kill "$SAMPLER" 2>/dev/null || true
+        wait "$SAMPLER" 2>/dev/null || true
+    fi
+    if [ "$STOP_ON_EXIT" = 1 ] && [ "$(vm_state)" = Running ]; then
+        echo "== stop VM (pass --keep-running to leave it up)"
+        t=$(now)
+        multipass stop "$VM" || echo "warning: could not stop $VM; run: scripts/vm-linux stop" >&2
+        echo "   stopped in $(($(now) - t))s"
+    fi
+    [ -n "$TMP" ] && rm -rf "$TMP"
+    exit "$rc"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+# Create the VM if missing and start it. Installs the toolchain on first use.
+ensure_vm() {
+    state=$(vm_state)
+    if [ -z "$state" ]; then
+        phase "create VM $VM (Ubuntu $IMAGE, $CPUS CPUs, $MEM memory, $DISK disk)"
+        echo "   the first launch downloads the Ubuntu image, which takes a few minutes"
+        STOP_ON_EXIT=$((1 - KEEP))
+        multipass launch "$IMAGE" --name "$VM" --cpus "$CPUS" --memory "$MEM" --disk "$DISK" --timeout 900
+        phase_done
+    elif [ "$state" != Running ]; then
+        phase "start VM $VM (was $state)"
+        STOP_ON_EXIT=$((1 - KEEP))
+        multipass start "$VM"
+        phase_done
+    else
+        STOP_ON_EXIT=$((1 - KEEP))
+    fi
+
+    if vm_exec sh -c "grep -qx '$PROVISION_MARK' /var/lib/cachesim-vm/provisioned 2>/dev/null"; then
+        return 0
+    fi
+    phase "install toolchain in VM (build-essential, cmake, ninja, perf, valgrind)"
+    vm_exec sudo sh -c '
+        set -eu
+        export DEBIAN_FRONTEND=noninteractive
+        # First boot runs cloud-init and unattended upgrades, which hold the apt lock.
+        cloud-init status --wait >/dev/null 2>&1 || true
+        APT="apt-get -o DPkg::Lock::Timeout=600 -y -q"
+        $APT update
+        $APT install --no-install-recommends build-essential cmake ninja-build \
+            valgrind libc6-dbg linux-tools-common
+        # perf must match the running kernel; the generic package is the fallback.
+        k=$(uname -r)
+        if ! $APT install --no-install-recommends "linux-tools-$k"; then
+            echo "linux-tools-$k unavailable; installing linux-tools-generic"
+            $APT install --no-install-recommends linux-tools-generic
+        fi
+        mkdir -p /var/lib/cachesim-vm
+        echo "$1" >/var/lib/cachesim-vm/provisioned
+    ' sh "$PROVISION_MARK"
+    phase_done
+}
+
+# Records peak memory use while the benchmarks run. `multipass info` reports
+# the guest's own view (used, not counting page cache), sampled every 5 s.
+start_sampler() {
+    : >"$TMP/mem"
+    (
+        while :; do
+            m=$(vm_mem_used) && [ -n "$m" ] && echo "$m" >>"$TMP/mem"
+            sleep 5
+        done
+    ) &
+    SAMPLER=$!
+}
+
+peak_mem() { sort -n "$TMP/mem" 2>/dev/null | tail -n 1; }
+
+cmd_run() {
+    TMP=$(mktemp -d "${TMPDIR:-/tmp}/cachesim-vm.XXXXXX")
+    HOST_LOAD_BEFORE=$(uptime | sed 's/.*load averages*: *//')
+    ensure_vm
+    VM_HOME=$(vm_exec sh -c 'printf %s "$HOME"')
+    D="$VM_HOME/cachesim"
+
+    phase "copy bench/ and scripts/ into the VM ($D)"
+    # Host build and results dirs stay behind: a macOS CMakeCache would break
+    # the Linux build. COPYFILE_DISABLE keeps macOS tar from adding ._ files.
+    (cd "$ROOT" && find bench scripts \( -path bench/build -o -path bench/results \) -prune -o -type f -print) >"$TMP/files"
+    (cd "$ROOT" && COPYFILE_DISABLE=1 tar -cf - -T "$TMP/files") | multipass transfer - "$VM:$VM_HOME/cachesim-src.tar"
+    # Old sources are removed so a file deleted on the host does not linger;
+    # bench/build is kept so reruns build incrementally.
+    vm_exec sh -c '
+        set -eu
+        mkdir -p "$1" && cd "$1"
+        rm -rf scripts bench/results
+        [ -d bench ] && find bench -path bench/build -prune -o -type f -exec rm -f {} +
+        tar --warning=no-unknown-keyword -xf "$2"
+        rm -f "$2"
+    ' sh "$D" "$VM_HOME/cachesim-src.tar"
+    phase_done
+
+    phase "run scripts/verify in the VM (timings, then perf and cachegrind)"
+    start_sampler
+    # Ubuntu ships perf_event_paranoid=4, which blocks perf for normal users
+    # whether or not the PMU exists. Lowering it (until the VM reboots) makes
+    # the perf result reflect the virtual hardware, not a permission.
+    vm_exec sudo sysctl -q -w kernel.perf_event_paranoid=1 || true
+    # shellcheck disable=SC2086  # BENCHES is intentionally word-split
+    vm_exec env BENCH_ARGS="${BENCH_ARGS:-}" sh -c 'cd "$1" && shift && sh scripts/verify "$@"' sh "$D" $BENCHES
+    phase_done
+
+    phase "check perf hardware cache events in the VM"
+    vm_exec sh -c '
+        set -u
+        cd "$1/bench/results"
+        dir=$(ls -d linux-* | tail -n 1)
+        {
+            echo ""
+            echo "vm: Multipass instance $2 (qemu guest; shares the host CPU caches)"
+            echo "vm cpus: $(nproc); vm memory: $(free -m | awk "/^Mem:/ { print \$2 }") MiB"
+            echo "perf_event_paranoid: $(cat /proc/sys/kernel/perf_event_paranoid) (lowered by scripts/vm-linux; Ubuntu default is 4)"
+            echo "\$ perf stat -e cache-misses,L1-dcache-load-misses true"
+            out=$(perf stat -e cache-misses,L1-dcache-load-misses true 2>&1) && rc=0 || rc=$?
+            printf "%s\n" "$out" | sed "s/^/  | /"
+            echo "  exit status: $rc"
+            if [ "$rc" -ne 0 ] || printf "%s" "$out" | grep -q -E "not supported|not counted|Error|not found"; then
+                echo "perf hardware cache events: unavailable (cachegrind is the counter source)"
+            else
+                echo "perf hardware cache events: available"
+            fi
+            echo "cachegrind output files: $(ls "$dir"/cachegrind/*.out 2>/dev/null | wc -l | tr -d " ")"
+        } >>"$dir/system.txt"
+        grep -E "^(perf hardware cache events|cachegrind output files):" "$dir/system.txt"
+    ' sh "$D" "$VM"
+    phase_done
+
+    phase "copy results back to bench/results/"
+    vm_exec sh -c 'cd "$1/bench/results" && tar -cf "$2" linux-*' sh "$D" "$VM_HOME/cachesim-results.tar"
+    mkdir -p "$ROOT/bench/results"
+    multipass transfer "$VM:$VM_HOME/cachesim-results.tar" - | tar -xf - -C "$ROOT/bench/results"
+    vm_exec rm -f "$VM_HOME/cachesim-results.tar"
+    OUT=$(vm_exec sh -c 'cd "$1/bench/results" && ls -d linux-* | tail -n 1' sh "$D")
+    phase_done
+
+    kill "$SAMPLER" 2>/dev/null || true
+    wait "$SAMPLER" 2>/dev/null || true
+    SAMPLER=""
+    peak=$(peak_mem)
+    total=$(($(now) - T_START))
+    HOST_LOAD_AFTER=$(uptime | sed 's/.*load averages*: *//')
+    {
+        echo ""
+        echo "host: $(uname -sm); scripts/vm-linux wall time ${total}s"
+        printf '%s' "$SUMMARY"
+        if [ -n "$peak" ]; then
+            echo "peak VM memory used during the run (multipass info, 5 s samples): $(human "$peak")"
+        fi
+        echo "host load average before: $HOST_LOAD_BEFORE; after: $HOST_LOAD_AFTER"
+    } >>"$ROOT/bench/results/$OUT/system.txt"
+
+    echo "== done in ${total}s"
+    printf '%s' "$SUMMARY"
+    [ -n "$peak" ] && echo "   peak VM memory used: $(human "$peak")"
+    echo "   results: bench/results/$OUT/"
+    echo "   import bench/results/$OUT/results.csv in the app's Try it for real panel"
+}
+
+cmd_shell() {
+    ensure_vm
+    echo "== shell in $VM (exit to leave; the VM stops afterward unless --keep-running)"
+    multipass shell "$VM"
+}
+
+cmd_stop() {
+    state=$(vm_state)
+    case "$state" in
+        "") echo "$VM does not exist; nothing to stop." ;;
+        Running)
+            t=$(now)
+            multipass stop "$VM"
+            echo "stopped $VM in $(($(now) - t))s"
+            ;;
+        *) echo "$VM is already $state." ;;
+    esac
+}
+
+cmd_delete() {
+    if [ -z "$(vm_state)" ]; then
+        echo "$VM does not exist; nothing to delete."
+        return 0
+    fi
+    if [ "$YES" != 1 ]; then
+        if [ ! -t 0 ]; then
+            echo "error: refusing to delete $VM without confirmation; pass --yes" >&2
+            exit 1
+        fi
+        printf 'Delete the VM %s and its disk? This cannot be undone. [y/N] ' "$VM"
+        read -r ans || ans=""
+        case "$ans" in
+            y | Y | yes | YES) ;;
+            *) echo "kept $VM."; return 0 ;;
+        esac
+    fi
+    # --purge acts on the named instance only; other deleted instances are untouched.
+    multipass delete --purge "$VM"
+    echo "deleted $VM."
+}
+
+cmd_status() {
+    if [ -z "$(vm_state)" ]; then
+        echo "$VM does not exist. scripts/vm-linux creates it ($CPUS CPUs, $MEM memory, $DISK disk)."
+        return 0
+    fi
+    multipass info "$VM"
+}
+
+case "$CMD" in
+    run) cmd_run ;;
+    shell) cmd_shell ;;
+    stop) cmd_stop ;;
+    delete) cmd_delete ;;
+    status) cmd_status ;;
+esac

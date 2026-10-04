@@ -1,0 +1,13 @@
+{
+  "name": "learnhub",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "sims/*"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  }
+}

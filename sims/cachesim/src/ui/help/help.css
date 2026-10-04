@@ -1,0 +1,62 @@
+/* Help page and "Start here" walkthrough. Uses the tokens in src/styles/tokens.css. */
+
+/* ───────────── walkthrough ───────────── */
+.tour-layer { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+.tour-outline {
+  position: fixed; border: 3px solid var(--focus); border-radius: var(--radius-md);
+  /* Dims everything outside the region; box-shadow never adds scrollable overflow. */
+  box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.28);
+  transition: top 0.15s, left 0.15s, width 0.15s, height 0.15s;
+}
+.tour-card {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  width: min(400px, calc(100vw - 16px)); max-height: calc(100vh - 16px); overflow-y: auto;
+  pointer-events: auto; background: var(--surface); color: var(--text);
+  border: 1px solid var(--accent); border-radius: var(--radius-lg);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.25); padding: var(--space-3);
+}
+.tour-count { margin: 0; }
+.tour-title { margin: var(--space-1) 0; font-size: var(--text-md); }
+.tour-text { margin: 0 0 var(--space-3); }
+.tour-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.tour-nav { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-left: auto; }
+
+/* ───────────── Help button and page ───────────── */
+.help-button { min-height: var(--touch); }
+.help-notice {
+  position: fixed; top: var(--space-2); left: 50%; transform: translateX(-50%); z-index: 45;
+  width: min(480px, calc(100vw - 16px)); display: flex; gap: var(--space-2); align-items: center;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+}
+.help-notice > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.help-backdrop {
+  position: fixed; inset: 0; z-index: 30; background: rgb(0 0 0 / 0.35);
+  display: flex; justify-content: center; align-items: flex-start; padding: var(--space-5) var(--space-3);
+}
+.help-dialog {
+  width: min(760px, 100%); max-height: calc(100vh - 48px); display: flex; flex-direction: column;
+  background: var(--surface); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgb(0 0 0 / 0.3); min-width: 0;
+}
+.help-head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+  padding: var(--space-3); border-bottom: 1px solid var(--border);
+}
+.help-head h2 { margin: 0; font-size: var(--text-lg); }
+.help-body { overflow-y: auto; padding: var(--space-3); min-width: 0; }
+.help-toc ul { display: flex; flex-wrap: wrap; gap: 0 var(--space-3); list-style: none; padding: 0; margin: 0 0 var(--space-3); }
+.help-toc .linklike { min-height: 28px; }
+.help-section { border-top: 1px solid var(--border); padding-top: var(--space-2); margin-top: var(--space-3); min-width: 0; }
+.help-section h3 { font-size: var(--text-md); }
+.help-section h4 { font-size: var(--text-sm); margin: var(--space-2) 0 0; }
+.help-learn { padding-left: var(--space-5); }
+.help-learn li { margin-bottom: var(--space-1); }
+.help-keys td, .help-keys th { white-space: normal; text-align: left; vertical-align: top; }
+.help-keys kbd { font-family: var(--font-mono); white-space: nowrap; }
+
+.layout-phone .help-backdrop { padding: 0; }
+.layout-phone .help-dialog { max-height: 100vh; height: 100%; border-radius: 0; }
+/* Phones: one shortcut per block instead of a three-column table. */
+.layout-phone .help-keys thead { display: none; }
+.layout-phone .help-keys tr { display: block; padding: var(--space-1) 0; border-bottom: 1px solid var(--border); }
+.layout-phone .help-keys th, .layout-phone .help-keys td { display: block; border: 0; padding: 0; }
+.layout-phone .help-keys td:nth-of-type(1)::before { content: 'Where: '; color: var(--text-muted); }

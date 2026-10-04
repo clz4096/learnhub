@@ -1,0 +1,187 @@
+#!/bin/sh
+# verify: build the real-hardware cache benchmarks (Release), run every one,
+# save outputs, then collect hardware counters with the per-OS script if its
+# tool is installed.
+#
+# Usage: scripts/verify [bench ...]
+#   With no arguments, runs all benchmarks. Extra flags for every benchmark
+#   can be passed through the BENCH_ARGS environment variable, for example
+#   BENCH_ARGS="--reps 3" scripts/verify seq_sum strided
+#
+# Outputs: bench/results/<os>-<arch>-<date>/
+#   <bench>.txt     full stdout of each benchmark
+#   results.csv     every RESULT line, with a header
+#   system.txt      OS, CPU, and compiler details for the run
+#
+# POSIX sh on purpose: runs under macOS /bin/sh, Linux dash, and Git Bash /
+# MSYS2 on Windows (native Windows users: scripts/verify.ps1).
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+BENCH_DIR="$ROOT/bench"
+BUILD_DIR="$BENCH_DIR/build"
+ALL_BENCHES="seq_sum strided matrix_traverse matmul list_vs_vector aos_soa false_sharing spsc_ring"
+
+case "$(uname -s)" in
+    Darwin) OS=macos ;;
+    Linux) OS=linux ;;
+    MINGW* | MSYS* | CYGWIN*) OS=windows ;;
+    *) OS=$(uname -s | tr '[:upper:]' '[:lower:]') ;;
+esac
+ARCH=$(uname -m)
+
+# A shell under Rosetta 2 reports x86_64 on Apple Silicon, and binaries built
+# from it would be translated x86_64 code timed on an arm64 chip. Build arm64
+# instead (arm64-only binaries run natively even when launched from a
+# translated shell). On macOS the architecture is always passed explicitly so
+# a build dir cached by an earlier run cannot silently keep the wrong one.
+ROSETTA=0
+ARCH_ARGS=""
+if [ "$OS" = macos ]; then
+    if [ "$(sysctl -n sysctl.proc_translated 2>/dev/null || echo 0)" = 1 ]; then
+        ROSETTA=1
+        ARCH=arm64
+        echo "warning: this shell runs under Rosetta 2 on Apple Silicon; building native arm64" >&2
+    fi
+    ARCH_ARGS="-DCMAKE_OSX_ARCHITECTURES=$ARCH"
+fi
+
+# Prefer cmake/ninja on PATH; fall back to the project-local venv
+# (python3 -m venv .venv && .venv/bin/pip install cmake ninja).
+if [ -x "$ROOT/.venv/bin/cmake" ] && ! command -v cmake >/dev/null 2>&1; then
+    PATH="$ROOT/.venv/bin:$PATH"
+    export PATH
+fi
+if ! command -v cmake >/dev/null 2>&1; then
+    echo "error: cmake not found on PATH or in $ROOT/.venv/bin" >&2
+    echo "  install: python3 -m venv $ROOT/.venv && $ROOT/.venv/bin/pip install cmake ninja" >&2
+    exit 1
+fi
+if [ -x "$ROOT/.venv/bin/ninja" ] && ! command -v ninja >/dev/null 2>&1; then
+    PATH="$ROOT/.venv/bin:$PATH"
+    export PATH
+fi
+
+# Reuse whatever generator an existing build dir was configured with; CMake
+# refuses to switch generators in place.
+GEN_ARGS=""
+if [ ! -f "$BUILD_DIR/CMakeCache.txt" ] && command -v ninja >/dev/null 2>&1; then
+    GEN_ARGS="-G Ninja"
+fi
+
+configure_and_build() {
+    echo "== configure ($OS-$ARCH)"
+    # shellcheck disable=SC2086  # GEN_ARGS and ARCH_ARGS are intentionally word-split
+    cmake -S "$BENCH_DIR" -B "$BUILD_DIR" $GEN_ARGS $ARCH_ARGS -DCMAKE_BUILD_TYPE=Release &&
+        echo "== build" &&
+        cmake --build "$BUILD_DIR" --config Release
+}
+
+if [ "$ROSETTA" = 1 ]; then
+    if ! configure_and_build; then
+        # Results from translated code are still useful, but must not be
+        # mistaken for native x86_64 or native arm64 numbers. A separate
+        # build dir (nested so .gitignore covers it) keeps the failed arm64
+        # configure out of the way.
+        ARCH=x86_64-rosetta
+        ARCH_ARGS="-DCMAKE_OSX_ARCHITECTURES=x86_64"
+        BUILD_DIR="$BENCH_DIR/build/$ARCH"
+        GEN_ARGS=""
+        if [ ! -f "$BUILD_DIR/CMakeCache.txt" ] && command -v ninja >/dev/null 2>&1; then
+            GEN_ARGS="-G Ninja"
+        fi
+        echo "warning: native arm64 build failed; falling back to x86_64 under Rosetta 2." >&2
+        echo "warning: timings measure translated code; results are labeled $ARCH" >&2
+        configure_and_build
+    fi
+else
+    configure_and_build
+fi
+
+STAMP=$(date +%Y%m%d-%H%M%S)
+RESULTS="$BENCH_DIR/results/$OS-$ARCH-$STAMP"
+mkdir -p "$RESULTS"
+
+{
+    echo "date: $(date)"
+    echo "uname: $(uname -a)"
+    echo "bench arch: $ARCH"
+    if [ "$ARCH" = x86_64-rosetta ]; then
+        echo "WARNING: binaries are x86_64 running under Rosetta 2 translation on Apple Silicon"
+    elif [ "$ROSETTA" = 1 ]; then
+        echo "note: script ran under Rosetta 2; benchmarks were built and run as native arm64"
+    fi
+    case "$OS" in
+        macos)
+            echo "cpu: $(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo unknown)"
+            for k in hw.l1dcachesize hw.l2cachesize hw.l3cachesize hw.cachelinesize \
+                hw.perflevel0.l1dcachesize hw.perflevel0.l2cachesize; do
+                v=$(sysctl -n "$k" 2>/dev/null) && echo "$k: $v"
+            done
+            ;;
+        linux)
+            grep -m1 'model name' /proc/cpuinfo 2>/dev/null || true
+            command -v lscpu >/dev/null 2>&1 && lscpu | grep -i -E 'cache|^cpu\(s\)|model name' || true
+            ;;
+    esac
+    echo "cmake: $(cmake --version | head -n 1)"
+    grep -E '^CMAKE_CXX_COMPILER:|^CMAKE_BUILD_TYPE:' "$BUILD_DIR/CMakeCache.txt" || true
+} >"$RESULTS/system.txt"
+
+# Single-config generators put binaries in the build dir; multi-config ones
+# (Visual Studio, Xcode) in a Release/ subdirectory.
+find_bin() {
+    for cand in "$BUILD_DIR/$1" "$BUILD_DIR/$1.exe" "$BUILD_DIR/Release/$1" "$BUILD_DIR/Release/$1.exe"; do
+        if [ -x "$cand" ]; then
+            echo "$cand"
+            return 0
+        fi
+    done
+    return 1
+}
+
+BENCHES=${*:-$ALL_BENCHES}
+echo "bench,variant,param,median_ns,ns_per_access" >"$RESULTS/results.csv"
+for b in $BENCHES; do
+    bin=$(find_bin "$b") || { echo "error: binary for $b not found under $BUILD_DIR" >&2; exit 1; }
+    echo "== run $b"
+    # POSIX sh has no pipefail, so the benchmark's exit status is smuggled
+    # out of the pipeline through a file (the && || form keeps set -e from
+    # killing the subshell first); tee keeps progress visible.
+    # shellcheck disable=SC2086  # BENCH_ARGS is intentionally word-split
+    { "$bin" ${BENCH_ARGS:-} && rc=0 || rc=$?; echo "$rc" >"$RESULTS/.status"; } | tee "$RESULTS/$b.txt"
+    status=$(cat "$RESULTS/.status")
+    rm -f "$RESULTS/.status"
+    if [ "$status" -ne 0 ]; then
+        echo "error: $b exited with status $status" >&2
+        exit "$status"
+    fi
+    grep '^RESULT,' "$RESULTS/$b.txt" | sed 's/^RESULT,//' >>"$RESULTS/results.csv" || true
+done
+echo "== timings saved to $RESULTS"
+
+# Hardware counters. Missing tools are a skip, not a failure: the timings
+# above are the primary result and stand on their own.
+case "$OS" in
+    linux)
+        if command -v perf >/dev/null 2>&1 || command -v valgrind >/dev/null 2>&1; then
+            sh "$ROOT/scripts/verify-linux.sh" "$BUILD_DIR" "$RESULTS" $BENCHES
+        else
+            echo "skipped: perf and valgrind not found (hardware counters not collected)"
+        fi
+        ;;
+    macos)
+        if xcrun --find xctrace >/dev/null 2>&1; then
+            sh "$ROOT/scripts/verify-macos.sh" "$BUILD_DIR" "$RESULTS" $BENCHES
+        else
+            echo "skipped: xctrace not found (needs full Xcode, not just Command Line Tools)"
+        fi
+        ;;
+    windows)
+        echo "skipped: counters on Windows are collected by scripts/verify.ps1 (run it from PowerShell)"
+        ;;
+    *)
+        echo "skipped: no counter script for OS '$OS'"
+        ;;
+esac
+exit 0

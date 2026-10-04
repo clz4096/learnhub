@@ -1,0 +1,17 @@
+{
+  "id": "cachesim",
+  "title": "Cache Hierarchy Simulator",
+  "summary": "Watch C++ memory accesses move through L1, L2, L3, and DRAM, then check the same effects on real hardware.",
+  "tracks": ["ML-SYS", "HFT", "ALGO"],
+  "level": "simulator-with-real-check",
+  "minutes": 90,
+  "lessons": 10,
+  "build": "npm run build",
+  "out": "dist",
+  "materials": [
+    { "label": "Guide", "path": "GUIDE.md" },
+    { "label": "Simulator vs real hardware", "path": "VERIFY.md" },
+    { "label": "Design and model limits", "path": "DESIGN.md" }
+  ],
+  "status": "ready"
+}

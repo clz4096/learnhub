@@ -1,0 +1,58 @@
+/* Guided, Explain, and Glossary panels. Colors come from tokens.css (AA on --surface). */
+
+.mode-panel h3 { font-size: var(--text-md); margin-top: var(--space-2); }
+.mode-panel h4 { font-size: var(--text-sm); margin: var(--space-3) 0 var(--space-1); }
+
+/* Guided */
+.lesson-steps, .lesson-notice { padding-left: var(--space-5); margin: 0 0 var(--space-2); }
+.lesson-steps li { margin-bottom: var(--space-2); padding: 2px var(--space-1); border-radius: var(--radius-sm); }
+.lesson-steps li > span:first-child { margin-right: var(--space-2); }
+.lesson-steps li.current { background: var(--accent-soft); }
+.lesson-steps li.past { color: var(--text-muted); }
+.step-btn { margin-top: 2px; }
+.step-check { margin-left: var(--space-2); color: var(--verified); font-weight: 700; }
+.lesson-notice li { margin-bottom: var(--space-1); }
+.check { border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); margin: var(--space-3) 0; min-width: 0; }
+.check legend { font-size: var(--text-sm); font-weight: 600; padding: 0 var(--space-1); }
+.check-label { color: var(--accent); }
+.choice {
+  display: flex; gap: var(--space-2); align-items: flex-start; min-height: var(--touch);
+  padding: var(--space-1); border-radius: var(--radius-sm); font-size: var(--text-sm); cursor: pointer;
+}
+.choice input { margin-top: 3px; flex: none; width: 18px; height: 18px; accent-color: var(--accent); }
+.choice:hover { background: var(--surface-2); }
+.choice.right { background: var(--verified-bg); }
+.choice.wrong { background: var(--error-bg); }
+.answer { padding: var(--space-2); border-radius: var(--radius-sm); }
+.answer-right { color: var(--verified); background: var(--verified-bg); }
+.answer-wrong { color: var(--error); background: var(--error-bg); }
+.lesson-nav { display: flex; justify-content: space-between; gap: var(--space-2); flex-wrap: wrap; }
+.term-row { margin-top: var(--space-2); }
+
+/* Explain */
+.explain-note { color: var(--warning); background: var(--warning-bg); padding: var(--space-2); border-radius: var(--radius-sm); }
+.explain-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.explain-text p { margin: 0 0 var(--space-2); }
+.explain-text .explain-lead { font-weight: 600; }
+
+/* Elements made selectable in Explain mode (Pick) */
+.pick {
+  background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; text-align: inherit;
+  cursor: pointer; text-decoration: underline dotted var(--accent); text-underline-offset: 3px;
+}
+.pick:hover { color: var(--accent); }
+.pick[aria-pressed='true'] { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: var(--radius-sm); }
+.pick-block { display: block; width: 100%; text-decoration: none; }
+
+/* Glossary */
+.gloss-search input { width: 100%; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 2px var(--space-2); min-height: var(--touch); }
+.gloss-list { list-style: none; padding: 0; margin: 0; }
+.gloss-entry { border-top: 1px solid var(--border); padding: var(--space-2) var(--space-1); }
+.gloss-entry h3 { margin: 0 0 var(--space-1); font-size: var(--text-sm); overflow-wrap: anywhere; }
+.gloss-entry p { margin: 0 0 var(--space-1); }
+.gloss-entry.selected { background: var(--accent-soft); border-radius: var(--radius-sm); }
+.gloss-entry .linklike { min-height: 28px; }
+.gloss-entry .linklike:disabled { color: var(--text-muted); cursor: not-allowed; }
+
+/* Phone: the mode panel sits above the tabs; keep it from pushing the view off screen. */
+.layout-phone .mode-panel { max-height: 55vh; overflow-y: auto; }
