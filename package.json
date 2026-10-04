@@ -3,11 +3,17 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "hub",
     "sims/*"
   ],
   "scripts": {
-    "test": "npm run test --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present && node --test scripts/*.test.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present"
+    "build": "npm run build --workspaces --if-present && node scripts/assemble.mjs",
+    "assemble": "node scripts/assemble.mjs",
+    "preview": "node scripts/serve.mjs"
+  },
+  "devDependencies": {
+    "marked": "18.0.14"
   }
 }

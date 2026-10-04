@@ -1,11 +1,11 @@
 # How to use the Cache Hierarchy Simulator
 
-This guide gets you from a fresh checkout to learning in a few minutes. The app has the same content under its **Help** button, plus a short **Start here** tour that opens on your first visit.
+This guide gets you learning in a few minutes. The app has the same content under its **Help** button, plus a short **Start here** tour that opens on your first visit.
 
 ## Start in two minutes
 
-1. Install Node.js 20 or later, then run `npm install` and `npm run dev` in the project folder.
-2. Open http://localhost:5180. The **Start here** tour points at each part of the screen. Press **Next**, or use the Right arrow key.
+1. Open the simulator at https://clz4096.github.io/learnhub/sims/cachesim/. Nothing to install. To run it on your own machine instead, install Node.js 20 or later, run `npm install` at the repo root, then `npm run dev` in `sims/cachesim`, and open the address it prints (http://localhost:5180).
+2. The **Start here** tour points at each part of the screen. Press **Next**, or use the Right arrow key.
 3. Press **Guided** at the top and do lesson 1. Each step has a button that sets up the simulator for you.
 
 ## What you are looking at

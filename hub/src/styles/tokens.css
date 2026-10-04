@@ -1,0 +1,52 @@
+/*
+ * Design tokens (light theme), copied from sims/cachesim/src/styles/tokens.css. Only the
+ * properties the hub and the materials pages use. Keep values in step with cachesim until
+ * a shared package exists (DESIGN.md, phase 2). Text colors meet WCAG AA on --bg and --surface.
+ */
+:root {
+  /* color: surfaces and text */
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --text: #1f2328;        /* 15.8:1 on white */
+  --text-muted: #57606a;  /* 6.3:1 on white, 5.9:1 on --bg */
+  --border: #d0d7de;
+  --border-strong: #8c959f;
+  --accent: #0b5cad;      /* 6.6:1 on white */
+  --accent-text: #ffffff;
+  --accent-soft: #e3eefa;
+  --focus: #0b5cad;
+  --error: #b42318;       /* 6.4:1 on white */
+  --error-bg: #fdecea;
+  --verified: #1a6b33;
+  --verified-bg: #e3f4e8;
+
+  /* spacing (4 px scale) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* type */
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --text-sm: 0.8125rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.0625rem;
+
+  /* sizes */
+  --touch: 32px;
+}
+
+@media (max-width: 699px) {
+  :root {
+    --touch: 44px; /* touch targets on phones */
+  }
+}
