@@ -12,7 +12,10 @@ const minus = (a: readonly number[], b: readonly number[]): number[] => a.filter
 const sorted = (a: readonly number[]): number[] => [...a].sort((x, y) => x - y);
 const ids = (xs: readonly number[]): string[] => xs.map((x) => `e${x}`);
 const options = (u: readonly number[]): ChoiceOption[] => u.map((x) => ({ id: `e${x}`, label: t`${x}` }));
-const SYM: Record<Op, string> = { union: '∪', intersection: '∩' };
+const SYM: Record<Op, string> = { union: '\\cup', intersection: '\\cap' };
+const A = math`A`;
+const B = math`B`;
+const Bc = math`B'`;
 
 /** Two subsets of {1, ..., n} that overlap and that neither contains the other. */
 function twoSets(rng: () => number, n: number): { a: number[]; b: number[] } {
@@ -28,7 +31,7 @@ const saneSets = (n: number, a: readonly number[], b: readonly number[]): string
     && inter(a, b).length > 0 && minus(a, b).length > 0 && minus(b, a).length > 0 && union(a, b).length < n ? null : 'out of range';
 
 const given = (n: number, a: readonly number[], b: readonly number[]): Rich =>
-  t`The [[universal-set|universal set]] is ${math`ξ = ${setOf(upTo(n))}`}, with ${math`A = ${setOf(a)}`} and ${math`B = ${setOf(b)}`}.`;
+  t`The [[universal-set|universal set]] is ${math`\xi = ${setOf(upTo(n))}`}, with ${math`A = ${setOf(a)}`} and ${math`B = ${setOf(b)}`}.`;
 
 // ---------------------------------------------------------------- generators
 
@@ -48,19 +51,19 @@ const unionIntersection = generator<OpP>({
       prompt: t`${given(n, a, b)} Choose every element of ${math`A ${SYM[op]} B`}.`,
       answer: { kind: 'choice', options: options(upTo(n)), correct: ids(ans) },
       solution: op === 'union'
-        ? [t`The [[union|union]] ${math`A ∪ B`} holds everything in A or in B or in both.`, t`Combine the lists without repeats: ${math`A ∪ B = ${setOf(ans)}`}.`]
-        : [t`The [[intersection|intersection]] ${math`A ∩ B`} holds what is in A and in B at once.`, t`Keep the elements on both lists: ${math`A ∩ B = ${setOf(ans)}`}.`],
+        ? [t`The [[union|union]] ${math`A \cup B`} holds everything in ${A} or in ${B} or in both.`, t`Combine the lists without repeats: ${math`A \cup B = ${setOf(ans)}`}.`]
+        : [t`The [[intersection|intersection]] ${math`A \cap B`} holds what is in ${A} and in ${B} at once.`, t`Keep the elements on both lists: ${math`A \cap B = ${setOf(ans)}`}.`],
     };
   },
   solve: ({ n, a, b, op }) => ids(upTo(n).filter((x) => (op === 'union' ? a.includes(x) || b.includes(x) : a.includes(x) && b.includes(x)))),
   misconceptions: ({ a, b, op }): Misconception[] => op === 'union'
     ? [
-      { response: ids(inter(a, b)), why: t`Those are the elements in both sets: the intersection. The union ${math`∪`} takes everything in either set.` },
-      { response: ids(a), why: t`That is just A. The union also takes every element of B.` },
+      { response: ids(inter(a, b)), why: t`Those are the elements in both sets: the intersection. The union ${math`\cup`} takes everything in either set.` },
+      { response: ids(a), why: t`That is just ${A}. The union also takes every element of ${B}.` },
     ]
     : [
-      { response: ids(union(a, b)), why: t`Those are the elements in either set: the union. The intersection ${math`∩`} keeps only what is in both.` },
-      { response: ids(minus(a, b)), why: t`Those are the elements of A that are not in B. The intersection is the overlap: elements in A and in B.` },
+      { response: ids(union(a, b)), why: t`Those are the elements in either set: the union. The intersection ${math`\cap`} keeps only what is in both.` },
+      { response: ids(minus(a, b)), why: t`Those are the elements of ${A} that are not in ${B}. The intersection is the overlap: elements in ${A} and in ${B}.` },
     ],
 });
 
@@ -82,24 +85,24 @@ const complement = generator<CompP>({
       return {
         prompt: t`${given(n, a, b)} Choose every element of ${math`A'`}.`,
         answer: { kind: 'choice', options: options(u), correct: ids(ans) },
-        solution: [t`The [[complement|complement]] ${math`A'`} holds every element of the universal set that is not in A.`, t`So ${math`A' = ${setOf(ans)}`}.`],
+        solution: [t`The [[complement|complement]] ${math`A'`} holds every element of the universal set that is not in ${A}.`, t`So ${math`A' = ${setOf(ans)}`}.`],
       };
     }
     if (kind === 'union') {
       const ab = union(a, b);
       const ans = minus(u, ab);
       return {
-        prompt: t`${given(n, a, b)} Choose every element of ${math`(A ∪ B)'`}.`,
+        prompt: t`${given(n, a, b)} Choose every element of ${math`(A \cup B)'`}.`,
         answer: { kind: 'choice', options: options(u), correct: ids(ans) },
-        solution: [t`Work inside the brackets first: ${math`A ∪ B = ${setOf(ab)}`}.`, t`The complement takes what is left of the universal set: ${math`(A ∪ B)' = ${setOf(ans)}`}.`],
+        solution: [t`Work inside the brackets first: ${math`A \cup B = ${setOf(ab)}`}.`, t`The complement takes what is left of the universal set: ${math`(A \cup B)' = ${setOf(ans)}`}.`],
       };
     }
     const nb = minus(u, b);
     const ans = inter(a, nb);
     return {
-      prompt: t`${given(n, a, b)} Choose every element of ${math`A ∩ B'`}.`,
+      prompt: t`${given(n, a, b)} Choose every element of ${math`A \cap B'`}.`,
       answer: { kind: 'choice', options: options(u), correct: ids(ans) },
-      solution: [t`First ${math`B' = ${setOf(nb)}`}, everything not in B.`, t`Then keep the elements of A that are also in ${math`B'`}: ${math`A ∩ B' = ${setOf(ans)}`}.`],
+      solution: [t`First ${math`B' = ${setOf(nb)}`}, everything not in ${B}.`, t`Then keep the elements of ${A} that are also in ${Bc}: ${math`A \cap B' = ${setOf(ans)}`}.`],
     };
   },
   solve: ({ n, a, b, kind }) => ids(upTo(n).filter((x) => {
@@ -111,19 +114,19 @@ const complement = generator<CompP>({
     const u = upTo(n);
     if (kind === 'a') {
       return [
-        { response: ids(a), why: t`That is A itself. The complement ${math`A'`} is everything in the universal set that is not in A.` },
-        { response: ids(minus(b, a)), why: t`Those are the elements of B outside A. The complement of A is everything outside A, whether or not it is in B.` },
+        { response: ids(a), why: t`That is ${A} itself. The complement ${math`A'`} is everything in the universal set that is not in ${A}.` },
+        { response: ids(minus(b, a)), why: t`Those are the elements of ${B} outside ${A}. The complement of ${A} is everything outside ${A}, whether or not it is in ${B}.` },
       ];
     }
     if (kind === 'union') {
       return [
-        { response: ids(union(minus(u, a), minus(u, b))), why: t`That is ${math`A' ∪ B'`}, which is the complement of the intersection. Work out ${math`A ∪ B`} first, then take everything outside it.` },
-        { response: ids(union(a, b)), why: t`That is ${math`A ∪ B`} itself. The prime mark ' means complement: take the elements outside it.` },
+        { response: ids(union(minus(u, a), minus(u, b))), why: t`That is ${math`A' \cup B'`}, which is the complement of the intersection. Work out ${math`A \cup B`} first, then take everything outside it.` },
+        { response: ids(union(a, b)), why: t`That is ${math`A \cup B`} itself. The prime mark ${math`'`} means complement: take the elements outside it.` },
       ];
     }
     return [
-      { response: ids(inter(a, b)), why: t`That is ${math`A ∩ B`}. The prime mark on B means "not in B", so keep the elements of A that are outside B.` },
-      { response: ids(minus(u, b)), why: t`That is all of ${math`B'`}. The intersection with A keeps only the elements of ${math`B'`} that are also in A.` },
+      { response: ids(inter(a, b)), why: t`That is ${math`A \cap B`}. The prime mark on ${B} means "not in ${B}", so keep the elements of ${A} that are outside ${B}.` },
+      { response: ids(minus(u, b)), why: t`That is all of ${Bc}. The intersection with ${A} keeps only the elements of ${Bc} that are also in ${A}.` },
     ];
   },
 });
@@ -155,7 +158,7 @@ const countRegions = generator<CountP>({
     const u = x + y - z;
     const facts = t`In a class of ${total} students, ${x} play chess, ${y} play football, and ${z} play both.`;
     const steps = [
-      t`Adding ${x} and ${y} counts the ${z} students who play both twice, so take them off once: ${x} + ${y} - ${z} = ${u} play at least one game.`,
+      t`Adding ${x} and ${y} counts the ${z} students who play both twice, so take them off once: ${math`${x} + ${y} - ${z} = ${u}`} play at least one game.`,
     ];
     if (ask === 'union') {
       return { prompt: t`${facts} How many play chess or football (or both)?`, answer: { kind: 'exact', expected: String(u) }, solution: steps };
@@ -163,7 +166,7 @@ const countRegions = generator<CountP>({
     return {
       prompt: t`${facts} How many play neither game?`,
       answer: { kind: 'exact', expected: String(total - u) },
-      solution: [...steps, t`The rest play neither: ${total} - ${u} = ${total - u}. In a [[venn-diagram|Venn diagram]] this is the region outside both circles.`],
+      solution: [...steps, t`The rest play neither: ${math`${total} - ${u} = ${total - u}`}. In a [[venn-diagram|Venn diagram]] this is the region outside both circles.`],
     };
   },
   solve: (p) => String(p.ask === 'union' ? bruteCounts(p).union : bruteCounts(p).neither),
@@ -176,7 +179,7 @@ const countRegions = generator<CountP>({
     : [
       { response: String(total - x - y), why: t`Subtracting both groups takes away the ${z} students who play both twice. Add them back once.` },
       { response: String(x + y - z), why: t`That is how many play at least one game. The question asks for the rest of the class.` },
-      { response: String(total - x), why: t`That takes away only the chess players. Take away everyone who plays chess or football: ${x} + ${y} - ${z} students.` },
+      { response: String(total - x), why: t`That takes away only the chess players. Take away everyone who plays chess or football: ${math`${x} + ${y} - ${z}`} students.` },
     ],
 });
 
@@ -192,22 +195,22 @@ export const setNotation: TopicContent = {
   topicId: 'pre.set-notation',
   goal: t`Read and use set notation for union, intersection, and complement, and draw them as a Venn diagram.`,
   lesson: [
-    { kind: 'p', text: t`A [[set|set]] is a collection of things, written between curly brackets. Each thing in it is an [[element|element]]. The order does not matter and nothing is listed twice, so ${setOf([3, 1, 2])} and ${setOf([1, 2, 3])} are the same set. We write ${math`${2} ∈ ${setOf([1, 2, 3])}`} to say ${2} is an element, and ${math`${5} ∉ ${setOf([1, 2, 3])}`} to say ${5} is not.` },
-    { kind: 'p', text: t`The [[universal-set|universal set]], written ξ, holds everything under discussion. Here it is ${math`ξ = ${setOf(LU)}`}, with ${math`A = ${setOf(L.a)}`} and ${math`B = ${setOf(L.b)}`}.` },
+    { kind: 'p', text: t`A [[set|set]] is a collection of things, written between curly brackets. Each thing in it is an [[element|element]]. The order does not matter and nothing is listed twice, so ${setOf([3, 1, 2])} and ${setOf([1, 2, 3])} are the same set. We write ${math`${2} \in ${setOf([1, 2, 3])}`} to say ${2} is an element, and ${math`${5} \notin ${setOf([1, 2, 3])}`} to say ${5} is not.` },
+    { kind: 'p', text: t`The [[universal-set|universal set]], written ${math`\xi`}, holds everything under discussion. Here it is ${math`\xi = ${setOf(LU)}`}, with ${math`A = ${setOf(L.a)}`} and ${math`B = ${setOf(L.b)}`}.` },
     {
       kind: 'list',
       items: [
-        t`The [[union|union]] ${math`A ∪ B`} is everything in A or B or both: ${setOf(union(L.a, L.b))}.`,
-        t`The [[intersection|intersection]] ${math`A ∩ B`} is everything in both: ${setOf(inter(L.a, L.b))}.`,
-        t`The [[complement|complement]] ${math`A'`} is everything in ξ that is not in A: ${setOf(minus(LU, L.a))}.`,
-        t`A set with no elements is the [[empty-set|empty set]], written ∅.`,
+        t`The [[union|union]] ${math`A \cup B`} is everything in ${A} or ${B} or both: ${setOf(union(L.a, L.b))}.`,
+        t`The [[intersection|intersection]] ${math`A \cap B`} is everything in both: ${setOf(inter(L.a, L.b))}.`,
+        t`The [[complement|complement]] ${math`A'`} is everything in ${math`\xi`} that is not in ${A}: ${setOf(minus(LU, L.a))}.`,
+        t`A set with no elements is the [[empty-set|empty set]], written ${math`\varnothing`}.`,
       ],
     },
     {
-      kind: 'venn', a: 'A', b: 'B', caption: t`A [[venn-diagram|Venn diagram]] of the sets above. The box is ξ; each circle is a set.`,
+      kind: 'venn', a: 'A', b: 'B', caption: t`A [[venn-diagram|Venn diagram]] of the sets above. The box is ${math`\xi`}; each circle is a set.`,
       onlyA: [setOf(venn.onlyA)], both: [setOf(venn.both)], onlyB: [setOf(venn.onlyB)], neither: [setOf(venn.neither)],
     },
-    { kind: 'p', text: t`Read the regions: the overlap is ${math`A ∩ B`}; both circles together are ${math`A ∪ B`}; everything outside circle A is ${math`A'`}. To count ${math`A ∪ B`}, adding the sizes counts the overlap twice: ${L.a.length} + ${L.b.length} - ${venn.both.length} = ${union(L.a, L.b).length}.` },
+    { kind: 'p', text: t`Read the regions: the overlap is ${math`A \cap B`}; both circles together are ${math`A \cup B`}; everything outside circle ${A} is ${math`A'`}. To count ${math`A \cup B`}, adding the sizes counts the overlap twice: ${math`${L.a.length} + ${L.b.length} - ${venn.both.length} = ${union(L.a, L.b).length}`}.` },
   ],
   examples: [
     worked(unionIntersection, { n: 10, a: [1, 3, 5, 7], b: [3, 4, 5, 6], op: 'intersection' }, t`An intersection`),

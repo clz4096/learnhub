@@ -5,8 +5,8 @@
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { answerText, grade, type Feedback, type Instance, type Response } from '@learnhub/content';
-import { formatExpression, parseExpression } from '@learnhub/mastery';
-import { Rich, mathNodes } from '@/ui/Rich';
+import { AnswerInput } from '@/ui/AnswerInput';
+import { Rich } from '@/ui/Rich';
 
 export type CardMode = 'practice' | 'review' | 'quiz' | 'placement';
 
@@ -17,14 +17,8 @@ export interface CardResult {
 
 const RIGHT = ['Right.', 'Correct.', 'Yes, that is it.'];
 
-function inputHint(i: Instance): string {
-  const a = i.problem.answer;
-  switch (a.kind) {
-    case 'exact': return 'A whole number, a fraction like 3/8, or an exact decimal.';
-    case 'numeric': return 'A number, for example 0.125 or 3/8.';
-    case 'expression': return `An expression in ${a.variables.join(' and ')}. Use ^ for powers, for example x^2 + 3x. Multiplication signs are optional.`;
-    case 'choice': return typeof a.correct === 'string' ? 'Choose one.' : 'Choose every one that applies.';
-  }
+function choiceHint(correct: string | readonly string[]): string {
+  return typeof correct === 'string' ? 'Choose one.' : 'Choose every one that applies.';
 }
 
 export function ProblemCard({ topicId, instance, mode, index, onDone }: {
@@ -66,12 +60,6 @@ export function ProblemCard({ topicId, instance, mode, index, onDone }: {
   };
   const finish = (): void => onDone({ correct: fb?.correct === true, response: gaveUp ? null : response });
 
-  const preview = (() => {
-    if (a.kind !== 'expression' || text.trim() === '') return null;
-    const r = parseExpression(text, a.variables);
-    return r.ok ? formatExpression(r.value) : null;
-  })();
-
   const toggle = (opt: string): void => {
     if (checked) return;
     // Functional updates, so quick taps in a row each see the previous one.
@@ -89,7 +77,7 @@ export function ProblemCard({ topicId, instance, mode, index, onDone }: {
       >
         {a.kind === 'choice' ? (
           <fieldset class={`choices${many ? ' chips' : ''}`} disabled={checked}>
-            <legend class="small muted">{inputHint(instance)}</legend>
+            <legend class="small muted">{choiceHint(a.correct)}</legend>
             {a.options.map((o) => {
               const on = picks.includes(o.id);
               const right = checked && (typeof a.correct === 'string' ? a.correct === o.id : a.correct.includes(o.id));
@@ -108,24 +96,7 @@ export function ProblemCard({ topicId, instance, mode, index, onDone }: {
             })}
           </fieldset>
         ) : (
-          <div class="field">
-            <label for={`${id}-input`}>Your answer</label>
-            <input
-              ref={inputRef}
-              id={`${id}-input`}
-              type="text"
-              autocomplete="off"
-              autocapitalize="off"
-              spellcheck={false}
-              inputMode={a.kind === 'expression' ? 'text' : 'decimal'}
-              value={text}
-              disabled={checked}
-              aria-describedby={`${id}-hint`}
-              onInput={(e) => setText((e.currentTarget as HTMLInputElement).value)}
-            />
-            <span id={`${id}-hint`} class="small muted">{inputHint(instance)}</span>
-            {preview !== null && !checked && <span class="small preview">Read as: <span class="math">{mathNodes(preview)}</span></span>}
-          </div>
+          <AnswerInput id={id} spec={a} topicId={topicId} value={text} disabled={checked} onChange={setText} inputRef={inputRef} />
         )}
         <div class="actions">
           {!checked && (

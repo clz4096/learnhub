@@ -5,6 +5,7 @@
  * A decimal answer is read exactly (0.375 is 375/1000 = 3/8), so it is right only when it
  * equals the expected value exactly: 0.375 for 3/8 is right, 0.333 for 1/3 is not.
  */
+import { parseExpression, type Expr } from './expr';
 import { MAX_ANSWER_LENGTH, normalizeSymbols, problemError, type GradeResult } from './types';
 
 /** Denominator positive, gcd(num, den) = 1. */
@@ -49,6 +50,22 @@ export type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string
 const INT_RE = /^[+-]?\d+$/;
 const DEC_RE = /^([+-]?)(\d*)\.(\d+)$/;
 const FRAC_RE = /^([+-]?\d+)\s*\/\s*([+-]?\d+)$/;
+const RATIO_RE = /^([+-]?\d+)\s*:\s*([+-]?\d+)$/;
+
+export interface RationalOptions {
+  /** Read a ratio a:b as the fraction a/b, for problems that ask for a ratio. */
+  ratio?: boolean;
+}
+
+/** Whether a parsed answer is a calculation (2^5, 2*3, sqrt(2), 1 + 1/2) rather than one number or fraction. */
+function isCalculation(e: Expr): boolean {
+  switch (e.kind) {
+    case 'num': return false;
+    case 'neg': return isCalculation(e.arg);
+    case 'bin': return e.op !== '/' || isCalculation(e.left) || isCalculation(e.right);
+    default: return true;
+  }
+}
 
 /** ASCII signs, trimmed, and no space after a leading sign ("- 0.5" from a phone keyboard is not ambiguous). */
 function clean(s: string): string {
@@ -56,14 +73,23 @@ function clean(s: string): string {
 }
 
 /**
- * Reads an integer ("-3"), a fraction ("3/8", "-6/16", "3/-8"), or a terminating decimal
- * ("0.375", ".5", "-1.25"). Unicode minus signs are accepted. Anything else, including
- * exponents, mixed numbers, and a zero denominator, is an error with a reason.
+ * Reads an integer ("-3"), a fraction ("3/8", "-6/16", "3/-8", "3 \u00F7 8"), or a
+ * terminating decimal ("0.375", ".5", "-1.25"), and with the `ratio` option a ratio
+ * ("3:8"). Unicode minus signs are accepted. Anything else, including exponents, mixed
+ * numbers, calculations such as 2^5, and a zero denominator, is an error with a reason:
+ * an exact answer is a value, so "work out 2^5" is never answered by 2^5.
  */
-export function parseRational(input: string): ParseResult<Rational> {
+export function parseRational(input: string, options: RationalOptions = {}): ParseResult<Rational> {
   if (input.length > MAX_ANSWER_LENGTH) return { ok: false, error: 'That answer is too long.' };
   const s = clean(input);
   if (s === '') return { ok: false, error: 'Enter an answer.' };
+  const ratio = RATIO_RE.exec(s);
+  if (ratio !== null) {
+    if (options.ratio !== true) return { ok: false, error: 'Write it as a fraction, for example 3/8 rather than 3:8.' };
+    const den = BigInt(ratio[2] as string);
+    if (den === 0n) return { ok: false, error: 'The second part of the ratio is zero.' };
+    return { ok: true, value: rational(BigInt(ratio[1] as string), den) };
+  }
   if (INT_RE.test(s)) return { ok: true, value: rational(BigInt(s)) };
   const d = DEC_RE.exec(s);
   if (d !== null) {
@@ -79,6 +105,8 @@ export function parseRational(input: string): ParseResult<Rational> {
   }
   if (/\d\s+\d+\s*\/\s*\d/.test(s)) return { ok: false, error: 'Write a mixed number as one fraction, for example 7/2 rather than 3 1/2.' };
   if (/e/i.test(s) && /\d/.test(s)) return { ok: false, error: 'Write the number without an exponent, as a fraction or decimal.' };
+  const calc = parseExpression(s, []);
+  if (calc.ok && isCalculation(calc.value)) return { ok: false, error: 'Work it out to a single number or fraction, for example 32 rather than 2^5.' };
   return { ok: false, error: 'Enter a whole number, a fraction like 3/8, or an exact decimal like 0.375.' };
 }
 
@@ -90,7 +118,7 @@ function terminates(den: bigint): boolean {
   return d === 1n;
 }
 
-export interface ExactOptions {
+export interface ExactOptions extends RationalOptions {
   /** Count 6/16 for 3/8 as wrong rather than as right with a note. */
   requireLowestTerms?: boolean;
 }
@@ -111,13 +139,13 @@ export function gradeExact(answer: string, expected: Rational | string, options:
     want = expected;
   }
 
-  const a = parseRational(answer);
+  const a = parseRational(answer, { ratio: options.ratio });
   if (!a.ok) return { correct: false, feedback: a.error, normalizedAnswer: answer.trim() };
   const got = a.value;
   const normalizedAnswer = formatRational(got);
 
   if (equalRational(got, want)) {
-    const f = FRAC_RE.exec(clean(answer));
+    const f = FRAC_RE.exec(clean(answer)) ?? (options.ratio === true ? RATIO_RE.exec(clean(answer)) : null);
     const unreduced = f !== null && abs(BigInt(f[2] as string)) !== got.den;
     if (unreduced && options.requireLowestTerms) {
       return { correct: false, feedback: `Right value, but give it in lowest terms: ${normalizedAnswer}.`, normalizedAnswer };

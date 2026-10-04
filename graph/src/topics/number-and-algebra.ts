@@ -39,7 +39,7 @@ export const numberAndAlgebra: Topic[] = [
   {
     id: 'alg.exp-and-ln',
     title: 'The exponential function and natural logarithm',
-    summary: 'Use e^x and ln x as inverse functions and apply the laws of logarithms.',
+    summary: 'Use $e^x$ and $\\ln x$ as inverse functions and apply the laws of logarithms.',
     level: 'a-level',
     area: 'number-and-algebra',
     prereqs: ['pre.indices'],
@@ -61,7 +61,7 @@ export const numberAndAlgebra: Topic[] = [
   {
     id: 'pre.prime-factorisation',
     title: 'Prime factorisation',
-    summary: 'Write a whole number as a product of prime powers, for example 360 = 2^3 x 3^2 x 5.',
+    summary: 'Write a whole number as a product of prime powers, for example $360 = 2^3 \\times 3^2 \\times 5$.',
     level: 'pre-a-level',
     area: 'number-and-algebra',
     prereqs: ['pre.primes-and-factors', 'pre.indices'],

@@ -6,7 +6,7 @@ export const elementaryProbability: Topic[] = [
   {
     id: 'pre.probability-scale',
     title: 'Probability of equally likely outcomes',
-    summary: 'Give a probability on the 0 to 1 scale as favourable over total, and use P(not A) = 1 - P(A).',
+    summary: 'Give a probability on the 0 to 1 scale as favourable over total, and use $P(\\text{not } A) = 1 - P(A)$.',
     level: 'pre-a-level',
     area: 'elementary-probability',
     prereqs: ['pre.fractions'],
@@ -61,7 +61,7 @@ export const elementaryProbability: Topic[] = [
   {
     id: 'prob.addition-rule',
     title: 'The addition rule for two events',
-    summary: 'Use P(A or B) = P(A) + P(B) - P(A and B) for any two events.',
+    summary: 'Use $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$ for any two events.',
     level: 'a-level',
     area: 'elementary-probability',
     prereqs: ['pre.mutually-exclusive'],
@@ -72,7 +72,7 @@ export const elementaryProbability: Topic[] = [
   {
     id: 'prob.inclusion-exclusion-three',
     title: 'Inclusion-exclusion for three events',
-    summary: 'Find P(A or B or C) by adding singles, subtracting pairs, and adding back the triple.',
+    summary: 'Find $P(A \\cup B \\cup C)$ by adding singles, subtracting pairs, and adding back the triple.',
     level: 'step',
     area: 'elementary-probability',
     prereqs: ['prob.addition-rule'],
@@ -83,7 +83,7 @@ export const elementaryProbability: Topic[] = [
   {
     id: 'prob.independent-events',
     title: 'Independent events',
-    summary: 'Test and use independence of two events through P(A and B) = P(A)P(B).',
+    summary: 'Test and use independence of two events through $P(A \\cap B) = P(A)P(B)$.',
     level: 'a-level',
     area: 'elementary-probability',
     prereqs: ['pre.tree-diagrams'],
@@ -94,7 +94,7 @@ export const elementaryProbability: Topic[] = [
   {
     id: 'prob.conditional-formula',
     title: 'The conditional probability formula',
-    summary: 'Compute P(A | B) = P(A and B)/P(B) and rearrange it as a multiplication rule.',
+    summary: 'Compute $P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}$ and rearrange it as a multiplication rule.',
     level: 'a-level',
     area: 'elementary-probability',
     prereqs: ['pre.two-way-tables'],

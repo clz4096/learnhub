@@ -1,7 +1,7 @@
 /** pre.fractions: Fractions and ratios. */
 import { add, div, gcd, int, mul, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
+import { dmath, frac, math, t } from '../rich';
 import { worked, type TopicContent } from '../topic';
 
 const lcm = (a: number, b: number): number => (a / gcd(a, b)) * b;
@@ -38,12 +38,12 @@ const addFractions = generator<AddP>({
     const total = add(q(a, b), q(c, d));
     const steps = [
       t`The denominators differ, so rewrite both fractions over a [[common-denominator|common denominator]]. The smallest one is ${h.L}, the lowest common multiple of ${b} and ${d}.`,
-      t`${math`${a}/${b} = ${h.x}/${h.L}`} (multiply top and bottom by ${h.L / b}) and ${math`${c}/${d} = ${h.y}/${h.L}`} (multiply by ${h.L / d}).`,
-      t`Add the numerators and keep the denominator: ${math`${h.x}/${h.L} + ${h.y}/${h.L} = ${h.sum}/${h.L}`}.`,
+      t`${math`\frac{${a}}{${b}} = \frac{${h.x}}{${h.L}}`} (multiply top and bottom by ${h.L / b}) and ${math`\frac{${c}}{${d}} = \frac{${h.y}}{${h.L}}`} (multiply by ${h.L / d}).`,
+      t`Add the numerators and keep the denominator: ${math`\frac{${h.x}}{${h.L}} + \frac{${h.y}}{${h.L}} = \frac{${h.sum}}{${h.L}}`}.`,
     ];
     if (h.g > 1) steps.push(t`Both ${h.sum} and ${h.L} divide by ${h.g}, so in [[lowest-terms|lowest terms]] this is ${total}.`);
     return {
-      prompt: t`Work out ${math`${a}/${b} + ${c}/${d}`}. Give the answer as a fraction in lowest terms.`,
+      prompt: t`Work out ${math`\frac{${a}}{${b}} + \frac{${c}}{${d}}`}. Give the answer as a fraction in lowest terms.`,
       answer: { kind: 'exact', expected: str(total) },
       solution: steps,
     };
@@ -73,21 +73,21 @@ const multiplyDivide = generator<MulP>({
     if (op === 'times') {
       const r = mul(x, y);
       return {
-        prompt: t`Work out ${math`${a}/${b} * ${c}/${d}`}. Give the answer as a fraction in lowest terms.`,
+        prompt: t`Work out ${math`\frac{${a}}{${b}} \times \frac{${c}}{${d}}`}. Give the answer as a fraction in lowest terms.`,
         answer: { kind: 'exact', expected: str(r) },
         solution: [
-          t`Multiply the numerators and multiply the denominators: ${math`(${a} * ${c})/(${b} * ${d}) = ${a * c}/${b * d}`}.`,
+          t`Multiply the numerators and multiply the denominators: ${math`\frac{${a} \times ${c}}{${b} \times ${d}} = \frac{${a * c}}{${b * d}}`}.`,
           t`In lowest terms that is ${r}.`,
         ],
       };
     }
     const r = div(x, y);
     return {
-      prompt: t`Work out ${math`${a}/${b} ÷ ${c}/${d}`}. Give the answer as a fraction in lowest terms.`,
+      prompt: t`Work out ${math`\frac{${a}}{${b}} \div \frac{${c}}{${d}}`}. Give the answer as a fraction in lowest terms.`,
       answer: { kind: 'exact', expected: str(r) },
       solution: [
-        t`Dividing by a fraction is multiplying by its [[reciprocal|reciprocal]], the fraction turned upside down. The reciprocal of ${math`${c}/${d}`} is ${math`${d}/${c}`}.`,
-        t`${math`${a}/${b} * ${d}/${c} = ${a * d}/${b * c}`}.`,
+        t`Dividing by a fraction is multiplying by its [[reciprocal|reciprocal]], the fraction turned upside down. The reciprocal of ${frac(c, d)} is ${frac(d, c)}.`,
+        t`${math`\frac{${a}}{${b}} \times \frac{${d}}{${c}} = \frac{${a * d}}{${b * c}}`}.`,
         t`In lowest terms that is ${r}.`,
       ],
     };
@@ -131,11 +131,11 @@ const simplify = generator<SimplifyP>({
     const n = k * a;
     const m = k * b;
     return {
-      prompt: t`Write ${math`${n}/${m}`} in [[lowest-terms|lowest terms]].`,
+      prompt: t`Write ${frac(n, m)} in [[lowest-terms|lowest terms]].`,
       answer: { kind: 'exact', expected: `${a}/${b}`, requireLowestTerms: true },
       solution: [
         t`Find the highest common factor of ${n} and ${m}: the largest number that divides both. It is ${gcd(n, m)}.`,
-        t`Divide top and bottom by it: ${math`${n}/${m} = ${n / k}/${m / k}`}.`,
+        t`Divide top and bottom by it: ${math`\frac{${n}}{${m}} = \frac{${n / k}}{${m / k}}`}.`,
         t`Now ${n / k} and ${m / k} share no factor except ${1}, so this is in lowest terms.`,
       ],
     };
@@ -169,12 +169,12 @@ const ratioShare = generator<RatioP>({
     const total = (a + b) * m;
     const part = which === 'first' ? a : b;
     return {
-      prompt: t`Share ${total} sweets between Ann and Ben in the [[ratio|ratio]] ${math`${a}:${b}`}. How many does ${which === 'first' ? 'Ann' : 'Ben'} get?`,
+      prompt: t`Share ${total} sweets between Ann and Ben in the [[ratio|ratio]] ${math`${a} : ${b}`}. How many does ${which === 'first' ? 'Ann' : 'Ben'} get?`,
       answer: { kind: 'exact', expected: String(part * m) },
       solution: [
-        t`The ratio ${math`${a}:${b}`} splits the sweets into ${a} + ${b} = ${a + b} equal parts.`,
-        t`One part is ${total} / ${a + b} = ${m} sweets.`,
-        t`${which === 'first' ? 'Ann' : 'Ben'} gets ${part} parts: ${part} * ${m} = ${part * m}. Check: ${a * m} + ${b * m} = ${total}.`,
+        t`The ratio ${math`${a} : ${b}`} splits the sweets into ${math`${a} + ${b} = ${a + b}`} equal parts.`,
+        t`One part is ${math`${total} \div ${a + b} = ${m}`} sweets.`,
+        t`${which === 'first' ? 'Ann' : 'Ben'} gets ${part} parts: ${math`${part} \times ${m} = ${part * m}`}. Check: ${math`${a * m} + ${b * m} = ${total}`}.`,
       ],
     };
   },
@@ -195,7 +195,7 @@ const ratioShare = generator<RatioP>({
     return [
       { response: str(q(total, part)), why: t`It looks like you divided the total by this person's number in the ratio. First find one part: divide the total by the sum of the ratio numbers.` },
       { response: String(m), why: t`That is the size of one part. This person gets several parts: multiply one part by their number in the ratio.` },
-      { response: str(mul(q(part, other), q(total))), why: t`It looks like you used the fraction ${math`${part}/${other}`}. Their share of the whole is their parts over all the parts.` },
+      { response: str(mul(q(part, other), q(total))), why: t`It looks like you used the fraction ${frac(part, other)}. Their share of the whole is their parts over all the parts.` },
     ];
   },
 });
@@ -215,13 +215,13 @@ export const fractions: TopicContent = {
   topicId: 'pre.fractions',
   goal: t`Add, multiply, divide, and simplify fractions, and share an amount in a ratio.`,
   lesson: [
-    { kind: 'p', text: t`A [[fraction|fraction]] is a number of equal parts of a whole. Cut a pizza into ${pizza.cut} equal slices and eat ${pizza.eaten}: you ate ${math`${pizza.eaten}/${pizza.cut}`} of it. The top number is the [[numerator|numerator]], how many parts you have. The bottom number is the [[denominator|denominator]], how many equal parts make the whole.` },
-    { kind: 'p', text: t`Multiplying the top and the bottom by the same number gives the same amount cut finer, so ${math`${eq.n / eq.g}/${eq.d / eq.g} = ${eq.n}/${eq.d}`}. Dividing both by a common factor goes the other way. A fraction is in [[lowest-terms|lowest terms]] when no number except ${1} divides both top and bottom.` },
-    { kind: 'rule', text: t`To add or subtract, first rewrite the fractions over a [[common-denominator|common denominator]], then add the numerators.` },
-    { kind: 'p', text: t`For ${math`${ex.a}/${ex.b} + ${ex.c}/${ex.d}`}, the smallest common denominator is ${exHand.L}. Then ${math`${ex.a}/${ex.b} = ${exHand.x}/${exHand.L}`} and ${math`${ex.c}/${ex.d} = ${exHand.y}/${exHand.L}`}, so the sum is ${math`${exHand.sum}/${exHand.L}`}${exHand.g > 1 ? t`, which is ${exSum} in lowest terms` : t``}. Adding tops and bottoms instead gives ${wrongSum}, which is less than ${math`${ex.a}/${ex.b}`} alone, so it cannot be right.` },
-    { kind: 'rule', text: t`To multiply, multiply the tops and multiply the bottoms. To divide, multiply by the [[reciprocal|reciprocal]] of the second fraction.` },
-    { kind: 'p', text: t`For example ${math`${prod.a}/${prod.b} * ${prod.c}/${prod.d} = ${prod.a * prod.c}/${prod.b * prod.d}`}, which is ${mul(q(prod.a, prod.b), q(prod.c, prod.d))}. Dividing by ${half} is multiplying by ${div(q(1), half)}, which is why there are ${div(q(1), half)} halves in one whole.` },
-    { kind: 'p', text: t`A [[ratio|ratio]] compares amounts by parts. Sharing in the ratio ${math`${2}:${3}`} cuts the whole into ${2 + 3} equal parts and gives ${2} of them to the first person, so the first share is ${q(2, 5)} of the total.` },
+    { kind: 'p', text: t`A [[fraction|fraction]] is a number of equal parts of a whole. Cut a pizza into ${pizza.cut} equal slices and eat ${pizza.eaten}: you ate ${frac(pizza.eaten, pizza.cut)} of it. The top number is the [[numerator|numerator]], how many parts you have. The bottom number is the [[denominator|denominator]], how many equal parts make the whole.` },
+    { kind: 'p', text: t`Multiplying the top and the bottom by the same number gives the same amount cut finer, so ${math`\frac{${eq.n / eq.g}}{${eq.d / eq.g}} = \frac{${eq.n}}{${eq.d}}`}. Dividing both by a common factor goes the other way. A fraction is in [[lowest-terms|lowest terms]] when no number except ${1} divides both top and bottom.` },
+    { kind: 'rule', text: t`To add or subtract, first rewrite the fractions over a [[common-denominator|common denominator]], then add the numerators: ${dmath`\frac{a}{c} + \frac{b}{c} = \frac{a + b}{c}`}` },
+    { kind: 'p', text: t`For ${math`\frac{${ex.a}}{${ex.b}} + \frac{${ex.c}}{${ex.d}}`}, the smallest common denominator is ${exHand.L}. Then ${math`\frac{${ex.a}}{${ex.b}} = \frac{${exHand.x}}{${exHand.L}}`} and ${math`\frac{${ex.c}}{${ex.d}} = \frac{${exHand.y}}{${exHand.L}}`}, so the sum is ${frac(exHand.sum, exHand.L)}${exHand.g > 1 ? t`, which is ${exSum} in lowest terms` : t``}. Adding tops and bottoms instead gives ${wrongSum}, which is less than ${frac(ex.a, ex.b)} alone, so it cannot be right.` },
+    { kind: 'rule', text: t`To multiply, multiply the tops and multiply the bottoms. To divide, multiply by the [[reciprocal|reciprocal]] of the second fraction: ${dmath`\frac{a}{b} \times \frac{c}{d} = \frac{ac}{bd}, \qquad \frac{a}{b} \div \frac{c}{d} = \frac{a}{b} \times \frac{d}{c}`}` },
+    { kind: 'p', text: t`For example ${math`\frac{${prod.a}}{${prod.b}} \times \frac{${prod.c}}{${prod.d}} = \frac{${prod.a * prod.c}}{${prod.b * prod.d}}`}, which is ${mul(q(prod.a, prod.b), q(prod.c, prod.d))}. Dividing by ${half} is multiplying by ${div(q(1), half)}, which is why there are ${div(q(1), half)} halves in one whole.` },
+    { kind: 'p', text: t`A [[ratio|ratio]] compares amounts by parts. Sharing in the ratio ${math`${2} : ${3}`} cuts the whole into ${2 + 3} equal parts and gives ${2} of them to the first person, so the first share is ${q(2, 5)} of the total.` },
   ],
   examples: [
     worked(addFractions, { a: 2, b: 3, c: 1, d: 4 }, t`Adding fractions`),

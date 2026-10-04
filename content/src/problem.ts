@@ -11,10 +11,10 @@
  * feedback names the likely slip instead of only saying "wrong".
  */
 import {
-  gradeChoice, gradeExact, gradeExpression, gradeNumeric, mulberry32, parseExpression, parseNumber, parseRational,
-  type Expr, type GradeResult, type Rng, type VariableDomain,
+  gradeChoice, gradeExact, gradeExpression, gradeNumeric, mulberry32, normalizeSymbols, parseExpression, parseNumber, parseRational,
+  texOfExpression, type Expr, type GradeResult, type Rng, type VariableDomain,
 } from '@learnhub/mastery';
-import { computed, t, type Rich } from './rich';
+import { exprTex, t, type Rich, type Span } from './rich';
 
 /** Shapes an expression answer must have, beyond being equal to the expected one. */
 export type ExprForm = 'product' | 'expanded' | 'no-fraction' | 'collected';
@@ -25,9 +25,11 @@ export interface ChoiceOption {
 }
 
 export type AnswerSpec =
-  | { kind: 'exact'; expected: string; requireLowestTerms?: boolean }
+  /** `ratio`: the question asks for a ratio, so a:b is read as a/b. */
+  | { kind: 'exact'; expected: string; requireLowestTerms?: boolean; ratio?: boolean }
   | { kind: 'numeric'; expected: number; relTol?: number; absTol?: number }
-  | { kind: 'expression'; expected: string; variables: readonly string[]; domains?: Readonly<Record<string, VariableDomain>>; form?: ExprForm }
+  /** `binomial`: the question asks for a binomial coefficient, so C(n, k) and nCk are read as choose(n, k). */
+  | { kind: 'expression'; expected: string; variables: readonly string[]; domains?: Readonly<Record<string, VariableDomain>>; form?: ExprForm; binomial?: boolean }
   /** `correct` as an array means "choose all that apply". */
   | { kind: 'choice'; options: readonly ChoiceOption[]; correct: string | readonly string[] };
 
@@ -150,12 +152,12 @@ export function formProblem(e: Expr, form: ExprForm): string | null {
 function gradeSpec(spec: AnswerSpec, response: Response): GradeResult {
   const text = typeof response === 'string' ? response : response.join(', ');
   switch (spec.kind) {
-    case 'exact': return gradeExact(text, spec.expected, { requireLowestTerms: spec.requireLowestTerms });
+    case 'exact': return gradeExact(text, spec.expected, { requireLowestTerms: spec.requireLowestTerms, ratio: spec.ratio });
     case 'numeric': return gradeNumeric(text, spec.expected, { relTol: spec.relTol, absTol: spec.absTol });
     case 'expression': {
-      const r = gradeExpression(text, spec.expected, { variables: spec.variables, domains: spec.domains });
+      const r = gradeExpression(text, spec.expected, { variables: spec.variables, domains: spec.domains, binomial: spec.binomial });
       if (!r.correct || spec.form === undefined) return r;
-      const parsed = parseExpression(text, spec.variables);
+      const parsed = parseExpression(text, spec.variables, { binomial: spec.binomial });
       const why = parsed.ok ? formProblem(parsed.value, spec.form) : null;
       return why === null ? r : { correct: false, feedback: why, normalizedAnswer: r.normalizedAnswer };
     }
@@ -169,8 +171,8 @@ export function sameAnswer(spec: AnswerSpec, a: Response, b: Response): boolean 
   const bs = typeof b === 'string' ? b : [...b].sort().join(',');
   switch (spec.kind) {
     case 'exact': {
-      const x = parseRational(as);
-      const y = parseRational(bs);
+      const x = parseRational(as, { ratio: spec.ratio });
+      const y = parseRational(bs, { ratio: spec.ratio });
       return x.ok && y.ok && x.value.num === y.value.num && x.value.den === y.value.den;
     }
     case 'numeric': {
@@ -178,7 +180,7 @@ export function sameAnswer(spec: AnswerSpec, a: Response, b: Response): boolean 
       const y = parseNumber(bs);
       return x !== null && y !== null && Math.abs(x - y) <= Math.max(spec.absTol ?? 1e-9, (spec.relTol ?? 1e-3) * Math.abs(y));
     }
-    case 'expression': return gradeExpression(as, bs, { variables: spec.variables, domains: spec.domains }).correct;
+    case 'expression': return gradeExpression(as, bs, { variables: spec.variables, domains: spec.domains, binomial: spec.binomial }).correct;
     case 'choice': return as === bs;
   }
 }
@@ -197,13 +199,71 @@ export function grade(problem: Problem, response: Response, misconceptions: read
 /** The expected answer as text: the value, or the labels of the correct options. */
 export function answerText(spec: AnswerSpec): Rich {
   switch (spec.kind) {
-    case 'exact': return [computed(spec.expected)];
+    case 'exact': {
+      const r = parseRational(spec.expected);
+      return r.ok ? t`${r.value}` : [{ kind: 'num', text: spec.expected, typed: [] }];
+    }
     case 'numeric': return t`${spec.expected}`;
-    case 'expression': return [{ ...computed(spec.expected), kind: 'math' }];
+    case 'expression': {
+      const r = parseExpression(spec.expected, spec.variables);
+      const math: Span = { kind: 'math', text: r.ok ? texOfExpression(r.value) : exprTex(spec.expected), typed: [] };
+      return [math];
+    }
     case 'choice': {
       const ids = typeof spec.correct === 'string' ? [spec.correct] : spec.correct;
       const labels = spec.options.filter((o) => ids.includes(o.id)).map((o) => o.label);
       return labels.flatMap((l, i) => (i === 0 ? [...l] : [...t`; `, ...l]));
     }
+  }
+}
+
+// ---------------------------------------------------------------- reading an answer as it is typed
+
+/**
+ * How a typed answer was read, for the live preview under the answer box: its LaTeX, and
+ * a note when it was read but will not be accepted in that form (a calculation where a
+ * value is asked, a ratio where a fraction is asked). Null when it cannot be read yet.
+ */
+export interface AnswerReading {
+  tex: string;
+  note?: string;
+}
+
+const SCIENTIFIC = /^([+-]?(?:\d+\.?\d*|\.\d+))e([+-]?\d+)$/i;
+const RATIO = /^([+-]?\d+)\s*:\s*([+-]?\d+)$/;
+
+/** Reads a number or a calculation of numbers, as the exact and numeric graders see it. */
+function readNumber(text: string, spec: Extract<AnswerSpec, { kind: 'exact' | 'numeric' }>): AnswerReading | null {
+  const s = normalizeSymbols(text).replace(/^([+-])\s+/, '$1');
+  const ratio = RATIO.exec(s);
+  if (ratio !== null) {
+    const tex = `${ratio[1]} : ${ratio[2]}`;
+    return spec.kind === 'exact' && spec.ratio === true ? { tex } : { tex, note: 'Write it as a fraction, for example 3/8.' };
+  }
+  if (spec.kind === 'numeric') {
+    const sci = SCIENTIFIC.exec(s);
+    if (sci !== null) return { tex: `${sci[1]} \\times 10^{${Number(sci[2])}}` };
+  }
+  const e = parseExpression(s, []);
+  if (!e.ok) return null;
+  const tex = texOfExpression(e.value);
+  const value = spec.kind === 'exact' ? parseRational(s, { ratio: spec.ratio }) : null;
+  if (spec.kind === 'exact' && value !== null && !value.ok) return { tex, note: value.error };
+  if (spec.kind === 'numeric' && parseNumber(s) === null) return { tex, note: 'Work it out to a single number.' };
+  return { tex };
+}
+
+/** How the answer box's text was read, or null when it cannot be read (yet). Choice answers have no preview. */
+export function readAnswer(spec: AnswerSpec, text: string): AnswerReading | null {
+  if (text.trim() === '') return null;
+  switch (spec.kind) {
+    case 'exact':
+    case 'numeric': return readNumber(text, spec);
+    case 'expression': {
+      // No form note here: "right value, but not factorised" would tell the learner the value before Check.
+      const r = parseExpression(text, spec.variables, { binomial: spec.binomial });
+      return r.ok ? { tex: texOfExpression(r.value) } : null;
+    }
+    case 'choice': return null;
   }
 }

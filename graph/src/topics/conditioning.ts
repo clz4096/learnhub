@@ -6,7 +6,7 @@ export const conditioning: Topic[] = [
   {
     id: 'prob.conditional-probability',
     title: 'Conditional probability as a probability measure',
-    summary: 'Show P(. | B) satisfies the axioms and use the multiplication rule for several events.',
+    summary: 'Show $P(\\cdot \\mid B)$ satisfies the axioms and use the multiplication rule for several events.',
     level: 'tripos-ia',
     area: 'conditioning',
     prereqs: ['prob.conditional-formula', 'prob.axiom-consequences'],
@@ -17,7 +17,7 @@ export const conditioning: Topic[] = [
   {
     id: 'prob.total-probability',
     title: 'The law of total probability',
-    summary: 'Split P(A) over a finite or countable partition as the sum of P(A | B_i)P(B_i).',
+    summary: 'Split $P(A)$ over a finite or countable partition as the sum $\\sum_i P(A \\mid B_i) P(B_i)$.',
     level: 'tripos-ia',
     area: 'conditioning',
     prereqs: ['prob.conditional-probability'],

@@ -33,6 +33,8 @@ export interface ExpressionOptions {
   absTol?: number;
   /** Defaults to a fixed seed, so a grade never changes between runs. */
   rng?: Rng;
+  /** Read C(n, k) and nCk in the answer as choose(n, k); see parseExpression. */
+  binomial?: boolean;
 }
 
 /** Wide enough to include negatives and values far from 0 and 1, where most wrong identities fail. */
@@ -84,7 +86,7 @@ function mismatch(env: Readonly<Record<string, number>>, value: number): string 
 export function gradeExpression(answer: string, expected: string, options: ExpressionOptions): GradeResult {
   const want = parseExpression(expected, options.variables);
   if (!want.ok) return problemError(`expected expression "${expected}" does not parse: ${want.error}`, answer);
-  const got = parseExpression(answer, options.variables);
+  const got = parseExpression(answer, options.variables, { binomial: options.binomial });
   if (!got.ok) return { correct: false, feedback: got.error, normalizedAnswer: answer.trim() };
   const normalizedAnswer = formatExpression(got.value);
 

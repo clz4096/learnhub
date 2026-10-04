@@ -6,7 +6,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.number-systems',
     title: 'Natural numbers, integers, and rationals',
-    summary: 'Name the number systems N, Z, and Q, and say which of addition, subtraction, multiplication, and division each is closed under.',
+    summary: 'Name the number systems $\\mathbb{N}$, $\\mathbb{Z}$, and $\\mathbb{Q}$, and say which of addition, subtraction, multiplication, and division each is closed under.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['sets.comprehension', 'pre.fractions'],
@@ -23,7 +23,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.divisibility',
     title: 'Divisibility',
-    summary: 'Define a divides b as b = ka for an integer k, and prove facts such as: if a divides b and c, then a divides b + c.',
+    summary: 'Define $a \\mid b$ as $b = ka$ for an integer $k$, and prove facts such as: if $a \\mid b$ and $a \\mid c$, then $a \\mid b + c$.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['proof.quantifier-patterns'],
@@ -34,7 +34,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.division-theorem',
     title: 'The division theorem',
-    summary: 'Prove that for an integer a and a positive integer b there are unique q and r with a = qb + r and 0 <= r < b.',
+    summary: 'Prove that for an integer $a$ and a positive integer $b$ there are unique $q$ and $r$ with $a = qb + r$ and $0 \\le r < b$.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['pre.remainders', 'num.number-systems', 'proof.strong-induction', 'proof.quantifier-patterns'],
@@ -51,7 +51,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.congruence',
     title: 'Congruence modulo m',
-    summary: 'Define a congruent to b mod m as m dividing a - b, and show it means a and b leave the same remainder.',
+    summary: 'Define $a \\equiv b \\pmod{m}$ as $m \\mid a - b$, and show it means $a$ and $b$ leave the same remainder.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.divisibility', 'num.division-theorem'],
@@ -62,7 +62,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.modular-arithmetic',
     title: 'Arithmetic with congruences',
-    summary: 'Add, subtract, and multiply congruences, and use them to find remainders such as the last digit of 7^100.',
+    summary: 'Add, subtract, and multiply congruences, and use them to find remainders such as the last digit of $7^{100}$.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.congruence', 'proof.cases'],
@@ -73,7 +73,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.modular-integers',
     title: 'The integers modulo m',
-    summary: 'Work in Z_m, the residues 0 to m - 1 with addition and multiplication mod m, and read its operation tables.',
+    summary: 'Work in $\\mathbb{Z}_m$, the residues $0$ to $m - 1$ with addition and multiplication mod $m$, and read its operation tables.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.modular-arithmetic'],
@@ -84,7 +84,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.modular-exponentiation',
     title: 'Powers modulo m by repeated squaring',
-    summary: 'Compute a^k mod m with about log2 k squarings, reducing mod m at every step.',
+    summary: 'Compute $a^k \\bmod m$ with about $\\log_2 k$ squarings, reducing mod $m$ at every step.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.modular-arithmetic', 'pre.indices'],
@@ -95,7 +95,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.gcd',
     title: 'The greatest common divisor',
-    summary: 'Define gcd(a, b), and prove that gcd(a, b) = gcd(b, r) when a = qb + r.',
+    summary: 'Define $\\gcd(a, b)$, and prove that $\\gcd(a, b) = \\gcd(b, r)$ when $a = qb + r$.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.divisibility', 'pre.hcf-lcm', 'num.division-theorem'],
@@ -106,7 +106,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.euclid-algorithm',
     title: 'Euclid\'s algorithm',
-    summary: 'Find gcd(a, b) by repeated division with remainder, and prove that it stops with the right answer.',
+    summary: 'Find $\\gcd(a, b)$ by repeated division with remainder, and prove that it stops with the right answer.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.gcd'],
@@ -117,7 +117,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.extended-euclid',
     title: 'The extended Euclidean algorithm',
-    summary: 'Run Euclid\'s algorithm backwards to write gcd(a, b) = ax + by for integers x and y.',
+    summary: 'Run Euclid\'s algorithm backwards to write $\\gcd(a, b) = ax + by$ for integers $x$ and $y$.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.euclid-algorithm'],
@@ -128,7 +128,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.euclid-theorem',
     title: 'Euclid\'s theorem on divisors of a product',
-    summary: 'Prove that if k divides mn and gcd(k, m) = 1 then k divides n, so a prime that divides mn divides m or n.',
+    summary: 'Prove that if $k \\mid mn$ and $\\gcd(k, m) = 1$ then $k \\mid n$, so a prime that divides $mn$ divides $m$ or $n$.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.extended-euclid'],
@@ -145,7 +145,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.modular-inverse',
     title: 'Inverses modulo m',
-    summary: 'Show that a has an inverse mod m exactly when gcd(a, m) = 1, and compute it with the extended Euclidean algorithm.',
+    summary: 'Show that $a$ has an inverse mod $m$ exactly when $\\gcd(a, m) = 1$, and compute it with the extended Euclidean algorithm.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.extended-euclid', 'num.modular-integers'],
@@ -156,7 +156,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.fundamental-theorem',
     title: 'The fundamental theorem of arithmetic',
-    summary: 'Prove that every integer n >= 2 is a product of primes in exactly one way, up to order.',
+    summary: 'Prove that every integer $n \\ge 2$ is a product of primes in exactly one way, up to order.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.euclid-theorem'],
@@ -167,7 +167,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.prime-binomial',
     title: 'A prime divides its inner binomial coefficients',
-    summary: 'Prove that p divides pCk for a prime p and 0 < k < p, from k pCk = p (p - 1)C(k - 1).',
+    summary: 'Prove that $p \\mid \\binom{p}{k}$ for a prime $p$ and $0 < k < p$, from $k \\binom{p}{k} = p \\binom{p - 1}{k - 1}$.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.euclid-theorem', 'comb.combinations'],
@@ -184,7 +184,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.fermat-little',
     title: 'Fermat\'s little theorem',
-    summary: 'Prove that a^p is congruent to a mod p by induction on a, and deduce a^(p - 1) is congruent to 1 when p does not divide a.',
+    summary: 'Prove that $a^p \\equiv a \\pmod{p}$ by induction on $a$, and deduce $a^{p - 1} \\equiv 1 \\pmod{p}$ when $p \\nmid a$.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.prime-binomial', 'comb.binomial-theorem', 'num.modular-inverse'],
@@ -198,7 +198,7 @@ export const numberTheory: Topic[] = [
   {
     id: 'num.diffie-hellman',
     title: 'The Diffie-Hellman key exchange',
-    summary: 'Agree a shared secret g^(ab) mod p over an open channel, and see why its safety rests on discrete logarithms being hard.',
+    summary: 'Agree a shared secret $g^{ab} \\bmod p$ over an open channel, and see why its safety rests on discrete logarithms being hard.',
     level: 'tripos-ia',
     area: 'number-theory',
     prereqs: ['num.modular-exponentiation', 'num.modular-integers'],

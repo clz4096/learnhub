@@ -6,7 +6,7 @@ export const sequencesAndSeries: Topic[] = [
   {
     id: 'pre.sequences',
     title: 'Sequences and nth term rules',
-    summary: 'Generate a sequence from a term-to-term or position-to-term rule and find its nth term.',
+    summary: 'Generate a sequence from a term-to-term or position-to-term rule and find its $n$th term.',
     level: 'pre-a-level',
     area: 'sequences-and-series',
     prereqs: ['pre.algebraic-manipulation'],
@@ -28,7 +28,7 @@ export const sequencesAndSeries: Topic[] = [
   {
     id: 'alg.arithmetic-series',
     title: 'Arithmetic series',
-    summary: 'Find the nth term and the sum of the first n terms of an arithmetic sequence.',
+    summary: 'Find the $n$th term and the sum of the first $n$ terms of an arithmetic sequence.',
     level: 'a-level',
     area: 'sequences-and-series',
     prereqs: ['alg.sigma-notation'],
@@ -39,7 +39,7 @@ export const sequencesAndSeries: Topic[] = [
   {
     id: 'alg.geometric-series',
     title: 'Finite geometric series',
-    summary: 'Sum a finite geometric series with the formula a(1 - r^n)/(1 - r).',
+    summary: 'Sum a finite geometric series with the formula $\\frac{a(1 - r^n)}{1 - r}$.',
     level: 'a-level',
     area: 'sequences-and-series',
     prereqs: ['alg.sigma-notation', 'pre.indices'],
@@ -50,7 +50,7 @@ export const sequencesAndSeries: Topic[] = [
   {
     id: 'alg.geometric-sum-to-infinity',
     title: 'Sum to infinity of a geometric series',
-    summary: 'Sum a geometric series to infinity when |r| < 1, and see why it fails otherwise.',
+    summary: 'Sum a geometric series to infinity when $|r| < 1$, and see why it fails otherwise.',
     level: 'a-level',
     area: 'sequences-and-series',
     prereqs: ['alg.geometric-series'],

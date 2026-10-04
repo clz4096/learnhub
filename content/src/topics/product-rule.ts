@@ -1,7 +1,7 @@
 /** pre.product-rule: The product rule for counting. */
 import { int, pick } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computed, math, t } from '../rich';
+import { computed, computedMath as cm, math, t } from '../rich';
 import { worked, type TopicContent } from '../topic';
 
 /** Every tuple with entry i in 0 .. sizes[i] - 1, counted one by one like an odometer. */
@@ -32,8 +32,8 @@ const menu = generator<MenuP>({
     prompt: t`A cafe offers ${s} starters, ${m} main courses, and ${d} desserts. A meal is one of each. How many different meals are there?`,
     answer: { kind: 'exact', expected: String(s * m * d) },
     solution: [
-      t`Each starter can go with each main course: ${s} * ${m} = ${s * m} pairs.`,
-      t`Each of those pairs can go with each dessert: ${s * m} * ${d} = ${s * m * d} meals. This is the [[product-rule|product rule]].`,
+      t`Each starter can go with each main course: ${math`${s} \times ${m} = ${s * m}`} pairs.`,
+      t`Each of those pairs can go with each dessert: ${math`${s * m} \times ${d} = ${s * m * d}`} meals. This is the [[product-rule|product rule]].`,
     ],
   }),
   solve: ({ s, m, d }) => String(countTuples([s, m, d])),
@@ -62,14 +62,14 @@ const codes = generator<CodeP>({
       answer: { kind: 'exact', expected: String(n ** k) },
       solution: [
         t`Each of the ${k} positions has ${n} choices, whatever the other positions show.`,
-        t`By the [[product-rule|product rule]], multiply together ${k} factors of ${n}: ${math`${n}^${k} = ${n ** k}`}.`,
+        t`By the [[product-rule|product rule]], multiply together ${k} factors of ${n}: ${math`${n}^{${k}} = ${n ** k}`}.`,
       ],
     };
   },
   solve: ({ n, k }) => String(countTuples(Array.from({ length: k }, () => n))),
   misconceptions: ({ n, k }): Misconception[] => [
     { response: String(n * k), why: t`Multiplying ${n} by ${k} adds the choices up position by position. The positions combine: each choice in one position goes with every choice in the others, so multiply together ${k} factors of ${n}.` },
-    { response: String(k ** n), why: t`The base and the power are swapped. There are ${n} choices for each of ${k} positions, which is ${math`${n}^${k}`}.` },
+    { response: String(k ** n), why: t`The base and the power are swapped. There are ${n} choices for each of ${k} positions, which is ${math`${n}^{${k}}`}.` },
     { response: String(product(Array.from({ length: k }, (_, i) => n - i))), why: t`That count stops symbols from repeating. Here they may repeat, so every position keeps all ${n} choices.` },
   ],
 });
@@ -98,7 +98,7 @@ const wholeNumbers = generator<NumP>({
         t`The first digit cannot be ${0}, so it has ${9} choices.`,
         ...(k > 2 ? [t`Each of the ${k - 2} middle digits has ${10} choices.`] : []),
         lastWhy,
-        t`Multiply the choices: ${computed([9, ...middle, last].join(' * '))} = ${total}.`,
+        t`Multiply the choices: ${cm(`${[9, ...middle, last].join(' * ')} = ${total}`)}.`,
       ],
     };
   },
@@ -133,10 +133,10 @@ export const productRule: TopicContent = {
       head: [t`shirt`, ...trousers.map((x) => t`${x}`)],
       rows: shirts.map((s) => [t`${s}`, ...trousers.map((x) => t`${s} and ${x}`)]),
     },
-    { kind: 'p', text: t`The table has ${shirts.length} rows of ${trousers.length}, so ${shirts.length} * ${trousers.length} = ${shirts.length * trousers.length} outfits. Each choice is an [[outcome|outcome]] of the first step paired with an outcome of the second.` },
-    { kind: 'rule', text: t`The [[product-rule|product rule]]: if a first step can be done in m ways, and then, whatever happened first, a second step can be done in n ways, the two steps together can be done in ${math`m * n`} ways. The same holds for three or more steps.` },
-    { kind: 'p', text: t`Codes are a common case. A ${3}-letter code from the ${26} letters, with repeats allowed, has ${26} choices in each position: ${math`${26}^${3} = ${26 ** 3}`} codes.` },
-    { kind: 'p', text: t`Watch for steps whose choices are limited. A ${3}-digit whole number cannot start with ${0}: ${9} choices first, then ${10} and ${10}, so ${9 * 10 * 10} numbers, the numbers from ${10 ** 2} to ${10 ** 3 - 1}.` },
+    { kind: 'p', text: t`The table has ${shirts.length} rows of ${trousers.length}, so ${math`${shirts.length} \times ${trousers.length} = ${shirts.length * trousers.length}`} outfits. Each choice is an [[outcome|outcome]] of the first step paired with an outcome of the second.` },
+    { kind: 'rule', text: t`The [[product-rule|product rule]]: if a first step can be done in ${math`m`} ways, and then, whatever happened first, a second step can be done in ${math`n`} ways, the two steps together can be done in ${math`m \times n`} ways. The same holds for three or more steps.` },
+    { kind: 'p', text: t`Codes are a common case. A ${3}-letter code from the ${26} letters, with repeats allowed, has ${26} choices in each position: ${math`${26}^{${3}} = ${26 ** 3}`} codes.` },
+    { kind: 'p', text: t`Watch for steps whose choices are limited. A ${3}-digit whole number cannot start with ${0}: ${9} choices first, then ${10} and ${10}, so ${math`${9} \times ${10} \times ${10} = ${9 * 10 * 10}`} numbers, the numbers from ${10 ** 2} to ${10 ** 3 - 1}.` },
     { kind: 'p', text: t`Multiply when you make one choice and then another (this and that). Add when you make one choice or the other: picking one meal from ${4} soups or ${3} salads gives ${4 + 3} options, not ${4 * 3}.` },
   ],
   examples: [

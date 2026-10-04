@@ -61,14 +61,14 @@ function rows(vars: readonly ('P' | 'Q' | 'R')[]): Row[] {
   });
 }
 
-/** "not P or Q", with brackets where an operand is a compound of a different kind. */
+/** \lnot P \lor Q in LaTeX, with brackets where an operand is a compound of a different kind. */
 function show(f: F): string {
   switch (f.op) {
     case 'var': return f.v;
-    case 'not': return f.a.op === 'var' || f.a.op === 'not' ? `not ${show(f.a)}` : `not (${show(f.a)})`;
+    case 'not': return f.a.op === 'var' || f.a.op === 'not' ? `\\lnot ${show(f.a)}` : `\\lnot (${show(f.a)})`;
     default: {
       const side = (g: F): string => (g.op === 'and' || g.op === 'or' ? `(${show(g)})` : show(g));
-      return `${side(f.a)} ${f.op} ${side(f.b)}`;
+      return `${side(f.a)} ${f.op === 'and' ? '\\land' : '\\lor'} ${side(f.b)}`;
     }
   }
 }
@@ -76,7 +76,9 @@ function show(f: F): string {
 const formula = (f: F): Span => math`${show(f)}`;
 const TF = (b: boolean): string => (b ? 'T' : 'F');
 const rowId = (r: Row, vars: readonly string[]): string => `r${vars.map((v) => TF(r[v as 'P'])).join('')}`;
-const rowLabel = (r: Row, vars: readonly ('P' | 'Q' | 'R')[]) => t`${vars.map((v) => `${v} = ${TF(r[v])}`).join(', ')}`;
+const rowLabel = (r: Row, vars: readonly ('P' | 'Q' | 'R')[]) => [math`${vars.map((v) => `${v} = \\mathrm{${TF(r[v])}}`).join(',\\ ')}`];
+const [mP, mQ, mR] = [math`P`, math`Q`, math`R`];
+const NOT = math`\lnot`;
 const trueRows = (f: F, reading: Reading = 'right'): string[] => {
   const vs = varsOf(f);
   return rows(vs).filter((r) => evalF(f, r, reading)).map((r) => rowId(r, vs));
@@ -96,10 +98,10 @@ const whichRows = generator<FP>({
     const vs = varsOf(f);
     const options: ChoiceOption[] = rows(vs).map((r) => ({ id: rowId(r, vs), label: rowLabel(r, vs) }));
     return {
-      prompt: t`P, Q${vs.includes('R') ? ', and R' : ''} are statements. Choose every row where ${formula(f)} is true. (T means true, F means false.)`,
+      prompt: t`${mP}, ${mQ}${vs.includes('R') ? t`, and ${mR}` : t``} are statements. Choose every row where ${formula(f)} is true. (T means true, F means false.)`,
       answer: { kind: 'choice', options, correct: trueRows(f) },
       solution: [
-        t`Work out the brackets first, then "not", then "and" and "or" as written.`,
+        t`Work out the brackets first, then ${NOT} (not), then ${math`\land`} (and) and ${math`\lor`} (or) as written.`,
         ...rows(vs).map((r) => t`${rowLabel(r, vs)}: ${formula(f)} is ${evalF(f, r) ? 'true' : 'false'}.`),
       ],
     };
@@ -121,8 +123,8 @@ const whichRows = generator<FP>({
     const all = rows(vs).map((r) => rowId(r, vs));
     const yes = trueRows(f);
     return [
-      { response: trueRows(f, 'exclusive-or'), why: t`It looks like you read "or" as "one or the other but not both". In logic, "P or Q" is true when at least one is true, including when both are.` },
-      { response: trueRows(f, 'no-not'), why: t`It looks like a "not" was skipped. "not" flips the truth value of what follows it: of the single letter, or of the whole bracket after it.` },
+      { response: trueRows(f, 'exclusive-or'), why: t`It looks like you read "or" as "one or the other but not both". In logic, ${math`P \lor Q`} is true when at least one is true, including when both are.` },
+      { response: trueRows(f, 'no-not'), why: t`It looks like a ${NOT} (not) was skipped. ${NOT} flips the truth value of what follows it: of the single letter, or of the whole bracket after it.` },
       { response: all.filter((x) => !yes.includes(x)), why: t`Those are exactly the rows where it is false. Check the rows again and keep the ones that make it true.` },
     ];
   },
@@ -139,7 +141,7 @@ const countTrue = generator<FP>({
     const rs = rows(vs);
     const yes = rs.filter((r) => evalF(f, r));
     return {
-      prompt: t`P, Q${vs.includes('R') ? ', and R' : ''} are statements. In how many rows of the [[truth-table|truth table]] is ${formula(f)} true?`,
+      prompt: t`${mP}, ${mQ}${vs.includes('R') ? t`, and ${mR}` : t``} are statements. In how many rows of the [[truth-table|truth table]] is ${formula(f)} true?`,
       answer: { kind: 'exact', expected: String(yes.length) },
       solution: [
         t`With ${vs.length} statements the table has ${rs.length} rows.`,
@@ -161,8 +163,8 @@ const countTrue = generator<FP>({
     const n = rows(varsOf(f)).length;
     const yes = trueRows(f).length;
     return [
-      { response: String(trueRows(f, 'exclusive-or').length), why: t`It looks like you read "or" as exclusive. In logic, "or" is also true when both sides are true.` },
-      { response: String(trueRows(f, 'no-not').length), why: t`It looks like a "not" was skipped. "not" flips the truth value of what follows it.` },
+      { response: String(trueRows(f, 'exclusive-or').length), why: t`It looks like you read "or" as exclusive. In logic, ${math`\lor`} (or) is also true when both sides are true.` },
+      { response: String(trueRows(f, 'no-not').length), why: t`It looks like a ${NOT} (not) was skipped. ${NOT} flips the truth value of what follows it.` },
       { response: String(n - yes), why: t`That is the number of rows where it is false. Count the true rows.` },
     ];
   },
@@ -183,7 +185,7 @@ const tableSize = generator<SizeP>({
     answer: { kind: 'exact', expected: String(2 ** n) },
     solution: [
       t`Each row gives every simple statement a [[truth-value|truth value]]: true or false, ${2} choices each.`,
-      t`By the product rule there are ${math`${2}^${n} = ${2 ** n}`} rows.`,
+      t`By the product rule there are ${math`${2}^{${n}} = ${2 ** n}`} rows.`,
     ],
   }),
   solve: ({ n }) => {
@@ -194,7 +196,7 @@ const tableSize = generator<SizeP>({
   },
   misconceptions: ({ n }): Misconception[] => [
     { response: String(2 * n), why: t`That adds ${2} rows per statement. Each new statement doubles the table, because every old row splits into a true row and a false row.` },
-    { response: String(n ** 2), why: t`The base and the power are swapped: ${2} choices for each of ${n} statements is ${math`${2}^${n}`}.` },
+    { response: String(n ** 2), why: t`The base and the power are swapped: ${2} choices for each of ${n} statements is ${math`${2}^{${n}}`}.` },
   ],
 });
 
@@ -208,31 +210,31 @@ export const connectives: TopicContent = {
   topicId: 'logic.connectives',
   goal: t`Combine statements with and, or, and not, and work out the truth of the result with a truth table.`,
   lesson: [
-    { kind: 'p', text: t`A [[statement|statement]] is a sentence that is either true or false, such as "${7} is prime". Whether it is true or false is its [[truth-value|truth value]]. Letters such as P and Q stand for statements.` },
+    { kind: 'p', text: t`A [[statement|statement]] is a sentence that is either true or false, such as "${7} is prime". Whether it is true or false is its [[truth-value|truth value]]. Letters such as ${mP} and ${mQ} stand for statements.` },
     {
       kind: 'list',
       items: [
-        t`"P and Q", the [[conjunction|conjunction]], is true when both are true. It is also written ${math`P ∧ Q`}.`,
-        t`"P or Q", the [[disjunction|disjunction]], is true when at least one is true, including when both are. It is also written ${math`P ∨ Q`}.`,
-        t`"not P", the [[negation|negation]], is true exactly when P is false. It is also written ${math`¬P`}.`,
+        t`"${mP} and ${mQ}", the [[conjunction|conjunction]], is true when both are true. It is written ${math`P \land Q`}.`,
+        t`"${mP} or ${mQ}", the [[disjunction|disjunction]], is true when at least one is true, including when both are. It is written ${math`P \lor Q`}.`,
+        t`"not ${mP}", the [[negation|negation]], is true exactly when ${mP} is false. It is written ${math`\lnot P`}.`,
       ],
     },
     {
       kind: 'table', caption: t`A [[truth-table|truth table]] lists every combination of truth values, one per row.`,
-      head: [t`P`, t`Q`, t`P and Q`, t`P or Q`, t`not P`],
+      head: [[mP], [mQ], [math`P \land Q`], [math`P \lor Q`], [math`\lnot P`]],
       rows: two.map((r) => [yn(r.P), yn(r.Q), yn(r.P && r.Q), yn(r.P || r.Q), yn(!r.P)]),
     },
-    { kind: 'p', text: t`With ${2} statements there are ${two.length} rows; each extra statement doubles the count, so ${3} statements give ${2 ** 3} rows.` },
-    { kind: 'p', text: t`In everyday speech "or" often means one but not both ("tea or coffee?"). In mathematics "or" always allows both. Saying "one but not both" needs more words: "P or Q, and not both".` },
-    { kind: 'p', text: t`"not" applies to what comes right after it. In ${formula(ex)}, "not" flips P only, so read it as "(not P) or Q". To flip a whole compound, put it in brackets: ${formula(not(or(P, Q)))}.` },
+    { kind: 'p', text: t`With ${2} statements there are ${two.length} rows; each extra statement doubles the count, so ${3} statements give ${math`${2}^{${3}} = ${2 ** 3}`} rows.` },
+    { kind: 'p', text: t`In everyday speech "or" often means one but not both ("tea or coffee?"). In mathematics "or" always allows both. Saying "one but not both" needs more words: ${math`(P \lor Q) \land \lnot (P \land Q)`}, "${mP} or ${mQ}, and not both".` },
+    { kind: 'p', text: t`${NOT} applies to what comes right after it. In ${formula(ex)}, ${NOT} flips ${mP} only, so read it as ${math`(\lnot P) \lor Q`}. To flip a whole compound, put it in brackets: ${formula(not(or(P, Q)))}.` },
     {
       kind: 'table', caption: t`Working out ${formula(ex)} one column at a time.`,
-      head: [t`P`, t`Q`, t`not P`, t`${formula(ex)}`],
+      head: [[mP], [mQ], [math`\lnot P`], [formula(ex)]],
       rows: two.map((r) => [yn(r.P), yn(r.Q), yn(!r.P), yn(evalF(ex, r))]),
     },
   ],
   examples: [
-    worked(whichRows, { i: 2 }, t`When is "not (P or Q)" true?`),
+    worked(whichRows, { i: 2 }, t`When is ${math`\lnot (P \lor Q)`} true?`),
     worked(countTrue, { i: 3 }, t`Counting true rows with three statements`),
   ],
   generators: [whichRows, countTrue, tableSize],

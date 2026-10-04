@@ -1,13 +1,14 @@
 /** sets.comprehension: Membership and set-builder notation. */
 import { int, pick, q, str, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
-import { math, setOf, t, type Rich, type Span } from '../rich';
+import { dmath, math, setOf, t, type Span } from '../rich';
 import { worked, type TopicContent } from '../topic';
 
 const ids = (xs: readonly number[]): string[] => xs.map((x) => `e${x}`);
 const options = (xs: readonly number[]): ChoiceOption[] => xs.map((x) => ({ id: `e${x}`, label: t`${x}` }));
 const range = (lo: number, hi: number): number[] => Array.from({ length: hi - lo + 1 }, (_, i) => lo + i);
 const domainText = (n: number): Span => setOf([1, 2, 3, '...', n]);
+const [mx, mk, mS, mT] = [math`x`, math`k`, math`S`, math`T`];
 
 // ---------------------------------------------------------------- generators
 
@@ -27,15 +28,15 @@ function holds(c: Cond, x: number, strictSlip = false): boolean {
   }
 }
 
-function condText(c: Cond): Rich {
+function condText(c: Cond): Span {
   switch (c.kind) {
-    case 'gt': return [math`x > ${c.m}`];
-    case 'ge': return [math`x ≥ ${c.m}`];
-    case 'lt': return [math`x < ${c.m}`];
-    case 'le': return [math`x ≤ ${c.m}`];
-    case 'mult': return t`x is a multiple of ${c.k}`;
-    case 'odd': return t`x is odd`;
-    case 'even': return t`x is even`;
+    case 'gt': return math`x > ${c.m}`;
+    case 'ge': return math`x \ge ${c.m}`;
+    case 'lt': return math`x < ${c.m}`;
+    case 'le': return math`x \le ${c.m}`;
+    case 'mult': return math`x \text{ is a multiple of } ${c.k}`;
+    case 'odd': return math`x \text{ is odd}`;
+    case 'even': return math`x \text{ is even}`;
   }
 }
 
@@ -65,14 +66,14 @@ const members = generator<MembersP>({
   problem(p) {
     const ans = memberList(p);
     return {
-      prompt: t`Let ${math`S = {x ∈ ${domainText(p.n)} | ${condText(p.c1)} ${p.join} ${condText(p.c2)}}`}. Choose every element of S.`,
+      prompt: t`Let ${math`S = \{x \in ${domainText(p.n)} \mid ${condText(p.c1)} \text{ ${p.join} } ${condText(p.c2)}\}`}. Choose every element of ${mS}.`,
       answer: { kind: 'choice', options: options(upTo(p.n)), correct: ids(ans) },
       solution: [
-        t`Read it as: S is the set of x from ${domainText(p.n)} such that ${condText(p.c1)} ${p.join} ${condText(p.c2)}.`,
+        t`Read it as: ${mS} is the set of ${mx} from ${domainText(p.n)} such that ${condText(p.c1)} ${p.join} ${condText(p.c2)}.`,
         p.join === 'and'
-          ? t`"and" means both conditions must hold for the same x.`
+          ? t`"and" means both conditions must hold for the same ${mx}.`
           : t`"or" means at least one condition must hold.`,
-        t`Test each x from ${1} to ${p.n}: ${math`S = ${setOf(ans)}`}.`,
+        t`Test each ${mx} from ${1} to ${p.n}: ${math`S = ${setOf(ans)}`}.`,
       ],
     };
   },
@@ -93,8 +94,8 @@ const members = generator<MembersP>({
     { response: ids(memberList(p, 'join')), why: p.join === 'and'
       ? t`That takes numbers that meet either condition. "and" needs both conditions at once.`
       : t`That keeps only numbers that meet both conditions. "or" needs at least one.` },
-    { response: ids(memberList(p, 'boundary')), why: t`Check the boundary number ${'m' in p.c2 ? p.c2.m : 0}. A strict sign (< or >) leaves it out; ≤ and ≥ let it in.` },
-    { response: ids(upTo(p.n).filter((x) => !memberList(p).includes(x))), why: t`Those are the numbers that fail the property. S keeps the ones that pass it.` },
+    { response: ids(memberList(p, 'boundary')), why: t`Check the boundary number ${'m' in p.c2 ? p.c2.m : 0}. A strict sign (${math`<`} or ${math`>`}) leaves it out; ${math`\le`} and ${math`\ge`} let it in.` },
+    { response: ids(upTo(p.n).filter((x) => !memberList(p).includes(x))), why: t`Those are the numbers that fail the property. ${mS} keeps the ones that pass it.` },
   ],
 });
 
@@ -108,11 +109,11 @@ const countMultiples = generator<CountP>({
   problem: ({ n, k }) => {
     const c = Math.floor(n / k);
     return {
-      prompt: t`How many elements does ${math`{x ∈ ${domainText(n)} | x is a multiple of ${k}}`} have?`,
+      prompt: t`How many elements does ${math`\{x \in ${domainText(n)} \mid x \text{ is a multiple of } ${k}\}`} have?`,
       answer: { kind: 'exact', expected: String(c) },
       solution: [
-        t`The multiples of ${k} in the set are ${math`${k} * ${1}, ${k} * ${2}, ..., ${k} * ${c}`}.`,
-        t`The last one is ${k * c}, because ${k * (c + 1)} is more than ${n}. So there are ${c} elements: ${n} divided by ${k}, rounded down.`,
+        t`The multiples of ${k} in the set are ${math`${k} \times ${1}, ${k} \times ${2}, \ldots, ${k} \times ${c}`}.`,
+        t`The last one is ${k * c}, because ${k * (c + 1)} is more than ${n}. So there are ${c} elements: ${n} divided by ${k}, rounded down, ${math`\left\lfloor \frac{${n}}{${k}} \right\rfloor = ${c}`}.`,
       ],
     };
   },
@@ -140,11 +141,11 @@ const image = generator<ImageP>({
     const top = a * (hi + 1) + b;
     const formula = b === 0 ? math`${a}k` : math`${a}k + ${b}`;
     return {
-      prompt: t`Let ${math`T = {${formula} | k ∈ ${setOf(ks)}}`}. Choose every element of T.`,
+      prompt: t`Let ${math`T = \{${formula} \mid k \in ${setOf(ks)}\}`}. Choose every element of ${mT}.`,
       answer: { kind: 'choice', options: options(range(0, top)), correct: ids(ans) },
       solution: [
-        t`The elements are the values of ${formula} as k runs through ${setOf(ks)}. The k values are not themselves elements.`,
-        t`Substitute each k: ${math`T = ${setOf(ans)}`}.`,
+        t`The elements are the values of ${formula} as ${mk} runs through ${setOf(ks)}. The ${mk} values are not themselves elements.`,
+        t`Substitute each ${mk}: ${math`T = ${setOf(ans)}`}.`,
       ],
     };
   },
@@ -155,8 +156,8 @@ const image = generator<ImageP>({
     return ids(out);
   },
   misconceptions: ({ a, b, lo, hi }): Misconception[] => [
-    { response: ids(range(lo, hi)), why: t`Those are the values of k. The set holds the values of the formula, so substitute each k into it.` },
-    { response: ids(range(lo + 1, hi + 1).map((k) => a * k + b)), why: t`Each value is one step along. Substitute the k values exactly as listed, starting with k = ${lo}.` },
+    { response: ids(range(lo, hi)), why: t`Those are the values of ${mk}. The set holds the values of the formula, so substitute each ${mk} into it.` },
+    { response: ids(range(lo + 1, hi + 1).map((k) => a * k + b)), why: t`Each value is one step along. Substitute the ${mk} values exactly as listed, starting with ${math`k = ${lo}`}.` },
   ],
 });
 
@@ -167,14 +168,14 @@ const sq = range(1, 4).map((k) => k * k);
 
 export const setBuilder: TopicContent = {
   topicId: 'sets.comprehension',
-  goal: t`Read and write sets as {x ∈ A | P(x)}, and decide membership from the defining property.`,
+  goal: t`Read and write sets as ${math`\{x \in A \mid P(x)\}`}, and decide membership from the defining property.`,
   lesson: [
     { kind: 'p', text: t`Listing every element works for small sets. For larger ones, describe the elements by a property instead. This is [[set-builder|set-builder notation]], also called comprehension.` },
-    { kind: 'rule', text: t`${math`{x ∈ A | P(x)}`} is the set of elements x of A for which the property P(x) is true. Read the bar as "such that". Some books write a colon instead: ${math`{x ∈ A : P(x)}`}.` },
-    { kind: 'p', text: t`For example ${math`{x ∈ ${domainText(10)} | x is even} = ${setOf(evens)}`}. The set A in front says where x comes from; the property after the bar filters it.` },
-    { kind: 'p', text: t`[[membership|Membership]] is a yes or no question: is a given thing an element? To decide whether ${7} ∈ ${math`{x ∈ ${domainText(10)} | x is even}`}, check both parts: ${7} is in ${domainText(10)}, but ${7} is not even, so ${math`${7} ∉`} the set.` },
-    { kind: 'p', text: t`A second form builds elements from a formula: ${math`{k^${2} | k ∈ ${setOf(range(1, 4))}} = ${setOf(sq)}`}. Here k is a counter, and the elements are the values of the formula.` },
-    { kind: 'p', text: t`Conditions combine with "and" and "or" as in logic: ${math`{x ∈ ${domainText(10)} | x is even and x > ${5}}`} is ${setOf(evens.filter((x) => x > 5))}, while with "or" it is ${setOf(upTo(10).filter((x) => x % 2 === 0 || x > 5))}.` },
+    { kind: 'rule', text: t`${dmath`\{x \in A \mid P(x)\}`} is the set of elements ${mx} of ${math`A`} for which the property ${math`P(x)`} is true. Read the bar as "such that". Some books write a colon instead: ${math`\{x \in A : P(x)\}`}.` },
+    { kind: 'p', text: t`For example ${math`\{x \in ${domainText(10)} \mid x \text{ is even}\} = ${setOf(evens)}`}. The set ${math`A`} in front says where ${mx} comes from; the property after the bar filters it.` },
+    { kind: 'p', text: t`[[membership|Membership]] is a yes or no question: is a given thing an element? To decide whether ${math`${7} \in \{x \in ${domainText(10)} \mid x \text{ is even}\}`}, check both parts: ${math`${7} \in ${domainText(10)}`}, but ${7} is not even, so ${7} is not in the set.` },
+    { kind: 'p', text: t`A second form builds elements from a formula: ${math`\{k^{${2}} \mid k \in ${setOf(range(1, 4))}\} = ${setOf(sq)}`}. Here ${mk} is a counter, and the elements are the values of the formula.` },
+    { kind: 'p', text: t`Conditions combine with "and" and "or" as in logic: ${math`\{x \in ${domainText(10)} \mid x \text{ is even and } x > ${5}\}`} is ${setOf(evens.filter((x) => x > 5))}, while with "or" it is ${setOf(upTo(10).filter((x) => x % 2 === 0 || x > 5))}.` },
   ],
   examples: [
     worked(members, { n: 12, c1: { kind: 'mult', k: 3 }, c2: { kind: 'ge', m: 6 }, join: 'and' }, t`Reading a property`),

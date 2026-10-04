@@ -28,7 +28,7 @@ export const sets: Topic[] = [
   {
     id: 'sets.comprehension',
     title: 'Membership and set-builder notation',
-    summary: 'Read and write sets as {x in A | P(x)}, and decide membership from the defining property.',
+    summary: 'Read and write sets as $\\{x \\in A \\mid P(x)\\}$, and decide membership from the defining property.',
     level: 'a-level',
     area: 'sets',
     prereqs: ['pre.set-notation'],

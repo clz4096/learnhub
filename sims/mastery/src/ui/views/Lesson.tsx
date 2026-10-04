@@ -16,6 +16,7 @@ import { ProblemCard } from '@/ui/ProblemCard';
 import type { Route } from '@/model/route';
 import { BackLink } from '@/ui/BackLink';
 import { Rich } from '@/ui/Rich';
+import { TexText } from '@/ui/Tex';
 
 export interface LessonEnd {
   passed: boolean;
@@ -182,7 +183,7 @@ export function LessonRunner({ topicId, salt, onEnd, onSkip, back }: {
     return (
       <section class="page lesson">
         {head}
-        <p>{t.summary}</p>
+        <p><TexText text={t.summary} /></p>
         <div class="not-written">
           <p class="badge badge-unwritten">Lesson not written yet</p>
           <p>This topic has no lesson or problems yet, so it cannot be learned here. It stays unlearned until they are written.</p>

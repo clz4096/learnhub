@@ -9,15 +9,20 @@
  *   unary    := ('-' | '+') unary | power
  *   power    := postfix ('^' unary)?                       right associative; `**` means `^`
  *   postfix  := atom '!'*
- *   atom     := number | name | name '(' args ')' | '(' sum ')' | '|' sum '|'
+ *   atom     := number | name | name '(' args ')' | '(' sum ')' | '|' sum '|' | '√' postfix
  *
  * So -x^2 is -(x^2), 2^3^2 is 2^9, and x/2y is (x/2)y, the usual conventions; the printed
- * normal form makes the reading visible to the learner.
+ * normal form makes the reading visible to the learner. The root sign takes what follows
+ * it up to any factorial, so √2^2 is (√2)^2 and √(x + 1) needs its brackets.
  *
  * Names: the problem's declared variables first; then the functions exp, ln (log is an
  * alias), sqrt, abs, factorial, choose(n, k) (binom is an alias); then the constants pi
  * and e. Any other name made only of declared one-letter variables is their product, so
  * `np^2` means n*p^2 when n and p are declared.
+ *
+ * With the `binomial` option (for problems that ask for a binomial coefficient), C(n, k)
+ * and nCk also mean choose(n, k). It is an option because C is a fine variable name
+ * elsewhere.
  */
 import { MAX_ANSWER_LENGTH, normalizeSymbols } from './types';
 import type { ParseResult } from './rational';
@@ -58,6 +63,8 @@ type Tok =
   | { t: 'end'; at: number };
 
 const VAR_RE = /^[A-Za-z][A-Za-z0-9_]*$/;
+/** The root sign, U+221A. */
+const ROOT = '\u221A';
 
 class ParseError extends Error {}
 
@@ -84,7 +91,7 @@ function tokenize(s: string): Tok[] {
       i += 2;
       continue;
     }
-    if ('+-*/^(),!|'.includes(c)) {
+    if ('+-*/^(),!|\u221A'.includes(c)) {
       out.push({ t: 'op', s: c, at: i });
       i++;
       continue;
@@ -158,7 +165,7 @@ class Parser {
 
   /** Whether the next token starts an operand with no operator before it: `2x`, `x(x+1)`, `n p`, `2|x|`. */
   private startsImplicit(t: Tok): boolean {
-    if (t.t === 'name' || this.isOp(t, '(')) return true;
+    if (t.t === 'name' || this.isOp(t, '(') || this.isOp(t, ROOT)) return true;
     if (this.isOp(t, '|')) return this.absDepth === 0;
     if (t.t === 'num') throw new ParseError('A number needs an operator before it, for example 2*3 rather than 2 3.');
     return false;
@@ -227,6 +234,12 @@ class Parser {
       this.expect('|', 'a closing "|"');
       return { kind: 'call', fn: 'abs', args: [e] };
     }
+    if (this.isOp(t, ROOT)) {
+      this.enter();
+      const arg = this.postfix();
+      this.depth--;
+      return { kind: 'call', fn: 'sqrt', args: [arg] };
+    }
     if (t.t === 'end') throw new ParseError('The expression ends too early.');
     throw new ParseError(`Unexpected "${t.s}".`);
   }
@@ -267,16 +280,29 @@ class Parser {
   }
 }
 
+export interface ParseOptions {
+  /** Read C(n, k) and nCk as choose(n, k), for problems that ask for a binomial coefficient. */
+  binomial?: boolean;
+}
+
+/** C(n, k) as choose(n, k), and nCk or 5C2 as choose(n, k) or choose(5, 2). */
+function binomialNotation(s: string): string {
+  return s
+    .replace(/(?<![A-Za-z0-9_])C\s*\(/g, 'choose(')
+    .replace(/(?<![A-Za-z_.])([A-Za-z]|(?<!\d)\d+)\s*C\s*([A-Za-z]|\d+)(?![A-Za-z0-9_.(])/g, 'choose($1, $2)');
+}
+
 /**
  * Parses `input` with the given variable names. Errors are sentences for the learner.
  * Variable names must look like identifiers, and must not shadow a function name.
  */
-export function parseExpression(input: string, variables: readonly string[]): ParseResult<Expr> {
+export function parseExpression(input: string, variables: readonly string[], options: ParseOptions = {}): ParseResult<Expr> {
   for (const v of variables) {
     if (!VAR_RE.test(v) || FUNCTIONS.has(v)) return { ok: false, error: `Bad variable name "${v}".` };
   }
   if (input.length > MAX_ANSWER_LENGTH) return { ok: false, error: 'That answer is too long.' };
-  const s = normalizeSymbols(input);
+  const plain = normalizeSymbols(input);
+  const s = options.binomial === true && !variables.includes('C') ? binomialNotation(plain) : plain;
   if (s === '') return { ok: false, error: 'Enter an expression.' };
   try {
     const vars = new Set(variables);

@@ -2,7 +2,7 @@
 import { int, q, str } from '../math';
 import { poly, signed } from '../poly';
 import { generator, type Misconception } from '../problem';
-import { computed, computedMath as cm, math, t } from '../rich';
+import { computedMath as cm, dmath, listOf, math, paren, t, texOf, type Span } from '../rich';
 import { worked, type TopicContent } from '../topic';
 
 const N = ['n'] as const;
@@ -15,9 +15,11 @@ const nonzero = (rng: () => number, lo: number, hi: number): number => {
 };
 /** "3n + 2", "-n + 7", "4n": the nth term an + b. */
 const nth = (a: number, b: number): string => poly([a, b], 'n');
-/** A signed constant, "+ 3" or "- 3", as computed text. */
-const sg = (n: number) => computed(signed(n));
-const terms = (f: (n: number) => number, count: number): string => Array.from({ length: count }, (_, i) => f(i + 1)).join(', ');
+/** A signed constant, + 3 or - 3, as computed math. */
+const sg = (n: number): Span => ({ kind: 'math', text: `${n < 0 ? '-' : '+'} ${texOf(Math.abs(n))}`, typed: [] });
+/** The first `count` terms, then an ellipsis: 5, 8, 11, \ldots */
+const terms = (f: (n: number) => number, count: number): Span => math`${listOf(Array.from({ length: count }, (_, i) => f(i + 1)))}, \ldots`;
+const mn = math`n`;
 
 // ---------------------------------------------------------------- generators
 
@@ -29,12 +31,12 @@ const nthTerm = generator<NthP>({
   params: (rng) => ({ a: int(rng, -10, 20), d: nonzero(rng, -6, 9) }),
   sane: ({ a, d }) => (a >= -10 && a <= 20 && d !== 0 && d >= -6 && d <= 9 ? null : 'out of range'),
   problem: ({ a, d }) => ({
-    prompt: t`Find the nth term of the sequence ${computed(terms((n) => a + (n - 1) * d, 4))}, ... as an expression in n.`,
+    prompt: t`Find the ${mn}th term of the sequence ${terms((n) => a + (n - 1) * d, 4)} as an expression in ${mn}.`,
     answer: { kind: 'expression', expected: nth(d, a - d), variables: N, domains: ND },
     solution: [
-      t`Each term is ${Math.abs(d)} ${d > 0 ? 'more' : 'less'} than the one before, so the [[common-difference|common difference]] is ${d} and the nth term starts ${cm(nth(d, 0))}.`,
-      t`At n = ${1}, ${cm(nth(d, 0))} gives ${d}, but the first term is ${a}. Adjust by ${a} - ${d} = ${a - d}.`,
-      t`So the nth term is ${cm(nth(d, a - d))}. Check n = ${2}: ${2 * d + a - d}, the second term.`,
+      t`Each term is ${Math.abs(d)} ${d > 0 ? 'more' : 'less'} than the one before, so the [[common-difference|common difference]] is ${d} and the ${mn}th term starts ${cm(nth(d, 0))}.`,
+      t`At ${math`n = ${1}`}, ${cm(nth(d, 0))} gives ${d}, but the first term is ${a}. Adjust by ${math`${a} - ${paren(d)} = ${a - d}`}.`,
+      t`So the ${mn}th term is ${cm(nth(d, a - d))}. Check ${math`n = ${2}`}: ${2 * d + a - d}, the second term.`,
     ],
   }),
   solve: ({ a, d }) => {
@@ -45,8 +47,8 @@ const nthTerm = generator<NthP>({
     return nth(slope, u1 - slope);
   },
   misconceptions: ({ a, d }): Misconception[] => [
-    { response: nth(d, a), why: t`That gives ${a + d} at n = ${1}, not ${a}. The first term is ${d} times ${1} plus the constant, so the constant is ${a} - ${d} = ${a - d}.` },
-    { response: nth(a, d), why: t`The two numbers are swapped. The common difference ${d} multiplies n; the constant makes the first term come out right.` },
+    { response: nth(d, a), why: t`That gives ${a + d} at ${math`n = ${1}`}, not ${a}. The first term is ${d} times ${1} plus the constant, so the constant is ${math`${a} - ${paren(d)} = ${a - d}`}.` },
+    { response: nth(a, d), why: t`The two numbers are swapped. The common difference ${d} multiplies ${mn}; the constant makes the first term come out right.` },
     { response: `n ${signed(d)}`, why: t`Adding ${d} each time is the term-to-term rule. The position-to-term rule multiplies the position by the common difference: start from ${cm(nth(d, 0))}.` },
   ],
 });
@@ -70,12 +72,12 @@ const recursive = generator<RecP>({
     const seq: number[] = [s];
     while (seq.length < k) seq.push(m * (seq[seq.length - 1] as number) + c);
     return {
-      prompt: t`A sequence starts with ${math`u_${1} = ${s}`}, and each term after that is ${m} times the previous term ${c > 0 ? 'plus' : 'minus'} ${Math.abs(c)}: ${math`u_(n+${1}) = ${m}u_n ${sg(c)}`}. Find ${math`u_${k}`}.`,
+      prompt: t`A sequence starts with ${math`u_{${1}} = ${s}`}, and each term after that is ${m} times the previous term ${c > 0 ? 'plus' : 'minus'} ${Math.abs(c)}: ${math`u_{n+${1}} = ${m}u_n ${sg(c)}`}. Find ${math`u_{${k}}`}.`,
       answer: { kind: 'exact', expected: String(uk) },
       solution: [
-        t`Apply the [[term-to-term|term-to-term rule]] one step at a time, starting from ${math`u_${1} = ${s}`}.`,
-        ...seq.slice(1).map((u, i) => t`${math`u_${i + 2} = ${m} * ${seq[i] as number} ${sg(c)} = ${u}`}`),
-        t`So ${math`u_${k} = ${uk}`}.`,
+        t`Apply the [[term-to-term|term-to-term rule]] one step at a time, starting from ${math`u_{${1}} = ${s}`}.`,
+        ...seq.slice(1).map((u, i) => t`${math`u_{${i + 2}} = ${m} \times ${paren(seq[i] as number)} ${sg(c)} = ${u}`}`),
+        t`So ${math`u_{${k}} = ${uk}`}.`,
       ],
     };
   },
@@ -91,8 +93,8 @@ const recursive = generator<RecP>({
       return u;
     };
     return [
-      { response: String(at(k + 1)), why: t`One step too many. ${math`u_${1}`} is the first term, so ${math`u_${k}`} needs only ${k - 1} applications of the rule.` },
-      { response: String(at(k - 1)), why: t`One step short. Count the terms: ${math`u_${1}`} is given, and each step makes the next one, up to ${math`u_${k}`}.` },
+      { response: String(at(k + 1)), why: t`One step too many. ${math`u_{${1}}`} is the first term, so ${math`u_{${k}}`} needs only ${k - 1} applications of the rule.` },
+      { response: String(at(k - 1)), why: t`One step short. Count the terms: ${math`u_{${1}}`} is given, and each step makes the next one, up to ${math`u_{${k}}`}.` },
       { response: String(m ** (k - 1) * s), why: t`Remember to ${c > 0 ? 'add' : 'subtract'} ${Math.abs(c)} at every step, not only multiply.` },
     ];
   },
@@ -108,12 +110,12 @@ const whichTerm = generator<WhichP>({
   problem: ({ a, b, k }) => {
     const T = a * k + b;
     return {
-      prompt: t`The nth term of a sequence is ${cm(nth(a, b))}. Which term is equal to ${T}?`,
+      prompt: t`The ${mn}th term of a sequence is ${cm(nth(a, b))}. Which term is equal to ${T}?`,
       answer: { kind: 'exact', expected: String(k) },
       solution: [
-        t`Set the nth term equal to ${T}: ${cm(`${nth(a, b)} = ${T}`)}.`,
-        t`${b > 0 ? 'Subtract' : 'Add'} ${Math.abs(b)}: ${cm(`${a}n = ${T - b}`)}. Divide by ${a}: n = ${k}.`,
-        t`So ${T} is term number ${k}. Check: ${a} * ${k} ${sg(b)} = ${T}.`,
+        t`Set the ${mn}th term equal to ${T}: ${cm(`${nth(a, b)} = ${T}`)}.`,
+        t`${b > 0 ? 'Subtract' : 'Add'} ${Math.abs(b)}: ${cm(`${a}n = ${T - b}`)}. Divide by ${a}: ${math`n = ${k}`}.`,
+        t`So ${T} is term number ${k}. Check: ${math`${a} \times ${k} ${sg(b)} = ${T}`}.`,
       ],
     };
   },
@@ -128,7 +130,7 @@ const whichTerm = generator<WhichP>({
     return [
       { response: str(q(T + b, a)), why: t`The constant was moved the wrong way. To undo ${b > 0 ? 'adding' : 'subtracting'} ${Math.abs(b)}, ${b > 0 ? 'subtract' : 'add'} it.` },
       { response: str(q(T, a)), why: t`The constant ${b} needs undoing before dividing by ${a}.` },
-      { response: String(T), why: t`That is the value of the term. The question asks for its position n.` },
+      { response: String(T), why: t`That is the value of the term. The question asks for its position ${mn}.` },
     ];
   },
 });
@@ -140,14 +142,14 @@ const u = (n: number): number => L.a + (n - 1) * L.d;
 
 export const sequences: TopicContent = {
   topicId: 'pre.sequences',
-  goal: t`Generate a sequence from a term-to-term or position-to-term rule, and find the nth term of an arithmetic sequence.`,
+  goal: t`Generate a sequence from a term-to-term or position-to-term rule, and find the ${mn}th term of an arithmetic sequence.`,
   lesson: [
-    { kind: 'p', text: t`A [[sequence|sequence]] is a list of numbers in order, such as ${computed(terms(u, 5))}, and so on. Each number is a [[term|term]]. We write ${math`u_${1}`} for the first term, ${math`u_${2}`} for the second, and ${math`u_n`} for the term in position n.` },
-    { kind: 'p', text: t`A [[term-to-term|term-to-term rule]] says how to get the next term from the one before: here, add ${L.d}. So ${math`u_(n+${1}) = u_n + ${L.d}`}, starting from ${math`u_${1} = ${L.a}`}.` },
-    { kind: 'p', text: t`A [[position-to-term|position-to-term rule]], or nth term, gives any term straight from its position. Here ${math`u_n = ${computed(nth(L.d, L.a - L.d))}`}. Check: n = ${1} gives ${L.d + L.a - L.d}, and n = ${4} gives ${4 * L.d + L.a - L.d}. Now the ${100}th term needs no listing: ${math`u_${100} = ${L.d} * ${100} ${sg(L.a - L.d)} = ${u(100)}`}.` },
-    { kind: 'rule', text: t`An [[arithmetic-sequence|arithmetic sequence]] adds the same number d each time: the [[common-difference|common difference]]. Its nth term is ${math`dn + (u_${1} - d)`}.` },
-    { kind: 'p', text: t`Why: the nth term is the first term plus n - ${1} steps of d. So ${math`u_n = u_${1} + (n - ${1})d`}, which expands to ${math`dn + (u_${1} - d)`}. For ${computed(terms(u, 4))}, d = ${L.d} and ${math`u_${1} - d = ${L.a - L.d}`}.` },
-    { kind: 'p', text: t`Not every sequence is arithmetic. With the rule "double and add ${1}" from ${1}, the terms are ${computed(terms((n) => 2 ** n - 1, 5))}: the gaps grow, so there is no common difference.` },
+    { kind: 'p', text: t`A [[sequence|sequence]] is a list of numbers in order, such as ${terms(u, 5)}. Each number is a [[term|term]]. We write ${math`u_{${1}}`} for the first term, ${math`u_{${2}}`} for the second, and ${math`u_n`} for the term in position ${mn}.` },
+    { kind: 'p', text: t`A [[term-to-term|term-to-term rule]] says how to get the next term from the one before: here, add ${L.d}. So ${math`u_{n+${1}} = u_n + ${L.d}`}, starting from ${math`u_{${1}} = ${L.a}`}.` },
+    { kind: 'p', text: t`A [[position-to-term|position-to-term rule]], or ${mn}th term, gives any term straight from its position. Here ${math`u_n = ${cm(nth(L.d, L.a - L.d))}`}. Check: ${math`n = ${1}`} gives ${L.d + L.a - L.d}, and ${math`n = ${4}`} gives ${4 * L.d + L.a - L.d}. Now the ${100}th term needs no listing: ${math`u_{${100}} = ${L.d} \times ${100} ${sg(L.a - L.d)} = ${u(100)}`}.` },
+    { kind: 'rule', text: t`An [[arithmetic-sequence|arithmetic sequence]] adds the same number ${math`d`} each time: the [[common-difference|common difference]]. Its ${mn}th term is ${dmath`u_n = dn + (u_{${1}} - d).`}` },
+    { kind: 'p', text: t`Why: the ${mn}th term is the first term plus ${math`n - ${1}`} steps of ${math`d`}. So ${math`u_n = u_{${1}} + (n - ${1})d`}, which expands to ${math`dn + (u_{${1}} - d)`}. For ${terms(u, 4)}, ${math`d = ${L.d}`} and ${math`u_{${1}} - d = ${L.a - L.d}`}.` },
+    { kind: 'p', text: t`Not every sequence is arithmetic. With the rule "double and add ${1}" from ${1}, the terms are ${terms((n) => 2 ** n - 1, 5)}: the gaps grow, so there is no common difference.` },
   ],
   examples: [
     worked(nthTerm, { a: 7, d: -2 }, t`A decreasing sequence`),

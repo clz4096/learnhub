@@ -95,11 +95,14 @@ main { flex: 1; padding: var(--space-4); }
   h1 { font-size: 1.3rem; }
 }
 
-/* math */
-.math, .num { font-variant-numeric: lining-nums; white-space: nowrap; }
-.math { font-family: var(--font-math); font-size: 1.05em; }
-.math sup, .math sub, .num sup { font-size: 0.72em; line-height: 0; }
-.prompt .math { white-space: normal; }
+/* math: KaTeX, inline in the text or displayed on its own line */
+.num { font-variant-numeric: lining-nums; white-space: nowrap; }
+.math .katex { font-size: 1.1em; }
+/* Inline fractions are set small by TeX; problems and the answer preview need them readable. */
+.prompt .math .katex, .preview .math .katex { font-size: 1.3em; }
+.math-display { display: block; max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+.math-display .katex-display { margin: var(--space-2) 0; }
+.katex-error { color: var(--error); }
 
 /* today */
 .today-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--space-2); margin: 0 0 var(--space-4); }
@@ -150,8 +153,26 @@ th { background: var(--surface-2); }
 /* problems */
 .problem { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); margin: 0 0 var(--space-3); }
 .prompt { font-size: var(--text-lg); }
-.answer .field { max-width: 420px; }
-.preview { color: var(--text-muted); }
+.answer .field { max-width: 480px; }
+.answer-box { display: flex; flex-direction: column; gap: 2px; }
+.preview { color: var(--text-muted); min-height: 1.6em; margin: 2px 0 0; }
+.preview[data-state='unread'] { font-style: italic; }
+.preview-note { color: var(--warning); }
+.keypad { display: flex; flex-wrap: wrap; gap: var(--space-1); margin: var(--space-1) 0; }
+.key {
+  min-width: var(--touch); min-height: var(--touch); padding: 0 var(--space-2); background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm); cursor: pointer; font-size: 1.05rem; line-height: 1;
+  touch-action: manipulation;
+}
+.key:hover { background: var(--accent-soft); }
+.key:active { background: var(--accent-soft); border-color: var(--accent); }
+/* On a touch screen with the field focused, the keypad rides on top of the system keyboard. */
+.keypad.docked {
+  position: fixed; left: 0; right: 0; bottom: var(--keyboard, 0px); z-index: 30; margin: 0;
+  padding: var(--space-1) var(--space-2); background: var(--surface); border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08); flex-wrap: nowrap; overflow-x: auto;
+}
+.keypad.docked .key { flex: none; }
 .choices { border: 0; padding: 0; margin: 0 0 var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
 .choices legend { padding: 0; margin-bottom: var(--space-1); }
 .choice {

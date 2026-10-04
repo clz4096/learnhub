@@ -3,9 +3,15 @@
  * learner (no courses yet) or one still in placement sees the Start step for the route
  * (#/start for courses and minutes, anything else for placement), or the glossary.
  *
+ * Every screen has the same way home (design decision 19a): the header is always shown,
+ * its title goes home, and the navigation starts with Home. Home is the Start step until
+ * placement is done (it offers to resume the test, whose answers are kept) and Today
+ * after. Leaving a lesson or the test by Home keeps its place, as the Back links do.
+ *
  * Dialogs (help, a glossary term, the tour) close whenever the route changes, so the
  * browser's Back never leaves one open over a view it does not belong to.
  */
+import type { ComponentChildren } from 'preact';
 import { useEffect } from 'preact/hooks';
 import { go, hrefOf, listen, route, type Route } from '@/model/route';
 import { loadErrors, loadState, loadWarnings, progress, saveError, volatile } from '@/model/store';
@@ -21,17 +27,42 @@ import { Start } from '@/ui/views/Start';
 import { LearnView, TaskView } from '@/ui/views/Task';
 import { Today } from '@/ui/views/Today';
 
-const NAV: { id: 'today' | 'map' | 'progress' | 'glossary'; label: string; to: Route }[] = [
-  { id: 'today', label: 'Today', to: { view: 'today' } },
-  { id: 'map', label: 'Map', to: { view: 'map', topicId: null } },
-  { id: 'progress', label: 'Progress', to: { view: 'progress' } },
-  { id: 'glossary', label: 'Glossary', to: { view: 'glossary', termId: null } },
-];
+type NavId = 'home' | 'map' | 'progress' | 'glossary';
 
-function navOf(r: Route): string {
-  if (r.view === 'task' || r.view === 'today' || r.view === 'start' || r.view === 'placement') return 'today';
+/** Where Home goes: the Start step until placement is done, then Today. */
+export function homeRoute(placed: boolean): Route {
+  return placed ? { view: 'today' } : { view: 'start' };
+}
+
+/** The navigation items: before placement only Home and the glossary can be visited. */
+function navItems(placed: boolean): { id: NavId; label: string; to: Route }[] {
+  const glossary = { id: 'glossary' as const, label: 'Glossary', to: { view: 'glossary', termId: null } as Route };
+  if (!placed) return [{ id: 'home', label: 'Home', to: homeRoute(false) }, glossary];
+  return [
+    { id: 'home', label: 'Home', to: homeRoute(true) },
+    { id: 'map', label: 'Map', to: { view: 'map', topicId: null } },
+    { id: 'progress', label: 'Progress', to: { view: 'progress' } },
+    glossary,
+  ];
+}
+
+function navOf(r: Route): NavId {
+  if (r.view === 'task' || r.view === 'today' || r.view === 'start' || r.view === 'placement') return 'home';
   if (r.view === 'learn') return 'map';
   return r.view;
+}
+
+/** A link that moves within the app: a real href (open in a new tab works), handled by `go`. */
+function NavLink({ to, children, ...rest }: { to: Route; children: ComponentChildren; class?: string; 'data-nav'?: string; 'aria-current'?: 'page' }) {
+  return (
+    <a href={hrefOf(to)} {...rest} onClick={(e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      go(to);
+    }}>
+      {children}
+    </a>
+  );
 }
 
 function View({ r }: { r: Route }) {
@@ -70,8 +101,11 @@ export function App() {
   // Before placement is done, any other URL shows a Start step: name that step in the URL
   // (replacing, not adding, the entry), so Back from the test reaches the courses step
   // instead of a URL that shows the test again.
+  // The route is read when the effect runs, not when it was scheduled: a click on Home in
+  // between must not be overwritten by a redirect meant for the URL before it.
   useEffect(() => {
-    if (!ready || placed || r.view === 'start' || r.view === 'placement' || r.view === 'glossary') return;
+    const now = route.peek().view;
+    if (!ready || placed || now === 'start' || now === 'placement' || now === 'glossary') return;
     go({ view: setUp ? 'placement' : 'start' }, { replace: true });
   }, [ready, placed, setUp, href]);
 
@@ -89,7 +123,7 @@ export function App() {
     );
   } else if (!placed && r.view !== 'glossary') body = <Start step={r.view === 'start' ? 'courses' : 'placement'} />;
   else if (!placed) {
-    // No navigation bar before placement is done, so the glossary needs its own way back.
+    // Before placement the glossary is the only other place to go, so it also offers the way back to the test.
     body = (
       <>
         <div class="page"><BackLink to={{ view: setUp ? 'placement' : 'start' }} label={setUp ? 'Back to the placement test' : 'Back to the start'} /></div>
@@ -99,22 +133,19 @@ export function App() {
   } else body = <View r={r} />;
 
   const active = navOf(r);
+  const home = homeRoute(placed);
   return (
     <div class="app">
-      <a class="skip-link" href="#main">Skip to content</a>
+      <a class="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to content</a>
       <header class="top">
-        <a class="app-title" href="#/">Mastery courses</a>
-        {placed && (
-          <nav class="nav" aria-label="Main">
-            {NAV.map((n) => (
-              <a key={n.id} href={`#${n.id === 'today' ? '/' : `/${n.id}`}`} data-nav={n.id} class={active === n.id ? 'on' : ''}
-                aria-current={active === n.id ? 'page' : undefined}
-                onClick={(e) => { e.preventDefault(); go(n.to); }}>
-                {n.label}
-              </a>
-            ))}
-          </nav>
-        )}
+        <NavLink to={home} class="app-title">Mastery courses</NavLink>
+        <nav class="nav" aria-label="Main">
+          {navItems(placed).map((n) => (
+            <NavLink key={n.id} to={n.to} data-nav={n.id} class={active === n.id ? 'on' : ''} aria-current={active === n.id ? 'page' : undefined}>
+              {n.label}
+            </NavLink>
+          ))}
+        </nav>
         <button type="button" class="btn help-button" onClick={() => { helpOpen.value = true; }}>Help</button>
       </header>
       {volatile.value && <p class="banner warning small">This browser does not offer storage here, so progress will be lost when the tab closes. Export a file in Progress to keep it.</p>}

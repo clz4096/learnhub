@@ -16,6 +16,14 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     ],
   },
   {
+    id: 'home',
+    title: 'Getting around',
+    paragraphs: [
+      'Home, first in the navigation, and the course title at the top both take you home from any screen: the start page until the placement test is done, then Today.',
+      'Leaving a lesson or the placement test this way keeps your place, as the Back links do. The browser\'s Back button works too, and Escape closes a dialog or the topic panel on the map.',
+    ],
+  },
+  {
     id: 'today',
     title: 'Today',
     paragraphs: [
@@ -29,7 +37,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Lessons and practice',
     paragraphs: [
       'A lesson has three parts: Learn, Worked examples, and Practice. Practice gives you fresh problems until you get several right in a row, which is the topic\'s mastery rule. Then the topic counts as learned.',
-      'Type numbers as a whole number, a fraction such as 3/8, or an exact decimal. Type expressions with ^ for powers, such as x^2 + 3x; a multiplication sign is optional. For "choose every one that applies", tick all the right options.',
+      'Type numbers as a whole number, a fraction such as 3/8 or 3÷8, or an exact decimal. Type expressions with ^ for powers, such as x^2 + 3x; a multiplication sign is optional, and √ and π work too.',
+      'The line under the answer box shows how your answer was read, written as mathematics. The keys below it add symbols at the cursor, such as the fraction bar, powers, and roots. Enter checks the answer. For "choose every one that applies", tick all the right options.',
       'A wrong answer is part of learning. The feedback names the likely slip when it can, and the worked solution shows one way through. If a lesson does not stick today, it comes back in another session.',
     ],
   },
@@ -74,7 +83,7 @@ export interface TourStep {
 }
 
 export const TOUR_STEPS: readonly TourStep[] = [
-  { title: 'Today', text: 'Your plan for today: new lessons, reviews, and quizzes, each with the reason it is there. Start with the first task.', target: '[data-nav="today"]' },
+  { title: 'Home', text: 'Home is your plan for today: new lessons, reviews, and quizzes, each with the reason it is there. Home and the title at the top bring you back here from anywhere.', target: '[data-nav="home"]' },
   { title: 'Map', text: 'Every topic of your courses and where you are with each one. Choose a topic to see what it covers and where Cambridge teaches it.', target: '[data-nav="map"]' },
   { title: 'Progress', text: 'How far you are in each course, your daily time and course split, and backups of your progress file.', target: '[data-nav="progress"]' },
   { title: 'Glossary', text: 'Every term the lessons use. Words with a dotted underline open their definition right where you are.', target: '[data-nav="glossary"]' },

@@ -18,6 +18,7 @@ import { NODE_H, NODE_W, layout } from '@/model/layout';
 import { go } from '@/model/route';
 import { now, progress } from '@/model/store';
 import { Sources } from '@/ui/views/Lesson';
+import { TexText } from '@/ui/Tex';
 
 export const STATUS_TEXT: Record<TopicStatus, string> = {
   mastered: 'Learned',
@@ -108,7 +109,7 @@ function Details({ p, id, status }: { p: Progress; id: string; status: TopicStat
       <h2>{t.title}</h2>
       <p class="small muted">{LEVEL_NAMES[t.level]}, {AREA_NAMES[t.area] ?? t.area}. In {inCourses.join(' and ') || 'no chosen course'}.</p>
       <p><span class={`status-chip st-${status ?? 'locked'}`}>{status === undefined ? 'Not in your courses' : STATUS_TEXT[status]}</span></p>
-      <p>{t.summary}</p>
+      <p><TexText text={t.summary} /></p>
       {mem !== undefined && (
         <p class="small muted">
           Next review {daysFrom(now(), mem.due) <= 0 ? 'is due now' : `in ${daysFrom(now(), mem.due)} day${daysFrom(now(), mem.due) === 1 ? '' : 's'}`}.
@@ -184,6 +185,18 @@ export function MapView({ topicId }: { topicId: string | null }) {
     scroller.current.scrollTop = d.t - (e.clientY - d.y);
   };
   const onUp = (): void => { drag.current = null; };
+
+  // Escape closes the topic sheet (on a phone it covers the map), like any overlay.
+  useEffect(() => {
+    if (topicId === null) return;
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key !== 'Escape' || e.defaultPrevented || document.querySelector('.modal-layer, .tour-layer') !== null) return;
+      e.preventDefault();
+      go({ view: 'map', topicId: null });
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [topicId]);
 
   if (p === null) return null;
   const related = new Set<string>();

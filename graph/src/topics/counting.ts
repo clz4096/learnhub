@@ -17,7 +17,7 @@ export const counting: Topic[] = [
   {
     id: 'comb.factorial',
     title: 'Factorials and arranging n objects',
-    summary: 'Count the orderings of n distinct objects as n!, with 0! = 1.',
+    summary: 'Count the orderings of $n$ distinct objects as $n!$, with $0! = 1$.',
     level: 'a-level',
     area: 'counting',
     prereqs: ['pre.product-rule'],
@@ -28,7 +28,7 @@ export const counting: Topic[] = [
   {
     id: 'comb.permutations',
     title: 'Permutations of r objects from n',
-    summary: 'Count ordered selections of r objects from n as n!/(n - r)!.',
+    summary: 'Count ordered selections of $r$ objects from $n$ as $\\frac{n!}{(n - r)!}$.',
     level: 'step',
     area: 'counting',
     prereqs: ['comb.factorial'],
@@ -39,7 +39,7 @@ export const counting: Topic[] = [
   {
     id: 'comb.combinations',
     title: 'Combinations and the binomial coefficient',
-    summary: 'Count unordered selections of r objects from n as n!/(r!(n - r)!).',
+    summary: 'Count unordered selections of $r$ objects from $n$ as $\\binom{n}{r} = \\frac{n!}{r!\\,(n - r)!}$.',
     level: 'a-level',
     area: 'counting',
     prereqs: ['comb.factorial', 'pre.fractions'],
@@ -50,7 +50,7 @@ export const counting: Topic[] = [
   {
     id: 'comb.repeated-arrangements',
     title: 'Arrangements with repeated objects',
-    summary: 'Count arrangements of a word with repeated letters as n! divided by the repeats.',
+    summary: 'Count arrangements of a word with repeated letters as $n!$ divided by the repeats.',
     level: 'step',
     area: 'counting',
     prereqs: ['comb.combinations'],
@@ -61,7 +61,7 @@ export const counting: Topic[] = [
   {
     id: 'comb.binomial-identities',
     title: 'Symmetry and Pascal\'s rule',
-    summary: 'Prove nCr = nC(n - r) and Pascal\'s rule both by algebra and by counting.',
+    summary: 'Prove $\\binom{n}{r} = \\binom{n}{n - r}$ and Pascal\'s rule both by algebra and by counting.',
     level: 'step',
     area: 'counting',
     prereqs: ['comb.combinations', 'pre.algebraic-manipulation'],
@@ -75,7 +75,7 @@ export const counting: Topic[] = [
   {
     id: 'comb.binomial-theorem',
     title: 'The binomial theorem',
-    summary: 'Expand (a + b)^n for a positive integer n and read off sums such as the total 2^n.',
+    summary: 'Expand $(a + b)^n$ for a positive integer $n$ and read off sums such as the total $2^n$.',
     level: 'a-level',
     area: 'counting',
     prereqs: ['comb.combinations', 'pre.indices', 'pre.algebraic-manipulation'],
@@ -86,7 +86,7 @@ export const counting: Topic[] = [
   {
     id: 'comb.binomial-theorem-proof',
     title: 'Proving the binomial theorem by induction',
-    summary: 'Prove the binomial theorem by induction on n, with Pascal\'s rule in the inductive step.',
+    summary: 'Prove the binomial theorem by induction on $n$, with Pascal\'s rule in the inductive step.',
     level: 'tripos-ia',
     area: 'counting',
     prereqs: ['comb.binomial-theorem', 'comb.binomial-identities', 'alg.proof-by-induction'],

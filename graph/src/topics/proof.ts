@@ -6,7 +6,7 @@ export const proof: Topic[] = [
   {
     id: 'pre.algebraic-argument',
     title: 'Algebraic arguments about integers',
-    summary: 'Write even, odd, and consecutive integers as 2n, 2n + 1, and n + 1, and use algebra to show a claim holds for all of them.',
+    summary: 'Write even, odd, and consecutive integers as $2n$, $2n + 1$, and $n + 1$, and use algebra to show a claim holds for all of them.',
     level: 'pre-a-level',
     area: 'proof',
     prereqs: ['pre.algebraic-manipulation', 'pre.primes-and-factors'],
@@ -43,7 +43,7 @@ export const proof: Topic[] = [
   {
     id: 'proof.cases',
     title: 'Proof by cases',
-    summary: 'Split a claim into cases that cover every possibility, such as n even or n odd, and prove each case.',
+    summary: 'Split a claim into cases that cover every possibility, such as $n$ even or $n$ odd, and prove each case.',
     level: 'a-level',
     area: 'proof',
     prereqs: ['proof.direct'],
@@ -105,7 +105,7 @@ export const proof: Topic[] = [
   {
     id: 'proof.contrapositive',
     title: 'Proof by contrapositive',
-    summary: 'Prove if P then Q by proving the equivalent statement if not Q then not P.',
+    summary: 'Prove $P \\Rightarrow Q$ by proving the equivalent statement $\\lnot Q \\Rightarrow \\lnot P$.',
     level: 'tripos-ia',
     area: 'proof',
     prereqs: ['logic.equivalences', 'proof.direct'],
@@ -122,7 +122,7 @@ export const proof: Topic[] = [
   {
     id: 'proof.quantifier-patterns',
     title: 'Proving and using quantified statements',
-    summary: 'Prove for all by taking an arbitrary element and there exists by giving a witness, and use each kind as an assumption.',
+    summary: 'Prove $\\forall$ by taking an arbitrary element and $\\exists$ by giving a witness, and use each kind as an assumption.',
     level: 'tripos-ia',
     area: 'proof',
     prereqs: ['logic.quantifiers', 'proof.counterexample'],
@@ -139,7 +139,7 @@ export const proof: Topic[] = [
   {
     id: 'proof.strong-induction',
     title: 'Strong induction',
-    summary: 'Prove P(n) for every n by assuming P(k) for all k below n, for example that every n >= 2 has a prime factor.',
+    summary: 'Prove $P(n)$ for every $n$ by assuming $P(k)$ for all $k < n$, for example that every $n \\ge 2$ has a prime factor.',
     level: 'tripos-ia',
     area: 'proof',
     prereqs: ['alg.proof-by-induction', 'logic.quantifiers'],

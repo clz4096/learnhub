@@ -108,7 +108,8 @@ describe('Progress', () => {
 const SELF_REPORT = /self-report|I know this|know it already|I still know|I have forgotten|I do not\b(?! know this)/i;
 
 /** The view's own buttons, without its Back link. */
-const actions = (): (string | null)[] => screen.getAllByRole('button').filter((b) => !b.classList.contains('back')).map((b) => b.textContent);
+// The answer box's symbol keys are not actions.
+const actions = (): (string | null)[] => screen.getAllByRole('button').filter((b) => !b.classList.contains('back') && !b.classList.contains('key')).map((b) => b.textContent);
 const backLink = (): string | null | undefined => document.querySelector('button.back')?.textContent;
 
 function expectNoSelfReport(): void {

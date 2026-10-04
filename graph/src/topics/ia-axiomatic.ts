@@ -17,7 +17,7 @@ export const iaAxiomatic: Topic[] = [
   {
     id: 'prob.point-mass-spaces',
     title: 'Probability spaces on a countable set',
-    summary: 'Build a probability space from point masses p(w) that sum to one, with P(A) the sum over A.',
+    summary: 'Build a probability space from point masses $p(\\omega)$ that sum to one, with $P(A)$ the sum over $A$.',
     level: 'tripos-ia',
     area: 'ia-axiomatic',
     prereqs: ['prob.axioms', 'prob.discrete-distributions'],
@@ -39,7 +39,7 @@ export const iaAxiomatic: Topic[] = [
   {
     id: 'prob.inclusion-exclusion',
     title: 'The inclusion-exclusion formula',
-    summary: 'Prove and apply the general inclusion-exclusion formula for n events.',
+    summary: 'Prove and apply the general inclusion-exclusion formula for $n$ events.',
     level: 'tripos-ia',
     area: 'ia-axiomatic',
     prereqs: ['prob.axiom-consequences', 'prob.inclusion-exclusion-three', 'alg.proof-by-induction', 'comb.binomial-theorem'],
@@ -50,7 +50,7 @@ export const iaAxiomatic: Topic[] = [
   {
     id: 'prob.continuity',
     title: 'Continuity of probability measures',
-    summary: 'For increasing events, P(A_n) tends to the probability of their union, and dually for decreasing.',
+    summary: 'For increasing events, $P(A_n)$ tends to the probability of their union, and dually for decreasing.',
     level: 'tripos-ia',
     area: 'ia-axiomatic',
     prereqs: ['prob.axiom-consequences'],
@@ -61,7 +61,7 @@ export const iaAxiomatic: Topic[] = [
   {
     id: 'prob.subadditivity',
     title: 'Countable subadditivity',
-    summary: 'Prove P of a countable union is at most the sum of the probabilities (the union bound).',
+    summary: 'Prove $P$ of a countable union is at most the sum of the probabilities (the union bound).',
     level: 'tripos-ia',
     area: 'ia-axiomatic',
     prereqs: ['prob.axiom-consequences'],

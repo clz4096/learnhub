@@ -6,7 +6,7 @@ export const logic: Topic[] = [
   {
     id: 'logic.connectives',
     title: 'And, or, and not',
-    summary: 'Combine statements with and, or, and not, and work out the truth of the result with a truth table.',
+    summary: 'Combine statements with and, or, and not ($\\land$, $\\lor$, $\\lnot$), and work out the truth of the result with a truth table.',
     level: 'a-level',
     area: 'logic',
     prereqs: [],
@@ -26,7 +26,7 @@ export const logic: Topic[] = [
   {
     id: 'logic.implication',
     title: 'Implication',
-    summary: 'Read if P then Q, know it is false only when P is true and Q is false, and tell it apart from its converse.',
+    summary: 'Read $P \\Rightarrow Q$ (if $P$ then $Q$), know it is false only when $P$ is true and $Q$ is false, and tell it apart from its converse.',
     level: 'a-level',
     area: 'logic',
     prereqs: ['logic.connectives'],
@@ -77,7 +77,7 @@ export const logic: Topic[] = [
   {
     id: 'logic.quantifiers',
     title: 'For all and there exists',
-    summary: 'Read and write statements with the universal and existential quantifiers over a stated set.',
+    summary: 'Read and write statements with the universal and existential quantifiers, $\\forall$ and $\\exists$, over a stated set.',
     level: 'tripos-ia',
     area: 'logic',
     prereqs: ['logic.implication', 'sets.comprehension'],
@@ -88,7 +88,7 @@ export const logic: Topic[] = [
   {
     id: 'logic.nested-quantifiers',
     title: 'Nested quantifiers',
-    summary: 'Read statements with several quantifiers and see why for all x there is a y differs from there is a y for all x.',
+    summary: 'Read statements with several quantifiers and see why $\\forall x\\, \\exists y$ differs from $\\exists y\\, \\forall x$.',
     level: 'tripos-ia',
     area: 'logic',
     prereqs: ['logic.quantifiers'],
@@ -105,7 +105,7 @@ export const logic: Topic[] = [
   {
     id: 'logic.negating-quantifiers',
     title: 'Negating quantified statements',
-    summary: 'Negate a statement by swapping for all and there exists and negating the inside, as a counterexample does.',
+    summary: 'Negate a statement by swapping $\\forall$ and $\\exists$ and negating the inside, as a counterexample does.',
     level: 'tripos-ia',
     area: 'logic',
     prereqs: ['logic.nested-quantifiers', 'logic.equivalences'],

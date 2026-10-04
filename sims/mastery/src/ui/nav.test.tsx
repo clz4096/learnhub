@@ -117,7 +117,8 @@ describe('the start and the placement test', () => {
     await commit({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } });
     go({ view: 'glossary', termId: null });
     render(<App />);
-    expect(document.querySelector('nav.nav')).toBeNull();
+    // Before placement the navigation offers only Home and the glossary.
+    expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Glossary']);
     click('Back to the placement test');
     expect(location.hash).toBe('#/placement');
     expect(screen.getByText(/Placement: question 1/)).toBeTruthy();

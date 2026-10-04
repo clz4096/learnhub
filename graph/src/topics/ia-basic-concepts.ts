@@ -17,7 +17,7 @@ export const iaBasicConcepts: Topic[] = [
   {
     id: 'prob.sampling-models',
     title: 'Ordered and unordered samples, with and without replacement',
-    summary: 'Count samples of size k from n in all four cases, including k from n with repetition.',
+    summary: 'Count samples of size $k$ from $n$ in all four cases, including $k$ from $n$ with repetition.',
     level: 'tripos-ia',
     area: 'ia-basic-concepts',
     prereqs: ['prob.classical-probability', 'comb.repeated-arrangements'],
@@ -28,7 +28,7 @@ export const iaBasicConcepts: Topic[] = [
   {
     id: 'prob.stirling-log',
     title: 'Asymptotics of log n!',
-    summary: 'Prove log n! is asymptotic to n log n by bounding the sum of log k with integrals.',
+    summary: 'Prove $\\log n!$ is asymptotic to $n \\log n$ by bounding the sum of $\\log k$ with integrals.',
     level: 'tripos-ia',
     area: 'ia-basic-concepts',
     prereqs: ['calc.integration-by-parts', 'comb.factorial', 'an.limit-algebra'],
@@ -39,7 +39,7 @@ export const iaBasicConcepts: Topic[] = [
   {
     id: 'prob.stirling-formula',
     title: 'Stirling\'s formula',
-    summary: 'Use n! ~ sqrt(2 pi n)(n/e)^n, for example to estimate the central binomial coefficient.',
+    summary: 'Use $n! \\sim \\sqrt{2 \\pi n}\\,(n/e)^n$, for example to estimate the central binomial coefficient.',
     level: 'tripos-ia',
     area: 'ia-basic-concepts',
     prereqs: ['prob.stirling-log', 'comb.combinations'],

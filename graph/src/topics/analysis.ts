@@ -6,7 +6,7 @@ export const analysis: Topic[] = [
   {
     id: 'an.sequence-limits',
     title: 'Limits of sequences',
-    summary: 'Say what x_n tends to a means and find simple limits such as 1/n and r^n.',
+    summary: 'Say what $x_n \\to a$ means and find simple limits such as $1/n$ and $r^n$.',
     level: 'step',
     area: 'analysis',
     prereqs: ['pre.sequences'],
@@ -17,7 +17,7 @@ export const analysis: Topic[] = [
   {
     id: 'an.epsilon-limit',
     title: 'The epsilon definition of convergence',
-    summary: 'Prove that a sequence converges straight from the definition, using |x_n - a| < epsilon.',
+    summary: 'Prove that a sequence converges straight from the definition, using $|x_n - a| < \\varepsilon$.',
     level: 'tripos-ia',
     area: 'analysis',
     prereqs: ['an.sequence-limits'],
@@ -78,7 +78,7 @@ export const analysis: Topic[] = [
   {
     id: 'an.exp-series',
     title: 'The exponential series',
-    summary: 'Use e^x = sum of x^k/k! over k from 0, for example to sum Poisson probabilities.',
+    summary: 'Use $e^x = \\sum_{k \\ge 0} \\frac{x^k}{k!}$, for example to sum Poisson probabilities.',
     level: 'step',
     area: 'analysis',
     prereqs: ['alg.exp-and-ln', 'comb.factorial', 'alg.geometric-sum-to-infinity'],
@@ -89,7 +89,7 @@ export const analysis: Topic[] = [
   {
     id: 'an.exp-limit',
     title: 'The limit of (1 + x/n)^n',
-    summary: 'Show (1 + x/n)^n tends to e^x by taking logs and using the derivative of ln at 1.',
+    summary: 'Show $(1 + x/n)^n \\to e^x$ by taking logs and using the derivative of $\\ln$ at $1$.',
     level: 'step',
     area: 'analysis',
     prereqs: ['calc.derivatives', 'an.sequence-limits'],

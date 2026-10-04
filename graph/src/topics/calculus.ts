@@ -6,7 +6,7 @@ export const calculus: Topic[] = [
   {
     id: 'calc.derivatives',
     title: 'Differentiating powers, e^x, and ln x',
-    summary: 'Differentiate x^n, e^(kx), and ln x, with sums and constant multiples.',
+    summary: 'Differentiate $x^n$, $e^{kx}$, and $\\ln x$, with sums and constant multiples.',
     level: 'a-level',
     area: 'calculus',
     prereqs: ['alg.exp-and-ln', 'pre.algebraic-manipulation'],
@@ -28,7 +28,7 @@ export const calculus: Topic[] = [
   {
     id: 'calc.integration-by-parts',
     title: 'Integration by parts',
-    summary: 'Integrate a product by reversing the product rule, for example the integral of ln x.',
+    summary: 'Integrate a product by reversing the product rule, for example the integral of $\\ln x$.',
     level: 'a-level',
     area: 'calculus',
     prereqs: ['calc.definite-integrals'],

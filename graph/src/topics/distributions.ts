@@ -6,7 +6,7 @@ export const distributions: Topic[] = [
   {
     id: 'prob.binomial-distribution',
     title: 'The binomial distribution',
-    summary: 'Model the number of successes in n independent trials and compute B(n, p) probabilities.',
+    summary: 'Model the number of successes in $n$ independent trials and compute $B(n, p)$ probabilities.',
     level: 'a-level',
     area: 'distributions',
     prereqs: ['prob.discrete-distributions', 'comb.combinations', 'prob.independent-events'],
@@ -17,7 +17,7 @@ export const distributions: Topic[] = [
   {
     id: 'prob.poisson-distribution',
     title: 'The Poisson distribution',
-    summary: 'Compute Poisson probabilities e^(-lambda) lambda^k/k! and check they sum to one.',
+    summary: 'Compute Poisson probabilities $\\frac{e^{-\\lambda} \\lambda^k}{k!}$ and check they sum to one.',
     level: 'step',
     area: 'distributions',
     prereqs: ['prob.discrete-distributions', 'an.exp-series'],
@@ -39,7 +39,7 @@ export const distributions: Topic[] = [
   {
     id: 'prob.poisson-binomial-limit',
     title: 'The Poisson limit of the binomial',
-    summary: 'Prove that B(n, lambda/n) probabilities tend to Poisson(lambda) probabilities as n grows.',
+    summary: 'Prove that $B(n, \\lambda/n)$ probabilities tend to $\\mathrm{Poisson}(\\lambda)$ probabilities as $n$ grows.',
     level: 'tripos-ia',
     area: 'distributions',
     prereqs: ['prob.binomial-distribution', 'prob.poisson-distribution', 'an.exp-limit', 'prob.point-mass-spaces'],

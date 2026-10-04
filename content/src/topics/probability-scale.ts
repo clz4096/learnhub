@@ -1,11 +1,13 @@
 /** pre.probability-scale: Probability of equally likely outcomes. */
 import { int, pick, q, str, sub, toFloat, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computed, ident, math, t, type Rich } from '../rich';
+import { dmath, ident, listOf, math, t, type Rich } from '../rich';
 import { worked, type ProbabilityClaim, type TopicContent } from '../topic';
 import type { Rng } from '@learnhub/mastery';
 
-const P = (s: Rich | string) => math`P(${s})`;
+/** P(event) with the event in words: P(\text{not red}). */
+const P = (event: string) => math`P(\text{${event}})`;
+const mA = math`A`;
 
 // ---------------------------------------------------------------- generators
 
@@ -31,8 +33,8 @@ const bag = generator<BagP>({
       answer: { kind: 'exact', expected: str(ans) },
       solution: [
         t`Each of the ${n} counters is equally likely to be taken, so there are ${n} [[equally-likely|equally likely]] outcomes.`,
-        t`${r} of them are red, so ${P('red')} = ${math`${r}/${n}`}${str(pr) === `${r}/${n}` ? '' : t`, which is ${pr}`}.`,
-        ...(not ? [t`"Not red" is the [[complement-event|complement]] of "red": ${P('not red')} = ${1} - ${pr} = ${ans}. Or count directly: ${b + g} of the ${n} counters are not red.`] : []),
+        t`${r} of them are red, so ${math`${P('red')} = \frac{${r}}{${n}}`}${str(pr) === `${r}/${n}` ? '' : t`, which is ${pr}`}.`,
+        ...(not ? [t`"Not red" is the [[complement-event|complement]] of "red": ${math`${P('not red')} = ${1} - ${pr} = ${ans}`}. Or count directly: ${b + g} of the ${n} counters are not red.`] : []),
       ],
     };
   },
@@ -90,8 +92,8 @@ const die = generator<DieP>({
       answer: { kind: 'exact', expected: str(ans) },
       solution: [
         t`Fair means all ${n} faces are equally likely.`,
-        t`The faces that are ${eventText(e)} are ${computed(faces.join(', '))}: ${faces.length} of them, so that probability is ${math`${faces.length}/${n}`}${str(p) === `${faces.length}/${n}` ? '' : t` = ${p}`}.`,
-        ...(not ? [t`For "not": ${1} - ${p} = ${ans}.`] : []),
+        t`The faces that are ${eventText(e)} are ${listOf(faces)}: ${faces.length} of them, so that probability is ${math`\frac{${faces.length}}{${n}}${str(p) === `${faces.length}/${n}` ? '' : math` = ${p}`}`}.`,
+        ...(not ? [t`For "not": ${math`${1} - ${p} = ${ans}`}.`] : []),
       ],
     };
   },
@@ -146,7 +148,7 @@ const complement = generator<CompP>({
       answer: { kind: 'exact', expected: str(ans) },
       solution: [
         t`The train is either late or not late, never both, so the two probabilities add to ${1}.`,
-        t`${P('not late')} = ${1} - ${p} = ${ans}.`,
+        t`${math`${P('not late')} = ${1} - ${p} = ${ans}`}.`,
       ],
     };
   },
@@ -158,7 +160,7 @@ const complement = generator<CompP>({
   misconceptions: ({ a, b }): Misconception[] => [
     { response: str(q(a, b)), why: t`That is the probability that it is late. Not late is everything else: ${1} minus it.` },
     { response: str(q(b, a)), why: t`A probability is never more than ${1}. Turning the fraction upside down does not give the complement; subtract from ${1}.` },
-    { response: str(q(b - a, a)), why: t`That compares not late with late. Subtract from ${1} instead: ${1} - ${q(a, b)}.` },
+    { response: str(q(b - a, a)), why: t`That compares not late with late. Subtract from ${1} instead: ${math`${1} - ${q(a, b)}`}.` },
   ],
   trial: ({ a, b }, rng) => !(rng() < toFloat(q(a, b))),
 });
@@ -183,13 +185,13 @@ export const probabilityScale: TopicContent = {
   goal: t`Give a probability on the scale from ${0} to ${1} as favourable outcomes over all outcomes, and use the complement.`,
   lesson: [
     { kind: 'p', text: t`A [[probability|probability]] measures how likely an [[event|event]] is, on a scale from ${0} to ${1}. ${0} means impossible, ${1} means certain, and ${q(1, 2)} means as likely as not. It can be written as a fraction, a decimal, or a percentage: ${q(1, 4)} is ${0.25}, or ${25}%.` },
-    { kind: 'rule', text: t`When all outcomes are [[equally-likely|equally likely]], ${math`P(A) = (number of outcomes in A) / (total number of outcomes)`}.` },
-    { kind: 'p', text: t`A bag holds ${L.red} red and ${L.blue} blue counters, and one is taken at random. Each of the ${nBag} counters is equally likely, and ${L.red} are red, so ${P('red')} = ${pRed}.` },
-    { kind: 'p', text: t`A fair die has ${6} equally likely faces. The even faces are ${computed(evens.join(', '))}, so ${P('even')} = ${math`${evens.length}/${6}`} = ${pEven}.` },
+    { kind: 'rule', text: t`When all outcomes are [[equally-likely|equally likely]], ${dmath`P(A) = \frac{\text{number of outcomes in } A}{\text{total number of outcomes}}.`}` },
+    { kind: 'p', text: t`A bag holds ${L.red} red and ${L.blue} blue counters, and one is taken at random. Each of the ${nBag} counters is equally likely, and ${L.red} are red, so ${math`${P('red')} = ${pRed}`}.` },
+    { kind: 'p', text: t`A fair die has ${6} equally likely faces. The even faces are ${listOf(evens)}, so ${math`${P('even')} = \frac{${evens.length}}{${6}} = ${pEven}`}.` },
     { kind: 'p', text: t`Counting colours instead of counters is a common slip. There are ${2} colours, but red is not ${q(1, 2)} likely, because there are fewer red counters than blue ones.` },
-    { kind: 'rule', text: t`The [[complement-event|complement]] "not A" happens exactly when A does not, so ${math`P(not A) = ${1} - P(A)`}.` },
-    { kind: 'p', text: t`So ${P('not a six')} = ${1} - ${pSix} = ${sub(q(1), pSix)}. The complement is often the quicker route: one event to count instead of five.` },
-    { kind: 'p', text: t`A check on the rule: when one outcome in n is A, ${ident('1 - 1/n', '(n - 1)/n', ['n'], { n: { kind: 'integer', min: 1, max: 50 } })}, which is exactly the share of outcomes that are not A.` },
+    { kind: 'rule', text: t`The [[complement-event|complement]] "not ${mA}" happens exactly when ${mA} does not, so ${dmath`P(\text{not } A) = ${1} - P(A).`}` },
+    { kind: 'p', text: t`So ${math`${P('not a six')} = ${1} - ${pSix} = ${sub(q(1), pSix)}`}. The complement is often the quicker route: one event to count instead of five.` },
+    { kind: 'p', text: t`A check on the rule: when one outcome in ${math`n`} is ${mA}, ${ident('1 - 1/n', '(n - 1)/n', ['n'], { n: { kind: 'integer', min: 1, max: 50 } })}, which is exactly the share of outcomes that are not ${mA}.` },
   ],
   examples: [
     worked(bag, { r: 4, b: 2, g: 6, not: true }, t`A counter that is not red`),

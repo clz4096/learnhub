@@ -6,13 +6,14 @@
  * rejected, and every probability is checked exactly and by simulation.
  */
 import { readFileSync, readdirSync } from 'node:fs';
+import katex from 'katex';
 import { describe, expect, it } from 'vitest';
 import { courseById, courseTargets, coursesClosure, topics } from '@learnhub/graph';
 import { mulberry32, planSession, placementGraph, recordLesson, recordReview, runPlacement, DAY_MS, type MemoryMap } from '@learnhub/mastery';
 import { GLOSSARY, glossaryEntry, searchGlossary } from './glossary';
-import { toFloat } from './math';
-import { grade, sameAnswer, type Instance } from './problem';
-import { markedTerms, plain, type Rich, type Span } from './rich';
+import { q, toFloat } from './math';
+import { answerText, grade, readAnswer, sameAnswer, type Instance } from './problem';
+import { computedMath, dmath, exprTex, ident, markedTerms, math, plain, setOf, t, texToPlain, type Rich, type Span } from './rich';
 import { TOPIC_CONTENT } from './topics';
 import type { Block, TopicContent } from './topic';
 import { contentFor } from './index';
@@ -20,7 +21,32 @@ import { contentFor } from './index';
 const SEEDS = 1000;
 const DIGIT = /[0-9]/;
 const DASH = /[–—]/;
+/**
+ * Mathematics left in plain text: relation and operator signs, set and logic symbols, a
+ * lone +, -, or / between words or numbers, and a factorial. All of it belongs in LaTeX.
+ */
+const MATH_IN_TEXT = /[=<>^*≤≥≠∈∉∪∩∧∨¬⇒⇔ξ∅÷×√π±]|(?:^|\s)[+\-/](?:\s|$)|[A-Za-z0-9]!/;
 const graphIds = new Set(topics.map((t) => t.id));
+
+/** LaTeX already rendered without error, so 1,000 seeds of repeated fragments stay fast. */
+const goodTex = new Set<string>();
+
+/** Every math span parses and renders with KaTeX, strictly: an error is a content bug. */
+function checkTex(r: Rich, where: string): void {
+  for (const s of r as readonly Span[]) {
+    if (s.kind !== 'math') continue;
+    const key = `${s.display === true ? 'D' : 'I'}${s.text}`;
+    if (goodTex.has(key)) continue;
+    let error: string | null = null;
+    try {
+      katex.renderToString(s.text, { throwOnError: true, strict: 'error', displayMode: s.display === true });
+    } catch (e) {
+      error = e instanceof Error ? e.message : String(e);
+    }
+    expect(error, `${where}: KaTeX cannot render "${s.text}"`).toBeNull();
+    goodTex.add(key);
+  }
+}
 
 function blockRich(b: Block): Rich[] {
   switch (b.kind) {
@@ -53,9 +79,11 @@ function checkRich(r: Rich, where: string): void {
   for (const s of r as readonly Span[]) {
     for (const typed of s.typed) expect(DIGIT.test(typed), `${where}: typed digit in "${typed}" (interpolate a computed value instead)`).toBe(false);
     expect(DASH.test(s.text), `${where}: em or en dash in "${s.text}"`).toBe(false);
+    if (s.kind === 'text') expect(MATH_IN_TEXT.exec(s.text)?.[0], `${where}: mathematics in plain text "${s.text}" (write it with math)`).toBeUndefined();
     if (s.check) expect(s.check(), `${where}: identity`).toBeNull();
   }
   for (const id of markedTerms(r)) expect(glossaryEntry(id), `${where}: unknown glossary term "${id}"`).toBeDefined();
+  checkTex(r, where);
 }
 
 describe('content topics', () => {
@@ -148,8 +176,17 @@ describe('content topics', () => {
               expect(r.misconception ?? r.feedback, where).toBeDefined();
             }
             if (seed <= 50) instanceRich(inst).forEach((r, i) => checkRich(r, `${where} text ${i}`));
+            // Every seed: all of its mathematics, and the answer as shown after a miss, renders.
+            [...instanceRich(inst), answerText(inst.problem.answer)].forEach((r, i) => checkTex(r, `${where} text ${i}`));
+            // The reference answer, typed into the answer box, has a preview that renders.
+            if (typeof inst.reference === 'string') {
+              const read = readAnswer(inst.problem.answer, inst.reference);
+              expect(read, `${where}: no preview for the reference ${inst.reference}`).not.toBeNull();
+              checkTex([{ kind: 'math', text: read?.tex ?? '', typed: [] }], `${where} preview`);
+              expect(read?.note, `${where}: the reference answer is read with a note`).toBeUndefined();
+            }
           }
-        });
+        }, 60_000); // 1,000 seeds with grading and KaTeX checks; slow runners and a busy machine need headroom
 
         it(`generator ${g.id}: deterministic for a seed, and varied across seeds`, () => {
           const a = g.instance(7);
@@ -225,6 +262,61 @@ describe('glossary', () => {
     expect(searchGlossary('exponent')[0]?.id).toBe('index');
     expect(searchGlossary('nth term')[0]?.id).toBe('position-to-term');
     expect(searchGlossary('zzzz')).toEqual([]);
+  });
+});
+
+describe('LaTeX in content', () => {
+  it('a digit typed into LaTeX is still a typed digit, and is rejected', () => {
+    const typedDigit = (sp: Span): boolean => sp.typed.some((x) => DIGIT.test(x));
+    expect(typedDigit(math`x^2`)).toBe(true);
+    expect(typedDigit(math`\frac{1}{${2}}`)).toBe(true);
+    expect(typedDigit(dmath`\sqrt[3]{${8}}`)).toBe(true);
+    expect(typedDigit(math`x^{${2}}`)).toBe(false);
+    expect(typedDigit(math`\frac{${1}}{${2}}`)).toBe(false);
+    // Text interpolated into math keeps its typed parts, so a digit cannot hide in it.
+    expect(typedDigit(math`${t`page 3`} + x`)).toBe(true);
+    expect(() => checkRich([math`x^2`], 'probe')).toThrow(/typed digit/);
+  });
+
+  it('math is LaTeX from the raw template: backslashes need no escaping', () => {
+    expect(math`\frac{${3}}{${8}} \times ${q(1, 2)}`.text).toBe('\\frac{3}{8} \\times \\frac{1}{2}');
+    expect(math`${-3} + ${12345}`.text).toBe('-3 + 12{,}345');
+    expect(setOf([1, 2, '...', 9]).text).toBe('\\{1, 2, \\ldots, 9\\}');
+    expect(math`${t`not red`}`.text).toBe('\\text{not red}');
+    expect(dmath`x`.display).toBe(true);
+  });
+
+  it('computed expressions and identities are LaTeX, and identities stay checked inside math', () => {
+    expect(computedMath('2x^2 - 5x + 6').text).toBe('2 x^{2} - 5 x + 6');
+    expect(exprTex('3 * (-8) = -24')).toBe('3 \\times (-8) = -24');
+    expect(exprTex('(x + 2)(x + 3)')).toBe('(x + 2) (x + 3)');
+    expect(ident('0!', '1').text).toBe('0! = 1');
+    const wrong = math`${ident('2^3', '9')}`;
+    expect(wrong.check?.()).toMatch(/does not hold/);
+    expect(() => exprTex('x +')).toThrow(/cannot read/);
+  });
+
+  it('plain text of LaTeX reads naturally, for labels and tests', () => {
+    expect(texToPlain('\\frac{3}{8} \\times 2^{5}')).toBe('3/8 × 2^5');
+    expect(texToPlain('\\{x \\in A \\mid x > 2\\}')).toBe('{x ∈ A | x > 2}');
+    expect(plain(t`so ${math`P(\text{red})`} is`)).toBe('so P(red) is');
+  });
+
+  it('the graph summaries: every $...$ fragment renders with KaTeX', () => {
+    let fragments = 0;
+    for (const tp of topics) {
+      const parts = tp.summary.split('$');
+      expect(parts.length % 2, `${tp.id}: unbalanced $ in the summary`).toBe(1);
+      parts.forEach((p, i) => {
+        if (i % 2 === 1) {
+          checkTex([{ kind: 'math', text: p, typed: [] }], `${tp.id} summary`);
+          fragments++;
+        } else {
+          expect(MATH_IN_TEXT.exec(p)?.[0], `${tp.id} summary: mathematics outside $...$ in "${p}"`).toBeUndefined();
+        }
+      });
+    }
+    expect(fragments).toBeGreaterThan(20);
   });
 });
 
