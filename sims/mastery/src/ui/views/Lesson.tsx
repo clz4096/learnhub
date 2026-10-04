@@ -8,11 +8,11 @@
  * lesson and coming back resumes it where it was.
  */
 import { useState } from 'preact/hooks';
-import { contentFor, type Block, type TopicContent, type WorkedExample } from '@learnhub/content';
+import { contentFor, type Block, type MasteryRule, type TopicContent, type WorkedExample } from '@learnhub/content';
 import { LEVEL_NAMES, sourceLinks, topicOf } from '@/model/courses';
 import { clearPlace, loadPlace, savePlace, type LessonStage } from '@/model/lessonState';
 import { answer, freshPractice, instanceAt, outcomeOf, type PracticeState } from '@/model/practice';
-import { ProblemCard } from '@/ui/ProblemCard';
+import { ProblemCard, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
 import type { Route } from '@/model/route';
 import { BackLink } from '@/ui/BackLink';
 import { Rich } from '@/ui/Rich';
@@ -86,6 +86,23 @@ function Dots({ s, need }: { s: PracticeState; need: number }) {
   );
 }
 
+/** What one practice answer does to the run, in the words the result block shows. */
+export function practiceConsequence(s: PracticeState, rule: MasteryRule, o: CardOutcome): Consequence {
+  const next = answer(s, o === 'correct', rule);
+  const need = rule.correctInARow;
+  if (o === 'correct') {
+    return next.outcome === 'mastered'
+      ? { effect: `That makes ${need} right in a row: the topic is learned.`, next: 'Finish the lesson' }
+      : { effect: `Right in a row: ${next.state.streak} of ${need}.` };
+  }
+  const miss = o === 'gave-up' ? 'Showing the solution counts as a miss' : 'This counts as a miss';
+  if (next.outcome === 'not-yet') {
+    return { effect: `${miss}, and ${need} right in a row can no longer be reached in this run, so practice ends here.`, next: 'See the result' };
+  }
+  const left = rule.maxProblems - next.state.attempts;
+  return { effect: `${miss}: right in a row goes back to 0. ${left} problem${left === 1 ? '' : 's'} left in this run.` };
+}
+
 function Practice({ c, salt, initial, onChange, onEnd }: {
   c: TopicContent;
   salt: string;
@@ -99,7 +116,10 @@ function Practice({ c, salt, initial, onChange, onEnd }: {
     const o = outcomeOf(initial, c.mastery);
     return o === 'continue' ? null : o === 'mastered';
   });
+  // A broken problem is replaced by a fresh one in the same slot; nothing is counted.
+  const [fresh, setFresh] = useState({ k: -1, n: 0 });
   const k = s.attempts;
+  const n = fresh.k === k ? fresh.n : 0;
   if (ended !== null) {
     return ended
       ? (
@@ -124,17 +144,25 @@ function Practice({ c, salt, initial, onChange, onEnd }: {
     <div class="practice">
       <Dots s={s} need={c.mastery.correctInARow} />
       <p class="small muted">Problem {k + 1}. Get {c.mastery.correctInARow} right in a row to learn the topic.</p>
-      <p class="small muted">
-        You can leave and come back: your place is kept while this tab is open. If the tab is closed, practice starts again
-        and the right-in-a-row count resets.
-      </p>
+      {/* Said once, before the first problem, so it does not push every later problem down. */}
+      {k === 0 && (
+        <p class="small muted">
+          You can leave and come back: your place is kept while this tab is open. If the tab is closed, practice starts again
+          and the right-in-a-row count resets.
+        </p>
+      )}
       <ProblemCard
-        key={k}
+        key={`${k}-${n}`}
         index={k}
         mode="practice"
         topicId={c.topicId}
-        instance={instanceAt(c, salt, k)}
+        instance={n === 0 ? instanceAt(c, salt, k) : instanceAt(c, `${salt}.fresh${n}`, k)}
+        consequence={(o) => practiceConsequence(s, c.mastery, o)}
         onDone={(r) => {
+          if (r.outcome === 'problem-error') {
+            setFresh({ k, n: n + 1 });
+            return;
+          }
           const next = answer(s, r.correct, c.mastery);
           setS(next.state);
           onChange(next.state);

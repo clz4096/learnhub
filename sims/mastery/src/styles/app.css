@@ -89,8 +89,11 @@ main { flex: 1; padding: var(--space-4); }
 
 @media (max-width: 699px) {
   .top { padding: var(--space-2) var(--space-3); gap: var(--space-2); }
-  .nav { order: 3; width: 100%; justify-content: space-between; gap: 0; }
-  .nav a { flex: 1; justify-content: center; padding: 0 var(--space-1); font-size: var(--text-sm); }
+  /* One compact row of navigation under the title, scrolling sideways if it ever overflows; Home stays first. */
+  .top { row-gap: 0; padding-top: var(--space-1); padding-bottom: 0; }
+  .help-button { min-height: 36px; }
+  .nav { order: 3; width: 100%; flex-wrap: nowrap; overflow-x: auto; gap: 0; scrollbar-width: none; }
+  .nav a { flex: 1 0 auto; justify-content: center; padding: 0 var(--space-2); font-size: var(--text-sm); min-height: 40px; }
   main { padding: var(--space-3); }
   h1 { font-size: 1.3rem; }
 }
@@ -185,6 +188,49 @@ th { background: var(--surface-2); }
 .choices.chips { flex-direction: row; flex-wrap: wrap; }
 .choices.chips legend { width: 100%; }
 .choices.chips .choice { min-width: 56px; justify-content: center; }
+/* The result of one answer: directly under the answer, above the buttons (design pass 2). */
+.result-block {
+  border-radius: var(--radius-md); border-left: 4px solid var(--border-strong); background: var(--surface-2);
+  padding: var(--space-3) var(--space-3); margin: var(--space-3) 0 0; color: var(--text); scroll-margin-top: 80px;
+}
+.result-block.good { background: var(--good-bg); border-left-color: var(--good); }
+.result-block.bad { background: var(--error-bg); border-left-color: var(--error); }
+.result-block > :last-child { margin-bottom: 0; }
+.result-head { display: flex; align-items: center; gap: var(--space-2); font-size: 1.125rem; margin: 0 0 var(--space-2); flex-wrap: wrap; }
+/* Focus is moved here by the app (tabindex -1, never tabbed to), so it needs no ring. */
+.result-head:focus, .result-head:focus-visible { outline: none; }
+.result-icon {
+  display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; flex: none;
+  font-size: 0.875rem; font-weight: 800; color: var(--surface); background: var(--border-strong);
+}
+.result-icon.good { background: var(--good); }
+.result-icon.bad { background: var(--error); }
+.result-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin: 0 0 var(--space-3); }
+.result-pair.one { grid-template-columns: minmax(0, 1fr); max-width: 50%; }
+.result-pair > div { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-1) var(--space-3) var(--space-2); min-width: 0; overflow-x: auto; }
+.result-pair > div > span:first-child { display: block; font-size: var(--text-sm); color: var(--text-muted); }
+.result-pair strong { display: block; font-size: 1.25rem; font-weight: 600; }
+.result-pair .math .katex, .result-head .math .katex { font-size: 1.2em; }
+.pair-option { display: block; }
+.result-why { margin: 0 0 var(--space-3); }
+.result-solution { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); }
+.result-solution h4 { font-size: var(--text-md); margin: 0 0 var(--space-1); }
+.result-solution ol { margin: 0; }
+.result-effect { margin: var(--space-3) 0 0; }
+.result-block p.result-effect:first-of-type { margin-top: 0; }
+/* The field after Check, coloured to match the result. */
+.answer-box.result-right input { border: 2px solid var(--good); }
+.answer-box.result-wrong input { border: 2px solid var(--error); }
+input[aria-invalid='true'] { border: 2px solid var(--error); }
+.answer-notice .error-text { margin: var(--space-1) 0 0; }
+.answer-notice code, .result-pair code { font-size: 0.95em; }
+.confirm-form { background: var(--warning-bg); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); margin: var(--space-1) 0 0; }
+.confirm-form p { margin: 0; color: var(--text); }
+.confirm-form .actions { margin: var(--space-2) 0 0; }
+.choice-mark { margin-left: auto; padding-left: var(--space-2); font-size: var(--text-sm); font-weight: 700; }
+.choice-mark.good { color: var(--good); }
+.choice-mark.bad { color: var(--error); }
+.choices.chips .choice-mark { margin-left: var(--space-1); padding-left: 0; }
 .feedback { border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); margin-top: var(--space-2); }
 .feedback.good { background: var(--good-bg); }
 .feedback.bad { background: var(--warning-bg); }

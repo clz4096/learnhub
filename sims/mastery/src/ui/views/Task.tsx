@@ -14,7 +14,7 @@ import { REVIEW_PROBLEMS, instanceAt } from '@/model/practice';
 import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
 import { BackLink } from '@/ui/BackLink';
-import { ProblemCard } from '@/ui/ProblemCard';
+import { ProblemCard, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
 import { LessonRunner, type LessonEnd } from '@/ui/views/Lesson';
 
 function after(p: Progress, index: number): void {
@@ -59,11 +59,40 @@ function leave(p: Progress, index: number): void {
   void commit(skipTask(p, index, now())).then(() => after(p, index));
 }
 
+/** What one review answer does, given the answers before it. */
+export function reviewConsequence(before: readonly boolean[], o: CardOutcome): Consequence {
+  const last = before.length + 1 >= REVIEW_PROBLEMS;
+  const next = last ? 'Finish the review' : 'Next problem';
+  const missed = before.indexOf(false);
+  if (o !== 'correct') {
+    return { effect: 'A review passes only when both problems are right, so this review is missed. The topic comes back sooner.', next };
+  }
+  if (missed >= 0) return { effect: `Right, but problem ${missed + 1} was missed, so this review is missed. The topic comes back sooner.`, next };
+  return last
+    ? { effect: 'Both problems right: the review passes, and the next one is further away.', next }
+    : { effect: 'A review passes when both problems are right.', next };
+}
+
+/** What one quiz answer does: each item is a review of its topic. */
+export function quizConsequence(title: string, last: boolean, o: CardOutcome): Consequence {
+  return {
+    effect: o === 'correct'
+      ? `This counts as a passed review of ${title}: its next review moves further away.`
+      : `This counts as a missed review of ${title}: it comes back sooner.`,
+    next: last ? 'Finish the quiz' : 'Next item',
+  };
+}
+
 /** A review: two problems from different skills of one topic; it passes when both are right. */
 function ReviewRunner({ p, task, index }: { p: Progress; task: SessionTask; index: number }) {
   const id = task.topicIds[0] as string;
   const c = contentFor(id);
   const [results, setResults] = useState<boolean[]>([]);
+  // A broken problem is replaced by a fresh one in the same slot; nothing is counted.
+  const [fresh, setFresh] = useState({ k: -1, n: 0 });
+  const k = results.length;
+  const n = fresh.k === k ? fresh.n : 0;
+  const salt = `review-${p.session?.startedAt ?? 0}-${index}`;
   const record = (correct: boolean): void => {
     void commit(completeReview(p, id, correct, now(), index));
   };
@@ -79,12 +108,17 @@ function ReviewRunner({ p, task, index }: { p: Progress; task: SessionTask; inde
           <>
             <p class="small muted">Problem {results.length + 1} of {REVIEW_PROBLEMS}</p>
             <ProblemCard
-              key={results.length}
-              index={results.length}
+              key={`${k}-${n}`}
+              index={k}
               mode="review"
               topicId={id}
-              instance={instanceAt(c, `review-${p.session?.startedAt ?? 0}-${index}`, results.length)}
+              instance={n === 0 ? instanceAt(c, salt, k) : instanceAt(c, `${salt}.fresh${n}`, k)}
+              consequence={(o) => reviewConsequence(results, o)}
               onDone={(r) => {
+                if (r.outcome === 'problem-error') {
+                  setFresh({ k, n: n + 1 });
+                  return;
+                }
                 const rs = [...results, r.correct];
                 if (rs.length >= REVIEW_PROBLEMS) record(rs.every(Boolean));
                 else setResults(rs);
@@ -99,6 +133,8 @@ function ReviewRunner({ p, task, index }: { p: Progress; task: SessionTask; inde
 /** A quiz: one problem per topic; each answer is that topic's review. */
 function QuizRunner({ p, task, index }: { p: Progress; task: SessionTask; index: number }) {
   const [results, setResults] = useState<Record<string, boolean>>({});
+  // A broken problem is replaced by a fresh one for the same item; nothing is counted.
+  const [fresh, setFresh] = useState({ k: -1, n: 0 });
   // Only items with problems can be asked; the planner schedules no others.
   const items = task.topicIds.filter(hasContent);
   const done = Object.keys(results).length;
@@ -113,6 +149,8 @@ function QuizRunner({ p, task, index }: { p: Progress; task: SessionTask; index:
     );
   }
   const c = contentFor(id);
+  const n = fresh.k === done ? fresh.n : 0;
+  const salt = `quiz-${p.session?.startedAt ?? 0}-${index}`;
   const record = (correct: boolean): void => {
     const rs = { ...results, [id]: correct };
     if (Object.keys(rs).length >= items.length) void commit(completeQuiz(p, rs, now(), index));
@@ -124,7 +162,20 @@ function QuizRunner({ p, task, index }: { p: Progress; task: SessionTask; index:
       <p class="small muted">Quiz: item {done + 1} of {items.length}, about {Math.round(task.minutes / task.topicIds.length)} minutes each</p>
       <progress class="bar" max={items.length} value={done} aria-label="Quiz progress" />
       <h1 id="qz-title">{titleOf(id)}</h1>
-      {c !== undefined && <ProblemCard key={id} topicId={id} index={done} mode="quiz" instance={instanceAt(c, `quiz-${p.session?.startedAt ?? 0}-${index}`, done)} onDone={(r) => record(r.correct)} />}
+      {c !== undefined && (
+        <ProblemCard
+          key={`${id}-${n}`}
+          topicId={id}
+          index={done}
+          mode="quiz"
+          instance={n === 0 ? instanceAt(c, salt, done) : instanceAt(c, `${salt}.fresh${n}`, done)}
+          consequence={(o) => quizConsequence(titleOf(id), done + 1 >= items.length, o)}
+          onDone={(r) => {
+            if (r.outcome === 'problem-error') setFresh({ k: done, n: n + 1 });
+            else record(r.correct);
+          }}
+        />
+      )}
     </section>
   );
 }

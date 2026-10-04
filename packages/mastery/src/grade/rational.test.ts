@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { equalRational, formatRational, gradeExact, parseRational, rational, toNumber } from './rational';
 import { gradeNumeric, parseNumber } from './numeric';
 import { gradeChoice } from './choice';
+import { isProblemError, problemError } from './types';
 
 const R = (s: string): string => {
   const r = parseRational(s);
@@ -148,5 +149,17 @@ describe('gradeChoice', () => {
     expect(gradeChoice('a', { options: ['a', 'a'], correct: 'a' }).feedback).toMatch(/^Problem error/);
     expect(gradeChoice('a', { options: ['a'], correct: 'q' }).feedback).toMatch(/^Problem error/);
     expect(gradeChoice('a', { options: ['a'], correct: [] }).feedback).toMatch(/^Problem error/);
+  });
+});
+
+describe('isProblemError', () => {
+  it('tells a broken problem from a wrong answer', () => {
+    expect(isProblemError(gradeExact('1', 'one'))).toBe(true);
+    expect(isProblemError(gradeNumeric('1', Number.NaN))).toBe(true);
+    expect(isProblemError(gradeChoice('a', { options: ['a'], correct: 'q' }))).toBe(true);
+    expect(isProblemError(problemError('x', '1'))).toBe(true);
+    expect(isProblemError(gradeExact('2', '1'))).toBe(false);
+    expect(isProblemError(gradeExact('3/', '1'))).toBe(false);
+    expect(isProblemError(gradeExact('1', '1'))).toBe(false);
   });
 });

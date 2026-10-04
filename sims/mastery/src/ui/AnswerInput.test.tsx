@@ -166,7 +166,7 @@ describe('in a problem', () => {
     const [n, d] = (inst.reference as string).split('/');
     fireEvent.input(input(), { target: { value: `${n} ÷ ${d}` } });
     fireEvent.submit(input().form as HTMLFormElement);
-    expect(await screen.findByText('Right.')).toBeTruthy();
+    expect(await screen.findByText('Correct')).toBeTruthy();
     // After checking, the keypad and preview are gone.
     expect(screen.queryByRole('group', { name: 'Math symbols' })).toBeNull();
   });

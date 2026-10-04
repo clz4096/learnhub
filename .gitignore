@@ -6,3 +6,4 @@ site
 *.trace
 sims/*/bench/build
 sims/*/bench/results
+mastery/design-pass-2/

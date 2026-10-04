@@ -20,7 +20,7 @@ import { instanceAt, seedFor } from '@/model/practice';
 import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
 import { BackLink } from '@/ui/BackLink';
-import { ProblemCard } from '@/ui/ProblemCard';
+import { ProblemCard, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
 import { ImportFile } from '@/ui/views/ProgressView';
 
 /** `step` is the route's: the courses step, or placement (which needs courses chosen first). */
@@ -143,11 +143,22 @@ function PlacementIntro({ p }: { p: Progress }) {
   );
 }
 
+/** What one placement answer does, as the result block says it. */
+export function placementConsequence(o: CardOutcome): Consequence {
+  return {
+    effect: o === 'correct'
+      ? 'Saved. This topic and the topics beneath it count as known.'
+      : 'Saved. This topic starts with a lesson, and topics that build on it wait for it.',
+  };
+}
+
 function Placement({ p }: { p: Progress }) {
   const g = useMemo(() => placementGraphFor(p), [p.courses.join()]);
   const answers = p.placement?.answers ?? [];
   const next = nextProbe(g, answers);
   const budget = budgetFor(g);
+  // A broken problem is replaced by a fresh one on the same topic; nothing is recorded.
+  const [fresh, setFresh] = useState({ k: '', n: 0 });
 
   // Every topic is classified or the budget is spent: finish and save.
   useEffect(() => {
@@ -159,6 +170,8 @@ function Placement({ p }: { p: Progress }) {
   const c = contentFor(next);
   const record = (correct: boolean): void => void commit(answerPlacement(p, next, correct, now()));
   const n = answers.length + 1;
+  const slot = `${next}-${n}`;
+  const f = fresh.k === slot ? fresh.n : 0;
 
   return (
     <section class="page placement" aria-labelledby="pl-title">
@@ -169,12 +182,16 @@ function Placement({ p }: { p: Progress }) {
       {/* nextProbe only returns topics with content (placementGraphFor's probeable). */}
       {c !== undefined && (
         <ProblemCard
-          key={`${next}-${n}`}
+          key={`${slot}-${f}`}
           index={n}
           mode="placement"
           topicId={next}
-          instance={instanceAt(c, seedFor('placement', p.createdAt), n)}
-          onDone={(r) => record(r.correct)}
+          instance={f === 0 ? instanceAt(c, seedFor('placement', p.createdAt), n) : instanceAt(c, seedFor('placement', p.createdAt, 'fresh', f), n)}
+          consequence={placementConsequence}
+          onDone={(r) => {
+            if (r.outcome === 'problem-error') setFresh({ k: slot, n: f + 1 });
+            else record(r.correct);
+          }}
         />
       )}
       <p class="small muted">Answers so far: {answers.filter((a) => a.correct).length} known, {answers.filter((a) => !a.correct).length} to learn.</p>

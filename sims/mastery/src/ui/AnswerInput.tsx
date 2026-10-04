@@ -7,7 +7,12 @@
  * On a touch screen, while the field has focus, the keypad docks to the top of the system
  * keyboard (measured with the visual viewport), and the page scrolls so the field and its
  * preview stay visible above the keypad.
+ *
+ * The card that owns the field puts its messages about the typed text (it cannot be read,
+ * or it is read in a form the question does not ask for) under the preview, through
+ * `notice`. After Check the field is disabled, coloured by the result, and the hint goes.
  */
+import type { ComponentChildren } from 'preact';
 import { useEffect, useLayoutEffect, useRef, useState, type MutableRef } from 'preact/hooks';
 import { readAnswer } from '@learnhub/content';
 import { hintFor, inputModeFor, insertKey, keypadFor, type Key, type TextSpec } from '@/model/keypad';
@@ -53,7 +58,7 @@ function useDock(focused: boolean, box: MutableRef<HTMLDivElement | null>, pad: 
   return docked;
 }
 
-export function AnswerInput({ id, spec, topicId, value, disabled, onChange, inputRef }: {
+export function AnswerInput({ id, spec, topicId, value, disabled, onChange, inputRef, notice, invalid = false, result }: {
   /** Prefix for element ids, unique on the page. */
   id: string;
   spec: TextSpec;
@@ -63,6 +68,12 @@ export function AnswerInput({ id, spec, topicId, value, disabled, onChange, inpu
   disabled: boolean;
   onChange: (v: string) => void;
   inputRef?: MutableRef<HTMLInputElement | null>;
+  /** Shown under the preview and read with the field. */
+  notice?: ComponentChildren;
+  /** The text cannot be graded as it is. */
+  invalid?: boolean;
+  /** After Check: colours the disabled field. */
+  result?: 'right' | 'wrong';
 }) {
   const own = useRef<HTMLInputElement>(null);
   const ref = inputRef ?? own;
@@ -93,10 +104,15 @@ export function AnswerInput({ id, spec, topicId, value, disabled, onChange, inpu
 
   const reading = disabled || value.trim() === '' ? undefined : readAnswer(spec, value);
   const inputId = `${id}-input`;
+  const hasNotice = notice !== undefined && notice !== null && notice !== false;
+  // After Check the result block shows how the answer was read, so the preview and hint go.
+  // A notice says more than the preview about the same text, so it takes the preview's place.
+  const preview = !disabled && !hasNotice;
+  const described = [preview ? `${id}-preview` : null, hasNotice ? `${id}-notice` : null, disabled ? null : `${id}-hint`].filter((x) => x !== null).join(' ');
   return (
     <div class="field answer-field">
       <label for={inputId}>Your answer</label>
-      <div class="answer-box" ref={box}>
+      <div class={`answer-box${result === undefined ? '' : ` result-${result}`}`} ref={box}>
         <input
           ref={ref}
           id={inputId}
@@ -109,12 +125,13 @@ export function AnswerInput({ id, spec, topicId, value, disabled, onChange, inpu
           inputMode={inputModeFor(spec)}
           value={value}
           disabled={disabled}
-          aria-describedby={`${id}-preview ${id}-hint`}
+          aria-describedby={described === '' ? undefined : described}
+          aria-invalid={invalid ? 'true' : undefined}
           onInput={(e) => onChange((e.currentTarget as HTMLInputElement).value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
         />
-        <p id={`${id}-preview`} class="small preview" data-state={reading === undefined ? 'empty' : reading === null ? 'unread' : reading.note === undefined ? 'read' : 'note'}>
+        {preview && <p id={`${id}-preview`} class="small preview" data-state={reading === undefined ? 'empty' : reading === null ? 'unread' : reading.note === undefined ? 'read' : 'note'}>
           {reading === null && 'Could not read this yet.'}
           {reading !== null && reading !== undefined && (
             <>
@@ -122,7 +139,8 @@ export function AnswerInput({ id, spec, topicId, value, disabled, onChange, inpu
               {reading.note !== undefined && <span class="preview-note"> {reading.note}</span>}
             </>
           )}
-        </p>
+        </p>}
+        {hasNotice && <div id={`${id}-notice`} class="answer-notice">{notice}</div>}
       </div>
       {!disabled && (
         <div ref={pad} class={`keypad${docked ? ' docked' : ''}`} role="group" aria-label="Math symbols">
@@ -143,7 +161,7 @@ export function AnswerInput({ id, spec, topicId, value, disabled, onChange, inpu
           ))}
         </div>
       )}
-      <span id={`${id}-hint`} class="small muted">{hintFor(spec)}</span>
+      {!disabled && <span id={`${id}-hint`} class="small muted">{hintFor(spec)}</span>}
     </div>
   );
 }

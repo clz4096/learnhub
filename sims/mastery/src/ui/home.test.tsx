@@ -133,8 +133,8 @@ describe('Home and the browser history', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Next: worked examples' }));
     fireEvent.click(screen.getByRole('button', { name: 'Next: practice' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Show me how' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Show me how/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next problem' }));
     expect(screen.getByText(/^Problem 2\./)).toBeTruthy();
 
     fireEvent.click(homeItem());
@@ -152,8 +152,8 @@ describe('Home and the browser history', () => {
     await STATES['a learner in the placement test']();
     go({ view: 'placement' });
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'I do not know this' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: /^I do not know this/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next question' }));
     await flush();
     expect(screen.getByText(/Placement: question 2/)).toBeTruthy();
 

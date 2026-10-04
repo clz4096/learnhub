@@ -79,8 +79,8 @@ describe('the start and the placement test', () => {
     await commit({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } });
     go({ view: 'placement' });
     render(<App />);
-    click('I do not know this');
-    click('Continue');
+    click(/^I do not know this/);
+    click('Next question');
     await flush();
     expect(screen.getByText(/Placement: question 2/)).toBeTruthy();
 
@@ -174,9 +174,11 @@ describe('a placed learner', () => {
     click('Next: worked examples');
     click('Next: practice');
     expect(screen.getByText(/If the tab is closed, practice starts again/)).toBeTruthy();
-    click('Show me how');
-    click('Continue');
+    click(/^Show me how/);
+    click('Next problem');
     expect(screen.getByText(/^Problem 2\./)).toBeTruthy();
+    // The note is said once, before the first problem.
+    expect(screen.queryByText(/If the tab is closed, practice starts again/)).toBeNull();
 
     click('Back to today');
     expect(location.hash).toBe('#/');
@@ -245,8 +247,8 @@ describe('the end of a lesson', () => {
     click('Next: practice');
     const key = `lesson-${progress.value?.session?.startedAt ?? 0}-0.pre.fractions`;
     for (let i = 0; i < 30 && screen.queryByText('Not yet, and that is normal') === null; i++) {
-      click('Show me how');
-      click('Continue');
+      click(/^Show me how/);
+      click(/^(Next problem|See the result)$/);
     }
     expect(loadPlace(key)?.stage).toBe('practice');
     click('Continue');

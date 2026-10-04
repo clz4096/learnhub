@@ -36,7 +36,14 @@ export function normalizeSymbols(s: string): string {
     .trim();
 }
 
+const PROBLEM_ERROR = 'Problem error, not your answer: ';
+
 /** The result for a broken problem: wrong, with a message that says it is not the learner's fault. */
 export function problemError(message: string, answer: string): GradeResult {
-  return { correct: false, feedback: `Problem error, not your answer: ${message}`, normalizedAnswer: answer.trim() };
+  return { correct: false, feedback: `${PROBLEM_ERROR}${message}`, normalizedAnswer: answer.trim() };
+}
+
+/** Whether a result came from a broken problem (`problemError`), so it must not count as the learner's miss. */
+export function isProblemError(r: GradeResult): boolean {
+  return !r.correct && r.feedback?.startsWith(PROBLEM_ERROR) === true;
 }

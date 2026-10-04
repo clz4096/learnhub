@@ -9,7 +9,11 @@ import { HUB_KEY, commit, flush, init, loadWarnings, progress, setClock } from '
 import { ProgressView, confirms } from '@/ui/views/ProgressView';
 import { Today } from '@/ui/views/Today';
 import { Start } from '@/ui/views/Start';
-import { LearnView, TaskView } from '@/ui/views/Task';
+import { LearnView, TaskView, quizConsequence, reviewConsequence } from '@/ui/views/Task';
+import { practiceConsequence } from '@/ui/views/Lesson';
+import { placementConsequence } from '@/ui/views/Start';
+import { contentFor } from '@learnhub/content';
+import { freshPractice } from '@/model/practice';
 import { ALL_EDGES_KEY, MapView, edgesToDraw, wrap } from '@/ui/views/MapView';
 import { ALL_TOPICS } from '@/model/courses';
 
@@ -114,7 +118,8 @@ const backLink = (): string | null | undefined => document.querySelector('button
 
 function expectNoSelfReport(): void {
   expect(document.body.textContent ?? '').not.toMatch(SELF_REPORT);
-  for (const b of screen.queryAllByRole('button')) expect(b.textContent ?? '').not.toMatch(/\bknow\b(?! this$)|forgot/i);
+  // "I do not know this" may say what it costs, in brackets, and nothing else.
+  for (const b of screen.queryAllByRole('button')) expect(b.textContent ?? '').not.toMatch(/\bknow\b(?! this(?: \([^()]*\))?$)|forgot/i);
   expect(document.querySelector('.self-report, .badge-self')).toBeNull();
 }
 
@@ -132,7 +137,7 @@ describe('no view offers self-report', () => {
     await commit({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } });
     render(<Start />);
     expect(screen.getByRole('button', { name: 'Check' })).toBeTruthy();
-    expect(actions()).toEqual(['Check', 'I do not know this']);
+    expect(actions()).toEqual(['Check', 'I do not know this (starts this topic with a lesson)']);
     expect(backLink()).toBe('Back to courses and minutes');
     expectNoSelfReport();
   });
@@ -301,5 +306,62 @@ describe('map labels', () => {
 
   it('cuts with an ellipsis past the last line', () => {
     expect(wrap('one two three four five six seven', 9, 2)).toEqual(['one two', 'three fo…']);
+  });
+});
+
+describe('what one answer does to progress, as the result says it', () => {
+  const rule = { correctInARow: 3, maxProblems: 10 };
+
+  it('practice: a miss resets the count and says how many problems are left', () => {
+    expect(practiceConsequence(freshPractice(), rule, 'wrong')).toEqual({ effect: 'This counts as a miss: right in a row goes back to 0. 9 problems left in this run.' });
+    expect(practiceConsequence(freshPractice(), rule, 'gave-up').effect).toMatch(/^Showing the solution counts as a miss: right in a row goes back to 0/);
+    expect(practiceConsequence({ attempts: 2, streak: 2, results: [true, true] }, rule, 'correct')).toEqual({ effect: 'That makes 3 right in a row: the topic is learned.', next: 'Finish the lesson' });
+    expect(practiceConsequence({ attempts: 1, streak: 1, results: [true] }, rule, 'correct')).toEqual({ effect: 'Right in a row: 2 of 3.' });
+    // Seven answered, none right: one more miss leaves 2 problems, too few for three in a row.
+    const late = { attempts: 7, streak: 0, results: Array<boolean>(7).fill(false) };
+    expect(practiceConsequence(late, rule, 'wrong')).toMatchObject({ next: 'See the result' });
+    expect(practiceConsequence(late, rule, 'wrong').effect).toMatch(/practice ends here/);
+  });
+
+  it('review: says when a miss fails the review, including a right answer after a miss', () => {
+    expect(reviewConsequence([], 'wrong')).toEqual({ effect: 'A review passes only when both problems are right, so this review is missed. The topic comes back sooner.', next: 'Next problem' });
+    expect(reviewConsequence([false], 'correct').effect).toBe('Right, but problem 1 was missed, so this review is missed. The topic comes back sooner.');
+    expect(reviewConsequence([true], 'correct')).toEqual({ effect: 'Both problems right: the review passes, and the next one is further away.', next: 'Finish the review' });
+  });
+
+  it('quiz and placement', () => {
+    expect(quizConsequence('Fractions', false, 'wrong')).toEqual({ effect: 'This counts as a missed review of Fractions: it comes back sooner.', next: 'Next item' });
+    expect(quizConsequence('Fractions', true, 'correct').next).toBe('Finish the quiz');
+    expect(placementConsequence('wrong').effect).toBe('Saved. This topic starts with a lesson, and topics that build on it wait for it.');
+    expect(placementConsequence('correct').effect).toBe('Saved. This topic and the topics beneath it count as known.');
+  });
+
+  it('a wrong review answer shows the result above the button, with its effect, and is recorded only once both are answered', async () => {
+    await placedLearner();
+    const p = progress.value as Progress;
+    await commit({ ...p, memory: placedMemory(['pre.fractions'], T0 - 30 * 86_400_000), session: { day: localDay(T0), startedAt: T0, tasks: [{ kind: 'review', topicIds: ['pre.fractions'], minutes: 3, reason: 'r', done: false, passed: null }] } });
+    render(<TaskView index={0} />);
+    fireEvent.input(screen.getByLabelText('Your answer'), { target: { value: '987654321' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check' }));
+    expect(screen.getByRole('heading', { name: 'Incorrect' })).toBeTruthy();
+    expect(screen.getByText(/so this review is missed/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Next problem' }));
+    expect(screen.getByText('Problem 2 of 2')).toBeTruthy();
+    expect(progress.value?.session?.tasks[0]?.done).toBe(false);
+  });
+
+  it('placement: a wrong answer shows the correct answer and what it does, and is saved as not known', async () => {
+    await commit({ ...startLearner(T0, DEFAULT_COURSES, 60), placement: { answers: [], done: false } });
+    render(<Start />);
+    const topicId = document.querySelector('.problem')?.getAttribute('data-topic') as string;
+    expect(contentFor(topicId)).toBeDefined();
+    fireEvent.input(screen.getByLabelText('Your answer'), { target: { value: '987654321' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check' }));
+    expect(document.querySelector('.result-head')?.textContent).toMatch(/Not right: the answer is/);
+    expect(screen.getByText(/Saved\. This topic starts with a lesson/)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/solution below/);
+    fireEvent.click(screen.getByRole('button', { name: 'Next question' }));
+    await flush();
+    expect(progress.value?.placement?.answers).toEqual([expect.objectContaining({ topicId, correct: false })]);
   });
 });

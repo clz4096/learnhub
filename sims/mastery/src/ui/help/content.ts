@@ -38,8 +38,9 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     paragraphs: [
       'A lesson has three parts: Learn, Worked examples, and Practice. Practice gives you fresh problems until you get several right in a row, which is the topic\'s mastery rule. Then the topic counts as learned.',
       'Type numbers as a whole number, a fraction such as 3/8 or 3÷8, or an exact decimal. Type expressions with ^ for powers, such as x^2 + 3x; a multiplication sign is optional, and √ and π work too.',
-      'The line under the answer box shows how your answer was read, written as mathematics. The keys below it add symbols at the cursor, such as the fraction bar, powers, and roots. Enter checks the answer. For "choose every one that applies", tick all the right options.',
-      'A wrong answer is part of learning. The feedback names the likely slip when it can, and the worked solution shows one way through. If a lesson does not stick today, it comes back in another session.',
+      'The line under the answer box shows how your answer was read, written as mathematics. The keys below it add symbols at the cursor, such as the fraction bar, powers, and roots. Enter checks the answer. If the answer cannot be read yet, nothing is graded: finish it and press Enter again. If it is read in a form the question does not ask for, such as a calculation where a single number is asked, you can edit it or check it anyway.',
+      'A wrong answer is part of learning. The result shows your answer beside the correct one, names the likely slip when it can, gives the full worked solution, and says what the miss does to your progress. "Show me how" shows the solution too, and counts as a miss. If a lesson does not stick today, it comes back in another session.',
+      'You can leave a lesson and come back: your place is kept while this tab is open. If the tab is closed, practice starts again and the right-in-a-row count resets.',
     ],
   },
   {
@@ -54,7 +55,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'placement',
     title: 'The placement test',
     paragraphs: [
-      'At the start, a short test finds what you already know. A right answer also counts the topics beneath it; a wrong one rules out the topics above it. It asks only about topics whose problems are written; the others count as not known until their lessons exist, and are shown as "Lesson not written yet".',
+      'At the start, a short test finds what you already know. After each question it tells you whether you were right and gives the correct answer. A right answer also counts the topics beneath it; a wrong one rules out the topics above it. It asks only about topics whose problems are written; the others count as not known until their lessons exist, and are shown as "Lesson not written yet".',
     ],
   },
   {
