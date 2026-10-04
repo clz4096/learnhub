@@ -14,7 +14,7 @@ function T(id: string, prereqs: string[] = [], over: Partial<Topic> = {}): Topic
     area: 'test',
     prereqs,
     encompasses: {},
-    source: { doc: 'test-doc', course: 'Test course', section: 'Test section', verified: true },
+    sources: [{ doc: 'test-doc', course: 'Test course', section: 'Test section', verified: true }],
     estMinutes: 15,
     ...over,
   };
@@ -194,17 +194,37 @@ describe('validateGraph: text, source, minutes', () => {
     expect(codes(validateGraph([T('t.a', [], { summary: '  ' })]).errors)).toEqual(['bad-summary']);
   });
 
-  it('rejects a missing source or an empty section', () => {
+  it('rejects missing or empty sources, and an empty section', () => {
     const noSource = { ...T('t.a') } as Partial<Topic>;
-    delete noSource.source;
+    delete noSource.sources;
     expect(codes(validateGraph([noSource as Topic]).errors)).toEqual(['missing-source']);
-    expect(codes(validateGraph([T('t.a', [], { source: { doc: 'd', course: 'c', section: ' ', verified: true } })]).errors))
+    const empty = validateGraph([T('t.a', [], { sources: [] })]);
+    expect(codes(empty.errors)).toEqual(['missing-source']);
+    expect(empty.errors[0]?.message).toBe('t.a has no sources');
+    expect(codes(validateGraph([T('t.a', [], { sources: [{ doc: 'd', course: 'c', section: ' ', verified: true }] })]).errors))
       .toEqual(['missing-source']);
   });
 
   it('rejects a source with no course', () => {
-    expect(codes(validateGraph([T('t.a', [], { source: { doc: 'd', course: '', section: 's', verified: true } })]).errors))
+    expect(codes(validateGraph([T('t.a', [], { sources: [{ doc: 'd', course: '', section: 's', verified: true }] })]).errors))
       .toEqual(['missing-source']);
+  });
+
+  it('accepts several sources, one per course that teaches the topic', () => {
+    const sources = [
+      { doc: 'step', course: 'STEP Mathematics 1', section: 'Proof', verified: true },
+      { doc: 'cst', course: 'CST IA Discrete Mathematics', section: 'Numbers', verified: true },
+    ];
+    expect(validateGraph([T('t.a', [], { sources })])).toEqual({ errors: [], warnings: [] });
+  });
+
+  it('checks every source, not only the first, and names the bad one', () => {
+    const r = validateGraph([T('t.a', [], { sources: [
+      { doc: 'd', course: 'c', section: 's', verified: true },
+      { doc: 'd', course: 'c', section: '', verified: true },
+    ] })]);
+    expect(codes(r.errors)).toEqual(['missing-source']);
+    expect(r.errors[0]?.message).toBe('t.a source 2 has no document, course, and section');
   });
 
   it('rejects a prerequisite at a higher level than the topic that needs it', () => {
@@ -220,10 +240,23 @@ describe('validateGraph: text, source, minutes', () => {
   });
 
   it('warns on an unverified source and includes the note', () => {
-    const r = validateGraph([T('t.a', [], { source: { doc: 'd', course: 'c', section: 's', note: 'name not confirmed', verified: false } })]);
+    const r = validateGraph([T('t.a', [], { sources: [{ doc: 'd', course: 'c', section: 's', note: 'name not confirmed', verified: false }] })]);
     expect(r.errors).toEqual([]);
     expect(codes(r.warnings)).toEqual(['unverified-source']);
     expect(r.warnings[0]?.message).toContain('name not confirmed');
+  });
+
+  it('warns once per unverified source', () => {
+    const r = validateGraph([T('t.a', [], { sources: [
+      { doc: 'd1', course: 'c1', section: 's1', verified: false },
+      { doc: 'd2', course: 'c2', section: 's2', verified: true },
+      { doc: 'd3', course: 'c3', section: 's3', verified: false },
+    ] })]);
+    expect(r.errors).toEqual([]);
+    expect(r.warnings.map((w) => w.message)).toEqual([
+      't.a cites "d1: c1, s1", not yet verified',
+      't.a cites "d3: c3, s3", not yet verified',
+    ]);
   });
 
   it.each([0, -5, Number.NaN])('rejects estMinutes %d', (estMinutes) => {

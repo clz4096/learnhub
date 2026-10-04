@@ -17,6 +17,14 @@ Albert wants to learn the Cambridge Mathematics and Computer Science courses fro
 7. **Devices:** mostly the Mac, also the phone. Desktop layout first; every view must work on a phone.
 8. **Placement starts below STEP:** the graph's roots are pre-A-level and A-level basics (fractions, algebra, indices, sequences, sigma notation, basic probability), so gaps under STEP are caught.
 9. **Shared package:** the mastery engine is `packages/mastery`, used by every course from the start.
+10. **One shared knowledge graph across all courses** (2026-10-04). A topic is defined once and can belong to several courses (for example induction in Numbers and Sets and in CS Discrete Mathematics; Bayes in IA Probability and CS Introduction to Probability). A course is a target set of topics; placement, the frontier, and scheduling work on the closure of the chosen courses. A topic's source becomes a list of citations, one per course that teaches it. Changed at the engine gate review, before a second course exists.
+11. **Every course starts from scratch** (2026-10-04). No course assumes what the learner already knows. Fast progress comes only from the placement test and mastery checks, measured from answers, never from assumptions about the learner.
+12. **Code exercises run locally** (2026-10-04). Exercises in OCaml, C++, Prolog, and other languages are graded by a local runner (tests on Albert's machine) whose results are recorded into progress. Running code in the browser is a separate, later project.
+13. **Object-oriented programming is taught in C++, not Java** (2026-10-04). A deliberate substitution for the CS Tripos IA Object-Oriented Programming course (which uses Java). Topics shared with IB Programming in C and C++ are defined once in the shared graph.
+14. **Two courses at once, interleaved daily** (2026-10-04): Maths IA Probability and CS Discrete Mathematics run in parallel. Shared foundations are learned once; each day's 60 minutes mixes both courses, split evenly by default (the split is a setting). Discrete Mathematics needs its own slice graph (new foundations: logic and quantifiers, divisibility and remainders, functions as mappings), reviewed like the probability slice before content is written.
+15. **Hardware labs are simulated in Verilog** (2026-10-04) with open-source tools inside the runner VM (for example Icarus Verilog or Verilator). Group projects, design and studio courses (Interaction Design, Further HCI, Further Graphics), and essay courses (Economics, Law and Ethics; Business Studies; Cybercrime) are left out.
+16. **The code runner** (2026-10-04): exercises run inside a dedicated Multipass VM with the course toolchains (OCaml, C++, SWI-Prolog, Verilog). Results reach the course through an automatic folder the course watches (the File System Access API, which Chrome supports and Safari does not); an import button remains as the fallback.
+17. **CS course order** (2026-10-04): CST IA Discrete Mathematics (now, alongside Maths IA Probability), then CST IA Foundations of Computer Science (OCaml; the first course with code exercises, so the local runner is built with it, under its own design doc and review), then CST IA Algorithms 1 and 2. Later branches are chosen when these are done.
 
 ## Goals (v1)
 
@@ -109,7 +117,8 @@ One file per topic in the course folder, reviewed like code:
 export default topic({
   id: 'prob.bayes-formula',
   title: "Bayes's formula",
-  source: { doc: 'schedules-2026-27', course: 'IA Probability', section: 'Axiomatic approach' },
+  // One citation per course that teaches the topic (shared graph, decision 10).
+  sources: [{ doc: 'tripos-schedules-2026-27', course: 'IA Probability', section: 'Axiomatic approach', verified: true }],
   prereqs: ['prob.conditional-probability', 'prob.law-of-total-probability'],
   // Practicing this topic also counts as partial review of these, with this weight.
   encompasses: { 'prob.conditional-probability': 0.5, 'prob.law-of-total-probability': 0.5 },

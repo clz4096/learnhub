@@ -2,11 +2,13 @@
 
 Dated 2026-10-04. Status: first review gate of the mastery course (see `mastery/DESIGN.md`). Topic list and edges only; no lessons, problems, engine, or UI yet.
 
+Moved on 2026-10-04 from `courses/probstats/graph/REVIEW.md` when the topics joined the shared graph (design decision 10). The record below is as approved, except for file paths. The topics now live in `graph/src/topics/`, one file per area, and each cites a list of `sources` instead of one `source`; ids, titles, summaries, levels, areas, edges, weights, and minutes are unchanged. The slice is the closure of the course `ia-probability` (`graph/src/courses.ts`).
+
 ## What the slice covers
 
 The slice runs from GCSE-level roots (fractions, algebra, indices, sets, the product rule) up to the first two sections of IA Probability: "Basic concepts" [3 lectures] and "Axiomatic approach" [5 lectures]. In between it has the A-level and STEP material those sections lean on (counting, the binomial theorem, A-level probability, the binomial and Poisson distributions), and the slices of Analysis I and Numbers and Sets they need (limits, series of nonnegative terms, bounded monotone sequences, countable unions, the exponential series, and the limit of (1 + x/n)^n).
 
-The data lives in `topics.ts`. `graph.test.ts` runs the shared validator from `packages/mastery` on it.
+The data lives in `graph/src/topics/`. `graph/src/graph.test.ts` runs the shared validator from `packages/mastery` on it.
 
 | level | topics | minutes | hours |
 |---|---|---|---|

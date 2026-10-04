@@ -1,5 +1,5 @@
 /**
- * Knowledge graph: topics, their prerequisites, and the checks every course graph must pass.
+ * Knowledge graph: topics, their prerequisites, and the checks the shared graph must pass.
  *
  * Edges point from a topic to the topics it requires. A topic is learnable once every
  * prerequisite is mastered (the frontier). `encompasses` says which ancestors get partial
@@ -40,7 +40,12 @@ export interface Topic {
   prereqs: string[];
   /** Ancestor id to review credit in (0, 1]. */
   encompasses: Record<string, number>;
-  source: TopicSource;
+  /**
+   * Where the topic is taught, one citation per course that teaches it, so a topic shared
+   * by two courses is defined once (for example induction in STEP and in CS Discrete
+   * Mathematics). Never empty. A course's targets are the topics that cite it.
+   */
+  sources: readonly TopicSource[];
   estMinutes: number;
 }
 
@@ -226,11 +231,13 @@ function findCycles(byId: ReadonlyMap<string, Topic>): string[][] {
  *
  * Errors: duplicate or badly formed ids, unknown levels, missing prerequisite or
  * encompassed ids, encompassed ids that are not transitive prerequisites, weights outside
- * (0, 1], cycles, topics not reachable from a root, roots above A-level, missing sources,
- * em or en dashes in titles or summaries, multi-line summaries, non-positive minutes.
+ * (0, 1], cycles, topics not reachable from a root, roots above A-level, prerequisites
+ * at a higher level than the topic, no sources or a source without a document, course,
+ * and section, em or en dashes in titles or summaries, multi-line summaries, non-positive
+ * minutes.
  *
  * Warnings: prerequisite edges already implied by another prerequisite (checked only when
- * the graph has no cycles), and sources not yet verified.
+ * the graph has no cycles), and each source not yet verified.
  */
 export function validateGraph(topics: readonly Topic[]): ValidationResult {
   const errors: Issue[] = [];
@@ -252,11 +259,17 @@ export function validateGraph(topics: readonly Topic[]): ValidationResult {
     if (t.summary.trim() === '' || /[\r\n]/.test(t.summary)) err('bad-summary', `${t.id} summary must be one non-empty line`, [t.id]);
     if (!Number.isFinite(t.estMinutes) || t.estMinutes <= 0) err('bad-minutes', `${t.id} estMinutes must be a positive number`, [t.id]);
 
-    const src = t.source as TopicSource | undefined;
-    if (!src || !src.doc?.trim() || !src.course?.trim() || !src.section?.trim()) {
-      err('missing-source', `${t.id} has no source document, course, and section`, [t.id]);
-    } else if (!src.verified) {
-      warn('unverified-source', `${t.id} cites "${src.doc}: ${src.course}, ${src.section}", not yet verified${src.note ? ` (${src.note})` : ''}`, [t.id]);
+    const sources = t.sources as readonly (TopicSource | undefined)[] | undefined;
+    if (!Array.isArray(sources) || sources.length === 0) {
+      err('missing-source', `${t.id} has no sources`, [t.id]);
+    } else {
+      sources.forEach((src, i) => {
+        if (!src || !src.doc?.trim() || !src.course?.trim() || !src.section?.trim()) {
+          err('missing-source', `${t.id} source ${i + 1} has no document, course, and section`, [t.id]);
+        } else if (!src.verified) {
+          warn('unverified-source', `${t.id} cites "${src.doc}: ${src.course}, ${src.section}", not yet verified${src.note ? ` (${src.note})` : ''}`, [t.id]);
+        }
+      });
     }
 
     const seen = new Set<string>();

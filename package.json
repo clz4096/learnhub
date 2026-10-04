@@ -6,7 +6,7 @@
     "hub",
     "sims/*",
     "packages/*",
-    "courses/*"
+    "graph"
   ],
   "scripts": {
     "test": "npm run test --workspaces --if-present && node --test scripts/*.test.mjs",
