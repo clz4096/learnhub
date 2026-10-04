@@ -1,6 +1,6 @@
 # learnhub: design
 
-Dated 2026-10-03. Status: approved by the owner on 2026-10-03; MVP step 1 done.
+Dated 2026-10-03. Status: approved by the owner on 2026-10-03. MVP steps 1 to 4 done (step 4 on 2026-10-04).
 
 ## Problem
 

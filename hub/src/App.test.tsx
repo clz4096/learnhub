@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/preact';
-import { App, Catalog } from '@/App';
+import { App, Catalog, ToolCard } from '@/App';
 import { readyTools, type Catalog as CatalogDoc, type Tool } from '@/catalog';
 
 const tool = (over: Partial<Tool>): Tool => ({
@@ -108,5 +108,32 @@ describe('App', () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('nope', { status: 404 })));
     render(<App />);
     await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/Could not load/));
+  });
+});
+
+describe('progress on the card', () => {
+  const put = (v: unknown) => vi.stubGlobal('localStorage', { getItem: (k: string) => (k === 'learnhub.progress.cachesim' ? JSON.stringify(v) : null) });
+
+  it('shows nothing before the tool reports progress', () => {
+    vi.stubGlobal('localStorage', { getItem: () => null });
+    render(<ToolCard tool={tool({})} />);
+    expect(screen.queryByRole('progressbar')).toBeNull();
+  });
+
+  it('shows lessons done with an accessible bar', () => {
+    put({ done: 3, total: 10, updated: '2026-10-04T12:00:00.000Z' });
+    render(<ToolCard tool={tool({})} />);
+    const bar = screen.getByRole('progressbar', { name: '3 of 10 lessons done' });
+    expect(bar.getAttribute('value')).toBe('3');
+    expect(bar.getAttribute('max')).toBe('10');
+  });
+
+  it('updates when the page is shown again', () => {
+    put({ done: 0, total: 10, updated: '2026-10-04T12:00:00.000Z' });
+    render(<ToolCard tool={tool({})} />);
+    expect(screen.getByText('Not started')).toBeTruthy();
+    put({ done: 10, total: 10, updated: '2026-10-04T13:00:00.000Z' });
+    fireEvent(window, new Event('pageshow'));
+    expect(screen.getByText('All 10 lessons done')).toBeTruthy();
   });
 });

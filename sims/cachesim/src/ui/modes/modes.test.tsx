@@ -6,7 +6,8 @@ import { cloneConfig } from '@/engine';
 import { defaultParams } from '@/workloads/types';
 import { workloadById } from '@/workloads';
 import * as S from '@/ui/state';
-import { PROGRESS_KEY, freshProgress, loadProgress, parseProgress, progress, saveProgress } from '@/ui/modes/progress';
+import { HUB_PROGRESS_KEY, PROGRESS_KEY, freshProgress, hubSummary, loadProgress, parseProgress, progress, saveProgress } from '@/ui/modes/progress';
+import { LESSONS } from '@/ui/modes/lessons';
 
 const WAIT = { timeout: 5000 };
 
@@ -98,6 +99,18 @@ describe('Guided mode', () => {
 });
 
 describe('progress storage', () => {
+  it('writes the learnhub summary with lessons done out of the total', () => {
+    const p = freshProgress();
+    const lesson = LESSONS[0]!;
+    p.answer[lesson.id] = lesson.question.choices.findIndex((c) => c.correct);
+    p.answer[LESSONS[1]!.id] = LESSONS[1]!.question.choices.findIndex((c) => !c.correct);
+    saveProgress(p);
+    const s = JSON.parse(localStorage.getItem(HUB_PROGRESS_KEY)!);
+    expect(s).toMatchObject({ done: 1, total: LESSONS.length });
+    expect(Number.isNaN(Date.parse(s.updated))).toBe(false);
+    expect(hubSummary(freshProgress()).done).toBe(0);
+  });
+
   it('survives bad JSON, unknown lessons, and a throwing localStorage', () => {
     expect(parseProgress('{not json')).toEqual(freshProgress());
     expect(parseProgress(JSON.stringify({ lesson: 'nope', step: { stride: 2, nope: 1, conflict: -1 }, answer: { stride: 'x' } })))

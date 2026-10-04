@@ -7,6 +7,8 @@ import { signal } from '@preact/signals';
 import { LESSONS, lessonById } from '@/ui/modes/lessons';
 
 export const PROGRESS_KEY = 'cachesim.guided.v1';
+/** The summary the learnhub catalog reads (same origin, so same storage). */
+export const HUB_PROGRESS_KEY = 'learnhub.progress.cachesim';
 
 export interface Progress {
   /** The open lesson. */
@@ -64,13 +66,36 @@ export function saveProgress(p: Progress): void {
   } catch {
     // Quota or privacy mode: progress just will not persist.
   }
+  saveHubSummary(p);
+}
+
+/** Lessons done, for the learnhub catalog card. */
+export function hubSummary(p: Progress, now = new Date()): { done: number; total: number; updated: string } {
+  return { done: LESSONS.filter((l) => isDone(p, l.id)).length, total: LESSONS.length, updated: now.toISOString() };
+}
+
+function saveHubSummary(p: Progress): void {
+  try {
+    storage()?.setItem(HUB_PROGRESS_KEY, JSON.stringify(hubSummary(p)));
+  } catch {
+    // Same as above: the card just shows no progress.
+  }
 }
 
 export const progress = signal<Progress>(loadProgress());
+// Progress saved before the summary key existed still reaches the catalog.
+saveHubSummary(progress.value);
 
 export function updateProgress(edit: (p: Progress) => void): void {
   const p: Progress = { lesson: progress.value.lesson, step: { ...progress.value.step }, answer: { ...progress.value.answer } };
   edit(p);
+  progress.value = p;
+  saveProgress(p);
+}
+
+/** Forget every lesson's steps and answers (the hub card drops back to 0). The tour and imported results are kept. */
+export function resetProgress(): void {
+  const p = freshProgress();
   progress.value = p;
   saveProgress(p);
 }

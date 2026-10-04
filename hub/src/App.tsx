@@ -3,6 +3,7 @@ import {
   isCatalog, lessonsLabel, levelLabel, minutesLabel, readyTools, trackLabel, tracksOf,
   type Tool,
 } from '@/catalog';
+import { readToolProgress, type ToolProgress } from '@/progress';
 
 type Load = { state: 'loading' } | { state: 'error' } | { state: 'done'; tools: Tool[] };
 
@@ -120,7 +121,26 @@ export function ToolCard({ tool }: { tool: Tool }) {
   );
 }
 
-/** Lessons done for this tool. Filled in by MVP step 4 (learnhub.progress.<id>); renders nothing until then. */
-export function ProgressSlot(_props: { tool: Tool }) {
-  return null;
+/** Lessons done, as the tool last reported it. Nothing until the tool has been opened. */
+export function ProgressSlot({ tool }: { tool: Tool }) {
+  const [p, setP] = useState<ToolProgress | null>(() => readToolProgress(tool.id));
+  useEffect(() => {
+    // Coming back from a tool can restore this page from the back-forward cache, and
+    // another tab can change storage; re-read on both.
+    const reread = () => setP(readToolProgress(tool.id));
+    window.addEventListener('pageshow', reread);
+    window.addEventListener('storage', reread);
+    return () => {
+      window.removeEventListener('pageshow', reread);
+      window.removeEventListener('storage', reread);
+    };
+  }, [tool.id]);
+  if (!p) return null;
+  const label = p.done === 0 ? 'Not started' : p.done === p.total ? `All ${p.total} lessons done` : `${p.done} of ${p.total} lessons done`;
+  return (
+    <div class="progress">
+      <span class="progress-label" id={`progress-${tool.id}`}>{label}</span>
+      <progress max={p.total} value={p.done} aria-labelledby={`progress-${tool.id}`} />
+    </div>
+  );
 }
