@@ -4,7 +4,9 @@
   "type": "module",
   "workspaces": [
     "hub",
-    "sims/*"
+    "sims/*",
+    "packages/*",
+    "courses/*"
   ],
   "scripts": {
     "test": "npm run test --workspaces --if-present && node --test scripts/*.test.mjs",
