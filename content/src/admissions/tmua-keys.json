@@ -1,0 +1,258 @@
+{
+ "title": "TMUA answer keys, 2016 to 2023",
+ "source": "UAT-UK, TMUA preparation materials (https://esat-tmua.ac.uk/tmua-preparation-materials/): one answer key PDF per year (scripts/sources/batch-3.json, ids tmua-<year>-keys)",
+ "method": "Keys are copied from each answer key PDF: Paper 1 is the left column, Paper 2 the right. Each key is checked against the official worked answers for the same paper: the option a worked answer concludes with must equal the key letter.",
+ "years": [
+  {
+   "year": 2016,
+   "source": {
+    "id": "tmua-2016-keys",
+    "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2024/05/07125113/TMUA-2016-answer-keys.pdf",
+    "sha256": "fdaddc0affa5f15255436d639828371f987b57603c14082b2c309220e4fad577"
+   },
+   "papers": [
+    {
+     "paper": 1,
+     "id": "tmua-2016-p1",
+     "key": "HECBCCBFDEEECDCCDABD",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 20,
+      "not_stated_in_worked_answers": []
+     }
+    },
+    {
+     "paper": 2,
+     "id": "tmua-2016-p2",
+     "key": "ABDCCCCBDEDFEBDCHDFE",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 20,
+      "not_stated_in_worked_answers": []
+     }
+    }
+   ]
+  },
+  {
+   "year": 2017,
+   "source": {
+    "id": "tmua-2017-keys",
+    "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2024/05/07125232/TMUA-2017-answer-keys.pdf",
+    "sha256": "fce4126373fcc261e6581e51e33d2065ce33ee46ed6b65e9edfce33baedf412b"
+   },
+   "papers": [
+    {
+     "paper": 1,
+     "id": "tmua-2017-p1",
+     "key": "CCABCBBAFEABCFBEDADE",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 20,
+      "not_stated_in_worked_answers": []
+     }
+    },
+    {
+     "paper": 2,
+     "id": "tmua-2017-p2",
+     "key": "AEGBBAEEDDBCBFDCFBEB",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 19,
+      "not_stated_in_worked_answers": [
+       12
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "year": 2018,
+   "source": {
+    "id": "tmua-2018-keys",
+    "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2024/05/07125413/TMUA-2018-answer-keys.pdf",
+    "sha256": "8395cecf6be70574a9df8c188ad7180ccd039ae3b3b5230d8227f4315dc24b71"
+   },
+   "papers": [
+    {
+     "paper": 1,
+     "id": "tmua-2018-p1",
+     "key": "DCEGDEADBECFCBEFABDE",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 18,
+      "not_stated_in_worked_answers": [
+       13,
+       19
+      ]
+     }
+    },
+    {
+     "paper": 2,
+     "id": "tmua-2018-p2",
+     "key": "CBFDACBDFBAFFEGFCCCB",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 20,
+      "not_stated_in_worked_answers": []
+     }
+    }
+   ]
+  },
+  {
+   "year": 2019,
+   "source": {
+    "id": "tmua-2019-keys",
+    "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2024/05/07140827/TMUA-2019-answer-keys.pdf",
+    "sha256": "d4a2ef05c30e71a3ae1c7d0f69d8e41f7cff1430bd1876765ceaceda940171f6"
+   },
+   "papers": [
+    {
+     "paper": 1,
+     "id": "tmua-2019-p1",
+     "key": "AAECECFEDFHCBBACCBCE",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 20,
+      "not_stated_in_worked_answers": []
+     }
+    },
+    {
+     "paper": 2,
+     "id": "tmua-2019-p2",
+     "key": "ECADBDBEDAAFDBBFDEEB",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 20,
+      "not_stated_in_worked_answers": []
+     }
+    }
+   ]
+  },
+  {
+   "year": 2020,
+   "source": {
+    "id": "tmua-2020-keys",
+    "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2024/05/07140956/TMUA-2020-answer-keys.pdf",
+    "sha256": "81c0effe3c5fda50805579ca98acc6f37660f255836252285781ef83bb2be73e"
+   },
+   "papers": [
+    {
+     "paper": 1,
+     "id": "tmua-2020-p1",
+     "key": "CCBDACADCAEDFECCAAEC",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 20,
+      "not_stated_in_worked_answers": []
+     }
+    },
+    {
+     "paper": 2,
+     "id": "tmua-2020-p2",
+     "key": "EFCGAAHEFFGDDADDEGEC",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 19,
+      "not_stated_in_worked_answers": [
+       20
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "year": 2021,
+   "source": {
+    "id": "tmua-2021-keys",
+    "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2024/05/07141122/TMUA-2021-answer-keys.pdf",
+    "sha256": "578ff4d1d087260141224cc92949d160ccd88f2d00f95f66f15e9ef2d31b92cc"
+   },
+   "papers": [
+    {
+     "paper": 1,
+     "id": "tmua-2021-p1",
+     "key": "FFGBFDGACBAECBCBABBD",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 19,
+      "not_stated_in_worked_answers": [
+       17
+      ]
+     }
+    },
+    {
+     "paper": 2,
+     "id": "tmua-2021-p2",
+     "key": "DECCBDBCCECBACBEFCFE",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 19,
+      "not_stated_in_worked_answers": [
+       1
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "year": 2022,
+   "source": {
+    "id": "tmua-2022-keys",
+    "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2024/05/07141242/TMUA-2022-answer-keys.pdf",
+    "sha256": "7eb62a85f64bdbdd21d4efcd11d1db18b99eecfa5713c59139a9ddd11fd02bd5"
+   },
+   "papers": [
+    {
+     "paper": 1,
+     "id": "tmua-2022-p1",
+     "key": "CDFCHFEBECADADHBDBFB",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 20,
+      "not_stated_in_worked_answers": []
+     }
+    },
+    {
+     "paper": 2,
+     "id": "tmua-2022-p2",
+     "key": "BECBFCFCAGCFEDFDEEBE",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 20,
+      "not_stated_in_worked_answers": []
+     }
+    }
+   ]
+  },
+  {
+   "year": 2023,
+   "source": {
+    "id": "tmua-2023-keys",
+    "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2024/04/30144123/TMUA-2023-answer-keys.pdf",
+    "sha256": "1e88d2c30cb3bbeb959ae4a51c1ba21c8f89392c7a450b64a8068698b0ef28cf"
+   },
+   "papers": [
+    {
+     "paper": 1,
+     "id": "tmua-2023-p1",
+     "key": "FACCFEFBEBBFFAFEEEDF",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 20,
+      "not_stated_in_worked_answers": []
+     }
+    },
+    {
+     "paper": 2,
+     "id": "tmua-2023-p2",
+     "key": "HFCGAFEDDAGCCFBBFDHD",
+     "questions": 20,
+     "worked_answers_check": {
+      "confirmed": 20,
+      "not_stated_in_worked_answers": []
+     }
+    }
+   ]
+  }
+ ]
+}
