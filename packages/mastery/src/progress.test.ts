@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { DAY_MS, newMemory } from './memory';
 import {
-  MIGRATIONS, MemoryStorage, PROGRESS_VERSION, exportProgress, importProgress, loadProgress, newProgress, saveProgress,
-  type Progress, type ProgressStorage,
+  MIGRATIONS, MemoryStorage, PROGRESS_VERSION, exportProgress, importProgress, loadProgress, newProgress, resetProgress, saveProgress,
+  withChoices, type Progress, type ProgressStorage,
 } from './progress';
 
 const NOW = Date.UTC(2026, 9, 4);
@@ -40,9 +40,18 @@ function sample(): Progress {
   return p;
 }
 
+/** The sample as a version 3 document: no times of choices, and no reset. */
+function sampleV3(): Record<string, any> {
+  const d = JSON.parse(exportProgress(sample()));
+  d.version = 3;
+  delete d.changedAt;
+  delete d.resetAt;
+  return d;
+}
+
 /** The sample as a version 2 document: no supervision attempts or redos, and no supervision history. */
 function sampleV2(): Record<string, any> {
-  const d = JSON.parse(exportProgress(sample()));
+  const d = sampleV3();
   d.version = 2;
   delete d.supervision;
   delete d.redos;
@@ -92,7 +101,15 @@ describe('export and import', () => {
     expect(p.courses).toEqual([]);
     expect(p.courseMinutes).toEqual({});
     expect(p.session).toBeNull();
+    expect(p.changedAt).toEqual({ budgetMinutes: 0, implicitCredit: 0, courseWeights: 0, courses: 0 });
+    expect(p.resetAt).toBe(0);
     expect(importProgress(exportProgress(p)).ok).toBe(true);
+  });
+
+  it('start over makes a blank document dated by its reset', () => {
+    const p = resetProgress('probstats', NOW + 5);
+    expect(p.resetAt).toBe(NOW + 5);
+    expect({ ...p, resetAt: 0 }).toEqual(newProgress('probstats', NOW + 5));
   });
 
   it('new documents never share the default weights object', () => {
@@ -164,6 +181,10 @@ describe('malformed input never throws and says what is wrong', () => {
     ['write-up too long', mutate((d) => { d.supervision[1].writeUp = 'x'.repeat(20_001); }), /writeUp: expected text of at most 20000/],
     ['redo due missing', mutate((d) => { delete d.redos[0].due; }), /\$\.redos\[0\]\.due/],
     ['redo done as string', mutate((d) => { d.redos[0].doneAt = 'yes'; }), /\$\.redos\[0\]\.doneAt/],
+    ['choice times missing', mutate((d) => { delete d.changedAt; }), /\$\.changedAt: expected an object, got undefined/],
+    ['choice time negative', mutate((d) => { d.changedAt.courses = -1; }), /\$\.changedAt\.courses: expected a time in ms/],
+    ['choice time missing one field', mutate((d) => { delete d.changedAt.budgetMinutes; }), /\$\.changedAt\.budgetMinutes/],
+    ['reset as string', mutate((d) => { d.resetAt = 'never'; }), /\$\.resetAt: expected a time in ms/],
   ];
   for (const [name, input, re] of cases) {
     it(name, () => {
@@ -238,17 +259,42 @@ describe('migrations', () => {
     });
   });
 
+  // The sample chose courses and a weight, so version 3 dates those two choices to its last change.
+  const chosen = { budgetMinutes: 0, implicitCredit: 0, courseWeights: NOW, courses: NOW };
+
   it('migrates version 2 to 3 with no supervision attempts and no redos', () => {
     const r = importProgress(JSON.stringify(sampleV2()));
-    expect(r).toEqual({ ok: true, value: { ...sample(), history: sampleV2().history, supervision: [], redos: [] }, warnings: [] });
+    expect(r).toEqual({
+      ok: true, value: { ...sample(), history: sampleV2().history, supervision: [], redos: [], changedAt: chosen }, warnings: [],
+    });
   });
 
-  it('a version 2 document keeps everything else, and saves as version 3', () => {
+  it('migrates version 3 to 4: choices that differ from the default are dated to the last change, defaults to 0', () => {
+    const r = importProgress(JSON.stringify(sampleV3()));
+    expect(r).toEqual({ ok: true, value: { ...sample(), changedAt: chosen }, warnings: [] });
+    const fresh = JSON.parse(exportProgress(newProgress('x', NOW)));
+    fresh.version = 3;
+    delete fresh.changedAt;
+    delete fresh.resetAt;
+    const f = importProgress(fresh);
+    expect(f.ok && f.value.changedAt).toEqual({ budgetMinutes: 0, implicitCredit: 0, courseWeights: 0, courses: 0 });
+    const tuned = { ...fresh, settings: { budgetMinutes: 30, implicitCredit: false, courseWeights: {} } };
+    const t = importProgress(tuned);
+    expect(t.ok && t.value.changedAt).toEqual({ budgetMinutes: NOW, implicitCredit: NOW, courseWeights: 0, courses: 0 });
+  });
+
+  it('the version 3 to 4 migration tolerates a malformed document and leaves the errors to validation', () => {
+    const r = importProgress({ version: 3, settings: 'x', courses: 5, updatedAt: 'y' });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors.join('\n')).not.toMatch(/changedAt|resetAt|migration/);
+  });
+
+  it('a version 2 document keeps everything else, and saves as the current version', () => {
     const r = importProgress(sampleV2());
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.value.version).toBe(3);
-    expect(JSON.parse(exportProgress(r.value)).version).toBe(3);
+    expect(r.value.version).toBe(4);
+    expect(JSON.parse(exportProgress(r.value)).version).toBe(4);
     expect(r.value.session).toEqual(sample().session);
   });
 
@@ -274,6 +320,32 @@ describe('migrations', () => {
   it('a migrated document that is still invalid is rejected', () => {
     const r = importProgress(mutate((d) => { d.version = 0; delete d.settings; d.history = 3; }), { migrations });
     expect(r.ok).toBe(false);
+  });
+});
+
+describe('choices', () => {
+  it('dates each choice that changed, and only those', () => {
+    const p = withChoices(sample(), { budgetMinutes: 45, courses: sample().courses, courseWeights: { 'cst-discrete-maths': 2 } }, NOW + 9);
+    expect(p.settings.budgetMinutes).toBe(45);
+    expect(p.changedAt).toEqual({ budgetMinutes: NOW + 9, implicitCredit: 0, courseWeights: 0, courses: 0 });
+    expect(p.updatedAt).toBe(NOW + 9);
+    const q = withChoices(p, { courses: ['ia-probability'], courseWeights: {}, implicitCredit: false }, NOW + 10);
+    expect(q.changedAt).toEqual({ budgetMinutes: NOW + 9, implicitCredit: NOW + 10, courseWeights: NOW + 10, courses: NOW + 10 });
+    expect(q.courses).toEqual(['ia-probability']);
+    expect(importProgress(exportProgress(q)).ok).toBe(true);
+  });
+
+  it('weights in a different key order are the same choice', () => {
+    const p = withChoices(sample(), { courseWeights: { a: 1, b: 2 } }, NOW + 1);
+    const q = withChoices(p, { courseWeights: { b: 2, a: 1 } }, NOW + 2);
+    expect(q.changedAt.courseWeights).toBe(NOW + 1);
+  });
+
+  it('never changes its input', () => {
+    const p = sample();
+    const before = exportProgress(p);
+    withChoices(p, { budgetMinutes: 10, courseWeights: { a: 3 }, courses: [] }, NOW + 1);
+    expect(exportProgress(p)).toBe(before);
   });
 });
 

@@ -4,12 +4,13 @@
  * over that needs the exact phrase typed, as in the cache simulator.
  */
 import { useState } from 'preact/hooks';
-import { MAX_COURSE_WEIGHT, exportProgress, importProgress, type Progress } from '@learnhub/mastery';
+import { MAX_COURSE_WEIGHT, exportProgress, importProgress, withChoices, type Progress } from '@learnhub/mastery';
 import { ALL_COURSES, closureOf, courseOf, shortName } from '@/model/courses';
 import { MAX_MINUTES, MIN_MINUTES, courseStats, finishOpenPlacement, localDay, withoutSelfReport } from '@/model/learner';
 import { go } from '@/model/route';
 import { KNOWN_IDS, commit, erase, now, progress, selfReportWarning } from '@/model/store';
 import { setTheme, theme, type Theme } from '@/model/theme';
+import { SyncCard, SyncOffNote, syncSignedIn } from '@/ui/Sync';
 
 export const CONFIRM_PHRASE = 'start over';
 export const confirms = (typed: string): boolean => typed.trim().toLowerCase() === CONFIRM_PHRASE;
@@ -59,7 +60,7 @@ function Settings({ p }: { p: Progress }) {
   const save = (): void => {
     if (!ok) return;
     const ordered = ALL_COURSES.map((c) => c.id).filter((id) => courses.includes(id));
-    void commit({ ...p, courses: ordered, settings: { ...p.settings, budgetMinutes: m, courseWeights: w }, updatedAt: now() })
+    void commit(withChoices(p, { courses: ordered, budgetMinutes: m, courseWeights: w }, now()))
       .then(() => setSaved('Saved. Today\'s plan keeps its tasks; use "Plan the rest of today again" on Today to apply the change now.'));
   };
 
@@ -198,6 +199,7 @@ function Backup({ p }: { p: Progress }) {
     <section class="card" aria-labelledby="pb-title">
       <h2 id="pb-title">Back up and move</h2>
       <p class="small muted">Progress is saved in this browser only. Export a file to keep a copy or to move to another device, then Import it there.</p>
+      <SyncOffNote />
       <div class="actions">
         <button type="button" class="btn" onClick={download}>Export progress file</button>
       </div>
@@ -220,6 +222,7 @@ export function StartOver() {
       <p class="small">
         This erases every learned topic, your review schedule, and your history in this browser, and the
         learnhub catalog shows no progress. It cannot be undone. Export a file first if you might want it back.
+        {syncSignedIn() ? ' You are signed in to sync, so this also erases your progress on your other devices when they next sync.' : ''}
       </p>
       <label class="field small" for="start-over-confirm">
         <span>Type <strong>{CONFIRM_PHRASE}</strong> to confirm</span>
@@ -240,6 +243,7 @@ export function ProgressView() {
       <h1 id="pv-title">Progress</h1>
       <Courses p={p} />
       <Settings key={p.createdAt} p={p} />
+      <SyncCard />
       <Backup p={p} />
       <StartOver />
     </section>

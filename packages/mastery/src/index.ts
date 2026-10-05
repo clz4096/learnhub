@@ -6,5 +6,6 @@ export * from './placement';
 export * from './scheduler';
 export * from './simulate';
 export * from './progress';
+export * from './merge';
 export * from './idb';
 export * from './grade';

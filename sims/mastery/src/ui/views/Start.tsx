@@ -8,6 +8,7 @@ import { closureOf } from '@/model/courses';
 import { COURSE_OPTIONS, DEFAULT_MINUTES, MAX_MINUTES, MIN_MINUTES, startLearner } from '@/model/learner';
 import { go } from '@/model/route';
 import { commit, now } from '@/model/store';
+import { SyncCard } from '@/ui/Sync';
 import { ImportFile } from '@/ui/views/ProgressView';
 
 export function Start() {
@@ -58,6 +59,7 @@ export function Start() {
         <p class="small muted">Import a file exported from this course on another device or before a start over.</p>
         <ImportFile onDone={() => go({ view: 'today' })} />
       </section>
+      <SyncCard />
     </section>
   );
 }

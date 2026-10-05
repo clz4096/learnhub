@@ -1,11 +1,12 @@
 /**
  * App state: the learner's progress document in a signal, saved to IndexedDB after every
  * change. Saves run one at a time in order, so a slow write never lands after a newer one.
- * The learnhub catalog summary is written to localStorage alongside.
+ * The learnhub catalog summary is written to localStorage alongside. Sync (`@/sync`)
+ * listens for the learner's changes here and puts merged copies back with `applySynced`.
  */
 import { signal } from '@preact/signals';
 import {
-  MemoryStorage, idbStorage, loadProgress, newProgress, saveProgress,
+  MemoryStorage, idbStorage, loadProgress, resetProgress, saveProgress,
   type IdbFactoryLike, type Progress, type ProgressStorage,
 } from '@learnhub/mastery';
 import { ALL_TOPICS } from './courses';
@@ -32,6 +33,21 @@ export function setClock(f: () => number): void {
 
 let storage: ProgressStorage = new MemoryStorage();
 let queue: Promise<void> = Promise.resolve();
+const changeListeners = new Set<(p: Progress) => void>();
+
+/**
+ * Called after each change the learner makes (`commit`), not after `applySynced`, so a
+ * merged copy written back by sync does not schedule another sync of itself.
+ */
+export function onLocalChange(f: (p: Progress) => void): () => void {
+  changeListeners.add(f);
+  return () => { changeListeners.delete(f); };
+}
+
+/** The key-value store progress is saved in, for sync's own small records (its session). */
+export function keyValueStorage(): ProgressStorage {
+  return storage;
+}
 
 function browserIdb(): IdbFactoryLike | null {
   try {
@@ -93,6 +109,23 @@ function writeHub(p: Progress | null): void {
 
 /** Replaces the document and saves it. Returns when this save is done. */
 export function commit(next: Progress): Promise<void> {
+  const done = save(next);
+  for (const f of changeListeners) {
+    try {
+      f(next);
+    } catch {
+      // A listener's failure (sync) must never stop the learner's own save.
+    }
+  }
+  return done;
+}
+
+/** Replaces the document with a copy merged by sync, and saves it, without telling sync. */
+export function applySynced(next: Progress): Promise<void> {
+  return save(next);
+}
+
+function save(next: Progress): Promise<void> {
   progress.value = next;
   writeHub(next);
   queue = queue.then(async () => {
@@ -104,10 +137,11 @@ export function commit(next: Progress): Promise<void> {
 
 /**
  * Erases the learner's progress (Start over) by saving a blank document: no courses, no
- * placement, no memory. The app treats a document with no courses as a new learner.
+ * placement, no memory. The app treats a document with no courses as a new learner. The
+ * document is dated by its reset, so sync carries the erase to the other devices.
  */
 export function erase(): Promise<void> {
-  return commit(newProgress(DOC_ID, now()));
+  return commit(resetProgress(DOC_ID, now()));
 }
 
 /** Waits for every pending save. */

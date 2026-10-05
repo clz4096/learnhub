@@ -3,15 +3,15 @@
  * functions: each takes a Progress and returns a new one, so the views stay thin and these
  * rules are tested without a browser.
  *
- * One document per learner (the engine's Progress, version 3), holding the chosen
+ * One document per learner (the engine's Progress, version 4), holding the chosen
  * courses, placement answers from earlier builds, memory, history, lesson minutes per
- * course for the planner's split, today's session, and supervision attempts with the
- * problems they set to redo.
+ * course for the planner's split, today's session, supervision attempts with the
+ * problems they set to redo, and the times of choices and resets that sync merges by.
  */
 import { contentFor } from '@learnhub/content';
 import {
   DAY_MS, SUPERVISION_PASS_MARK, classify, dueTopics, frontier, newProgress, placedMemory, placementGraph, placementResult, planSession,
-  recordLesson, recordLessonFailure, recordReview, topoOrder,
+  recordLesson, recordLessonFailure, recordReview, topoOrder, withChoices,
   type HistoryEntry, type MemoryMap, type PlacementGraph, type Progress, type Redo, type SessionRecord, type SessionTask,
   type SupervisionAttempt, type Topic,
 } from '@learnhub/mastery';
@@ -34,11 +34,9 @@ export const COURSE_OPTIONS = [
   { id: 'probability-discrete', title: 'Probability and Discrete Mathematics', courses: DEFAULT_COURSES },
 ] as const;
 
-/** A fresh document with courses chosen and nothing known. */
+/** A fresh document with courses chosen and nothing known. The choices are dated, so sync can tell them from defaults. */
 export function startLearner(now: number, courses: readonly string[], budgetMinutes: number): Progress {
-  const p = newProgress(DOC_ID, now, { budgetMinutes });
-  p.courses = [...courses];
-  return p;
+  return withChoices(newProgress(DOC_ID, now), { courses: [...courses], budgetMinutes }, now);
 }
 
 /**

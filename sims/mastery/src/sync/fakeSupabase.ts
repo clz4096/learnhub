@@ -1,0 +1,154 @@
+/**
+ * A fake Supabase for tests: the auth and REST endpoints sync calls, with the behaviour
+ * that matters to it. Access tokens expire, refresh tokens rotate (an old one is refused),
+ * row-level security lets a token read and write only its own row, the table's size check
+ * refuses a huge document, and the network can be cut.
+ */
+import type { FetchLike } from './supabase';
+
+const b64url = (s: string): string => btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+/** An unsigned JWT with the given claims: enough for code that only reads claims. */
+export function fakeJwt(claims: Record<string, unknown>): string {
+  return `${b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))}.${b64url(JSON.stringify(claims))}.sig`;
+}
+
+export const ANON_KEY = fakeJwt({ iss: 'supabase', ref: 'testref', role: 'anon' });
+export const SERVICE_KEY = fakeJwt({ iss: 'supabase', ref: 'testref', role: 'service_role' });
+export const URL_BASE = 'https://testref.supabase.co';
+export const TABLE_LIMIT_BYTES = 2 * 1024 * 1024;
+
+export interface Row {
+  user_id: string;
+  doc: unknown;
+  version: number;
+  updated_at: string;
+}
+
+export interface Call {
+  method: string;
+  path: string;
+  query: URLSearchParams;
+  headers: Record<string, string>;
+  body: string | null;
+}
+
+const json = (status: number, body: unknown): Response =>
+  new Response(body === null ? null : JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+
+export class FakeSupabase {
+  readonly rows = new Map<string, Row>();
+  readonly calls: Call[] = [];
+  readonly emails: { email: string; redirectTo: string | null }[] = [];
+  online = true;
+  /** Responses to fail with, in order, before handling normally. */
+  readonly failures: number[] = [];
+  /** Runs before a request is handled, to interleave another device. */
+  before: ((c: Call) => Promise<void>) | null = null;
+  private readonly users = new Map<string, string>();
+  private readonly access = new Map<string, { sub: string; exp: number }>();
+  private readonly refresh = new Map<string, string>();
+  private serial = 0;
+
+  constructor(private readonly clock: () => number, private readonly ttlMs = 3600_000) {}
+
+  private userFor(email: string): string {
+    let id = this.users.get(email);
+    if (id === undefined) {
+      id = `00000000-0000-4000-8000-${String(this.users.size + 1).padStart(12, '0')}`;
+      this.users.set(email, id);
+    }
+    return id;
+  }
+
+  private issue(sub: string, email: string): { access_token: string; refresh_token: string; expires_in: number; expires_at: number } {
+    const n = ++this.serial;
+    const exp = this.clock() + this.ttlMs;
+    const access = fakeJwt({ sub, email, role: 'authenticated', exp: Math.floor(exp / 1000), n });
+    const refresh = `rt-${n}`;
+    this.access.set(access, { sub, exp });
+    this.refresh.set(refresh, sub);
+    return { access_token: access, refresh_token: refresh, expires_in: Math.round(this.ttlMs / 1000), expires_at: Math.floor(exp / 1000) };
+  }
+
+  /** The fragment GoTrue appends to the redirect URL when the learner opens the emailed link. */
+  magicLinkFragment(email: string): string {
+    const t = this.issue(this.userFor(email), email);
+    return `#access_token=${t.access_token}&expires_at=${t.expires_at}&expires_in=${t.expires_in}&refresh_token=${t.refresh_token}&token_type=bearer&type=magiclink`;
+  }
+
+  /** Ends every access token now, as if an hour passed on the server. */
+  expireAccessTokens(): void {
+    for (const v of this.access.values()) v.exp = 0;
+  }
+
+  revokeRefreshTokens(): void {
+    this.refresh.clear();
+  }
+
+  userId(email: string): string {
+    return this.userFor(email);
+  }
+
+  readonly fetch: FetchLike = async (url, init = {}) => {
+    const u = new URL(url);
+    const headers = Object.fromEntries(Object.entries((init.headers ?? {}) as Record<string, string>).map(([k, v]) => [k.toLowerCase(), v]));
+    const call: Call = { method: init.method ?? 'GET', path: u.pathname, query: u.searchParams, headers, body: typeof init.body === 'string' ? init.body : null };
+    this.calls.push(call);
+    if (this.before !== null) {
+      const b = this.before;
+      this.before = null;
+      await b(call);
+    }
+    if (!this.online) throw new TypeError('Failed to fetch');
+    const fail = this.failures.shift();
+    if (fail !== undefined) return json(fail, { message: `fake failure ${fail}` });
+    if (u.origin !== URL_BASE) return json(404, { message: 'no such host' });
+    if (headers.apikey !== ANON_KEY) return json(401, { message: 'Invalid API key' });
+    return this.handle(call);
+  };
+
+  private bearer(c: Call): string | null {
+    const token = c.headers.authorization?.replace(/^Bearer /, '') ?? '';
+    const a = this.access.get(token);
+    return a === undefined || a.exp <= this.clock() ? null : a.sub;
+  }
+
+  private handle(c: Call): Response {
+    const body = c.body === null ? null : (JSON.parse(c.body) as Record<string, unknown>);
+    if (c.method === 'POST' && c.path === '/auth/v1/otp') {
+      this.emails.push({ email: String(body?.email), redirectTo: c.query.get('redirect_to') });
+      return json(200, {});
+    }
+    if (c.method === 'POST' && c.path === '/auth/v1/token' && c.query.get('grant_type') === 'refresh_token') {
+      const old = String(body?.refresh_token);
+      const sub = this.refresh.get(old);
+      if (sub === undefined) return json(400, { error: 'invalid_grant', error_description: 'Invalid Refresh Token: Refresh Token Not Found' });
+      this.refresh.delete(old);
+      const email = [...this.users].find(([, id]) => id === sub)?.[0] ?? '';
+      return json(200, { ...this.issue(sub, email), token_type: 'bearer', user: { id: sub, email } });
+    }
+    if (c.method === 'POST' && c.path === '/auth/v1/logout') return new Response(null, { status: 204 });
+    if (c.path === '/rest/v1/learnhub_progress') {
+      const sub = this.bearer(c);
+      if (sub === null) return json(401, { code: 'PGRST301', message: 'JWT expired' });
+      if (c.method === 'GET') {
+        const want = c.query.get('user_id')?.replace(/^eq\./, '');
+        const row = this.rows.get(sub);
+        // Row-level security: only the caller's own row is visible, whatever the filter says.
+        const visible = row !== undefined && (want === undefined || want === sub) ? [row] : [];
+        return json(200, visible.map((r) => ({ doc: r.doc, version: r.version, updated_at: r.updated_at })));
+      }
+      if (c.method === 'POST') {
+        if (!(c.headers.prefer ?? '').includes('resolution=merge-duplicates')) return json(409, { code: '23505', message: 'duplicate key' });
+        if (body?.user_id !== sub) return json(403, { code: '42501', message: 'new row violates row-level security policy' });
+        if (new TextEncoder().encode(JSON.stringify(body.doc)).length >= TABLE_LIMIT_BYTES) {
+          return json(400, { code: '23514', message: 'new row violates check constraint "learnhub_progress_doc_size"' });
+        }
+        this.rows.set(sub, { user_id: sub, doc: body.doc, version: Number(body.version), updated_at: new Date(this.clock()).toISOString() });
+        return new Response(null, { status: 201 });
+      }
+    }
+    return json(404, { message: `no route ${c.method} ${c.path}` });
+  }
+}

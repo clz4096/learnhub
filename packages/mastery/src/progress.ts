@@ -11,7 +11,7 @@ import { withDefaults } from './options';
 import type { PlacementAnswer } from './placement';
 
 /** Bump when the shape changes, and add the migration from the previous version. */
-export const PROGRESS_VERSION = 3;
+export const PROGRESS_VERSION = 4;
 
 export interface Settings {
   budgetMinutes: number;
@@ -21,6 +21,16 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = { budgetMinutes: 60, implicitCredit: true, courseWeights: {} };
+
+/**
+ * The choices that sync merges last-writer-wins, field by field: the three settings and
+ * the chosen courses. Each has its own time of change in `changedAt`, so a new daily budget
+ * chosen on the phone and a course weight changed on the Mac both survive a merge.
+ */
+export const CHOICE_FIELDS = ['budgetMinutes', 'implicitCredit', 'courseWeights', 'courses'] as const;
+export type ChoiceField = (typeof CHOICE_FIELDS)[number];
+/** ms since the epoch the learner last chose each field; 0 for a default nobody chose. */
+export type ChoiceStamps = Record<ChoiceField, number>;
 
 /** Course weights above this are a typo, not a preference: 100 to 1 is already all of the time. */
 export const MAX_COURSE_WEIGHT = 100;
@@ -145,6 +155,14 @@ export interface Progress {
   /** Supervision copies and their results, oldest first. */
   supervision: SupervisionAttempt[];
   redos: Redo[];
+  /** When each choice was last made, for the field-by-field merge (`mergeProgress`). */
+  changedAt: ChoiceStamps;
+  /**
+   * When the learner last erased everything (Start over); 0 if never. A merge keeps only
+   * the document with the later reset, so an erase reaches every synced device instead of
+   * being undone by the other device's copy.
+   */
+  resetAt: number;
 }
 
 export type Result<T> =
@@ -160,6 +178,10 @@ export type Migration = (doc: Record<string, unknown>) => Record<string, unknown
  * weights, minutes per course, and the stored session; a version 1 document had none.
  * 2 to 3: supervision by copy and paste (DESIGN-CAMBRIDGE-CONTENT.md, build step 3) added
  * the supervision attempts and the redo list; a version 2 document had neither.
+ * 3 to 4: sync between devices (DESIGN-CAMBRIDGE-CONTENT.md, build step 4) added the time
+ * of each choice and of the last reset. A version 3 document cannot know when its choices
+ * were made, so a choice that differs from the default is dated to the document's
+ * `updatedAt` (an upper bound) and a default to 0: a device that chose beats a fresh one.
  */
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: (d) => {
@@ -167,6 +189,18 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
     return { ...d, version: 2, settings, courses: [], courseMinutes: {}, session: null };
   },
   2: (d) => ({ ...d, version: 3, supervision: [], redos: [] }),
+  3: (d) => {
+    const at = isNum(d.updatedAt) && d.updatedAt > 0 ? d.updatedAt : 0;
+    const s = isObj(d.settings) ? d.settings : {};
+    const chose = (isDefault: boolean): number => (isDefault ? 0 : at);
+    const changedAt: ChoiceStamps = {
+      budgetMinutes: chose(s.budgetMinutes === DEFAULT_SETTINGS.budgetMinutes),
+      implicitCredit: chose(s.implicitCredit === DEFAULT_SETTINGS.implicitCredit),
+      courseWeights: chose(!isObj(s.courseWeights) || Object.keys(s.courseWeights).length === 0),
+      courses: chose(!Array.isArray(d.courses) || d.courses.length === 0),
+    };
+    return { ...d, version: 4, changedAt, resetAt: 0 };
+  },
 };
 
 export interface ImportOptions {
@@ -187,9 +221,54 @@ export function newProgress(courseId: string, now: number, settings: Partial<Set
     // A copy, so documents never share the default's weights object.
     settings: { ...s, courseWeights: { ...s.courseWeights } },
     courses: [], placement: null, memory: {}, learnedSinceQuiz: [], history: [], courseMinutes: {}, session: null,
-    supervision: [], redos: [],
+    supervision: [], redos: [], changedAt: noChoices(), resetAt: 0,
   };
 }
+
+const noChoices = (): ChoiceStamps => ({ budgetMinutes: 0, implicitCredit: 0, courseWeights: 0, courses: 0 });
+
+/** Start over: a blank document that, merged with any older copy, replaces it. */
+export function resetProgress(courseId: string, now: number): Progress {
+  return { ...newProgress(courseId, now), resetAt: now };
+}
+
+export interface Choices {
+  budgetMinutes?: number;
+  implicitCredit?: boolean;
+  courseWeights?: Record<string, number>;
+  courses?: string[];
+}
+
+/**
+ * Applies the learner's choices and dates each one that changed, so a merge can tell the
+ * newer choice. A field set to its current value keeps its old date: saving the settings
+ * form unchanged on one device must not override a real change made on another.
+ */
+export function withChoices(p: Readonly<Progress>, c: Readonly<Choices>, now: number): Progress {
+  const changedAt = { ...p.changedAt };
+  const settings = { ...p.settings, courseWeights: { ...p.settings.courseWeights } };
+  let courses = [...p.courses];
+  const same = (x: unknown, y: unknown): boolean => JSON.stringify(x) === JSON.stringify(y);
+  if (c.budgetMinutes !== undefined && c.budgetMinutes !== settings.budgetMinutes) {
+    settings.budgetMinutes = c.budgetMinutes;
+    changedAt.budgetMinutes = now;
+  }
+  if (c.implicitCredit !== undefined && c.implicitCredit !== settings.implicitCredit) {
+    settings.implicitCredit = c.implicitCredit;
+    changedAt.implicitCredit = now;
+  }
+  if (c.courseWeights !== undefined && !same(sortedRecord(c.courseWeights), sortedRecord(settings.courseWeights))) {
+    settings.courseWeights = { ...c.courseWeights };
+    changedAt.courseWeights = now;
+  }
+  if (c.courses !== undefined && !same(c.courses, courses)) {
+    courses = [...c.courses];
+    changedAt.courses = now;
+  }
+  return { ...p, settings, courses, changedAt, updatedAt: now };
+}
+
+const sortedRecord = <T>(r: Readonly<Record<string, T>>): [string, T][] => Object.entries(r).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
 
 /** Pretty-printed, so an exported file can be read and diffed by hand. */
 export function exportProgress(p: Readonly<Progress>): string {
@@ -386,10 +465,10 @@ function checkRedos(c: Checker, x: unknown): Redo[] {
   return out;
 }
 
-function checkV3(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
+function checkV4(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
   const TOP = [
     'version', 'courseId', 'createdAt', 'updatedAt', 'settings', 'courses', 'placement', 'memory', 'learnedSinceQuiz', 'history',
-    'courseMinutes', 'session', 'supervision', 'redos',
+    'courseMinutes', 'session', 'supervision', 'redos', 'changedAt', 'resetAt',
   ];
   c.extraKeys(d, TOP, '$');
   c.need(typeof d.courseId === 'string' && d.courseId.trim() !== '' && d.courseId.length <= 200, '$.courseId', 'a non-empty string', d.courseId);
@@ -485,10 +564,21 @@ function checkV3(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progres
   const supervision = checkSupervision(c, d.supervision);
   const redos = checkRedos(c, d.redos);
 
+  const changedAt = noChoices();
+  if (c.need(isObj(d.changedAt), '$.changedAt', 'an object', d.changedAt)) {
+    const o = d.changedAt as Obj;
+    c.extraKeys(o, CHOICE_FIELDS, '$.changedAt');
+    for (const f of CHOICE_FIELDS) {
+      if (c.need(isNum(o[f]) && (o[f] as number) >= 0, `$.changedAt.${f}`, 'a time in ms, 0 or more', o[f])) changedAt[f] = o[f] as number;
+    }
+  }
+  c.need(isNum(d.resetAt) && d.resetAt >= 0, '$.resetAt', 'a time in ms, 0 or more', d.resetAt);
+
   if (c.errors.length > 0) return null;
   return {
     version: PROGRESS_VERSION, courseId: d.courseId as string, createdAt: d.createdAt as number, updatedAt: d.updatedAt as number,
     settings, courses, placement, memory, learnedSinceQuiz, history, courseMinutes, session, supervision, redos,
+    changedAt, resetAt: d.resetAt as number,
   };
 }
 
@@ -533,7 +623,7 @@ export function importProgress(input: unknown, options: ImportOptions = {}): Res
 
     const c = new Checker();
     const known = options.knownTopicIds === undefined ? null : new Set(options.knownTopicIds);
-    const p = checkV3(c, d, known);
+    const p = checkV4(c, d, known);
     return p === null ? { ok: false, errors: c.errors } : { ok: true, value: p, warnings: c.warnings };
   } catch (e) {
     // Validation is written not to throw; this is the backstop the contract promises.

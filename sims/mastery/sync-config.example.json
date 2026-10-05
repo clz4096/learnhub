@@ -1,0 +1,5 @@
+{
+  "$comment": "Copy to sync-config.json (same folder) to switch sync on. Public values only: the project URL and the anon (publishable) key. Never the service_role or sb_secret_ key; the app refuses one. See SYNC-SETUP.md.",
+  "url": "https://YOUR-PROJECT-REF.supabase.co",
+  "anonKey": "YOUR-ANON-OR-PUBLISHABLE-KEY"
+}
