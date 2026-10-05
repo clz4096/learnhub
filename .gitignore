@@ -7,3 +7,4 @@ site
 sims/*/bench/build
 sims/*/bench/results
 mastery/design-pass-2/
+/sources/

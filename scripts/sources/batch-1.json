@@ -1,0 +1,390 @@
+{
+  "batch": "cambridge-batch-1",
+  "note": "First batch of the Cambridge-sourced content plan (mastery/DESIGN-CAMBRIDGE-CONTENT.md, build step 1). URLs come from the Meridian handoff (handoff/meridian-cambridge/links). Role \"scan\" means fetched only to find which other Foundation assignments contain probability. Assignment 19 was added after the scan: its warm-down is probability (three coins in a bag, three dice).",
+  "hosts": [
+    "step.maths.org",
+    "www.dpmms.cam.ac.uk",
+    "www.maths.cam.ac.uk",
+    "www.cl.cam.ac.uk",
+    "richardhammack.github.io",
+    "uat-wp.s3.eu-west-2.amazonaws.com"
+  ],
+  "sources": [
+    {
+      "id": "step-foundation-list",
+      "course": "probability",
+      "kind": "html",
+      "role": "index",
+      "title": "STEP Support Programme: Foundation assignments list",
+      "url": "https://step.maths.org/assignments/foundation"
+    },
+    {
+      "id": "step-f01",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 1",
+      "url": "https://step.maths.org/sites/default/files/2023-06/assignment1_0.pdf"
+    },
+    {
+      "id": "step-f02",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 2",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment2_2.pdf"
+    },
+    {
+      "id": "step-f03",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 3",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment3_2.pdf"
+    },
+    {
+      "id": "step-f04",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 4",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment4_2.pdf"
+    },
+    {
+      "id": "step-f05-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 5: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-5"
+    },
+    {
+      "id": "step-f05",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "STEP Support Foundation Assignment 5",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment5_1.pdf"
+    },
+    {
+      "id": "step-f05-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 5: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A5_4.pdf"
+    },
+    {
+      "id": "step-f06-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 6: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-6"
+    },
+    {
+      "id": "step-f06",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "STEP Support Foundation Assignment 6",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment6_3.pdf"
+    },
+    {
+      "id": "step-f06-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 6: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A6_4.pdf"
+    },
+    {
+      "id": "step-f07-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 7: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-7"
+    },
+    {
+      "id": "step-f07",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "STEP Support Foundation Assignment 7",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment7_0.pdf"
+    },
+    {
+      "id": "step-f07-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 7: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A7_6.pdf"
+    },
+    {
+      "id": "step-f08-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 8: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-8"
+    },
+    {
+      "id": "step-f08",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "STEP Support Foundation Assignment 8",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment8_1.pdf"
+    },
+    {
+      "id": "step-f08-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 8: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A8_3.pdf"
+    },
+    {
+      "id": "step-f09",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 9",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment9_2.pdf"
+    },
+    {
+      "id": "step-f10",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 10",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment10_2.pdf"
+    },
+    {
+      "id": "step-f11",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 11",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment11_0.pdf"
+    },
+    {
+      "id": "step-f12-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 12: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-12"
+    },
+    {
+      "id": "step-f12",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "STEP Support Foundation Assignment 12",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment12_1.pdf"
+    },
+    {
+      "id": "step-f12-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 12: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A12_2.pdf"
+    },
+    {
+      "id": "step-f13",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 13",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment13_0.pdf"
+    },
+    {
+      "id": "step-f14",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 14",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment14_0.pdf"
+    },
+    {
+      "id": "step-f15",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 15",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment15_3.pdf"
+    },
+    {
+      "id": "step-f16",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 16",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment16_1.pdf"
+    },
+    {
+      "id": "step-f17",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 17",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment17_0.pdf"
+    },
+    {
+      "id": "step-f18",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 18",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment18_0.pdf"
+    },
+    {
+      "id": "step-f19-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 19: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-19"
+    },
+    {
+      "id": "step-f19",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "STEP Support Foundation Assignment 19",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment19_0.pdf"
+    },
+    {
+      "id": "step-f19-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 19: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A19_3.pdf"
+    },
+    {
+      "id": "step-f20",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 20",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment20_5.pdf"
+    },
+    {
+      "id": "step-f21",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 21",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment21_0.pdf"
+    },
+    {
+      "id": "step-f22",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 22",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment22_2.pdf"
+    },
+    {
+      "id": "step-f23",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 23",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment23_1.pdf"
+    },
+    {
+      "id": "step-f24",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 24",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment24_0.pdf"
+    },
+    {
+      "id": "step-f25",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "scan",
+      "title": "STEP Support Foundation Assignment 25",
+      "url": "https://step.maths.org/sites/default/files/2023-07/assignment25_2.pdf"
+    },
+    {
+      "id": "ia-prob-sheet-1",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "IA Probability Example Sheet 1 (DPMMS, 2025-26)",
+      "url": "https://www.dpmms.cam.ac.uk/study/IA/Probability/2025-2026/pex1-2026.pdf"
+    },
+    {
+      "id": "tripos-schedules",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "syllabus",
+      "title": "Schedules of Lecture Courses and Form of Examinations, Mathematical Tripos 2026-27",
+      "url": "https://www.maths.cam.ac.uk/undergrad/files/schedules.pdf"
+    },
+    {
+      "id": "cst-dm-syllabus-2627",
+      "course": "discrete-maths",
+      "kind": "html",
+      "role": "syllabus",
+      "title": "CST IA Discrete Mathematics: syllabus (2026-27)",
+      "url": "https://www.cl.cam.ac.uk/teaching/2627/DiscMath/"
+    },
+    {
+      "id": "cst-dm-materials-2526",
+      "course": "discrete-maths",
+      "kind": "html",
+      "role": "index",
+      "title": "CST IA Discrete Mathematics: course materials page (2025-26)",
+      "url": "https://www.cl.cam.ac.uk/teaching/2526/DiscMath/materials.html"
+    },
+    {
+      "id": "cst-dm-notes",
+      "course": "discrete-maths",
+      "kind": "pdf",
+      "role": "notes",
+      "title": "Discrete Mathematics: Proofs, Numbers, and Sets, notes (2025-26)",
+      "url": "https://www.cl.cam.ac.uk/teaching/2526/DiscMath/DiscMathProofsNumbersSetsNotes.pdf"
+    },
+    {
+      "id": "cst-dm-sw1",
+      "course": "discrete-maths",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "Discrete Mathematics supervision exercises: Proofs, Numbers, and Sets (2025-26)",
+      "url": "https://www.cl.cam.ac.uk/teaching/2526/DiscMath/DiscMathProofsNumbersSetsSupExs.pdf"
+    },
+    {
+      "id": "bop",
+      "course": "discrete-maths",
+      "kind": "pdf",
+      "role": "notes",
+      "title": "Richard Hammack, Book of Proof (free edition, Main.pdf)",
+      "url": "https://richardhammack.github.io/BookOfProof/Main.pdf"
+    },
+    {
+      "id": "bop-home",
+      "course": "discrete-maths",
+      "kind": "html",
+      "role": "index",
+      "title": "Book of Proof: author's page",
+      "url": "https://richardhammack.github.io/BookOfProof/"
+    },
+    {
+      "id": "tmua-logic-proof",
+      "course": "discrete-maths",
+      "kind": "pdf",
+      "role": "notes",
+      "title": "Notes on Logic and Proof, for TMUA Paper 2 (June 2025)",
+      "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2025/06/25160507/Notes_on_Logic_and_Proof_June2025.pdf"
+    }
+  ]
+}
