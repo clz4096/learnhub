@@ -251,13 +251,13 @@ describe('Begin the day', () => {
 });
 
 describe('the header and footer', () => {
-  it('shows the course title with the emblem, and no disclaimer line', async () => {
+  it('shows the course title with the arms, and no disclaimer line', async () => {
     await open();
     expect(document.querySelector('header .app-title')?.textContent).toBe(APP_TITLE);
     expect(APP_TITLE).toBe('Computational Mathematics at the University of Cambridge');
-    expect(document.querySelector('header .brand-seal use')?.getAttribute('href')).toBe('#euclid-seal');
+    expect(document.querySelector('header .brand-arms use')?.getAttribute('href')).toBe('#euclid-arms');
     // The art's defs are in the page once, every id namespaced.
-    expect(document.querySelectorAll('#euclid-seal')).toHaveLength(1);
+    for (const id of ['arms', 'armsMono', 'armsUni', 'seal']) expect(document.querySelectorAll(`#euclid-${id}`)).toHaveLength(1);
     expect([...document.querySelectorAll('.seal-defs [id]')].every((e) => e.id.startsWith('euclid-'))).toBe(true);
     expect(screen.queryByText(/Not affiliated with the University of Cambridge/)).toBeNull();
   });

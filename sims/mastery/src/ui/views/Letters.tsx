@@ -1,7 +1,7 @@
 /**
- * The Letters tab: Euclid College's emblem, then the campaign's letters, each in full:
+ * The Letters tab: Euclid College's seal, then the campaign's letters, each in full:
  * written by the study plan from the learner's own numbers at each milestone, newest
- * first, stamped with the crest and marked simulated. Below them the two milestone
+ * first, stamped with the University's arms and marked simulated. Below them the two milestone
  * documents: the offer letter, filled from the campaign once the offer arrives (Act IV
  * complete), and the degree certificate. Before its milestone each is a locked preview
  * with example data, labelled as an example. Letters due are delivered here too, so the
@@ -16,14 +16,14 @@ import { loadDays } from '@/model/dayLog';
 import { now } from '@/model/store';
 import { AppLink, WithAdmissions, shortStamp, useDeliverLetters } from '@/ui/campaignShared';
 import { Certificate, EXAMPLE_DEGREE, EXAMPLE_OFFER, OfferLetter, offerData, type OfferData } from '@/ui/Documents';
-import { CrestStamp, Emblem } from '@/ui/Seal';
+import { Arms, Seal } from '@/ui/Seal';
 
 const LEAD = 'Written by the study plan from your real results at each milestone.';
 
 function Head() {
   return (
     <>
-      <Emblem class="letters-seal" label="Seal of Euclid College" />
+      <Seal class="letters-seal" label="Seal of Euclid College" />
       <h1 id="letters-title">Letters</h1>
       <p class="lead">{LEAD}</p>
     </>
@@ -83,7 +83,7 @@ function LettersBody({ adm, c, p }: { adm: Admissions; c: Campaign; p: Progress 
         const t = letterText(adm, c, l.id, s.projection.entry);
         return (
           <article key={l.id} class="letter" aria-labelledby={`letter-${l.id}`}>
-            <div class="lh"><span><CrestStamp class="stamp" />Simulated</span><span>{shortStamp(l.at)}</span></div>
+            <div class="lh"><span><Arms class="stamp" />Simulated</span><span>{shortStamp(l.at)}</span></div>
             <h2 id={`letter-${l.id}`}>{t.title}</h2>
             {t.lines.map((x, i) => <p key={i}>{x}</p>)}
           </article>

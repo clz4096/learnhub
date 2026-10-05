@@ -221,25 +221,34 @@ describe('letters and the report', () => {
     await flush();
   });
 
-  it('the Letters tab shows the emblem, and the offer and certificate as labelled examples before their milestones', async () => {
+  it('the Letters tab shows the seal, and the offer and certificate as labelled examples before their milestones', async () => {
     saveCampaign(newCampaign('maths', T0));
     go({ view: 'letters' });
     render(<App />);
     await screen.findByText(/None yet\. The first arrives/);
     expect(heading()).toBe('Letters');
-    // The emblem at the top, and on each document.
+    // The seal at the top, and on each document; the arms heading each document.
     const seal = document.querySelector('main svg.letters-seal') as SVGElement;
     expect(seal.getAttribute('role')).toBe('img');
     expect(seal.getAttribute('aria-label')).toBe('Seal of Euclid College');
     expect(screen.getAllByRole('img', { name: 'Seal of Euclid College' })).toHaveLength(3);
+    expect(screen.getAllByRole('img', { name: 'Arms of the University of New Cambridge' })).toHaveLength(2);
     const offer = screen.getByRole('article', { name: 'Offer letter' });
     expect(offer.closest('.doc')?.classList.contains('doc-example')).toBe(true);
     expect(offer.textContent).toContain('EC-28-04142');
     expect(screen.getByText(/Your own offer letter is written here from your results when Act IV/)).toBeTruthy();
     const cert = screen.getByRole('article', { name: 'Certificate' });
     expect(cert.closest('.doc')?.classList.contains('doc-example')).toBe(true);
+    expect(cert.textContent).toContain('Albert Burt');
+    expect(cert.textContent).toContain('Universitas Novae Cantabrigiae');
+    expect(cert.textContent).toContain('Mathematica Computationali');
+    expect(cert.textContent).toContain('Ada Lambda');
+    expect(cert.textContent).toContain('Registrarius Collegii');
     expect(cert.textContent).toContain('Q. E. Demonstrandum');
-    expect(cert.querySelector('svg.wax use')?.getAttribute('href')).toBe('#euclid-crestFull');
+    expect(cert.textContent).toContain('Magister Collegii');
+    expect(cert.textContent).toContain('Documentum simulatum · ludus studiorum · non gradus academicus');
+    expect(cert.querySelector('svg.arms use')?.getAttribute('href')).toBe('#euclid-armsUni');
+    expect(cert.querySelector('svg.cseal use')?.getAttribute('href')).toBe('#euclid-seal');
     expect(document.querySelector('main')?.textContent).not.toMatch(DASH);
   });
 
@@ -252,14 +261,30 @@ describe('letters and the report', () => {
     expect(screen.queryByText(/Your own offer letter is written here/)).toBeNull();
     expect(offer.textContent).toContain('5 October 2026');
     expect(offer.textContent).toContain('Mathematics (Tripos)');
-    expect(offer.textContent).toContain('Wolfson');
-    expect(offer.textContent).toContain('Euclid College · Office of Undergraduate Admissions');
+    expect(offer.textContent).toContain('University of New Cambridge');
+    expect(offer.textContent).toContain('CollegeEuclid College');
+    expect(offer.textContent).toContain('Conditional offer of admission: Mathematics');
+    expect(offer.textContent).toContain('University of New Cambridge · Euclid College · Office of Undergraduate Admissions');
     expect(offer.textContent).toContain('Dr E. Noether-Gauss');
     expect([...offer.querySelectorAll('ol.numbered li')].map((li) => li.textContent)).toEqual([
       'A* in A level Mathematics', 'A* in A level Further Mathematics', 'A in A level Computer Science',
       'Grade 1 in Sixth Term Examination Paper (STEP) Mathematics 2', 'Grade 1 in Sixth Term Examination Paper (STEP) Mathematics 3',
     ]);
+    expect([...offer.querySelectorAll('ol.numbered li b')].map((b) => b.textContent)).toEqual(['A*', 'A*', 'A', 'Grade 1', 'Grade 1']);
+    expect(offer.querySelector('.close svg.lseal use')?.getAttribute('href')).toBe('#euclid-seal');
     expect(offer.textContent).toContain('Simulated document. Not issued by any real university or college.');
+    await flush();
+  });
+
+  it('the Computer Science route\'s offer letter has no STEP conditions', async () => {
+    saveCampaign({ ...newCampaign('cs', T0), college: 'wolfson', applicationFiledAt: T0, letters: [{ id: 'offer', at: T0 }] });
+    go({ view: 'letters' });
+    render(<App />);
+    const offer = await screen.findByRole('article', { name: 'Offer letter' });
+    expect(offer.textContent).toContain('Computer Science (Tripos)');
+    const conditions = [...offer.querySelectorAll('ol.numbered li')].map((li) => li.textContent ?? '');
+    expect(conditions.length).toBeGreaterThan(0);
+    expect(conditions.some((x) => x.includes('STEP'))).toBe(false);
     await flush();
   });
 

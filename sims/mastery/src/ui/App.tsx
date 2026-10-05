@@ -33,7 +33,7 @@ import { CampaignView } from '@/ui/views/Campaign';
 import { PaperView } from '@/ui/views/Paper';
 import { ReportView } from '@/ui/views/Report';
 import { LettersView } from '@/ui/views/Letters';
-import { Emblem, SealDefs } from '@/ui/Seal';
+import { Arms, SealDefs } from '@/ui/Seal';
 
 type NavId = 'home' | 'map' | 'progress' | 'glossary' | 'campaign' | 'report' | 'letters';
 
@@ -170,7 +170,7 @@ export function App() {
       <SealDefs />
       <header class="top">
         <div class="brand">
-          <Emblem class="brand-seal" />
+          <Arms class="brand-arms" />
           <NavLink to={home} class="app-title">{APP_TITLE}</NavLink>
         </div>
         <nav class="nav" aria-label="Main">{navItems(setUp).map(link)}</nav>
