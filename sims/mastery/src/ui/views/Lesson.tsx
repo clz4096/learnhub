@@ -265,6 +265,7 @@ export function CambridgeItem({ c, p, n }: { c: TopicContent; p: CambridgeProble
           <ProblemCard
             key={round}
             index={round}
+            idBase={`cam-${p.id}-answer`}
             mode="cambridge"
             topicId={c.topicId}
             instance={p.instance}

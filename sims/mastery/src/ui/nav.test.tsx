@@ -87,7 +87,8 @@ describe('the start', () => {
 
 describe('no route or control leads to a placement test', () => {
   const noPlacement = (): void => {
-    expect(document.body.textContent).not.toMatch(/placement|placed/i);
+    // Whole words: the glossary's "without replacement" is not about placement.
+    expect(document.body.textContent).not.toMatch(/\bplacement\b|\bplaced\b/i);
     expect(document.querySelector('a[href*="placement"]')).toBeNull();
   };
 

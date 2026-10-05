@@ -36,6 +36,22 @@ const P = 'pre.probability-scale';
 const PH = 'comb.pigeonhole';
 const BY = 'prob.bayes-two-events';
 const EV = 'prob.event-spaces';
+const SS = 'pre.sample-spaces';
+const IM = 'logic.implication';
+const PF = 'pre.prime-factorisation';
+const TD = 'pre.tree-diagrams';
+const AR = 'pre.algebraic-argument';
+const NS = 'num.number-systems';
+const SG = 'alg.sigma-notation';
+const CB = 'comb.combinations';
+const CU = 'sets.countable-unions';
+const IF = 'logic.iff';
+const QU = 'logic.quantifiers';
+const DP = 'proof.direct';
+const AS = 'alg.arithmetic-series';
+const NQ = 'logic.nested-quantifiers';
+const GS = 'alg.geometric-series';
+const BI = 'comb.binomial-identities';
 
 export const GLOSSARY: readonly GlossaryEntry[] = [
   g(F, 'fraction', 'Fraction', t`A number of equal parts of a whole, written top over bottom.`, t`${frac(3, 4)} is three of four equal parts.`),
@@ -107,6 +123,45 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   g(BY, 'specificity', 'Specificity', t`The share of people without the condition whom a test correctly clears: ${math`P(\text{negative} \mid \text{no condition})`}.`, t`A specificity of ${98}% means ${98} in ${100} healthy people test negative.`),
   g(BY, 'prosecutors-fallacy', "Prosecutor's fallacy", t`Mistaking ${math`P(B \mid A)`} for ${math`P(A \mid B)`}, such as the chance of the evidence given innocence for the chance of innocence given the evidence.`, t`${math`P(\text{positive} \mid \text{disease}) = ${q(99, 100)}`}, yet ${math`P(\text{disease} \mid \text{positive}) = ${q(99, 2097)}`} for Mathmotitus.`, ['P(A|B) and P(B|A)']),
   g(EV, 'sigma-algebra', 'Sigma-algebra', t`A collection of subsets of ${math`\Omega`}, the events, that contains ${math`\Omega`} and is closed under complements and countable unions.`, t`On ${math`\Omega = ${setOf([1, 2, 3, 4, 5, 6])}`}, ${math`\{\varnothing, ${setOf([2, 4, 6])}, ${setOf([1, 3, 5])}, \Omega\}`} is a sigma-algebra.`, ['σ-algebra', 'event space', 'sigma field']),
+  g(SS, 'sample-space', 'Sample space', t`The list of every possible outcome of an experiment, often a combined one such as rolling two dice.`, t`Two dice have ${math`${6} \times ${6} = ${36}`} ordered outcomes.`, ['possibility space', 'outcomes']),
+  g(SS, 'sample-space-diagram', 'Sample space diagram', t`A table with one experiment's outcomes along the top and the other's down the side, one cell per combined outcome.`, t`For two dice, the cell in row ${2} and column ${5} is the outcome (${2}, ${5}), with total ${2 + 5}.`, ['possibility diagram', 'outcome grid']),
+  g(IM, 'implication', 'Implication', t`"If ${mP} then ${mQ}", written ${math`P \Rightarrow Q`}: false only when ${mP} is true and ${mQ} is false.`, t`"If ${mx} is a multiple of ${6}, then ${mx} is even" is a true implication.`, ['conditional', 'if then', '⇒', 'implies']),
+  g(IM, 'converse', 'Converse', t`The converse of ${math`P \Rightarrow Q`} is ${math`Q \Rightarrow P`}. It is a different statement, and can be false when the original is true.`, t`"If ${mx} is even, then ${mx} is a multiple of ${6}" is the converse of a true statement, and is false at ${math`x = ${4}`}.`),
+  g(IM, 'modus-ponens', 'Modus ponens', t`The rule of deduction: from ${mP} and ${math`P \Rightarrow Q`}, conclude ${mQ}.`, t`From "${7} is odd" and "if ${mx} is odd then ${math`x^{${2}}`} is odd", conclude that ${math`${7}^{${2}} = ${49}`} is odd.`),
+  g(PF, 'prime-number', 'Prime number', t`A whole number greater than one whose only positive divisors are one and itself. One is not prime.`, t`${listOf([2, 3, 5, 7, 11])} are the first five primes; ${9} is not prime, since ${math`${9} = ${3} \times ${3}`}.`, ['prime', 'primes']),
+  g(PF, 'prime-factorisation', 'Prime factorisation', t`A whole number written as a product of primes. Every whole number greater than one has one, and only one apart from the order.`, t`${math`${60} = ${2} \times ${2} \times ${3} \times ${5}`}.`, ['prime factors', 'prime decomposition']),
+  g(PF, 'index-form', 'Index form', t`A prime factorisation with repeated primes written as powers.`, t`${math`${60} = ${2}^{${2}} \times ${3} \times ${5}`}.`, ['prime power form']),
+  g(TD, 'tree-diagram', 'Tree diagram', t`A diagram of an experiment in stages: each stage branches into its outcomes, labelled with their probabilities. Multiply along a path; add the paths you want.`, t`Two fair coins: the path head then head has probability ${math`${q(1, 2)} \times ${q(1, 2)} = ${q(1, 4)}`}.`, ['tree', 'branch', 'probability tree']),
+  g(TD, 'without-replacement', 'Without replacement', t`Taking items one at a time without putting them back, so each draw changes what is left for the next.`, t`From ${3} red and ${2} blue, red then red without replacement has probability ${math`\frac{${3}}{${5}} \times \frac{${2}}{${4}} = ${q(3 * 2, 5 * 4)}`}.`, ['with replacement', 'dependent']),
+  g(AR, 'parity', 'Parity', t`Whether an integer is even or odd. An integer is even if it is ${math`${2}k`} and odd if it is ${math`${2}k + ${1}`} for some integer ${math`k`}.`, t`${7} and ${-3} have the same parity: both are odd.`, ['even', 'odd']),
+  g(AR, 'consecutive', 'Consecutive integers', t`Integers that follow one another, written ${math`n, n + ${1}, n + ${2}`}, and so on.`, t`Of any three consecutive integers, one is a multiple of ${3}: in ${listOf([7, 8, 9])} it is ${9}.`, ['consecutive']),
+  g(NS, 'natural-number', 'Natural numbers', t`The numbers ${math`\mathbb{N} = \{${0}, ${1}, ${2}, \ldots\}`}, generated from zero by adding one. The CST notes include ${0}; Book of Proof starts at ${1}.`, t`${0} and ${7} are natural numbers; ${math`${-1}`} and ${q(1, 2)} are not.`, ['N', 'ℕ', 'naturals']),
+  g(NS, 'integer', 'Integers', t`The whole numbers, positive, negative, and zero: ${math`\mathbb{Z} = \{\ldots, ${-1}, ${0}, ${1}, \ldots\}`}.`, t`${math`${-3}`} is an integer but not a natural number.`, ['Z', 'ℤ', 'whole numbers']),
+  g(NS, 'rational-number', 'Rational numbers', t`Numbers ${math`\frac{m}{n}`} with ${math`m`} and ${math`n`} integers and ${math`n \ne ${0}`}, written ${math`\mathbb{Q}`}.`, t`${q(-2, 3)} and ${5} are rational; ${math`\sqrt{${2}}`} is not.`, ['Q', 'ℚ', 'rationals', 'fractions']),
+  g(NS, 'closed', 'Closed under an operation', t`A set is closed under an operation if combining any two of its elements always gives an element of the set.`, t`${math`\mathbb{Z}`} is closed under subtraction, but ${math`\mathbb{N}`} is not: ${math`${2} - ${3} = ${-1}`}.`, ['closure']),
+  g(NS, 'additive-inverse', 'Inverse (additive, multiplicative)', t`An additive inverse of ${mx} is a ${math`y`} with ${math`x + y = ${0}`}; a multiplicative inverse, or reciprocal, has ${math`x \cdot y = ${1}`}.`, t`In ${math`\mathbb{Q}`}, ${q(2, 3)} has additive inverse ${q(-2, 3)} and multiplicative inverse ${q(3, 2)}.`, ['negative', 'multiplicative inverse', 'inverse']),
+  g(SG, 'sigma-notation', 'Sigma notation', t`${math`\sum_{i = m}^{n} a_i`} means ${math`a_m + a_{m + ${1}} + \cdots + a_n`}: the term for each value of the index from ${math`m`} to ${mn}, added.`, t`${math`\sum_{i = ${1}}^{${4}} i^{${2}} = ${1} + ${4} + ${9} + ${16} = ${1 + 4 + 9 + 16}`}.`, ['Σ', 'sum', 'summation']),
+  g(SG, 'index-variable', 'Index of a sum', t`The variable that runs through the values in a sum. Its name does not matter: renaming it gives the same sum.`, t`In ${math`\sum_{i = ${1}}^{n} i`} the index is ${math`i`}, running from ${1} to ${mn}.`, ['dummy variable', 'index']),
+  g(SG, 'telescoping', 'Telescoping sum', t`A sum of differences ${math`\sum \big(f(i + ${1}) - f(i)\big)`} in which everything cancels except the first and last pieces.`, t`${math`\sum_{i = ${1}}^{n} \left(\frac{${1}}{i} - \frac{${1}}{i + ${1}}\right) = ${1} - \frac{${1}}{n + ${1}}`}.`, ['telescope']),
+  g(CB, 'combination', 'Combination', t`A selection of objects in which order does not matter, such as a committee or a hand of cards.`, t`From A, B, C there are ${3} combinations of two: AB, AC, BC.`, ['selection', 'unordered']),
+  g(CB, 'binomial-coefficient', 'Binomial coefficient', t`${math`\binom{n}{r} = \frac{n!}{r!\,(n - r)!}`}, read "${mn} choose ${math`r`}": the number of ways to choose ${math`r`} objects from ${mn}, order not mattering.`, t`${math`\binom{${5}}{${2}} = \frac{${5} \times ${4}}{${2}} = ${10}`}.`, ['n choose r', 'nCr', 'choose', 'C(n, r)']),
+  g(CU, 'countable', 'Countable set', t`A set whose elements can be listed as a sequence ${math`a_{${1}}, a_{${2}}, a_{${3}}, \ldots`} (finite or infinite).`, t`${math`\mathbb{Z}`} is countable: ${math`${0}, ${1}, ${-1}, ${2}, ${-2}, \ldots`} lists it.`, ['countably infinite', 'listable']),
+  g(CU, 'infinitely-often', 'Infinitely often', t`A point lies in ${math`A_n`} infinitely often if, for every ${math`N`}, it lies in some ${math`A_n`} with ${math`n \ge N`}: it keeps coming back.`, t`If ${math`A_n`} is the even numbers for even ${math`n`} and the odd numbers for odd ${math`n`}, every number is in ${math`A_n`} infinitely often.`, ['i.o.', 'limsup']),
+  g(IF, 'biconditional', 'If and only if', t`"${mP} if and only if ${mQ}", written ${math`P \Leftrightarrow Q`}: both ${math`P \Rightarrow Q`} and ${math`Q \Rightarrow P`}. True when ${mP} and ${mQ} have the same truth value.`, t`An integer ${mn} is even if and only if ${math`n^{${2}}`} is even.`, ['iff', '⇔', 'biconditional', 'equivalent']),
+  g(IF, 'sufficient-condition', 'Sufficient condition', t`${mA} is sufficient for ${mB} if ${math`A \Rightarrow B`}: ${mA} on its own guarantees ${mB}.`, t`Being divisible by ${4} is sufficient for being even.`, ['sufficient']),
+  g(IF, 'necessary-condition', 'Necessary condition', t`${mA} is necessary for ${mB} if ${math`B \Rightarrow A`}: ${mB} cannot hold without ${mA}.`, t`Being even is necessary for being divisible by ${4}, but not sufficient: ${2} is even.`, ['necessary']),
+  g(QU, 'quantifier', 'Quantifier', t`A phrase that says which values a statement is about: ${math`\forall`} (for all) or ${math`\exists`} (there exists), over a stated set.`, t`${math`\forall x \in \mathbb{Z}.\ x^{${2}} \ge ${0}`} is true; ${math`\exists x \in \mathbb{Z}.\ x^{${2}} = ${2}`} is false.`, ['for all', 'there exists', '∀', '∃']),
+  g(QU, 'witness', 'Witness', t`A value that makes a "there exists" statement true, given to prove it.`, t`${math`x = ${2}`} is a witness for ${math`\exists x \in \mathbb{N}.\ x^{${2}} = ${4}`}.`, ['example']),
+  g(QU, 'counterexample', 'Counterexample', t`A value that makes a "for all" statement false. One is enough to disprove it.`, t`${math`x = ${0}`} is a counterexample to ${math`\forall x \in \mathbb{R}.\ x^{${2}} > ${0}`}.`),
+  g(DP, 'direct-proof', 'Direct proof', t`A proof of "if ${mP} then ${mQ}" that assumes ${mP} and deduces ${mQ} step by step, using definitions and facts already proved.`, t`Assume ${math`a \mid b`} and ${math`a \mid c`}; then ${math`b + c = a(x + y)`}, so ${math`a \mid (b + c)`}.`, ['direct']),
+  g(DP, 'scratch-work', 'Scratch work', t`The rough working that finds a proof: trying cases, algebra, working back from the goal. It is not itself the proof, which is written in sentences.`, t`Trying ${math`k = ${1}, ${2}, ${3}`} suggests the witness ${math`i = k + ${1}`}; the proof then shows it works for every ${math`k`}.`, ['rough work']),
+  g(DP, 'lemma', 'Lemma', t`A true statement proved in order to help prove others. A theorem is an important one; a corollary follows simply from one.`, t`Euclid's lemma: if a prime divides ${math`ab`}, it divides ${math`a`} or ${math`b`}.`, ['theorem', 'corollary', 'proposition']),
+  g(AS, 'arithmetic-series', 'Arithmetic series', t`The sum of the terms of an arithmetic sequence. With ${mn} terms, first ${math`a`} and last ${math`l`}, it is ${math`\frac{n(a + l)}{${2}}`}.`, t`${math`${1} + ${2} + \cdots + ${100} = \frac{${100} \times ${101}}{${2}} = ${5050}`}.`, ['series', 'sum of an arithmetic sequence']),
+  g(NQ, 'dependent-witness', 'Witness that depends on a variable', t`In ${math`\forall x\ \exists y`}, the witness ${math`y`} is chosen after ${mx} and may depend on it; in ${math`\exists y\ \forall x`}, one ${math`y`} must work for every ${mx}.`, t`${math`\forall x \in \mathbb{Z}\ \exists y \in \mathbb{Z}.\ y > x`} is true with ${math`y = x + ${1}`}; ${math`\exists y\ \forall x.\ y > x`} is false.`, ['order of quantifiers', 'nested quantifiers']),
+  g(GS, 'geometric-series', 'Geometric series', t`The sum of the terms of a geometric sequence. With first term ${math`a`}, ratio ${math`r \ne ${1}`}, and ${mn} terms, it is ${math`\frac{a(${1} - r^{n})}{${1} - r}`}.`, t`${math`${1} + ${2} + ${4} + ${8} = \frac{${2}^{${4}} - ${1}}{${2} - ${1}} = ${15}`}.`, ['GP', 'geometric progression']),
+  g(GS, 'common-ratio', 'Common ratio', t`The fixed number each term of a geometric sequence is multiplied by to give the next.`, t`In ${listOf([3, 6, 12, 24])} the common ratio is ${2}.`, ['ratio']),
+  g(BI, 'pascals-triangle', "Pascal's triangle", t`The binomial coefficients in rows: row ${mn} holds ${math`\binom{n}{${0}}, \ldots, \binom{n}{n}`}. Each entry is the sum of the two above it.`, t`Row ${4} is ${listOf([1, 4, 6, 4, 1])}.`, ['Pascal']),
+  g(BI, 'pascals-rule', "Pascal's rule", t`${math`\binom{n + ${1}}{k} = \binom{n}{k} + \binom{n}{k - ${1}}`}: a subset of ${math`n + ${1}`} things either contains a fixed thing or not.`, t`${math`\binom{${5}}{${2}} = \binom{${4}}{${2}} + \binom{${4}}{${1}} = ${6} + ${4} = ${10}`}.`, ['Pascal identity']),
   g(EV, 'partition', 'Partition', t`A split of a set into nonempty blocks that do not overlap and together make up the whole set.`, t`${setOf([1, 2])}, ${setOf([3])}, ${setOf([4, 5])} is a partition of ${setOf([1, 2, 3, 4, 5])}.`, ['blocks']),
 ];
 

@@ -493,3 +493,51 @@ What was built from this map, and what the build found. The content and its chec
 - STEP Support A6 hints, Q4(i)(d): the answer is printed as 18/38 (9/19 in lowest terms); A6 Q4(ii) as 99/2097 (11/233).
 - STEP Support A12 hints, Q1(iv): the hints rewrite 2^(2n) - 1 as (2^n - 1)(2^n + 1), not as 4^n - 1 as this map said; the worked example shows both.
 - TMUA Exercise Q is on page 73, not 72 (citation corrected).
+
+## Build step 5: batch 2 (2026-10-05)
+
+Sixteen more topics, the next ones this map cites sources for, built and checked the same way as step 2. The content and its checks are the record; this section summarises them.
+
+**Order.** The topics are taken in the order the engine schedules them for a learner who places at nothing and takes both courses at the even split, passing every task (`planSession`, as in the content checks), keeping only topics whose graph sources include a document of this batch and that had no lesson. A content check recomputes the order and fails if `TOPIC_CONTENT` drifts from it. Topics with no source in this map (for example `pre.primes-and-factors`, `pre.mutually-exclusive`) are skipped and stay unwritten.
+
+| order | topic | lesson and problems from | worked Cambridge | auto-checked | supervision |
+|---|---|---|---|---|---|
+| 1 | `pre.sample-spaces` | STEP Support A19 Q4 | 1 | 3 | 1 |
+| 2 | `logic.implication` | CST notes printed pages 42 to 56; Book of Proof 2.3, 2.5; TMUA pages 28 to 30, 38, 46, Exercises E, J | 2 | 10 | 4 |
+| 3 | `pre.prime-factorisation` | STEP Support A12 Q4 | 1 | 3 | 1 |
+| 4 | `pre.tree-diagrams` | STEP Support A12 Q2(ii) to (iv); A6 Q4(i) | 1 | 3 | 2 |
+| 5 | `pre.algebraic-argument` | STEP Support A12 Q1; Book of Proof Chapter 4, exercises 1 to 5 | 2 | 3 | 3 |
+| 6 | `num.number-systems` | CST notes printed pages 158 to 175; Book of Proof 1.9; sheet 1.1.6, 3.2.5 | 1 | 3 | 2 |
+| 7 | `alg.sigma-notation` | Sheet 4.3.2; Book of Proof Chapter 10, exercises 1, 3, 4, 6, 7, 15, 20 | 1 | 6 | 2 |
+| 8 | `comb.combinations` | IA Sheet 1 Q1, Q7(a), Q12; Book of Proof Chapter 4, exercises 22, 23, 25 | 1 | 3 | 2 |
+| 9 | `sets.countable-unions` | IA Sheet 1 Q6 and Q4(a) | 1 | 3 | 2 |
+| 10 | `logic.iff` | CST notes printed pages 57 to 62; Book of Proof 2.4; TMUA pages 40, 51 to 54; sheet 1.1.3, 1.2.2, 1.2.7 | 1 | 6 | 4 |
+| 11 | `logic.quantifiers` | CST notes printed pages 63 to 103; TMUA pages 56 to 58, Exercise M; Book of Proof 2.7; sheet 1.2.10, 1.3.2 | 1 | 4 | 3 |
+| 12 | `proof.direct` | CST notes printed pages 18 to 41; Book of Proof Chapter 4, exercises 6, 7, 9 to 13, 19, 24; TMUA pages 64, 72, 73 | 1 | 6 | 4 |
+| 13 | `alg.arithmetic-series` | Sheet 1.3.1(e), (f) | 1 | 3 | 2 |
+| 14 | `logic.nested-quantifiers` | TMUA page 59, Exercise N; Book of Proof 2.7, 2.9 | 1 | 5 | 2 |
+| 15 | `alg.geometric-series` | Sheet 4.2.1; Book of Proof Chapter 10, exercise 5 | 1 | 2 | 2 |
+| 16 | `comb.binomial-identities` | CST notes printed pages 273 to 280; Book of Proof Chapter 10, exercises 24, 31, 35, 38, 40, 41 | 2 | 3 | 3 |
+
+Each topic also has three or four variant generators (1,000 seeds each, a reference solver, at least two misconceptions). "Worked Cambridge" counts worked examples that are Cambridge problems (auto-checked ones are verified like practice; two are cited proofs: the notes' Proposition 21 and the Pascal's rule homework, worked by counting and by algebra).
+
+**Answers checked against official ones.** Every auto-checked answer is verified by code (brute force, exact arithmetic, or a second method). Where an official answer exists it is recorded as printed and compared in the content checks: STEP Support hints (A12, A19), Book of Proof's solutions to odd exercises, the CST 2023-24 solutions to Exercises 1 and 4 (sheet 1.1.3, 1.3.1(e), (f), 4.2.1, 4.3.2(c)), the CST notes' own proofs and remarks (printed pages 94, 173), and the TMUA notes' summary table (page 54). For even-numbered Book of Proof exercises, the formula the exercise states is the comparison. **No computed answer disagrees with an official one.** No official answers exist for IA Sheet 1 (Q1, Q7(a), Q12, and the adapted Q6 items), TMUA Exercises M, N, and R, or the adapted variants; those rest on the code checks alone.
+
+**Source notes found while building.**
+
+- STEP Support A19 hints, Q4(ii): the probabilities of three sixes and of one six are not printed on their own; they appear as the terms (1/6)³ and 3 × (1/6)(5/6)² = 75/216 of the expected gain 17/216. The problems compare with those terms.
+- STEP Support A12 hints, Q2(iv)(c): confirmed from the rendered page that the answer is 3/64 (the text extraction prints "64."), and (iii)(b) is the product of three fractions.
+- TMUA page 54 prints "A is necessary for B" as A ⇐ B. The formula grader has no ⇐, so the official answer is typed as B ⇒ A, the same statement.
+- Book of Proof starts ℕ at 1 and the CST notes at 0 (decision 7). Prompts that use ℕ say which; Chapter 4, exercise 23 is set with Book of Proof's convention.
+- Book of Proof Chapter 10's sum formulas are induction exercises. Here only their closed forms are auto-checked, found by manipulating sums; the inductive proofs belong to `alg.proof-by-induction`.
+- The CST notes leave Pascal's rule as homework (printed page 280, no proof given). It is worked here by counting and by algebra.
+- IA Sheet 1 Q6(a) is already set for supervision in `prob.event-spaces`. `sets.countable-unions` comes earlier in the schedule, so it applies Q6's definitions to concrete sequences and does not state the union-of-intersections formula the later problem asks for.
+- The 2023-24 official solution to sheet 1.1.1 disproves it with n = 9 (2n + 13 = 31); this map's table gives n = 8 (29). Both are counterexamples; 1.1.1 is not set yet.
+
+**Tooling and app changes in this step.**
+
+- `scripts/sources/pdf2png.swift` renders a PDF page to PNG with PDFKit, for reading mathematics the text extraction loses. It is how the TMUA pages, the STEP hints, Book of Proof's Chapter 10 exercises, and sheet 4.3.2 were read.
+- Fixed: every auto-checked Cambridge problem card on a lesson's Cambridge page used the element id prefix `p0`, so labels and descriptions pointed at the first card's input. Each card now uses `cam-<problem id>-answer`; a regression test checks that every id on the page is unique and that each input's descriptions are in its own card.
+- Two app tests named `comb.combinations` and `logic.implication` as topics without content; they now use `comb.permutations` and `prob.addition-rule`, which this map gives no sources. The navigation test matched "placement" inside the new glossary term "without replacement"; it now matches whole words.
+
+**Still unbuilt (46 mapped topics), in schedule order:** `pre.two-way-tables`, `comb.binomial-theorem`, `logic.equivalences`, `proof.cases`, `logic.negating-quantifiers`, `proof.counterexample`, `proof.contradiction`, `comb.repeated-arrangements`, `alg.proof-by-induction`, `prob.counting-probability`, `proof.contrapositive`, `prob.independent-events`, `prob.inclusion-exclusion-three`, `proof.quantifier-patterns`, `prob.classical-probability`, `proof.infinitely-many-primes`, `comb.binomial-theorem-proof`, `proof.strong-induction`, `num.divisibility`, `prob.conditional-formula`, `num.division-theorem`, `prob.binomial-distribution`, `num.congruence`, `num.gcd`, `num.modular-arithmetic`, `num.euclid-algorithm`, `prob.sampling-models`, `num.modular-integers`, `num.modular-exponentiation`, `num.extended-euclid`, `num.euclid-theorem`, `num.diffie-hellman`, `prob.stirling-formula`, `num.modular-inverse`, `prob.axioms`, `num.fundamental-theorem`, `prob.axiom-consequences`, `num.prime-binomial`, `num.fermat-little`, `prob.inclusion-exclusion`, `prob.continuity`, `prob.conditional-probability`, `prob.subadditivity`, `prob.total-probability`, `prob.independence`, `prob.bayes-formula`.

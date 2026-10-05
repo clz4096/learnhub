@@ -202,7 +202,7 @@ describe('migrated placement answers credit only topics with real problems', () 
   });
 
   it('an answer about a topic without content counts for nothing', () => {
-    const p = finishOpenPlacement(answered(fresh(), 'comb.combinations', true), T0 + 1);
+    const p = finishOpenPlacement(answered(fresh(), 'comb.permutations', true), T0 + 1);
     expect(p.memory).toEqual({});
   });
 });
@@ -252,28 +252,28 @@ describe('topics without content are never scheduled or learned', () => {
 });
 
 describe('migration: self-reported progress is removed', () => {
-  // A version 2 document from the build that offered self-report. comb.combinations has no
+  // A version 2 document from the build that offered self-report. comb.permutations has no
   // content; its self-reported "known" spread to pre.product-rule and comb.factorial.
   const legacy = (): Progress => {
     let p = fresh();
     p = answered(p, 'pre.fractions', true);
-    p = answered(p, 'comb.combinations', true);
+    p = answered(p, 'comb.permutations', true);
     p = answered(p, NO_CONTENT_ROOT, true);
     // finishPlacement now ignores those answers, so build the memory the old build wrote.
     p = { ...p, placement: { answers: p.placement?.answers ?? [], done: true } };
-    p = { ...p, memory: placedMemory(['pre.fractions', 'pre.product-rule', 'comb.factorial', NO_CONTENT_ROOT, 'comb.combinations'], T0) };
+    p = { ...p, memory: placedMemory(['pre.fractions', 'pre.product-rule', 'comb.factorial', NO_CONTENT_ROOT, 'comb.permutations'], T0) };
     // A self-reported lesson on a topic without content, and a real one with content.
-    p = { ...p, memory: { ...p.memory, 'logic.implication': placedMemory(['logic.implication'], T0)['logic.implication'] as never } };
-    p = { ...p, history: [...p.history, { at: T0, kind: 'lesson', topicId: 'logic.implication', correct: true }] };
+    p = { ...p, memory: { ...p.memory, 'prob.addition-rule': placedMemory(['prob.addition-rule'], T0)['prob.addition-rule'] as never } };
+    p = { ...p, history: [...p.history, { at: T0, kind: 'lesson', topicId: 'prob.addition-rule', correct: true }] };
     p = completeLesson(p, 'logic.connectives', true, T0, null, 15);
-    p = { ...p, learnedSinceQuiz: ['logic.implication', 'logic.connectives'] };
+    p = { ...p, learnedSinceQuiz: ['prob.addition-rule', 'logic.connectives'] };
     return p;
   };
 
   it('keeps only measured topics with content', () => {
     const { progress: p, dropped } = withoutSelfReport(legacy());
     expect(Object.keys(p.memory).sort()).toEqual(['logic.connectives', 'pre.fractions']);
-    expect(dropped.sort()).toEqual(['comb.combinations', 'comb.factorial', 'logic.implication', NO_CONTENT_ROOT, 'pre.product-rule'].sort());
+    expect(dropped.sort()).toEqual(['comb.permutations', 'comb.factorial', 'prob.addition-rule', NO_CONTENT_ROOT, 'pre.product-rule'].sort());
   });
 
   it('drops placement answers about topics without content, so they can never count later', () => {
@@ -303,7 +303,7 @@ describe('migration: self-reported progress is removed', () => {
           { kind: 'lesson', topicIds: ['comb.permutations'], minutes: 15, reason: 'r', done: false, passed: null },
           { kind: 'review', topicIds: ['comb.factorial'], minutes: 3, reason: 'r', done: false, passed: null },
           { kind: 'review', topicIds: ['pre.fractions'], minutes: 3, reason: 'r', done: false, passed: null },
-          { kind: 'quiz', topicIds: ['pre.fractions', 'logic.implication', 'logic.connectives', 'comb.combinations'], minutes: 8, reason: 'r', done: false, passed: null },
+          { kind: 'quiz', topicIds: ['pre.fractions', 'prob.addition-rule', 'logic.connectives', 'comb.permutations'], minutes: 8, reason: 'r', done: false, passed: null },
           { kind: 'lesson', topicIds: ['pre.indices'], minutes: 15, reason: 'r', done: false, passed: null },
         ],
       },

@@ -1,0 +1,371 @@
+/**
+ * pre.prime-factorisation: Writing a whole number as a product of prime powers. From STEP
+ * Support Assignment 12, Q4 (the warm-down): the bell ringers whose ages multiply to 2,450.
+ * The hints start from 2450 = 2 × 5² × 7², list the twenty possible sets of ages
+ * systematically, and deduce the Imam's age (32) and the Rabbi's (50).
+ */
+import type { Rational } from '@learnhub/mastery';
+import { auto, cite, same, supervision } from '../cambridge';
+import { int, pick, sample, upTo } from '../math';
+import { generator, type Misconception } from '../problem';
+import { computedTex, dmath, listOf, math, t, type Rich } from '../rich';
+import { worked, workedCambridge, type TopicContent } from '../topic';
+
+const PRIMES = [2, 3, 5, 7, 11, 13] as const;
+
+const isPrime = (n: number): boolean => {
+  if (n < 2) return false;
+  for (let d = 2; d * d <= n; d++) if (n % d === 0) return false;
+  return true;
+};
+
+/** The prime factors of n with repeats, smallest first, by trial division. */
+function primeFactors(n: number): number[] {
+  const out: number[] = [];
+  let m = n;
+  for (let d = 2; d * d <= m; d++) while (m % d === 0) { out.push(d); m /= d; }
+  if (m > 1) out.push(m);
+  return out;
+}
+
+/** The exponent of each prime in n, as [prime, exponent] pairs in increasing order. */
+function powers(n: number): [number, number][] {
+  const out = new Map<number, number>();
+  for (const p of primeFactors(n)) out.set(p, (out.get(p) ?? 0) + 1);
+  return [...out.entries()];
+}
+
+/** 2 \times 5^{2} \times 7^{2}: the index form as LaTeX, built from computed numbers. */
+const indexTex = (n: number): string => powers(n).map(([p, e]) => (e === 1 ? `${p}` : `${p}^{${e}}`)).join(' \\times ');
+
+/** The repeated division of n by its smallest prime factor, one line per step. */
+function divisionSteps(n: number): Rich[] {
+  const steps: Rich[] = [];
+  let m = n;
+  for (const p of primeFactors(n)) {
+    steps.push(t`${math`${m} \div ${p} = ${m / p}`}`);
+    m /= p;
+  }
+  return steps;
+}
+
+/** The witness answer for "list the prime factors": every value a prime, multiplying to n. */
+function factorCheck(n: number) {
+  return (vals: readonly Rational[]): string | null => {
+    const xs = vals.map((v) => (v.den === 1n && v.num > 0n ? Number(v.num) : NaN));
+    if (xs.some((x) => Number.isNaN(x))) return 'Each factor is a positive whole number.';
+    const notPrime = xs.find((x) => !isPrime(x));
+    if (notPrime !== undefined) return `${notPrime} is not prime${notPrime > 1 ? `: it is ${primeFactors(notPrime).join(' × ')}` : ''}. Split it into primes.`;
+    const prod = xs.reduce((a, b) => a * b, 1);
+    return prod === n ? null : `Those multiply to ${prod}, not ${n}.`;
+  };
+}
+
+/** The unordered triples a ≤ b ≤ c of positive whole numbers with product n, by search. */
+function triples(n: number): [number, number, number][] {
+  const out: [number, number, number][] = [];
+  for (let a = 1; a * a * a <= n; a++) {
+    if (n % a !== 0) continue;
+    for (let b = a; a * b * b <= n; b++) if ((n / a) % b === 0) out.push([a, b, n / a / b]);
+  }
+  return out;
+}
+
+const divisorCount = (n: number): number => upTo(n).filter((d) => n % d === 0).length;
+
+// ---------------------------------------------------------------- generators
+
+interface FactorP { fs: number[] }
+
+/** A product of three to six small primes with at least one repeat, at most 6,000. */
+function factorParams(rng: () => number): FactorP {
+  for (;;) {
+    const k = int(rng, 3, 6);
+    const fs = Array.from({ length: k }, () => pick(rng, PRIMES)).sort((a, b) => a - b);
+    const n = fs.reduce((a, b) => a * b, 1);
+    if (n <= 6000 && new Set(fs).size < fs.length && new Set(fs).size > 1) return { fs };
+  }
+}
+
+const factorise = generator<FactorP>({
+  id: 'factorise',
+  skill: 'Write a whole number as a product of primes by repeated division, as the STEP hints do with 2,450.',
+  params: factorParams,
+  sane: ({ fs }) => (fs.length >= 3 && fs.every((p) => isPrime(p)) && fs.reduce((a, b) => a * b, 1) <= 6000 ? null : 'out of range'),
+  problem: ({ fs }) => {
+    const n = fs.reduce((a, b) => a * b, 1);
+    return {
+      prompt: t`Write ${n} as a product of primes: list the primes, repeating each as often as it divides, separated by commas.`,
+      answer: { kind: 'witness', count: { min: 1, max: 20 }, unordered: true, example: fs.join(', '), check: factorCheck(n) },
+      solution: [
+        t`Divide by the smallest prime that goes in, again and again:`,
+        ...divisionSteps(n),
+        t`So ${math`${n} = ${computedTex(fs.join(' \\times '))} = ${computedTex(indexTex(n))}`}.`,
+      ],
+    };
+  },
+  solve: ({ fs }) => primeFactors(fs.reduce((a, b) => a * b, 1)).join(', '),
+  misconceptions: ({ fs }): Misconception[] => {
+    const n = fs.reduce((a, b) => a * b, 1);
+    const [p, e] = powers(n).find(([, x]) => x >= 2) as [number, number];
+    const merged = [...fs.filter((x) => x !== p), p * p, ...Array.from({ length: e - 2 }, () => p)];
+    return [
+      { response: merged.join(', '), why: t`${p * p} is not prime: it is ${math`${p} \times ${p}`}. Every factor in the list must be prime, so keep dividing.` },
+      { response: [...new Set(fs)].join(', '), why: t`Each prime appears as many times as it divides. Those multiply to ${[...new Set(fs)].reduce((a, b) => a * b, 1)}, not ${n}: keep dividing until you reach ${1}.` },
+    ];
+  },
+});
+
+interface ExpP { fs: number[]; p: number }
+
+const exponent = generator<ExpP>({
+  id: 'exponent',
+  skill: 'Read the power of a prime in a prime factorisation.',
+  params: (rng) => {
+    for (;;) {
+      const { fs } = factorParams(rng);
+      const ps = powers(fs.reduce((a, b) => a * b, 1));
+      const [p, e] = pick(rng, ps);
+      // Another prime with a different power, so "the power of the wrong prime" is a real slip.
+      if (ps.some(([q, f]) => q !== p && f !== e)) return { fs, p };
+    }
+  },
+  sane: ({ fs, p }) => (fs.includes(p) && fs.reduce((a, b) => a * b, 1) <= 6000 ? null : 'out of range'),
+  problem: ({ fs, p }) => {
+    const n = fs.reduce((a, b) => a * b, 1);
+    const e = fs.filter((x) => x === p).length;
+    return {
+      prompt: t`In the prime factorisation of ${n}, written in index form, what is the power of ${p}?`,
+      answer: { kind: 'exact', expected: String(e) },
+      solution: [
+        ...divisionSteps(n),
+        t`So ${math`${n} = ${computedTex(indexTex(n))}`}, and ${p} appears ${e} ${e === 1 ? 'time' : 'times'}: the power of ${p} is ${e}.`,
+      ],
+    };
+  },
+  solve: ({ fs, p }) => {
+    // Divide out p as often as possible.
+    let m = fs.reduce((a, b) => a * b, 1);
+    let e = 0;
+    while (m % p === 0) { m /= p; e++; }
+    return String(e);
+  },
+  misconceptions: ({ fs, p }): Misconception[] => {
+    const n = fs.reduce((a, b) => a * b, 1);
+    const ps = powers(n);
+    const other = ps.find(([q, f]) => q !== p && f !== fs.filter((x) => x === p).length) as [number, number];
+    return [
+      { response: String(other[1]), why: t`That is the power of ${other[0]}. Count only the factors equal to ${p}.` },
+      { response: String(fs.length), why: t`That counts every prime factor. The power of ${p} counts only the ${p}s.` },
+    ];
+  },
+});
+
+interface DivP { fs: number[] }
+
+const divisors = generator<DivP>({
+  id: 'divisors',
+  skill: 'Count the divisors of a number from its prime factorisation: choose a power of each prime.',
+  params: factorParams,
+  sane: ({ fs }) => (fs.reduce((a, b) => a * b, 1) <= 6000 ? null : 'out of range'),
+  problem: ({ fs }) => {
+    const n = fs.reduce((a, b) => a * b, 1);
+    const ps = powers(n);
+    const count = ps.reduce((a, [, e]) => a * (e + 1), 1);
+    return {
+      prompt: t`${math`${n} = ${computedTex(indexTex(n))}`}. How many positive whole numbers divide ${n}, counting ${1} and ${n} itself?`,
+      answer: { kind: 'exact', expected: String(count) },
+      solution: [
+        t`A divisor of ${n} is a product of the same primes with powers no bigger: ${ps.map(([p, e]) => t`the power of ${p} is one of ${listOf(Array.from({ length: e + 1 }, (_, i) => i))}`).reduce<Rich>((acc, r, i) => (i === 0 ? r : [...acc, ...t`; `, ...r]), [])}.`,
+        t`By the product rule that is ${math`${computedTex(ps.map(([, e]) => `${e + 1}`).join(' \\times '))} = ${count}`} divisors.`,
+      ],
+    };
+  },
+  solve: ({ fs }) => String(divisorCount(fs.reduce((a, b) => a * b, 1))),
+  misconceptions: ({ fs }): Misconception[] => {
+    const ps = powers(fs.reduce((a, b) => a * b, 1));
+    const count = ps.reduce((a, [, e]) => a * (e + 1), 1);
+    return [
+      { response: String(ps.reduce((a, [, e]) => a * e, 1)), why: t`Each power can also be ${0}: the power of a prime runs from ${0} up to its exponent, one more choice than the exponent.` },
+      { response: String(ps.reduce((a, [, e]) => a + e + 1, 0)), why: t`The choices for different primes multiply, by the product rule; they do not add.` },
+      { response: String(count - 2), why: t`The question counts ${1} and the number itself.` },
+    ];
+  },
+});
+
+interface TripleP { fs: number[] }
+
+const tripleCount = generator<TripleP>({
+  id: 'triples',
+  skill: 'List systematically the ways to write a number as a product of three whole numbers, as in STEP Support Assignment 12, Q4.',
+  params: (rng) => {
+    for (;;) {
+      const fs = sample(rng, [2, 2, 3, 3, 5, 7], int(rng, 3, 4)).sort((a, b) => a - b);
+      const n = fs.reduce((a, b) => a * b, 1);
+      if (triples(n).length <= 12) return { fs };
+    }
+  },
+  sane: ({ fs }) => (fs.length >= 3 && triples(fs.reduce((a, b) => a * b, 1)).length <= 12 ? null : 'out of range'),
+  problem: ({ fs }) => {
+    const n = fs.reduce((a, b) => a * b, 1);
+    const ts = triples(n);
+    return {
+      prompt: t`Three people's ages are whole numbers whose product is ${n}. How many different sets of three ages are possible? (Order does not matter; ages may repeat, and an age of ${1} is allowed.)`,
+      answer: { kind: 'exact', expected: String(ts.length) },
+      solution: [
+        t`Factorise first: ${math`${n} = ${computedTex(indexTex(n))}`}.`,
+        t`List the sets with the ages in increasing order, by the smallest age and then the middle one, so none is missed or counted twice:`,
+        ...ts.map(([a, b, c]) => t`${math`${a} \times ${b} \times ${c}`}`),
+        t`That is ${ts.length} sets.`,
+      ],
+    };
+  },
+  solve: ({ fs }) => {
+    // Count ordered triples by brute force, then group them into sets.
+    const n = fs.reduce((a, b) => a * b, 1);
+    const seen = new Set<string>();
+    for (let a = 1; a <= n; a++) for (let b = 1; b <= n / a; b++) if (n % (a * b) === 0) seen.add([a, b, n / a / b].sort((x, y) => x - y).join(','));
+    return String(seen.size);
+  },
+  misconceptions: ({ fs }): Misconception[] => {
+    const n = fs.reduce((a, b) => a * b, 1);
+    let ordered = 0;
+    for (let a = 1; a <= n; a++) for (let b = 1; b <= n / a; b++) if (n % (a * b) === 0) ordered++;
+    const ts = triples(n);
+    return [
+      { response: String(ordered), why: t`That counts orders: ${math`${1} \times ${fs[0] as number} \times ${n / (fs[0] as number)}`} and ${math`${fs[0] as number} \times ${1} \times ${n / (fs[0] as number)}`} are the same set of ages. List each set once, in increasing order.` },
+      { response: String(ts.filter(([a]) => a > 1).length), why: t`An age of ${1} is allowed, so sets with a ${1} count too.` },
+    ];
+  },
+});
+
+// ---------------------------------------------------------------- Cambridge problems
+
+const AGES = 2450;
+/** The hints' table: sets of three ages with product 2450, and each sum. */
+const ageSets = triples(AGES);
+const sums = ageSets.map(([a, b, c]) => a + b + c);
+const smallest = [...new Set(ageSets.map(([a]) => a))];
+/** The Imam's age: the only half-sum that is not unique, so he could not answer. */
+const imamAge = (): number => {
+  const repeated = [...new Set(sums)].filter((s) => sums.filter((x) => x === s).length > 1);
+  return repeated.length === 1 ? (repeated[0] as number) / 2 : NaN;
+};
+/** The Rabbi's age: the one age that leaves exactly one set when everyone else in the room is younger. */
+const rabbiAge = (): number => {
+  const imam = imamAge();
+  const candidates = ageSets.filter(([a, b, c]) => a + b + c === 2 * imam);
+  const fits = upTo(200).filter((r) => r > imam && candidates.filter((x) => Math.max(...x) < r).length === 1);
+  return fits.length === 1 ? (fits[0] as number) : NaN;
+};
+
+const puzzle = t`A Rabbi, an Imam, and a Bishop were having a chat when three bell ringers entered the room. The Imam asked the Bishop how old the bell ringers were. "If you multiplied their three ages together," said the Bishop, "you'd get ${AGES}. But if you added them, you'd get twice your age." The Imam thought, and said: "I haven't enough information to solve that." "It may help," offered the Rabbi, "to know that I am older than anyone else here in the room." "Yes, indeed it would," replied the Imam. "Now I know their ages." All ages are whole numbers.`;
+
+const a12factor = auto({
+  id: 'a12-q4-factorise',
+  source: cite('step-f12', 'Q4, first step', true),
+  title: t`The prime factors of ${AGES}`,
+  prompt: t`The STEP hints start the bell ringers puzzle by writing ${AGES} as a product of prime factors. Do it: list the primes, with repeats, separated by commas.`,
+  answer: { kind: 'witness', count: { min: 1, max: 20 }, unordered: true, example: primeFactors(AGES).join(', '), check: factorCheck(AGES) },
+  solution: [
+    ...divisionSteps(AGES),
+    t`So ${math`${AGES} = ${computedTex(indexTex(AGES))}`}, as in the hints.`,
+  ],
+  reference: primeFactors(AGES).join(', '),
+  verify: () => same('2450 by trial division', primeFactors(AGES).join(','), [2, 5, 5, 7, 7].join(',')),
+  misconceptions: [{ response: '2, 25, 49', why: t`${25} and ${49} are squares of primes, not primes. Split them.` }],
+  // The hints: 2450 = 2 × 5² × 7².
+  official: { source: cite('step-f12-hints', 'Q4'), answer: '2, 5, 5, 7, 7', agrees: true },
+});
+
+const a12sets = auto({
+  id: 'a12-q4-sets',
+  source: cite('step-f12', 'Q4', true),
+  title: t`How many sets of ages`,
+  prompt: t`Three bell ringers' ages are whole numbers whose product is ${AGES}. How many different sets of three ages are possible? (Order does not matter; some sets are implausible, such as an age of ${1}, but count them.)`,
+  answer: { kind: 'exact', expected: String(ageSets.length) },
+  solution: [
+    t`With ${math`${AGES} = ${computedTex(indexTex(AGES))}`}, list the sets in increasing order by the smallest age: it is one of ${listOf(smallest)}, since the smallest of three numbers with product ${AGES} is at most ${math`\sqrt[${3}]{${AGES}}`}, about ${Math.round(Math.cbrt(AGES) * 10) / 10}.`,
+    t`By smallest age: ${smallest.map((m) => t`${m}, ${ageSets.filter(([a]) => a === m).length} sets`).reduce<Rich>((acc, r, i) => (i === 0 ? r : [...acc, ...t`; `, ...r]), [])}.`,
+    t`That is ${ageSets.length} sets, the rows of the hints' table.`,
+  ],
+  reference: String(ageSets.length),
+  verify: () => {
+    let ordered = 0;
+    const sets = new Set<string>();
+    for (let a = 1; a <= AGES; a++) for (let b = 1; b <= AGES / a; b++) if (AGES % (a * b) === 0) { ordered++; sets.add([a, b, AGES / a / b].sort((x, y) => x - y).join(',')); }
+    return same('sets of ages, by brute force', sets.size, ageSets.length) ?? (ordered > sets.size ? null : 'ordered count');
+  },
+  misconceptions: [{ response: String(ageSets.filter(([a]) => a > 1).length), why: t`The puzzle counts every set, including those with an age of ${1}.` }],
+  official: { source: cite('step-f12-hints', 'Q4, the table of possibilities'), answer: '20', agrees: true },
+});
+
+const a12imam = auto({
+  id: 'a12-q4-imam',
+  source: cite('step-f12', 'Q4', true),
+  title: t`How old is the Imam?`,
+  prompt: t`${puzzle} The Imam knows his own age, and so the sum of the three ages. Why could he not answer at first? Use that to find the Imam's age.`,
+  answer: { kind: 'exact', expected: String(imamAge()) },
+  solution: [
+    t`Each set of ages has a sum, and the Imam's age is half of it. The Imam knows his age, so he knows the sum.`,
+    t`He could not answer, so his sum belongs to more than one set. In the list of ${ageSets.length} sets only one sum repeats: ${2 * imamAge()}, from ${math`${5} + ${10} + ${49}`} and ${math`${7} + ${7} + ${50}`}.`,
+    t`So the Imam is ${math`${2 * imamAge()} \div ${2} = ${imamAge()}`}.`,
+  ],
+  reference: String(imamAge()),
+  verify: () => same('the only repeated half-sum', imamAge(), 32),
+  misconceptions: [{ response: String(2 * imamAge()), why: t`That is the sum of the ages, which is twice the Imam's age.` }],
+  official: { source: cite('step-f12-hints', 'Q4'), answer: '32', agrees: true },
+});
+
+const a12rabbi = auto({
+  id: 'a12-q4-rabbi',
+  source: cite('step-f12', 'Q4'),
+  title: t`How old is the Rabbi?`,
+  prompt: t`${puzzle} How old is the Rabbi?`,
+  answer: { kind: 'exact', expected: String(rabbiAge()) },
+  solution: [
+    t`From the previous problem, the Imam is ${imamAge()} and the ages are ${math`${5}, ${10}, ${49}`} or ${math`${7}, ${7}, ${50}`}.`,
+    t`The Rabbi is older than everyone else in the room. If he were ${51} or more, both sets would still be possible, and the Imam could not decide.`,
+    t`If he were ${50}, the set with a ${50} would be ruled out, leaving ${math`${5}, ${10}, ${49}`}. So the Rabbi is ${rabbiAge()}.`,
+  ],
+  reference: String(rabbiAge()),
+  verify: () => same('the one age that decides it', rabbiAge(), 50),
+  misconceptions: [{ response: '51', why: t`At ${51} the Rabbi is older than both ${49} and ${50}, so both sets stay possible and the Imam still could not decide.` }],
+  official: { source: cite('step-f12-hints', 'Q4'), answer: '50', agrees: true },
+});
+
+const a12explain = supervision({
+  id: 'a12-q4-explain',
+  source: cite('step-f12', 'Q4'),
+  title: t`Why the remark helps`,
+  prompt: t`${puzzle} Explain the whole solution as you would to someone who has not seen it: how you made sure the list of sets of ages was complete, why the Imam's first answer tells you his age, and why the Rabbi's remark settles it only for one age of the Rabbi.`,
+  writeUp: 'explanation',
+  official: cite('step-f12-hints', 'Q4'),
+});
+
+// ---------------------------------------------------------------- lesson
+
+const L = 360;
+
+export const primeFactorisation: TopicContent = {
+  topicId: 'pre.prime-factorisation',
+  goal: t`Write a whole number as a product of primes in index form, and use the factorisation to list or count its divisors.`,
+  lesson: [
+    { kind: 'p', text: t`A [[prime-number|prime number]] is a whole number greater than ${1} whose only positive divisors are ${1} and itself: ${listOf([2, 3, 5, 7, 11, 13])}, and so on. ${1} is not prime.` },
+    { kind: 'p', text: t`Every whole number greater than ${1} is a product of primes, its [[prime-factorisation|prime factorisation]]. To find it, divide by the smallest prime that goes in, and repeat on what is left until you reach ${1}. For ${L}:` },
+    { kind: 'list', items: divisionSteps(L) },
+    { kind: 'rule', text: t`So ${math`${L} = ${computedTex(primeFactors(L).join(' \\times '))}`}, or in [[index-form|index form]], ${dmath`${L} = ${computedTex(indexTex(L))}.`}` },
+    { kind: 'p', text: t`The order of the division does not matter: every route gives the same primes with the same powers. That is the Fundamental Theorem of Arithmetic, proved later in the course; for now, it means one factorisation answers every question about the number.` },
+    { kind: 'p', text: t`A factorisation lists the divisors too. A divisor of ${L} uses the same primes with powers no bigger: ${powers(L).map(([p, e]) => t`the power of ${p} is one of ${listOf(Array.from({ length: e + 1 }, (_, i) => i))}`).reduce<Rich>((acc, r, i) => (i === 0 ? r : [...acc, ...t`; `, ...r]), [])}. By the product rule there are ${math`${computedTex(powers(L).map(([, e]) => `${e + 1}`).join(' \\times '))} = ${divisorCount(L)}`} divisors.` },
+    { kind: 'p', text: t`The STEP Support hints use this for the bell ringers puzzle: "write ${AGES} as a product of prime factors, and then carefully and logically write down all possible sets of three ages". Being systematic, listing in increasing order by the smallest number, is what makes sure no case is missed.` },
+  ],
+  examples: [
+    workedCambridge(a12factor),
+    worked(divisors, { fs: [2, 2, 3, 5, 5] }, t`The divisors of ${2 * 2 * 3 * 5 * 5}`),
+    worked(tripleCount, { fs: [2, 2, 3, 5] }, t`Three ages with product ${2 * 2 * 3 * 5}`),
+  ],
+  generators: [factorise, exponent, divisors, tripleCount],
+  mastery: { correctInARow: 3, maxProblems: 10 },
+  terms: ['prime-number', 'prime-factorisation', 'index-form'],
+  cambridge: [a12sets, a12imam, a12rabbi, a12explain],
+};

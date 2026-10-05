@@ -80,13 +80,19 @@ function reveal(block: HTMLElement): void {
 
 type Shown = 'right' | 'wrong' | 'gave-up' | 'broken';
 
-export function ProblemCard({ topicId, instance, mode, index, onDone, consequence, afterWrong }: {
+export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, consequence, afterWrong }: {
   /** With the generator id and seed (data attributes), enough to reproduce the problem in a bug report. */
   topicId: string;
   instance: Instance;
   mode: CardMode;
   /** Changes for each new problem, so state resets. */
   index: number;
+  /**
+   * The prefix of the card's element ids. Defaults to p{index}, unique when one card is
+   * shown at a time; a page with several cards at once (the Cambridge problems) gives each
+   * its own, so labels and descriptions point at the right input.
+   */
+  idBase?: string;
   onDone: (r: CardResult) => void;
   /** The effect of an outcome on progress, shown as one line in the result. */
   consequence?: (o: CardOutcome) => Consequence;
@@ -114,7 +120,7 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
   const editRef = useRef<HTMLButtonElement>(null);
   const blockRef = useRef<HTMLDivElement>(null);
   const shownAt = useRef(0);
-  const id = `p${index}`;
+  const id = idBase ?? `p${index}`;
 
   useEffect(() => {
     setText('');

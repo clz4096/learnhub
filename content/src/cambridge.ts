@@ -34,7 +34,9 @@ export const CITED_DOCS = {
   'cst-dm-notes': 'CST Discrete Mathematics notes',
   'cst-dm-sw1': 'CST Discrete Mathematics supervision exercises',
   'cst-dm-sols-2324-1': 'CST Discrete Mathematics Exercises 1, official solutions (2023-24)',
+  'cst-dm-sols-2324-2': 'CST Discrete Mathematics Exercises 2, official solutions (2023-24)',
   'cst-dm-sols-2324-3': 'CST Discrete Mathematics Exercises 3, official solutions (2023-24)',
+  'cst-dm-sols-2324-4': 'CST Discrete Mathematics Exercises 4, official solutions (2023-24)',
   bop: 'Book of Proof',
   'tmua-logic-proof': 'TMUA Notes on Logic and Proof',
 } as const;

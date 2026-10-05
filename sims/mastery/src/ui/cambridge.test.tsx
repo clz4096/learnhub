@@ -150,6 +150,25 @@ describe('the Cambridge problems stage', () => {
     expect(loadPlace('test.prob.bayes-two-events')?.stage).toBe('cambridge');
   });
 
+  it('gives every element id on the page once, so each auto-checked card describes its own input', () => {
+    // Regression: every auto-checked card used to take the id prefix p0 (all at round 0).
+    open('comb.pigeonhole');
+    const autos = contentFor('comb.pigeonhole')?.cambridge.filter((p) => p.mode === 'auto') ?? [];
+    expect(autos.length).toBeGreaterThan(1);
+    const ids = [...document.querySelectorAll('[id]')].map((el) => el.id);
+    expect(ids.filter((id, i) => ids.indexOf(id) !== i)).toEqual([]);
+    expect(document.querySelector('[id^="p0"]')).toBeNull();
+    for (const p of autos) {
+      const card = document.querySelector(`[data-problem="${p.id}"]`) as HTMLElement;
+      const input = card.querySelector('input') as HTMLInputElement | null;
+      expect(input?.id, p.id).toBe(`cam-${p.id}-answer-input`);
+      // Everything the input points at is in its own card.
+      for (const ref of (input?.getAttribute('aria-describedby') ?? '').split(' ').filter((x) => x !== '')) {
+        expect(document.getElementById(ref)?.closest('[data-problem]')?.getAttribute('data-problem'), `${p.id}: ${ref}`).toBe(p.id);
+      }
+    }
+  });
+
   it('a supervision problem has a write-up box kept for the tab, Copy for supervision, and Paste result', () => {
     open('comb.pigeonhole');
     const box = screen.getAllByLabelText('Your write-up')[0] as HTMLTextAreaElement;

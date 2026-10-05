@@ -88,9 +88,11 @@ function checkRich(r: Rich, where: string): void {
   checkTex(r, where);
 }
 
-/** The first ten topics the engine schedules (gate 3), then the new topics of Cambridge batch 1. */
+/** The first ten topics the engine schedules (gate 3), then the new topics of Cambridge batch 1, then batch 2. */
 const FIRST_TEN = 10;
 const BATCH_1_NEW = ['comb.pigeonhole', 'prob.bayes-two-events', 'prob.event-spaces'];
+/** The topics the batch 1 map cites sources for, in the order the engine schedules them. */
+const BATCH_2 = ['pre.sample-spaces', 'logic.implication', 'pre.prime-factorisation', 'pre.tree-diagrams', 'pre.algebraic-argument', 'num.number-systems', 'alg.sigma-notation', 'comb.combinations', 'sets.countable-unions', 'logic.iff', 'logic.quantifiers', 'proof.direct', 'alg.arithmetic-series', 'logic.nested-quantifiers', 'alg.geometric-series', 'comb.binomial-identities'];
 
 /** Source ids of the batch, from the committed batch file; the manifest too when the local source cache exists. */
 const batchIds = new Set((JSON.parse(readFileSync(new URL('../../scripts/sources/batch-1.json', import.meta.url), 'utf8')) as { sources: { id: string }[] }).sources.map((x) => x.id));
@@ -109,17 +111,18 @@ function checkCitation(cit: Citation, where: string): void {
 }
 
 describe('content topics', () => {
-  it('are the first ten topics and the new topics of Cambridge batch 1, each in the graph, each once', () => {
+  it('are the first ten topics, the new topics of Cambridge batch 1, and batch 2, each in the graph, each once', () => {
     const ids = TOPIC_CONTENT.map((c) => c.topicId);
-    expect(ids).toHaveLength(FIRST_TEN + BATCH_1_NEW.length);
-    expect(ids.slice(FIRST_TEN)).toEqual(BATCH_1_NEW);
+    expect(ids).toHaveLength(FIRST_TEN + BATCH_1_NEW.length + BATCH_2.length);
+    expect(ids.slice(FIRST_TEN, FIRST_TEN + BATCH_1_NEW.length)).toEqual(BATCH_1_NEW);
+    expect(ids.slice(FIRST_TEN + BATCH_1_NEW.length)).toEqual(BATCH_2);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(graphIds.has(id), id).toBe(true);
     for (const id of ids) expect(contentFor(id)?.topicId).toBe(id);
     expect(contentFor('num.gcd')).toBeUndefined();
   });
 
-  it('are the first ten new lessons the engine schedules for a learner who knows nothing, taking both courses evenly', () => {
+  it('are the first ten new lessons the engine schedules for a learner who knows nothing, taking both courses evenly; batch 2 is the next mapped topics in that order', () => {
     const courses = ['ia-probability', 'cst-discrete-maths'].map((id) => ({ id, targets: courseTargets(topics, courseById(id)) }));
     const g = placementGraph(topics, { targets: courses.flatMap((c) => c.targets) });
     const placed = runPlacement(g, () => false, 0).result;
@@ -129,7 +132,7 @@ describe('content topics', () => {
     const spent: Record<string, number> = {};
     let learnedSinceQuiz: string[] = [];
     const seen: string[] = [];
-    for (let day = 0; seen.length < 10 && day < 10; day++) {
+    for (let day = 0; seen.length < 80 && day < 200; day++) {
       const now = day * DAY_MS;
       const plan = planSession({ topics, courses, courseMinutes: spent, memory, now, learnedSinceQuiz });
       for (const task of plan.tasks) {
@@ -147,6 +150,10 @@ describe('content topics', () => {
       for (const [k, v] of Object.entries(plan.courseMinutes ?? {})) spent[k] = (spent[k] ?? 0) + v;
     }
     expect(seen.slice(0, 10)).toEqual(TOPIC_CONTENT.slice(0, FIRST_TEN).map((c) => c.topicId));
+    // Batch 2: the scheduled topics that cite a source of the batch 1 map (graph/reviews/cambridge-batch-1.md) and had no lesson, first first.
+    const before = new Set([...TOPIC_CONTENT.slice(0, FIRST_TEN).map((c) => c.topicId), ...BATCH_1_NEW]);
+    const mapped = seen.filter((id) => !before.has(id) && (topics.find((tp) => tp.id === id)?.sources ?? []).some((s) => batchIds.has(s.doc)));
+    expect(mapped.slice(0, BATCH_2.length)).toEqual(BATCH_2);
   });
 
   it('are all in the closure of the two courses', () => {
@@ -319,7 +326,7 @@ describe('probability claims', () => {
       }
     }
     expect(checked).toBeGreaterThanOrEqual(100);
-  });
+  }, 60_000); // 20,000 runs for 40 seeds of every generator with an experiment
 
   it('every probability a lesson states agrees with a simulation', () => {
     const claims = TOPIC_CONTENT.flatMap((c) => c.claims ?? []);
