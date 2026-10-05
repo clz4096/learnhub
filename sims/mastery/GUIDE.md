@@ -1,10 +1,18 @@
-# Mastery courses: guide
+# Cambridge University Math and Computer Science Major: guide
 
 Dated 2026-10-05. Status: beta. Not listed in the catalog until the owner marks it ready.
 
 ## What it is
 
 A course app for Cambridge IA Probability and CST IA Discrete Mathematics, taught from scratch over one shared knowledge graph of 101 topics (`graph/`). The design is `mastery/DESIGN.md`; the Cambridge-sourced content is `mastery/DESIGN-CAMBRIDGE-CONTENT.md`.
+
+A personal study plan. Not affiliated with the University of Cambridge. (The app's ids, routes, and storage keys still say `mastery`.)
+
+## Begin the day
+
+The top of Today is the day planner (`mastery/DESIGN-ADMISSIONS.md`, "The day planner"). Enter the wake time, or press **Now**, and the day is laid out around fixed anchors, all New York time: 45 minutes to get going, lunch for 30 minutes before the gym (or right after it if it does not fit), the gym for 90 minutes starting at 2:00, 2:15, or 2:30 pm (whichever fits the most study, then finishes it earliest), dinner at 8:00 pm for an hour, and 30 minutes to wind down before bed at 1:00 am. Study is 6 core hours in 90-minute blocks with 15-minute breaks, then up to 2 optional light hours. A wake time before 5:00 am counts as the night before. Friday plans end at Brooklyn sundown and Saturday plans start after it; sundown is computed on the device.
+
+The study blocks are filled from today's session and the supervision redos due today: new lessons in the earliest full blocks, reviews in the short blocks and optional time. Each item links to its task. If the session runs out first, the planner says so and offers **Plan another session**. The screen also shows the current block with minutes left, the day's totals, a strip of the day, this week's ticked-off hours against 36, and this week's Shabbat times. Tick blocks off as you go; wake times and ticks are kept in this browser only (localStorage, the last three weeks), not in the progress document. The planner is `src/model/day.ts`, unit tested in `day.test.ts`.
 
 ## How a day works
 

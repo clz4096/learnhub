@@ -64,7 +64,7 @@ describe('Today', () => {
   it('plans the day with reasons, minutes left, and minutes per course', async () => {
     await startedLearner();
     render(<Today />);
-    expect(await screen.findByText('Fractions and ratios')).toBeTruthy();
+    expect(await screen.findByText('Fractions and ratios', { selector: '.task-title' })).toBeTruthy();
     expect(screen.getAllByText('New topic: it has no prerequisites.')).toHaveLength(4);
     expect(screen.getByText('minutes left').previousSibling?.textContent).toBe('60');
     expect(screen.getByText('lesson minutes for Probability').previousSibling?.textContent).toBe('30');

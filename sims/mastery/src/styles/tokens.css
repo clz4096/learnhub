@@ -132,3 +132,77 @@
   --band-3: #1d1419;
   --edge: #5b6672;
 }
+
+/*
+ * The Google Workspace look of the header and the day planner (Begin the day). System
+ * fonts only: Roboto where the device has it, nothing loaded from a CDN.
+ */
+:root {
+  --g-paper: #f8f9fa;
+  --g-sheet: #ffffff;
+  --g-sunk: #f1f3f4;
+  --g-ink: #202124;
+  --g-ink-2: #3c4043;
+  --g-ink-3: #5f6368;
+  --g-rule: #dadce0;
+  --g-rule-2: #c4c7c5;
+  --g-pen: #1a73e8;
+  --g-pen-text: #ffffff;
+  --g-pen-soft: #e8f0fe;
+  --g-opt: #8ab4f8;
+  --g-gym: #e37400;
+  --g-gym-soft: #feefe3;
+  --g-meal: #bdc1c6;
+  --g-good: #188038;
+  --g-warn: #b06000;
+  --g-warn-soft: #fef7e0;
+  --g-sans: Roboto, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --g-mono: 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --g-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --g-paper: #202124;
+    --g-sheet: #2d2e31;
+    --g-sunk: #35363a;
+    --g-ink: #e8eaed;
+    --g-ink-2: #bdc1c6;
+    --g-ink-3: #9aa0a6;
+    --g-rule: #3c4043;
+    --g-rule-2: #5f6368;
+    --g-pen: #8ab4f8;
+    --g-pen-text: #202124;
+    --g-pen-soft: #263449;
+    --g-opt: #4f6b94;
+    --g-gym: #fcad70;
+    --g-gym-soft: #3d2e22;
+    --g-meal: #5f6368;
+    --g-good: #81c995;
+    --g-warn: #fdd663;
+    --g-warn-soft: #3b3420;
+    --g-shadow: none;
+  }
+}
+
+:root[data-theme='dark'] {
+  --g-paper: #202124;
+  --g-sheet: #2d2e31;
+  --g-sunk: #35363a;
+  --g-ink: #e8eaed;
+  --g-ink-2: #bdc1c6;
+  --g-ink-3: #9aa0a6;
+  --g-rule: #3c4043;
+  --g-rule-2: #5f6368;
+  --g-pen: #8ab4f8;
+  --g-pen-text: #202124;
+  --g-pen-soft: #263449;
+  --g-opt: #4f6b94;
+  --g-gym: #fcad70;
+  --g-gym-soft: #3d2e22;
+  --g-meal: #5f6368;
+  --g-good: #81c995;
+  --g-warn: #fdd663;
+  --g-warn-soft: #3b3420;
+  --g-shadow: none;
+}

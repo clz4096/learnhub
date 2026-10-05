@@ -30,6 +30,9 @@ import { Today } from '@/ui/views/Today';
 
 type NavId = 'home' | 'map' | 'progress' | 'glossary';
 
+/** The displayed name; ids, routes, and storage keys keep "mastery". */
+export const APP_TITLE = 'Cambridge University Math and Computer Science Major';
+
 /** Where Home goes: the Start step until a course is chosen, then Today. */
 export function homeRoute(setUp: boolean): Route {
   return setUp ? { view: 'today' } : { view: 'start' };
@@ -138,7 +141,7 @@ export function App() {
     <div class="app">
       <a class="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to content</a>
       <header class="top">
-        <NavLink to={home} class="app-title">Mastery courses</NavLink>
+        <NavLink to={home} class="app-title">{APP_TITLE}</NavLink>
         <nav class="nav" aria-label="Main">
           {navItems(setUp).map((n) => (
             <NavLink key={n.id} to={n.to} data-nav={n.id} class={active === n.id ? 'on' : ''} aria-current={active === n.id ? 'page' : undefined}>
@@ -152,6 +155,7 @@ export function App() {
       {saveError.value !== null && <p class="banner error small" role="alert">Saving failed: {saveError.value}. Export a progress file to keep your work.</p>}
       {loadWarnings.value.length > 0 && <p class="banner warning small">Some saved data was out of date and was dropped: {loadWarnings.value.slice(0, 3).join('; ')}.</p>}
       <main id="main" tabIndex={-1}>{body}</main>
+      <footer class="app-foot small muted">A personal study plan. Not affiliated with the University of Cambridge.</footer>
       <TermDialog />
       <HelpDialog />
       <Tour />

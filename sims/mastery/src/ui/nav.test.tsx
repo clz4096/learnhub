@@ -63,7 +63,7 @@ describe('the start', () => {
     await flush();
     expect(location.hash).toBe('#/');
     expect(heading()).toBe('Today');
-    await screen.findByText('Fractions and ratios');
+    await screen.findByText('Fractions and ratios', { selector: '.task-title' });
     await flush();
     expect(progress.value?.session?.tasks.map((t) => [t.kind, t.topicIds[0]])).toEqual([
       ['lesson', 'pre.fractions'], ['lesson', 'pre.set-notation'], ['lesson', 'pre.product-rule'], ['lesson', 'logic.connectives'],
@@ -128,7 +128,7 @@ describe('progress saved by the placement test of earlier builds', () => {
     render(<App />);
     expect(route.value.view).toBe('today');
     expect(heading()).toBe('Today');
-    await screen.findByText('Fractions and ratios');
+    await screen.findByText('Fractions and ratios', { selector: '.task-title' });
     expect(screen.queryByText('The product rule for counting')).toBeNull();
     // The migrated document was saved, so the next load needs no migration.
     await flush();
@@ -156,7 +156,7 @@ describe('a learner with a course', () => {
   it('Back walks the views in order: Today, a lesson, the map, a topic, the glossary', async () => {
     await started();
     render(<App />);
-    await screen.findByText('Fractions and ratios');
+    await screen.findByText('Fractions and ratios', { selector: '.task-title' });
     click('Start');
     expect(location.hash).toBe('#/task/0');
     expect(screen.getByRole('button', { name: 'Back to today' })).toBeTruthy();

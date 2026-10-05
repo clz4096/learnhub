@@ -7,7 +7,9 @@ export default defineConfig({
     // Logic tests run in Node; component tests (.tsx) need a DOM.
     projects: [
       { extends: true, test: { name: 'node', include: ['src/**/*.test.ts'], environment: 'node' } },
-      { extends: true, test: { name: 'dom', include: ['src/**/*.test.tsx'], environment: 'jsdom' } },
+      // The glossary renders every term with KaTeX; under a full parallel run its tests take
+      // 3 to 5 seconds, so the default 5-second limit fails them by contention alone.
+      { extends: true, test: { name: 'dom', include: ['src/**/*.test.tsx'], environment: 'jsdom', testTimeout: 15_000 } },
     ],
   },
 });
