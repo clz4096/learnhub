@@ -12,9 +12,11 @@ import { hasContent as written } from '@learnhub/content';
 import {
   DAY_MS, SUPERVISION_PASS_MARK, classify, dueTopics, frontier, newProgress, placedMemory, placementGraph, placementResult, planSession,
   recordLesson, recordLessonFailure, recordReview, topoOrder, withChoices,
-  type HistoryEntry, type MemoryMap, type PlacementGraph, type Progress, type Redo, type SessionRecord, type SessionTask,
+  type HistoryEntry, type MemoryMap, type PlacementGraph, type Progress, type Redo, type SessionPlan, type SessionRecord, type SessionTask,
   type SupervisionAttempt, type Topic,
 } from '@learnhub/mastery';
+import { BOOK_ORDER } from '@learnhub/content/book';
+import { bookFrontier } from './book';
 import { ALL_TOPICS, closureOf, closureTopics, coursesWith, shares } from './courses';
 import type { ParsedResult } from './supervision';
 
@@ -89,9 +91,18 @@ export function finishOpenPlacement(p: Progress, now: number): Progress {
 
 // ---------------------------------------------------------------- today's session
 
+/**
+ * One session's tasks. Reviews, the quiz, and the course split are the engine's
+ * (`planSession`); new lessons follow the book (mastery/DESIGN-BOOK.md, "Scheduler"): the
+ * frontier is offered to the engine one topic at a time in book order, and a topic is kept
+ * when the engine fits it in with the ones kept before. The engine still decides what fits
+ * and which due reviews a lesson covers, so review scheduling is unchanged; the lessons
+ * then appear in book order.
+ */
 function toTasks(p: Progress, now: number, budgetMinutes = p.settings.budgetMinutes): SessionTask[] {
   if (budgetMinutes <= 0) return [];
-  const plan = planSession({
+  const known = (id: string): boolean => p.memory[id] !== undefined;
+  const plan = (lessons: ReadonlySet<string>): SessionPlan => planSession({
     topics: ALL_TOPICS,
     courses: shares(p.courses),
     courseWeights: p.settings.courseWeights,
@@ -99,10 +110,27 @@ function toTasks(p: Progress, now: number, budgetMinutes = p.settings.budgetMinu
     memory: p.memory,
     now,
     learnedSinceQuiz: p.learnedSinceQuiz,
-    teachable: hasContent,
+    teachable: (id) => hasContent(id) && (known(id) || lessons.has(id)),
     options: { budgetMinutes, implicitCredit: p.settings.implicitCredit },
   });
-  return plan.tasks.map((t): SessionTask => {
+  const lessonsOf = (x: SessionPlan): string[] => x.tasks.flatMap((t) => (t.kind === 'lesson' ? [t.topicId] : []));
+  const kept = new Set<string>();
+  let best = plan(kept);
+  for (const id of bookFrontier(p)) {
+    const trial = plan(new Set([...kept, id]));
+    const got = lessonsOf(trial);
+    if (got.length === kept.size + 1 && got.includes(id)) {
+      kept.add(id);
+      best = trial;
+    }
+  }
+  const order = new Map(BOOK_ORDER.map((id, i) => [id, i] as const));
+  const rank = (t: SessionPlan['tasks'][number]): number => (t.kind === 'lesson' ? order.get(t.topicId) ?? Infinity : -1);
+  // Lessons in book order, in the places the engine gave lessons; reviews and the quiz stay put.
+  const lessons = best.tasks.filter((t) => t.kind === 'lesson').sort((a, b) => rank(a) - rank(b));
+  let li = 0;
+  const tasks = best.tasks.map((t) => (t.kind === 'lesson' ? (lessons[li++] as typeof t) : t));
+  return tasks.map((t): SessionTask => {
     const topicIds = t.kind === 'quiz' ? [...t.topicIds] : [t.topicId];
     const task: SessionTask = { kind: t.kind, topicIds, minutes: t.minutes, reason: t.reason, done: false, passed: null };
     if (t.kind === 'lesson' && t.course !== undefined) task.course = t.course;

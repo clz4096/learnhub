@@ -5,9 +5,10 @@
  *   #/            Today (or Start for a new learner)
  *   #/start       choose the course and minutes (a new learner only)
  *   #/task/3      task 3 of today's session
- *   #/learn/<id>  a lesson opened from the map, outside today's plan
+ *   #/learn/<id>  a lesson opened from the map, outside today's plan; #/learn/<id>/book from the book
  *   #/problem/<topic id>/<problem id>  one Cambridge problem, opened from a redo on Today
- *   #/map         the knowledge map; #/map/<id> with a topic open
+ *   #/book        the Course tab: the degree as a book, its contents; #/book/<chapter id> one chapter
+ *   #/map         the prerequisite map; #/map/<id> with a topic open
  *   #/progress    per course, backup, settings
  *   #/glossary    every term; #/glossary/<id> at one entry
  *   #/campaign    the Cambridge Entry campaign; #/paper/<id> one past paper in exam mode
@@ -25,7 +26,10 @@ export type Route =
   | { view: 'today' }
   | { view: 'start' }
   | { view: 'task'; index: number }
-  | { view: 'learn'; topicId: string }
+  /** `from: 'book'`: opened from a chapter page, so Back returns there. */
+  | { view: 'learn'; topicId: string; from?: 'book' }
+  | { view: 'book' }
+  | { view: 'chapter'; chapterId: string }
   | { view: 'problem'; topicId: string; problemId: string }
   | { view: 'map'; topicId: string | null }
   | { view: 'progress' }
@@ -47,7 +51,10 @@ export function parseRoute(hash: string): Route {
       const i = Number(arg);
       return Number.isInteger(i) && i >= 0 ? { view: 'task', index: i } : { view: 'today' };
     }
-    case 'learn': return id === null ? { view: 'map', topicId: null } : { view: 'learn', topicId: id };
+    case 'learn':
+      if (id === null) return { view: 'map', topicId: null };
+      return arg2 === 'book' ? { view: 'learn', topicId: id, from: 'book' } : { view: 'learn', topicId: id };
+    case 'book': return id === null ? { view: 'book' } : { view: 'chapter', chapterId: id };
     case 'problem': return id !== null && arg2 !== undefined && ID.test(arg2) ? { view: 'problem', topicId: id, problemId: arg2 } : { view: 'today' };
     case 'map': return { view: 'map', topicId: id };
     case 'progress': return { view: 'progress' };
@@ -65,7 +72,9 @@ export function hrefOf(r: Route): string {
     case 'today': return '#/';
     case 'start': return '#/start';
     case 'task': return `#/task/${r.index}`;
-    case 'learn': return `#/learn/${encodeURIComponent(r.topicId)}`;
+    case 'learn': return `#/learn/${encodeURIComponent(r.topicId)}${r.from === 'book' ? '/book' : ''}`;
+    case 'book': return '#/book';
+    case 'chapter': return `#/book/${encodeURIComponent(r.chapterId)}`;
     case 'problem': return `#/problem/${encodeURIComponent(r.topicId)}/${encodeURIComponent(r.problemId)}`;
     case 'map': return r.topicId === null ? '#/map' : `#/map/${encodeURIComponent(r.topicId)}`;
     case 'progress': return '#/progress';

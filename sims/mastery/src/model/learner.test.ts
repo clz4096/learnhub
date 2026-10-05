@@ -63,18 +63,18 @@ describe('migration: progress saved by the placement test of earlier builds', ()
 });
 
 describe("today's session", () => {
-  it('for a learner who knows nothing is the four root lessons, two per course, each with a reason', () => {
+  it('for a learner who knows nothing is the first lessons in book order, charged to both courses, each with a reason', () => {
     const p = ensureSession(fresh(), T0);
     const s = p.session;
     expect(s?.day).toBe(localDay(T0));
     expect(s?.tasks.map((t) => [t.kind, t.topicIds[0], t.course])).toEqual([
       ['lesson', 'pre.fractions', 'ia-probability'],
-      ['lesson', 'pre.set-notation', 'cst-discrete-maths'],
-      ['lesson', 'pre.product-rule', 'ia-probability'],
-      ['lesson', 'logic.connectives', 'cst-discrete-maths'],
+      ['lesson', 'pre.indices', 'ia-probability'],
+      ['lesson', 'pre.algebraic-manipulation', 'cst-discrete-maths'],
     ]);
     for (const t of s?.tasks ?? []) expect(t.reason).toMatch(/^New topic/);
-    expect(sessionTime(s ?? null)).toEqual({ done: 0, left: 60, byCourse: { 'ia-probability': { done: 0, planned: 30 }, 'cst-discrete-maths': { done: 0, planned: 30 } } });
+    // 15 + 15 + 20 minutes: the next step in the book (the product rule, 15) does not fit the 10 left.
+    expect(sessionTime(s ?? null)).toEqual({ done: 0, left: 50, byCourse: { 'ia-probability': { done: 0, planned: 30 }, 'cst-discrete-maths': { done: 0, planned: 20 } } });
     for (const t of s?.tasks ?? []) expect(contentFor(t.topicIds[0] as string)).toBeDefined();
   });
 
@@ -120,9 +120,10 @@ describe("today's session", () => {
   it('plan more adds a new session after the first is done', () => {
     let p = ensureSession(fresh(), T0);
     p.session?.tasks.forEach((t, i) => { p = completeLesson(p, t.topicIds[0] as string, true, T0 + 1, i, t.minutes, t.course); });
+    const n = p.session?.tasks.length ?? 0;
     const more = planMore(p, T0 + 2);
-    expect(more.session?.tasks.length).toBeGreaterThan(4);
-    expect(more.session?.tasks.slice(0, 4).every((t) => t.done)).toBe(true);
+    expect(more.session?.tasks.length).toBeGreaterThan(n);
+    expect(more.session?.tasks.slice(0, n).every((t) => t.done)).toBe(true);
   });
 
   it('replanning keeps the done tasks and fills only the minutes left', () => {
@@ -139,7 +140,8 @@ describe('reviews and quizzes', () => {
   const learned = (): Progress => {
     let p = ensureSession(fresh(), T0);
     p.session?.tasks.forEach((t, i) => { p = completeLesson(p, t.topicIds[0] as string, true, T0, i, t.minutes, t.course); });
-    return p;
+    // The first session teaches three topics in book order; a fourth, outside the plan, makes a quiz due.
+    return completeLesson(p, 'pre.set-notation', true, T0, null, 15);
   };
 
   it('a review stretches or shrinks the interval and is logged', () => {
@@ -159,7 +161,7 @@ describe('reviews and quizzes', () => {
   it('the next day plans a quiz of the four topics, and taking it resets the count', () => {
     const p = ensureSession(learned(), T0 + DAY_MS);
     const quiz = p.session?.tasks.find((t) => t.kind === 'quiz');
-    expect(quiz?.topicIds.sort()).toEqual(['logic.connectives', 'pre.fractions', 'pre.product-rule', 'pre.set-notation']);
+    expect(quiz?.topicIds.sort()).toEqual(['pre.algebraic-manipulation', 'pre.fractions', 'pre.indices', 'pre.set-notation']);
     const results = Object.fromEntries((quiz?.topicIds ?? []).map((id) => [id, id !== 'pre.set-notation']));
     const q = completeQuiz(p, results, T0 + DAY_MS, p.session?.tasks.indexOf(quiz as never) ?? null);
     expect(q.learnedSinceQuiz).toEqual([]);

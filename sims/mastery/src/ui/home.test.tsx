@@ -64,6 +64,9 @@ const ROUTES: Route[] = [
   { view: 'learn', topicId: 'num.gcd' },
   { view: 'map', topicId: null },
   { view: 'map', topicId: 'pre.fractions' },
+  { view: 'book' },
+  { view: 'chapter', chapterId: 'ia-discrete-mathematics' },
+  { view: 'learn', topicId: 'proof.direct', from: 'book' },
   { view: 'progress' },
   { view: 'glossary', termId: null },
   { view: 'glossary', termId: 'union' },
@@ -115,7 +118,7 @@ describe('every route has a header with a way home', () => {
     expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Today', 'Course', 'Campaign', 'Report', 'Letters']);
     expect([...document.querySelectorAll('nav.foot-nav a')].map((a) => a.textContent)).toEqual(['Progress', 'Glossary']);
     expect(homeItem().getAttribute('aria-current')).toBe('page');
-    expect(document.querySelector('nav.nav a[data-nav="map"]')?.getAttribute('href')).toBe('#/map');
+    expect(document.querySelector('nav.nav a[data-nav="map"]')?.getAttribute('href')).toBe('#/book');
     expect(document.querySelector('nav.nav a[data-nav="letters"]')?.getAttribute('href')).toBe('#/letters');
   });
 

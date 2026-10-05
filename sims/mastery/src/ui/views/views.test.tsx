@@ -65,11 +65,12 @@ describe('Today', () => {
     await startedLearner();
     render(<Today />);
     expect(await screen.findByText('Fractions and ratios', { selector: '.task-title' })).toBeTruthy();
-    expect(screen.getAllByText('New topic: it has no prerequisites.')).toHaveLength(4);
-    expect(screen.getByText('minutes left').previousSibling?.textContent).toBe('60');
+    // The first three steps of the book: 15, 15, and 20 minutes; the next (15) does not fit the 10 left.
+    expect(screen.getAllByText('New topic: it has no prerequisites.')).toHaveLength(3);
+    expect(screen.getByText('minutes left').previousSibling?.textContent).toBe('50');
     expect(screen.getByText('lesson minutes for Probability').previousSibling?.textContent).toBe('30');
     await flush();
-    expect(progress.value?.session?.tasks).toHaveLength(4);
+    expect(progress.value?.session?.tasks).toHaveLength(3);
   });
 });
 

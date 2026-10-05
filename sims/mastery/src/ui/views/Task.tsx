@@ -5,12 +5,13 @@
  * schedules one, and a stored plan that still holds one only offers to leave it.
  */
 import { useState } from 'preact/hooks';
+import { placeOf } from '@learnhub/content/book';
 import type { Progress, SessionTask } from '@learnhub/mastery';
 import { titleOf, topicOf } from '@/model/courses';
 import { completeLesson, completeQuiz, completeReview, hasContent, skipTask } from '@/model/learner';
 import { clearLearnSalt, learnSalt } from '@/model/lessonState';
 import { REVIEW_PROBLEMS, instanceAt } from '@/model/practice';
-import { go } from '@/model/route';
+import { go, type Route } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
 import { BackLink } from '@/ui/BackLink';
 import { ProblemCard, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
@@ -208,14 +209,17 @@ export function TaskView({ index }: { index: number }) {
   );
 }
 
-/** A lesson opened from the map, outside today's plan. */
-export function LearnView({ topicId }: { topicId: string }) {
+/** A lesson opened from the map or the book, outside today's plan. Back returns where it was opened. */
+export function LearnView({ topicId, fromBook = false }: { topicId: string; fromBook?: boolean }) {
   const p = progress.value;
   const t = topicOf(topicId);
   const [done, setDone] = useState<boolean | null>(null);
   // Fixed until the lesson ends, so problems do not change while they are answered or after leaving and coming back.
   const [salt] = useState(() => learnSalt(topicId, now()));
   if (p === null || t === undefined) return <p class="page">Unknown topic.</p>;
+  const chapter = fromBook ? placeOf(topicId)?.chapter : undefined;
+  const backTo: Route = chapter !== undefined ? { view: 'chapter', chapterId: chapter.id } : { view: 'map', topicId };
+  const backLabel = chapter !== undefined ? 'Back to the chapter' : 'Back to the map';
   if (done !== null) {
     return (
       <section class="page task-done">
@@ -223,7 +227,7 @@ export function LearnView({ topicId }: { topicId: string }) {
         <p>{done ? 'Learned. It will come back as a short review.' : 'Not learned yet. It stays ready for another session.'}</p>
         <div class="actions">
           <button type="button" class="btn btn-primary" onClick={() => go({ view: 'today' })}>Back to today</button>
-          <button type="button" class="btn" onClick={() => go({ view: 'map', topicId })}>Back to the map</button>
+          <button type="button" class="btn" onClick={() => go(backTo)}>{backLabel}</button>
         </div>
       </section>
     );
@@ -233,8 +237,8 @@ export function LearnView({ topicId }: { topicId: string }) {
       topicId={topicId}
       salt={salt}
       onEnd={(e) => { clearLearnSalt(topicId); void commit(completeLesson(p, topicId, e.passed, now(), null, t.estMinutes)).then(() => setDone(e.passed)); }}
-      onSkip={() => go({ view: 'map', topicId })}
-      back={{ to: { view: 'map', topicId }, label: 'Back to the map' }}
+      onSkip={() => go(backTo)}
+      back={{ to: backTo, label: backLabel }}
     />
   );
 }

@@ -23,6 +23,7 @@ import { BackLink } from '@/ui/BackLink';
 import { TermDialog } from '@/ui/TermDialog';
 import { closeTerm } from '@/ui/termState';
 import { GlossaryView } from '@/ui/views/Glossary';
+import { BookView, ChapterView } from '@/ui/views/Book';
 import { MapView } from '@/ui/views/MapView';
 import { ProgressView, StartOver } from '@/ui/views/ProgressView';
 import { Start } from '@/ui/views/Start';
@@ -55,7 +56,7 @@ function navItems(setUp: boolean): NavItem[] {
   if (!setUp) return [{ id: 'home', label: 'Home', to: homeRoute(false) }, GLOSSARY];
   return [
     { id: 'home', label: 'Today', to: homeRoute(true) },
-    { id: 'map', label: 'Course', to: { view: 'map', topicId: null } },
+    { id: 'map', label: 'Course', to: { view: 'book' } },
     { id: 'campaign', label: 'Campaign', to: { view: 'campaign' } },
     { id: 'report', label: 'Report', to: { view: 'report' } },
     { id: 'letters', label: 'Letters', to: { view: 'letters' } },
@@ -67,7 +68,7 @@ const FOOT_ITEMS: readonly NavItem[] = [{ id: 'progress', label: 'Progress', to:
 
 function navOf(r: Route): NavId {
   if (r.view === 'task' || r.view === 'today' || r.view === 'start' || r.view === 'problem') return 'home';
-  if (r.view === 'learn') return 'map';
+  if (r.view === 'learn' || r.view === 'book' || r.view === 'chapter') return 'map';
   if (r.view === 'paper') return 'campaign';
   return r.view;
 }
@@ -91,7 +92,9 @@ function View({ r }: { r: Route }) {
     // A learner with a course has no start step: App moves the URL on to Today.
     case 'start': return <Today />;
     case 'task': return <TaskView index={r.index} />;
-    case 'learn': return <LearnView key={r.topicId} topicId={r.topicId} />;
+    case 'learn': return <LearnView key={r.topicId} topicId={r.topicId} fromBook={r.from === 'book'} />;
+    case 'book': return <BookView />;
+    case 'chapter': return <ChapterView key={r.chapterId} chapterId={r.chapterId} />;
     case 'problem': return <ProblemView key={`${r.topicId}/${r.problemId}`} topicId={r.topicId} problemId={r.problemId} />;
     case 'map': return <MapView topicId={r.topicId} />;
     case 'progress': return <ProgressView />;

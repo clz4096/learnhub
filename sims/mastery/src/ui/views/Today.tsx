@@ -14,6 +14,7 @@ import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
 import { SupervisionToday } from '@/ui/Supervision';
 import { campaignFixedFor } from '@/ui/campaignShared';
+import { ContinueReading } from '@/ui/views/Book';
 import { DayPlanner } from '@/ui/views/DayPlanner';
 
 const KIND: Record<SessionTask['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz' };
@@ -54,6 +55,7 @@ export function Today() {
       <section class="page today" aria-labelledby="session-title">
         <div class="sec-h"><h2 id="session-title">Today's session</h2></div>
         <p class="small muted">{date}. Your daily time is {p.settings.budgetMinutes} minutes.</p>
+        <ContinueReading p={p} />
         <div class="today-summary">
           <div class="stat"><span class="stat-value">{time.left}</span><span class="stat-label">minutes left</span></div>
           <div class="stat"><span class="stat-value">{time.done}</span><span class="stat-label">minutes done</span></div>

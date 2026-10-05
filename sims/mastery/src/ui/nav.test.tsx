@@ -70,7 +70,7 @@ describe('the start', () => {
     await screen.findByText('Fractions and ratios', { selector: '.task-title' });
     await flush();
     expect(progress.value?.session?.tasks.map((t) => [t.kind, t.topicIds[0]])).toEqual([
-      ['lesson', 'pre.fractions'], ['lesson', 'pre.set-notation'], ['lesson', 'pre.product-rule'], ['lesson', 'logic.connectives'],
+      ['lesson', 'pre.fractions'], ['lesson', 'pre.indices'], ['lesson', 'pre.algebraic-manipulation'],
     ]);
 
     // Back does not reopen the start: a learner with a course is moved on to Today.
@@ -157,7 +157,7 @@ describe('a learner with a course', () => {
     await commit(ensureSession(startLearner(T0, DEFAULT_COURSES, 60), T0));
   }
 
-  it('Back walks the views in order: Today, a lesson, the map, a topic, the glossary', async () => {
+  it('Back walks the views in order: Today, a lesson, the course, the map, a topic, the glossary', async () => {
     await started();
     render(<App />);
     await screen.findByText('Fractions and ratios', { selector: '.task-title' });
@@ -165,6 +165,8 @@ describe('a learner with a course', () => {
     expect(location.hash).toBe('#/task/0');
     expect(screen.getByRole('button', { name: 'Back to today' })).toBeTruthy();
     fireEvent.click(screen.getByText('Course', { selector: 'nav a' }));
+    expect(location.hash).toBe('#/book');
+    fireEvent.click(screen.getByText('Prerequisite map'));
     fireEvent.click(document.querySelector('.node') as Element);
     const topic = location.hash;
     expect(topic).toMatch(/^#\/map\//);
@@ -176,6 +178,8 @@ describe('a learner with a course', () => {
     expect(document.querySelector('.map-details.open')).not.toBeNull();
     await back();
     expect(location.hash).toBe('#/map');
+    await back();
+    expect(location.hash).toBe('#/book');
     await back();
     expect(location.hash).toBe('#/task/0');
     expect(heading()).toBe('Fractions and ratios');

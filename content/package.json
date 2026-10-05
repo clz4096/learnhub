@@ -5,7 +5,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./all": "./src/all.ts",
-    "./admissions": "./src/admissions/index.ts"
+    "./admissions": "./src/admissions/index.ts",
+    "./book": "./src/book/book.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
