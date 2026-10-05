@@ -27,8 +27,11 @@ import { Start } from '@/ui/views/Start';
 import { LearnView, TaskView } from '@/ui/views/Task';
 import { ProblemView } from '@/ui/views/Lesson';
 import { Today } from '@/ui/views/Today';
+import { CampaignView } from '@/ui/views/Campaign';
+import { PaperView } from '@/ui/views/Paper';
+import { ReportView } from '@/ui/views/Report';
 
-type NavId = 'home' | 'map' | 'progress' | 'glossary';
+type NavId = 'home' | 'map' | 'progress' | 'glossary' | 'campaign' | 'report';
 
 /** The displayed name; ids, routes, and storage keys keep "mastery". */
 export const APP_TITLE = 'Cambridge University Math and Computer Science Major';
@@ -45,6 +48,8 @@ function navItems(setUp: boolean): { id: NavId; label: string; to: Route }[] {
   return [
     { id: 'home', label: 'Home', to: homeRoute(true) },
     { id: 'map', label: 'Map', to: { view: 'map', topicId: null } },
+    { id: 'campaign', label: 'Campaign', to: { view: 'campaign' } },
+    { id: 'report', label: 'Report', to: { view: 'report' } },
     { id: 'progress', label: 'Progress', to: { view: 'progress' } },
     glossary,
   ];
@@ -53,6 +58,7 @@ function navItems(setUp: boolean): { id: NavId; label: string; to: Route }[] {
 function navOf(r: Route): NavId {
   if (r.view === 'task' || r.view === 'today' || r.view === 'start' || r.view === 'problem') return 'home';
   if (r.view === 'learn') return 'map';
+  if (r.view === 'paper') return 'campaign';
   return r.view;
 }
 
@@ -80,6 +86,10 @@ function View({ r }: { r: Route }) {
     case 'map': return <MapView topicId={r.topicId} />;
     case 'progress': return <ProgressView />;
     case 'glossary': return <GlossaryView termId={r.termId} />;
+    // Only reached with a course chosen (see App), so the progress document is loaded.
+    case 'campaign': return progress.value === null ? <Today /> : <CampaignView p={progress.value} />;
+    case 'paper': return <PaperView key={r.paperId} paperId={r.paperId} />;
+    case 'report': return progress.value === null ? <Today /> : <ReportView p={progress.value} />;
   }
 }
 

@@ -56,6 +56,22 @@ What an imported result does:
 
 You never mark your own work: there is no mark field or pass button anywhere. A mark enters only through a result block that echoes a nonce this browser made. Results must be pasted in the browser that made the copy until progress sync (build step 4).
 
+## Cambridge Entry: the campaign and the report
+
+**Campaign** (`#/campaign`) runs the admissions route of `mastery/DESIGN-ADMISSIONS.md` as five acts and matriculation. Choose Mathematics or Computer Science; the route can be switched until Act III. Acts open in order; completing one never blocks study, and a later act's papers count when sat early.
+
+- **Act I:** two timed papers of each A level (Edexcel Mathematics and Further Mathematics, OCR Computer Science), in the order you choose, and the Stage A chapters. Until the book is restructured, Stage A is counted as the current course's lessons mastered, and the screen says so.
+- **Act II:** three TMUA papers. **Act III:** choose the college (St Edmund's, Wolfson, Hughes Hall; Hughes Hall unverified) and file the application. **Act IV:** two mock interviews, one of each shape (pre-reading, induction). **Act V:** STEP 2 and STEP 3 (Mathematics), or two A level papers sat during the act (Computer Science).
+- **Papers** (`#/paper/<id>`): the official link, time allowed, and rules; a countdown that cannot pause; then the marks. TMUA answers are checked against the official key. STEP (12 questions out of 20, best 6 count) and A level totals come from supervision: **Copy for supervision** copies a marking block for a Claude Code session, and you type back the marks it prints. Unlike lessons, these marks are typed in: a paper is not a catalog problem, so the nonce-bound result block does not apply.
+- **Interviews:** **Copy interview packet** sets up a mock interview in the chosen college's real format; record the mark out of 20 and notes.
+- **Calendar:** pace is the hours ticked off in the day planner over the last two weeks (the 36-hour target if none). From the hours left per act it projects finish dates against the January round; a miss slips the target entry from October 2028. 2028 dates are the 2027-entry dates a year on, labelled as estimates, as are chapter hours the book does not have yet.
+- **Stats and effects:** mastery by area, marks in timed papers, and interview marks, with the effects table (`EFFECT_RULES` in `src/model/campaign.ts`). Programming has no data until the book has programming chapters.
+- **Letters** arrive at milestones, written from your numbers and marked Simulated.
+
+**Report** (`#/report`) shows each STEP mark on that year's boundaries with the share of real candidates at or below it, A level papers on their component boundaries, TMUA raw marks with the context scale, interview marks, the offer condition by condition, and the 2025 odds, each with its source.
+
+The campaign is stored in this browser only (localStorage `mastery.campaign.v1`), not in the progress document; syncing it is a follow-up. The paper registry (`@learnhub/content/admissions`) loads on demand as its own chunk. The planner does not read the campaign yet: `campaignPlanInputs()` in `src/model/campaignSummary.ts` returns the next timed paper and the effects in force for it.
+
 ## Moving around
 
 Every screen has the same header (design decision 19a): the course title and the Home item go home, which is the Start step until a course is chosen and Today after. Leaving a lesson by Home keeps its place. Every view has its own URL, so the browser's Back (or Cmd+[ and the swipe on a Mac) returns to the previous view, and a reload shows the same one. Views reached by a button (a task, a lesson from the map, the glossary before a course is chosen) also have a Back link, and Escape closes every dialog and the map's topic panel. The map draws only the chosen topic's connections, to what it builds on and what builds on it; "Show all connections" draws every edge and is remembered in this browser.

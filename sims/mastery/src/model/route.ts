@@ -10,6 +10,8 @@
  *   #/map         the knowledge map; #/map/<id> with a topic open
  *   #/progress    per course, backup, settings
  *   #/glossary    every term; #/glossary/<id> at one entry
+ *   #/campaign    the Cambridge Entry campaign; #/paper/<id> one past paper in exam mode
+ *   #/report      the results report
  *
  * Every step a learner can take back from has its own route, so the browser's Back (and
  * Cmd+[ or a swipe on the Mac) returns to the previous view of the app, and a reload
@@ -26,7 +28,10 @@ export type Route =
   | { view: 'problem'; topicId: string; problemId: string }
   | { view: 'map'; topicId: string | null }
   | { view: 'progress' }
-  | { view: 'glossary'; termId: string | null };
+  | { view: 'glossary'; termId: string | null }
+  | { view: 'campaign' }
+  | { view: 'paper'; paperId: string }
+  | { view: 'report' };
 
 const ID = /^[a-z0-9.-]+$/;
 
@@ -45,6 +50,9 @@ export function parseRoute(hash: string): Route {
     case 'map': return { view: 'map', topicId: id };
     case 'progress': return { view: 'progress' };
     case 'glossary': return { view: 'glossary', termId: id };
+    case 'campaign': return { view: 'campaign' };
+    case 'paper': return id === null ? { view: 'campaign' } : { view: 'paper', paperId: id };
+    case 'report': return { view: 'report' };
     default: return { view: 'today' };
   }
 }
@@ -59,6 +67,9 @@ export function hrefOf(r: Route): string {
     case 'map': return r.topicId === null ? '#/map' : `#/map/${encodeURIComponent(r.topicId)}`;
     case 'progress': return '#/progress';
     case 'glossary': return r.termId === null ? '#/glossary' : `#/glossary/${encodeURIComponent(r.termId)}`;
+    case 'campaign': return '#/campaign';
+    case 'paper': return `#/paper/${encodeURIComponent(r.paperId)}`;
+    case 'report': return '#/report';
   }
 }
 

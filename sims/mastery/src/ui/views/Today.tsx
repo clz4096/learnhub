@@ -12,6 +12,7 @@ import { ensureSession, localDay, planMore, replanToday, sessionTime } from '@/m
 import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
 import { SupervisionToday } from '@/ui/Supervision';
+import { campaignFixedFor } from '@/ui/campaignShared';
 import { DayPlanner } from '@/ui/views/DayPlanner';
 
 const KIND: Record<SessionTask['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz' };
@@ -40,7 +41,7 @@ export function Today() {
   useEffect(() => prefetchContent([...planned, ...redoTopics]), [[...planned, ...redoTopics].join()]);
 
   if (p === null) return <p class="page">Planning today.</p>;
-  if (p.session === null || p.session.day !== today) return <><DayPlanner p={p} /><p class="page">Planning today.</p></>;
+  if (p.session === null || p.session.day !== today) return <><DayPlanner p={p} fixed={campaignFixedFor} /><p class="page">Planning today.</p></>;
   const s = p.session;
   const time = sessionTime(s);
   const nextIndex = s.tasks.findIndex((t) => !t.done);
@@ -48,7 +49,7 @@ export function Today() {
 
   return (
     <>
-      <DayPlanner p={p} />
+      <DayPlanner p={p} fixed={campaignFixedFor} />
       <section class="page today" aria-labelledby="session-title">
         <h2 id="session-title">Today's session</h2>
         <p class="small muted">{date}. Your daily time is {p.settings.budgetMinutes} minutes.</p>

@@ -101,13 +101,13 @@ describe('every route has a header with a way home', () => {
     }
   }
 
-  it('the navigation before a course is chosen is Home and Glossary; after, Home, Map, Progress, and Glossary', async () => {
+  it('the navigation before a course is chosen is Home and Glossary; after, Home, Map, Campaign, Report, Progress, and Glossary', async () => {
     render(<App />);
     expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Glossary']);
     cleanup();
     await STATES['a learner with a course']();
     render(<App />);
-    expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Map', 'Progress', 'Glossary']);
+    expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Map', 'Campaign', 'Report', 'Progress', 'Glossary']);
     expect(homeItem().getAttribute('aria-current')).toBe('page');
   });
 
