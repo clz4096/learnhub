@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contentFor } from '@learnhub/content';
+import { contentFor } from '@learnhub/content/all';
 import { answer, freshPractice, instanceAt, seedFor } from '@/model/practice';
 
 const rule = { correctInARow: 3, maxProblems: 10 };

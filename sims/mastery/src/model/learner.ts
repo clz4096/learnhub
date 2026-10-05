@@ -8,7 +8,7 @@
  * course for the planner's split, today's session, supervision attempts with the
  * problems they set to redo, and the times of choices and resets that sync merges by.
  */
-import { contentFor } from '@learnhub/content';
+import { hasContent as written } from '@learnhub/content';
 import {
   DAY_MS, SUPERVISION_PASS_MARK, classify, dueTopics, frontier, newProgress, placedMemory, placementGraph, placementResult, planSession,
   recordLesson, recordLessonFailure, recordReview, topoOrder, withChoices,
@@ -44,7 +44,7 @@ export function startLearner(now: number, courses: readonly string[], budgetMinu
  * word (design decisions 11 and 18), so a topic without them cannot be probed, scheduled,
  * passed, or learned: it stays unknown until its content exists.
  */
-export const hasContent = (topicId: string): boolean => contentFor(topicId) !== undefined;
+export const hasContent = (topicId: string): boolean => written(topicId);
 
 const touch = (p: Progress, now: number): Progress => ({ ...p, updatedAt: now });
 const log = (p: Progress, entries: readonly HistoryEntry[]): HistoryEntry[] => [...p.history, ...entries];

@@ -1,6 +1,6 @@
 # Cambridge-sourced lessons: design
 
-Dated 2026-10-05. Status: approved by the owner on 2026-10-05. Steps 1 and 2 done; step 3 (supervision) built (2026-10-05), for review. Step 5, batch 2 (sixteen more topics from the batch 1 map, in schedule order), built 2026-10-05, for review; see `graph/reviews/cambridge-batch-1.md`, Build step 5. The formats, validation, and scheduling rules are in `sims/mastery/GUIDE.md`, Supervision.
+Dated 2026-10-05. Status: approved by the owner on 2026-10-05. Steps 1 and 2 done; step 3 (supervision) built (2026-10-05), for review. Step 5, batch 2 (sixteen more topics from the batch 1 map, in schedule order), built 2026-10-05, for review; see `graph/reviews/cambridge-batch-1.md`, Build step 5. Batch 3 (the next sixteen, with lessons loaded on demand), built 2026-10-05, for review; see Build step 5, batch 3, in the same file. The formats, validation, and scheduling rules are in `sims/mastery/GUIDE.md`, Supervision.
 
 ## Goal
 

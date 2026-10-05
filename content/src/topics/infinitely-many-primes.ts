@@ -1,0 +1,265 @@
+/**
+ * proof.infinitely-many-primes: Euclid's theorem: from any finite list of primes, the
+ * product plus one has a prime factor not in the list, so the primes never run out. The
+ * lesson follows the CST notes (printed pages 306 to 308: Theorem 100 and its proof by
+ * contradiction, and the Theorem of the Day sheet, whose remark gives 2 × 3 × 5 × 7 × 11 ×
+ * 13 + 1 = 30031 = 59 × 509) and Book of Proof Section 6.1.
+ */
+import { auto, cite, same, supervision } from '../cambridge';
+import { int, pick, upTo } from '../math';
+import { generator, type Misconception } from '../problem';
+import { computedTex, listOf, math, t } from '../rich';
+import { workedProof, workedCambridge, worked, type TopicContent } from '../topic';
+
+const [mp, mq] = [math`p`, math`q`];
+function isPrime(n: number): boolean {
+  if (n < 2) return false;
+  for (let d = 2; d * d <= n; d++) if (n % d === 0) return false;
+  return true;
+}
+const smallestFactor = (n: number): number => { for (let d = 2; d * d <= n; d++) if (n % d === 0) return d; return n; };
+const PRIMES = upTo(40).filter(isPrime);
+const product = (xs: readonly number[]): number => xs.reduce((a, b) => a * b, 1);
+const prodTex = (xs: readonly number[]) => computedTex(xs.join(' \\times '));
+const big = (v: { num: bigint; den: bigint } | undefined): number | null => (v === undefined || v.den !== 1n ? null : Number(v.num));
+
+// ---------------------------------------------------------------- a new prime from a list
+
+interface ListP { ps: readonly number[] }
+
+const newPrime = generator<ListP>({
+  id: 'new-prime',
+  skill: 'Run Euclid\'s argument on a finite list of primes: the product plus one has a prime factor that is not in the list.',
+  params: (rng) => {
+    const k = int(rng, 2, 4);
+    const out: number[] = [];
+    while (out.length < k) { const p = pick(rng, PRIMES.slice(0, 9)); if (!out.includes(p)) out.push(p); }
+    return { ps: out.sort((a, b) => a - b) };
+  },
+  sane: ({ ps }) => (ps.length >= 2 && ps.every(isPrime) && new Set(ps).size === ps.length ? null : 'out of range'),
+  problem: ({ ps }) => {
+    const N = product(ps) + 1;
+    const f = smallestFactor(N);
+    return {
+      prompt: t`Euclid's argument, on the list of primes ${listOf(ps)}: let ${math`N = ${prodTex(ps)} + ${1}`}. Give a prime that divides ${math`N`} and is not in the list.`,
+      answer: {
+        kind: 'witness', count: 1, names: ['p'], example: String(f),
+        check: ([v]) => {
+          const p = big(v);
+          if (p === null || !isPrime(p)) return 'Give a prime number.';
+          if (ps.includes(p)) return `${p} is in the list: it divides the product, so it leaves remainder 1 when dividing N.`;
+          return N % p === 0 ? null : `${p} does not divide N = ${N}.`;
+        },
+      },
+      solution: [
+        t`${math`N = ${product(ps)} + ${1} = ${N}`}. Every prime in the list divides the product, so it leaves remainder ${1} when dividing ${math`N`}: none of them divides ${math`N`}.`,
+        N === f
+          ? t`Trying the primes up to ${math`\sqrt{N}`}, none divides ${N}, so ${N} is itself a prime, and it is not in the list.`
+          : t`But ${math`N > ${1}`} has a prime factor: the smallest is ${f}, since ${math`${N} = ${f} \times ${N / f}`}. It is a prime not in the list.`,
+      ],
+    };
+  },
+  solve: ({ ps }) => {
+    // Search upwards for a prime factor of N outside the list.
+    const N = product(ps) + 1;
+    let d = 2;
+    while (!(N % d === 0 && isPrime(d) && !ps.includes(d))) d++;
+    return `p = ${d}`;
+  },
+  misconceptions: ({ ps }): Misconception[] => [
+    { response: `p = ${ps[0] as number}`, why: t`${ps[0] as number} divides the product, so it leaves remainder ${1} when dividing ${math`N`}. That is the point of the argument: no prime in the list divides ${math`N`}.` },
+    { response: `p = ${ps[ps.length - 1] as number}`, why: t`Every prime in the list leaves remainder ${1} when dividing ${math`N`}. The new prime is one that divides ${math`N`}.` },
+    { response: 'p = 1', why: t`${1} is not a prime. Find a prime factor of ${math`N`}.` },
+  ],
+});
+
+// ---------------------------------------------------------------- remainders
+
+interface RemP { ps: readonly number[]; i: number; r: number }
+
+const remainder = generator<RemP>({
+  id: 'remainder',
+  skill: 'Find the remainder of a product of primes plus a small number on division by one of the primes: the product leaves nothing.',
+  params: (rng) => {
+    for (;;) {
+      const k = int(rng, 2, 4);
+      const ps: number[] = [];
+      while (ps.length < k) { const p = pick(rng, PRIMES.slice(0, 8)); if (!ps.includes(p)) ps.push(p); }
+      ps.sort((a, b) => a - b);
+      const i = int(rng, 0, k - 1);
+      const r = pick(rng, [1, -1, 2]);
+      if ((ps[i] as number) > Math.abs(r) + 1) return { ps, i, r };
+    }
+  },
+  sane: ({ ps, i, r }) => ((ps[i] as number) > Math.abs(r) + 1 ? null : 'out of range'),
+  problem: ({ ps, i, r }) => {
+    const p = ps[i] as number;
+    const N = product(ps) + r;
+    const rem = ((N % p) + p) % p;
+    return {
+      prompt: t`What is the remainder when ${math`${prodTex(ps)} ${r < 0 ? '-' : '+'} ${Math.abs(r)}`} is divided by ${p}?`,
+      answer: { kind: 'exact', expected: String(rem) },
+      solution: [
+        t`${p} divides the product ${math`${prodTex(ps)}`}, so the remainder comes from the ${r < 0 ? t`${math`-${1}`}` : t`${math`+${r}`}`} alone.`,
+        r < 0
+          ? t`A remainder is between ${0} and ${p - 1}: ${math`-${1} = -${p} + ${p - 1}`}, so the remainder is ${p - 1}.`
+          : t`The remainder is ${rem}.`,
+      ],
+    };
+  },
+  solve: ({ ps, i, r }) => {
+    // Divide the actual number.
+    const p = ps[i] as number;
+    const N = product(ps) + r;
+    return String(N - p * Math.floor(N / p));
+  },
+  misconceptions: ({ ps, i, r }): Misconception[] => {
+    const p = ps[i] as number;
+    const out: Misconception[] = [{ response: '0', why: t`${p} divides the product, but not the whole number: the ${r < 0 ? 'minus' : 'plus'} ${Math.abs(r)} is left over.` }];
+    if (r < 0) out.push({ response: '-1', why: t`A remainder is never negative: it is between ${0} and ${p - 1}. Take ${math`-${1} + ${p}`}.` });
+    else out.push({ response: String(p - r), why: t`That would be for ${math`-${r}`}. Here ${r} is added, so the remainder is ${r}.` });
+    return out;
+  },
+});
+
+// ---------------------------------------------------------------- Euclid numbers
+
+interface EucP { k: number; sign: 1 | -1 }
+const PRIMORIAL = (k: number): number => product(PRIMES.slice(0, k));
+
+const euclidNumbers = generator<EucP>({
+  id: 'euclid-numbers',
+  skill: 'Find the smallest prime factor of the product of the first k primes, plus or minus one: it is never one of those k primes, and the number itself need not be prime.',
+  params: (rng) => {
+    for (;;) {
+      const p: EucP = { k: int(rng, 2, 8), sign: pick(rng, [1, -1] as const) };
+      // 2 - 1 = 1 has no prime factor; skip it.
+      if (PRIMORIAL(p.k) + p.sign > 1) return p;
+    }
+  },
+  sane: ({ k, sign }) => (k >= 2 && k <= 8 && PRIMORIAL(k) + sign > 1 ? null : 'out of range'),
+  problem: ({ k, sign }) => {
+    const ps = PRIMES.slice(0, k);
+    const N = PRIMORIAL(k) + sign;
+    const f = smallestFactor(N);
+    return {
+      prompt: t`Let ${math`N = ${prodTex(ps)} ${sign < 0 ? '-' : '+'} ${1}`}, the product of the first ${k} primes ${sign < 0 ? 'minus' : 'plus'} one. What is the smallest prime factor of ${math`N`}?`,
+      answer: { kind: 'exact', expected: String(f) },
+      solution: [
+        t`${math`N = ${computedTex(String(N))}`}. None of ${listOf(ps)} divides it: each leaves remainder ${sign < 0 ? t`one less than itself` : t`${1}`}.`,
+        f === N
+          ? t`Trying every prime up to ${math`\sqrt{N}`}, none divides ${math`N`}: it is prime, and its smallest prime factor is itself.`
+          : t`Trying primes from ${PRIMES[k] as number} upwards, the first that divides ${math`N`} is ${f}: ${math`N = ${f} \times ${computedTex(String(N / f))}`}. So ${math`N`} is not prime, but its prime factors are all new.`,
+      ],
+    };
+  },
+  solve: ({ k, sign }) => {
+    const N = PRIMORIAL(k) + sign;
+    return String(upTo(Math.min(N, 5000)).find((d) => d > 1 && N % d === 0) ?? N);
+  },
+  misconceptions: ({ k, sign }): Misconception[] => {
+    const N = PRIMORIAL(k) + sign;
+    return [
+      { response: String(N), why: t`${math`N`} need not be prime: check for factors before assuming it is.` },
+      { response: '2', why: t`${2} is one of the first ${k} primes, so it leaves a remainder when dividing ${math`N`}: ${math`N`} is odd.` },
+      { response: String(PRIMES[k - 1] as number), why: t`${PRIMES[k - 1] as number} is in the list, so it cannot divide ${math`N`}. Look at larger primes.` },
+    ];
+  },
+});
+
+// ---------------------------------------------------------------- Cambridge problems
+
+const theorem100 = workedProof({
+  title: t`The set of primes is infinite`,
+  prompt: t`Theorem ${100} of the CST notes: the set of primes is infinite.`,
+  steps: [
+    t`We use proof by contradiction. So suppose that the set of primes is finite, and let ${math`p_{${1}}, \ldots, p_{\ell}`} be all of them.`,
+    t`Consider the natural number ${math`p = p_{${1}} \cdots p_{\ell} + ${1}`}. It is not in the list (it is bigger than every ${math`p_{i}`}), so it is not prime; by the Fundamental Theorem of Arithmetic it is a product of primes, so some ${math`p_{i}`} in the list divides it.`,
+    t`That ${math`p_{i}`} also divides ${math`p_{${1}} \cdots p_{\ell}`}, so it divides the difference ${math`p - p_{${1}} \cdots p_{\ell} = ${1}`}. A prime cannot divide ${1}: this is a contradiction.`,
+    t`Therefore the set of primes is infinite.`,
+  ],
+  answer: t`There are infinitely many primes.`,
+  source: cite('cst-dm-notes', 'printed pages 306 and 307, Theorem 100'),
+});
+
+const SIX = PRIMES.slice(0, 6);
+const N6 = product(SIX) + 1;
+const totd30031 = auto({
+  id: 'cst-totd-30031',
+  source: cite('cst-dm-notes', 'printed page 308, the Theorem of the Day sheet, remark 2', true),
+  title: t`The first Euclid number that is not prime`,
+  prompt: t`The Theorem of the Day sheet in the CST notes warns that ${math`q = ${prodTex(SIX)} + ${1}`} need not be prime. Show it: give a prime factor of ${math`q = ${computedTex(String(N6))}`}.`,
+  answer: {
+    kind: 'witness', count: 1, names: ['p'], example: String(smallestFactor(N6)),
+    check: ([v]) => {
+      const p = big(v);
+      if (p === null || !isPrime(p)) return 'Give a prime number.';
+      if (p === N6) return `${N6} is not prime: find a smaller factor.`;
+      return N6 % p === 0 ? null : `${p} does not divide ${N6}.`;
+    },
+  },
+  solution: [
+    t`None of ${listOf(SIX)} divides ${math`q`}: each leaves remainder ${1}. So try the primes from ${17} upwards: ${17}, ${19}, ..., ${53} leave remainders, and ${59} divides it.`,
+    t`${math`${computedTex(String(N6))} = ${smallestFactor(N6)} \times ${N6 / smallestFactor(N6)}`}, as the sheet says. Both factors are primes outside the list, which is all Euclid's argument needs.`,
+  ],
+  reference: `p = ${smallestFactor(N6)}`,
+  verify: () => same('the factorisation on the sheet', [N6, smallestFactor(N6), N6 / smallestFactor(N6), isPrime(N6 / smallestFactor(N6))].join(), '30031,59,509,true'),
+  misconceptions: [{ response: 'p = 13', why: t`${13} is in the list, so it leaves remainder ${1} when dividing ${math`q`}.` }],
+  official: { source: cite('cst-dm-notes', 'printed page 308, remark 2'), answer: 'p = 59', agrees: true },
+});
+
+const firstComposite = auto({
+  id: 'cst-totd-first-composite',
+  source: cite('cst-dm-notes', 'printed page 308, the Theorem of the Day sheet, remark 2', true),
+  title: t`How long does the product plus one stay prime?`,
+  prompt: t`For ${math`k = ${1}, ${2}, ${3}, \ldots`}, let ${math`q_{k}`} be the product of the first ${math`k`} primes, plus one: ${math`q_{${1}} = ${PRIMORIAL(1) + 1}`}, ${math`q_{${2}} = ${PRIMORIAL(2) + 1}`}, ${math`q_{${3}} = ${PRIMORIAL(3) + 1}`}, and so on. What is the smallest ${math`k`} for which ${math`q_{k}`} is not prime?`,
+  answer: { kind: 'exact', expected: String(upTo(8).find((k) => !isPrime(PRIMORIAL(k) + 1)) as number) },
+  solution: [
+    t`${math`q_{${4}} = ${PRIMORIAL(4) + 1}`} and ${math`q_{${5}} = ${PRIMORIAL(5) + 1}`} are prime too. But ${math`q_{${6}} = ${computedTex(String(N6))} = ${59} \times ${509}`}.`,
+    t`So the answer is ${6}: the sheet's example is the first. The proof never claims ${math`q_{k}`} is prime, only that its prime factors are new.`,
+  ],
+  reference: '6',
+  verify: () => same('primality of q1 to q6', upTo(6).map((k) => isPrime(PRIMORIAL(k) + 1)).join(), 'true,true,true,true,true,false'),
+  misconceptions: [{ response: '5', why: t`${math`q_{${5}} = ${PRIMORIAL(5) + 1}`} is prime: it has no factor up to its square root.` }],
+});
+
+const notPrime = supervision({
+  id: 'cst-totd-remarks',
+  source: cite('cst-dm-notes', 'printed page 308, the Theorem of the Day sheet'),
+  title: t`What the argument does and does not show`,
+  prompt: t`The Theorem of the Day sheet argues that ${math`q = ${1} + p_{${1}} \cdots p_{N}`} "cannot be divided exactly by any prime in our list", and concludes that ${mq} is prime. Its remark (${2}) then shows ${math`${1} + ${2} \times ${3} \times ${5} \times ${7} \times ${11} \times ${13}`} is not prime. Explain why there is no conflict: what exactly does the argument prove about ${mq}, and where does the assumption that the list contains every prime enter? Then rewrite the proof so that it never claims ${mq} is prime.`,
+  writeUp: 'explanation',
+});
+const bopVersion = supervision({
+  id: 'bop-6-1-primes',
+  source: cite('bop', 'Section 6.1, the proposition that there are infinitely many primes'),
+  title: t`Book of Proof's version`,
+  prompt: t`Book of Proof's proof divides ${math`a = p_{${1}} p_{${2}} \cdots p_{n} + ${1}`} by a prime divisor ${math`p_{k}`} and gets ${math`\frac{${1}}{p_{k}} = c - (p_{${1}} \cdots p_{k - ${1}} p_{k + ${1}} \cdots p_{n})`}, an integer on the right and not on the left. Compare this with the CST notes' ending, "${math`p_{i}`} divides ${1}". Are they the same contradiction? Which fact about natural numbers greater than ${1} do both rely on?`,
+  writeUp: 'explanation',
+});
+
+// ---------------------------------------------------------------- lesson
+
+const EX = [2, 3, 5];
+
+export const infinitelyManyPrimes: TopicContent = {
+  topicId: 'proof.infinitely-many-primes',
+  goal: t`Prove Euclid's theorem that there are infinitely many primes, and use its construction: from any finite list of primes, build a number that none of them divides.`,
+  lesson: [
+    { kind: 'p', text: t`The primes thin out as numbers grow, but they never stop. Euclid's proof, over two thousand years old, is the model proof by contradiction, and the CST notes give it as Theorem ${100}.` },
+    { kind: 'rule', text: t`[[euclids-theorem|Euclid's theorem]]: the set of primes is infinite. Proof idea: given any finite list of primes, the number ${math`N = p_{${1}} p_{${2}} \cdots p_{\ell} + ${1}`} leaves remainder ${1} when divided by each of them, so none divides it; but ${math`N > ${1}`} has a prime factor, which must be a prime missing from the list.` },
+    { kind: 'p', text: t`With the list ${listOf(EX)}: ${math`N = ${prodTex(EX)} + ${1} = ${product(EX) + 1}`}, which ${2}, ${3}, and ${5} each leave remainder ${1}. Its prime factor, here ${product(EX) + 1} itself, is a new prime.` },
+    { kind: 'p', text: t`As a proof by contradiction (the CST notes): suppose ${math`p_{${1}}, \ldots, p_{\ell}`} are all the primes. Then a prime factor of ${math`N`} is some ${math`p_{i}`}, which divides both ${math`N`} and the product, so it divides their difference, ${1}. No prime divides ${1}: contradiction.` },
+    { kind: 'p', text: t`The argument shows that ${math`N`} has a prime factor outside the list, not that ${math`N`} is prime. The notes' Theorem of the Day sheet: ${math`${prodTex(SIX)} + ${1} = ${computedTex(String(N6))} = ${59} \times ${509}`}. Both factors are new primes, which is all the proof needs.` },
+    { kind: 'p', text: t`The proof leans on one fact from prime factorisation: every whole number greater than ${1} has at least one prime factor. Read constructively, it is a procedure: from any finite list of primes it produces a prime not on the list.` },
+  ],
+  examples: [
+    theorem100,
+    workedCambridge(totd30031),
+    worked(newPrime, { ps: [3, 5, 7] }, t`A new prime from ${listOf([3, 5, 7])}`),
+  ],
+  generators: [newPrime, remainder, euclidNumbers],
+  mastery: { correctInARow: 3, maxProblems: 10 },
+  terms: ['euclids-theorem'],
+  cambridge: [firstComposite, notPrime, bopVersion],
+};

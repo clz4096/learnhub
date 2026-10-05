@@ -9,7 +9,7 @@
  * per browser.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { contentFor } from '@learnhub/content';
+import { hasContent } from '@learnhub/content';
 import { AREAS } from '@learnhub/graph';
 import { LEVELS, type Progress, type Topic } from '@learnhub/mastery';
 import { AREA_NAMES, LEVEL_NAMES, closureTopics, coursesWith, shortName, titleOf, topicOf } from '@/model/courses';
@@ -95,7 +95,7 @@ export function wrap(title: string, max = 19, maxLines = 3): string[] {
 function Details({ p, id, status }: { p: Progress; id: string; status: TopicStatus | undefined }) {
   const t = topicOf(id);
   if (t === undefined) return null;
-  const c = contentFor(id);
+  const written = hasContent(id);
   const mem = p.memory[id];
   const inCourses = coursesWith(id, p.courses).map((x) => shortName(x.id));
   const closure = new Set(closureTopics(p.courses).map((x) => x.id));
@@ -116,8 +116,8 @@ function Details({ p, id, status }: { p: Progress; id: string; status: TopicStat
           {' '}Reviewed {mem.reps} time{mem.reps === 1 ? '' : 's'} so far.
         </p>
       )}
-      <p class="small">{c !== undefined ? 'Lesson, worked examples, and practice are written.' : 'The lesson is not written yet.'} About {t.estMinutes} minutes.</p>
-      {status === 'ready' && c !== undefined && closure.has(id) && (
+      <p class="small">{written ? 'Lesson, worked examples, and practice are written.' : 'The lesson is not written yet.'} About {t.estMinutes} minutes.</p>
+      {status === 'ready' && written && closure.has(id) && (
         <button type="button" class="btn btn-primary" onClick={() => go({ view: 'learn', topicId: id })}>Learn it now</button>
       )}
       {needs.length > 0 && (<><h3 class="small">Builds on</h3><ul class="small links">{needs.map(link)}</ul></>)}
@@ -308,7 +308,7 @@ export function MapView({ topicId }: { topicId: string | null }) {
                     >
                       <rect width={NODE_W} height={NODE_H} rx={8} />
                       {lines.map((l, i) => <text key={i} x={10} y={(NODE_H - lines.length * LINE_PX) / 2 + LABEL_PX * 0.8 + i * LINE_PX}>{l}</text>)}
-                      {contentFor(t.id) !== undefined && <circle class="has-lesson" cx={NODE_W - 9} cy={9} r={4} />}
+                      {hasContent(t.id) && <circle class="has-lesson" cx={NODE_W - 9} cy={9} r={4} />}
                     </g>
                   );
                 })}
@@ -331,7 +331,7 @@ export function MapView({ topicId }: { topicId: string | null }) {
                           <button type="button" class={`list-topic${t.id === topicId ? ' selected' : ''}`} onClick={() => go({ view: 'map', topicId: t.id })}>
                             <span class={`status-dot st-${st}`} aria-hidden="true" />
                             <span>{t.title}</span>
-                            <span class="small muted">{STATUS_TEXT[st].split(':')[0]}{contentFor(t.id) !== undefined ? ', lesson written' : ''}</span>
+                            <span class="small muted">{STATUS_TEXT[st].split(':')[0]}{hasContent(t.id) ? ', lesson written' : ''}</span>
                           </button>
                         </li>
                       );

@@ -23,7 +23,7 @@
  * themselves is out of scope.
  */
 import {
-  answerText, citationText, contentFor, MARK, plain,
+  answerText, catalogProblem, citationText, MARK, plain,
   type AnswerSpec, type CambridgeProblem, type Rich, type TopicContent,
 } from '@learnhub/content';
 import {
@@ -31,6 +31,7 @@ import {
   SUPERVISION_MAX_REDOS, SUPERVISION_PASS_MARK, SUPERVISION_WEAK_POINTS,
   type Progress, type SupervisionResult,
 } from '@learnhub/mastery';
+import { contentStore } from './content';
 import { titleOf } from './courses';
 
 export const PACKET_HEADER = 'LEARNHUB SUPERVISION v1';
@@ -47,12 +48,34 @@ export interface FoundProblem {
   problem: CambridgeProblem;
 }
 
-/** The Cambridge problem a key names, or undefined when there is none (a typo, or a problem since removed). */
-export function findProblem(key: string): FoundProblem | undefined {
+function splitKey(key: string): [topicId: string, problemId: string] | undefined {
   if (!PROBLEM_KEY_RE.test(key)) return undefined;
   const slash = key.indexOf('/');
-  const topic = contentFor(key.slice(0, slash));
-  const problem = topic?.cambridge.find((p) => p.id === key.slice(slash + 1));
+  return [key.slice(0, slash), key.slice(slash + 1)];
+}
+
+/** Whether a key names a Cambridge problem in the app, from the catalog: no topic is downloaded. */
+export function problemExists(key: string): boolean {
+  const k = splitKey(key);
+  return k !== undefined && catalogProblem(k[0], k[1]) !== undefined;
+}
+
+/** A problem's title as plain text, from the catalog, or undefined when there is no such problem. */
+export function catalogTitle(key: string): string | undefined {
+  const k = splitKey(key);
+  return k === undefined ? undefined : catalogProblem(k[0], k[1])?.title;
+}
+
+/**
+ * The Cambridge problem a key names, from its topic's downloaded content; undefined when
+ * there is no such problem (a typo, or a problem since removed) or its topic is not
+ * downloaded yet. Copying happens on a lesson or problem page, which has downloaded it.
+ */
+export function findProblem(key: string): FoundProblem | undefined {
+  const k = splitKey(key);
+  if (k === undefined) return undefined;
+  const topic = contentStore.loaded(k[0]);
+  const problem = topic?.cambridge.find((p) => p.id === k[1]);
   return topic === undefined || problem === undefined ? undefined : { key, topic, problem };
 }
 
@@ -170,7 +193,7 @@ export function resultTemplate(key: string, nonce: string): string {
 /** The block "Copy for supervision" copies. */
 export function buildPacket(input: PacketInput): string {
   const found = findProblem(input.key);
-  if (found === undefined) throw new Error(`buildPacket: no Cambridge problem ${input.key}`);
+  if (found === undefined) throw new Error(`buildPacket: no downloaded Cambridge problem ${input.key}`);
   const { topic, problem } = found;
   const topicId = topic.topicId;
   const head = [
@@ -336,7 +359,7 @@ export function parseResult(text: string): ParseResult {
     if (ids.length === 0) return fail('REDO is empty. It should list problem ids from the redo list, or say none.');
     if (ids.length > SUPERVISION_MAX_REDOS) return fail(`REDO lists ${ids.length} problems; at most ${SUPERVISION_MAX_REDOS} are allowed.`);
     for (const id of ids) {
-      if (findProblem(id) === undefined) return fail(`REDO lists "${id.slice(0, 60)}", which is not a problem in this app. Use ids from the redo list in the copied block.`);
+      if (!problemExists(id)) return fail(`REDO lists "${id.slice(0, 60)}", which is not a problem in this app. Use ids from the redo list in the copied block.`);
       if (!redo.includes(id)) redo.push(id);
     }
   }
@@ -356,7 +379,7 @@ export function checkResultFor(p: Readonly<Progress>, r: ParsedResult, expected?
   if (expected !== undefined && r.problem !== expected) {
     return `This result is for ${r.problem}, not for this problem (${expected}). Paste it on Today, or on that problem.`;
   }
-  if (findProblem(r.problem) === undefined) return `There is no problem ${r.problem} in this app.`;
+  if (!problemExists(r.problem)) return `There is no problem ${r.problem} in this app.`;
   const a = p.supervision.find((x) => x.nonce === r.nonce);
   if (a === undefined) {
     return `No copy with NONCE ${r.nonce} was made in this browser. Results can only be pasted where the problem was copied; copy it again here and supervise that copy.`;

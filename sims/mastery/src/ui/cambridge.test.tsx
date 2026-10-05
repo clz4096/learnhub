@@ -5,7 +5,8 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/preact';
-import { contentFor, type AutoProblem, type Instance } from '@learnhub/content';
+import type { AutoProblem, Instance } from '@learnhub/content';
+import { contentFor } from '@learnhub/content/all';
 import { hintFor, inputModeFor, keypadFor } from '@/model/keypad';
 import { loadPlace, loadWriteUp } from '@/model/lessonState';
 import { ProblemCard } from '@/ui/ProblemCard';
@@ -136,13 +137,14 @@ describe('a formula answer', () => {
 });
 
 describe('the Cambridge problems stage', () => {
-  const open = (topicId: string): void => {
+  const open = async (topicId: string): Promise<void> => {
     render(<LessonRunner topicId={topicId} salt="test" onEnd={() => undefined} onSkip={() => undefined} />);
-    fireEvent.click(screen.getByRole('button', { name: /Cambridge problems/ }));
+    // The lesson downloads its content first.
+    fireEvent.click(await screen.findByRole('button', { name: /Cambridge problems/ }));
   };
 
-  it('lists every Cambridge problem with its source, auto-checked or for supervision', () => {
-    open('prob.bayes-two-events');
+  it('lists every Cambridge problem with its source, auto-checked or for supervision', async () => {
+    await open('prob.bayes-two-events');
     const c = contentFor('prob.bayes-two-events');
     expect(document.querySelectorAll('.cambridge-problem')).toHaveLength(c?.cambridge.length ?? -1);
     expect(screen.getByText(/STEP Support Assignment 6, Q4\(ii\) · checked here/)).toBeTruthy();
@@ -150,9 +152,9 @@ describe('the Cambridge problems stage', () => {
     expect(loadPlace('test.prob.bayes-two-events')?.stage).toBe('cambridge');
   });
 
-  it('gives every element id on the page once, so each auto-checked card describes its own input', () => {
+  it('gives every element id on the page once, so each auto-checked card describes its own input', async () => {
     // Regression: every auto-checked card used to take the id prefix p0 (all at round 0).
-    open('comb.pigeonhole');
+    await open('comb.pigeonhole');
     const autos = contentFor('comb.pigeonhole')?.cambridge.filter((p) => p.mode === 'auto') ?? [];
     expect(autos.length).toBeGreaterThan(1);
     const ids = [...document.querySelectorAll('[id]')].map((el) => el.id);
@@ -169,8 +171,8 @@ describe('the Cambridge problems stage', () => {
     }
   });
 
-  it('a supervision problem has a write-up box kept for the tab, Copy for supervision, and Paste result', () => {
-    open('comb.pigeonhole');
+  it('a supervision problem has a write-up box kept for the tab, Copy for supervision, and Paste result', async () => {
+    await open('comb.pigeonhole');
     const box = screen.getAllByLabelText('Your write-up')[0] as HTMLTextAreaElement;
     fireEvent.input(box, { target: { value: 'Worst case: one odd sock of each colour.' } });
     expect(loadWriteUp('comb.pigeonhole', 'a5-q4-iii-show')).toBe('Worst case: one odd sock of each colour.');

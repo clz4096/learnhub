@@ -52,6 +52,23 @@ const AS = 'alg.arithmetic-series';
 const NQ = 'logic.nested-quantifiers';
 const GS = 'alg.geometric-series';
 const BI = 'comb.binomial-identities';
+// Batch 3
+const TW = 'pre.two-way-tables';
+const BT = 'comb.binomial-theorem';
+const EQ = 'logic.equivalences';
+const PC = 'proof.cases';
+const NG = 'logic.negating-quantifiers';
+const CE = 'proof.counterexample';
+const CD = 'proof.contradiction';
+const RA = 'comb.repeated-arrangements';
+const IN = 'alg.proof-by-induction';
+const CP = 'prob.counting-probability';
+const CN = 'proof.contrapositive';
+const IE = 'prob.independent-events';
+const IX = 'prob.inclusion-exclusion-three';
+const QP = 'proof.quantifier-patterns';
+const CL = 'prob.classical-probability';
+const EU = 'proof.infinitely-many-primes';
 
 export const GLOSSARY: readonly GlossaryEntry[] = [
   g(F, 'fraction', 'Fraction', t`A number of equal parts of a whole, written top over bottom.`, t`${frac(3, 4)} is three of four equal parts.`),
@@ -163,6 +180,31 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   g(BI, 'pascals-triangle', "Pascal's triangle", t`The binomial coefficients in rows: row ${mn} holds ${math`\binom{n}{${0}}, \ldots, \binom{n}{n}`}. Each entry is the sum of the two above it.`, t`Row ${4} is ${listOf([1, 4, 6, 4, 1])}.`, ['Pascal']),
   g(BI, 'pascals-rule', "Pascal's rule", t`${math`\binom{n + ${1}}{k} = \binom{n}{k} + \binom{n}{k - ${1}}`}: a subset of ${math`n + ${1}`} things either contains a fixed thing or not.`, t`${math`\binom{${5}}{${2}} = \binom{${4}}{${2}} + \binom{${4}}{${1}} = ${6} + ${4} = ${10}`}.`, ['Pascal identity']),
   g(EV, 'partition', 'Partition', t`A split of a set into nonempty blocks that do not overlap and together make up the whole set.`, t`${setOf([1, 2])}, ${setOf([3])}, ${setOf([4, 5])} is a partition of ${setOf([1, 2, 3, 4, 5])}.`, ['blocks']),
+  g(TW, 'two-way-table', 'Two-way table', t`A table that counts a population split two ways at once: one way along the rows, the other along the columns, often with totals.`, t`Rows for juniors and seniors, columns for walks and does not walk.`, ['contingency table', 'table of counts']),
+  g(TW, 'conditional-probability', 'Conditional probability', t`${math`P(A \mid B)`}, the probability of ${mA} given that ${mB} happened: restrict to the outcomes in ${mB}, and find the share of them in ${mA}.`, t`If ${12} of ${30} walkers are juniors, ${math`P(\text{junior} \mid \text{walks}) = ${q(12, 30)}`}.`, ['given that', 'P(A|B)']),
+  g(BT, 'binomial-theorem', 'Binomial theorem', t`${math`(x + y)^{n} = \sum_{k=${0}}^{n} \binom{n}{k} x^{n - k} y^{k}`} for every natural number ${mn}: the term with ${math`y^{k}`} appears once for each way to choose which ${math`k`} brackets give ${math`y`}.`, t`${math`(x + y)^{${3}} = x^{${3}} + ${3}x^{${2}}y + ${3}xy^{${2}} + y^{${3}}`}.`, ['binomial expansion theorem']),
+  g(BT, 'binomial-expansion', 'Binomial expansion', t`A power of a sum, such as ${math`(a + b)^{n}`}, multiplied out term by term with the binomial coefficients.`, t`${math`(x + ${2})^{${2}} = x^{${2}} + ${4}x + ${4}`}.`, ['expansion']),
+  g(EQ, 'logically-equivalent', 'Logically equivalent', t`Two statements are logically equivalent when they have the same truth value in every row of the truth table, whatever the truth values of their letters.`, t`${math`P \Rightarrow Q`} and ${math`\lnot P \lor Q`} are logically equivalent.`, ['equivalent', 'logical equivalence', '≡']),
+  g(EQ, 'de-morgans-laws', "De Morgan's laws", t`${math`\lnot (P \land Q)`} is equivalent to ${math`\lnot P \lor \lnot Q`}, and ${math`\lnot (P \lor Q)`} to ${math`\lnot P \land \lnot Q`}: to negate, negate each part and swap "and" with "or".`, t`The negation of "${mx} is even and ${mx} is prime" is "${mx} is odd or ${mx} is not prime".`, ['De Morgan']),
+  g(EQ, 'contrapositive', 'Contrapositive', t`The contrapositive of ${math`P \Rightarrow Q`} is ${math`\lnot Q \Rightarrow \lnot P`}. It is logically equivalent to the original; the converse is not.`, t`The contrapositive of "if ${math`x = ${2}`} then ${math`x^{${2}} = ${4}`}" is "if ${math`x^{${2}} \ne ${4}`} then ${math`x \ne ${2}`}".`),
+  g(PC, 'exhaustive-cases', 'Exhaustive cases', t`Cases are exhaustive when at least one of them holds in every situation, so proving the goal in each case proves it always.`, t`${mn} even and ${mn} odd are exhaustive cases for an integer ${mn}; so are the remainders ${listOf([0, 1, 2])} on division by ${3}.`, ['cover every case', 'exhaustion']),
+  g(PC, 'without-loss-of-generality', 'Without loss of generality', t`A phrase that treats one of several cases that are the same up to renaming, and leaves the others to the reader.`, t`For "opposite parity means an odd sum": without loss of generality ${math`m`} is even and ${mn} is odd.`, ['WLOG']),
+  g(NG, 'negation-of-quantifier', 'Negating a quantifier', t`${math`\lnot \forall x.\ P(x)`} is ${math`\exists x.\ \lnot P(x)`}, and ${math`\lnot \exists x.\ P(x)`} is ${math`\forall x.\ \lnot P(x)`}: each quantifier swaps as the "not" moves in.`, t`The negation of "every real number has a cube root" is "some real number has no cube root".`, ['negation', 'negate', 'not for all']),
+  g(CE, 'disproof', 'Disproof', t`Showing that a statement is false. For a claim about every case, one counterexample is a disproof; for "if A then B" it must make A true and B false.`, t`${2} disproves "every prime is odd".`, ['disprove', 'prove or disprove']),
+  g(CD, 'proof-by-contradiction', 'Proof by contradiction', t`A proof of ${mP} that assumes ${mP} is false and deduces something impossible, so ${mP} must be true.`, t`Assume ${math`\sqrt{${2}} = \frac{a}{b}`} in lowest terms; then ${math`a`} and ${math`b`} are both even, which is impossible.`, ['contradiction proof', 'reductio ad absurdum', 'indirect proof']),
+  g(CD, 'contradiction', 'Contradiction', t`A statement that cannot be true, such as "${mQ} and not ${mQ}": reaching one shows an assumption was false.`, t`"${math`a`} and ${math`b`} are not both even, and both are even."`, ['absurd']),
+  g(RA, 'repeated-letter', 'Arrangements with repeats', t`${mn} objects with ${math`r_{${1}}, r_{${2}}, \ldots`} identical copies of each kind have ${math`\frac{n!}{r_{${1}}! \, r_{${2}}! \cdots}`} distinct arrangements: each distinct one appears once per order of the copies.`, t`ANNA has ${math`\frac{${4}!}{${2}! \times ${2}!} = ${factorial(4) / 4}`} arrangements.`, ['repeated objects', 'permutations with repetition', 'multinomial']),
+  g(IN, 'induction', 'Proof by induction', t`To prove ${math`P(m)`} for every natural number ${math`m`}: prove ${math`P(${0})`} (or ${math`P(\ell)`} for a later basis), and prove that ${math`P(n)`} implies ${math`P(n + ${1})`} for every ${mn}.`, t`${math`${1} + ${3} + \cdots + (${2}n - ${1}) = n^{${2}}`}: true for ${math`n = ${1}`}, and adding ${math`${2}k + ${1}`} to ${math`k^{${2}}`} gives ${math`(k + ${1})^{${2}}`}.`, ['mathematical induction', 'principle of induction']),
+  g(IN, 'base-case', 'Base case', t`The first value an induction proves directly, ${math`P(${0})`} or ${math`P(\ell)`}. Without it a valid inductive step proves nothing.`, t`For ${math`${2}^{n} > n^{${2}}`} when ${math`n \ge ${5}`}, the base case is ${math`${2 ** 5} > ${5 ** 2}`}.`, ['basis']),
+  g(IN, 'induction-hypothesis', 'Induction hypothesis', t`The assumption ${math`P(k)`} in the inductive step, used to prove ${math`P(k + ${1})`}.`, t`Assume ${math`${1} + \cdots + k = \frac{k(k + ${1})}{${2}}`}; add ${math`k + ${1}`} to get the formula for ${math`k + ${1}`}.`, ['inductive hypothesis', 'IH', 'inductive step']),
+  g(CP, 'favourable-outcome', 'Favourable outcome', t`An outcome in the event you want. With equally likely outcomes, the probability is the number of favourable outcomes over the number of all outcomes.`, t`Picking ${2} of ${5} balls numbered ${1} to ${5}, the favourable outcomes for "the largest is ${4}" are the ${3} pairs that contain ${4} and a smaller ball, out of ${10}.`, ['favourable', 'counting outcomes']),
+  g(CN, 'proof-by-contrapositive', 'Proof by contrapositive', t`A proof of "if ${mP} then ${mQ}" that assumes not ${mQ} and deduces not ${mP}: it proves the contrapositive, which is equivalent.`, t`To show "if ${math`n^{${2}}`} is even then ${mn} is even", show "if ${mn} is odd then ${math`n^{${2}}`} is odd".`, ['contrapositive proof', 'contraposition']),
+  g(IE, 'independent-events', 'Independent events', t`${mA} and ${mB} are independent when ${math`P(A \cap B) = P(A)P(B)`}: knowing one happened does not change the chance of the other.`, t`For two fair dice, "the first is even" and "the total is seven" are independent: ${math`${q(1, 12)} = ${q(1, 2)} \times ${q(1, 6)}`}.`, ['independent', 'independence']),
+  g(IX, 'inclusion-exclusion', 'Inclusion-exclusion', t`The size or probability of a union, found by adding the single events, subtracting the pairwise overlaps, adding the triple overlaps, and so on with alternating signs.`, t`${math`P(A \cup B \cup C) = \sum P(A) - \sum P(A \cap B) + P(A \cap B \cap C)`}.`, ['inclusion exclusion', 'principle of inclusion and exclusion', 'PIE']),
+  g(QP, 'arbitrary-element', 'Arbitrary element', t`An element about which a proof assumes nothing except where it comes from, so whatever is proved for it holds for every element. How a "for all" statement is proved.`, t`"Let ${mn} be an arbitrary integer. Then ${math`n^{${2}} + n = n(n + ${1})`} is a product of consecutive integers, so it is even."`, ['arbitrary', 'let x be']),
+  g(QP, 'unique-existence', 'Unique existence', t`${math`\exists!\, x.\ P(x)`}: exactly one ${mx} has the property. A proof shows existence (a witness) and uniqueness (any two that work are equal).`, t`For each real ${math`x \ne ${2}`} there is exactly one ${math`y`} with ${math`\frac{${2}y}{y + ${1}} = x`}, namely ${math`y = \frac{x}{${2} - x}`}.`, ['unique', 'exactly one', '∃!']),
+  g(CL, 'sample-space-classical', 'Classical probability', t`A model with a finite sample space ${math`\Omega`} of equally likely outcomes, where an event is a subset ${math`A`} and ${math`P(A) = |A| / |\Omega|`}.`, t`For two fair dice, ${math`\Omega`} is the ${36} ordered pairs, and "a double" is a subset of ${6}, so its probability is ${q(6, 36)}.`, ['equally likely outcomes', 'finite sample space']),
+  g(EU, 'euclids-theorem', "Euclid's theorem", t`There are infinitely many primes: for any finite list of primes, their product plus one has a prime factor that is not in the list.`, t`From ${listOf([2, 3, 5])}: ${math`${2} \times ${3} \times ${5} + ${1} = ${31}`}, a new prime.`, ['infinitely many primes', 'infinitude of primes']),
 ];
 
 export function glossaryEntry(id: string): GlossaryEntry | undefined {

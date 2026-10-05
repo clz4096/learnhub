@@ -8,7 +8,6 @@
  * here.
  */
 import { useRef, useState } from 'preact/hooks';
-import { plain } from '@learnhub/content';
 import { DAY_MS, SUPERVISION_MARK_MAX, SUPERVISION_PASS_MARK, type Progress } from '@learnhub/mastery';
 import { titleOf } from '@/model/courses';
 import {
@@ -16,12 +15,11 @@ import {
 } from '@/model/learner';
 import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
-import { buildPacket, checkResultFor, findProblem, newNonce, parseResult, type CheckedAnswer } from '@/model/supervision';
+import { buildPacket, catalogTitle, checkResultFor, newNonce, parseResult, type CheckedAnswer } from '@/model/supervision';
 
 /** A problem's title as plain text, or its key when it is no longer in the app. */
 export function problemTitle(key: string): string {
-  const f = findProblem(key);
-  return f === undefined ? key : plain(f.problem.title);
+  return catalogTitle(key) ?? key;
 }
 
 /**

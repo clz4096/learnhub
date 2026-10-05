@@ -220,7 +220,8 @@ describe('a learner with a course', () => {
     render(<App />);
     click('Learn it now');
     expect(location.hash).toBe('#/learn/pre.indices');
-    click('Next: worked examples');
+    // The lesson downloads its content first; the second time it is already here.
+    fireEvent.click(await screen.findByRole('button', { name: 'Next: worked examples' }));
     click('Back to the map');
     expect(location.hash).toBe('#/map/pre.indices');
     click('Learn it now');

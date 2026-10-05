@@ -541,3 +541,55 @@ Each topic also has three or four variant generators (1,000 seeds each, a refere
 - Two app tests named `comb.combinations` and `logic.implication` as topics without content; they now use `comb.permutations` and `prob.addition-rule`, which this map gives no sources. The navigation test matched "placement" inside the new glossary term "without replacement"; it now matches whole words.
 
 **Still unbuilt (46 mapped topics), in schedule order:** `pre.two-way-tables`, `comb.binomial-theorem`, `logic.equivalences`, `proof.cases`, `logic.negating-quantifiers`, `proof.counterexample`, `proof.contradiction`, `comb.repeated-arrangements`, `alg.proof-by-induction`, `prob.counting-probability`, `proof.contrapositive`, `prob.independent-events`, `prob.inclusion-exclusion-three`, `proof.quantifier-patterns`, `prob.classical-probability`, `proof.infinitely-many-primes`, `comb.binomial-theorem-proof`, `proof.strong-induction`, `num.divisibility`, `prob.conditional-formula`, `num.division-theorem`, `prob.binomial-distribution`, `num.congruence`, `num.gcd`, `num.modular-arithmetic`, `num.euclid-algorithm`, `prob.sampling-models`, `num.modular-integers`, `num.modular-exponentiation`, `num.extended-euclid`, `num.euclid-theorem`, `num.diffie-hellman`, `prob.stirling-formula`, `num.modular-inverse`, `prob.axioms`, `num.fundamental-theorem`, `prob.axiom-consequences`, `num.prime-binomial`, `num.fermat-little`, `prob.inclusion-exclusion`, `prob.continuity`, `prob.conditional-probability`, `prob.subadditivity`, `prob.total-probability`, `prob.independence`, `prob.bayes-formula`.
+
+## Build step 5, batch 3 (2026-10-05)
+
+The next sixteen topics the map cites sources for, in the engine's schedule order, built and checked as in batch 2; and lessons now load on demand. The content and its checks are the record; this section summarises them.
+
+**Lessons load on demand.** With content in it, the course app's bundle had grown to 1,009 kB (308 kB gzipped), one file. Each topic module is now a dynamic import (`content/src/load.ts`), so a bundler makes one chunk per topic and the app downloads a lesson the first time it opens. The lesson page shows its title and a loading line meanwhile, and an error with Try again if the download fails. Chrome remembers a failed module download and refuses every later import of the same URL, so Try again imports the chunk again under a new URL taken from the error (checked in a headless browser: offline, the error shows; back online, Try again loads the lesson). What the app needs about every topic at once (which topics have lessons, for the planner, the map, and Today; the titles of Cambridge problems, for supervision) comes from a generated catalog (`content/src/catalog.generated.ts`), which a content check regenerates and compares, so it cannot drift. The glossary was never per topic and stays in the main bundle. Today downloads the topics of the day's plan in the background, so a session started online carries on offline; the browser's cache keeps chunks after the first load (no service worker). The full list of topics (`@learnhub/content/all`) is for tests and checks; a test fails if app code imports it.
+
+| build | main bundle | per-topic chunks |
+|---|---|---|
+| before, 29 topics | 1,009.45 kB (307.56 kB gzipped), every lesson in it | none |
+| split, same 29 topics | 574.21 kB (176.36 kB gzipped) | 8.99 to 24.80 kB each (3.5 to 8.4 kB gzipped) |
+| split, 45 topics | 594.98 kB (182.48 kB gzipped) | 8.99 to 24.80 kB each, plus a shared 0.87 kB logic helper |
+
+The main bundle grows only by the catalog and glossary entries of new topics. It is still above Vite's 500 kB warning, mostly KaTeX and its fonts' CSS, which every page needs; splitting it is a separate decision.
+
+**Order.** As in batch 2, the topics are the scheduled ones that cite a document of this batch and had no lesson; the content check now follows the schedule for 120 lessons and fails if `TOPIC_CONTENT` drifts from it.
+
+| order | topic | lesson and problems from | worked Cambridge | auto-checked | supervision |
+|---|---|---|---|---|---|
+| 1 | `pre.two-way-tables` | STEP Support A6 Q4(i), the population of 100 and the area diagram | 1 | 2 | 1 |
+| 2 | `comb.binomial-theorem` | CST notes printed pages 122 to 126 (Theorem 30, Corollaries 31 to 33) | 1 | 3 | 2 |
+| 3 | `logic.equivalences` | Book of Proof 2.6 and its exercises 1, 3, 5, 7, 10 to 12; TMUA pages 21 to 23, 31, 32, 48, Exercises F, K; CST notes printed page 134 | 1 | 9 | 3 |
+| 4 | `proof.cases` | CST notes printed pages 104 to 115; Book of Proof 4.4, 4.5, Chapter 4 exercises 14 to 16; STEP Support A6 Q3; sheet 1.2.8, 2.2.3, 2.3.1, 3.2.7 | 1 | 6 | 5 |
+| 5 | `logic.negating-quantifiers` | TMUA pages 61 to 63; Book of Proof 2.10 and its exercises 3, 5, 7, 11, 12; sheet 1.1.5 | 1 | 5 | 3 |
+| 6 | `proof.counterexample` | TMUA page 70, Exercise P; sheet 1.1.1, 1.2.5, 1.2.9, 2.2.1 | 1 | 9 | 2 |
+| 7 | `proof.contradiction` | CST notes printed pages 133 to 147 (Theorem 38); TMUA pages 67, 68, Exercise O; Book of Proof Chapter 6, exercises 5, 7, 10, 11; sheet 2.3.2 | 2 | 4 | 5 |
+| 8 | `comb.repeated-arrangements` | STEP Support A6 Q2 and Q5 | 1 | 4 | 2 |
+| 9 | `alg.proof-by-induction` | CST notes printed pages 265 to 290; Book of Proof Chapter 10, exercises 9, 13; sheet 4.1.1, 4.1.2, 4.2.2, 4.2.3(g); IA Sheet 1 Q10 | 1 | 6 | 5 |
+| 10 | `prob.counting-probability` | STEP Support A12 Q2(ii), Q3 and its Discussion | 1 | 3 | 2 |
+| 11 | `proof.contrapositive` | CST notes printed pages 136 to 149; TMUA page 69, Exercise K; Book of Proof Chapter 5, exercises 1, 7, 9, 25; sheet 1.1.2, 1.1.8 | 1 | 6 | 4 |
+| 12 | `prob.independent-events` | STEP Support A12 Q2(iv); A19 Q4(ii) | 1 | 3 | 2 |
+| 13 | `prob.inclusion-exclusion-three` | IA Sheet 1 Q5 | 1 | 2 | 2 |
+| 14 | `proof.quantifier-patterns` | CST notes printed pages 63 to 103; sheet 1.1.4, 1.1.7; Book of Proof Chapter 4, exercise 26, Chapter 7, exercises 12, 17, 20 | 1 | 5 | 3 |
+| 15 | `prob.classical-probability` | IA Sheet 1 Q2, Q3, Q11 | 1 | 4 | 2 |
+| 16 | `proof.infinitely-many-primes` | CST notes printed pages 306 to 308 (Theorem 100, the Theorem of the Day sheet); Book of Proof 6.1 | 2 | 1 | 2 |
+
+In all: 18 worked Cambridge problems (two are cited proofs, Theorems 38 and 100), 72 auto-checked Cambridge problems, and 45 for supervision. Each topic has three variant generators (1,000 seeds each, a reference solver, at least two misconceptions); 12 of the 48 have a Monte Carlo experiment.
+
+**Answers checked against official ones.** Every auto-checked answer is verified by code: brute force over every case (numbers up to 500, every queue, every throw, every pair of places in the draw), exact arithmetic, a second method (dealing a deck card by card; choosing places for each letter; a formula against its truth table), or, for statements in words, every finite model. Where an official answer exists it is recorded as printed and compared: the STEP Support hints to A6, A12, and A19; Book of Proof's solutions to odd exercises (2.6, 2.10, Chapters 5, 6, 7, 10); the CST 2023-24 solutions to Exercises 1 to 4; the CST notes' own statements (Lemma 26, Corollary 32, the Theorem of the Day remark); and the TMUA notes' worked examples (pages 48, 62, 69, 70). That is 51 comparisons. **No computed answer disagrees with an official one.** No official answers exist for IA Sheet 1 (Q2, Q3, Q5, Q10, Q11), the TMUA exercises, or the adapted variants; those rest on the code checks alone.
+
+**Source notes found while building.**
+
+- STEP Support A6 hints, Q2(iii) and (v), give the answers as factorial expressions (6!/(2! × 2!) and so on); they are compared as their values, 180, 90, 4989600, and 34650.
+- STEP Support A12 Q3(ii) and (iii) give the answers to show. The auto-checked versions ask for them without (adapted), and the "show" stays a supervision problem; the hints agree with both. The Discussion's general formula, (m + 1 - n)/(m + 1), is checked by listing every queue for all n ≤ m ≤ 9.
+- STEP Support A19 hints print only the expected gain, (125 - 75 - 30 - 3)/216; the probabilities of no sixes and two sixes are read from its terms, (5/6)^3 and 3 × (1/6)^2 × (5/6).
+- IA Sheet 1 Q2 does not say the players are equally good. The answers in the map assume every match is won with probability 1/2, and the problems state it.
+- IA Sheet 1 Q3's Stirling part belongs to `prob.stirling-formula`; only the exact probability, 0.2181 to four places, is set here.
+- TMUA Exercise P 2(f) depends on whether the divisor k may be negative (then -1 divides everything and there is no counterexample) or must be positive (then x = 1 is one). It is set for supervision with that question.
+- The CST notes' Theorem of the Day sheet (printed page 308) argues that q is "therefore prime by definition" inside the contradiction, then shows in remark 2 that 2 × 3 × 5 × 7 × 11 × 13 + 1 = 59 × 509 is not. There is no error, but it is easy to misread; a supervision problem asks the learner to explain it.
+- `proof.cases` and `comb.repeated-arrangements` both use A6 Q3; the first five-digit problem (sum 43) is the worked example of proof by cases, and its count uses arrangements with repeats taught in the next topic but one. The lesson explains the count by choosing places, which needs only combinations.
+
+**Still unbuilt (30 mapped topics), in schedule order:** `comb.binomial-theorem-proof`, `proof.strong-induction`, `num.divisibility`, `prob.conditional-formula`, `num.division-theorem`, `prob.binomial-distribution`, `num.congruence`, `num.gcd`, `num.modular-arithmetic`, `num.euclid-algorithm`, `prob.sampling-models`, `num.modular-integers`, `num.modular-exponentiation`, `num.extended-euclid`, `num.euclid-theorem`, `num.diffie-hellman`, `prob.stirling-formula`, `num.modular-inverse`, `prob.axioms`, `num.fundamental-theorem`, `prob.axiom-consequences`, `num.prime-binomial`, `num.fermat-little`, `prob.inclusion-exclusion`, `prob.continuity`, `prob.conditional-probability`, `prob.subadditivity`, `prob.total-probability`, `prob.independence`, `prob.bayes-formula`.

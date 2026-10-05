@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/preact';
-import { TOPIC_CONTENT, contentFor, readAnswer, type Instance } from '@learnhub/content';
+import { readAnswer, type Instance } from '@learnhub/content';
+import { TOPIC_CONTENT, contentFor } from '@learnhub/content/all';
 import { ENTER_GUARD_MS, ProblemCard, type CardMode } from '@/ui/ProblemCard';
 
 afterEach(() => {

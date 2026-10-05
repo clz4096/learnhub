@@ -7,9 +7,10 @@
  * The stage and the practice run are kept for the tab (`lessonState`), so leaving a
  * lesson and coming back resumes it where it was.
  */
+import type { ComponentChildren } from 'preact';
 import { useRef, useState } from 'preact/hooks';
 import {
-  citationText, contentFor, type Block, type CambridgeProblem, type MasteryRule, type SupervisionProblem, type TopicContent, type WorkedExample,
+  citationText, hasContent, type Block, type CambridgeProblem, type MasteryRule, type SupervisionProblem, type TopicContent, type WorkedExample,
 } from '@learnhub/content';
 import { LEVEL_NAMES, sourceLinks, titleOf, topicOf } from '@/model/courses';
 import { completeRedoByCheck, waitingCopies } from '@/model/learner';
@@ -23,6 +24,7 @@ import type { Route } from '@/model/route';
 import { BackLink } from '@/ui/BackLink';
 import { Rich } from '@/ui/Rich';
 import { TexText } from '@/ui/Tex';
+import { ContentGate, ContentStatus, useTopicContent } from '@/ui/ContentGate';
 
 export interface LessonEnd {
   passed: boolean;
@@ -302,44 +304,37 @@ function CambridgeProblems({ c, onNext }: { c: TopicContent; onNext: () => void 
   );
 }
 
-/** The lesson for a topic. `salt` makes practice problems differ between sessions. */
-export function LessonRunner({ topicId, salt, onEnd, onSkip, back }: {
+interface LessonProps {
   topicId: string;
   salt: string;
   onEnd: (e: LessonEnd) => void;
   onSkip: () => void;
   /** Where Back goes, shown above the lesson. Leaving keeps the lesson's place. */
   back?: { to: Route; label: string };
-}) {
-  const t = topicOf(topicId);
-  const c = contentFor(topicId);
-  const placeKey = `${salt}.${topicId}`;
-  const [saved] = useState(() => loadPlace(placeKey));
-  const [stage, setStageState] = useState<LessonStage>(saved?.stage ?? 'learn');
-  const [practice, setPractice] = useState<PracticeState>(saved?.practice ?? freshPractice());
-  if (t === undefined) return <p class="page">Unknown topic {topicId}.</p>;
-  const setStage = (st: LessonStage): void => {
-    setStageState(st);
-    savePlace(placeKey, { stage: st, practice });
-  };
-  const end = (e: LessonEnd): void => {
-    clearPlace(placeKey);
-    onEnd(e);
-  };
+}
 
-  const head = (
+/**
+ * The lesson for a topic. `salt` makes practice problems differ between sessions. The
+ * lesson's content downloads on first use; its title and the way back show meanwhile.
+ */
+export function LessonRunner(props: LessonProps) {
+  const { topicId, onSkip, back } = props;
+  const t = topicOf(topicId);
+  const { state, retry } = useTopicContent(topicId);
+  if (t === undefined) return <p class="page">Unknown topic {topicId}.</p>;
+  const head = (c: TopicContent | null) => (
     <header class="lesson-head">
       {back !== undefined && <BackLink to={back.to} label={back.label} />}
       <p class="small muted">{LEVEL_NAMES[t.level]} lesson, about {t.estMinutes} minutes</p>
       <h1>{t.title}</h1>
-      {c !== undefined && <Rich as="p" class="goal" text={c.goal} />}
+      {c !== null && <Rich as="p" class="goal" text={c.goal} />}
     </header>
   );
 
-  if (c === undefined) {
+  if (!hasContent(topicId)) {
     return (
       <section class="page lesson">
-        {head}
+        {head(null)}
         <p><TexText text={t.summary} /></p>
         <div class="not-written">
           <p class="badge badge-unwritten">Lesson not written yet</p>
@@ -353,9 +348,34 @@ export function LessonRunner({ topicId, salt, onEnd, onSkip, back }: {
     );
   }
 
+  if (state.kind !== 'ready') {
+    return (
+      <section class="page lesson" aria-label={t.title}>
+        {head(null)}
+        <ContentStatus state={state} retry={retry} what="lesson" />
+      </section>
+    );
+  }
+  return <LessonBody {...props} c={state.content} head={head(state.content)} title={t.title} />;
+}
+
+function LessonBody({ salt, onEnd, c, head, title }: LessonProps & { c: TopicContent; head: ComponentChildren; title: string }) {
+  const placeKey = `${salt}.${c.topicId}`;
+  const [saved] = useState(() => loadPlace(placeKey));
+  const [stage, setStageState] = useState<LessonStage>(saved?.stage ?? 'learn');
+  const [practice, setPractice] = useState<PracticeState>(saved?.practice ?? freshPractice());
+  const setStage = (st: LessonStage): void => {
+    setStageState(st);
+    savePlace(placeKey, { stage: st, practice });
+  };
+  const end = (e: LessonEnd): void => {
+    clearPlace(placeKey);
+    onEnd(e);
+  };
+
   const stages = [['learn', 'Learn'], ['examples', 'Examples'], ['cambridge', 'Cambridge problems'], ['practice', 'Practice']] as const;
   return (
-    <section class="page lesson" aria-label={t.title}>
+    <section class="page lesson" aria-label={title}>
       {head}
       <nav class="stages" aria-label="Lesson parts">
         {stages.map(([id, label], i) => (
@@ -396,18 +416,26 @@ export function LessonRunner({ topicId, salt, onEnd, onSkip, back }: {
 
 /** One Cambridge problem on its own page: where a redo on Today opens. */
 export function ProblemView({ topicId, problemId }: { topicId: string; problemId: string }) {
-  const c = contentFor(topicId);
-  const p = c?.cambridge.find((x) => x.id === problemId);
+  const gone = <p>That problem is not in this app any more.</p>;
   return (
     <section class="page problem-page" aria-label="Cambridge problem">
       <BackLink to={{ view: 'today' }} label="Back to today" />
-      {c === undefined || p === undefined
-        ? <p>That problem is not in this app any more.</p>
+      {!hasContent(topicId)
+        ? gone
         : (
-          <>
-            <p class="small muted">{titleOf(topicId)}</p>
-            <CambridgeItem c={c} p={p} n={c.cambridge.indexOf(p) + 1} />
-          </>
+          <ContentGate topicId={topicId} what="problem">
+            {(c) => {
+              const p = c.cambridge.find((x) => x.id === problemId);
+              return p === undefined
+                ? gone
+                : (
+                  <>
+                    <p class="small muted">{titleOf(topicId)}</p>
+                    <CambridgeItem c={c} p={p} n={c.cambridge.indexOf(p) + 1} />
+                  </>
+                );
+            }}
+          </ContentGate>
         )}
     </section>
   );

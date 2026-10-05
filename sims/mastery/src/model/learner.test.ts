@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contentFor } from '@learnhub/content';
+import { contentFor } from '@learnhub/content/all';
 import { DAY_MS, ancestors, importProgress, exportProgress, placedMemory, type Progress } from '@learnhub/mastery';
 import { ALL_TOPICS, closureOf, closureTopics } from '@/model/courses';
 import {

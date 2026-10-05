@@ -15,6 +15,8 @@ import { commit, flush, init, progress, setClock } from '@/model/store';
 import { PACKET_HEADER, formatResult } from '@/model/supervision';
 import { LessonRunner, ProblemView } from '@/ui/views/Lesson';
 import { Today } from '@/ui/views/Today';
+import { CONTENT_IDS } from '@learnhub/content';
+import { contentStore } from '@/model/content';
 
 const T0 = new Date(2026, 9, 5, 9, 0).getTime();
 const PROOF = 'prob.event-spaces/q4-a-finite';
@@ -39,6 +41,9 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
+
+// Downloaded up front, so a lesson renders at once; the download itself is tested in ContentGate.test.tsx.
+await Promise.all(CONTENT_IDS.map((id) => contentStore.load(id)));
 
 function openCambridge(topicId: string): void {
   render(<LessonRunner topicId={topicId} salt="test" onEnd={() => undefined} onSkip={() => undefined} />);

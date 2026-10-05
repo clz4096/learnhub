@@ -6,6 +6,7 @@
  */
 import { useEffect } from 'preact/hooks';
 import type { SessionTask } from '@learnhub/mastery';
+import { prefetchContent } from '@/model/content';
 import { shortName, titleOf } from '@/model/courses';
 import { ensureSession, localDay, planMore, replanToday, sessionTime } from '@/model/learner';
 import { go } from '@/model/route';
@@ -32,6 +33,10 @@ export function Today() {
   useEffect(() => {
     if (p !== null && (p.session === null || p.session.day !== today)) void commit(ensureSession(p, now()));
   }, [p === null, p?.session?.day, today]);
+  // Download today's lessons in the background, so a session started online carries on offline.
+  const planned = p?.session?.tasks.filter((t) => !t.done).flatMap((t) => t.topicIds) ?? [];
+  const redoTopics = p?.redos.filter((d) => d.doneAt === null).map((d) => d.problem.slice(0, d.problem.indexOf('/'))) ?? [];
+  useEffect(() => prefetchContent([...planned, ...redoTopics]), [[...planned, ...redoTopics].join()]);
 
   if (p === null || p.session === null || p.session.day !== today) return <p class="page">Planning today.</p>;
   const s = p.session;

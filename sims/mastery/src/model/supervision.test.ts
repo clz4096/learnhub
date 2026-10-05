@@ -5,7 +5,8 @@
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { TOPIC_CONTENT, t, math } from '@learnhub/content';
+import { CONTENT_IDS, plain, t, math } from '@learnhub/content';
+import { TOPIC_CONTENT } from '@learnhub/content/all';
 import {
   DAY_MS, NONCE_RE, PROBLEM_KEY_RE, SUPERVISION_PASS_MARK, exportProgress, importProgress, newMemory, type Progress,
 } from '@learnhub/mastery';
@@ -15,8 +16,12 @@ import {
 } from '@/model/learner';
 import {
   PACKET_END, PACKET_HEADER, RESULT_END, RESULT_HEADER, buildPacket, checkResultFor, findProblem, formatResult, newNonce, parseResult,
-  problemKey, resultTemplate, richToText, type ParsedResult,
+  catalogTitle, problemExists, problemKey, resultTemplate, richToText, type ParsedResult,
 } from '@/model/supervision';
+import { contentStore } from '@/model/content';
+
+// A packet is built from a topic's content, which the app downloads when the lesson opens: download every topic first.
+await Promise.all(CONTENT_IDS.map((id) => contentStore.load(id)));
 
 const T0 = new Date(2026, 9, 5, 9, 0).getTime();
 const PROOF = 'prob.event-spaces/q4-a-finite';
@@ -60,12 +65,17 @@ describe('problem ids', () => {
         const key = problemKey(c.topicId, p.id);
         expect(PROBLEM_KEY_RE.test(key), key).toBe(true);
         expect(findProblem(key)?.problem).toBe(p);
+        expect(problemExists(key), key).toBe(true);
+        expect(catalogTitle(key)).toBe(plain(p.title));
         n++;
       }
     }
     expect(n).toBeGreaterThan(20);
     expect(findProblem('prob.event-spaces/nope')).toBeUndefined();
     expect(findProblem('not a key')).toBeUndefined();
+    expect(problemExists('prob.event-spaces/nope')).toBe(false);
+    expect(problemExists('num.gcd/q1')).toBe(false);
+    expect(catalogTitle('not a key')).toBeUndefined();
   });
 
   it('nonces use the unambiguous alphabet', () => {

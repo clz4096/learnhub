@@ -17,7 +17,8 @@ import { computedMath, dmath, exprTex, ident, markedTerms, math, plain, setOf, t
 import { TOPIC_CONTENT } from './topics';
 import type { Block, TopicContent } from './topic';
 import { CITED_DOCS, citationText, type Citation } from './cambridge';
-import { contentFor } from './index';
+import { contentFor } from './all';
+import { CONTENT_IDS, TOPIC_LOADERS, catalogProblem, hasContent, loadTopicContent } from './index';
 
 const SEEDS = 1000;
 const DIGIT = /[0-9]/;
@@ -88,11 +89,13 @@ function checkRich(r: Rich, where: string): void {
   checkTex(r, where);
 }
 
-/** The first ten topics the engine schedules (gate 3), then the new topics of Cambridge batch 1, then batch 2. */
+/** The first ten topics the engine schedules (gate 3), then the new topics of Cambridge batch 1, then batches 2 and 3. */
 const FIRST_TEN = 10;
 const BATCH_1_NEW = ['comb.pigeonhole', 'prob.bayes-two-events', 'prob.event-spaces'];
 /** The topics the batch 1 map cites sources for, in the order the engine schedules them. */
 const BATCH_2 = ['pre.sample-spaces', 'logic.implication', 'pre.prime-factorisation', 'pre.tree-diagrams', 'pre.algebraic-argument', 'num.number-systems', 'alg.sigma-notation', 'comb.combinations', 'sets.countable-unions', 'logic.iff', 'logic.quantifiers', 'proof.direct', 'alg.arithmetic-series', 'logic.nested-quantifiers', 'alg.geometric-series', 'comb.binomial-identities'];
+/** Batch 3: the next topics the batch 1 map cites sources for, in the same order. */
+const BATCH_3 = ['pre.two-way-tables', 'comb.binomial-theorem', 'logic.equivalences', 'proof.cases', 'logic.negating-quantifiers', 'proof.counterexample', 'proof.contradiction', 'comb.repeated-arrangements', 'alg.proof-by-induction', 'prob.counting-probability', 'proof.contrapositive', 'prob.independent-events', 'prob.inclusion-exclusion-three', 'proof.quantifier-patterns', 'prob.classical-probability', 'proof.infinitely-many-primes'];
 
 /** Source ids of the batch, from the committed batch file; the manifest too when the local source cache exists. */
 const batchIds = new Set((JSON.parse(readFileSync(new URL('../../scripts/sources/batch-1.json', import.meta.url), 'utf8')) as { sources: { id: string }[] }).sources.map((x) => x.id));
@@ -111,18 +114,18 @@ function checkCitation(cit: Citation, where: string): void {
 }
 
 describe('content topics', () => {
-  it('are the first ten topics, the new topics of Cambridge batch 1, and batch 2, each in the graph, each once', () => {
+  it('are the first ten topics, the new topics of Cambridge batch 1, and batches 2 and 3, each in the graph, each once', () => {
     const ids = TOPIC_CONTENT.map((c) => c.topicId);
-    expect(ids).toHaveLength(FIRST_TEN + BATCH_1_NEW.length + BATCH_2.length);
+    expect(ids).toHaveLength(FIRST_TEN + BATCH_1_NEW.length + BATCH_2.length + BATCH_3.length);
     expect(ids.slice(FIRST_TEN, FIRST_TEN + BATCH_1_NEW.length)).toEqual(BATCH_1_NEW);
-    expect(ids.slice(FIRST_TEN + BATCH_1_NEW.length)).toEqual(BATCH_2);
+    expect(ids.slice(FIRST_TEN + BATCH_1_NEW.length)).toEqual([...BATCH_2, ...BATCH_3]);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(graphIds.has(id), id).toBe(true);
     for (const id of ids) expect(contentFor(id)?.topicId).toBe(id);
     expect(contentFor('num.gcd')).toBeUndefined();
   });
 
-  it('are the first ten new lessons the engine schedules for a learner who knows nothing, taking both courses evenly; batch 2 is the next mapped topics in that order', () => {
+  it('are the first ten new lessons the engine schedules for a learner who knows nothing, taking both courses evenly; batches 2 and 3 are the next mapped topics in that order', () => {
     const courses = ['ia-probability', 'cst-discrete-maths'].map((id) => ({ id, targets: courseTargets(topics, courseById(id)) }));
     const g = placementGraph(topics, { targets: courses.flatMap((c) => c.targets) });
     const placed = runPlacement(g, () => false, 0).result;
@@ -132,7 +135,7 @@ describe('content topics', () => {
     const spent: Record<string, number> = {};
     let learnedSinceQuiz: string[] = [];
     const seen: string[] = [];
-    for (let day = 0; seen.length < 80 && day < 200; day++) {
+    for (let day = 0; seen.length < 120 && day < 400; day++) {
       const now = day * DAY_MS;
       const plan = planSession({ topics, courses, courseMinutes: spent, memory, now, learnedSinceQuiz });
       for (const task of plan.tasks) {
@@ -150,10 +153,10 @@ describe('content topics', () => {
       for (const [k, v] of Object.entries(plan.courseMinutes ?? {})) spent[k] = (spent[k] ?? 0) + v;
     }
     expect(seen.slice(0, 10)).toEqual(TOPIC_CONTENT.slice(0, FIRST_TEN).map((c) => c.topicId));
-    // Batch 2: the scheduled topics that cite a source of the batch 1 map (graph/reviews/cambridge-batch-1.md) and had no lesson, first first.
+    // Batches 2 and 3: the scheduled topics that cite a source of the batch 1 map (graph/reviews/cambridge-batch-1.md) and had no lesson, first first.
     const before = new Set([...TOPIC_CONTENT.slice(0, FIRST_TEN).map((c) => c.topicId), ...BATCH_1_NEW]);
     const mapped = seen.filter((id) => !before.has(id) && (topics.find((tp) => tp.id === id)?.sources ?? []).some((s) => batchIds.has(s.doc)));
-    expect(mapped.slice(0, BATCH_2.length)).toEqual(BATCH_2);
+    expect(mapped.slice(0, BATCH_2.length + BATCH_3.length)).toEqual([...BATCH_2, ...BATCH_3]);
   });
 
   it('are all in the closure of the two courses', () => {
@@ -297,6 +300,61 @@ describe('content topics', () => {
       }
     });
   }
+});
+
+/** The catalog the app reads instead of loading every topic: each topic's Cambridge problems, id, plain title, and mode. */
+function catalogSource(): string {
+  const lines = [
+    '// Generated from TOPIC_CONTENT by the content checks (content.test.ts, "the catalog"). Do not edit by hand:',
+    '// after adding a topic or changing its Cambridge problems, run `npx vitest run -u` in content/ and review the diff.',
+    '',
+    '/** A Cambridge problem as the app lists it without loading its topic. */',
+    'export interface CatalogProblem {',
+    '  readonly id: string;',
+    '  readonly title: string;',
+    "  readonly mode: 'auto' | 'supervision';",
+    '}',
+    '',
+    '/** Every topic with content, in the order of TOPIC_CONTENT, with its Cambridge problems. */',
+    'export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {',
+  ];
+  for (const c of TOPIC_CONTENT) {
+    lines.push(`  ${JSON.stringify(c.topicId)}: [`);
+    for (const p of c.cambridge) lines.push(`    { id: ${JSON.stringify(p.id)}, title: ${JSON.stringify(plain(p.title))}, mode: ${JSON.stringify(p.mode)} },`);
+    lines.push('  ],');
+  }
+  lines.push('};', '');
+  return lines.join('\n');
+}
+
+describe('loading on demand', () => {
+  it('the catalog matches the content', async () => {
+    await expect(catalogSource()).toMatchFileSnapshot('./catalog.generated.ts');
+    expect(CONTENT_IDS).toEqual(TOPIC_CONTENT.map((c) => c.topicId));
+    for (const c of TOPIC_CONTENT) {
+      expect(hasContent(c.topicId)).toBe(true);
+      for (const p of c.cambridge) expect(catalogProblem(c.topicId, p.id)).toEqual({ id: p.id, title: plain(p.title), mode: p.mode });
+    }
+    expect(hasContent('num.gcd')).toBe(false);
+    expect(hasContent('toString')).toBe(false);
+    expect(catalogProblem('pre.fractions', 'nope')).toBeUndefined();
+    expect(catalogProblem('constructor', 'x')).toBeUndefined();
+  });
+
+  it('every topic has a loader, in order, and it loads the same content as the static list', async () => {
+    expect(Object.keys(TOPIC_LOADERS)).toEqual(TOPIC_CONTENT.map((c) => c.topicId));
+    for (const c of TOPIC_CONTENT) expect(await loadTopicContent(c.topicId)).toBe(c);
+    expect(await loadTopicContent('num.gcd')).toBeUndefined();
+    expect(await loadTopicContent('hasOwnProperty')).toBeUndefined();
+  });
+
+  it('the main entry point imports no topic module statically', () => {
+    const dir = new URL('./', import.meta.url);
+    for (const f of ['index.ts', 'load.ts', 'catalog.generated.ts', 'glossary.ts', 'rich.ts', 'problem.ts', 'topic.ts', 'cambridge.ts', 'math.ts', 'poly.ts']) {
+      const src = readFileSync(new URL(f, dir), 'utf8');
+      expect(/^import[^;]*from '\.\/(?:topics|all)/m.exec(src)?.[0], f).toBeUndefined();
+    }
+  });
 });
 
 describe('probability claims', () => {

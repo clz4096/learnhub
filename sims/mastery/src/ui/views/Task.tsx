@@ -5,7 +5,6 @@
  * schedules one, and a stored plan that still holds one only offers to leave it.
  */
 import { useState } from 'preact/hooks';
-import { contentFor } from '@learnhub/content';
 import type { Progress, SessionTask } from '@learnhub/mastery';
 import { titleOf, topicOf } from '@/model/courses';
 import { completeLesson, completeQuiz, completeReview, hasContent, skipTask } from '@/model/learner';
@@ -16,6 +15,7 @@ import { commit, now, progress } from '@/model/store';
 import { BackLink } from '@/ui/BackLink';
 import { ProblemCard, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
 import { LessonRunner, type LessonEnd } from '@/ui/views/Lesson';
+import { ContentGate } from '@/ui/ContentGate';
 
 function after(p: Progress, index: number): void {
   const next = p.session?.tasks.findIndex((t, i) => i > index && !t.done) ?? -1;
@@ -86,7 +86,6 @@ export function quizConsequence(title: string, last: boolean, o: CardOutcome): C
 /** A review: two problems from different skills of one topic; it passes when both are right. */
 function ReviewRunner({ p, task, index }: { p: Progress; task: SessionTask; index: number }) {
   const id = task.topicIds[0] as string;
-  const c = contentFor(id);
   const [results, setResults] = useState<boolean[]>([]);
   // A broken problem is replaced by a fresh one in the same slot; nothing is counted.
   const [fresh, setFresh] = useState({ k: -1, n: 0 });
@@ -102,10 +101,10 @@ function ReviewRunner({ p, task, index }: { p: Progress; task: SessionTask; inde
       <p class="small muted">Review</p>
       <h1 id="rv-title">{titleOf(id)}</h1>
       <p class="small muted">{task.reason}</p>
-      {c === undefined
+      {!hasContent(id)
         ? <NotWritten topicIds={[id]} onLeave={() => leave(p, index)} />
         : (
-          <>
+          <ContentGate topicId={id} what="review">{(c) => (<>
             <p class="small muted">Problem {results.length + 1} of {REVIEW_PROBLEMS}</p>
             <ProblemCard
               key={`${k}-${n}`}
@@ -124,7 +123,7 @@ function ReviewRunner({ p, task, index }: { p: Progress; task: SessionTask; inde
                 else setResults(rs);
               }}
             />
-          </>
+          </>)}</ContentGate>
         )}
     </section>
   );
@@ -148,7 +147,6 @@ function QuizRunner({ p, task, index }: { p: Progress; task: SessionTask; index:
       </section>
     );
   }
-  const c = contentFor(id);
   const n = fresh.k === done ? fresh.n : 0;
   const salt = `quiz-${p.session?.startedAt ?? 0}-${index}`;
   const record = (correct: boolean): void => {
@@ -162,7 +160,7 @@ function QuizRunner({ p, task, index }: { p: Progress; task: SessionTask; index:
       <p class="small muted">Quiz: item {done + 1} of {items.length}, about {Math.round(task.minutes / task.topicIds.length)} minutes each</p>
       <progress class="bar" max={items.length} value={done} aria-label="Quiz progress" />
       <h1 id="qz-title">{titleOf(id)}</h1>
-      {c !== undefined && (
+      <ContentGate key={id} topicId={id} what="quiz item">{(c) => (
         <ProblemCard
           key={`${id}-${n}`}
           topicId={id}
@@ -175,7 +173,7 @@ function QuizRunner({ p, task, index }: { p: Progress; task: SessionTask; index:
             else record(r.correct);
           }}
         />
-      )}
+      )}</ContentGate>
     </section>
   );
 }
