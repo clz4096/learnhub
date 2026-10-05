@@ -1,14 +1,15 @@
 /**
- * Shared by the Campaign, paper, and Report screens: the paper registry loaded on demand
- * (its own chunk, out of the main bundle), a copy-to-clipboard block with the read-only
- * fallback, and an in-app link.
+ * Shared by the Campaign, paper, Report, and Letters screens: the paper registry loaded on
+ * demand (its own chunk, out of the main bundle), a copy-to-clipboard block with the
+ * read-only fallback, an in-app link, letter delivery, and the entry line.
  */
 import type { ComponentChildren } from 'preact';
 import { signal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import type { Admissions } from '@/model/campaign';
-import { campaignFixed } from '@/model/campaignSummary';
-import { campaign } from '@/model/campaignStore';
+import { deliverLetters, type Admissions } from '@/model/campaign';
+import type { Projection } from '@/model/campaignCalendar';
+import { campaignFixed, type Summary } from '@/model/campaignSummary';
+import { campaign, saveCampaign } from '@/model/campaignStore';
 import { planDate, type FixedBlock } from '@/model/day';
 import { go, hrefOf, type Route } from '@/model/route';
 import { now, progress } from '@/model/store';
@@ -143,4 +144,19 @@ export function campaignFixedFor(date: string): readonly FixedBlock[] {
     return [];
   }
   return campaignFixed(adm, c, p, date, planDate(now()));
+}
+
+/** Files the letters a summary says are due, once each, whichever screen shows it first. */
+export function useDeliverLetters(s: Summary): void {
+  const due = s.lettersDue.join(',');
+  useEffect(() => {
+    const c = campaign.value;
+    if (c !== null && s.lettersDue.length > 0) saveCampaign(deliverLetters(c, s.lettersDue, now()));
+  }, [due]);
+}
+
+/** "On course for October 2028 entry", or where it has slipped to. */
+export function entryLine(pr: Projection): string {
+  if (pr.entry === null) return 'Beyond ten years at this pace';
+  return pr.slipped ? `Slipped to October ${pr.entry} entry` : `On course for October ${pr.entry} entry`;
 }

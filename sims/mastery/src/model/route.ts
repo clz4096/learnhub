@@ -12,6 +12,7 @@
  *   #/glossary    every term; #/glossary/<id> at one entry
  *   #/campaign    the Cambridge Entry campaign; #/paper/<id> one past paper in exam mode
  *   #/report      the results report
+ *   #/letters     the campaign's letters
  *
  * Every step a learner can take back from has its own route, so the browser's Back (and
  * Cmd+[ or a swipe on the Mac) returns to the previous view of the app, and a reload
@@ -31,7 +32,8 @@ export type Route =
   | { view: 'glossary'; termId: string | null }
   | { view: 'campaign' }
   | { view: 'paper'; paperId: string }
-  | { view: 'report' };
+  | { view: 'report' }
+  | { view: 'letters' };
 
 const ID = /^[a-z0-9.-]+$/;
 
@@ -53,6 +55,7 @@ export function parseRoute(hash: string): Route {
     case 'campaign': return { view: 'campaign' };
     case 'paper': return id === null ? { view: 'campaign' } : { view: 'paper', paperId: id };
     case 'report': return { view: 'report' };
+    case 'letters': return { view: 'letters' };
     default: return { view: 'today' };
   }
 }
@@ -70,6 +73,7 @@ export function hrefOf(r: Route): string {
     case 'campaign': return '#/campaign';
     case 'paper': return `#/paper/${encodeURIComponent(r.paperId)}`;
     case 'report': return '#/report';
+    case 'letters': return '#/letters';
   }
 }
 

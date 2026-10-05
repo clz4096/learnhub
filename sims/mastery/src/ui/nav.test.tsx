@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import { IDBFactory } from 'fake-indexeddb';
 import type { IdbFactoryLike, Progress } from '@learnhub/mastery';
+import { planDate } from '@/model/day';
 import { DEFAULT_COURSES, ensureSession, finishPlacement, startLearner } from '@/model/learner';
 import { loadPlace } from '@/model/lessonState';
 import { go, parseRoute, route } from '@/model/route';
@@ -15,8 +16,11 @@ import { commit, flush, init, progress, setClock } from '@/model/store';
 import { App } from '@/ui/App';
 import { helpOpen } from '@/ui/help/state';
 import { termOpen } from '@/ui/termState';
+import { dayTitle } from '@/ui/views/DayPlanner';
 
 const T0 = new Date(2026, 9, 4, 9, 0).getTime();
+/** Today's heading is the day's name. */
+const TODAY = dayTitle(planDate(T0));
 let idb: IdbFactoryLike;
 
 /** The browser's Back: resolves once the app has seen the hash change. */
@@ -62,7 +66,7 @@ describe('the start', () => {
     click('Start learning');
     await flush();
     expect(location.hash).toBe('#/');
-    expect(heading()).toBe('Today');
+    expect(heading()).toBe(TODAY);
     await screen.findByText('Fractions and ratios', { selector: '.task-title' });
     await flush();
     expect(progress.value?.session?.tasks.map((t) => [t.kind, t.topicIds[0]])).toEqual([
@@ -72,7 +76,7 @@ describe('the start', () => {
     // Back does not reopen the start: a learner with a course is moved on to Today.
     await back();
     await waitFor(() => expect(location.hash).toBe('#/'));
-    expect(heading()).toBe('Today');
+    expect(heading()).toBe(TODAY);
   });
 
   it('the glossary before a course is chosen has a way back to the start', async () => {
@@ -101,7 +105,7 @@ describe('no route or control leads to a placement test', () => {
       await flush();
       // An unknown route is Today for a learner with a course; a new learner is moved to Start.
       expect(route.value.view).toBe(started ? 'today' : 'start');
-      expect(heading()).toBe(started ? 'Today' : 'Welcome');
+      expect(heading()).toBe(started ? TODAY : 'Welcome');
       noPlacement();
       for (const a of [...document.querySelectorAll<HTMLAnchorElement>('nav.nav a')]) {
         fireEvent.click(a);
@@ -127,7 +131,7 @@ describe('progress saved by the placement test of earlier builds', () => {
     route.value = parseRoute('#/placement');
     render(<App />);
     expect(route.value.view).toBe('today');
-    expect(heading()).toBe('Today');
+    expect(heading()).toBe(TODAY);
     await screen.findByText('Fractions and ratios', { selector: '.task-title' });
     expect(screen.queryByText('The product rule for counting')).toBeNull();
     // The migrated document was saved, so the next load needs no migration.
@@ -144,7 +148,7 @@ describe('progress saved by the placement test of earlier builds', () => {
     await init(idb);
     expect(progress.value?.memory).toEqual(done.memory);
     render(<App />);
-    expect(heading()).toBe('Today');
+    expect(heading()).toBe(TODAY);
   });
 });
 
@@ -160,7 +164,7 @@ describe('a learner with a course', () => {
     click('Start');
     expect(location.hash).toBe('#/task/0');
     expect(screen.getByRole('button', { name: 'Back to today' })).toBeTruthy();
-    fireEvent.click(screen.getByText('Map', { selector: 'nav a' }));
+    fireEvent.click(screen.getByText('Course', { selector: 'nav a' }));
     fireEvent.click(document.querySelector('.node') as Element);
     const topic = location.hash;
     expect(topic).toMatch(/^#\/map\//);
@@ -177,7 +181,7 @@ describe('a learner with a course', () => {
     expect(heading()).toBe('Fractions and ratios');
     await back();
     expect(location.hash).toBe('#/');
-    expect(heading()).toBe('Today');
+    expect(heading()).toBe(TODAY);
   });
 
   it('#/start shows Today, not the start screen again', async () => {
@@ -185,7 +189,7 @@ describe('a learner with a course', () => {
     go({ view: 'start' });
     render(<App />);
     await waitFor(() => expect(location.hash).toBe('#/'));
-    expect(heading()).toBe('Today');
+    expect(heading()).toBe(TODAY);
   });
 
   it('leaving a lesson mid-practice keeps its place, and says the count resets if the tab closes', async () => {

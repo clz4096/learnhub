@@ -1,7 +1,8 @@
 /**
  * The Cambridge Entry campaign end to end in the app: the nav, choosing the route, sitting
  * a paper in exam mode (TMUA checked by the app, STEP marked through supervision), the
- * interview packet, the letters, and the report with its cited figures.
+ * interview packet, the letters with Euclid College's documents, and the report with its
+ * cited figures.
  */
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -42,7 +43,7 @@ afterEach(() => {
 });
 
 describe('routes', () => {
-  const all: Route[] = [{ view: 'campaign' }, { view: 'report' }, { view: 'paper', paperId: 'edx-9fm0-3a-2024' }];
+  const all: Route[] = [{ view: 'campaign' }, { view: 'report' }, { view: 'letters' }, { view: 'paper', paperId: 'edx-9fm0-3a-2024' }];
   for (const r of all) it(`round-trips ${hrefOf(r)}`, () => expect(parseRoute(hrefOf(r))).toEqual(r));
   it('sends a malformed paper link to the campaign', () => {
     expect(parseRoute('#/paper')).toEqual({ view: 'campaign' });
@@ -58,9 +59,10 @@ describe('the campaign screen', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Campaign' }));
     expect(location.hash).toBe('#/campaign');
     expect(heading()).toBe('Cambridge Entry');
-    expect(screen.getByText(/Not affiliated with the University of Cambridge/, { selector: '.camp p' })).toBeTruthy();
+    // The disclaimer line is gone from the app (the owner's decision); simulated letters still say what they are.
+    expect(document.body.textContent).not.toMatch(/Not affiliated with the University of Cambridge/);
     fireEvent.click(screen.getByRole('button', { name: 'Computer Science' }));
-    await screen.findByText('Current act');
+    await screen.findByText('current act');
     expect(screen.getByRole('heading', { name: 'Recent qualifications' })).toBeTruthy();
     expect(JSON.parse(localStorage.getItem(CAMPAIGN_KEY) as string).route).toBe('cs');
     // Act I's chapters are the course lessons until the book is restructured, and the UI says so.
@@ -68,8 +70,13 @@ describe('the campaign screen', () => {
     // The status line: route, act, days studied, this week against 36 hours.
     const status = document.querySelector('.c-status') as HTMLElement;
     expect(status.textContent).toContain('Computer Science');
-    expect(status.textContent).toContain('I of V');
+    expect(status.textContent).toContain('Act I of V');
     expect(status.textContent).toContain('of 36 h');
+    // The acts as a timeline: Act I is the current one, the later acts and matriculation follow.
+    const acts = [...document.querySelectorAll('ol.c-tl > li')];
+    expect(acts.map((li) => li.querySelector('.t')?.textContent)).toEqual(['Act I', 'Act II', 'Act III', 'Act IV', 'Act V', '']);
+    expect(acts[0]?.classList.contains('now')).toBe(true);
+    expect(acts[0]?.getAttribute('aria-current')).toBe('step');
     // The calendar: 2028 entry at the earliest, dates labelled as estimates.
     expect(document.querySelector('.c-entry')?.textContent).toMatch(/On course for October 2028 entry|Slipped to October 20\d\d entry/);
     expect(screen.getByText(/2028 dates are not published/)).toBeTruthy();
@@ -83,7 +90,7 @@ describe('the campaign screen', () => {
     saveCampaign(newCampaign('maths', T0));
     go({ view: 'campaign' });
     render(<App />);
-    await screen.findByText('Current act');
+    await screen.findByText('current act');
     fireEvent.click(within(screen.getByRole('group', { name: 'Route' })).getByRole('button', { name: 'Computer Science' }));
     expect(campaign.value?.route).toBe('cs');
     const college = screen.getByRole('combobox', { name: 'College' }) as HTMLSelectElement;
@@ -101,7 +108,7 @@ describe('the campaign screen', () => {
     saveCampaign({ ...newCampaign('maths', T0), college: 'hughes-hall' });
     go({ view: 'campaign' });
     render(<App />);
-    await screen.findByText('Current act');
+    await screen.findByText('current act');
     fireEvent.click(screen.getByRole('button', { name: 'Copy interview packet' }));
     const text = (writeText.mock.calls[0] as unknown as [string])[0];
     expect(text).toContain('LEARNHUB MOCK INTERVIEW v1');
@@ -204,8 +211,55 @@ describe('letters and the report', () => {
     render(<App />);
     await screen.findByText('Application received');
     await waitFor(() => expect(campaign.value?.letters.map((l) => l.id)).toEqual(['received']));
+    // The campaign lists it; the Letters tab shows it in full.
+    fireEvent.click(screen.getByRole('link', { name: 'Application received' }));
+    expect(location.hash).toBe('#/letters');
+    await screen.findByRole('heading', { name: 'Application received' });
     expect(screen.getAllByText('Simulated').length).toBe(1);
     expect(screen.getAllByText(/Mathematics at Wolfson/).length).toBeGreaterThan(0);
+    expect(campaign.value?.letters.map((l) => l.id)).toEqual(['received']);
+    await flush();
+  });
+
+  it('the Letters tab shows the emblem, and the offer and certificate as labelled examples before their milestones', async () => {
+    saveCampaign(newCampaign('maths', T0));
+    go({ view: 'letters' });
+    render(<App />);
+    await screen.findByText(/None yet\. The first arrives/);
+    expect(heading()).toBe('Letters');
+    // The emblem at the top, and on each document.
+    const seal = document.querySelector('main svg.letters-seal') as SVGElement;
+    expect(seal.getAttribute('role')).toBe('img');
+    expect(seal.getAttribute('aria-label')).toBe('Seal of Euclid College');
+    expect(screen.getAllByRole('img', { name: 'Seal of Euclid College' })).toHaveLength(3);
+    const offer = screen.getByRole('article', { name: 'Offer letter' });
+    expect(offer.closest('.doc')?.classList.contains('doc-example')).toBe(true);
+    expect(offer.textContent).toContain('EC-28-04142');
+    expect(screen.getByText(/Your own offer letter is written here from your results when Act IV/)).toBeTruthy();
+    const cert = screen.getByRole('article', { name: 'Certificate' });
+    expect(cert.closest('.doc')?.classList.contains('doc-example')).toBe(true);
+    expect(cert.textContent).toContain('Q. E. Demonstrandum');
+    expect(cert.querySelector('svg.wax use')?.getAttribute('href')).toBe('#euclid-crestFull');
+    expect(document.querySelector('main')?.textContent).not.toMatch(DASH);
+  });
+
+  it('once the offer arrives, the offer letter is written from the campaign', async () => {
+    saveCampaign({ ...newCampaign('maths', T0), college: 'wolfson', applicationFiledAt: T0, letters: [{ id: 'offer', at: T0 }] });
+    go({ view: 'letters' });
+    render(<App />);
+    const offer = await screen.findByRole('article', { name: 'Offer letter' });
+    expect(offer.closest('.doc')?.classList.contains('doc-example')).toBe(false);
+    expect(screen.queryByText(/Your own offer letter is written here/)).toBeNull();
+    expect(offer.textContent).toContain('5 October 2026');
+    expect(offer.textContent).toContain('Mathematics (Tripos)');
+    expect(offer.textContent).toContain('Wolfson');
+    expect(offer.textContent).toContain('Euclid College · Office of Undergraduate Admissions');
+    expect(offer.textContent).toContain('Dr E. Noether-Gauss');
+    expect([...offer.querySelectorAll('ol.numbered li')].map((li) => li.textContent)).toEqual([
+      'A* in A level Mathematics', 'A* in A level Further Mathematics', 'A in A level Computer Science',
+      'Grade 1 in Sixth Term Examination Paper (STEP) Mathematics 2', 'Grade 1 in Sixth Term Examination Paper (STEP) Mathematics 3',
+    ]);
+    expect(offer.textContent).toContain('Simulated document. Not issued by any real university or college.');
     await flush();
   });
 

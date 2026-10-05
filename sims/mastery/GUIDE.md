@@ -1,4 +1,4 @@
-# Cambridge University Math and Computer Science Major: guide
+# Computational Mathematics at the University of Cambridge: guide
 
 Dated 2026-10-05. Status: beta. Not listed in the catalog until the owner marks it ready.
 
@@ -6,13 +6,17 @@ Dated 2026-10-05. Status: beta. Not listed in the catalog until the owner marks 
 
 A course app for Cambridge IA Probability and CST IA Discrete Mathematics, taught from scratch over one shared knowledge graph of 101 topics (`graph/`). The design is `mastery/DESIGN.md`; the Cambridge-sourced content is `mastery/DESIGN-CAMBRIDGE-CONTENT.md`.
 
-A personal study plan. Not affiliated with the University of Cambridge. (The app's ids, routes, and storage keys still say `mastery`.)
+The app's ids, routes, and storage keys still say `mastery`.
+
+## The look
+
+The app follows the minimalist design (book-mockup/minimal.html): ink on paper, hairlines, one accent (Cambridge blue, `#3f7a63`, `#9cc5b2` in dark), and STIX Two Text. Every font is bundled from `@fontsource` packages, nothing from a CDN. The theme follows the device; the footer's **Theme** button cycles system, light, and dark and is remembered in this browser. The tabs under the title are Today, Course (the map), Campaign, Report, and Letters; Progress, the glossary, and Help are in the footer. Euclid College's emblem sits by the title.
 
 ## Begin the day
 
-The top of Today is the day planner (`mastery/DESIGN-ADMISSIONS.md`, "The day planner"). Enter the wake time, or press **Now**, and the day is laid out around fixed anchors, all New York time: 45 minutes to get going, lunch for 30 minutes before the gym (or right after it if it does not fit), the gym for 90 minutes starting at 2:00, 2:15, or 2:30 pm (whichever fits the most study, then finishes it earliest), dinner at 8:00 pm for an hour, and 30 minutes to wind down before bed at 1:00 am. Study is 6 core hours in 90-minute blocks with 15-minute breaks, then up to 2 optional light hours. A wake time before 5:00 am counts as the night before. Friday plans end at Brooklyn sundown and Saturday plans start after it; sundown is computed on the device.
+The top of Today is the day planner (`mastery/DESIGN-ADMISSIONS.md`, "The day planner"). Set the wake time ("woke 9:00 am", always in 12-hour form), or press **now**, and the day is laid out around fixed anchors, all New York time: 45 minutes to get going, lunch for 30 minutes before the gym (or right after it if it does not fit), the gym for 90 minutes starting at 2:00, 2:15, or 2:30 pm (whichever fits the most study, then finishes it earliest), dinner at 8:00 pm for an hour, and 30 minutes to wind down before bed at 1:00 am. Study is 6 core hours in 90-minute blocks with 15-minute breaks, then up to 2 optional light hours. A wake time before 5:00 am counts as the night before. Friday plans end at Brooklyn sundown and Saturday plans start after it; sundown is computed on the device.
 
-The study blocks are filled from today's session and the supervision redos due today: new lessons in the earliest full blocks, reviews in the short blocks and optional time. Each item links to its task. If the session runs out first, the planner says so and offers **Plan another session**. The screen also shows the current block with minutes left, the day's totals, a strip of the day, this week's ticked-off hours against 36, and this week's Shabbat times. Tick blocks off as you go; wake times and ticks are kept in this browser only (localStorage, the last three weeks), not in the progress document. The planner is `src/model/day.ts`, unit tested in `day.test.ts`.
+The study blocks are filled from today's session and the supervision redos due today: new lessons in the earliest full blocks, reviews in the short blocks and optional time. Each item links to its task. If the session runs out first, the planner says so and offers **Plan another session**. The day is one timeline: the day's name as the heading, a thin progress line (core hours done, counted by the clock and by ticks, and when the core is done), past items faded, the current one marked with minutes left, and study items as links into the course. Below it: **Plan my day**, **Replan from now**, Up next, this week's ticked-off hours against 36, this week's Shabbat times, another day's plan, and today's session. Tick blocks off as you go; wake times and ticks are kept in this browser only (localStorage, the last three weeks), not in the progress document. The planner is `src/model/day.ts`, unit tested in `day.test.ts`.
 
 ## How a day works
 
@@ -66,7 +70,7 @@ You never mark your own work: there is no mark field or pass button anywhere. A 
 - **Interviews:** **Copy interview packet** sets up a mock interview in the chosen college's real format; record the mark out of 20 and notes.
 - **Calendar:** pace is the hours ticked off in the day planner over the last two weeks (the 36-hour target if none). From the hours left per act it projects finish dates against the January round; a miss slips the target entry from October 2028. 2028 dates are the 2027-entry dates a year on, labelled as estimates, as are chapter hours the book does not have yet.
 - **Stats and effects:** mastery by area, marks in timed papers, and interview marks, with the effects table (`EFFECT_RULES` in `src/model/campaign.ts`). Programming has no data until the book has programming chapters.
-- **Letters** arrive at milestones, written from your numbers and marked Simulated.
+- **Letters** arrive at milestones, written from your numbers and marked Simulated; the Letters tab shows them in full. It also shows Euclid College's two documents: the offer letter, written from the campaign once Act IV is complete, and the degree certificate. Before its milestone each is an example, labelled as one; the certificate stays an example until the campaign tracks the Tripos years.
 
 **Report** (`#/report`) shows each STEP mark on that year's boundaries with the share of real candidates at or below it, A level papers on their component boundaries, TMUA raw marks with the context scale, interview marks, the offer condition by condition, and the 2025 odds, each with its source.
 
@@ -74,7 +78,7 @@ The campaign is stored in this browser only (localStorage `mastery.campaign.v1`)
 
 ## Moving around
 
-Every screen has the same header (design decision 19a): the course title and the Home item go home, which is the Start step until a course is chosen and Today after. Leaving a lesson by Home keeps its place. Every view has its own URL, so the browser's Back (or Cmd+[ and the swipe on a Mac) returns to the previous view, and a reload shows the same one. Views reached by a button (a task, a lesson from the map, the glossary before a course is chosen) also have a Back link, and Escape closes every dialog and the map's topic panel. The map draws only the chosen topic's connections, to what it builds on and what builds on it; "Show all connections" draws every edge and is remembered in this browser.
+Every screen has the same header (design decision 19a): the course title and the first tab (Today) go home, which is the Start step until a course is chosen and Today after. Leaving a lesson by Home keeps its place. Every view has its own URL, so the browser's Back (or Cmd+[ and the swipe on a Mac) returns to the previous view, and a reload shows the same one. Views reached by a button (a task, a lesson from the map, the glossary before a course is chosen) also have a Back link, and Escape closes every dialog and the map's topic panel. The map draws only the chosen topic's connections, to what it builds on and what builds on it; "Show all connections" draws every edge and is remembered in this browser.
 
 ## Content
 

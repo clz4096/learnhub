@@ -1,43 +1,57 @@
 /*
- * Design tokens. The light theme matches the cache simulator and the hub; the dark theme
- * keeps the same roles. Text colours meet WCAG AA (4.5:1) on --bg and --surface in both.
- * The theme follows the device unless the learner picks one in Progress (data-theme).
+ * Design tokens: the minimalist look (book-mockup/minimal.html). Ink on paper, hairlines,
+ * one accent (Cambridge blue), STIX Two Text bundled from @fontsource (no CDN).
+ * The theme follows the device unless the learner picks one (data-theme on the root, set
+ * from the footer toggle or Progress). The older role tokens (--surface, --text, --accent,
+ * and the rest) are mapped onto the new ones, so the lessons, problems, glossary, and map
+ * take the same look without being rewritten. Text colours meet WCAG AA on --bg.
  */
 :root {
   color-scheme: light;
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --surface-2: #f0f2f5;
-  --text: #1f2328;
-  --text-muted: #57606a;
-  --border: #d0d7de;
-  --border-strong: #8c959f;
-  --accent: #0b5cad;
-  --accent-hover: #094c8f;
+  --bg: #fbfbf9;
+  --fg: #1b1d1c;
+  --mute: #737875;
+  --faint: #b9bdb9;
+  --line: #e3e5e1;
+  --cam: #3f7a63;
+  --cam-soft: rgba(63, 122, 99, 0.1);
+  --serif: 'STIX Two Text', 'Times New Roman', serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* roles used across the app, mapped onto the tokens above */
+  --surface: var(--bg);
+  --surface-2: #f1f2ef;
+  --text: var(--fg);
+  --text-muted: var(--mute);
+  --border: var(--line);
+  /* 3:1 against --bg, for the edges of fields and buttons */
+  --border-strong: #8a8f8b;
+  --accent: var(--cam);
+  --accent-hover: #33664f;
   --accent-text: #ffffff;
-  --accent-soft: #e3eefa;
-  --focus: #0b5cad;
-  --error: #b42318;
-  --error-bg: #fdecea;
+  --accent-soft: #e9f0ec;
+  --focus: var(--cam);
+  --error: #a8321f;
+  --error-bg: #fbeeea;
   --warning: #7a4d00;
-  --warning-bg: #fff4d6;
-  --good: #1a6b33;
-  --good-bg: #e3f4e8;
+  --warning-bg: #fbf4e2;
+  --good: #2f6b52;
+  --good-bg: #e9f0ec;
 
   /* topic status on the map */
-  --st-mastered: #d7f0dd;
-  --st-mastered-line: #2e7d32;
-  --st-due: #fff1cc;
-  --st-due-line: #b26a00;
-  --st-ready: #e3eefa;
-  --st-ready-line: #0b5cad;
-  --st-locked: #f0f2f5;
-  --st-locked-line: #b6bec8;
-  --band-0: #f3f8f3;
-  --band-1: #f2f6fc;
-  --band-2: #fdf9ee;
-  --band-3: #fcf2f6;
-  --edge: #8c959f;
+  --st-mastered: #e1eee7;
+  --st-mastered-line: #3f7a63;
+  --st-due: #f8efd6;
+  --st-due-line: #9a6a12;
+  --st-ready: #eef1ee;
+  --st-ready-line: #1b1d1c;
+  --st-locked: #f3f4f1;
+  --st-locked-line: #b9bdb9;
+  --band-0: #f6f7f3;
+  --band-1: #f3f5f2;
+  --band-2: #f8f6f0;
+  --band-3: #f6f3f3;
+  --edge: #8a8f8b;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -45,164 +59,87 @@
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --font-ui: var(--serif);
   --font-math: 'STIX Two Math', 'Cambria Math', 'Times New Roman', Georgia, serif;
-  --text-sm: 0.8125rem;
-  --text-md: 0.9375rem;
-  --text-lg: 1.0625rem;
-  --touch: 36px;
-  --page-w: 760px;
-}
-
-@media (max-width: 699px) {
-  :root { --touch: 44px; }
+  --text-sm: 0.875rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.125rem;
+  --touch: 44px;
+  /* the reading column; the map may use more */
+  --page-w: 640px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --bg: #0f1216;
-    --surface: #171b21;
-    --surface-2: #1f252d;
-    --text: #e6e9ed;
-    --text-muted: #a2abb6;
-    --border: #2f3740;
-    --border-strong: #5b6672;
-    --accent: #6cb0f5;
-    --accent-hover: #8fc3f8;
-    --accent-text: #0b1520;
-    --accent-soft: #16273a;
-    --focus: #8fc3f8;
-    --error: #ff9b8f;
-    --error-bg: #3a1714;
-    --warning: #f2c46b;
-    --warning-bg: #33270e;
-    --good: #7ed38f;
-    --good-bg: #123120;
-    --st-mastered: #173a22;
-    --st-mastered-line: #5fbf72;
-    --st-due: #3a2d0c;
-    --st-due-line: #e0a63a;
-    --st-ready: #142a42;
-    --st-ready-line: #6cb0f5;
-    --st-locked: #1c2128;
-    --st-locked-line: #3c4651;
-    --band-0: #131a15;
-    --band-1: #121823;
-    --band-2: #1b1810;
-    --band-3: #1d1419;
-    --edge: #5b6672;
+    --bg: #0f1211;
+    --fg: #e6e9e6;
+    --mute: #8d948f;
+    --faint: #4a504c;
+    --line: #232826;
+    --cam: #9cc5b2;
+    --cam-soft: rgba(156, 197, 178, 0.1);
+    --surface-2: #171b19;
+    --border-strong: #69716c;
+    --accent-hover: #b6d6c7;
+    --accent-text: #0f1211;
+    --accent-soft: #18221e;
+    --error: #f0a092;
+    --error-bg: #2a1714;
+    --warning: #e3c27a;
+    --warning-bg: #262010;
+    --good: #9cc5b2;
+    --good-bg: #18221e;
+    --st-mastered: #18271f;
+    --st-mastered-line: #9cc5b2;
+    --st-due: #2a2412;
+    --st-due-line: #d9b25e;
+    --st-ready: #171b19;
+    --st-ready-line: #e6e9e6;
+    --st-locked: #131614;
+    --st-locked-line: #4a504c;
+    --band-0: #121614;
+    --band-1: #111513;
+    --band-2: #151512;
+    --band-3: #151314;
+    --edge: #69716c;
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0f1216;
-  --surface: #171b21;
-  --surface-2: #1f252d;
-  --text: #e6e9ed;
-  --text-muted: #a2abb6;
-  --border: #2f3740;
-  --border-strong: #5b6672;
-  --accent: #6cb0f5;
-  --accent-hover: #8fc3f8;
-  --accent-text: #0b1520;
-  --accent-soft: #16273a;
-  --focus: #8fc3f8;
-  --error: #ff9b8f;
-  --error-bg: #3a1714;
-  --warning: #f2c46b;
-  --warning-bg: #33270e;
-  --good: #7ed38f;
-  --good-bg: #123120;
-  --st-mastered: #173a22;
-  --st-mastered-line: #5fbf72;
-  --st-due: #3a2d0c;
-  --st-due-line: #e0a63a;
-  --st-ready: #142a42;
-  --st-ready-line: #6cb0f5;
-  --st-locked: #1c2128;
-  --st-locked-line: #3c4651;
-  --band-0: #131a15;
-  --band-1: #121823;
-  --band-2: #1b1810;
-  --band-3: #1d1419;
-  --edge: #5b6672;
-}
-
-/*
- * The Google Workspace look of the header and the day planner (Begin the day). System
- * fonts only: Roboto where the device has it, nothing loaded from a CDN.
- */
-:root {
-  --g-paper: #f8f9fa;
-  --g-sheet: #ffffff;
-  --g-sunk: #f1f3f4;
-  --g-ink: #202124;
-  --g-ink-2: #3c4043;
-  --g-ink-3: #5f6368;
-  --g-rule: #dadce0;
-  --g-rule-2: #c4c7c5;
-  --g-pen: #1a73e8;
-  --g-pen-text: #ffffff;
-  --g-pen-soft: #e8f0fe;
-  --g-opt: #8ab4f8;
-  --g-gym: #e37400;
-  --g-gym-soft: #feefe3;
-  --g-meal: #bdc1c6;
-  --g-good: #188038;
-  --g-warn: #b06000;
-  --g-warn-soft: #fef7e0;
-  --g-sans: Roboto, 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --g-mono: 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --g-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --g-paper: #202124;
-    --g-sheet: #2d2e31;
-    --g-sunk: #35363a;
-    --g-ink: #e8eaed;
-    --g-ink-2: #bdc1c6;
-    --g-ink-3: #9aa0a6;
-    --g-rule: #3c4043;
-    --g-rule-2: #5f6368;
-    --g-pen: #8ab4f8;
-    --g-pen-text: #202124;
-    --g-pen-soft: #263449;
-    --g-opt: #4f6b94;
-    --g-gym: #fcad70;
-    --g-gym-soft: #3d2e22;
-    --g-meal: #5f6368;
-    --g-good: #81c995;
-    --g-warn: #fdd663;
-    --g-warn-soft: #3b3420;
-    --g-shadow: none;
-  }
-}
-
-:root[data-theme='dark'] {
-  --g-paper: #202124;
-  --g-sheet: #2d2e31;
-  --g-sunk: #35363a;
-  --g-ink: #e8eaed;
-  --g-ink-2: #bdc1c6;
-  --g-ink-3: #9aa0a6;
-  --g-rule: #3c4043;
-  --g-rule-2: #5f6368;
-  --g-pen: #8ab4f8;
-  --g-pen-text: #202124;
-  --g-pen-soft: #263449;
-  --g-opt: #4f6b94;
-  --g-gym: #fcad70;
-  --g-gym-soft: #3d2e22;
-  --g-meal: #5f6368;
-  --g-good: #81c995;
-  --g-warn: #fdd663;
-  --g-warn-soft: #3b3420;
-  --g-shadow: none;
+  --bg: #0f1211;
+  --fg: #e6e9e6;
+  --mute: #8d948f;
+  --faint: #4a504c;
+  --line: #232826;
+  --cam: #9cc5b2;
+  --cam-soft: rgba(156, 197, 178, 0.1);
+  --surface-2: #171b19;
+  --border-strong: #69716c;
+  --accent-hover: #b6d6c7;
+  --accent-text: #0f1211;
+  --accent-soft: #18221e;
+  --error: #f0a092;
+  --error-bg: #2a1714;
+  --warning: #e3c27a;
+  --warning-bg: #262010;
+  --good: #9cc5b2;
+  --good-bg: #18221e;
+  --st-mastered: #18271f;
+  --st-mastered-line: #9cc5b2;
+  --st-due: #2a2412;
+  --st-due-line: #d9b25e;
+  --st-ready: #171b19;
+  --st-ready-line: #e6e9e6;
+  --st-locked: #131614;
+  --st-locked-line: #4a504c;
+  --band-0: #121614;
+  --band-1: #111513;
+  --band-2: #151512;
+  --band-3: #151314;
+  --edge: #69716c;
 }

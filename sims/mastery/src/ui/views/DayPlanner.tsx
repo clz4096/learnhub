@@ -1,18 +1,20 @@
 /**
- * Begin the day (mastery/DESIGN-ADMISSIONS.md, "The day planner"): the wake time becomes
- * the day's schedule (`planDay`), its study blocks filled from the day's queue (the
- * session's lessons, reviews, and quizzes, more of them planned for the day's study
- * minutes, and redos due today). Shows what is on now, the day's totals, a strip of the
- * day, the timeline with tick-off and Replan from now, the queue in order, the week's
- * ticked hours, and this week's Shabbat times. Wake times, ticks, and replans stay in this
- * browser (`dayLog`). The progress document changes only when the learner acts: opening
- * a forecast item, planning the day, or replanning adds the day's tasks to the session.
+ * Begin the day (mastery/DESIGN-ADMISSIONS.md, "The day planner"), in the minimalist look:
+ * the day's name, the date, the wake time ("woke 9:00 am", always 12-hour) and "now", a
+ * thin progress line, then one timeline of the day. The wake time becomes the schedule
+ * (`planDay`), its study blocks filled from the day's queue (the session's lessons,
+ * reviews, and quizzes, more of them planned for the day's study minutes, and redos due
+ * today). Below the timeline, quietly: Plan my day and Replan from now, Up next, the
+ * week's ticked hours, this week's Shabbat times, and another day's plan. Wake times,
+ * ticks, and replans stay in this browser (`dayLog`). The progress document changes only
+ * when the learner acts: opening a forecast item, planning the day, or replanning adds the
+ * day's tasks to the session.
  */
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import type { Progress } from '@learnhub/mastery';
 import {
-  BED, CORE, GET_GOING, OPTIONAL, addDays, clockValue, fillBlocks, fmt, fmtLong, isDate, parseClock, planDate, planMinute,
+  CORE, GET_GOING, addDays, clockValue, fillBlocks, fmtLong, isDate, parseClock, planDate, planMinute,
   replanDay, sunsetMinutes, tickedMinutes, weekOf, weekdayOf, type DayPlan, type FixedBlock, type Slot,
 } from '@/model/day';
 import { loadDays, planOf, saveDay, type DayEntry, type DayLog } from '@/model/dayLog';
@@ -29,10 +31,26 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 /** Up next shows this many items until Show all. */
 const UP_NEXT = 8;
 const NO_FIXED = (): readonly FixedBlock[] => [];
+const HOURS_12 = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 
 const longDate = (date: string, o: Intl.DateTimeFormatOptions): string =>
   new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { ...o, timeZone: 'UTC' });
 const hours = (m: number): string => (m / 60).toFixed(1);
+const PLURAL: Record<DayItem['kind'], [string, string]> = {
+  lesson: ['new lesson', 'new lessons'], review: ['review', 'reviews'], quiz: ['quiz', 'quizzes'], redo: ['supervision redo', 'supervision redos'],
+};
+/** What a block holds, in a few words: "4 new lessons, 1 quiz". */
+function kinds(items: readonly DayItem[]): string {
+  return (['lesson', 'review', 'quiz', 'redo'] as const)
+    .map((k) => [k, items.filter((x) => x.kind === k).length] as const)
+    .filter(([, n]) => n > 0)
+    .map(([k, n]) => `${n} ${PLURAL[k][n === 1 ? 0 : 1]}`)
+    .join(', ');
+}
+
+/** The planner's heading for a date: the day's name, "Monday". */
+export const dayTitle = (date: string): string => longDate(date, { weekday: 'long' });
 
 function slotLabel(s: Slot): string {
   if (s.fixed !== undefined) return 'Timed paper';
@@ -60,19 +78,42 @@ function RouteLink({ to, cls, before, children }: { to: Route; cls: string; befo
   );
 }
 
-function ItemLink({ item, before }: { item: DayItem; before: () => void }) {
+/**
+ * The wake time as three small selects, hour, minute, and am or pm, so it reads in
+ * 12-hour form on every device; a native time input follows the device's locale.
+ */
+function WakeTime({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const m = (parseClock(value) ?? (parseClock(DEFAULT_WAKE) as number)) % 1440;
+  const h24 = Math.floor(m / 60);
+  const mi = m % 60;
+  const pm = h24 >= 12;
+  const h12 = h24 % 12 || 12;
+  const set = (h: number, min: number, p: boolean): void => onChange(clockValue(((h % 12) + (p ? 12 : 0)) * 60 + min));
+  const num = (e: Event): number => Number((e.currentTarget as HTMLSelectElement).value);
   return (
-    <RouteLink to={item.to} cls={`d-item${item.done ? ' done' : ''}`} before={item.forecast ? before : undefined}>
-      <span class="d-item-title">{item.title}</span>
-      <span class="d-item-meta">{KIND[item.kind]}, {Math.round(item.minutes)} min{item.done ? ', done' : ''}</span>
-    </RouteLink>
+    <span class="d-wake">
+      woke{' '}
+      <span class="d-wake-fields">
+        <select aria-label="Woke at: hour" value={String(h12)} onChange={(e) => set(num(e), mi, pm)}>
+          {HOURS_12.map((h) => <option key={h} value={String(h)}>{h}</option>)}
+        </select>
+        <span aria-hidden="true">:</span>
+        <select aria-label="Woke at: minute" value={String(mi)} onChange={(e) => set(h12, num(e), pm)}>
+          {MINUTES.map((x) => <option key={x} value={String(x)}>{String(x).padStart(2, '0')}</option>)}
+        </select>
+        <select aria-label="Woke at: am or pm" value={pm ? 'pm' : 'am'} onChange={(e) => set(h12, mi, (e.currentTarget as HTMLSelectElement).value === 'pm')}>
+          <option value="am">am</option>
+          <option value="pm">pm</option>
+        </select>
+      </span>
+    </span>
   );
 }
 
 /** One entry of Up next: a queue item, or a timed paper with its block. */
 type Next = { item: DayItem; slot: Slot | null } | { paper: Slot };
 
-const CHECK = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
+const CHECK = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4L18 8" /></svg>;
 
 /** Minutes the queue fills on a plan: its study and optional blocks, less timed papers. */
 const fillMinutes = (plan: DayPlan): number =>
@@ -151,16 +192,20 @@ export function DayPlanner({ p, fixed = NO_FIXED }: { p: Progress; fixed?: (date
   const shown = showAll ? upNext : upNext.slice(0, UP_NEXT);
 
   const cur = isToday ? plan.slots.find((s) => s.kind !== 'break' && nowMin >= s.start && nowMin < s.end) : undefined;
-  const nextStudy = studySlots.find((s) => !isToday || s.end > nowMin);
-  const headline = (s: Slot): { what: string; detail: string } => {
-    const its = fill.get(s);
-    if (its === undefined) return { what: s.title, detail: s.detail };
-    const open = its.find((x) => !x.done) ?? its[0];
-    if (open === undefined) return { what: s.kind === 'optional' ? 'Light study' : 'Study', detail: isToday ? 'Today\'s queue has nothing more for this block.' : 'Filled from the queue on the day.' };
-    return { what: open.title, detail: `${KIND[open.kind]}${its.length > 1 ? `, then ${its.length - 1} more` : ''}` };
-  };
+  const empty = (s: Slot): { what: string; detail: string } => ({
+    what: s.kind === 'optional' ? 'Light study' : 'Study',
+    detail: isToday ? 'Today\'s queue has nothing more for this block.' : 'Filled from the queue on the day.',
+  });
 
+  // The progress line: core study done, a block counting whole once ticked and by the clock while it runs.
+  const coreDone = Math.min(CORE, plan.slots.filter((s) => s.kind === 'study').reduce((a, s) => {
+    const len = s.end - s.start;
+    if (ticks.has(s.start)) return a + len;
+    return isToday ? a + Math.min(len, Math.max(0, nowMin - s.start)) : a;
+  }, 0));
   const short = Math.max(0, CORE - plan.core);
+  const state = (start: number, end: number): string => (!isToday ? '' : nowMin >= end ? ' past' : nowMin >= start ? ' now' : '');
+
   const dow = weekdayOf(date);
   const fri = dow === 6 ? addDays(date, -1) : addDays(date, 5 - dow);
   const sat = addDays(fri, 1);
@@ -173,252 +218,207 @@ export function DayPlanner({ p, fixed = NO_FIXED }: { p: Progress; fixed?: (date
   });
   const weekMinutes = week.reduce((a, d) => a + d.minutes, 0);
 
-  // The strip runs from waking to bed.
-  const s0 = wake;
-  const span = Math.max(1, BED - s0);
-  const pct = (m: number): string => `${(100 * (Math.min(Math.max(m, s0), BED) - s0)) / span}%`;
-  const width = (a: number, b: number): string => `${(100 * (Math.min(b, BED) - Math.max(a, s0))) / span}%`;
-  const firstTick = Math.ceil(s0 / 180) * 180;
-  const stripTicks: number[] = [];
-  for (let m = firstTick; m <= BED; m += 180) stripTicks.push(m);
-
   return (
     <section class="day" aria-labelledby="today-title">
-      <div class="d-head">
-        <div class="d-kicker">{longDate(date, { weekday: 'long', month: 'long', day: 'numeric' })}</div>
-        <h1 id="today-title">Today</h1>
+      <h1 id="today-title">{dayTitle(date)}</h1>
+      <div class="d-meta">
+        <span>{longDate(date, { month: 'long', day: 'numeric' })}</span>
+        <WakeTime value={wakeText} onChange={setWake} />
+        <button
+          type="button" class="d-text"
+          onClick={() => { const w = clockValue(nowMin); setDate(today); save(today, today === date && w === wakeText ? current : { wake: w, ticks: [] }); }}
+        >
+          now
+        </button>
+      </div>
+      {plan.notes.length > 0 && <p class="d-note">{plan.notes.join(' ')}</p>}
+
+      <div class="d-progress">
+        <div
+          class="d-bar" role="progressbar" aria-label="Core study done"
+          aria-valuemin={0} aria-valuemax={CORE / 60} aria-valuenow={Number(hours(coreDone))}
+        >
+          <i style={{ width: `${(100 * coreDone) / CORE}%` }} />
+        </div>
+        <div class="d-lbl">
+          <span>{hours(coreDone)} of {CORE / 60} hours</span>
+          <span>
+            {plan.coreEnd !== null ? `done by ${fmtLong(plan.coreEnd)}` : plan.core > 0 ? `${hours(short)} h carried to tomorrow` : 'no study fits today'}
+          </span>
+        </div>
       </div>
 
-      <form class="d-card d-pad d-begin" onSubmit={(e) => { e.preventDefault(); save(date, current); if (isToday) addDay(); }}>
-        <div>
-          <div class="d-label">Begin the day</div>
-          <div class="d-fields">
-            <label class="d-field">
-              <span>Woke up at</span>
-              <input type="time" value={wakeText} onChange={(e) => setWake((e.currentTarget as HTMLInputElement).value)} />
-            </label>
-            <label class="d-field">
-              <span>Date</span>
-              <input
-                type="date" value={date}
-                onChange={(e) => { const v = (e.currentTarget as HTMLInputElement).value; if (isDate(v)) setDate(v); }}
-              />
-            </label>
-          </div>
-        </div>
-        <div class="d-acts">
-          <button
-            type="button" class="d-btn quiet"
-            onClick={() => { const w = clockValue(nowMin); setDate(today); save(today, today === date && w === wakeText ? current : { wake: w, ticks: [] }); }}
-          >
-            Now
-          </button>
-          <button type="submit" class="d-btn">Plan my day</button>
-        </div>
-      </form>
-
-      {plan.notes.length > 0 && <div class="d-note">{plan.notes.join(' ')}</div>}
-
-      <div class="d-cols">
-        <div class="d-stack">
-          {cur !== undefined ? (
-            <div class="d-now">
-              <div>
-                <div class="d-label">Now: {slotLabel(cur)}</div>
-                <div class="d-what">{headline(cur).what}</div>
-                <div class="d-det">{headline(cur).detail}</div>
-              </div>
-              <div class="d-clock"><b>{cur.end - nowMin} min</b><span>left, until {fmtLong(cur.end)}</span></div>
-              <div class="d-prog" role="progressbar" aria-label="Block progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((100 * (nowMin - cur.start)) / (cur.end - cur.start))}>
-                <i style={{ width: `${(100 * (nowMin - cur.start)) / (cur.end - cur.start)}%` }} />
-              </div>
-            </div>
-          ) : nextStudy !== undefined ? (
-            <div class="d-now">
-              <div>
-                <div class="d-label">First up: {fmtLong(nextStudy.start)}</div>
-                <div class="d-what">{headline(nextStudy).what}</div>
-                <div class="d-det">{headline(nextStudy).detail}</div>
-              </div>
-              <div class="d-clock"><b>{nextStudy.end - nextStudy.start} min</b><span>{slotLabel(nextStudy)}</span></div>
-            </div>
-          ) : (
-            <div class="d-now">
-              <div>
-                <div class="d-label">Today</div>
-                <div class="d-what">{studySlots.length > 0 ? 'The day\'s study blocks are over.' : 'No study fits before bed.'}</div>
-                <div class="d-det">{studySlots.length > 0 ? 'Wind down; bed at 1:00 am.' : 'The shortfall rolls into tomorrow.'}</div>
-              </div>
-            </div>
-          )}
-
-          <div class="d-card">
-            <div class="d-kpis">
-              <div class={`d-kpi ${short > 0 ? 'warn' : 'good'}`}><b>{hours(plan.core)}h</b><span>core study, of {CORE / 60}</span></div>
-              <div class="d-kpi"><b>{hours(plan.optional)}h</b><span>optional, up to {OPTIONAL / 60}</span></div>
-              <div class="d-kpi"><b>{plan.coreEnd === null ? 'n/a' : fmt(plan.coreEnd)}</b><span>core done by</span></div>
-              <div class={`d-kpi ${short > 0 ? 'warn' : 'good'}`}><b>{short > 0 ? `${hours(short)}h` : 'none'}</b><span>{short > 0 ? 'carried to tomorrow' : 'carried over'}</span></div>
-            </div>
-            <div class="d-strip-wrap">
-              <div class="d-strip" aria-hidden="true">
-                {plan.start > s0 && <i class="seg-meal" style={{ left: pct(s0), width: width(s0, Math.min(plan.start, s0 + GET_GOING)) }} />}
-                {plan.slots.filter((s) => s.kind !== 'break').map((s) => (
-                  <i key={s.start} class={`seg-${s.kind}`} style={{ left: pct(s.start), width: width(s.start, s.end) }} />
-                ))}
-                {isToday && nowMin > s0 && nowMin < BED && <span class="d-nowline" style={{ left: pct(nowMin) }} />}
-              </div>
-              <div class="d-ticks" aria-hidden="true">
-                {stripTicks.map((m) => <span key={m} style={{ left: pct(m) }}>{fmt(m).replace(':00', '')}</span>)}
-              </div>
-              <div class="d-legend">
-                <span><i class="seg-study" />Study</span><span><i class="seg-optional" />Optional</span>
-                <span><i class="seg-gym" />Gym</span><span><i class="seg-meal" />Meals and routine</span>
-              </div>
-            </div>
-          </div>
-
-          {dryBlocks > 0 && (
-            <div class="d-note">
-              Today's queue runs dry: {dryBlocks} of {studySlots.length} study blocks have nothing in them yet.{' '}
-              <button type="button" class="d-link" onClick={() => void commit(planMore(p, now()))}>Plan another session</button>{' '}
-              to add more lessons and reviews.
-            </div>
-          )}
-
-          <div class="d-card d-pad">
-            <div class="d-row"><h2>The plan</h2><span class="d-tiny">Tick blocks off as you go</span></div>
-            {isToday && nowMin < plan.stop && (
-              <div class="d-replan">
-                <button type="button" class="d-btn quiet" onClick={replan}>Replan from now</button>
-                <span class="d-tiny">Ticked blocks and the past stay as they are; the rest of the day is planned again from {fmtLong(Math.max(nowMin, plan.start))}.</span>
-              </div>
-            )}
-            <ol class="d-tl">
-              <li class="rest">
-                <span class="t">{fmt(wake)}</span><span class="dot" />
-                <div class="body"><div class="kind">Routine</div><div class="ttl">Get going</div><div class="sub">{GET_GOING} minutes</div></div>
+      <ol class="tl d-tl">
+        <li class={`quiet${state(wake, plan.start)}`}>
+          <span class="t">{fmtLong(wake)}</span><span class="n" />
+          <div class="w"><div class="it">Get going</div><div class="sub">{GET_GOING} min</div></div>
+        </li>
+        {plan.slots.map((s) => {
+          const len = s.end - s.start;
+          if (s.kind === 'break') {
+            return (
+              <li key={`b${s.start}`} class={`brk${state(s.start, s.end)}`}>
+                <span class="t" /><span /><div class="w">break · {len} min</div>
               </li>
-              {plan.slots.map((s) => {
-                if (s.kind === 'break') {
-                  return (
-                    <li key={`b${s.start}`} class="brk"><span class="t" /><span class="dot" /><div class="body">Break, {s.end - s.start} min</div></li>
-                  );
-                }
-                const done = ticks.has(s.start);
-                const isNow = cur === s;
-                const its = fill.get(s);
-                const canCheck = s.kind === 'study' || s.kind === 'optional' || s.kind === 'gym';
-                const h = headline(s);
-                return (
-                  <li key={s.start} class={`${s.kind}${done ? ' done' : ''}${isNow ? ' isnow' : ''}`}>
-                    <span class="t">{fmt(s.start)}<small>{s.end - s.start} min</small></span>
-                    <span class="dot" />
-                    <div class="body">
-                      <div class="d-row">
-                        <div class="d-grow">
-                          <div class="kind">{slotLabel(s)}</div>
-                          {s.fixed?.to !== undefined
-                            ? (
-                              <div class="d-items">
-                                <RouteLink to={s.fixed.to} cls="d-item">
-                                  <span class="d-item-title">{s.title}</span>
-                                  <span class="d-item-meta">{s.detail !== '' ? s.detail : `${s.end - s.start} min, timed`}</span>
-                                </RouteLink>
-                              </div>
-                            )
-                            : its === undefined || its.length === 0
-                              ? <><div class="ttl">{h.what}</div>{h.detail !== '' && <div class="sub">{h.detail}</div>}</>
-                              : <div class="d-items">{its.map((x) => <ItemLink key={x.key} item={x} before={addDay} />)}</div>}
-                        </div>
-                        {canCheck && (
-                          <button
-                            type="button" class="d-check" aria-pressed={done}
-                            aria-label={`Mark the ${fmt(s.start)} ${slotLabel(s).toLowerCase()} block done`}
-                            onClick={() => toggle(s.start)}
-                          >
-                            {CHECK}
-                          </button>
-                        )}
-                      </div>
+            );
+          }
+          const done = ticks.has(s.start);
+          const its = fill.get(s);
+          const study = s.kind === 'study' || s.kind === 'optional';
+          const canCheck = study || s.kind === 'gym';
+          const st = state(s.start, s.end);
+          let body: ComponentChildren;
+          if (s.fixed !== undefined) {
+            body = (
+              <>
+                <div class="it">{s.fixed.to !== undefined ? <RouteLink to={s.fixed.to} cls="d-item"><span class="d-item-title">{s.title}</span></RouteLink> : s.title}</div>
+                <div class="sub">{slotLabel(s)} · {len} min{s.detail !== '' ? ` · ${s.detail}` : ''}</div>
+              </>
+            );
+          } else if (study) {
+            const e = its === undefined || its.length === 0 ? empty(s) : null;
+            body = e !== null
+              ? <><div class="it">{e.what}</div><div class="sub">{slotLabel(s)} · {len} min. {e.detail}</div></>
+              : (
+                <>
+                  {(its as DayItem[]).map((x) => (
+                    <div key={x.key} class={`it${x.done ? ' done' : ''}`}>
+                      <RouteLink to={x.to} cls="d-item" before={x.forecast ? addDay : undefined}>
+                        <span class="d-item-title">{x.title}</span>
+                      </RouteLink>
+                      {x.done && <span class="visually-hidden">, done</span>}
                     </div>
-                  </li>
-                );
-              })}
-              <li class="rest">
-                <span class="t">{fmt(plan.stop)}</span><span class="dot" />
-                <div class="body">
-                  <div class="kind">{dow === 5 ? 'Shabbat' : 'Routine'}</div>
-                  <div class="ttl">{dow === 5 ? 'Shabbat begins' : 'Wind down'}</div>
-                  <div class="sub">{dow === 5 ? 'Nothing scheduled until Saturday sundown' : 'Bed at 1:00 am'}</div>
-                </div>
-              </li>
-            </ol>
-          </div>
-        </div>
-
-        <div class="d-stack">
-          {(isToday || upNext.length > 0) && (
-            <div class="d-card d-pad">
-              <div class="d-row"><h2>Up next</h2><span class="d-tiny d-num">{upNext.length} to do</span></div>
-              {upNext.length === 0
-                ? <div class="d-tiny">Nothing is left in today's queue.</div>
-                : (
-                  <ol class="d-queue">
-                    {shown.map((n) => {
-                      if ('paper' in n) {
-                        const body = <><span class="d-qt">{n.paper.title}</span><small>Timed paper, {n.paper.end - n.paper.start} min, at {fmt(n.paper.start)}</small></>;
-                        return (
-                          <li key={`paper-${n.paper.start}`}>
-                            {n.paper.fixed?.to !== undefined ? <RouteLink to={n.paper.fixed.to} cls="d-qlink">{body}</RouteLink> : <div class="d-qlink">{body}</div>}
-                          </li>
-                        );
-                      }
-                      const x = n.item;
-                      return (
-                        <li key={x.key}>
-                          <RouteLink to={x.to} cls="d-qlink" before={x.forecast ? addDay : undefined}>
-                            <span class="d-qt">{x.title}</span>
-                            <small>{KIND[x.kind]}, {Math.round(x.minutes)} min, {n.slot === null ? 'no block left today' : `${fmt(n.slot.start)} block`}</small>
-                          </RouteLink>
-                        </li>
-                      );
-                    })}
-                  </ol>
-                )}
-              {upNext.length > UP_NEXT && (
-                <button type="button" class="d-link" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
-                  {showAll ? 'Show fewer' : `Show all ${upNext.length}`}
-                </button>
-              )}
-              {upNext.length > 0 && <div class="d-tiny">Filled into the day in this order.</div>}
-            </div>
-          )}
-          <div class="d-card d-pad">
-            <div class="d-row"><h2>This week</h2><span class="d-tiny d-num">{hours(weekMinutes)} of {WEEK_TARGET_HOURS} h</span></div>
-            <div class="d-week">
-              {week.map((d, i) => (
-                <div key={d.date} class={`d-day${d.date === date ? ' today' : ''}`}>
-                  <div class={`col${i === 6 ? ' shab' : ''}`}>
-                    {d.minutes > 0 && <i style={{ height: `${Math.min(100, (100 * d.minutes) / 60 / BAR_MAX_HOURS)}%` }} />}
-                    <span class="tgt" style={{ bottom: `${(100 * CORE) / 60 / BAR_MAX_HOURS}%` }} />
+                  ))}
+                  <div class="sub">{slotLabel(s)} · {len} min · {kinds(its as DayItem[])}</div>
+                </>
+              );
+          } else {
+            body = <><div class="it">{s.title}</div>{s.detail !== '' && <div class="sub">{s.detail}</div>}</>;
+          }
+          return (
+            <li key={s.start} class={`${study ? 'study' : 'quiet'}${s.kind === 'optional' ? ' opt' : ''}${done ? ' ticked' : ''}${st}`}>
+              <span class="t">{fmtLong(s.start)}</span>
+              <span class="n" />
+              <div class="w">
+                <div class="d-row">
+                  <div class="d-grow">
+                    {cur === s && <span class="tag">now · {s.end - nowMin} min left</span>}
+                    {body}
                   </div>
-                  <b>{d.minutes > 0 ? hours(d.minutes) : '0'}</b>
-                  <span>{DAY_NAMES[i]}</span>
+                  {canCheck && (
+                    <button
+                      type="button" class="d-check" aria-pressed={done}
+                      aria-label={`Mark the ${fmtLong(s.start)} ${slotLabel(s).toLowerCase()} block done`}
+                      onClick={() => toggle(s.start)}
+                    >
+                      {CHECK}
+                    </button>
+                  )}
                 </div>
-              ))}
-            </div>
-            <div class="d-tiny">Hours ticked off in this browser. Dashed line: the 6-hour target. Hatched: Shabbat.</div>
+              </div>
+            </li>
+          );
+        })}
+        <li class={`end quiet${isToday && nowMin >= plan.stop ? ' now' : ''}`}>
+          <span class="t">{fmtLong(plan.stop)}</span><span class="n" />
+          <div class="w">
+            <div class="it">{dow === 5 ? 'Shabbat begins' : 'Wind down · bed at 1:00 am'}</div>
+            {dow === 5 && <div class="sub">Nothing scheduled until Saturday sundown</div>}
           </div>
-          <div class="d-card d-pad">
-            <h2>Shabbat</h2>
-            <div class="d-shab">
-              <div><span>Begins {longDate(fri, shortDate)}</span><b>{fmtLong(sunsetMinutes(fri))}</b></div>
-              <div><span>Ends {longDate(sat, shortDate)}</span><b>{fmtLong(sunsetMinutes(sat))}</b></div>
-            </div>
-            <div class="d-tiny">Brooklyn sundown, computed on this device. Nothing is scheduled in between.</div>
-          </div>
-        </div>
+        </li>
+      </ol>
+      <div class="qed" aria-hidden="true">∎</div>
+
+      <div class="d-acts">
+        {isToday && <button type="button" class="d-text" onClick={() => { save(date, current); addDay(); }}>Plan my day</button>}
+        {isToday && nowMin < plan.stop && <button type="button" class="d-text" onClick={replan}>Replan from now</button>}
       </div>
+      {isToday && nowMin < plan.stop && (
+        <p class="d-small">Replan keeps ticked blocks and the past; the rest of the day is planned again from {fmtLong(Math.max(nowMin, plan.start))}.</p>
+      )}
+      {dryBlocks > 0 && (
+        <p class="d-small">
+          Today's queue runs dry: {dryBlocks} of {studySlots.length} study blocks have nothing in them yet.{' '}
+          <button type="button" class="d-text inline" onClick={() => void commit(planMore(p, now()))}>Plan another session</button>{' '}
+          to add more lessons and reviews.
+        </p>
+      )}
+
+      {(isToday || upNext.length > 0) && (
+        <section class="sec d-upnext" aria-labelledby="up-next">
+          <div class="sec-h"><h2 id="up-next">Up next</h2><span>{upNext.length} to do</span></div>
+          {upNext.length === 0
+            ? <p class="d-small">Nothing is left in today's queue.</p>
+            : (
+              <ol class="ruled d-queue">
+                {shown.map((n) => {
+                  if ('paper' in n) {
+                    const body = <><span class="d-qt">{n.paper.title}</span><small>Timed paper, {n.paper.end - n.paper.start} min, at {fmtLong(n.paper.start)}</small></>;
+                    return (
+                      <li key={`paper-${n.paper.start}`}>
+                        {n.paper.fixed?.to !== undefined ? <RouteLink to={n.paper.fixed.to} cls="d-qlink">{body}</RouteLink> : <div class="d-qlink">{body}</div>}
+                      </li>
+                    );
+                  }
+                  const x = n.item;
+                  return (
+                    <li key={x.key}>
+                      <RouteLink to={x.to} cls="d-qlink" before={x.forecast ? addDay : undefined}>
+                        <span class="d-qt">{x.title}</span>
+                        <small>{KIND[x.kind]}, {Math.round(x.minutes)} min, {n.slot === null ? 'no block left today' : `${fmtLong(n.slot.start)} block`}</small>
+                      </RouteLink>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          {upNext.length > UP_NEXT && (
+            <button type="button" class="d-text" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
+              {showAll ? 'Show fewer' : `Show all ${upNext.length}`}
+            </button>
+          )}
+        </section>
+      )}
+
+      <section class="sec" aria-labelledby="this-week">
+        <div class="sec-h"><h2 id="this-week">This week</h2><span>{hours(weekMinutes)} of {WEEK_TARGET_HOURS} h</span></div>
+        <ol class="d-week">
+          {week.map((d, i) => (
+            <li key={d.date} class={`${d.date === date ? 'cur' : ''}${i === 6 ? ' shab' : ''}`}>
+              <span class="col" aria-hidden="true">
+                {d.minutes > 0 && <i style={{ height: `${Math.min(100, (100 * d.minutes) / 60 / BAR_MAX_HOURS)}%` }} />}
+                <span class="tgt" style={{ bottom: `${(100 * CORE) / 60 / BAR_MAX_HOURS}%` }} />
+              </span>
+              <b>{d.minutes > 0 ? hours(d.minutes) : '0'}</b>
+              <span>{DAY_NAMES[i]}</span>
+            </li>
+          ))}
+        </ol>
+        <p class="d-small">Hours ticked off in this browser. The line marks the 6-hour day. Saturday is Shabbat.</p>
+      </section>
+
+      <section class="sec" aria-labelledby="shabbat">
+        <div class="sec-h"><h2 id="shabbat">Shabbat</h2></div>
+        <ul class="ruled d-shab">
+          <li><span>Begins {longDate(fri, shortDate)}</span><span class="r">{fmtLong(sunsetMinutes(fri))}</span></li>
+          <li><span>Ends {longDate(sat, shortDate)}</span><span class="r">{fmtLong(sunsetMinutes(sat))}</span></li>
+        </ul>
+        <p class="d-small">Brooklyn sundown, computed on this device. Nothing is scheduled in between.</p>
+      </section>
+
+      <section class="sec" aria-labelledby="other-day">
+        <div class="sec-h"><h2 id="other-day">Another day</h2></div>
+        <div class="d-other">
+          <label>
+            <span>Plan for</span>{' '}
+            <input
+              type="date" value={date}
+              onChange={(e) => { const v = (e.currentTarget as HTMLInputElement).value; if (isDate(v)) setDate(v); }}
+            />
+          </label>
+          {!isToday && <button type="button" class="d-text" onClick={() => setDate(today)}>back to today</button>}
+        </div>
+      </section>
     </section>
   );
 }

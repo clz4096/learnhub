@@ -1,8 +1,9 @@
 /**
- * Today: the day planner (Begin the day) on top, then the session plan from
- * `planSession`, stored for the day so a reload shows the same tasks. Each task says why it is there, in the planner's words; the header shows
- * the time left and how today's lesson minutes split between the courses. Below the plan,
- * problems a supervisor set to redo, and Paste result for copies still waiting for one.
+ * Today: the day planner (Begin the day) on top, then, as a quiet section below it,
+ * today's session from `planSession`, stored for the day so a reload shows the same tasks.
+ * Each task says why it is there, in the planner's words; the section's first line gives
+ * the time left and how today's lesson minutes split between the courses. Below the
+ * session, problems a supervisor set to redo, and Paste result for copies still waiting.
  */
 import { useEffect } from 'preact/hooks';
 import type { SessionTask } from '@learnhub/mastery';
@@ -51,7 +52,7 @@ export function Today() {
     <>
       <DayPlanner p={p} fixed={campaignFixedFor} />
       <section class="page today" aria-labelledby="session-title">
-        <h2 id="session-title">Today's session</h2>
+        <div class="sec-h"><h2 id="session-title">Today's session</h2></div>
         <p class="small muted">{date}. Your daily time is {p.settings.budgetMinutes} minutes.</p>
         <div class="today-summary">
           <div class="stat"><span class="stat-value">{time.left}</span><span class="stat-label">minutes left</span></div>

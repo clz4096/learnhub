@@ -19,7 +19,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'home',
     title: 'Getting around',
     paragraphs: [
-      'Home, first in the navigation, and the course title at the top both take you home from any screen: the start page until you choose your course, then Today.',
+      'Today, first in the tabs, and the course title at the top both take you home from any screen: the start page until you choose your course, then Today.',
+      'The tabs are Today, Course (the map), Campaign, Report, and Letters. Progress, the glossary, Help, and the theme are at the foot of every page.',
       'Leaving a lesson this way keeps your place, as the Back links do. The browser\'s Back button works too, and Escape closes a dialog or the topic panel on the map.',
     ],
   },
@@ -27,7 +28,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'today',
     title: 'Today',
     paragraphs: [
-      'Today lists the tasks in order, with the reason for each one. Press Start on the first task, and Continue moves you on to the next one.',
+      'Today shows the day as a timeline from your wake time. Set the time you woke, or press now, and tick blocks off as you go. Study items link straight into the lesson.',
+      'Below the timeline, Today\'s session lists the tasks in order, with the reason for each one. Press Start on the first task, and Continue moves you on to the next one.',
       'Minutes left counts the planned time of the tasks still open. Lesson minutes per course shows how today\'s new lessons split between the courses.',
       'You can skip a task. It is not marked as failed; it simply waits for another day.',
     ],
@@ -89,9 +91,9 @@ export interface TourStep {
 }
 
 export const TOUR_STEPS: readonly TourStep[] = [
-  { title: 'Home', text: 'Home is your plan for today: new lessons, reviews, and quizzes, each with the reason it is there. Home and the title at the top bring you back here from anywhere.', target: '[data-nav="home"]' },
-  { title: 'Map', text: 'Every topic of your courses and where you are with each one. Choose a topic to see what it covers and where Cambridge teaches it.', target: '[data-nav="map"]' },
-  { title: 'Progress', text: 'How far you are in each course, your daily time and course split, and backups of your progress file.', target: '[data-nav="progress"]' },
+  { title: 'Today', text: 'Today is your day as a timeline: study blocks with new lessons, reviews, and quizzes, around the gym and meals. Today and the title at the top bring you back here from anywhere.', target: '[data-nav="home"]' },
+  { title: 'Course', text: 'The map of every topic of your courses and where you are with each one. Choose a topic to see what it covers and where Cambridge teaches it.', target: '[data-nav="map"]' },
+  { title: 'Progress', text: 'At the foot of every page. How far you are in each course, your daily time and course split, and backups of your progress file.', target: '[data-nav="progress"]' },
   { title: 'Glossary', text: 'Every term the lessons use. Words with a dotted underline open their definition right where you are.', target: '[data-nav="glossary"]' },
   { title: 'Help', text: 'How each part works, how to type answers, and this tour again.', target: '.help-button' },
 ];

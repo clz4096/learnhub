@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import { IDBFactory } from 'fake-indexeddb';
 import type { IdbFactoryLike } from '@learnhub/mastery';
+import { planDate } from '@/model/day';
 import { DEFAULT_COURSES, ensureSession, startLearner } from '@/model/learner';
 import { loadPlace } from '@/model/lessonState';
 import { go, hrefOf, parseRoute, route, type Route } from '@/model/route';
@@ -16,8 +17,11 @@ import { commit, flush, init, progress, setClock } from '@/model/store';
 import { App } from '@/ui/App';
 import { helpOpen, tour } from '@/ui/help/state';
 import { termOpen } from '@/ui/termState';
+import { dayTitle } from '@/ui/views/DayPlanner';
 
 const T0 = new Date(2026, 9, 4, 9, 0).getTime();
+/** Today's heading is the day's name. */
+const TODAY = dayTitle(planDate(T0));
 
 /** The browser's Back: resolves once the app has seen the hash change. */
 async function back(): Promise<void> {
@@ -76,7 +80,7 @@ describe('every route has a header with a way home', () => {
   for (const [state, setUp] of Object.entries(STATES)) {
     const started = state === 'a learner with a course';
     const home = started ? '#/' : '#/start';
-    const homeHeading = started ? 'Today' : 'Welcome';
+    const homeHeading = started ? TODAY : 'Welcome';
     for (const r of ROUTES) {
       it(`${state}, at ${hrefOf(r)}: the title and Home go to ${home}`, async () => {
         await setUp();
@@ -85,7 +89,7 @@ describe('every route has a header with a way home', () => {
         await flush();
         expect(title().getAttribute('href')).toBe(home);
         expect(homeItem().getAttribute('href')).toBe(home);
-        expect(homeItem().textContent).toBe('Home');
+        expect(homeItem().textContent).toBe(started ? 'Today' : 'Home');
         fireEvent.click(homeItem());
         await flush();
         expect(location.hash).toBe(home);
@@ -101,14 +105,18 @@ describe('every route has a header with a way home', () => {
     }
   }
 
-  it('the navigation before a course is chosen is Home and Glossary; after, Home, Map, Campaign, Report, Progress, and Glossary', async () => {
+  it('the tabs before a course is chosen are Home and Glossary; after, Today, Course, Campaign, Report, and Letters, with Progress and Glossary in the footer', async () => {
     render(<App />);
     expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Glossary']);
+    expect(document.querySelector('nav.foot-nav')).toBeNull();
     cleanup();
     await STATES['a learner with a course']();
     render(<App />);
-    expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Map', 'Campaign', 'Report', 'Progress', 'Glossary']);
+    expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Today', 'Course', 'Campaign', 'Report', 'Letters']);
+    expect([...document.querySelectorAll('nav.foot-nav a')].map((a) => a.textContent)).toEqual(['Progress', 'Glossary']);
     expect(homeItem().getAttribute('aria-current')).toBe('page');
+    expect(document.querySelector('nav.nav a[data-nav="map"]')?.getAttribute('href')).toBe('#/map');
+    expect(document.querySelector('nav.nav a[data-nav="letters"]')?.getAttribute('href')).toBe('#/letters');
   });
 
   it('a modified click on Home is left to the browser (open in a new tab)', async () => {
@@ -136,7 +144,7 @@ describe('Home and the browser history', () => {
     fireEvent.click(homeItem());
     await flush();
     expect(location.hash).toBe('#/');
-    expect(heading()).toBe('Today');
+    expect(heading()).toBe(TODAY);
     expect(loadPlace(`lesson-${progress.value?.session?.startedAt ?? 0}-0.pre.fractions`)).toMatchObject({ stage: 'practice', practice: { attempts: 1 } });
 
     await back();
