@@ -31,8 +31,8 @@ export const conditioning: Topic[] = [
     summary: 'Reverse a conditional probability with Bayes\'s formula, for example in a diagnostic test.',
     level: 'tripos-ia',
     area: 'conditioning',
-    prereqs: ['prob.total-probability'],
-    encompasses: { 'prob.total-probability': 0.6, 'prob.conditional-probability': 0.5, 'prob.conditional-formula': 0.3 },
+    prereqs: ['prob.total-probability', 'prob.bayes-two-events'],
+    encompasses: { 'prob.total-probability': 0.6, 'prob.bayes-two-events': 0.5, 'prob.conditional-probability': 0.5, 'prob.conditional-formula': 0.3 },
     sources: [{
       doc: TRIPOS,
       course: 'IA Probability',

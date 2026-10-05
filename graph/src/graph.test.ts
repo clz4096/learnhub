@@ -89,9 +89,11 @@ describe('the probstats slice (IA Probability)', () => {
   const ia = courseById('ia-probability');
   const probstats = coursesTopics(topics, [ia]);
 
-  it('is the reviewed 60 topics, in the reviewed order', () => {
-    // The order is what keeps SIMULATION.md byte-identical; see topics/index.ts.
-    expect(probstats).toHaveLength(60);
+  it('is the reviewed 60 topics plus the two of Cambridge batch 1, in the reviewed order', () => {
+    // The order keeps SIMULATION.md stable; see topics/index.ts. Batch 1 added
+    // prob.bayes-two-events and prob.event-spaces (graph/reviews/cambridge-batch-1.md, changes 2 and 3).
+    expect(probstats).toHaveLength(62);
+    expect(probstats.map((t) => t.id)).toEqual(expect.arrayContaining(['prob.bayes-two-events', 'prob.event-spaces']));
     expect(probstats.map((t) => t.id).slice(0, 3)).toEqual(['pre.fractions', 'pre.algebraic-manipulation', 'pre.indices']);
     expect(probstats[probstats.length - 1]?.id).toBe('prob.simpsons-paradox');
     for (const t of probstats) expect(LEVELS.indexOf(t.level)).toBeLessThanOrEqual(LEVELS.indexOf('tripos-ia'));
@@ -116,5 +118,30 @@ describe('the probstats slice (IA Probability)', () => {
 
   it('opens the frontier at its own roots', () => {
     expect(frontier(probstats, new Set())).toEqual(roots(probstats));
+  });
+});
+
+describe('Cambridge batch 1 citations', () => {
+  it('name only graph topics, and cite each document by its batch source id', async () => {
+    const { CAMBRIDGE_BATCH_1 } = await import('./topics/cambridge-batch-1');
+    const { readFileSync } = await import('node:fs');
+    const batch = JSON.parse(readFileSync(new URL('../../scripts/sources/batch-1.json', import.meta.url), 'utf8')) as { sources: { id: string; url: string }[] };
+    const urls = new Map(batch.sources.map((s) => [s.id, s.url]));
+    for (const [id, cites] of Object.entries(CAMBRIDGE_BATCH_1)) {
+      expect(byId.has(id), id).toBe(true);
+      for (const s of cites) {
+        expect(urls.get(s.doc), `${id}: ${s.doc}`).toBe((SOURCE_DOCS as Record<string, { url: string }>)[s.doc]?.url);
+        expect(byId.get(id)?.sources, id).toContainEqual(s);
+      }
+    }
+  });
+
+  it('cite every new topic of the batch, and leave the course targets as they were', async () => {
+    const { CAMBRIDGE_COURSE } = await import('./sources');
+    for (const id of ['comb.pigeonhole', 'prob.bayes-two-events', 'prob.event-spaces']) {
+      expect(byId.get(id)?.sources.some((s) => s.doc in CAMBRIDGE_COURSE), id).toBe(true);
+    }
+    const courses = new Set(COURSES.map((c) => c.course));
+    for (const c of Object.values(CAMBRIDGE_COURSE)) expect(courses.has(c as never), c).toBe(false);
   });
 });

@@ -5,7 +5,7 @@
  * generator's reference answer is accepted by its grader, every known misconception is
  * rejected, and every probability is checked exactly and by simulation.
  */
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import katex from 'katex';
 import { describe, expect, it } from 'vitest';
 import { courseById, courseTargets, coursesClosure, topics } from '@learnhub/graph';
@@ -16,6 +16,7 @@ import { answerText, grade, readAnswer, sameAnswer, type Instance } from './prob
 import { computedMath, dmath, exprTex, ident, markedTerms, math, plain, setOf, t, texToPlain, type Rich, type Span } from './rich';
 import { TOPIC_CONTENT } from './topics';
 import type { Block, TopicContent } from './topic';
+import { CITED_DOCS, citationText, type Citation } from './cambridge';
 import { contentFor } from './index';
 
 const SEEDS = 1000;
@@ -63,6 +64,7 @@ function instanceRich(inst: Instance): Rich[] {
   return [
     p.prompt, ...p.solution, ...inst.misconceptions.map((m) => m.why),
     ...(p.answer.kind === 'choice' ? p.answer.options.map((o) => o.label) : []),
+    ...(p.answer.kind === 'table' ? [...p.answer.columns, ...p.answer.rows.flat().filter((c): c is Rich => c !== null)] : []),
   ];
 }
 
@@ -86,10 +88,31 @@ function checkRich(r: Rich, where: string): void {
   checkTex(r, where);
 }
 
+/** The first ten topics the engine schedules (gate 3), then the new topics of Cambridge batch 1. */
+const FIRST_TEN = 10;
+const BATCH_1_NEW = ['comb.pigeonhole', 'prob.bayes-two-events', 'prob.event-spaces'];
+
+/** Source ids of the batch, from the committed batch file; the manifest too when the local source cache exists. */
+const batchIds = new Set((JSON.parse(readFileSync(new URL('../../scripts/sources/batch-1.json', import.meta.url), 'utf8')) as { sources: { id: string }[] }).sources.map((x) => x.id));
+const manifestUrl = new URL('../../sources/manifest.json', import.meta.url);
+const manifest: Map<string, string> | null = existsSync(manifestUrl)
+  ? new Map((JSON.parse(readFileSync(manifestUrl, 'utf8')) as { sources: { id: string; status: string }[] }).sources.map((x) => [x.id, x.status]))
+  : null;
+
+/** A citation names a document of the batch (and, with the cache present, one fetched OK) and a location, with no dashes. */
+function checkCitation(cit: Citation, where: string): void {
+  expect(batchIds.has(cit.doc), `${where}: ${cit.doc} is not in scripts/sources/batch-1.json`).toBe(true);
+  if (manifest !== null) expect(manifest.get(cit.doc), `${where}: ${cit.doc} in sources/manifest.json`).toBe('ok');
+  expect(cit.at.trim().length, where).toBeGreaterThan(0);
+  expect(DASH.test(citationText(cit)), `${where}: dash in "${citationText(cit)}"`).toBe(false);
+  expect(CITED_DOCS[cit.doc], where).toBeDefined();
+}
+
 describe('content topics', () => {
-  it('are ten topics, each in the graph, each once', () => {
+  it('are the first ten topics and the new topics of Cambridge batch 1, each in the graph, each once', () => {
     const ids = TOPIC_CONTENT.map((c) => c.topicId);
-    expect(ids).toHaveLength(10);
+    expect(ids).toHaveLength(FIRST_TEN + BATCH_1_NEW.length);
+    expect(ids.slice(FIRST_TEN)).toEqual(BATCH_1_NEW);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(graphIds.has(id), id).toBe(true);
     for (const id of ids) expect(contentFor(id)?.topicId).toBe(id);
@@ -123,7 +146,7 @@ describe('content topics', () => {
       }
       for (const [k, v] of Object.entries(plan.courseMinutes ?? {})) spent[k] = (spent[k] ?? 0) + v;
     }
-    expect(seen.slice(0, 10)).toEqual(TOPIC_CONTENT.map((c) => c.topicId));
+    expect(seen.slice(0, 10)).toEqual(TOPIC_CONTENT.slice(0, FIRST_TEN).map((c) => c.topicId));
   });
 
   it('are all in the closure of the two courses', () => {
@@ -153,12 +176,81 @@ describe('content topics', () => {
         for (const id of c.terms) expect(marked.has(id), `${id} is not marked in the lesson`).toBe(true);
       });
 
-      it('worked examples are graded like problems: sane, and the reference answer is accepted', () => {
+      it('worked examples are graded like problems: sane, and the reference answer is accepted; only a Cambridge proof has no problem', () => {
         for (const e of c.examples) {
+          if (e.instance === undefined) {
+            expect(e.source, `${plain(e.title)}: a worked example without a problem must be a cited Cambridge proof`).toBeDefined();
+            continue;
+          }
           expect(e.instance.saneError).toBeNull();
           expect(grade(e.instance.problem, e.instance.reference).correct, plain(e.prompt)).toBe(true);
         }
       });
+
+      it('works at least one real Cambridge problem in full, cited, and practises others', () => {
+        const cited = c.examples.filter((e) => e.source !== undefined);
+        expect(cited.length, 'Cambridge worked examples').toBeGreaterThanOrEqual(1);
+        expect(c.cambridge.length, 'Cambridge practice problems').toBeGreaterThanOrEqual(1);
+        const ids = c.cambridge.map((p) => p.id);
+        expect(new Set(ids).size).toBe(ids.length);
+        // A problem worked as an example is not also set as practice.
+        for (const e of cited) expect(ids.map((id) => `cambridge.${id}`)).not.toContain(e.instance?.generatorId);
+        for (const e of cited) checkCitation(e.source as Citation, `${c.topicId} example ${plain(e.title)}`);
+      });
+
+      it('worked Cambridge problems: answers verified by code and compared with the official ones', () => {
+        for (const e of c.examples) {
+          const p = e.problem;
+          if (p === undefined) continue;
+          const where = `${c.topicId} example ${p.id}`;
+          expect(p.verify(), `${where}: verify`).toBeNull();
+          if (p.official !== undefined) {
+            checkCitation(p.official.source, `${where} official`);
+            expect(grade(p.instance.problem, p.official.answer).correct, `${where}: official answer ${JSON.stringify(p.official.answer)}`).toBe(p.official.agrees);
+          }
+        }
+      });
+
+      for (const p of c.cambridge) {
+        it(`Cambridge problem ${p.id} (${p.mode}): cited, ${p.mode === 'auto' ? 'answer computed and checked' : 'set for supervision'}`, () => {
+          const where = `${c.topicId}/${p.id}`;
+          checkCitation(p.source, where);
+          checkRich(p.title, `${where} title`);
+          if (p.mode === 'supervision') {
+            checkRich(p.prompt, `${where} prompt`);
+            expect(['proof', 'explanation', 'sketch']).toContain(p.writeUp);
+            if (p.official !== undefined) checkCitation(p.official, `${where} official`);
+            return;
+          }
+          const inst = p.instance;
+          expect(inst.generatorId).toBe(`cambridge.${p.id}`);
+          expect(inst.saneError).toBeNull();
+          // Every auto-checked answer is verified by code, independently of how it is written.
+          expect(p.verify(), `${where}: verify`).toBeNull();
+          const ok = grade(inst.problem, inst.reference);
+          expect(ok.correct, `${where}: reference ${JSON.stringify(inst.reference)}: ${ok.feedback}`).toBe(true);
+          for (const m of inst.misconceptions) {
+            const r = grade(inst.problem, m.response, inst.misconceptions);
+            expect(r.correct, `${where}: misconception ${JSON.stringify(m.response)} accepted`).toBe(false);
+            expect(r.misconception, `${where}: misconception ${JSON.stringify(m.response)} not matched`).toBeDefined();
+          }
+          instanceRich(inst).forEach((r, i) => checkRich(r, `${where} text ${i}`));
+          checkTex(answerText(inst.problem.answer), `${where} answer`);
+          if (typeof inst.reference === 'string' && inst.problem.answer.kind !== 'choice' && inst.problem.answer.kind !== 'table') {
+            const read = readAnswer(inst.problem.answer, inst.reference);
+            expect(read, `${where}: no preview for the reference`).not.toBeNull();
+            expect(read?.note, `${where}: the reference is read with a note`).toBeUndefined();
+            checkTex([{ kind: 'math', text: read?.tex ?? '', typed: [] }], `${where} preview`);
+          }
+          // The official answer, as printed, against the computed one.
+          if (p.official !== undefined) {
+            checkCitation(p.official.source, `${where} official`);
+            const r = grade(inst.problem, p.official.answer);
+            expect(r.correct, `${where}: official answer ${JSON.stringify(p.official.answer)} ${p.official.agrees ? 'should agree' : 'is a recorded mismatch'}`).toBe(p.official.agrees);
+            if (!p.official.agrees) expect(p.official.note, `${where}: a mismatch says why`).toBeDefined();
+          }
+        });
+      }
 
       for (const g of c.generators) {
         it(`generator ${g.id}: ${SEEDS} seeds, sane, solver accepted, at least two misconceptions all rejected`, () => {
@@ -325,7 +417,7 @@ describe('source rules', () => {
   it('no computed() wrapper is given a hand-typed number', () => {
     const dir = new URL('./', import.meta.url);
     const files = ['glossary.ts', ...readdirSync(new URL('./topics/', dir)).map((f) => `topics/${f}`)];
-    const quoted = /\b(?:computed|computedMath|cm)\(\s*(['"])[^'"]*\d[^'"]*\1/;
+    const quoted = /\b(?:computed|computedMath|computedTex|cm)\(\s*(['"])[^'"]*\d[^'"]*\1/;
     for (const f of files) {
       const src = readFileSync(new URL(f, dir), 'utf8');
       expect(quoted.exec(src)?.[0], f).toBeUndefined();
@@ -343,7 +435,7 @@ describe('source rules', () => {
 /** The literal text of each template passed straight to a computed wrapper, interpolations removed. */
 function wrappedTemplates(src: string): string[] {
   const out: string[] = [];
-  const start = /\b(?:computed|computedMath|cm)\(\s*`/g;
+  const start = /\b(?:computed|computedMath|computedTex|cm)\(\s*`/g;
   for (const m of src.matchAll(start)) {
     let i = (m.index ?? 0) + m[0].length;
     let lit = '';

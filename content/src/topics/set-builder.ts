@@ -1,8 +1,15 @@
-/** sets.comprehension: Membership and set-builder notation. */
-import { int, pick, q, str, upTo } from '../math';
+/**
+ * sets.comprehension: Membership and set-builder notation. The lesson follows the CST
+ * notes, printed pages 198 to 206 (set membership, defining sets, set comprehension, set
+ * equality); the problems are the notes' examples and supervision exercise 3.1.1, checked
+ * against the official 2023-24 solutions (the 2023-24 sheet is the same as 2025-26's).
+ */
+import type { Rational } from '@learnhub/mastery';
+import { auto, cite, same, supervision } from '../cambridge';
+import { gcd, int, pick, q, str, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
-import { dmath, math, setOf, t, type Span } from '../rich';
-import { worked, type TopicContent } from '../topic';
+import { dmath, listOf, math, setOf, t, type Span } from '../rich';
+import { worked, workedCambridge, type TopicContent } from '../topic';
 
 const ids = (xs: readonly number[]): string[] => xs.map((x) => `e${x}`);
 const options = (xs: readonly number[]): ChoiceOption[] => xs.map((x) => ({ id: `e${x}`, label: t`${x}` }));
@@ -161,6 +168,152 @@ const image = generator<ImageP>({
   ],
 });
 
+// ---------------------------------------------------------------- common divisors
+
+/** D(n) = {d in N : d | n}, by trial division. */
+const divisors = (n: number): number[] => upTo(n).filter((d) => n % d === 0);
+
+/** CD(m, n) = {d in N : d | m and d | n}, straight from the definition. */
+const commonDivisors = (m: number, n: number): number[] => divisors(Math.min(m, n)).filter((d) => m % d === 0 && n % d === 0);
+
+/** Null when the values are exactly the set, else why not. */
+function isTheSet(vals: readonly Rational[], want: readonly number[], member: (x: number) => boolean, describe: string): string | null {
+  const xs = vals.map((v) => (v.den === 1n ? Number(v.num) : NaN));
+  if (xs.some((x) => Number.isNaN(x))) return 'Every element here is a whole number.';
+  const bad = xs.find((x) => !member(x));
+  if (bad !== undefined) return `${bad} is not ${describe}.`;
+  if (new Set(xs).size !== xs.length) return 'List each element once.';
+  const missing = want.filter((x) => !xs.includes(x));
+  if (missing.length > 0) return `${missing.length === 1 ? 'One element is' : `${missing.length} elements are`} missing.`;
+  return null;
+}
+
+interface CdP { g: number; a: number; b: number }
+
+const cd = generator<CdP>({
+  id: 'common-divisors',
+  skill: 'List a set given by comprehension: the common divisors CD(m, n), as in supervision exercise 3.1.1.',
+  params(rng) {
+    for (;;) {
+      const g = pick(rng, [4, 6, 8, 9, 10, 12, 15, 18]);
+      const a = int(rng, 2, 15);
+      const b = int(rng, 2, 15);
+      if (a !== b && gcd(a, b) === 1) return { g, a, b };
+    }
+  },
+  sane: ({ g, a, b }) => (gcd(a, b) === 1 && a !== b && g * a <= 300 && g * b <= 300 ? null : 'out of range'),
+  problem({ g, a, b }) {
+    const [m, n] = [g * a, g * b];
+    const ans = commonDivisors(m, n);
+    return {
+      prompt: t`List the elements of ${math`\mathrm{CD}(${m}, ${n}) = \{d \in \mathbb{N} \mid d \text{ divides } ${m} \text{ and } d \text{ divides } ${n}\}`}, separated by commas.`,
+      answer: { kind: 'witness', count: { min: 1, max: 40 }, unordered: true, example: ans.join(', '), check: (v) => isTheSet(v, ans, (d) => d >= 1 && m % d === 0 && n % d === 0, `a common divisor of ${m} and ${n}`) },
+      solution: [
+        t`By definition, ${math`d`} is an element exactly when it divides both numbers. The divisors of ${m} are ${listOf(divisors(m))}.`,
+        t`Keep the ones that also divide ${n}: ${math`\mathrm{CD}(${m}, ${n}) = ${setOf(ans)}`}.`,
+      ],
+    };
+  },
+  solve: ({ g, a, b }) => {
+    // Every common divisor divides the gcd, here g, and every divisor of g is common.
+    return divisors(g * gcd(a, b)).join(', ');
+  },
+  misconceptions: ({ g, a }): Misconception[] => [
+    { response: divisors(g * a).join(', '), why: t`Those are all the divisors of the first number. An element must divide both numbers.` },
+    { response: String(g), why: t`That is the greatest common divisor only. The set holds every common divisor, including ${1}.` },
+  ],
+});
+
+// ---------------------------------------------------------------- Cambridge problems
+
+const NOTES = 'cst-dm-notes';
+const isPrime = (n: number): boolean => n >= 2 && upTo(Math.floor(Math.sqrt(n))).every((d) => d === 1 || n % d !== 0);
+
+const evenPrimes = auto({
+  id: 'notes-205-even-primes',
+  source: cite(NOTES, 'printed page 205, Set equality'),
+  title: t`The even primes`,
+  prompt: t`List the elements of ${math`\{x \in \mathbb{N} \mid ${2} \text{ divides } x \text{ and } x \text{ is prime}\}`}.`,
+  answer: { kind: 'witness', count: { min: 1, max: 10 }, unordered: true, example: '2', check: (v) => isTheSet(v, [2], (x) => x % 2 === 0 && isPrime(x), 'an even prime') },
+  solution: [
+    t`An element must pass both tests: it is even and it is prime.`,
+    t`${2} is even and prime. Any larger even number has ${2} as a factor and is bigger than ${2}, so it is not prime.`,
+    t`So the set is ${setOf([2])}: the notes' example of two sets that are equal because they have the same elements.`,
+  ],
+  reference: '2',
+  verify: () => same('Even primes below 1000', upTo(1000).filter((x) => x % 2 === 0 && isPrime(x)).join(), '2'),
+  misconceptions: [{ response: '2, 3, 5, 7', why: t`Those are primes, but the set also needs ${2} to divide ${math`x`}: only ${2} is even.` }],
+});
+
+const interval = auto({
+  id: 'notes-202-interval',
+  source: cite(NOTES, 'printed page 202, Defining sets'),
+  title: t`An interval of integers`,
+  prompt: t`The notes write ${math`[-${2}..${3}]`} for ${math`\{n \in \mathbb{Z} \mid -${2} \le n \le ${3}\}`}. List its elements.`,
+  answer: { kind: 'witness', count: { min: 1, max: 20 }, unordered: true, example: '-2, -1, 0, 1, 2, 3', check: (v) => isTheSet(v, [-2, -1, 0, 1, 2, 3], (x) => x >= -2 && x <= 3, 'between -2 and 3') },
+  solution: [
+    t`The elements are the integers from ${-2} to ${3}, both ends included: ${setOf([-2, -1, 0, 1, 2, 3])}.`,
+    t`Listing works for a small finite set like this one. For a huge or infinite set, such as the primes, comprehension is the only way to define it.`,
+  ],
+  reference: '-2, -1, 0, 1, 2, 3',
+  verify: () => same('[-2..3]', Array.from({ length: 6 }, (_, i) => i - 2).join(', '), '-2, -1, 0, 1, 2, 3'),
+  misconceptions: [{ response: '-1, 0, 1, 2', why: t`Both ends are included: ${math`\le`} lets ${-2} and ${3} in.` }],
+});
+
+const cd1224 = auto({
+  id: 'notes-208-cd',
+  source: cite(NOTES, 'printed page 208, Example 69'),
+  title: t`Common divisors`,
+  prompt: t`The notes define ${math`\mathrm{CD}(m, n) = \{d \in \mathbb{N} \mid d \text{ divides } m \text{ and } d \text{ divides } n\}`}. List the elements of ${math`\mathrm{CD}(${1224}, ${660})`}.`,
+  answer: { kind: 'witness', count: { min: 1, max: 40 }, unordered: true, example: commonDivisors(1224, 660).join(', '), check: (v) => isTheSet(v, commonDivisors(1224, 660), (d) => d >= 1 && 1224 % d === 0 && 660 % d === 0, 'a common divisor of 1224 and 660') },
+  solution: [
+    t`${math`d`} is an element when it divides both. The notes list the divisors of ${1224} (Example ${68}): ${listOf(divisors(1224))}.`,
+    t`Keep those that divide ${660}: ${math`\mathrm{CD}(${1224}, ${660}) = ${setOf(commonDivisors(1224, 660))}`}.`,
+  ],
+  reference: commonDivisors(660, 1224).reverse().join(', '),
+  verify: () => same('CD(1224, 660) against the notes', commonDivisors(1224, 660).join(', '), '1, 2, 3, 4, 6, 12'),
+  official: { source: cite(NOTES, 'printed page 208, Example 69'), answer: '1, 2, 3, 4, 6, 12', agrees: true },
+});
+
+const sheet311 = auto({
+  id: 'sw-3-1-1',
+  source: cite('cst-dm-sw1', 'Exercises 3, 3.1.1'),
+  title: t`${math`\mathrm{CD}(${666}, ${330})`}`,
+  prompt: t`Calculate the set ${math`\mathrm{CD}(${666}, ${330})`} of common divisors of ${666} and ${330}. List its elements, separated by commas.`,
+  answer: { kind: 'witness', count: { min: 1, max: 40 }, unordered: true, example: commonDivisors(666, 330).join(', '), check: (v) => isTheSet(v, commonDivisors(666, 330), (d) => d >= 1 && 666 % d === 0 && 330 % d === 0, 'a common divisor of 666 and 330') },
+  solution: [
+    t`${math`${666} = ${2} \times ${3}^{${2}} \times ${37}`} and ${math`${330} = ${2} \times ${3} \times ${5} \times ${11}`}, so a common divisor can use only the shared primes, ${2} and ${3} once each.`,
+    t`So ${math`\mathrm{CD}(${666}, ${330}) = ${setOf(commonDivisors(666, 330))}`}.`,
+  ],
+  reference: '6, 3, 2, 1',
+  verify: () => same('CD(666, 330) by trial division', commonDivisors(666, 330).join(', '), divisors(6).join(', ')),
+  misconceptions: [{ response: '6', why: t`${6} is the greatest common divisor. The set holds every common divisor: ${1}, ${2}, and ${3} too.` }],
+  official: { source: cite('cst-dm-sols-2324-3', '3.1.1'), answer: '1, 2, 3, 6', agrees: true },
+});
+
+const zeroDivisors = auto({
+  id: 'notes-205-d0',
+  source: cite(NOTES, 'printed page 205, Set equality', true),
+  title: t`The divisors of zero`,
+  prompt: t`The notes state ${math`\{d \in \mathbb{N} \mid d \text{ divides } ${0}\} = \mathbb{N}`}. Which natural numbers divide ${0}?`,
+  answer: { kind: 'choice', options: [{ id: 'all', label: t`Every natural number` }, { id: 'zero', label: t`Only ${0}` }, { id: 'none', label: t`None of them` }], correct: 'all' },
+  solution: [
+    t`${math`d`} divides ${0} when ${math`${0} = k \times d`} for some integer ${math`k`}. Take ${math`k = ${0}`}: it works for every ${math`d`}.`,
+    t`So every natural number is in the set, and the set equals ${math`\mathbb{N}`}. (The notes start ${math`\mathbb{N}`} at ${0}; ${0} divides ${0} too.)`,
+  ],
+  reference: 'all',
+  verify: () => same('every d from 1 to 100 leaves remainder 0 on 0, and 0 = 0 x 0', upTo(100).every((d) => 0 % d === 0), true),
+  misconceptions: [{ response: 'none', why: t`Dividing ${0} by ${math`d`} gives ${0}, a whole number, with nothing left over. Divisibility asks for ${math`${0} = kd`}, and ${math`k = ${0}`} works.` }],
+});
+
+const equalProof = supervision({
+  id: 'notes-205-equality',
+  source: cite(NOTES, 'printed pages 205 and 206, Set equality', true),
+  title: t`Proving two sets equal`,
+  prompt: t`Prove that ${math`\{x \in \mathbb{N} \mid ${2} \text{ divides } x \text{ and } x \text{ is prime}\} = \{${2}\}`}. Show both directions: every element of the left side is ${2}, and ${2} is an element of the left side.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const evens = upTo(10).filter((x) => x % 2 === 0);
@@ -168,21 +321,26 @@ const sq = range(1, 4).map((k) => k * k);
 
 export const setBuilder: TopicContent = {
   topicId: 'sets.comprehension',
-  goal: t`Read and write sets as ${math`\{x \in A \mid P(x)\}`}, and decide membership from the defining property.`,
+  goal: t`Read and write sets as ${math`\{x \in A \mid P(x)\}`}, decide membership from the defining property, and tell when two sets are equal.`,
   lesson: [
-    { kind: 'p', text: t`Listing every element works for small sets. For larger ones, describe the elements by a property instead. This is [[set-builder|set-builder notation]], also called comprehension.` },
-    { kind: 'rule', text: t`${dmath`\{x \in A \mid P(x)\}`} is the set of elements ${mx} of ${math`A`} for which the property ${math`P(x)`} is true. Read the bar as "such that". Some books write a colon instead: ${math`\{x \in A : P(x)\}`}.` },
+    { kind: 'p', text: t`The CST notes call sets "the mathematicians' data structures": a well-defined, unordered collection of objects, its elements. The statement ${math`x \in A`} is true when ${mx} is an element of ${math`A`}: ${math`\pi \in \mathbb{R}`} is true, ${math`\sqrt{-${1}} \in \mathbb{R}`} is not. This yes or no question is [[membership|membership]].` },
+    { kind: 'p', text: t`A small finite set can be listed: the even primes are ${setOf([2])}, the booleans are ${math`\{\text{true}, \text{false}\}`}, and ${math`[-${2}..${3}] = ${setOf([-2, -1, 0, 1, 2, 3])}`}. A huge or infinite set, such as the primes, cannot be listed. It is defined by a property instead: [[set-builder|set-builder notation]], which the notes call set comprehension.` },
+    { kind: 'rule', text: t`${dmath`\{x \in A \mid P(x)\}`} is the set of elements ${mx} of ${math`A`} for which the property ${math`P(x)`} is true. Read the bar as "such that"; some books write a colon, ${math`\{x \in A : P(x)\}`}. By definition, ${math`a \in \{x \in A \mid P(x)\}`} exactly when ${math`a \in A`} and ${math`P(a)`}.` },
+    { kind: 'p', text: t`The notes' first examples: ${math`\mathbb{N} = \{n \in \mathbb{Z} \mid n \ge ${0}\}`} (so ${math`\mathbb{N}`} starts at ${0} in this course), and the positive integers ${math`\mathbb{N}^{+} = \{n \in \mathbb{N} \mid n \ge ${1}\}`}.` },
     { kind: 'p', text: t`For example ${math`\{x \in ${domainText(10)} \mid x \text{ is even}\} = ${setOf(evens)}`}. The set ${math`A`} in front says where ${mx} comes from; the property after the bar filters it.` },
     { kind: 'p', text: t`[[membership|Membership]] is a yes or no question: is a given thing an element? To decide whether ${math`${7} \in \{x \in ${domainText(10)} \mid x \text{ is even}\}`}, check both parts: ${math`${7} \in ${domainText(10)}`}, but ${7} is not even, so ${7} is not in the set.` },
     { kind: 'p', text: t`A second form builds elements from a formula: ${math`\{k^{${2}} \mid k \in ${setOf(range(1, 4))}\} = ${setOf(sq)}`}. Here ${mk} is a counter, and the elements are the values of the formula.` },
+    { kind: 'p', text: t`Two sets are equal precisely when they have the same elements, however they are described. ${math`\{x \in \mathbb{N} \mid ${2} \text{ divides } x \text{ and } x \text{ is prime}\} = \{${2}\}`}, and ${math`\{d \in \mathbb{N} \mid d \text{ divides } ${0}\} = \mathbb{N}`}. Equivalent properties give equal sets.` },
     { kind: 'p', text: t`Conditions combine with "and" and "or" as in logic: ${math`\{x \in ${domainText(10)} \mid x \text{ is even and } x > ${5}\}`} is ${setOf(evens.filter((x) => x > 5))}, while with "or" it is ${setOf(upTo(10).filter((x) => x % 2 === 0 || x > 5))}.` },
   ],
   examples: [
     worked(members, { n: 12, c1: { kind: 'mult', k: 3 }, c2: { kind: 'ge', m: 6 }, join: 'and' }, t`Reading a property`),
-    worked(countMultiples, { n: 50, k: 7 }, t`Counting without listing`),
+    workedCambridge(evenPrimes),
+    workedCambridge(cd1224),
     worked(image, { a: 2, b: 1, lo: 0, hi: 4 }, t`A set from a formula`),
   ],
-  generators: [members, countMultiples, image],
+  generators: [members, countMultiples, image, cd],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['set-builder', 'membership'],
+  cambridge: [sheet311, interval, zeroDivisors, equalProof],
 };

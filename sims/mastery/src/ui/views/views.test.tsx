@@ -40,7 +40,7 @@ describe('Start', () => {
     expect(screen.getByLabelText('Probability and Discrete Mathematics')).toBe(options[0]);
     expect(screen.queryAllByRole('checkbox')).toEqual([]);
     expect((screen.getByLabelText('Minutes a day') as HTMLInputElement).value).toBe('60');
-    expect(screen.getByText(/98 topics in all/)).toBeTruthy();
+    expect(screen.getByText(/101 topics in all/)).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/placement/i);
   });
 

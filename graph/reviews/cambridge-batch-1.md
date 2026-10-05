@@ -478,3 +478,18 @@ Albert approved building through to deployment without stopping (2026-10-05) and
 12. Treat sheet 2.3.2's hint as pointing to Proposition 25.
 13. Edge changes 5 and 6 approved; regenerate the simulation files.
 14. Book of Proof even-numbered exercises: auto-checked where the answer is computable and verified by code, otherwise supervision.
+
+## Build step 2 (2026-10-05)
+
+What was built from this map, and what the build found. The content and its checks are the record; this section only summarises them.
+
+**Graph.** Added `comb.pigeonhole` (step; cited by the CST "Proof" syllabus under "existential quantification", the notes' example on printed page 87, and STEP Support A5 and A8 Q4), `prob.bayes-two-events` (step; `prob.bayes-formula` now builds on it), and `prob.event-spaces` (tripos-ia; `prob.axioms` builds on it instead of on `sets.countable-unions` directly). `num.algebraic-structures` was not added: no lesson in this batch uses it (sheet 2.1.4 is not set yet), so it waits for the batch that teaches Z_m and inverses. Change 5 made (`num.euclid-theorem` builds on `num.euclid-algorithm`). Change 6 made, with one addition the map did not foresee: `num.fermat-little` states the theorem as a congruence, and the inverse edge was its only path to `num.modular-arithmetic`, so it now lists `num.modular-arithmetic` directly (the validator rejected its encompass weight otherwise). `num.number-systems` says N starts at 0. Every topic the map names cites its Cambridge sources (`graph/src/topics/cambridge-batch-1.ts`); Book of Proof Chapter 7 is cited only for exercises 28 to 36 and page 164 (decision 5). The graph has 101 topics; the measured placement and simulation constants in the graph tests moved with it, and both SIMULATION files were regenerated.
+
+**Answers checked against official ones.** Every auto-checked Cambridge problem's answer is verified by code (brute force, exact arithmetic, or a second method), and, where an official answer exists, compared with it in the content checks: STEP Support hints (A5, A6, A7, A8, A12), Book of Proof's solutions to odd exercises, and the CST 2023-24 solutions to Exercises 1 and 3. The 2023-24 supervision sheet was fetched and its text compared with 2025-26's: identical, so the solutions apply. No computed answer disagrees with an official one.
+
+**Source notes found while building.**
+
+- STEP Support A6, Discussion: it says the sensitivity of 99% means "99% of patients who test positive do in fact have it". That describes P(disease given positive); sensitivity is P(positive given disease), as the rest of the discussion and the question's own numbers use. The lesson defines sensitivity correctly and does not repeat the slip.
+- STEP Support A6 hints, Q4(i)(d): the answer is printed as 18/38 (9/19 in lowest terms); A6 Q4(ii) as 99/2097 (11/233).
+- STEP Support A12 hints, Q1(iv): the hints rewrite 2^(2n) - 1 as (2^n - 1)(2^n + 1), not as 4^n - 1 as this map said; the worked example shows both.
+- TMUA Exercise Q is on page 73, not 72 (citation corrected).

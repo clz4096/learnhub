@@ -351,3 +351,28 @@ input.weight { width: 80px; }
 .import-file .error, .import-file .warning { width: 100%; }
 .import-start { margin-top: var(--space-5); }
 .import-start h2 { margin: 0 0 var(--space-1); }
+
+/* Cambridge problems (build step 2): citations, original problems, write-ups, and table answers. */
+.citation { color: var(--text-muted); margin: 0 0 var(--space-2); }
+.citation .badge { margin-left: var(--space-2); }
+.badge-good { background: var(--good-bg); color: var(--good); }
+.badge-muted { background: var(--surface-2); color: var(--text-muted); }
+.cambridge-problem { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); margin: 0 0 var(--space-4); }
+.cambridge-problem h3 { margin: 0 0 var(--space-1); }
+.supervision label { display: block; font-size: var(--text-sm); font-weight: 600; margin: var(--space-2) 0 var(--space-1); }
+.supervision textarea { width: 100%; box-sizing: border-box; min-height: 8em; padding: var(--space-2); border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface); resize: vertical; }
+.supervision .actions { align-items: center; flex-wrap: wrap; }
+.table-answer table { width: auto; }
+.table-answer td { white-space: nowrap; }
+.cell-input { width: 5em; min-height: 36px; padding: 2px var(--space-1); text-align: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); }
+.cell-input.truth { width: 2.75em; }
+.cell-wrong .cell-input { border: 2px solid var(--error); background: var(--error-bg); }
+.cell-right .cell-input { border: 2px solid var(--good); }
+.cell-mark { margin-left: var(--space-1); font-weight: 700; }
+.cell-mark.bad { color: var(--error); }
+.cell-mark.good { color: var(--good); }
+.filled-table td, .filled-table th { padding: 2px var(--space-2); }
+/* A table answer's correct answer needs the full width, at the size of the table above it. */
+.result-pair.one:has(.filled-table) { max-width: 100%; }
+.result-pair .filled-table strong { display: inline; font-size: inherit; font-weight: 700; }
+.result-pair .filled-table .math .katex { font-size: 1em; }

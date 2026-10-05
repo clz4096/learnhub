@@ -8,7 +8,8 @@ import {
 import { courseById, coursesTopics } from './courses';
 import { topics } from './topics';
 
-// The probstats slice: IA Probability's closure in the shared graph, the reviewed 60 topics.
+// The probstats slice: IA Probability's closure in the shared graph, the reviewed 60 topics plus
+// prob.bayes-two-events and prob.event-spaces from Cambridge batch 1.
 const probstats = coursesTopics(topics, [courseById('ia-probability')]);
 
 const SEEDS = [1, 2, 3, 4, 5];
@@ -18,12 +19,13 @@ const loadOf = (r: SimResult): number[] => r.days.map((d) => d.reviewMinutes + d
 const mean = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0) / xs.length;
 
 describe('simulated learner on the probstats graph, 60 days at 60 minutes', () => {
-  it('masters all 60 topics within 45 days, with or without credit', () => {
-    // 1,080 lesson minutes is 18 days with no reviews and no failed lessons, the floor.
+  it('masters all 62 topics within 48 days, with or without credit', () => {
+    // 1,120 lesson minutes is 19 days with no reviews and no failed lessons, the floor.
+    // Measured: at most 46 days.
     for (const r of [...withCredit, ...withoutCredit]) {
       expect(r.dayAllMastered).not.toBeNull();
-      expect(r.dayAllMastered as number).toBeGreaterThanOrEqual(18);
-      expect(r.dayAllMastered as number).toBeLessThanOrEqual(45);
+      expect(r.dayAllMastered as number).toBeGreaterThanOrEqual(19);
+      expect(r.dayAllMastered as number).toBeLessThanOrEqual(48);
     }
   });
 
@@ -36,8 +38,8 @@ describe('simulated learner on the probstats graph, 60 days at 60 minutes', () =
   it('review minutes per day stay bounded as mastered topics accumulate', () => {
     for (const r of [...withCredit, ...withoutCredit]) {
       const load = loadOf(r);
-      // Never more than three quarters of the session.
-      expect(Math.max(...load)).toBeLessThanOrEqual(45);
+      // Never more than about four fifths of the session (measured 48 minutes with 62 topics).
+      expect(Math.max(...load)).toBeLessThanOrEqual(50);
       // Mastered topics double or more from days 21 to 40 to days 41 to 60; the load does not follow.
       expect(mean(load.slice(40, 60))).toBeLessThanOrEqual(mean(load.slice(20, 40)));
     }

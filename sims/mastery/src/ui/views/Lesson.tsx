@@ -8,9 +8,11 @@
  * lesson and coming back resumes it where it was.
  */
 import { useState } from 'preact/hooks';
-import { contentFor, type Block, type MasteryRule, type TopicContent, type WorkedExample } from '@learnhub/content';
+import {
+  citationText, contentFor, type Block, type CambridgeProblem, type MasteryRule, type SupervisionProblem, type TopicContent, type WorkedExample,
+} from '@learnhub/content';
 import { LEVEL_NAMES, sourceLinks, topicOf } from '@/model/courses';
-import { clearPlace, loadPlace, savePlace, type LessonStage } from '@/model/lessonState';
+import { clearPlace, loadPlace, loadWriteUp, savePlace, saveWriteUp, type LessonStage } from '@/model/lessonState';
 import { answer, freshPractice, instanceAt, outcomeOf, type PracticeState } from '@/model/practice';
 import { ProblemCard, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
 import type { Route } from '@/model/route';
@@ -63,6 +65,7 @@ function Example({ e, n }: { e: WorkedExample; n: number }) {
   return (
     <article class="example">
       <h3>Example {n}: <Rich text={e.title} /></h3>
+      {e.source !== undefined && <p class="citation small">{e.source.adapted === true ? citationText(e.source) : `From ${citationText(e.source)}`}</p>}
       <Rich as="p" class="prompt" text={e.prompt} />
       <ol>{e.steps.slice(0, shown).map((s, i) => <Rich key={i} as="li" text={s} />)}</ol>
       {all
@@ -173,6 +176,81 @@ function Practice({ c, salt, initial, onChange, onEnd }: {
   );
 }
 
+const WRITE_UP_KIND: Readonly<Record<SupervisionProblem['writeUp'], string>> = {
+  proof: 'a proof',
+  explanation: 'an explanation',
+  sketch: 'a sketch, described in words or drawn on paper',
+};
+
+/** A problem whose answer is a write-up: the box keeps it for the tab; supervision copy comes in build step 3. */
+function SupervisionCard({ topicId, p }: { topicId: string; p: SupervisionProblem }) {
+  const [text, setText] = useState(() => loadWriteUp(topicId, p.id));
+  const box = `sup-${p.id}`;
+  return (
+    <div class="supervision">
+      <Rich as="p" class="prompt" text={p.prompt} />
+      <p class="small muted">This one asks for {WRITE_UP_KIND[p.writeUp]}, so it is not marked here: it goes to a supervision session.</p>
+      <label for={box}>Your write-up</label>
+      <textarea
+        id={box}
+        rows={6}
+        value={text}
+        onInput={(e) => {
+          const v = (e.currentTarget as HTMLTextAreaElement).value;
+          setText(v);
+          saveWriteUp(topicId, p.id, v);
+        }}
+      />
+      <div class="actions">
+        <button type="button" class="btn" disabled aria-describedby={`${box}-soon`}>Copy for supervision</button>
+        <span id={`${box}-soon`} class="small muted">Coming soon: this will copy the problem, its source, and your write-up for a supervision session.</span>
+      </div>
+    </div>
+  );
+}
+
+function CambridgeItem({ c, p, n }: { c: TopicContent; p: CambridgeProblem; n: number }) {
+  // A new key remounts the card, so "Try it again" starts with an empty answer.
+  const [round, setRound] = useState(0);
+  const [last, setLast] = useState<string | null>(null);
+  return (
+    <article class="cambridge-problem" data-problem={p.id} aria-labelledby={`cam-${p.id}`}>
+      <h3 id={`cam-${p.id}`}>Problem {n}: <Rich text={p.title} /></h3>
+      <p class="citation small">{citationText(p.source)}{p.mode === 'supervision' ? ' · for supervision' : ' · checked here'}{last !== null && <span class={`badge badge-${last === 'correct' ? 'good' : 'muted'}`}>{last === 'correct' ? 'Solved' : 'Tried'}</span>}</p>
+      {p.mode === 'supervision'
+        ? <SupervisionCard topicId={c.topicId} p={p} />
+        : (
+          <ProblemCard
+            key={round}
+            index={round}
+            mode="cambridge"
+            topicId={c.topicId}
+            instance={p.instance}
+            onDone={(r) => {
+              if (r.outcome !== 'problem-error') setLast(r.correct ? 'correct' : 'tried');
+              setRound(round + 1);
+            }}
+          />
+        )}
+    </article>
+  );
+}
+
+/** The original Cambridge problems of a topic. They do not count towards learning the topic; practice does. */
+function CambridgeProblems({ c, onNext }: { c: TopicContent; onNext: () => void }) {
+  const auto = c.cambridge.filter((p) => p.mode === 'auto').length;
+  return (
+    <div class="lesson-body">
+      <p>
+        The original problems from the Cambridge sources this lesson is built on, each with its source. {auto} of {c.cambridge.length} are
+        checked here; the others ask for a proof or an explanation and go to supervision. They do not count towards learning the topic.
+      </p>
+      {c.cambridge.map((p, i) => <CambridgeItem key={p.id} c={c} p={p} n={i + 1} />)}
+      <button type="button" class="btn btn-primary" onClick={onNext}>Next: practice</button>
+    </div>
+  );
+}
+
 /** The lesson for a topic. `salt` makes practice problems differ between sessions. */
 export function LessonRunner({ topicId, salt, onEnd, onSkip, back }: {
   topicId: string;
@@ -224,7 +302,7 @@ export function LessonRunner({ topicId, salt, onEnd, onSkip, back }: {
     );
   }
 
-  const stages = [['learn', 'Learn'], ['examples', 'Examples'], ['practice', 'Practice']] as const;
+  const stages = [['learn', 'Learn'], ['examples', 'Examples'], ['cambridge', 'Cambridge problems'], ['practice', 'Practice']] as const;
   return (
     <section class="page lesson" aria-label={t.title}>
       {head}
@@ -245,9 +323,13 @@ export function LessonRunner({ topicId, salt, onEnd, onSkip, back }: {
       {stage === 'examples' && (
         <div class="lesson-body">
           {c.examples.map((e, i) => <Example key={i} e={e} n={i + 1} />)}
-          <button type="button" class="btn btn-primary" onClick={() => setStage('practice')}>Next: practice</button>
+          <div class="actions">
+            <button type="button" class="btn btn-primary" onClick={() => setStage('practice')}>Next: practice</button>
+            {c.cambridge.length > 0 && <button type="button" class="btn" onClick={() => setStage('cambridge')}>Cambridge problems</button>}
+          </div>
         </div>
       )}
+      {stage === 'cambridge' && <CambridgeProblems c={c} onNext={() => setStage('practice')} />}
       {stage === 'practice' && (
         <Practice
           c={c}

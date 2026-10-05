@@ -105,7 +105,8 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
     const pg = placementGraph(topics, { targets: courseTargets(topics, dm) });
     const low = new Set(pg.topics.filter((t) => LEVELS.indexOf(t.level) <= LEVELS.indexOf('step')).map((t) => t.id));
     expect(new Set(pg.entries.flatMap((id) => [id, ...(pg.anc.get(id) ?? [])]))).toEqual(low);
-    expect(low.size).toBe(27);
+    // 28 since batch 1 added comb.pigeonhole (STEP level).
+    expect(low.size).toBe(28);
     expect(pg.entries).toHaveLength(9);
   });
 
@@ -113,8 +114,8 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
     expect(g.order.length).toBe(topics.length);
   });
 
-  // Measured: split needs at most 40 questions for these learners, entry-points at most 42.
-  for (const [strategy, most] of [['split', 40], ['entry-points', 45]] as [PlacementStrategy, number][]) {
+  // Measured on the 101-topic graph of batch 1: split needs at most 41 questions for these learners, entry-points at most 42.
+  for (const [strategy, most] of [['split', 42], ['entry-points', 45]] as [PlacementStrategy, number][]) {
     for (const [name, knows] of profiles) {
       it(`${strategy}: a truthful learner who knows ${name} is placed exactly within ${most} questions`, () => {
         const known = new Set(topics.filter(knows).map((t) => t.id));
@@ -126,15 +127,15 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
   }
 
   // Measured (review call 12): 100% exact at 40 questions, 45% at a fixed 30. The default
-  // budget scales with the closure, ceil(98 / 2) = 49 here, so it places everyone exactly.
-  it('the default budget for both courses is 49', () => {
-    expect(placementBudget(g.order.length)).toBe(49);
+  // budget scales with the closure, ceil(101 / 2) = 51 here (batch 1 added three topics), so it places everyone exactly.
+  it('the default budget for both courses is 51', () => {
+    expect(placementBudget(g.order.length)).toBe(51);
   });
 
-  it('split places every truthful random learner exactly within the default budget, using at most 40 questions', () => {
+  it('split places every truthful random learner exactly within the default budget, using at most 42 questions', () => {
     const m = measurePlacement(topics, { learners: 500, errorRate: 0, budget: placementBudget(g.order.length), strategy: 'split', seed: 1, targets });
     expect(m.exact).toBe(1);
-    expect(m.maxQuestions).toBeLessThanOrEqual(40);
+    expect(m.maxQuestions).toBeLessThanOrEqual(42);
   });
 
   it('even at the old fixed 30 it never over-places', () => {
@@ -142,7 +143,8 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
     expect(m.meanOverPlaced).toBe(0);
   });
 
-  it('keeps 30 for one course of the probstats size or smaller', () => {
-    for (const c of [ia, dm]) expect(placementBudget(placementGraph(topics, { targets: courseTargets(topics, c) }).order.length)).toBe(30);
+  it('is max(30, ceil(n / 2)) for one course: 31 for IA Probability (62 topics), 30 for Discrete Mathematics (52)', () => {
+    expect(placementBudget(placementGraph(topics, { targets: courseTargets(topics, ia) }).order.length)).toBe(31);
+    expect(placementBudget(placementGraph(topics, { targets: courseTargets(topics, dm) }).order.length)).toBe(30);
   });
 });

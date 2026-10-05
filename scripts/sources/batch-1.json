@@ -1,6 +1,6 @@
 {
   "batch": "cambridge-batch-1",
-  "note": "First batch of the Cambridge-sourced content plan (mastery/DESIGN-CAMBRIDGE-CONTENT.md, build step 1). URLs come from the Meridian handoff (handoff/meridian-cambridge/links). Role \"scan\" means fetched only to find which other Foundation assignments contain probability. Assignment 19 was added after the scan: its warm-down is probability (three coins in a bag, three dice).",
+  "note": "First batch of the Cambridge-sourced content plan (mastery/DESIGN-CAMBRIDGE-CONTENT.md, build step 1). URLs come from the Meridian handoff (handoff/meridian-cambridge/links). Role \"scan\" means fetched only to find which other Foundation assignments contain probability. Assignment 19 was added after the scan: its warm-down is probability (three coins in a bag, three dice). The 2023-24 materials page and its official exercise solutions were added in build step 2 (decision 10): they are used only to check answers, after confirming that each 2023-24 sheet matches the 2025-26 one.",
   "hosts": [
     "step.maths.org",
     "www.dpmms.cam.ac.uk",
@@ -385,6 +385,54 @@
       "role": "notes",
       "title": "Notes on Logic and Proof, for TMUA Paper 2 (June 2025)",
       "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2025/06/25160507/Notes_on_Logic_and_Proof_June2025.pdf"
+    },
+    {
+      "id": "cst-dm-materials-2324",
+      "course": "discrete-maths",
+      "kind": "html",
+      "role": "index",
+      "title": "CST IA Discrete Mathematics: course materials page (2023-24), for the official exercise solutions",
+      "url": "https://www.cl.cam.ac.uk/teaching/2324/DiscMath/materials.html"
+    },
+    {
+      "id": "cst-dm-sw1-2324",
+      "course": "discrete-maths",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "Discrete Mathematics supervision exercises: Proofs, Numbers, and Sets (2023-24), to match against the 2025-26 sheet",
+      "url": "https://www.cl.cam.ac.uk/teaching/2324/DiscMath/DiscMathProofNumbersSetsSupExs.pdf"
+    },
+    {
+      "id": "cst-dm-sols-2324-1",
+      "course": "discrete-maths",
+      "kind": "pdf",
+      "role": "solutions",
+      "title": "Discrete Mathematics Exercises 1: official solutions (2023-24, M. Fiore)",
+      "url": "https://www.cl.cam.ac.uk/teaching/2324/DiscMath/solutions/DiscMaths1_Sols.pdf"
+    },
+    {
+      "id": "cst-dm-sols-2324-2",
+      "course": "discrete-maths",
+      "kind": "pdf",
+      "role": "solutions",
+      "title": "Discrete Mathematics Exercises 2: official solutions (2023-24, M. Fiore)",
+      "url": "https://www.cl.cam.ac.uk/teaching/2324/DiscMath/solutions/DiscMaths2_Sols.pdf"
+    },
+    {
+      "id": "cst-dm-sols-2324-3",
+      "course": "discrete-maths",
+      "kind": "pdf",
+      "role": "solutions",
+      "title": "Discrete Mathematics Exercises 3: official solutions (2023-24, M. Fiore)",
+      "url": "https://www.cl.cam.ac.uk/teaching/2324/DiscMath/solutions/DiscMaths3_Sols.pdf"
+    },
+    {
+      "id": "cst-dm-sols-2324-4",
+      "course": "discrete-maths",
+      "kind": "pdf",
+      "role": "solutions",
+      "title": "Discrete Mathematics Exercises 4: official solutions (2023-24, M. Fiore)",
+      "url": "https://www.cl.cam.ac.uk/teaching/2324/DiscMath/solutions/DiscMaths4_Sols.pdf"
     }
   ]
 }

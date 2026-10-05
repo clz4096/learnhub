@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { contentFor } from '@learnhub/content';
-import { DAY_MS, importProgress, exportProgress, placedMemory, type Progress } from '@learnhub/mastery';
-import { closureOf, closureTopics } from '@/model/courses';
+import { DAY_MS, ancestors, importProgress, exportProgress, placedMemory, type Progress } from '@learnhub/mastery';
+import { ALL_TOPICS, closureOf, closureTopics } from '@/model/courses';
 import {
   COURSE_OPTIONS, DEFAULT_COURSES, completeLesson, completeQuiz, completeReview, ensureSession, finishOpenPlacement, finishPlacement, hasContent,
   hubSummary, localDay, planMore, replanToday, sessionTime, skipTask, startLearner, statusMap, withoutSelfReport,
@@ -171,9 +171,9 @@ describe('reviews and quizzes', () => {
 describe('status and the hub summary', () => {
   it('counts mastered topics in the closure of the chosen courses', () => {
     let p = ensureSession(fresh(), T0);
-    expect(hubSummary(p, T0)).toMatchObject({ done: 0, total: 98 });
+    expect(hubSummary(p, T0)).toMatchObject({ done: 0, total: 101 });
     p = completeLesson(p, 'pre.fractions', true, T0, 0, 15, 'ia-probability');
-    expect(hubSummary(p, T0)).toMatchObject({ done: 1, total: 98 });
+    expect(hubSummary(p, T0)).toMatchObject({ done: 1, total: 101 });
     expect(hubSummary({ ...p, courses: ['cst-discrete-maths'] }, T0)).toMatchObject({ done: 1, total: closureOf(['cst-discrete-maths']).size });
     expect(hubSummary({ ...p, courses: [] }, T0)).toBeNull();
   });
@@ -228,7 +228,10 @@ describe('topics without content are never scheduled or learned', () => {
         else p = completeQuiz(p, Object.fromEntries(t.topicIds.map((id) => [id, true])), day, i);
       });
     }
-    expect(Object.keys(p.memory).sort()).toEqual([...CONTENT].sort());
+    // A topic is learned once every topic it builds on has content (a topic without content
+    // cannot be learned, so neither can anything above it).
+    const learnable = CONTENT.filter((id) => [...ancestors(ALL_TOPICS, id)].every(hasContent));
+    expect(Object.keys(p.memory).sort()).toEqual(learnable.sort());
   });
 
   it('a lesson on a topic without content cannot be passed', () => {

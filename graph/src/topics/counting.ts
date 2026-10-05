@@ -1,6 +1,6 @@
 /** Area `counting`. From the product rule to the binomial theorem. */
 import type { Topic } from '@learnhub/mastery';
-import { CST, CST_DM, CST_NUMBERS, GCSE, GCSE_NUMBER, STEP, STEP_SS, STEP_SUPPORT_6 } from '../sources';
+import { CST, CST_DM, CST_NUMBERS, CST_PROOF, GCSE, GCSE_NUMBER, STEP, STEP_SS, STEP_SUPPORT_6 } from '../sources';
 
 export const counting: Topic[] = [
   {
@@ -92,6 +92,23 @@ export const counting: Topic[] = [
     prereqs: ['comb.binomial-theorem', 'comb.binomial-identities', 'alg.proof-by-induction'],
     encompasses: { 'comb.binomial-identities': 0.6, 'alg.proof-by-induction': 0.5, 'comb.binomial-theorem': 0.5, 'alg.sigma-notation': 0.3 },
     sources: [{ doc: CST, course: CST_DM, section: CST_NUMBERS, note: 'Syllabus: "Mathematical induction: Binomial Theorem".', verified: true }],
+    estMinutes: 20,
+  },
+  {
+    id: 'comb.pigeonhole',
+    title: 'The pigeonhole principle',
+    summary: 'If more than $kn$ objects go into $n$ boxes, some box holds more than $k$; use it to find how many draws guarantee a match.',
+    level: 'step',
+    area: 'counting',
+    prereqs: ['pre.product-rule', 'proof.cases'],
+    encompasses: { 'proof.cases': 0.5, 'pre.product-rule': 0.3 },
+    sources: [{
+      doc: CST,
+      course: CST_DM,
+      section: CST_PROOF,
+      note: 'Syllabus: "existential quantification". The 2025-26 notes give the pigeonhole principle as their example of an existential statement (printed page 87). STEP Support Foundation Assignments 5 and 8 (the socks) use it at STEP level (batch 1 decision 3).',
+      verified: true,
+    }],
     estMinutes: 20,
   },
 ];

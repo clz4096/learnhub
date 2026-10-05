@@ -1,6 +1,6 @@
 # Cambridge-sourced lessons: design
 
-Dated 2026-10-05. Status: approved by the owner on 2026-10-05. Building step 1.
+Dated 2026-10-05. Status: approved by the owner on 2026-10-05. Step 1 done; step 2 built (2026-10-05), for review.
 
 ## Goal
 

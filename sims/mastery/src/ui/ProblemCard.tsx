@@ -22,14 +22,16 @@
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import {
-  answerText, grade, plain, readAnswer, texToPlain, type AnswerReading, type Feedback, type Instance, type Response,
+  answerText, grade, plain, readAnswer, tableNotice, texToPlain, type AnswerReading, type Feedback, type Instance, type Response,
 } from '@learnhub/content';
 import { isProblemError } from '@learnhub/mastery';
 import { AnswerInput } from '@/ui/AnswerInput';
 import { Rich } from '@/ui/Rich';
+import { FilledTable, TableAnswer } from '@/ui/TableAnswer';
 import { Tex } from '@/ui/Tex';
 
-export type CardMode = 'practice' | 'review' | 'quiz';
+/** `cambridge`: an original Cambridge problem in a lesson; it does not count towards mastery and can be tried again. */
+export type CardMode = 'practice' | 'review' | 'quiz' | 'cambridge';
 
 /** How an answered problem ended, as the learner's measured result. */
 export type CardOutcome = 'correct' | 'wrong' | 'gave-up';
@@ -91,6 +93,10 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
   const a = instance.problem.answer;
   const [text, setText] = useState('');
   const [picks, setPicks] = useState<string[]>([]);
+  /** A table answer's cells, in reading order. */
+  const [cells, setCells] = useState<string[]>([]);
+  /** Why the table cannot be marked yet, after Check was pressed on it. */
+  const [tableNote, setTableNote] = useState<string | null>(null);
   const [fb, setFb] = useState<Feedback | null>(null);
   const [gaveUp, setGaveUp] = useState(false);
   /** The text that could not be read, after Check was pressed on it. */
@@ -110,6 +116,8 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
   useEffect(() => {
     setText('');
     setPicks([]);
+    setCells([]);
+    setTableNote(null);
     setFb(null);
     setGaveUp(false);
     setUnread(null);
@@ -135,20 +143,30 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
     if (confirm !== null) editRef.current?.focus({ preventScroll: true });
   }, [confirm]);
 
-  const response: Response = a.kind === 'choice' ? picks : text;
-  const empty = a.kind === 'choice' ? picks.length === 0 : text.trim() === '';
+  const blanks = a.kind === 'table' ? a.expected.length : 0;
+  const filled = a.kind === 'table' ? Array.from({ length: blanks }, (_, i) => cells[i] ?? '') : [];
+  const response: Response = a.kind === 'choice' ? picks : a.kind === 'table' ? filled : text;
+  const empty = a.kind === 'choice' ? picks.length === 0 : a.kind === 'table' ? filled.every((c) => c.trim() === '') : text.trim() === '';
   const announce = (msg: string): void => setSaid((s) => ({ n: s.n + 1, text: msg }));
   const correctPlain = plain(answerText(a));
   const optionOf = (oid: string) => (a.kind === 'choice' ? a.options.find((x) => x.id === oid) : undefined);
   // The answer as the grader read it: the preview's reading for typed answers, the chosen labels for choices.
-  const reading = a.kind === 'choice' || text.trim() === '' ? null : readAnswer(a, text);
+  const reading = a.kind === 'choice' || a.kind === 'table' || text.trim() === '' ? null : readAnswer(a, text);
   const yoursPlain = a.kind === 'choice'
     ? picks.map((p) => { const o = optionOf(p); return o === undefined ? p : plain(o.label); }).join(', ')
-    : reading === null ? text.trim() : texToPlain(reading.tex);
+    : a.kind === 'table' ? filled.map((c) => c.trim()).join(', ')
+      : reading === null ? text.trim() : texToPlain(reading.tex);
 
   const check = (anyway = false): void => {
     if (checked || empty) return;
-    if (a.kind !== 'choice') {
+    if (a.kind === 'table') {
+      const note = tableNotice(a, filled);
+      if (note !== null) {
+        setTableNote(note);
+        announce(note);
+        return;
+      }
+    } else if (a.kind !== 'choice') {
       if (reading === null) {
         setUnread(text.trim());
         setConfirm(null);
@@ -171,6 +189,7 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
     setGaveUp(true);
     setConfirm(null);
     setUnread(null);
+    setTableNote(null);
     announce(`Correct answer ${correctPlain}.`);
   };
   const finish = (): void => {
@@ -197,7 +216,7 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
   const many = a.kind === 'choice' && a.options.length > 6;
   const outcome: CardOutcome | null = shown === 'right' ? 'correct' : shown === 'wrong' ? 'wrong' : shown === 'gave-up' ? 'gave-up' : null;
   const effect = outcome === null ? undefined : consequence?.(outcome);
-  const nextLabel = shown === 'broken' ? 'Get a fresh problem' : effect?.next ?? 'Next problem';
+  const nextLabel = shown === 'broken' ? 'Get a fresh problem' : effect?.next ?? (mode === 'cambridge' ? 'Try it again' : 'Next problem');
 
   const notice = unread !== null
     ? <p class="small error-text">Could not read <code>{unread}</code>. Finish it or use the keypad.</p>
@@ -218,9 +237,14 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
     const o = optionOf(p);
     return <span key={p} class="pair-option">{o === undefined ? p : <Rich text={o.label} />}</span>;
   });
-  const yours = a.kind === 'choice' ? options(picks) : reading === null ? <code>{text.trim()}</code> : <Tex tex={reading.tex} />;
+  const yours = a.kind === 'choice' ? options(picks)
+    : a.kind === 'table' ? <span>the marked cells above</span>
+      : reading === null ? <code>{text.trim()}</code> : <Tex tex={reading.tex} />;
   const correctRich = <Rich text={answerText(a)} />;
-  const correctShown = a.kind === 'choice' ? options(typeof a.correct === 'string' ? [a.correct] : a.correct) : correctRich;
+  const correctShown = a.kind === 'choice' ? options(typeof a.correct === 'string' ? [a.correct] : a.correct)
+    : a.kind === 'table' ? <FilledTable spec={a} values={a.expected} />
+      : a.kind === 'witness' ? <span>for example <Rich text={answerText(a)} /></span>
+        : correctRich;
 
   const headId = `${id}-result`;
   let block = null;
@@ -239,7 +263,12 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
         </h3>
         {shown === 'broken' && <p>It does not count. A fresh problem on the same topic replaces it. ({fb?.feedback})</p>}
         {shown === 'right' && fb?.feedback !== undefined && <p>{fb.feedback}</p>}
-        {shown === 'wrong' && (
+        {shown === 'wrong' && a.kind === 'table' && (
+          <div class="result-pair one">
+            <div><span>Correct answer</span><strong>{correctShown}</strong></div>
+          </div>
+        )}
+        {shown === 'wrong' && a.kind !== 'table' && (
           <div class="result-pair">
             <div><span>Your answer</span><strong>{yours}</strong></div>
             <div><span>Correct answer</span><strong>{correctShown}</strong></div>
@@ -280,7 +309,27 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
           if (e.key === 'Enter' && checked && Date.now() - shownAt.current < ENTER_GUARD_MS) e.preventDefault();
         }}
       >
-        {a.kind === 'choice' ? (
+        {a.kind === 'table' ? (
+          <>
+            <TableAnswer
+              id={id}
+              spec={a}
+              cells={filled}
+              onCell={(i, v) => {
+                setCells((cur) => {
+                  const next = [...cur];
+                  while (next.length <= i) next.push('');
+                  next[i] = v;
+                  return next;
+                });
+                setTableNote(null);
+              }}
+              disabled={checked}
+              wrong={shown === 'wrong' ? fb?.wrongCells ?? [] : shown === 'right' ? [] : undefined}
+            />
+            {tableNote !== null && <p class="small error-text">{tableNote}</p>}
+          </>
+        ) : a.kind === 'choice' ? (
           <fieldset class={`choices${many ? ' chips' : ''}`} disabled={checked}>
             <legend class="small muted">{choiceHint(a.correct)}</legend>
             {a.options.map((o) => {
@@ -329,6 +378,7 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
             <>
               <button type="submit" class="btn btn-primary" disabled={empty}>Check</button>
               {mode === 'practice' && <button type="button" class="btn" onClick={giveUp}>Show me how (counts as a miss)</button>}
+              {mode === 'cambridge' && <button type="button" class="btn" onClick={giveUp}>Show the solution</button>}
             </>
           )}
           {checked && <button ref={nextRef} type="submit" class="btn btn-primary">{nextLabel}</button>}

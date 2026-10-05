@@ -225,7 +225,7 @@ describe('every written problem', () => {
         for (let seed = 0; seed < 40; seed++) {
           const inst = g.instance(seed);
           const a = inst.problem.answer;
-          if (a.kind === 'choice') continue;
+          if (a.kind === 'choice' || a.kind === 'table') continue;
           const r = readAnswer(a, inst.reference as string);
           expect(r, `${c.topicId}/${g.id}/${seed}: ${String(inst.reference)}`).not.toBeNull();
           expect(r?.note, `${c.topicId}/${g.id}/${seed}`).toBeUndefined();

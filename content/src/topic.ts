@@ -1,9 +1,12 @@
 /**
- * The content of one topic, keyed by its id in the shared graph (graph/src/topics):
- * a lesson written from scratch, worked examples, problem generators, a mastery rule,
- * and the glossary terms it introduces.
+ * The content of one topic, keyed by its id in the shared graph (graph/src/topics): a
+ * lesson written from the Cambridge sources, worked examples (real Cambridge problems
+ * worked in full), problem generators (variants built from the structure of the Cambridge
+ * problems), the original Cambridge problems, a mastery rule, and the glossary terms it
+ * introduces.
  */
 import type { Rng } from '@learnhub/mastery';
+import type { AutoProblem, CambridgeProblem, Citation } from './cambridge';
 import type { Rational } from './math';
 import { answerText, type Generator, type Instance } from './problem';
 import type { Rich } from './rich';
@@ -22,8 +25,15 @@ export interface WorkedExample {
   prompt: Rich;
   steps: readonly Rich[];
   answer: Rich;
-  /** The problem it was made from, so the content checks grade it like any other. */
-  instance: Instance;
+  /**
+   * The problem it was made from, so the content checks grade it like any other. Absent
+   * only for a Cambridge proof, whose answer is the argument in the steps.
+   */
+  instance?: Instance;
+  /** The Cambridge problem it works, when it is one. */
+  source?: Citation;
+  /** The auto-checked Cambridge problem it was made from, so the content checks verify its answer and compare the official one. */
+  problem?: AutoProblem;
 }
 
 /**
@@ -54,6 +64,8 @@ export interface TopicContent {
   /** Glossary ids the lesson introduces. */
   terms: readonly string[];
   claims?: readonly ProbabilityClaim[];
+  /** The original Cambridge problems for practice, auto-checked or for supervision. None is also a worked example. */
+  cambridge: readonly CambridgeProblem[];
 }
 
 /** A worked example from a generator and fixed parameters, so its numbers are computed and checked like any problem. */
@@ -61,6 +73,17 @@ export function worked<P>(g: Generator<P>, p: P, title: Rich): WorkedExample {
   const instance = g.at(p);
   const { problem } = instance;
   return { title, prompt: problem.prompt, steps: problem.solution, answer: answerText(problem.answer), instance };
+}
+
+/** A Cambridge problem worked in full as an example: its prompt, its solution as the steps, and its answer. */
+export function workedCambridge(p: AutoProblem): WorkedExample {
+  const { problem } = p.instance;
+  return { title: p.title, prompt: problem.prompt, steps: problem.solution, answer: answerText(problem.answer), instance: p.instance, source: p.source, problem: p };
+}
+
+/** A Cambridge proof worked in full: the argument is the steps, and the answer is what it proves. */
+export function workedProof(e: { title: Rich; prompt: Rich; steps: readonly Rich[]; answer: Rich; source: Citation }): WorkedExample {
+  return { ...e };
 }
 
 export const DEFAULT_MASTERY: Readonly<MasteryRule> = { correctInARow: 3, maxProblems: 10 };

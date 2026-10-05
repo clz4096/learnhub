@@ -1,8 +1,14 @@
-/** pre.fractions: Fractions and ratios. */
-import { add, div, gcd, int, mul, pick, q, str, type Rational } from '../math';
+/**
+ * pre.fractions: Fractions and ratios. No Cambridge source teaches fractions from the start,
+ * so the explanation is written from scratch (decision 11); the STEP Support assignments
+ * supply the habit they ask for (cancel before multiplying, answers in lowest terms) and the
+ * problems: Assignment 6 Q1(i).
+ */
+import { auto, cite, same, supervision } from '../cambridge';
+import { add, div, gcd, int, mul, pick, q, str, upTo, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { dmath, frac, math, t } from '../rich';
-import { worked, type TopicContent } from '../topic';
+import { computedTex, dmath, frac, math, t, type Span } from '../rich';
+import { worked, workedCambridge, type TopicContent } from '../topic';
 
 const lcm = (a: number, b: number): number => (a / gcd(a, b)) * b;
 
@@ -200,6 +206,151 @@ const ratioShare = generator<RatioP>({
   },
 });
 
+/**
+ * Products that cancel, the structure of STEP Support Assignment 6 Q1(i): write each factor
+ * as one fraction, and the top of each cancels the bottom of a neighbour.
+ */
+type Telescope = 'a6' | 'minus' | 'plus' | 'square';
+interface TelescopeP { form: Telescope; m: number }
+
+/** The k-th factor as a fraction, and the k range, for each form. */
+const FORMS: Readonly<Record<Telescope, { lo: number; factor: (k: number) => Rational }>> = {
+  // (1 + 1/(2k)) / (1 - 1/(2k)) = (2k + 1)/(2k - 1)
+  a6: { lo: 1, factor: (k) => div(add(q(1), q(1, 2 * k)), add(q(1), q(-1, 2 * k))) },
+  minus: { lo: 2, factor: (k) => add(q(1), q(-1, k)) },
+  plus: { lo: 1, factor: (k) => add(q(1), q(1, k)) },
+  square: { lo: 2, factor: (k) => add(q(1), q(-1, k * k)) },
+};
+
+const product = (form: Telescope, m: number): Rational =>
+  Array.from({ length: m - FORMS[form].lo + 1 }, (_, i) => FORMS[form].factor(FORMS[form].lo + i)).reduce(mul, q(1));
+
+/** The closed form, found by cancelling by hand. */
+function telescoped(form: Telescope, m: number): Rational {
+  switch (form) {
+    case 'a6': return q(2 * m + 1);
+    case 'minus': return q(1, m);
+    case 'plus': return q(m + 1);
+    case 'square': return q(m + 1, 2 * m);
+  }
+}
+
+/** The factor (1 + 1/k) as LaTeX, with k computed. */
+const bracket = (sign: '+' | '-', d: number | string): string => `\\left(${1} ${sign} \\frac{${1}}{${d}}\\right)`;
+
+/** The product for k from the form's start to m, three factors, then dots, then the last; `last` is LaTeX for the last k. */
+function factors(sign: '+' | '-', ks: readonly (number | string)[], last: number | string): string {
+  return [...ks.map((k) => bracket(sign, k)), '\\cdots', bracket(sign, last)].join('');
+}
+
+function telescopeTex(form: Telescope, m: number): Span {
+  const { lo } = FORMS[form];
+  const ks = [lo, lo + 1, lo + 2];
+  switch (form) {
+    case 'a6': return computedTex(`\\frac{${factors('+', ks.map((k) => 2 * k), 2 * m)}}{${factors('-', ks.map((k) => 2 * k), 2 * m)}}`);
+    case 'minus': return computedTex(factors('-', ks, m));
+    case 'plus': return computedTex(factors('+', ks, m));
+    case 'square': return computedTex(factors('-', ks.map((k) => `${k}^{${2}}`), `${m}^{${2}}`));
+  }
+}
+
+const telescope = generator<TelescopeP>({
+  id: 'telescope',
+  skill: 'Cancel a long product of fractions before multiplying, as in STEP Support Assignment 6 Q1(i).',
+  params: (rng) => ({ form: pick(rng, ['a6', 'minus', 'plus', 'square'] as const), m: int(rng, 6, 15) }),
+  sane: ({ m }) => (m >= 6 && m <= 15 ? null : 'out of range'),
+  problem: ({ form, m }) => {
+    const v = telescoped(form, m);
+    const { lo, factor } = FORMS[form];
+    const first = [lo, lo + 1, lo + 2].map(factor);
+    const last = factor(m);
+    const kept: Record<Telescope, Span> = {
+      a6: math`\frac{${2 * m + 1}}{${1}}`,
+      minus: math`\frac{${1}}{${m}}`,
+      plus: math`\frac{${m + 1}}{${1}}`,
+      square: math`\frac{${1}}{${2}} \times \frac{${m + 1}}{${m}}`,
+    };
+    return {
+      prompt: t`Find the value of ${telescopeTex(form, m)}. Give it as a fraction in lowest terms.`,
+      answer: { kind: 'exact', expected: str(v) },
+      solution: [
+        t`Write each bracket as a single fraction first. The first few are ${math`${first[0] as Rational}, ${first[1] as Rational}, ${first[2] as Rational}`}, and the last is ${last}.`,
+        form === 'square'
+          ? t`Each ${math`${1} - \frac{${1}}{k^{${2}}} = \frac{k - ${1}}{k} \times \frac{k + ${1}}{k}`}. In the first fractions every top cancels the bottom of the one after it; in the second, every bottom cancels the top of the one before it.`
+          : t`Each top cancels the bottom of a neighbouring fraction, so do no multiplication until the cancelling is done.`,
+        t`What is left is ${kept[form]}, so the product is ${v}.`,
+      ],
+    };
+  },
+  solve: ({ form, m }) => str(product(form, m)),
+  misconceptions: ({ form, m }): Misconception[] => {
+    const v = telescoped(form, m);
+    const off = telescoped(form, m - 1);
+    return [
+      { response: str(off), why: t`That stops one factor early. Count the factors: the last one is the bracket with ${m} in it.` },
+      { response: str(div(q(1), v)), why: t`That is the answer turned upside down. Check which tops and which bottoms survive the cancelling.` },
+      { response: str(q(m)), why: t`That keeps only the last number. Write each bracket as one fraction and cancel carefully: what survives is one top and one bottom.` },
+    ];
+  },
+});
+
+// ---------------------------------------------------------------- Cambridge problems
+
+const A6 = 'step-f06';
+const a6Value = auto({
+  id: 'a6-q1-i-value',
+  source: cite(A6, 'Q1(i)'),
+  title: t`A product that cancels`,
+  prompt: t`Find the value of ${telescopeTex('a6', 4)}.`,
+  answer: { kind: 'exact', expected: str(telescoped('a6', 4)) },
+  solution: [
+    t`Cancelling first is far easier than multiplying (the hint in the source: with complete cancelling no multiplication is needed). Write each bracket as one fraction: the top is ${math`${q(3, 2)} \times ${q(5, 4)} \times ${q(7, 6)} \times ${q(9, 8)}`} and the bottom is ${math`${q(1, 2)} \times ${q(3, 4)} \times ${q(5, 6)} \times ${q(7, 8)}`}.`,
+    t`The denominators ${2}, ${4}, ${6}, ${8} appear on both, so they cancel, leaving ${math`\frac{${3} \times ${5} \times ${7} \times ${9}}{${1} \times ${3} \times ${5} \times ${7}}`}.`,
+    t`Now ${3}, ${5}, and ${7} cancel too, and the value is ${telescoped('a6', 4)}.`,
+  ],
+  reference: str(product('a6', 4)),
+  verify: () => same('A6 Q1(i) by multiplying out', str(product('a6', 4)), str(telescoped('a6', 4))),
+  misconceptions: [
+    { response: str(q(1, 9)), why: t`That is the bottom over the top. The fractions with ${math`+`} are on top.` },
+  ],
+  official: { source: cite('step-f06-hints', 'Q1(i)'), answer: '9', agrees: true },
+});
+
+const a6General = auto({
+  id: 'a6-q1-i-general',
+  source: cite(A6, 'Q1(i), second part'),
+  title: t`The same product to ${math`n`} factors`,
+  prompt: t`Find, in terms of ${math`n`}, the value of ${computedTex(`\\frac{${factors('+', [2, 4, 6, 8], `${2}n`)}}{${factors('-', [2, 4, 6, 8], `${2}n`)}}`)}.`,
+  answer: { kind: 'expression', expected: '2n + 1', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 30 } } },
+  solution: [
+    t`As in the first part, write the brackets as fractions: the top is ${math`\frac{${3}}{${2}} \times \frac{${5}}{${4}} \times \cdots \times \frac{${2}n + ${1}}{${2}n}`} and the bottom is ${math`\frac{${1}}{${2}} \times \frac{${3}}{${4}} \times \cdots \times \frac{${2}n - ${1}}{${2}n}`}.`,
+    t`The even denominators cancel, leaving ${math`\frac{${3} \times ${5} \times \cdots \times (${2}n - ${1}) \times (${2}n + ${1})}{${1} \times ${3} \times \cdots \times (${2}n - ${3}) \times (${2}n - ${1})}`}.`,
+    t`Every odd number on the bottom cancels one on top, and only ${math`${2}n + ${1}`} survives.`,
+  ],
+  reference: '2n + 1',
+  verify: () => {
+    for (const n of upTo(20)) {
+      const e = same(`A6 Q1(i) at n = ${n}`, str(product('a6', n)), String(2 * n + 1));
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: '2n - 1', why: t`That drops the last factor. The last bracket on top is ${math`${1} + \frac{${1}}{${2}n} = \frac{${2}n + ${1}}{${2}n}`}, and its top survives.` },
+    { response: '2n', why: t`The denominators cancel, so no ${math`${2}n`} is left. What survives is the last numerator, ${math`${2}n + ${1}`}.` },
+  ],
+  official: { source: cite('step-f06-hints', 'Q1(i)'), answer: '2n + 1', agrees: true },
+});
+
+const a6Show = supervision({
+  id: 'a6-q1-i-show',
+  source: cite(A6, 'Q1(i), second part', true),
+  title: t`Why the general product is ${math`${2}n + ${1}`}`,
+  prompt: t`Show carefully that the product in the last problem equals ${math`${2}n + ${1}`} for every positive integer ${math`n`}. Generalising from a few cases is not enough: say exactly which factors cancel and why the cancelling leaves only ${math`${2}n + ${1}`}.`,
+  writeUp: 'explanation',
+  official: cite('step-f06-hints', 'Q1(i)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const ex = { a: 1, b: 4, c: 1, d: 6 };
@@ -221,14 +372,16 @@ export const fractions: TopicContent = {
     { kind: 'p', text: t`For ${math`\frac{${ex.a}}{${ex.b}} + \frac{${ex.c}}{${ex.d}}`}, the smallest common denominator is ${exHand.L}. Then ${math`\frac{${ex.a}}{${ex.b}} = \frac{${exHand.x}}{${exHand.L}}`} and ${math`\frac{${ex.c}}{${ex.d}} = \frac{${exHand.y}}{${exHand.L}}`}, so the sum is ${frac(exHand.sum, exHand.L)}${exHand.g > 1 ? t`, which is ${exSum} in lowest terms` : t``}. Adding tops and bottoms instead gives ${wrongSum}, which is less than ${frac(ex.a, ex.b)} alone, so it cannot be right.` },
     { kind: 'rule', text: t`To multiply, multiply the tops and multiply the bottoms. To divide, multiply by the [[reciprocal|reciprocal]] of the second fraction: ${dmath`\frac{a}{b} \times \frac{c}{d} = \frac{ac}{bd}, \qquad \frac{a}{b} \div \frac{c}{d} = \frac{a}{b} \times \frac{d}{c}`}` },
     { kind: 'p', text: t`For example ${math`\frac{${prod.a}}{${prod.b}} \times \frac{${prod.c}}{${prod.d}} = \frac{${prod.a * prod.c}}{${prod.b * prod.d}}`}, which is ${mul(q(prod.a, prod.b), q(prod.c, prod.d))}. Dividing by ${half} is multiplying by ${div(q(1), half)}, which is why there are ${div(q(1), half)} halves in one whole.` },
+    { kind: 'p', text: t`Cancel before you multiply. In ${math`\frac{${3}}{${2}} \times \frac{${5}}{${4}} \times \frac{${2}}{${5}}`}, the ${2} and the ${5} each appear once on top and once underneath, so they cancel and leave ${math`\frac{${3}}{${4}}`}, with no large numbers on the way. The STEP Support assignments ask for this habit, and for every answer in lowest terms.` },
     { kind: 'p', text: t`A [[ratio|ratio]] compares amounts by parts. Sharing in the ratio ${math`${2} : ${3}`} cuts the whole into ${2 + 3} equal parts and gives ${2} of them to the first person, so the first share is ${q(2, 5)} of the total.` },
   ],
   examples: [
     worked(addFractions, { a: 2, b: 3, c: 1, d: 4 }, t`Adding fractions`),
     worked(multiplyDivide, { a: 3, b: 4, c: 5, d: 6, op: 'divide' }, t`Dividing by a fraction`),
-    worked(ratioShare, { a: 3, b: 5, m: 6, which: 'second' }, t`Sharing in a ratio`),
+    workedCambridge(a6Value),
   ],
-  generators: [addFractions, multiplyDivide, simplify, ratioShare],
+  generators: [addFractions, multiplyDivide, simplify, ratioShare, telescope],
+  cambridge: [a6General, a6Show],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fraction', 'numerator', 'denominator', 'lowest-terms', 'common-denominator', 'reciprocal', 'ratio'],
 };

@@ -5,7 +5,7 @@
   "tracks": ["MATH", "STATS", "ALGO"],
   "level": "course",
   "minutes": 60,
-  "lessons": 98,
+  "lessons": 101,
   "build": "npm run build",
   "out": "dist",
   "materials": [

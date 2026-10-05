@@ -103,6 +103,23 @@ export const elementaryProbability: Topic[] = [
     estMinutes: 15,
   },
   {
+    id: 'prob.bayes-two-events',
+    title: 'Reversing a conditional probability',
+    summary: 'Find $P(A \\mid B)$ from $P(B \\mid A)$ with a tree or a table of counts, and tell the two apart (the prosecutor\'s fallacy).',
+    level: 'step',
+    area: 'elementary-probability',
+    prereqs: ['prob.conditional-formula'],
+    encompasses: { 'prob.conditional-formula': 0.6, 'pre.two-way-tables': 0.5, 'pre.tree-diagrams': 0.4 },
+    sources: [{
+      doc: STEP,
+      course: 'STEP Mathematics 1',
+      section: `${M1_PROB}, Probability`,
+      note: `Bayes at A level, by trees and tables, before the axioms: STEP Support Foundation Assignment 6 Q4 says the reader is not assumed to know Bayes' Theorem. ${STEP_SUPPORT_6}`,
+      verified: true,
+    }],
+    estMinutes: 20,
+  },
+  {
     id: 'prob.counting-probability',
     title: 'Probability by counting',
     summary: 'Find probabilities of equally likely outcomes by counting with permutations and combinations.',

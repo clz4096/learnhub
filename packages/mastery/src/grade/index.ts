@@ -6,3 +6,6 @@ export * from './tex';
 export * from './expression';
 export * from './choice';
 export * from './proof';
+export * from './witness';
+export * from './table';
+export * from './formula';

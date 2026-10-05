@@ -150,6 +150,15 @@ export function computed(text: string): Span {
   return { kind: 'num', text, typed: [] };
 }
 
+/**
+ * LaTeX assembled by code from computed numbers, such as a long product built in a loop.
+ * Like `computed`, it bypasses the typed-digit check, so the content checks scan its
+ * call sites: it must never be given a literal with a digit in it.
+ */
+export function computedTex(tex: string): Span {
+  return { kind: 'math', text: tex, typed: [] };
+}
+
 /** A computed number in brackets when negative, for products and sums: 3 \times (-8). */
 export function paren(n: number): Span {
   return { kind: 'math', text: n < 0 ? `(${texOf(n)})` : texOf(n), typed: [] };

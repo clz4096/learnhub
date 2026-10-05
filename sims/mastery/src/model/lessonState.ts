@@ -8,7 +8,7 @@
  */
 import type { PracticeState } from './practice';
 
-export type LessonStage = 'learn' | 'examples' | 'practice';
+export type LessonStage = 'learn' | 'examples' | 'cambridge' | 'practice';
 
 export interface LessonPlace {
   stage: LessonStage;
@@ -16,7 +16,7 @@ export interface LessonPlace {
 }
 
 const PREFIX = 'mastery.lesson.';
-const STAGES: readonly string[] = ['learn', 'examples', 'practice'];
+const STAGES: readonly string[] = ['learn', 'examples', 'cambridge', 'practice'];
 
 function session(): Storage | null {
   try {
@@ -86,4 +86,28 @@ export function learnSalt(topicId: string, now: number): string {
 
 export function clearLearnSalt(topicId: string): void {
   clearPlace(`salt.${topicId}`);
+}
+
+const WRITE_UP = `${PREFIX}writeup.`;
+
+/**
+ * A supervision problem's write-up, kept for the tab like the lesson's place, so leaving
+ * the lesson does not lose it. Build step 3 copies it into the supervision block.
+ */
+export function loadWriteUp(topicId: string, problemId: string): string {
+  try {
+    return session()?.getItem(`${WRITE_UP}${topicId}.${problemId}`) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+export function saveWriteUp(topicId: string, problemId: string, text: string): void {
+  try {
+    const s = session();
+    if (text === '') s?.removeItem(`${WRITE_UP}${topicId}.${problemId}`);
+    else s?.setItem(`${WRITE_UP}${topicId}.${problemId}`, text);
+  } catch {
+    // Storage blocked or full: the write-up stays on screen until the lesson is left.
+  }
 }

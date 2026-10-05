@@ -7,7 +7,8 @@
  */
 import type { AnswerSpec } from '@learnhub/content';
 
-export type TextSpec = Exclude<AnswerSpec, { kind: 'choice' }>;
+/** Answers typed into the one answer box: every kind but a choice and a table (which has its own cells). */
+export type TextSpec = Exclude<AnswerSpec, { kind: 'choice' } | { kind: 'table' }>;
 
 export interface Key {
   /** What the key shows. */
@@ -37,9 +38,19 @@ const FACTORIAL = k('!', 'factorial', '!');
 const CHOOSE = k('C(n, k)', 'n choose k', 'C(', ', )');
 const SETS = [k('∪', 'union', '∪'), k('∩', 'intersection', '∩'), k('∈', 'element of', '∈'), k('∅', 'empty set', '∅'), k('{', 'open brace', '{'), k('}', 'close brace', '}')];
 const LOGIC = [k('∧', 'and', '∧'), k('∨', 'or', '∨'), k('¬', 'not', '¬'), k('⇒', 'implies', '⇒')];
+const IFF = k('⇔', 'if and only if', '⇔');
+const COMMA = k(',', 'comma', ', ');
+const EQUALS = k('=', 'equals', ' = ');
 
 /** The keys for an answer, in a fixed order so they never move under the learner's thumb. */
 export function keypadFor(spec: TextSpec, topicId: string): Key[] {
+  if (spec.kind === 'formula') return [...LOGIC, IFF, OPEN, CLOSE];
+  if (spec.kind === 'witness') {
+    const keys = [MINUS, FRACTION, POINT];
+    if (spec.names !== undefined || typeof spec.count !== 'number' || spec.count > 1) keys.push(COMMA);
+    if (spec.names !== undefined) keys.push(EQUALS);
+    return keys;
+  }
   if (spec.kind !== 'expression') return spec.kind === 'exact' && spec.ratio === true ? [FRACTION, MINUS, POINT, RATIO] : [FRACTION, MINUS, POINT];
   const keys = [POWER, SQUARE, FRACTION, TIMES, DIVIDE, ROOT, PI, OPEN, CLOSE, FACTORIAL];
   if (spec.binomial === true) keys.push(CHOOSE);
@@ -64,7 +75,8 @@ export function insertKey(value: string, start: number, end: number, key: Key): 
 
 /** The phone keyboard to ask for: the number pad for numbers (the keypad adds the signs it lacks), letters for expressions. */
 export function inputModeFor(spec: TextSpec): 'decimal' | 'text' {
-  return spec.kind === 'expression' ? 'text' : 'decimal';
+  // A list of values needs commas, and a formula needs letters: neither is on a number pad.
+  return spec.kind === 'expression' || spec.kind === 'formula' || spec.kind === 'witness' ? 'text' : 'decimal';
 }
 
 /** One or two short sentences on what the box accepts. */
@@ -80,5 +92,12 @@ export function hintFor(spec: TextSpec): string {
       const choose = spec.binomial === true ? ' C(n, k) or nCk means n choose k.' : '';
       return `An expression in ${vars}: 2${v} is 2 times ${v}, ${v}^2 is a power, √${v} or sqrt(${v}) a root, and π or pi is pi.${choose} Enter checks it.`;
     }
+    case 'witness': {
+      const one = typeof spec.count === 'number' && spec.count === 1;
+      const named = spec.names !== undefined && spec.names.length > 0 ? ` You can name ${one ? 'it' : 'them'}: ${spec.names.map((n) => `${n} = ...`).join(', ')}.` : '';
+      return `${one ? 'A number' : 'Numbers separated by commas'}: whole numbers, fractions like 3/8, or exact decimals.${named} Any answer that works is right. Enter checks it.`;
+    }
+    case 'formula':
+      return `A formula in ${spec.variables.join(', ')}: ∧ or & for and, ∨ or | for or, ¬ or ~ for not, ⇒ or => for implies, ⇔ or <=> for if and only if, and brackets. Enter checks it.`;
   }
 }

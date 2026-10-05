@@ -1,8 +1,14 @@
-/** pre.probability-scale: Probability of equally likely outcomes. */
+/**
+ * pre.probability-scale: Probability of equally likely outcomes. No Cambridge source
+ * teaches it from the start (decision 11); STEP Support Assignment 6 Q4 defines "at
+ * random" (any person as likely to be picked as any other), and Assignment 12 Q2 supplies
+ * the sweets problems.
+ */
+import { auto, cite, same } from '../cambridge';
 import { int, pick, q, str, sub, toFloat, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, ident, listOf, math, t, type Rich } from '../rich';
-import { worked, type ProbabilityClaim, type TopicContent } from '../topic';
+import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 import type { Rng } from '@learnhub/mastery';
 
 /** P(event) with the event in words: P(\text{not red}). */
@@ -165,6 +171,123 @@ const complement = generator<CompP>({
   trial: ({ a, b }, rng) => !(rng() < toFloat(q(a, b))),
 });
 
+// ---------------------------------------------------------------- with letters
+
+const POSITIVE = { a: { kind: 'integer', min: 1, max: 30 }, b: { kind: 'integer', min: 1, max: 30 }, c: { kind: 'integer', min: 1, max: 30 } } as const;
+
+type Ask = 'one' | 'not' | 'two';
+interface LettersP { ask: Ask; flavours: readonly [string, string, string] }
+
+const FLAVOURS: readonly (readonly [string, string, string])[] = [
+  ['apple sours', 'blackcurrant chews', 'cola cubes'],
+  ['mint imperials', 'lemon sherbets', 'toffees'],
+  ['red counters', 'blue counters', 'green counters'],
+];
+
+const letters = generator<LettersP>({
+  id: 'letters',
+  skill: 'Give a probability in letters as favourable over total, as in STEP Support Assignment 12 Q2(iii)(a).',
+  params: (rng) => ({ ask: pick(rng, ['one', 'not', 'two'] as const), flavours: pick(rng, FLAVOURS) }),
+  sane: () => null,
+  problem: ({ ask, flavours: [x, y, z] }) => {
+    const intro = t`A bag holds ${math`a`} ${x}, ${math`b`} ${y}, and ${math`c`} ${z}. One is taken at random.`;
+    const want = ask === 'one' ? 'b/(a + b + c)' : ask === 'not' ? '(a + b)/(a + b + c)' : '(a + c)/(a + b + c)';
+    return {
+      prompt: ask === 'one'
+        ? t`${intro} What is the probability that it is one of the ${y}? Give an expression in ${math`a`}, ${math`b`}, and ${math`c`}.`
+        : ask === 'not'
+          ? t`${intro} What is the probability that it is not one of the ${z}? Give an expression in ${math`a`}, ${math`b`}, and ${math`c`}.`
+          : t`${intro} What is the probability that it is one of the ${x} or one of the ${z}? Give an expression in ${math`a`}, ${math`b`}, and ${math`c`}.`,
+      answer: { kind: 'expression', expected: want, variables: ['a', 'b', 'c'], domains: POSITIVE },
+      solution: [
+        t`"At random" means each of the ${math`a + b + c`} items is equally likely, so the probability is the number of favourable items over ${math`a + b + c`}.`,
+        ask === 'one' ? t`There are ${math`b`} ${y}, so the answer is ${math`\frac{b}{a + b + c}`}.`
+          : ask === 'not' ? t`The items that are not ${z} number ${math`a + b`}, so the answer is ${math`\frac{a + b}{a + b + c}`}, which is also ${math`${1} - \frac{c}{a + b + c}`}.`
+            : t`There are ${math`a + c`} such items, so the answer is ${math`\frac{a + c}{a + b + c}`}.`,
+      ],
+    };
+  },
+  solve: ({ ask }) => (ask === 'one' ? 'b/(b + a + c)' : ask === 'not' ? '1 - c/(a + b + c)' : '(c + a)/(c + b + a)'),
+  misconceptions: ({ ask }): Misconception[] => ask === 'one'
+    ? [
+      { response: 'b/(a + c)', why: t`The bottom is every item in the bag, including the ${math`b`} you are counting: ${math`a + b + c`}.` },
+      { response: '1/3', why: t`There are three kinds, but they need not be equally likely: count items, not kinds.` },
+    ]
+    : ask === 'not'
+      ? [
+        { response: 'c/(a + b + c)', why: t`That is the probability that it is one of them. "Not" is the complement: ${math`${1}`} minus that.` },
+        { response: '(a + b)/c', why: t`The bottom of a probability is the total number of items, ${math`a + b + c`}.` },
+      ]
+      : [
+        { response: '(a * c)/(a + b + c)', why: t`"Or" for items that cannot both happen adds the counts: ${math`a + c`}, not ${math`ac`}.` },
+        { response: 'b/(a + b + c)', why: t`That is the probability of the third kind, the complement of what is asked.` },
+      ],
+});
+
+// ---------------------------------------------------------------- Cambridge problems
+
+const a12Apple = auto({
+  id: 'a12-q2-iii-a',
+  source: cite('step-f12', 'Q2(iii)(a)'),
+  title: t`A bag of sweets, in letters`,
+  prompt: t`I have a bag of sweets with ${math`a`} apple sours and ${math`b`} blackcurrant chews. If I take one sweet at random, what is the probability that it is an apple sour?`,
+  answer: { kind: 'expression', expected: 'a/(a + b)', variables: ['a', 'b'], domains: { a: POSITIVE.a, b: POSITIVE.b } },
+  solution: [
+    t`"At random" means every sweet is equally likely to be taken: there are ${math`a + b`} equally likely outcomes.`,
+    t`${math`a`} of them are apple sours, so the probability is ${math`\frac{a}{a + b}`}.`,
+  ],
+  reference: 'a/(b + a)',
+  verify: () => {
+    // Count sweets in actual bags.
+    for (const [a, b] of [[1, 1], [3, 5], [9, 6], [12, 1]] as const) {
+      const bag = [...Array.from({ length: a }, () => 'apple'), ...Array.from({ length: b }, () => 'blackcurrant')];
+      const e = same(`a = ${a}, b = ${b}`, str(q(bag.filter((x) => x === 'apple').length, bag.length)), str(q(a, a + b)));
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [{ response: 'a/b', why: t`The bottom counts every sweet, apple sours included: ${math`a + b`}.` }],
+  official: { source: cite('step-f12-hints', 'Q2(iii)(a)'), answer: 'a/(a + b)', agrees: true },
+});
+
+const a12Mint = auto({
+  id: 'a12-q2-ii-first',
+  source: cite('step-f12', 'Q2(ii)', true),
+  title: t`The first sweet`,
+  prompt: t`A bag contains ${9} mint imperials and ${6} lemon sherbets. I take one sweet out without looking. What is the probability that it is a mint imperial? Give it in lowest terms.`,
+  answer: { kind: 'exact', expected: str(q(9, 15)) },
+  solution: [t`Each of the ${15} sweets is equally likely, and ${9} are mints: ${math`\frac{${9}}{${15}} = ${q(9, 15)}`}.`],
+  reference: '0.6',
+  verify: () => same('9 of 15', str(q(9, 9 + 6)), '3/5'),
+  misconceptions: [{ response: str(q(9, 6)), why: t`That compares mints with lemons. A probability compares mints with all ${15} sweets.` }],
+});
+
+const a12Goggles = auto({
+  id: 'a12-q2-iv-b',
+  source: cite('step-f12', 'Q2(iv)(b)'),
+  title: t`The first child in the queue`,
+  prompt: t`Three children have a swimming lesson. Each child, independently of the other two, remembers to bring goggles with probability ${q(1, 4)}. What is the probability that the first child in the queue has goggles?`,
+  answer: { kind: 'exact', expected: str(q(1, 4)) },
+  solution: [
+    t`The question is about one child only. Whatever the other two do, the first child has goggles with probability ${q(1, 4)}.`,
+    t`(Listing all ${8} cases for the three children gives the same: the cases where the first child has goggles add up to ${q(1, 4)}.)`,
+  ],
+  reference: '1/4',
+  verify: () => {
+    // Add the probabilities of the eight cases in which child 1 has goggles or not.
+    let total = q(0);
+    for (let m = 0; m < 8; m++) {
+      const has = [0, 1, 2].map((i) => ((m >> i) & 1) === 1);
+      if (!has[0]) continue;
+      const p = has.map((h) => (h ? q(1, 4) : q(3, 4))).reduce((x, y) => q(x.num * y.num, x.den * y.den));
+      total = q(total.num * p.den + p.num * total.den, total.den * p.den);
+    }
+    return same('A12 Q2(iv)(b) over all eight cases', str(total), '1/4');
+  },
+  misconceptions: [{ response: str(q(1, 64)), why: t`That is the chance that all three have goggles. The question asks about the first child only.` }],
+  official: { source: cite('step-f12-hints', 'Q2(iv)(b)'), answer: '1/4', agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const L = { red: 3, blue: 5 };
@@ -186,6 +309,7 @@ export const probabilityScale: TopicContent = {
   lesson: [
     { kind: 'p', text: t`A [[probability|probability]] measures how likely an [[event|event]] is, on a scale from ${0} to ${1}. ${0} means impossible, ${1} means certain, and ${q(1, 2)} means as likely as not. It can be written as a fraction, a decimal, or a percentage: ${q(1, 4)} is ${0.25}, or ${25}%.` },
     { kind: 'rule', text: t`When all outcomes are [[equally-likely|equally likely]], ${dmath`P(A) = \frac{\text{number of outcomes in } A}{\text{total number of outcomes}}.`}` },
+    { kind: 'p', text: t`"At random" has a precise meaning. STEP Support Assignment ${6} puts it in a footnote: random means that any person has the same probability of being picked as any other person. So "taken at random" is what makes the outcomes equally likely, and the rule above applies.` },
     { kind: 'p', text: t`A bag holds ${L.red} red and ${L.blue} blue counters, and one is taken at random. Each of the ${nBag} counters is equally likely, and ${L.red} are red, so ${math`${P('red')} = ${pRed}`}.` },
     { kind: 'p', text: t`A fair die has ${6} equally likely faces. The even faces are ${listOf(evens)}, so ${math`${P('even')} = \frac{${evens.length}}{${6}} = ${pEven}`}.` },
     { kind: 'p', text: t`Counting colours instead of counters is a common slip. There are ${2} colours, but red is not ${q(1, 2)} likely, because there are fewer red counters than blue ones.` },
@@ -196,10 +320,11 @@ export const probabilityScale: TopicContent = {
   examples: [
     worked(bag, { r: 4, b: 2, g: 6, not: true }, t`A counter that is not red`),
     worked(die, { n: 10, e: { kind: 'more-than', m: 7 }, not: false }, t`A ten-sided die`),
-    worked(complement, { a: 3, b: 20 }, t`The complement`),
+    workedCambridge(a12Apple),
   ],
-  generators: [bag, die, complement],
+  generators: [bag, die, complement, letters],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['probability', 'event', 'equally-likely', 'complement-event'],
+  cambridge: [a12Mint, a12Goggles],
   claims,
 };

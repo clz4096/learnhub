@@ -39,7 +39,7 @@ export const CST_DISCRETE_MATHS_SLICE: readonly ScheduleSection[] = [
       { text: 'bi-implication', topics: ['logic.iff'] },
       { text: 'universal quantification', topics: ['logic.quantifiers', 'logic.nested-quantifiers'] },
       { text: 'conjunction', topics: ['logic.connectives'] },
-      { text: 'existential quantification', topics: ['logic.quantifiers', 'logic.nested-quantifiers'] },
+      { text: 'existential quantification', topics: ['logic.quantifiers', 'logic.nested-quantifiers', 'comb.pigeonhole'] },
       { text: 'disjunction', topics: ['logic.connectives', 'proof.cases'] },
       { text: 'negation', topics: ['logic.connectives', 'logic.negating-quantifiers'] },
       { text: 'Logical deduction: proof strategies and patterns', topics: ['proof.direct', 'proof.cases', 'proof.counterexample', 'proof.contrapositive', 'proof.quantifier-patterns'] },

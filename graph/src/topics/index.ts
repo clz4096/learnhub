@@ -11,9 +11,12 @@
  * Order matters only for ties: the engine breaks them by input order. The probability
  * areas come first, in the order the probstats slice was reviewed in, so filtering the
  * graph to IA Probability gives exactly the reviewed array (and SIMULATION.md does not move).
+ *
+ * Each topic's Cambridge batch 1 citations (`cambridge-batch-1.ts`) follow its own sources.
  */
 import type { Topic } from '@learnhub/mastery';
 import { analysis } from './analysis';
+import { CAMBRIDGE_BATCH_1 } from './cambridge-batch-1';
 import { calculus } from './calculus';
 import { conditioning } from './conditioning';
 import { counting } from './counting';
@@ -29,7 +32,7 @@ import { sequencesAndSeries } from './sequences-and-series';
 import { sets } from './sets';
 
 /** Area name to its topics, in graph order. */
-export const AREAS: Readonly<Record<string, readonly Topic[]>> = {
+const AREA_TOPICS: Readonly<Record<string, readonly Topic[]>> = {
   'number-and-algebra': numberAndAlgebra,
   'sequences-and-series': sequencesAndSeries,
   calculus,
@@ -45,5 +48,14 @@ export const AREAS: Readonly<Record<string, readonly Topic[]>> = {
   proof,
   'number-theory': numberTheory,
 };
+
+const withCambridge = (t: Topic): Topic => {
+  const more = CAMBRIDGE_BATCH_1[t.id];
+  return more === undefined ? t : { ...t, sources: [...t.sources, ...more] };
+};
+
+export const AREAS: Readonly<Record<string, readonly Topic[]>> = Object.fromEntries(
+  Object.entries(AREA_TOPICS).map(([area, ts]) => [area, ts.map(withCambridge)]),
+);
 
 export const topics: readonly Topic[] = Object.values(AREAS).flat();

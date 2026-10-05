@@ -11,10 +11,11 @@
  * feedback names the likely slip instead of only saying "wrong".
  */
 import {
-  gradeChoice, gradeExact, gradeExpression, gradeNumeric, mulberry32, normalizeSymbols, parseExpression, parseNumber, parseRational,
-  texOfExpression, type Expr, type GradeResult, type Rng, type VariableDomain,
+  formatWitness, gradeChoice, gradeExact, gradeExpression, gradeFormula, gradeNumeric, gradeTable, gradeWitness, mulberry32, normalizeSymbols,
+  parseExpression, parseFormula, parseNumber, parseRational, parseWitness, texNumber, texOfExpression, texOfFormula, readTruth,
+  type CellKind, type Expr, type GradeResult, type Rational, type Rng, type VariableDomain, type WitnessSpec,
 } from '@learnhub/mastery';
-import { exprTex, t, type Rich, type Span } from './rich';
+import { exprTex, t, texOfRational, type Rich, type Span } from './rich';
 
 /** Shapes an expression answer must have, beyond being equal to the expected one. */
 export type ExprForm = 'product' | 'expanded' | 'no-fraction' | 'collected';
@@ -31,7 +32,21 @@ export type AnswerSpec =
   /** `binomial`: the question asks for a binomial coefficient, so C(n, k) and nCk are read as choose(n, k). */
   | { kind: 'expression'; expected: string; variables: readonly string[]; domains?: Readonly<Record<string, VariableDomain>>; form?: ExprForm; binomial?: boolean }
   /** `correct` as an array means "choose all that apply". */
-  | { kind: 'choice'; options: readonly ChoiceOption[]; correct: string | readonly string[] };
+  | { kind: 'choice'; options: readonly ChoiceOption[]; correct: string | readonly string[] }
+  /**
+   * An example or counterexample checked by a predicate (the witness grader). `example` is
+   * one valid witness, shown as the answer after a miss; `unordered` means the values are
+   * a set, so misconceptions match in any order.
+   */
+  | ({ kind: 'witness'; example: string; unordered?: boolean } & WitnessSpec)
+  /**
+   * A table filled in cell by cell (the table grader). `rows` gives every cell: a Rich for
+   * a given cell, null for a blank the learner fills. `expected` is the text of the blanks
+   * in reading order.
+   */
+  | { kind: 'table'; columns: readonly Rich[]; rows: readonly (readonly (Rich | null)[])[]; expected: readonly string[]; cell: CellKind }
+  /** A propositional formula in `variables`, right when equivalent to `expected` (the formula grader). */
+  | { kind: 'formula'; expected: string; variables: readonly string[] };
 
 /** Typed text, or the chosen option ids of a choice problem. */
 export type Response = string | readonly string[];
@@ -111,6 +126,8 @@ export function generator<P>(g: GeneratorSpec<P>): Generator<P> {
 export interface Feedback extends GradeResult {
   /** The misconception the answer matches, when it is wrong in a known way. */
   misconception?: Rich;
+  /** For a table answer: the indices of the wrong cells, in reading order. */
+  wrongCells?: readonly number[];
 }
 
 function walk(e: Expr, f: (x: Expr) => boolean): boolean {
@@ -162,7 +179,43 @@ function gradeSpec(spec: AnswerSpec, response: Response): GradeResult {
       return why === null ? r : { correct: false, feedback: why, normalizedAnswer: r.normalizedAnswer };
     }
     case 'choice': return gradeChoice(response, { options: spec.options.map((o) => o.id), correct: spec.correct });
+    case 'witness': return gradeWitness(text, spec);
+    case 'table': return gradeTable(typeof response === 'string' ? [response] : response, { expected: spec.expected, cell: spec.cell });
+    case 'formula': return gradeFormula(text, spec.expected, { variables: spec.variables });
   }
+}
+
+/** The witness values as text in a canonical form, sorted for a set; null when they do not parse. */
+function witnessKey(spec: Extract<AnswerSpec, { kind: 'witness' }>, text: string): string | null {
+  const r = parseWitness(text, spec);
+  if (!r.ok) return null;
+  const vals = spec.unordered === true ? [...r.value].sort((a, b) => (a.num * b.den < b.num * a.den ? -1 : a.num * b.den > b.num * a.den ? 1 : 0)) : r.value;
+  return formatWitness(vals);
+}
+
+/** A table's cells as canonical keys (T, F, or a rational); null when a cell does not read. */
+function tableKey(spec: Extract<AnswerSpec, { kind: 'table' }>, cells: readonly string[]): string | null {
+  const keys = cells.map((c) => {
+    if (spec.cell === 'truth') {
+      const b = readTruth(c);
+      return b === null ? null : b ? 'T' : 'F';
+    }
+    const r = parseRational(c);
+    return r.ok ? `${r.value.num}/${r.value.den}` : null;
+  });
+  return keys.some((k) => k === null) ? null : keys.join('|');
+}
+
+/**
+ * Why a filled table cannot be marked yet (a blank or unreadable cell), or null when every
+ * cell reads. Like an unreadable typed answer, such a table is never graded as a miss.
+ */
+export function tableNotice(spec: Extract<AnswerSpec, { kind: 'table' }>, cells: readonly string[]): string | null {
+  const blank = cells.filter((c) => c.trim() === '').length;
+  if (blank > 0 || cells.length < spec.expected.length) return blank === 1 ? 'Fill in the empty cell first.' : 'Fill in every empty cell first.';
+  const bad = cells.findIndex((c) => (spec.cell === 'truth' ? readTruth(c) === null : !parseRational(c).ok));
+  if (bad < 0) return null;
+  return spec.cell === 'truth' ? `Cell ${bad + 1} reads "${(cells[bad] as string).trim()}": write T or F.` : `Cell ${bad + 1} reads "${(cells[bad] as string).trim()}": write a number, such as 3 or 3/8.`;
 }
 
 /** Whether two responses are the same answer under the spec's rules (ignoring form). */
@@ -182,6 +235,16 @@ export function sameAnswer(spec: AnswerSpec, a: Response, b: Response): boolean 
     }
     case 'expression': return gradeExpression(as, bs, { variables: spec.variables, domains: spec.domains, binomial: spec.binomial }).correct;
     case 'choice': return as === bs;
+    case 'witness': {
+      const x = witnessKey(spec, as);
+      return x !== null && x === witnessKey(spec, bs);
+    }
+    case 'table': {
+      // Cells keep their order: a table is not a set.
+      const x = tableKey(spec, typeof a === 'string' ? [a] : a);
+      return x !== null && x === tableKey(spec, typeof b === 'string' ? [b] : b);
+    }
+    case 'formula': return gradeFormula(as, bs, { variables: spec.variables }).correct;
   }
 }
 
@@ -190,7 +253,9 @@ export function sameAnswer(spec: AnswerSpec, a: Response, b: Response): boolean 
  * misconception's explanation; any other wrong answer gets the grader's own feedback.
  */
 export function grade(problem: Problem, response: Response, misconceptions: readonly Misconception[] = []): Feedback {
-  const r = gradeSpec(problem.answer, response);
+  const g = gradeSpec(problem.answer, response);
+  const wrong = (g as { wrong?: readonly number[] }).wrong;
+  const r: Feedback = wrong === undefined || wrong.length === 0 ? g : { ...g, wrongCells: wrong };
   if (r.correct) return r;
   const m = misconceptions.find((x) => sameAnswer(problem.answer, response, x.response));
   return m === undefined ? r : { ...r, misconception: m.why };
@@ -214,7 +279,32 @@ export function answerText(spec: AnswerSpec): Rich {
       const labels = spec.options.filter((o) => ids.includes(o.id)).map((o) => o.label);
       return labels.flatMap((l, i) => (i === 0 ? [...l] : [...t`; `, ...l]));
     }
+    case 'witness': {
+      const r = parseWitness(spec.example, spec);
+      const tex = r.ok ? witnessTex(r.value, spec.names) : `\\text{${spec.example}}`;
+      return [{ kind: 'math', text: tex, typed: [] }];
+    }
+    case 'table': return [{ kind: 'num', text: spec.expected.join(', '), typed: [] }];
+    case 'formula': {
+      const r = parseFormula(spec.expected, spec.variables);
+      return [{ kind: 'math', text: r.ok ? texOfFormula(r.value) : spec.expected, typed: [] }];
+    }
   }
+}
+
+/** Witness values as LaTeX: x = -8,\ y = 11, or a list. */
+export function witnessTex(values: readonly Rational[], names?: readonly string[]): string {
+  const named = names !== undefined && names.length === values.length;
+  return values.map((v, i) => {
+    const tex = v.den === 1n ? texNumber(Number(v.num)) : texOfRational(v);
+    return named ? `${texName(names[i] as string)} = ${tex}` : tex;
+  }).join(',\\ ');
+}
+
+/** A value's name as LaTeX: t3 is t_{3}, so a subscripted name reads as written. */
+function texName(name: string): string {
+  const m = /^([A-Za-z]+)(\d+)$/.exec(name);
+  return m === null ? name : `${m[1]}_{${m[2]}}`;
 }
 
 // ---------------------------------------------------------------- reading an answer as it is typed
@@ -264,6 +354,15 @@ export function readAnswer(spec: AnswerSpec, text: string): AnswerReading | null
       const r = parseExpression(text, spec.variables, { binomial: spec.binomial });
       return r.ok ? { tex: texOfExpression(r.value) } : null;
     }
-    case 'choice': return null;
+    case 'witness': {
+      const r = parseWitness(text, spec);
+      return r.ok ? { tex: witnessTex(r.value, spec.names) } : null;
+    }
+    case 'formula': {
+      const r = parseFormula(text, spec.variables);
+      return r.ok ? { tex: texOfFormula(r.value) } : null;
+    }
+    case 'choice':
+    case 'table': return null;
   }
 }

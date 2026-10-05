@@ -4,13 +4,30 @@ import { IA_AXIOMATIC, TRIPOS } from '../sources';
 
 export const iaAxiomatic: Topic[] = [
   {
+    id: 'prob.event-spaces',
+    title: 'Events and sigma-algebras',
+    summary: 'Events form a $\\sigma$-algebra: $\\Omega$ is an event, and events are closed under complement and countable unions; deduce $\\varnothing$, finite unions, and countable intersections.',
+    level: 'tripos-ia',
+    area: 'ia-axiomatic',
+    prereqs: ['sets.countable-unions'],
+    encompasses: { 'sets.countable-unions': 0.6, 'pre.set-notation': 0.3 },
+    sources: [{
+      doc: TRIPOS,
+      course: 'IA Probability',
+      section: IA_AXIOMATIC,
+      note: 'Schedule: "Axioms (countable case). Probability spaces." The schedule names only the countable case, but Example Sheet 1 Q4 asks for the definition of a sigma-algebra and proofs from it (batch 1 decision 4).',
+      verified: true,
+    }],
+    estMinutes: 20,
+  },
+  {
     id: 'prob.axioms',
     title: 'The axioms of probability, countable case',
     summary: 'State the axioms for a countable sample space, including countable additivity.',
     level: 'tripos-ia',
     area: 'ia-axiomatic',
-    prereqs: ['prob.classical-probability', 'sets.countable-unions', 'an.nonnegative-series'],
-    encompasses: { 'prob.classical-probability': 0.4, 'sets.countable-unions': 0.4, 'an.nonnegative-series': 0.4 },
+    prereqs: ['prob.classical-probability', 'prob.event-spaces', 'an.nonnegative-series'],
+    encompasses: { 'prob.classical-probability': 0.4, 'prob.event-spaces': 0.5, 'sets.countable-unions': 0.4, 'an.nonnegative-series': 0.4 },
     sources: [{ doc: TRIPOS, course: 'IA Probability', section: IA_AXIOMATIC, note: 'Schedule: "Axioms (countable case)."', verified: true }],
     estMinutes: 20,
   },

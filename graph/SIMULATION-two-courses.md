@@ -4,7 +4,7 @@
 
 ## Setup
 
-- Courses: `ia-probability` (60 topics, 1080 lesson minutes in its closure) and `cst-discrete-maths` (51 topics, 875 lesson minutes in its closure); 98 topics in the union, each learned once.
+- Courses: `ia-probability` (62 topics, 1120 lesson minutes in its closure) and `cst-discrete-maths` (52 topics, 895 lesson minutes in its closure); 101 topics in the union, each learned once.
 - 120 days, one 60-minute session a day, starting from nothing, no placement. `planSession` with both courses and no weights: an even split of new-lesson minutes, reviews unsplit.
 - Seeds: 1, 2, 3, 4, 5.
 
@@ -14,20 +14,20 @@ Lesson minutes are charged to the course that took the lesson (a shared foundati
 
 | seed | days to master ia-probability | days to master cst-discrete-maths | days to master both | lesson min, ia-probability | lesson min, cst-discrete-maths | review and quiz min | split before the first course is done |
 |---|---|---|---|---|---|---|---|
-| 1 | 60 | 52 | 60 | 1190 | 990 | 2062 | 980 / 965 |
-| 2 | 58 | 49 | 58 | 1160 | 895 | 1826 | 895 / 870 |
-| 3 | 61 | 56 | 61 | 1200 | 995 | 1761 | 1005 / 970 |
-| 4 | 66 | 55 | 66 | 1205 | 915 | 2240 | 900 / 890 |
-| 5 | 54 | 49 | 54 | 1120 | 955 | 1624 | 940 / 930 |
+| 1 | 61 | 50 | 61 | 1185 | 910 | 1927 | 900 / 885 |
+| 2 | 61 | 54 | 61 | 1160 | 915 | 1962 | 905 / 890 |
+| 3 | 56 | 49 | 56 | 1050 | 880 | 1929 | 860 / 855 |
+| 4 | 66 | 60 | 66 | 1190 | 1030 | 2624 | 1015 / 985 |
+| 5 | 60 | 52 | 60 | 1185 | 950 | 1834 | 930 / 925 |
 
-Means over 5 seeds: 59.8 days to master `ia-probability`, 52.2 days to master `cst-discrete-maths`, 59.8 days for both.
+Means over 5 seeds: 60.8 days to master `ia-probability`, 53.0 days to master `cst-discrete-maths`, 60.8 days for both.
 
 ## Placement over both courses
 
-Truthful random learners (the `SIMULATION.md` model), split strategy. Unclassified topics at the budget count as not known. The last row is the default budget, `placementBudget` of the 98-topic union: max(30, ceil(98 / 2)).
+Truthful random learners (the `SIMULATION.md` model), split strategy. Unclassified topics at the budget count as not known. The last row is the default budget, `placementBudget` of the 101-topic union: max(30, ceil(101 / 2)).
 
 | budget | learners | placed exactly | mean over-placed | mean under-placed | mean questions | max questions |
 |---|---|---|---|---|---|---|
-| 30 | 1000 | 44.9% | 0.00 | 2.43 | 29.6 | 30 |
-| 40 | 1000 | 100.0% | 0.00 | 0.00 | 32.7 | 40 |
-| 49 | 1000 | 100.0% | 0.00 | 0.00 | 32.7 | 40 |
+| 30 | 1000 | 39.9% | 0.00 | 3.36 | 29.7 | 30 |
+| 40 | 1000 | 92.0% | 0.00 | 0.11 | 33.6 | 40 |
+| 51 | 1000 | 100.0% | 0.00 | 0.00 | 33.7 | 43 |

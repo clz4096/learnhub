@@ -1,8 +1,15 @@
-/** pre.indices: Laws of indices. */
+/**
+ * pre.indices: Laws of indices. No Cambridge source teaches indices from the start, so the
+ * explanation is written from scratch (decision 11); STEP Support Assignment 12 Q1(iv)
+ * (2^(2n) is 4^n) and CST supervision exercise 1.2.3 (2^0 = 1, and N starts at 0) supply
+ * the worked example and the problems.
+ */
+import type { Rational } from '@learnhub/mastery';
+import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, frac, ident, math, t } from '../rich';
-import { worked, type TopicContent } from '../topic';
+import { worked, workedProof, type TopicContent } from '../topic';
 
 const POS = { kind: 'real', min: 0.5, max: 3 } as const;
 const INT = { kind: 'integer', min: -4, max: 4 } as const;
@@ -122,6 +129,110 @@ const evaluate = generator<EvalP>({
   },
 });
 
+interface BaseP { a: number; k: number; neg: boolean }
+
+const newBase = generator<BaseP>({
+  id: 'new-base',
+  skill: 'Rewrite a power whose index is a multiple of n as a power of n, as 2^(2n) = 4^n in STEP Support Assignment 12 Q1(iv).',
+  // Not 2 with 2 or 3 with 3, where the slips below give the right answer and would be marked right.
+  params: (rng) => {
+    const [a, k] = pick(rng, [[2, 3], [3, 2], [5, 2], [5, 3], [10, 2], [10, 3]] as const);
+    return { a, k, neg: rng() < 0.25 };
+  },
+  sane: ({ a, k }) => ([2, 3, 5, 10].includes(a) && (k === 2 || k === 3) && a !== k ? null : 'out of range'),
+  problem: ({ a, k, neg }) => {
+    const b: Rational = neg ? q(1, a ** k) : q(a ** k);
+    return {
+      prompt: neg
+        ? t`Write ${math`${a}^{-${k}n}`} in the form ${math`b^{n}`}, for every whole number ${math`n`}. What is ${math`b`}?`
+        : t`Write ${math`${a}^{${k}n}`} in the form ${math`b^{n}`}, for every whole number ${math`n`}. What is ${math`b`}?`,
+      answer: { kind: 'exact', expected: str(b) },
+      solution: [
+        t`A power of a power multiplies the indices, so read ${math`${neg ? '-' : ''}${k}n`} as ${math`${neg ? '-' : ''}${k} \times n`}: ${math`${a}^{${neg ? '-' : ''}${k}n} = \left(${a}^{${neg ? '-' : ''}${k}}\right)^{n}`}.`,
+        neg
+          ? t`${math`${a}^{-${k}} = \frac{${1}}{${a}^{${k}}} = ${b}`}, so ${math`b = ${b}`}.`
+          : t`${math`${a}^{${k}} = ${a ** k}`}, so ${math`b = ${a ** k}`}.`,
+      ],
+    };
+  },
+  solve: ({ a, k, neg }) => {
+    // Find b by trying n = 1, where b^1 is the value itself, then check n = 2 and 3.
+    const at = (n: number): Rational => (neg ? q(1, a ** (k * n)) : q(a ** (k * n)));
+    const b = at(1);
+    const ok = [2, 3].every((n) => str(at(n)) === str(q(b.num ** BigInt(n), b.den ** BigInt(n))));
+    return ok ? str(b) : 'none';
+  },
+  misconceptions: ({ a, k, neg }): Misconception[] => [
+    { response: neg ? str(q(-a * k)) : String(a * k), why: t`The index multiplies, but the base does not: ${math`${a}^{${k}}`} is ${a} multiplied by itself ${k} times, not ${math`${a} \times ${k}`}.` },
+    { response: String(k ** a), why: t`Base and index are swapped: the base is ${a}, so ${math`b = ${a}^{${neg ? '-' : ''}${k}}`}.` },
+    ...(neg ? [{ response: String(-(a ** k)), why: t`A negative index gives a reciprocal, not a negative number: ${math`${a}^{-${k}} = \frac{${1}}{${a}^{${k}}}`}.` }] : []),
+  ],
+});
+
+// ---------------------------------------------------------------- Cambridge problems
+
+const a12Proof = workedProof({
+  title: t`${math`${2}^{${2}n} - ${1}`} is divisible by ${3}`,
+  prompt: t`Show that ${math`${2}^{${2}n} - ${1}`} is divisible by ${3} for every positive integer ${math`n`}.`,
+  steps: [
+    t`A power of a power multiplies the indices, so ${math`${2}^{${2}n} = \left(${2}^{${2}}\right)^{n} = ${4}^{n}`}. The question is about ${math`${4}^{n} - ${1}`}.`,
+    t`The hints take another route through the same law: ${math`${2}^{${2}n} = \left(${2}^{n}\right)^{${2}}`}, so ${math`${2}^{${2}n} - ${1} = (${2}^{n} - ${1})(${2}^{n} + ${1})`}, a difference of two squares.`,
+    t`Now ${math`${2}^{n} - ${1}`}, ${math`${2}^{n}`}, ${math`${2}^{n} + ${1}`} are three consecutive integers, so one of them is divisible by ${3}. It is not ${math`${2}^{n}`}, whose only prime factor is ${2}.`,
+    t`So ${3} divides ${math`${2}^{n} - ${1}`} or ${math`${2}^{n} + ${1}`}, and hence their product ${math`${2}^{${2}n} - ${1}`}. (The hints warn against a shortcut: two consecutive odd numbers need not include a multiple of ${3}, as ${5} and ${7} show.)`,
+  ],
+  answer: t`${math`${2}^{${2}n} - ${1} = ${4}^{n} - ${1}`} is a multiple of ${3} for every ${math`n`}: for example ${math`${4}^{${3}} - ${1} = ${4 ** 3 - 1} = ${3} \times ${(4 ** 3 - 1) / 3}`}.`,
+  source: cite('step-f12', 'Q1(iv)'),
+});
+
+const SW = 'cst-dm-sw1';
+const sw123verdict = auto({
+  id: 'sw-1-2-3-verdict',
+  source: cite(SW, 'Exercises 1, 1.2.3'),
+  title: t`Prove or disprove: ${math`${2}`} divides ${math`${2}^{n}`}`,
+  prompt: t`Prove or disprove: for all natural numbers ${math`n`}, ${math`${2}`} divides ${math`${2}^{n}`}. (In this course ${math`\mathbb{N}`} starts at ${0}.)`,
+  answer: {
+    kind: 'choice',
+    options: [{ id: 'true', label: t`True for every natural number` }, { id: 'false', label: t`False: some natural number fails` }],
+    correct: 'false',
+  },
+  solution: [
+    t`At ${math`n = ${0}`}, ${math`${2}^{${0}} = ${1}`}, the [[zero-index|zero index]] rule, and ${2} does not divide ${1}.`,
+    t`So the statement is false, though it holds for every ${math`n \ge ${1}`}. The official solution adds that this is a gentle reminder that ${0} is a natural number.`,
+  ],
+  reference: 'false',
+  verify: () => same('the first n in 0..20 with 2^n odd', Array.from({ length: 21 }, (_, n) => n).find((n) => 2 ** n % 2 !== 0), 0),
+  misconceptions: [{ response: 'true', why: t`Check the smallest natural number. ${math`\mathbb{N}`} starts at ${0} here, and ${math`${2}^{${0}} = ${1}`}.` }],
+  official: { source: cite('cst-dm-sols-2324-1', '1.2.3'), answer: 'false', agrees: true },
+});
+const sw123witness = auto({
+  id: 'sw-1-2-3-witness',
+  source: cite(SW, 'Exercises 1, 1.2.3', true),
+  title: t`The counterexample`,
+  prompt: t`Find a natural number ${math`n`} for which ${math`${2}`} does not divide ${math`${2}^{n}`}.`,
+  answer: {
+    kind: 'witness', count: 1, names: ['n'], example: '0',
+    check: ([v]) => {
+      const n = v as Rational;
+      if (n.den !== 1n || n.num < 0n) return 'A natural number is a whole number, at least 0.';
+      return n.num === 0n ? null : `${n.num} is at least 1, so 2^${n.num} has 2 as a factor.`;
+    },
+  },
+  solution: [t`${math`n = ${0}`}: ${math`${2}^{${0}} = ${1}`}, and ${2} does not divide ${1}. Every larger ${math`n`} gives a multiple of ${2}.`],
+  reference: 'n = 0',
+  verify: () => same('the only n in 0..30 that fails', Array.from({ length: 31 }, (_, n) => n).filter((n) => 2 ** n % 2 !== 0).join(), '0'),
+  misconceptions: [{ response: '1', why: t`${math`${2}^{${1}} = ${2}`}, which ${2} divides. Try the smallest natural number.` }],
+  official: { source: cite('cst-dm-sols-2324-1', '1.2.3'), answer: '0', agrees: true },
+});
+
+const a12Q1iii = supervision({
+  id: 'a12-q1-iii',
+  source: cite('step-f12', 'Q1(iii)'),
+  title: t`${math`n^{${5}} - n^{${3}}`} and ${24}`,
+  prompt: t`Show that ${math`n^{${5}} - n^{${3}}`} is divisible by ${24} for every positive integer ${math`n`}. Start by taking out the largest power of ${math`n`} you can.`,
+  writeUp: 'proof',
+  official: cite('step-f12-hints', 'Q1(iii)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const indices: TopicContent = {
@@ -139,6 +250,7 @@ export const indices: TopicContent = {
       ],
     },
     { kind: 'p', text: t`The division rule explains the [[zero-index|zero index]]: ${math`\frac{${2}^{${3}}}{${2}^{${3}}}`} is ${1}, and the rule gives ${math`${2}^{${0}}`}. So ${ident('x^0', '1', ['x'], D)} for every nonzero ${mx}.` },
+    { kind: 'p', text: t`Zero indices matter in proofs. The CST supervision exercises ask whether ${2} divides ${math`${2}^{n}`} for every natural number ${math`n`}. In that course ${math`\mathbb{N}`} starts at ${0}, and ${math`${2}^{${0}} = ${1}`}, so the claim fails at ${math`n = ${0}`}.` },
     { kind: 'p', text: t`It also explains [[negative-index|negative indices]]: ${math`\frac{${2}^{${2}}}{${2}^{${5}}} = ${frac(2 ** 2, 2 ** 5)} = ${q(2 ** 2, 2 ** 5)}`}, and the rule gives ${math`${2}^{${-3}}`}. So ${ident('x^(-n)', '1/x^n', ['x', 'n'], D)}. A negative index never makes the number negative.` },
     { kind: 'p', text: t`A [[fractional-index|fractional index]] is a root. Since ${math`\left(${9}^{${1}/${2}}\right)^{${2}} = ${9}^{${1}} = ${9}`}, the number ${math`${9}^{${1}/${2}}`} is the square root of ${9}: ${math`\sqrt{${9}} = ${Math.sqrt(9)}`}. In general ${math`x^{m/n}`} is the ${math`n`}th root of ${mx}, raised to the power ${math`m`}: ${dmath`x^{m/n} = \left(\sqrt[n]{x}\right)^{m}, \qquad ${8}^{${2}/${3}} = ${Math.cbrt(8)}^{${2}} = ${Math.cbrt(8) ** 2}.`}` },
   ],
@@ -146,8 +258,10 @@ export const indices: TopicContent = {
     worked(combine, { a: 5, b: 4, c: 7 }, t`Multiplying and dividing powers`),
     worked(evaluate, { r: 3, qq: 3, p: -2 }, t`A negative fractional index`),
     worked(powerOfPower, { a: 3, b: 4, c: 2 }, t`A power of a power`),
+    a12Proof,
   ],
-  generators: [combine, powerOfPower, evaluate],
+  generators: [combine, powerOfPower, evaluate, newBase],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['power', 'base', 'index', 'zero-index', 'negative-index', 'fractional-index'],
+  cambridge: [sw123verdict, sw123witness, a12Q1iii],
 };

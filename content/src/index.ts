@@ -1,6 +1,7 @@
 export * from './rich';
 export * from './problem';
 export * from './topic';
+export * from './cambridge';
 export * from './glossary';
 export { TOPIC_CONTENT } from './topics';
 
