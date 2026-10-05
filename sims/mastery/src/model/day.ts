@@ -9,8 +9,10 @@
  * 1500), and a wake time before 5:00 am still belongs to the night before.
  *
  * Ported from the Cambridge Entry prototype's plan(); one change: a break is never left
- * at the end of a free stretch with nothing after it.
+ * at the end of a free stretch with nothing after it. Added since: fixed blocks (timed
+ * papers) placed first, and replanning the rest of the day from a given time.
  */
+import type { Route } from './route';
 
 /** Minutes to get going after waking. */
 export const GET_GOING = 45;
@@ -39,6 +41,25 @@ export const BROOKLYN = { lat: 40.6782, lon: -73.9442 } as const;
 
 export type SlotKind = 'study' | 'optional' | 'gym' | 'meal' | 'break';
 
+/**
+ * A block of a set length placed first in the day, before the 90-minute blocks, and
+ * counted as core study: a timed paper, say 180 minutes for a STEP paper, 150 for a TMUA
+ * sitting, or 120 or 90 for an A level paper. The queue never fills it.
+ */
+export interface FixedBlock {
+  minutes: number;
+  title: string;
+  /** A line under the title. */
+  detail?: string;
+  /** Where the block's link goes, if it has one. */
+  to?: Route;
+}
+
+/** A fixed block as placed. `index` is its place in the list given to the planner, so a replan can tell which are done. */
+export interface PlacedFixed extends FixedBlock {
+  index: number;
+}
+
 export interface Slot {
   start: number;
   end: number;
@@ -47,12 +68,14 @@ export interface Slot {
   detail: string;
   /** A full core block (90 minutes, or the last of the core and at least 60): new material goes here. Light blocks get reviews. */
   heavy: boolean;
+  /** Set on a study slot that is a fixed block. */
+  fixed?: PlacedFixed;
 }
 
 export interface DayPlan {
   /** In time order: study, optional, breaks, the gym, and meals. */
   slots: Slot[];
-  /** Core minutes planned, at most CORE. */
+  /** Core minutes planned: at most CORE, unless fixed blocks alone pass it. */
   core: number;
   /** Optional minutes planned, at most OPTIONAL. */
   optional: number;
@@ -78,44 +101,91 @@ export function fmt(m: number): string {
 /** 9:45 am, for sentences. */
 export const fmtLong = (m: number): string => fmt(m).replace(/(am|pm)$/, ' $1');
 
-interface Built { slots: Slot[]; core: number; optional: number; coreEnd: number | null; gym: number | null }
+const GYM_NOTE = 'The gym window, 2:00 to 2:30 pm, has passed or does not fit today.';
+const LUNCH_TITLE = 'Lunch';
+const unplacedNote = (f: FixedBlock): string => `${f.title}, ${f.minutes} minutes, does not fit today.`;
+const REPLANNED = 'Replanned from ';
 
-function build(g: number | null, start: number, stop: number): Built {
-  const events: Slot[] = [];
-  const gymOk = g !== null && start <= g && g + GYM <= stop;
+/** What a build starts from: an empty day, or for a replan, the slots that stay. */
+interface Ctx {
+  start: number;
+  stop: number;
+  /** Slots that stay as they are: past, in progress, or ticked. Nothing new overlaps them. */
+  kept: readonly Slot[];
+  /** Whether to place the gym, lunch, and dinner. */
+  gym: boolean;
+  lunch: boolean;
+  dinner: boolean;
+  fixed: readonly PlacedFixed[];
+}
+
+interface Built { slots: Slot[]; core: number; optional: number; coreEnd: number | null; gym: number | null; unplaced: PlacedFixed[] }
+
+const minutesOf = (slots: readonly Slot[], kind: SlotKind): number => slots.filter((s) => s.kind === kind).reduce((a, s) => a + s.end - s.start, 0);
+
+function coreEndOf(slots: readonly Slot[]): number | null {
+  let sum = 0;
+  for (const s of slots) {
+    if (s.kind !== 'study') continue;
+    sum += s.end - s.start;
+    if (sum >= CORE) return s.end;
+  }
+  return null;
+}
+
+function build(g: number | null, c: Ctx): Built {
+  const b = buildOnce(g, c);
+  // Blocks were kept short to leave core time for the fixed blocks; those that did not fit give it back.
+  return b.unplaced.length === 0 ? b : { ...buildOnce(g, { ...c, fixed: c.fixed.filter((f) => !b.unplaced.includes(f)) }), unplaced: b.unplaced };
+}
+
+function buildOnce(g: number | null, c: Ctx): Built {
+  const { start, stop } = c;
+  const obstacles = c.kept.filter((s) => s.end > start);
+  const clear = (a: number, b: number): boolean => start <= a && b <= stop && obstacles.every((x) => x.end <= a || x.start >= b);
   const fixed = (s: number, e: number, kind: SlotKind, title: string, detail = ''): Slot => ({ start: s, end: e, kind, title, detail, heavy: false });
-  if (gymOk) {
-    if (start <= g - LUNCH) events.push(fixed(g - LUNCH, g, 'meal', 'Lunch'));
-    else if (g + GYM + LUNCH <= stop) events.push(fixed(g + GYM, g + GYM + LUNCH, 'meal', 'Lunch', 'After the gym today'));
+  const events: Slot[] = [];
+  const gymOk = c.gym && g !== null && clear(g, g + GYM);
+  if (gymOk && g !== null) {
+    if (c.lunch && clear(g - LUNCH, g)) events.push(fixed(g - LUNCH, g, 'meal', LUNCH_TITLE));
+    else if (c.lunch && clear(g + GYM, g + GYM + LUNCH)) events.push(fixed(g + GYM, g + GYM + LUNCH, 'meal', LUNCH_TITLE, 'After the gym today'));
     events.push(fixed(g, g + GYM, 'gym', 'Gym', '90 minutes including travel'));
   }
-  if (start <= DINNER && DINNER + DINNER_LENGTH <= stop) events.push(fixed(DINNER, DINNER + DINNER_LENGTH, 'meal', 'Dinner'));
-  events.sort((a, b) => a.start - b.start);
+  if (c.dinner && clear(DINNER, DINNER + DINNER_LENGTH)) events.push(fixed(DINNER, DINNER + DINNER_LENGTH, 'meal', 'Dinner'));
+  const busy = [...obstacles, ...events].sort((a, b) => a.start - b.start);
 
   const free: [number, number][] = [];
   let t = start;
-  for (const x of events) {
+  for (const x of busy) {
     if (x.start > t) free.push([t, x.start]);
     t = Math.max(t, x.end);
   }
   if (stop > t) free.push([t, stop]);
 
   const items: Slot[] = [];
-  let core = 0;
-  let optional = 0;
-  let coreEnd: number | null = null;
+  const pending = [...c.fixed];
+  let core = minutesOf(c.kept, 'study');
+  let optional = minutesOf(c.kept, 'optional');
   for (const [from, to] of free) {
     let u = from;
     for (;;) {
       const room = to - u;
-      if (core < CORE && room >= Math.min(MIN_BLOCK, CORE - core)) {
-        const len = Math.min(room, BLOCK, CORE - core);
-        const heavy = len >= BLOCK || (len === CORE - core && len >= 60);
+      const f = pending[0];
+      // Core left for ordinary blocks once the fixed blocks still to place have theirs.
+      const need = CORE - core - pending.reduce((a, x) => a + x.minutes, 0);
+      if (f !== undefined && f.minutes <= room) {
+        // Fixed blocks go first, in the order given, in the first stretch with room.
+        pending.shift();
+        items.push({ start: u, end: u + f.minutes, kind: 'study', title: f.title, detail: f.detail ?? '', heavy: true, fixed: f });
+        core += f.minutes;
+        u += f.minutes;
+      } else if (need > 0 && room >= Math.min(MIN_BLOCK, need)) {
+        const len = Math.min(room, BLOCK, need);
+        const heavy = len >= BLOCK || (len === need && len >= 60);
         items.push({ start: u, end: u + len, kind: 'study', title: heavy ? 'Study block' : 'Reviews', detail: '', heavy });
         core += len;
         u += len;
-        if (core >= CORE) coreEnd = u;
-      } else if (core >= CORE && optional < OPTIONAL && room >= MIN_LIGHT) {
+      } else if (need <= 0 && pending.length === 0 && optional < OPTIONAL && room >= MIN_LIGHT) {
         const len = Math.min(room, BLOCK, OPTIONAL - optional);
         items.push({ start: u, end: u + len, kind: 'optional', title: 'Light study', detail: 'Reviews and reading ahead. Skip it if you are tired.', heavy: false });
         optional += len;
@@ -129,25 +199,39 @@ function build(g: number | null, start: number, stop: number): Built {
     // A break with nothing after it in this stretch is just free time.
     if (items.length > 0 && items[items.length - 1]?.kind === 'break' && (items[items.length - 1]?.end ?? 0) > from) items.pop();
   }
-  const slots = [...items, ...events].sort((a, b) => a.start - b.start);
-  return { slots, core, optional, coreEnd, gym: gymOk ? g : null };
+  const slots = [...c.kept, ...items, ...events].sort((a, b) => a.start - b.start);
+  return { slots, core, optional, coreEnd: coreEndOf(slots), gym: gymOk ? g : null, unplaced: pending };
 }
 
-/** Whether `p` beats `best`: a gym that fits, then more core, then the core done earlier. */
+/** Whether `p` beats `best`: a gym that fits, then every fixed block placed, then more core, then the core done earlier. */
 function better(p: Built, best: Built): boolean {
   if (p.gym === null) return false;
-  if (best.gym === null && p.core >= best.core) return true;
-  if (p.core > best.core) return true;
-  return best.gym !== null && p.core === best.core && (p.coreEnd ?? Infinity) < (best.coreEnd ?? Infinity);
+  if (best.gym === null) return p.core >= best.core;
+  if (p.unplaced.length !== best.unplaced.length) return p.unplaced.length < best.unplaced.length;
+  if (p.core !== best.core) return p.core > best.core;
+  return (p.coreEnd ?? Infinity) < (best.coreEnd ?? Infinity);
 }
+
+/** The gym tries each start in GYM_STARTS and keeps the best build (see `better`). */
+function choose(c: Ctx): Built {
+  let best: Built | null = null;
+  for (const g of [...GYM_STARTS, null]) {
+    const p = build(g, c);
+    if (best === null || better(p, best)) best = p;
+  }
+  return best as Built;
+}
+
+const placed = (fixed: readonly FixedBlock[]): PlacedFixed[] => fixed.map((f, index) => ({ ...f, index }));
 
 /**
  * The day's plan. `wake` in plan minutes (see the file comment), `weekday` 0 for Sunday to
  * 6 for Saturday, `sunset` that day's Brooklyn sundown in minutes. Friday ends at sundown;
  * Saturday starts after it. The gym tries each start in GYM_STARTS and keeps the one that
- * fits the most core study, then finishes the core earliest.
+ * places every fixed block, then fits the most core study, then finishes the core
+ * earliest. `fixed` blocks go first, in order, each in the earliest free stretch it fits.
  */
-export function planDay(wake: number, weekday: number, sunset: number): DayPlan {
+export function planDay(wake: number, weekday: number, sunset: number, fixed: readonly FixedBlock[] = []): DayPlan {
   let start = wake + GET_GOING;
   let stop = BED - WIND_DOWN;
   const notes: string[] = [];
@@ -159,14 +243,46 @@ export function planDay(wake: number, weekday: number, sunset: number): DayPlan 
     notes.push(`Shabbat: the plan starts after sundown, ${fmtLong(sunset)}.`);
     start = sunset;
   }
-  let best: Built | null = null;
-  for (const g of [...GYM_STARTS, null]) {
-    const p = build(g, start, stop);
-    if (best === null || better(p, best)) best = p;
-  }
-  const chosen = best as Built;
-  if (chosen.gym === null && weekday !== 6) notes.push('The gym window, 2:00 to 2:30 pm, has passed or does not fit today.');
-  return { ...chosen, start, stop, notes };
+  const chosen = choose({ start, stop, kept: [], gym: true, lunch: true, dinner: true, fixed: placed(fixed) });
+  if (chosen.gym === null && weekday !== 6) notes.push(GYM_NOTE);
+  notes.push(...chosen.unplaced.map(unplacedNote));
+  return { slots: chosen.slots, core: chosen.core, optional: chosen.optional, coreEnd: chosen.coreEnd, gym: chosen.gym, start, stop, notes };
+}
+
+/**
+ * The rest of the day planned again from `at` (plan minutes), by the same rules as
+ * `planDay`. Slots that are over, ticked (`ticks` holds slot starts), or a meal or the gym
+ * already under way stay as they are; everything else from `at` on is planned afresh
+ * around them, for the core and optional minutes still missing. The gym is placed again
+ * only if it has not been kept, and lunch only with it. `fixed` must be the list `plan`
+ * was made with; blocks of it not kept are placed again.
+ */
+export function replanDay(plan: DayPlan, at: number, ticks: readonly number[], fixed: readonly FixedBlock[] = []): DayPlan {
+  const ticked = new Set(ticks);
+  const keepGym = plan.slots.find((s) => s.kind === 'gym' && (ticked.has(s.start) || s.start <= at));
+  const kept = plan.slots.filter((s) =>
+    s.end <= at
+    || (s.kind !== 'break' && ticked.has(s.start))
+    || ((s.kind === 'gym' || s.kind === 'meal') && s.start <= at)
+    // Lunch is placed around the gym, so it stays with a gym that stays.
+    || (keepGym !== undefined && s.kind === 'meal' && s.title === LUNCH_TITLE));
+  const has = (f: (s: Slot) => boolean): boolean => kept.some(f);
+  const done = new Set(kept.flatMap((s) => (s.fixed === undefined ? [] : [s.fixed.index])));
+  const start = Math.max(at, plan.start);
+  const chosen = choose({
+    start, stop: plan.stop, kept,
+    gym: keepGym === undefined,
+    lunch: !has((s) => s.kind === 'meal' && s.title === LUNCH_TITLE),
+    dinner: !has((s) => s.kind === 'meal' && s.start === DINNER),
+    fixed: placed(fixed).filter((f) => !done.has(f.index)),
+  });
+  const gym = keepGym?.start ?? chosen.gym;
+  const dropped = new Set([GYM_NOTE, ...placed(fixed).map(unplacedNote)]);
+  const notes = plan.notes.filter((n) => !dropped.has(n) && !n.startsWith(REPLANNED));
+  if (gym === null && (plan.gym !== null || plan.notes.includes(GYM_NOTE))) notes.push(GYM_NOTE);
+  notes.push(...chosen.unplaced.map(unplacedNote));
+  notes.push(`${REPLANNED}${fmtLong(start)}.`);
+  return { slots: chosen.slots, core: chosen.core, optional: chosen.optional, coreEnd: chosen.coreEnd, gym, start: plan.start, stop: plan.stop, notes };
 }
 
 // ---------------------------------------------------------------- Brooklyn sundown
@@ -228,8 +344,8 @@ export function isDate(s: string): boolean {
 }
 
 /** The plan for a date and a wake time in plan minutes. */
-export function planFor(date: string, wake: number): DayPlan {
-  return planDay(wake, weekdayOf(date), sunsetMinutes(date));
+export function planFor(date: string, wake: number, fixed: readonly FixedBlock[] = []): DayPlan {
+  return planDay(wake, weekdayOf(date), sunsetMinutes(date), fixed);
 }
 
 // ---------------------------------------------------------------- the clock

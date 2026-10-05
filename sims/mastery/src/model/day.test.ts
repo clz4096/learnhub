@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BED, CORE, OPTIONAL, WIND_DOWN, addDays, clockValue, fillBlocks, fmt, isDate, nyParts, parseClock, planDate, planDay, planFor,
-  planMinute, sunsetMinutes, tickedMinutes, weekOf, weekdayOf, type DayPlan, type Fillable,
+  BED, CORE, GYM, OPTIONAL, WIND_DOWN, addDays, clockValue, fillBlocks, fmt, isDate, nyParts, parseClock, planDate, planDay, planFor,
+  planMinute, replanDay, sunsetMinutes, tickedMinutes, weekOf, weekdayOf, type DayPlan, type Fillable, type FixedBlock,
 } from './day';
 
 const MON = '2026-10-05';
@@ -242,3 +242,186 @@ describe('fillBlocks', () => {
     expect(r.left.map((x) => x.id)).toEqual(['l2']);
   });
 });
+
+/** Slots in order, none overlapping, all inside the plan's day. */
+function sane(p: DayPlan): void {
+  p.slots.forEach((s, i) => {
+    expect(s.end).toBeGreaterThan(s.start);
+    if (i > 0) expect(s.start).toBeGreaterThanOrEqual((p.slots[i - 1] as DayPlan['slots'][number]).end);
+  });
+  expect(Math.max(0, ...p.slots.map((s) => s.end))).toBeLessThanOrEqual(p.stop);
+}
+
+describe('fixed blocks (timed papers)', () => {
+  const STEP: FixedBlock = { minutes: 180, title: 'STEP II', to: { view: 'progress' } };
+
+  it('a 180-minute paper at 9:45 ends 12:45, before the gym, with lunch still before the gym', () => {
+    const p = planFor(MON, at(9), [STEP]);
+    sane(p);
+    const first = of(p, 'study')[0];
+    expect(first).toMatchObject({ start: at(9, 45), end: at(12, 45), title: 'STEP II', heavy: true, fixed: { index: 0, minutes: 180, to: { view: 'progress' } } });
+    expect(p.gym).not.toBeNull();
+    expect(first?.end).toBeLessThanOrEqual(p.gym as number);
+    const lunch = of(p, 'meal').find((s) => s.title === 'Lunch');
+    expect(lunch?.end).toBe(p.gym);
+    expect(lunch?.start).toBeGreaterThanOrEqual(first?.end as number);
+    // Counted as core: the paper plus 3 more hours of blocks make the 6.
+    expect(p.core).toBe(CORE);
+    expect(of(p, 'study').filter((s) => s.fixed === undefined).reduce((a, s) => a + s.end - s.start, 0)).toBe(CORE - 180);
+    expect(p.notes).toEqual([]);
+  });
+
+  it.each([150, 120, 90])('a %i-minute paper goes first, before the 90-minute blocks', (minutes) => {
+    const p = planFor(MON, at(9), [{ minutes, title: 'Paper' }]);
+    sane(p);
+    expect(of(p, 'study')[0]).toMatchObject({ start: at(9, 45), end: at(9, 45) + minutes, fixed: { index: 0 } });
+    expect(p.core).toBe(CORE);
+    expect(p.gym).not.toBeNull();
+  });
+
+  it('places several in order, each in the first stretch it fits', () => {
+    const p = planFor(MON, at(9), [{ minutes: 150, title: 'TMUA 1' }, { minutes: 150, title: 'TMUA 2' }]);
+    sane(p);
+    const papers = p.slots.filter((s) => s.fixed !== undefined);
+    expect(papers.map((s) => s.title)).toEqual(['TMUA 1', 'TMUA 2']);
+    expect(papers[0]?.start).toBe(at(9, 45));
+    // The second does not fit before the gym, so it goes after it.
+    expect(papers[1]?.start).toBeGreaterThanOrEqual((p.gym as number) + GYM);
+    expect(p.core).toBe(CORE);
+  });
+
+  it('a late start moves the gym so the paper still fits before it', () => {
+    const p = planFor(MON, at(10, 15), [STEP]);
+    sane(p);
+    expect(of(p, 'study')[0]).toMatchObject({ start: at(11), end: at(14), title: 'STEP II' });
+    expect(fmt(p.gym as number)).toBe('2:30pm');
+    expect(of(p, 'meal')[0]).toMatchObject({ start: at(14), end: at(14, 30), title: 'Lunch' });
+  });
+
+  it('notes a paper that does not fit today', () => {
+    const p = planFor(FRI, at(16), [STEP]);
+    expect(p.slots.some((s) => s.fixed !== undefined)).toBe(false);
+    expect(p.notes).toContain('STEP II, 180 minutes, does not fit today.');
+  });
+
+  it('with no fixed blocks, the plan is unchanged', () => {
+    expect(planFor(MON, at(9), [])).toEqual(planFor(MON, at(9)));
+  });
+});
+
+describe('replanDay', () => {
+  const ends = (p: DayPlan): number => Math.max(...p.slots.map((s) => s.end));
+
+  it('rebuilds from now, dropping an unticked block under way, with the same rules', () => {
+    const plan = planFor(MON, at(9));
+    const before = JSON.stringify(plan);
+    const r = replanDay(plan, at(11), []);
+    expect(JSON.stringify(plan)).toBe(before);
+    sane(r);
+    expect(r.slots[0]).toMatchObject({ start: at(11), kind: 'study' });
+    expect(r.core).toBe(CORE);
+    expect(r.gym).not.toBeNull();
+    expect(of(r, 'gym')).toHaveLength(1);
+    expect(of(r, 'meal').map((s) => s.title)).toEqual(['Lunch', 'Dinner']);
+    expect(ends(r)).toBeLessThanOrEqual(BED - WIND_DOWN);
+    expect(r.notes).toEqual(['Replanned from 11:00 am.']);
+  });
+
+  it('keeps ticked blocks and past ones where they are', () => {
+    const plan = planFor(MON, at(9));
+    const r = replanDay(plan, at(11), [at(9, 45)]);
+    sane(r);
+    expect(r.slots[0]).toEqual(plan.slots[0]);
+    expect(r.slots[1]?.start).toBe(at(11, 15));
+    expect(r.core).toBe(CORE);
+    // Past and unticked: still there, and counted.
+    const late = replanDay(plan, at(13, 10), []);
+    sane(late);
+    // The 1:00 pm break is under way, so it goes; the rest of the morning stays.
+    expect(late.slots.slice(0, 3)).toEqual(plan.slots.slice(0, 3));
+    expect(late.slots[3]).toMatchObject({ start: at(13, 10), kind: 'study' });
+    expect(late.core).toBe(CORE);
+  });
+
+  it('keeps a ticked future block, and plans around it', () => {
+    const plan = planFor(MON, at(9));
+    const r = replanDay(plan, at(11), [at(16)]);
+    sane(r);
+    expect(r.slots).toContainEqual(plan.slots.find((s) => s.start === at(16)));
+    expect(r.core).toBe(CORE);
+  });
+
+  it('keeps the gym under way and its lunch, and does not place it again', () => {
+    const plan = planFor(MON, at(9));
+    const r = replanDay(plan, at(15), []);
+    sane(r);
+    expect(of(r, 'gym')).toEqual(of(plan, 'gym'));
+    expect(of(r, 'meal').map((s) => s.title)).toEqual(['Lunch', 'Dinner']);
+    expect(r.gym).toBe(plan.gym);
+    expect(r.slots.filter((s) => s.start >= at(15) && s.kind !== 'gym')[0]?.start).toBe(at(16));
+    expect(r.core).toBe(CORE);
+  });
+
+  it('a gym that is over stays; a gym window that has passed is not planned, and says so', () => {
+    const plan = planFor(MON, at(9));
+    const r = replanDay(plan, at(17), []);
+    expect(of(r, 'gym')).toEqual(of(plan, 'gym'));
+    expect(r.notes).toEqual(['Replanned from 5:00 pm.']);
+    const late = planFor(MON, at(15));
+    const q = replanDay(late, at(17), []);
+    expect(q.gym).toBeNull();
+    expect(of(q, 'gym')).toEqual([]);
+    expect(q.notes).toEqual(['The gym window, 2:00 to 2:30 pm, has passed or does not fit today.', 'Replanned from 5:00 pm.']);
+  });
+
+  it('a gym not yet started moves to a later start in the window if that fits better, and lunch moves with it', () => {
+    const plan = planFor(MON, at(9));
+    const r = replanDay(plan, at(13, 50), []);
+    sane(r);
+    expect(r.gym).not.toBeNull();
+    expect(GYM_START_OK(r.gym as number)).toBe(true);
+    const lunch = of(r, 'meal').find((s) => s.title === 'Lunch');
+    expect(lunch === undefined || lunch.end === r.gym || lunch.start === (r.gym as number) + GYM).toBe(true);
+  });
+
+  it('respects Friday sundown and Shabbat', () => {
+    const fri = planFor(FRI, at(9));
+    const r = replanDay(fri, at(12), []);
+    sane(r);
+    expect(r.stop).toBe(fri.stop);
+    expect(r.notes[0]).toBe('Friday: the plan ends at sundown, 6:25 pm.');
+    const sat = planFor(SAT, at(9));
+    const s = replanDay(sat, at(12), []);
+    expect(Math.min(...s.slots.map((x) => x.start))).toBe(sat.start);
+    expect(s.notes[0]).toBe(sat.notes[0]);
+  });
+
+  it('after the day ends, nothing new is planned', () => {
+    const plan = planFor(MON, at(9));
+    const r = replanDay(plan, BED, []);
+    expect(r.slots).toEqual(plan.slots);
+  });
+
+  it('a replan of a replan keeps the first one\'s kept blocks', () => {
+    const plan = planFor(MON, at(9));
+    const r1 = replanDay(plan, at(11), [at(9, 45)]);
+    const r2 = replanDay(r1, at(17), [at(9, 45)]);
+    sane(r2);
+    expect(r2.slots[0]).toEqual(plan.slots[0]);
+    expect(r2.notes).toEqual(['Replanned from 5:00 pm.']);
+  });
+
+  it('a paper not started is placed again from now; a ticked one stays and is not repeated', () => {
+    const fixed: FixedBlock[] = [{ minutes: 180, title: 'STEP II' }];
+    const plan = planFor(MON, at(9), fixed);
+    const moved = replanDay(plan, at(10), [], fixed);
+    sane(moved);
+    expect(moved.slots.filter((s) => s.fixed !== undefined).map((s) => [s.start, s.end])).toEqual([[at(10), at(13)]]);
+    const done = replanDay(plan, at(13), [at(9, 45)], fixed);
+    sane(done);
+    expect(done.slots.filter((s) => s.fixed !== undefined)).toEqual([plan.slots[0]]);
+    expect(done.core).toBe(CORE);
+  });
+});
+
+const GYM_START_OK = (g: number): boolean => [at(14), at(14, 15), at(14, 30)].includes(g);
