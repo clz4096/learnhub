@@ -1,5 +1,6 @@
 // Downloads the sources of a batch into sources/<course>/<id>.<ext> and records
-// sources/manifest.json (id, url, fetched_at, sha256, bytes, content type, status).
+// sources/manifest.json (id, url, fetched_at, sha256, bytes, content type, status, batch).
+// The manifest keeps the entries of every batch fetched so far.
 //
 //   node scripts/sources/fetch.mjs [batch.json] [--refresh]
 //
@@ -138,8 +139,18 @@ for (const source of batch.sources) {
   results.push(entry);
 }
 
+// The manifest covers every batch fetched so far: entries of other batches are kept as they
+// were, so fetching batch 2 does not drop batch 1's record (extract.mjs reads them all).
+const batchIds = new Set(batch.sources.map((s) => s.id));
+const kept = previous.sources.filter((s) => !batchIds.has(s.id));
+for (const r of results) r.batch ??= batch.batch;
 mkdirSync(OUT, { recursive: true });
-const manifest = { batch: batch.batch, generated_at: new Date().toISOString(), hosts: [...hosts], sources: results };
+const manifest = {
+  batch: batch.batch,
+  generated_at: new Date().toISOString(),
+  hosts: [...new Set([...(previous.hosts ?? []), ...hosts])],
+  sources: [...kept, ...results],
+};
 writeFileSync(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`);
 const failed = results.filter((r) => r.status !== 'ok');
 console.log(`\n${results.length - failed.length} ok, ${failed.length} failed. Manifest: ${path.relative(ROOT, MANIFEST)}`);

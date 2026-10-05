@@ -1,0 +1,146 @@
+{
+  "batch": "cambridge-batch-2",
+  "note": "Second batch: sources for Part V of the book, Random variables and statistics (mastery/DESIGN-BOOK.md). URLs come from the Meridian handoff: the STEP links from handoff/meridian-cambridge/links/step-links.md (Mixed STEP 1 Statistics; STEP 2 and STEP 3 Statistics modules), the IA Probability sheets 2 to 4 from handoff/meridian-cambridge/courses.md, next to sheet 1's URL in batch-1.json. The DPMMS course page is fetched only to confirm the sheet links. The Faculty schedules are batch 1's tripos-schedules and are not fetched again.",
+  "hosts": [
+    "step.maths.org",
+    "www.dpmms.cam.ac.uk"
+  ],
+  "sources": [
+    {
+      "id": "step-mixed-stats1-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support: Mixed Statistics STEP 1 questions, page",
+      "url": "https://step.maths.org/assignments/mixed-statistics-step-1-questions"
+    },
+    {
+      "id": "step-mixed-stats1",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "STEP Support: Mixed STEP 1 Statistics questions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Statistics_STEP1_2019_0.pdf"
+    },
+    {
+      "id": "step-mixed-stats1-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support: Mixed STEP 1 Statistics, hints and feedback",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Statistics_STEP1_solns_2019.pdf"
+    },
+    {
+      "id": "step-s2-stats-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support: STEP 2 Statistics, page",
+      "url": "https://step.maths.org/assignments/step-2-statistics"
+    },
+    {
+      "id": "step-s2-stats",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "STEP Support: STEP 2 Statistics questions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Statistics_questions_2019_0.pdf"
+    },
+    {
+      "id": "step-s2-stats-notes",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "notes",
+      "title": "STEP Support: STEP 2 Statistics topic notes",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Statistics_topic_notes_2019_1.pdf"
+    },
+    {
+      "id": "step-s2-stats-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support: STEP 2 Statistics hints",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Statistics_hints_2019_0.pdf"
+    },
+    {
+      "id": "step-s2-stats-solutions",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "solutions",
+      "title": "STEP Support: STEP 2 Statistics solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Statistics_solutions_2019_0.pdf"
+    },
+    {
+      "id": "step-s3-stats-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support: STEP 3 Statistics, page",
+      "url": "https://step.maths.org/assignments/step-3-statistics"
+    },
+    {
+      "id": "step-s3-stats",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "STEP Support: STEP 3 Statistics questions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Stats3_questions_2019.pdf"
+    },
+    {
+      "id": "step-s3-stats-notes",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "notes",
+      "title": "STEP Support: STEP 3 Statistics topic notes",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Stats3_topic_notes_2019_0.pdf"
+    },
+    {
+      "id": "step-s3-stats-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support: STEP 3 Statistics hints",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Stats3_hints_2019.pdf"
+    },
+    {
+      "id": "step-s3-stats-solutions",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "solutions",
+      "title": "STEP Support: STEP 3 Statistics solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Stats3_solutions_2019.pdf"
+    },
+    {
+      "id": "ia-prob-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "index",
+      "title": "DPMMS IA Probability course page, to confirm the 2025-26 sheet links",
+      "url": "https://www.dpmms.cam.ac.uk/study/IA/Probability/"
+    },
+    {
+      "id": "ia-prob-sheet-2",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "IA Probability Example Sheet 2 (DPMMS, 2025-26)",
+      "url": "https://www.dpmms.cam.ac.uk/study/IA/Probability/2025-2026/pex2-2026.pdf"
+    },
+    {
+      "id": "ia-prob-sheet-3",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "IA Probability Example Sheet 3 (DPMMS, 2025-26)",
+      "url": "https://www.dpmms.cam.ac.uk/study/IA/Probability/2025-2026/pex3-2026.pdf"
+    },
+    {
+      "id": "ia-prob-sheet-4",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "IA Probability Example Sheet 4 (DPMMS, 2025-26)",
+      "url": "https://www.dpmms.cam.ac.uk/study/IA/Probability/2025-2026/pex4-2026.pdf"
+    }
+  ]
+}
