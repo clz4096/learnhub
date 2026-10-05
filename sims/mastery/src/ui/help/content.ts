@@ -52,6 +52,18 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     ],
   },
   {
+    id: 'supervision',
+    title: 'Supervision',
+    paragraphs: [
+      'Some Cambridge problems ask for a proof or an explanation, so the app cannot mark them. Write your answer in the box, then press Copy for supervision. It copies the problem, its source, your write-up, and your recent attempts.',
+      'Paste the block into a Claude Code session; type /supervise first if the session is in the learnhub folder. Claude questions you one step at a time and gives small hints, never the full solution. At the end it prints a result block.',
+      'Copy the whole result block and press Paste result, on the problem or on Today. A mark of 14 out of 20 or more counts as a passed review of the topic; below 14 counts as a missed one.',
+      'Problems the supervisor sets to redo appear on Today from the next day, with the weak points. You never mark your own work: only a pasted result, tied to the block you copied, can.',
+      'On a phone, open the same Claude Code session from the Claude app with Remote Control, or start one at claude.ai/code. If the app cannot copy, a box with Select all appears instead.',
+      'A wrong answer to a checked Cambridge problem also offers Copy for supervision, with your answer and any working you add.',
+    ],
+  },
+  {
     id: 'map',
     title: 'The map',
     paragraphs: [

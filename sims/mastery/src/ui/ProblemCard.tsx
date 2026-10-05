@@ -20,6 +20,7 @@
  * nothing until the learner moves on deliberately. Enter is also ignored for a moment
  * after a result appears, so a double press cannot skip it.
  */
+import type { ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import {
   answerText, grade, plain, readAnswer, tableNotice, texToPlain, type AnswerReading, type Feedback, type Instance, type Response,
@@ -79,7 +80,7 @@ function reveal(block: HTMLElement): void {
 
 type Shown = 'right' | 'wrong' | 'gave-up' | 'broken';
 
-export function ProblemCard({ topicId, instance, mode, index, onDone, consequence }: {
+export function ProblemCard({ topicId, instance, mode, index, onDone, consequence, afterWrong }: {
   /** With the generator id and seed (data attributes), enough to reproduce the problem in a bug report. */
   topicId: string;
   instance: Instance;
@@ -89,6 +90,8 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
   onDone: (r: CardResult) => void;
   /** The effect of an outcome on progress, shown as one line in the result. */
   consequence?: (o: CardOutcome) => Consequence;
+  /** Shown in the result of a wrong answer, given the answer as read: a Cambridge problem offers supervision here. */
+  afterWrong?: (given: string) => ComponentChildren;
 }) {
   const a = instance.problem.answer;
   const [text, setText] = useState('');
@@ -289,6 +292,7 @@ export function ProblemCard({ topicId, instance, mode, index, onDone, consequenc
           </div>
         )}
         {effect !== undefined && <p class="result-effect">{effect.effect}</p>}
+        {shown === 'wrong' && afterWrong?.(yoursPlain)}
       </div>
     );
   }

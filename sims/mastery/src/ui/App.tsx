@@ -25,6 +25,7 @@ import { MapView } from '@/ui/views/MapView';
 import { ProgressView, StartOver } from '@/ui/views/ProgressView';
 import { Start } from '@/ui/views/Start';
 import { LearnView, TaskView } from '@/ui/views/Task';
+import { ProblemView } from '@/ui/views/Lesson';
 import { Today } from '@/ui/views/Today';
 
 type NavId = 'home' | 'map' | 'progress' | 'glossary';
@@ -47,7 +48,7 @@ function navItems(setUp: boolean): { id: NavId; label: string; to: Route }[] {
 }
 
 function navOf(r: Route): NavId {
-  if (r.view === 'task' || r.view === 'today' || r.view === 'start') return 'home';
+  if (r.view === 'task' || r.view === 'today' || r.view === 'start' || r.view === 'problem') return 'home';
   if (r.view === 'learn') return 'map';
   return r.view;
 }
@@ -72,6 +73,7 @@ function View({ r }: { r: Route }) {
     case 'start': return <Today />;
     case 'task': return <TaskView index={r.index} />;
     case 'learn': return <LearnView key={r.topicId} topicId={r.topicId} />;
+    case 'problem': return <ProblemView key={`${r.topicId}/${r.problemId}`} topicId={r.topicId} problemId={r.problemId} />;
     case 'map': return <MapView topicId={r.topicId} />;
     case 'progress': return <ProgressView />;
     case 'glossary': return <GlossaryView termId={r.termId} />;

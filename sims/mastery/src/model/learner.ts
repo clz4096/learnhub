@@ -3,17 +3,20 @@
  * functions: each takes a Progress and returns a new one, so the views stay thin and these
  * rules are tested without a browser.
  *
- * One document per learner (the engine's Progress, version 2), holding the chosen
+ * One document per learner (the engine's Progress, version 3), holding the chosen
  * courses, placement answers from earlier builds, memory, history, lesson minutes per
- * course for the planner's split, and today's session.
+ * course for the planner's split, today's session, and supervision attempts with the
+ * problems they set to redo.
  */
 import { contentFor } from '@learnhub/content';
 import {
-  DAY_MS, classify, dueTopics, frontier, newProgress, placedMemory, placementGraph, placementResult, planSession,
+  DAY_MS, SUPERVISION_PASS_MARK, classify, dueTopics, frontier, newProgress, placedMemory, placementGraph, placementResult, planSession,
   recordLesson, recordLessonFailure, recordReview, topoOrder,
-  type HistoryEntry, type MemoryMap, type PlacementGraph, type Progress, type SessionRecord, type SessionTask, type Topic,
+  type HistoryEntry, type MemoryMap, type PlacementGraph, type Progress, type Redo, type SessionRecord, type SessionTask,
+  type SupervisionAttempt, type Topic,
 } from '@learnhub/mastery';
 import { ALL_TOPICS, closureOf, closureTopics, coursesWith, shares } from './courses';
+import type { ParsedResult } from './supervision';
 
 /** The document's id and its storage key. One learner, so one document. */
 export const DOC_ID = 'mastery';
@@ -213,6 +216,103 @@ export function completeQuiz(p: Progress, results: Readonly<Record<string, boole
 /** Leave a task for another day: done for today, with no result recorded. */
 export function skipTask(p: Progress, taskIndex: number, now: number): Progress {
   return touch({ ...p, session: markTask(p, taskIndex, null) }, now);
+}
+
+// ---------------------------------------------------------------- supervision
+
+/**
+ * A redo is due this many days after the result that set it: the next day, so it is
+ * redone cold, and well within the two days the design allows.
+ */
+export const REDO_DUE_DAYS = 1;
+/** Unanswered copies kept per problem; older ones are dropped, and a result for one of them is refused. */
+export const MAX_PENDING_COPIES = 5;
+
+/** The topic id of a problem key. */
+export const topicOfKey = (key: string): string => key.slice(0, key.indexOf('/'));
+
+/**
+ * "Copy for supervision": records the copy and returns the attempt whose nonce the copied
+ * block carries. Copying again with the same write-up reuses the unanswered copy, so a
+ * second press (the clipboard failed, or the learner copied twice) gives the same block.
+ */
+export function recordSupervisionCopy(
+  p: Progress, key: string, writeUp: string, now: number, makeNonce: () => string,
+): { progress: Progress; attempt: SupervisionAttempt } {
+  const same = [...p.supervision].reverse().find((a) => a.problem === key && a.result === null && a.writeUp === writeUp);
+  if (same !== undefined) return { progress: p, attempt: same };
+  const used = new Set(p.supervision.map((a) => a.nonce));
+  let nonce = makeNonce();
+  while (used.has(nonce)) nonce = makeNonce();
+  const attempt: SupervisionAttempt = { problem: key, nonce, writeUp, copiedAt: now, result: null, importedAt: null };
+  const pending = p.supervision.filter((a) => a.problem === key && a.result === null);
+  const drop = new Set(pending.slice(0, Math.max(0, pending.length + 1 - MAX_PENDING_COPIES)).map((a) => a.nonce));
+  return { progress: touch({ ...p, supervision: [...p.supervision.filter((a) => !drop.has(a.nonce)), attempt] }, now), attempt };
+}
+
+/**
+ * Imports a supervision result that `checkResultFor` accepted. The rules:
+ * - The attempt keeps the result and the time it was imported.
+ * - The mark is a review of the problem's topic: 14 (`SUPERVISION_PASS_MARK`) or more of 20
+ *   passes, below fails (`recordReview`, so a miss also brings its strongest prerequisites
+ *   due for a check). A topic not learned yet has no review schedule, so its memory is not
+ *   changed; the result is still kept and logged.
+ * - Open redos of this problem set before the copy was made are closed: this attempt was
+ *   the redo.
+ * - Each problem in REDO becomes a redo due `REDO_DUE_DAYS` from now, unless it already
+ *   has an open redo, which keeps its earlier due time.
+ * Returns the document unchanged when the attempt is missing or already has a result.
+ */
+export function importSupervisionResult(p: Progress, r: ParsedResult, now: number): Progress {
+  const at = p.supervision.findIndex((a) => a.nonce === r.nonce && a.problem === r.problem && a.result === null);
+  const attempt = p.supervision[at];
+  if (attempt === undefined) return p;
+  const topicId = topicOfKey(r.problem);
+  const passed = r.result.mark >= SUPERVISION_PASS_MARK;
+  const supervision = p.supervision.map((a, i) => (i === at ? { ...a, result: r.result, importedAt: now } : a));
+  const memory = p.memory[topicId] === undefined ? p.memory : recordReview(p.memory, ALL_TOPICS, topicId, passed, now).memory;
+
+  const redos: Redo[] = p.redos.map((d) => (d.doneAt === null && d.problem === r.problem && d.setAt <= attempt.copiedAt ? { ...d, doneAt: now } : d));
+  for (const key of r.result.redo) {
+    if (redos.some((d) => d.problem === key && d.doneAt === null)) continue;
+    redos.push({ problem: key, from: r.nonce, setAt: now, due: now + REDO_DUE_DAYS * DAY_MS, doneAt: null });
+  }
+  return touch({
+    ...p,
+    supervision,
+    memory: { ...memory },
+    history: log(p, [{ at: now, kind: 'supervision', topicId, correct: passed }]),
+    redos,
+  }, now);
+}
+
+/**
+ * An auto-checked Cambridge problem answered right in the app: that is a measured redo, so
+ * its open redos are closed. A wrong answer leaves them open.
+ */
+export function completeRedoByCheck(p: Progress, key: string, now: number): Progress {
+  if (!p.redos.some((d) => d.problem === key && d.doneAt === null && d.setAt <= now)) return p;
+  return touch({ ...p, redos: p.redos.map((d) => (d.problem === key && d.doneAt === null && d.setAt <= now ? { ...d, doneAt: now } : d)) }, now);
+}
+
+/** Open redos, the soonest due first. */
+export function openRedos(p: Progress): Redo[] {
+  return p.redos.filter((d) => d.doneAt === null).sort((a, b) => a.due - b.due || (a.problem < b.problem ? -1 : 1));
+}
+
+/** The latest unanswered copy of each problem, newest first: results the learner may still paste. */
+export function waitingCopies(p: Progress): SupervisionAttempt[] {
+  const seen = new Set<string>();
+  return [...p.supervision].reverse().filter((a) => {
+    if (a.result !== null || seen.has(a.problem)) return false;
+    seen.add(a.problem);
+    return true;
+  });
+}
+
+/** The attempt whose result set a redo, for its weak points. */
+export function redoSource(p: Progress, d: Redo): SupervisionAttempt | undefined {
+  return p.supervision.find((a) => a.nonce === d.from);
 }
 
 // ---------------------------------------------------------------- status

@@ -1,7 +1,7 @@
 /**
  * Cambridge problems in the app (build step 2): table, witness, and formula answers in the
  * one problem card, the Cambridge problems stage of a lesson with its citations, and the
- * supervision write-up with its "Copy for supervision" placeholder.
+ * supervision write-up with Copy for supervision (build step 3; see supervision.test.tsx).
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/preact';
@@ -150,14 +150,15 @@ describe('the Cambridge problems stage', () => {
     expect(loadPlace('test.prob.bayes-two-events')?.stage).toBe('cambridge');
   });
 
-  it('a supervision problem has a write-up box kept for the tab and a placeholder copy button', () => {
+  it('a supervision problem has a write-up box kept for the tab, Copy for supervision, and Paste result', () => {
     open('comb.pigeonhole');
     const box = screen.getAllByLabelText('Your write-up')[0] as HTMLTextAreaElement;
     fireEvent.input(box, { target: { value: 'Worst case: one odd sock of each colour.' } });
     expect(loadWriteUp('comb.pigeonhole', 'a5-q4-iii-show')).toBe('Worst case: one odd sock of each colour.');
     const copy = screen.getAllByRole('button', { name: 'Copy for supervision' })[0] as HTMLButtonElement;
-    expect(copy.disabled).toBe(true);
-    expect(screen.getAllByText(/Coming soon/).length).toBeGreaterThan(0);
+    expect(copy.disabled).toBe(false);
+    expect(screen.getAllByRole('button', { name: 'Paste result' }).length).toBeGreaterThan(0);
+    expect(screen.queryAllByText(/Coming soon/)).toEqual([]);
   });
 
   it('worked examples from Cambridge say where they come from', () => {

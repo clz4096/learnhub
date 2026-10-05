@@ -28,12 +28,31 @@ function sample(): Progress {
       { kind: 'quiz', topicIds: ['pre.fractions', 'pre.indices'], minutes: 4, reason: 'Quiz.', done: false, passed: null },
     ],
   };
+  p.supervision = [
+    {
+      problem: 'pre.fractions/a6-show', nonce: 'K7Q2XMPA', writeUp: 'Multiply through by $q$.', copiedAt: NOW,
+      result: { mark: 12, weakPoints: ['a', 'b', 'c'], redo: ['pre.fractions/a6-show'], summary: 'Close.' }, importedAt: NOW + 1000,
+    },
+    { problem: 'pre.indices/a12-q1-iii', nonce: 'ABCDEFGH', writeUp: '', copiedAt: NOW + 2000, result: null, importedAt: null },
+  ];
+  p.history.push({ at: NOW + 1000, kind: 'supervision', topicId: 'pre.fractions', correct: false });
+  p.redos = [{ problem: 'pre.fractions/a6-show', from: 'K7Q2XMPA', setAt: NOW + 1000, due: NOW + 1000 + DAY_MS, doneAt: null }];
   return p;
+}
+
+/** The sample as a version 2 document: no supervision attempts or redos, and no supervision history. */
+function sampleV2(): Record<string, any> {
+  const d = JSON.parse(exportProgress(sample()));
+  d.version = 2;
+  delete d.supervision;
+  delete d.redos;
+  d.history = d.history.filter((h: { kind: string }) => h.kind !== 'supervision');
+  return d;
 }
 
 /** The sample as a version 1 document: no courses, weights, minutes, or session. */
 function sampleV1(): Record<string, any> {
-  const d = JSON.parse(exportProgress(sample()));
+  const d = sampleV2();
   d.version = 1;
   delete d.courses;
   delete d.courseMinutes;
@@ -129,6 +148,22 @@ describe('malformed input never throws and says what is wrong', () => {
     ['session task with no topics', mutate((d) => { d.session.tasks[0].topicIds = []; }), /\$\.session\.tasks\[0\]\.topicIds: expected a non-empty array/],
     ['session task of unknown kind', mutate((d) => { d.session.tasks[0].kind = 'nap'; }), /\$\.session\.tasks\[0\]\.kind/],
     ['session task passed as string', mutate((d) => { d.session.tasks[1].passed = 'yes'; }), /\$\.session\.tasks\[1\]\.passed/],
+    ['supervision missing', mutate((d) => { delete d.supervision; }), /\$\.supervision: expected an array, got undefined/],
+    ['redos missing', mutate((d) => { delete d.redos; }), /\$\.redos: expected an array/],
+    ['problem id without a topic', mutate((d) => { d.supervision[0].problem = 'a6-show'; }), /\$\.supervision\[0\]\.problem: expected a problem id/],
+    ['nonce with an O', mutate((d) => { d.supervision[0].nonce = 'K7Q2XMPO'; }), /\$\.supervision\[0\]\.nonce/],
+    ['nonce used twice', mutate((d) => { d.supervision[1].nonce = 'K7Q2XMPA'; }), /\$\.supervision\[1\]\.nonce: "K7Q2XMPA" is used twice/],
+    ['mark of 21', mutate((d) => { d.supervision[0].result.mark = 21; }), /\.result\.mark: expected a whole number from 0 to 20, got 21/],
+    ['mark of 12.5', mutate((d) => { d.supervision[0].result.mark = 12.5; }), /\.result\.mark/],
+    ['two weak points', mutate((d) => { d.supervision[0].result.weakPoints = ['a', 'b']; }), /\.result\.weakPoints: expected 3 weak points/],
+    ['weak point over two lines', mutate((d) => { d.supervision[0].result.weakPoints[1] = 'a\nb'; }), /weakPoints\[1\]: expected one line/],
+    ['four redos', mutate((d) => { d.supervision[0].result.redo = ['a.b/c', 'a.b/d', 'a.b/e', 'a.b/f']; }), /\.result\.redo: expected an array of at most 3/],
+    ['empty summary', mutate((d) => { d.supervision[0].result.summary = ' '; }), /\.result\.summary/],
+    ['result without import time', mutate((d) => { d.supervision[0].importedAt = null; }), /\$\.supervision\[0\]\.importedAt: expected a time in ms/],
+    ['import time without result', mutate((d) => { d.supervision[1].importedAt = 5; }), /\$\.supervision\[1\]\.importedAt: expected null/],
+    ['write-up too long', mutate((d) => { d.supervision[1].writeUp = 'x'.repeat(20_001); }), /writeUp: expected text of at most 20000/],
+    ['redo due missing', mutate((d) => { delete d.redos[0].due; }), /\$\.redos\[0\]\.due/],
+    ['redo done as string', mutate((d) => { d.redos[0].doneAt = 'yes'; }), /\$\.redos\[0\]\.doneAt/],
   ];
   for (const [name, input, re] of cases) {
     it(name, () => {
@@ -171,7 +206,7 @@ describe('warnings for recoverable input', () => {
     if (!r.ok) return;
     expect(Object.keys(r.value.memory)).toEqual(['pre.fractions']);
     expect(r.value.learnedSinceQuiz).toEqual([]);
-    expect(r.value.history).toHaveLength(2);
+    expect(r.value.history).toHaveLength(3);
     expect(r.warnings.join('\n')).toMatch(/\$\.memory\["pre\.indices"\]: not in this course, dropped/);
   });
 
@@ -197,7 +232,24 @@ describe('migrations', () => {
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.warnings).toEqual([]);
-    expect(r.value).toEqual({ ...sample(), courses: [], courseMinutes: {}, session: null, settings: { ...sample().settings, courseWeights: {} } });
+    expect(r.value).toEqual({
+      ...sample(), courses: [], courseMinutes: {}, session: null, settings: { ...sample().settings, courseWeights: {} },
+      history: sampleV2().history, supervision: [], redos: [],
+    });
+  });
+
+  it('migrates version 2 to 3 with no supervision attempts and no redos', () => {
+    const r = importProgress(JSON.stringify(sampleV2()));
+    expect(r).toEqual({ ok: true, value: { ...sample(), history: sampleV2().history, supervision: [], redos: [] }, warnings: [] });
+  });
+
+  it('a version 2 document keeps everything else, and saves as version 3', () => {
+    const r = importProgress(sampleV2());
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.version).toBe(3);
+    expect(JSON.parse(exportProgress(r.value)).version).toBe(3);
+    expect(r.value.session).toEqual(sample().session);
   });
 
   it('migrates through every version in turn and validates the result', () => {

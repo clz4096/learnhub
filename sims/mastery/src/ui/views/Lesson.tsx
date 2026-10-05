@@ -7,11 +7,15 @@
  * The stage and the practice run are kept for the tab (`lessonState`), so leaving a
  * lesson and coming back resumes it where it was.
  */
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import {
   citationText, contentFor, type Block, type CambridgeProblem, type MasteryRule, type SupervisionProblem, type TopicContent, type WorkedExample,
 } from '@learnhub/content';
-import { LEVEL_NAMES, sourceLinks, topicOf } from '@/model/courses';
+import { LEVEL_NAMES, sourceLinks, titleOf, topicOf } from '@/model/courses';
+import { completeRedoByCheck, waitingCopies } from '@/model/learner';
+import { commit, now, progress } from '@/model/store';
+import { problemKey } from '@/model/supervision';
+import { CopyForSupervision, PasteResult } from '@/ui/Supervision';
 import { clearPlace, loadPlace, loadWriteUp, savePlace, saveWriteUp, type LessonStage } from '@/model/lessonState';
 import { answer, freshPractice, instanceAt, outcomeOf, type PracticeState } from '@/model/practice';
 import { ProblemCard, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
@@ -182,10 +186,25 @@ const WRITE_UP_KIND: Readonly<Record<SupervisionProblem['writeUp'], string>> = {
   sketch: 'a sketch, described in words or drawn on paper',
 };
 
-/** A problem whose answer is a write-up: the box keeps it for the tab; supervision copy comes in build step 3. */
+/** The latest imported supervision result for a problem, in one line. */
+function LastResult({ k }: { k: string }) {
+  const a = [...(progress.value?.supervision ?? [])].reverse().find((x) => x.problem === k && x.result !== null);
+  if (a === undefined || a.result === null || a.importedAt === null) return null;
+  return (
+    <p class="small sup-last">
+      <strong>Last supervision:</strong> {a.result.mark}/20 on {new Date(a.importedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}. {a.result.summary}
+    </p>
+  );
+}
+
+/**
+ * A problem whose answer is a write-up. The box keeps it for the tab; Copy for supervision
+ * copies it with the problem for a Claude Code session, and Paste result brings the mark back.
+ */
 function SupervisionCard({ topicId, p }: { topicId: string; p: SupervisionProblem }) {
   const [text, setText] = useState(() => loadWriteUp(topicId, p.id));
   const box = `sup-${p.id}`;
+  const k = problemKey(topicId, p.id);
   return (
     <div class="supervision">
       <Rich as="p" class="prompt" text={p.prompt} />
@@ -201,18 +220,41 @@ function SupervisionCard({ topicId, p }: { topicId: string; p: SupervisionProble
           saveWriteUp(topicId, p.id, v);
         }}
       />
-      <div class="actions">
-        <button type="button" class="btn" disabled aria-describedby={`${box}-soon`}>Copy for supervision</button>
-        <span id={`${box}-soon`} class="small muted">Coming soon: this will copy the problem, its source, and your write-up for a supervision session.</span>
-      </div>
+      <p id={`${box}-how`} class="small muted">
+        Copy for supervision copies the problem, its source, your write-up, and your recent attempts. Paste it into a supervision
+        session in Claude Code, then paste the result block it prints back here with Paste result.
+      </p>
+      <CopyForSupervision problemKey={k} writeUp={text} describedBy={`${box}-how`} />
+      <PasteResult expected={k} id={box} />
+      <LastResult k={k} />
     </div>
   );
 }
 
-function CambridgeItem({ c, p, n }: { c: TopicContent; p: CambridgeProblem; n: number }) {
+/** Supervision for an auto-checked problem the app marked wrong: optional working, then the same copy. */
+function WrongAnswerSupervision({ k, given }: { k: string; given: string }) {
+  const [working, setWorking] = useState('');
+  const id = `sup-wrong-${k.replace(/[^a-z0-9]/g, '-')}`;
+  return (
+    <div class="sup-wrong">
+      <p class="small">Not sure why? A supervision session can go through it with you.</p>
+      <label for={id} class="small">Your working (optional)</label>
+      <textarea id={id} rows={3} value={working} onInput={(e) => setWorking((e.currentTarget as HTMLTextAreaElement).value)} />
+      <CopyForSupervision problemKey={k} writeUp={working} checked={{ given }} />
+    </div>
+  );
+}
+
+export function CambridgeItem({ c, p, n }: { c: TopicContent; p: CambridgeProblem; n: number }) {
   // A new key remounts the card, so "Try it again" starts with an empty answer.
   const [round, setRound] = useState(0);
   const [last, setLast] = useState<string | null>(null);
+  const k = problemKey(c.topicId, p.id);
+  const doc = progress.value;
+  // Once offered, Paste result stays, so its message survives the import that ends the wait.
+  const offered = useRef(false);
+  if (p.mode === 'auto' && doc !== null && waitingCopies(doc).some((a) => a.problem === k)) offered.current = true;
+  const waiting = offered.current;
   return (
     <article class="cambridge-problem" data-problem={p.id} aria-labelledby={`cam-${p.id}`}>
       <h3 id={`cam-${p.id}`}>Problem {n}: <Rich text={p.title} /></h3>
@@ -226,12 +268,20 @@ function CambridgeItem({ c, p, n }: { c: TopicContent; p: CambridgeProblem; n: n
             mode="cambridge"
             topicId={c.topicId}
             instance={p.instance}
+            afterWrong={(given) => <WrongAnswerSupervision k={k} given={given} />}
             onDone={(r) => {
               if (r.outcome !== 'problem-error') setLast(r.correct ? 'correct' : 'tried');
+              // A right answer here is measured, so it closes a redo a supervisor set on this problem.
+              const cur = progress.value;
+              if (r.correct && cur !== null) {
+                const next = completeRedoByCheck(cur, k, now());
+                if (next !== cur) void commit(next);
+              }
               setRound(round + 1);
             }}
           />
         )}
+      {waiting && <PasteResult expected={k} id={`sup-${p.id}`} />}
     </article>
   );
 }
@@ -339,6 +389,25 @@ export function LessonRunner({ topicId, salt, onEnd, onSkip, back }: {
           onEnd={(passed) => end({ passed })}
         />
       )}
+    </section>
+  );
+}
+
+/** One Cambridge problem on its own page: where a redo on Today opens. */
+export function ProblemView({ topicId, problemId }: { topicId: string; problemId: string }) {
+  const c = contentFor(topicId);
+  const p = c?.cambridge.find((x) => x.id === problemId);
+  return (
+    <section class="page problem-page" aria-label="Cambridge problem">
+      <BackLink to={{ view: 'today' }} label="Back to today" />
+      {c === undefined || p === undefined
+        ? <p>That problem is not in this app any more.</p>
+        : (
+          <>
+            <p class="small muted">{titleOf(topicId)}</p>
+            <CambridgeItem c={c} p={p} n={c.cambridge.indexOf(p) + 1} />
+          </>
+        )}
     </section>
   );
 }

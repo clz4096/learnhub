@@ -376,3 +376,24 @@ input.weight { width: 80px; }
 .result-pair.one:has(.filled-table) { max-width: 100%; }
 .result-pair .filled-table strong { display: inline; font-size: inherit; font-weight: 700; }
 .result-pair .filled-table .math .katex { font-size: 1em; }
+
+/* Supervision by copy and paste (build step 3). */
+.sup-copy, .sup-paste, .sup-wrong { margin-top: var(--space-2); }
+.sup-copy .actions, .sup-paste .actions { align-items: center; flex-wrap: wrap; margin-bottom: var(--space-1); }
+.sup-copy p[role="status"]:empty { display: none; }
+.sup-box label, .sup-paste-form label, .sup-wrong label { display: block; font-size: var(--text-sm); font-weight: 600; margin: var(--space-2) 0 var(--space-1); }
+.sup-box textarea, .sup-paste-form textarea, .sup-wrong textarea {
+  width: 100%; box-sizing: border-box; padding: var(--space-2); border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+  background: var(--surface); resize: vertical;
+}
+.sup-text, .sup-paste-form textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8125rem; min-height: 10em; }
+.sup-paste-form textarea[aria-invalid="true"] { border: 2px solid var(--error); }
+.sup-paste-form p { margin: 0 0 var(--space-1); }
+.sup-done { color: var(--good); }
+.sup-last { margin: var(--space-2) 0 0; }
+.sup-wrong { border-top: 1px solid var(--border); padding-top: var(--space-2); }
+.badge-redo { background: var(--warning-bg); color: var(--warning); }
+.supervision-today { margin: var(--space-4) 0; }
+.supervision-today h2 { margin: 0 0 var(--space-2); }
+.supervision-today ul { margin: var(--space-1) 0; padding-left: 1.25em; }
+.supervision-today .muted { margin: 0; }

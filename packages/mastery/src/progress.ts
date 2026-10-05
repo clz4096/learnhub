@@ -11,7 +11,7 @@ import { withDefaults } from './options';
 import type { PlacementAnswer } from './placement';
 
 /** Bump when the shape changes, and add the migration from the previous version. */
-export const PROGRESS_VERSION = 2;
+export const PROGRESS_VERSION = 3;
 
 export interface Settings {
   budgetMinutes: number;
@@ -25,7 +25,8 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = { budgetMinutes: 60, implici
 /** Course weights above this are a typo, not a preference: 100 to 1 is already all of the time. */
 export const MAX_COURSE_WEIGHT = 100;
 
-export const HISTORY_KINDS = ['placement', 'lesson', 'review', 'quiz'] as const;
+/** `supervision`: an imported supervision result; `correct` is the mark's pass or fail (`SUPERVISION_PASS_MARK`). */
+export const HISTORY_KINDS = ['placement', 'lesson', 'review', 'quiz', 'supervision'] as const;
 export type HistoryKind = (typeof HISTORY_KINDS)[number];
 
 export interface HistoryEntry {
@@ -65,6 +66,65 @@ export interface SessionRecord {
   tasks: SessionTask[];
 }
 
+/** Supervision marks are out of this, as Cambridge marks a question. */
+export const SUPERVISION_MARK_MAX = 20;
+/**
+ * A mark at or above this counts as a passed review of the problem's topic, below it as a
+ * missed one: 14 of 20 is 70 percent, roughly a first-class answer to one Tripos question.
+ */
+export const SUPERVISION_PASS_MARK = 14;
+export const SUPERVISION_WEAK_POINTS = 3;
+export const SUPERVISION_MAX_REDOS = 3;
+export const MAX_WEAK_POINT = 400;
+export const MAX_SUMMARY = 1000;
+export const MAX_WRITE_UP = 20_000;
+
+/**
+ * A Cambridge problem's id across the whole app: its topic id and its id within the topic,
+ * "prob.event-spaces/q4-definitions".
+ */
+export const PROBLEM_KEY_RE = /^[a-z][a-z0-9]*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)+\/[a-z0-9]+(?:-[a-z0-9]+)*$/;
+/** The letters of a supervision nonce: no I, L, O, U, 0, or 1, so it cannot be misread. */
+export const NONCE_ALPHABET = 'ABCDEFGHJKMNPQRSTVWXYZ23456789';
+export const NONCE_LENGTH = 8;
+export const NONCE_RE = /^[ABCDEFGHJKMNPQRSTVWXYZ23456789]{8}$/;
+
+/** What a supervisor returned for one attempt. Only a pasted result block sets it; the learner never does. */
+export interface SupervisionResult {
+  /** Whole number, 0 to `SUPERVISION_MARK_MAX`. */
+  mark: number;
+  /** Exactly `SUPERVISION_WEAK_POINTS`, one line each. */
+  weakPoints: string[];
+  /** Problem keys to redo, at most `SUPERVISION_MAX_REDOS`. */
+  redo: string[];
+  summary: string;
+}
+
+/** One copy of a problem for supervision, and the result once it is pasted back. */
+export interface SupervisionAttempt {
+  /** The problem key (`PROBLEM_KEY_RE`). */
+  problem: string;
+  /** Random, printed in the copied block and echoed by the result, so a result is tied to this copy. */
+  nonce: string;
+  writeUp: string;
+  /** ms since the epoch. */
+  copiedAt: number;
+  result: SupervisionResult | null;
+  /** Null exactly when `result` is. */
+  importedAt: number | null;
+}
+
+/** A problem a supervisor set to redo. It stays open until a later measured attempt on the problem. */
+export interface Redo {
+  problem: string;
+  /** The nonce of the attempt whose result set it. */
+  from: string;
+  setAt: number;
+  due: number;
+  /** When a later attempt closed it; null while open. */
+  doneAt: number | null;
+}
+
 export interface Progress {
   version: typeof PROGRESS_VERSION;
   /** The document's id: one learner, possibly several courses. */
@@ -82,6 +142,9 @@ export interface Progress {
   /** Lesson minutes charged to each course so far: `planSession`'s `courseMinutes`. */
   courseMinutes: Record<string, number>;
   session: SessionRecord | null;
+  /** Supervision copies and their results, oldest first. */
+  supervision: SupervisionAttempt[];
+  redos: Redo[];
 }
 
 export type Result<T> =
@@ -95,12 +158,15 @@ export type Migration = (doc: Record<string, unknown>) => Record<string, unknown
  * Version n to the migration from n to n + 1.
  * 1 to 2: several courses at once (design decision 14) added the chosen courses, course
  * weights, minutes per course, and the stored session; a version 1 document had none.
+ * 2 to 3: supervision by copy and paste (DESIGN-CAMBRIDGE-CONTENT.md, build step 3) added
+ * the supervision attempts and the redo list; a version 2 document had neither.
  */
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: (d) => {
     const settings = isObj(d.settings) ? { ...d.settings, courseWeights: {} } : d.settings;
     return { ...d, version: 2, settings, courses: [], courseMinutes: {}, session: null };
   },
+  2: (d) => ({ ...d, version: 3, supervision: [], redos: [] }),
 };
 
 export interface ImportOptions {
@@ -121,6 +187,7 @@ export function newProgress(courseId: string, now: number, settings: Partial<Set
     // A copy, so documents never share the default's weights object.
     settings: { ...s, courseWeights: { ...s.courseWeights } },
     courses: [], placement: null, memory: {}, learnedSinceQuiz: [], history: [], courseMinutes: {}, session: null,
+    supervision: [], redos: [],
   };
 }
 
@@ -242,10 +309,87 @@ function checkSession(c: Checker, x: unknown): SessionRecord | null {
   return { day: o.day as string, startedAt: o.startedAt as number, tasks };
 }
 
-function checkV2(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
+const oneLine = (x: unknown, max: number): x is string => typeof x === 'string' && x.trim() !== '' && x.length <= max && !/[\r\n]/.test(x);
+
+function checkProblemKey(c: Checker, x: unknown, path: string): x is string {
+  return c.need(typeof x === 'string' && PROBLEM_KEY_RE.test(x) && x.length <= 200, path, 'a problem id like "prob.event-spaces/q4-definitions"', x);
+}
+
+function checkResult(c: Checker, x: unknown, path: string): SupervisionResult | null {
+  if (x === null) return null;
+  if (!c.need(isObj(x), path, 'an object or null', x)) return null;
+  const o = x as Obj;
+  c.extraKeys(o, ['mark', 'weakPoints', 'redo', 'summary'], path);
+  const weak = Array.isArray(o.weakPoints) ? (o.weakPoints as unknown[]) : null;
+  const redo = Array.isArray(o.redo) ? (o.redo as unknown[]) : null;
+  const ok = [
+    c.need(Number.isInteger(o.mark) && (o.mark as number) >= 0 && (o.mark as number) <= SUPERVISION_MARK_MAX, `${path}.mark`, `a whole number from 0 to ${SUPERVISION_MARK_MAX}`, o.mark),
+    c.need(weak !== null && weak.length === SUPERVISION_WEAK_POINTS, `${path}.weakPoints`, `${SUPERVISION_WEAK_POINTS} weak points`, o.weakPoints)
+      && (weak as unknown[]).map((w, i) => c.need(oneLine(w, MAX_WEAK_POINT), `${path}.weakPoints[${i}]`, `one line of at most ${MAX_WEAK_POINT} characters`, w)).every(Boolean),
+    c.need(redo !== null && redo.length <= SUPERVISION_MAX_REDOS, `${path}.redo`, `an array of at most ${SUPERVISION_MAX_REDOS} problem ids`, o.redo)
+      && (redo as unknown[]).map((r, i) => checkProblemKey(c, r, `${path}.redo[${i}]`)).every(Boolean),
+    c.need(oneLine(o.summary, MAX_SUMMARY), `${path}.summary`, `one line of at most ${MAX_SUMMARY} characters`, o.summary),
+  ].every(Boolean);
+  if (!ok) return null;
+  return { mark: o.mark as number, weakPoints: [...(weak as string[])], redo: [...(redo as string[])], summary: o.summary as string };
+}
+
+function checkSupervision(c: Checker, x: unknown): SupervisionAttempt[] {
+  const out: SupervisionAttempt[] = [];
+  if (!c.need(Array.isArray(x), '$.supervision', 'an array', x)) return out;
+  const nonces = new Set<string>();
+  (x as unknown[]).forEach((a, i) => {
+    const path = `$.supervision[${i}]`;
+    if (!c.need(isObj(a), path, 'an object', a)) return;
+    const o = a as Obj;
+    c.extraKeys(o, ['problem', 'nonce', 'writeUp', 'copiedAt', 'result', 'importedAt'], path);
+    const result = checkResult(c, o.result, `${path}.result`);
+    const ok = [
+      checkProblemKey(c, o.problem, `${path}.problem`),
+      c.need(typeof o.nonce === 'string' && NONCE_RE.test(o.nonce), `${path}.nonce`, `${NONCE_LENGTH} letters and digits`, o.nonce),
+      c.need(typeof o.writeUp === 'string' && o.writeUp.length <= MAX_WRITE_UP, `${path}.writeUp`, `text of at most ${MAX_WRITE_UP} characters`, o.writeUp),
+      c.need(isNum(o.copiedAt), `${path}.copiedAt`, 'a time in ms', o.copiedAt),
+      o.result === null || result !== null,
+      c.need(o.result === null ? o.importedAt === null : isNum(o.importedAt), `${path}.importedAt`, o.result === null ? 'null, as there is no result' : 'a time in ms', o.importedAt),
+    ].every(Boolean);
+    if (!ok) return;
+    if (nonces.has(o.nonce as string)) {
+      c.errors.push(`${path}.nonce: ${JSON.stringify(o.nonce)} is used twice`);
+      return;
+    }
+    nonces.add(o.nonce as string);
+    out.push({
+      problem: o.problem as string, nonce: o.nonce as string, writeUp: o.writeUp as string, copiedAt: o.copiedAt as number,
+      result, importedAt: o.importedAt as number | null,
+    });
+  });
+  return out;
+}
+
+function checkRedos(c: Checker, x: unknown): Redo[] {
+  const out: Redo[] = [];
+  if (!c.need(Array.isArray(x), '$.redos', 'an array', x)) return out;
+  (x as unknown[]).forEach((r, i) => {
+    const path = `$.redos[${i}]`;
+    if (!c.need(isObj(r), path, 'an object', r)) return;
+    const o = r as Obj;
+    c.extraKeys(o, ['problem', 'from', 'setAt', 'due', 'doneAt'], path);
+    const ok = [
+      checkProblemKey(c, o.problem, `${path}.problem`),
+      c.need(typeof o.from === 'string' && NONCE_RE.test(o.from), `${path}.from`, 'the nonce of the attempt that set it', o.from),
+      c.need(isNum(o.setAt), `${path}.setAt`, 'a time in ms', o.setAt),
+      c.need(isNum(o.due), `${path}.due`, 'a time in ms', o.due),
+      c.need(o.doneAt === null || isNum(o.doneAt), `${path}.doneAt`, 'a time in ms or null', o.doneAt),
+    ].every(Boolean);
+    if (ok) out.push({ problem: o.problem as string, from: o.from as string, setAt: o.setAt as number, due: o.due as number, doneAt: o.doneAt as number | null });
+  });
+  return out;
+}
+
+function checkV3(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
   const TOP = [
     'version', 'courseId', 'createdAt', 'updatedAt', 'settings', 'courses', 'placement', 'memory', 'learnedSinceQuiz', 'history',
-    'courseMinutes', 'session',
+    'courseMinutes', 'session', 'supervision', 'redos',
   ];
   c.extraKeys(d, TOP, '$');
   c.need(typeof d.courseId === 'string' && d.courseId.trim() !== '' && d.courseId.length <= 200, '$.courseId', 'a non-empty string', d.courseId);
@@ -338,10 +482,13 @@ function checkV2(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progres
     });
   }
 
+  const supervision = checkSupervision(c, d.supervision);
+  const redos = checkRedos(c, d.redos);
+
   if (c.errors.length > 0) return null;
   return {
     version: PROGRESS_VERSION, courseId: d.courseId as string, createdAt: d.createdAt as number, updatedAt: d.updatedAt as number,
-    settings, courses, placement, memory, learnedSinceQuiz, history, courseMinutes, session,
+    settings, courses, placement, memory, learnedSinceQuiz, history, courseMinutes, session, supervision, redos,
   };
 }
 
@@ -386,7 +533,7 @@ export function importProgress(input: unknown, options: ImportOptions = {}): Res
 
     const c = new Checker();
     const known = options.knownTopicIds === undefined ? null : new Set(options.knownTopicIds);
-    const p = checkV2(c, d, known);
+    const p = checkV3(c, d, known);
     return p === null ? { ok: false, errors: c.errors } : { ok: true, value: p, warnings: c.warnings };
   } catch (e) {
     // Validation is written not to throw; this is the backstop the contract promises.

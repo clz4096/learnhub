@@ -1,7 +1,8 @@
 /**
  * Today: the session plan from `planSession`, stored for the day so a reload shows the
  * same tasks. Each task says why it is there, in the planner's words; the header shows
- * the time left and how today's lesson minutes split between the courses.
+ * the time left and how today's lesson minutes split between the courses. Below the plan,
+ * problems a supervisor set to redo, and Paste result for copies still waiting for one.
  */
 import { useEffect } from 'preact/hooks';
 import type { SessionTask } from '@learnhub/mastery';
@@ -9,6 +10,7 @@ import { shortName, titleOf } from '@/model/courses';
 import { ensureSession, localDay, planMore, replanToday, sessionTime } from '@/model/learner';
 import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
+import { SupervisionToday } from '@/ui/Supervision';
 
 const KIND: Record<SessionTask['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz' };
 
@@ -81,6 +83,8 @@ export function Today() {
           );
         })}
       </ol>
+
+      <SupervisionToday p={p} />
 
       {nextIndex < 0 && s.tasks.length > 0 && (
         <div class="done-today">

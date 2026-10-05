@@ -6,6 +6,7 @@
  *   #/start       choose the course and minutes (a new learner only)
  *   #/task/3      task 3 of today's session
  *   #/learn/<id>  a lesson opened from the map, outside today's plan
+ *   #/problem/<topic id>/<problem id>  one Cambridge problem, opened from a redo on Today
  *   #/map         the knowledge map; #/map/<id> with a topic open
  *   #/progress    per course, backup, settings
  *   #/glossary    every term; #/glossary/<id> at one entry
@@ -22,6 +23,7 @@ export type Route =
   | { view: 'start' }
   | { view: 'task'; index: number }
   | { view: 'learn'; topicId: string }
+  | { view: 'problem'; topicId: string; problemId: string }
   | { view: 'map'; topicId: string | null }
   | { view: 'progress' }
   | { view: 'glossary'; termId: string | null };
@@ -30,7 +32,7 @@ const ID = /^[a-z0-9.-]+$/;
 
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, '').split('/').filter((x) => x !== '').map(decodeURIComponent);
-  const [head, arg] = parts;
+  const [head, arg, arg2] = parts;
   const id = arg !== undefined && ID.test(arg) ? arg : null;
   switch (head) {
     case 'start': return { view: 'start' };
@@ -39,6 +41,7 @@ export function parseRoute(hash: string): Route {
       return Number.isInteger(i) && i >= 0 ? { view: 'task', index: i } : { view: 'today' };
     }
     case 'learn': return id === null ? { view: 'map', topicId: null } : { view: 'learn', topicId: id };
+    case 'problem': return id !== null && arg2 !== undefined && ID.test(arg2) ? { view: 'problem', topicId: id, problemId: arg2 } : { view: 'today' };
     case 'map': return { view: 'map', topicId: id };
     case 'progress': return { view: 'progress' };
     case 'glossary': return { view: 'glossary', termId: id };
@@ -52,6 +55,7 @@ export function hrefOf(r: Route): string {
     case 'start': return '#/start';
     case 'task': return `#/task/${r.index}`;
     case 'learn': return `#/learn/${encodeURIComponent(r.topicId)}`;
+    case 'problem': return `#/problem/${encodeURIComponent(r.topicId)}/${encodeURIComponent(r.problemId)}`;
     case 'map': return r.topicId === null ? '#/map' : `#/map/${encodeURIComponent(r.topicId)}`;
     case 'progress': return '#/progress';
     case 'glossary': return r.termId === null ? '#/glossary' : `#/glossary/${encodeURIComponent(r.termId)}`;

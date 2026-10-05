@@ -1,6 +1,6 @@
 # Cambridge-sourced lessons: design
 
-Dated 2026-10-05. Status: approved by the owner on 2026-10-05. Step 1 done; step 2 built (2026-10-05), for review.
+Dated 2026-10-05. Status: approved by the owner on 2026-10-05. Steps 1 and 2 done; step 3 (supervision) built (2026-10-05), for review. The formats, validation, and scheduling rules are in `sims/mastery/GUIDE.md`, Supervision.
 
 ## Goal
 
