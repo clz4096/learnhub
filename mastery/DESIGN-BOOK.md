@@ -1,8 +1,19 @@
 # learnhub as a book: design
 
-Dated 2026-10-05. Status: draft, for review. No code yet.
+Dated 2026-10-05. Status: approved 2026-10-05 with the revision below (degree by term). Book shell being built.
 
 Builds on `mastery/DESIGN-CAMBRIDGE-CONTENT.md` (lessons from Cambridge sources, auto-checked practice, supervision, sync). This design changes how the material is organized and read, not how it is checked or reviewed.
+
+## Revision (2026-10-05): the book follows the Cambridge degree, term by term
+
+Approved by Albert after mockup 3 (https://claude.ai/artifact/LujuRnCoeRwvMjWScaCW62 for the documents; the degree mockup was https://claude.ai/artifact/LuaoWJPTtYN4h5Ca21BkT9). This supersedes the part order and table of contents below; the section and step model, the rules (each topic once, prerequisites earlier, bridge sections), and the page design still apply.
+
+- **Years and terms:** Preparation (Stage A: STEP Foundation blocks 1 to 6 and CS-0; Stage B: STEP 2 modules; Stage C: STEP 3 modules), then Part IA, Part IB, and Part II, each in Michaelmas, Lent, and Easter. Two tracks per term: the Mathematical Tripos and the Computer Science Tripos.
+- **Chapters and sections:** a chapter is a course (or, in Preparation, a STEP block, module set, or CS-0 block); its sections are the course's own schedule or syllabus sections. Graph topics are the steps inside a section. Course titles, terms, lecture counts, and sections come from the official 2026-27 Mathematical Tripos schedules and Computer Laboratory syllabus pages, extracted into `content/src/book/curriculum.json` with each course marked core, optional, overlap, or out.
+- **Where today's content goes:** Part 0 foundations and the STEP chapters into Preparation; Proof and Numbers into IA Michaelmas Discrete Mathematics (Proof, Numbers sections); IA Probability parts and the statistics Part V into IA Lent Probability (Basic concepts, Axiomatic approach, Discrete random variables, Continuous random variables, Inequalities and limits); the analysis toolkit into IA Lent Analysis I and Vector Calculus.
+- **Overlaps:** taught once, linked from the other course (CST Discrete Mathematics teaches the proof and number theory of Maths IA Numbers and Sets; Maths IA Probability covers CST Introduction to Probability).
+- **Pace:** self-paced; terms are order, not time. About 6,000 study hours in all (about 3.5 years at 6 hours a day, 6 days a week).
+- **Admission gate:** Part IA opens when the Preparation campaign is complete (see `DESIGN-ADMISSIONS.md`).
 
 ## Goal
 
