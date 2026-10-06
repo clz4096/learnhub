@@ -12,18 +12,23 @@
  *
  * The state from line to line is the pure player in model/story.ts; this file is timing,
  * focus, and markup. A play that reaches the end card is recorded once.
+ *
+ * A scene can show a document over its art: from the line with the `offer-letter` hook to
+ * the line with `offer-away`, the real offer letter, the same one the Letters tab shows.
  */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { campaign } from '@/model/campaignStore';
 import { loadDays } from '@/model/dayLog';
 import { now, progress } from '@/model/store';
 import {
-  advance, choose, completeScene, expand, firedFx, nextScene, numbersOf, repOf, skip, startPlayer, triggerText,
+  advance, choose, completeScene, expand, firedFx, nextScene, numbersOf, repOf, skip, startPlayer, titleOf, triggerText,
   type PlayerState, type Scene, type Script, type StoryNumbers,
 } from '@/model/story';
 import { SCENES, sceneById } from '@/model/storyScenes';
 import { storyFacts } from '@/model/storyFacts';
 import { playing, saveStory, story } from '@/model/storyStore';
+import { admissions, loadAdmissions } from '@/ui/campaignShared';
+import { OfferLetter, offerData } from '@/ui/Documents';
 import { ART } from '@/ui/story/art';
 
 const TITLE_MS = 2600;
@@ -60,11 +65,24 @@ function numbersFor(id: string, live: StoryNumbers): StoryNumbers {
   return st.queued.find((q) => q.id === id)?.n ?? st.seen[id]?.n ?? live;
 }
 
+/** The real offer letter, as the Letters tab shows it; nothing while the registry loads or with no offer on record. */
+function SceneOffer({ entry }: { entry: number | null }) {
+  const adm = admissions.value;
+  const c = campaign.value;
+  useEffect(() => {
+    if (adm === null) void loadAdmissions();
+  }, [adm]);
+  const offer = c?.letters.find((l) => l.id === 'offer');
+  if (adm === null || c === null || offer === undefined) return null;
+  return <div class="sp-doc"><OfferLetter d={offerData(adm, c, offer.at, entry)} /></div>;
+}
+
 function Play({ scene, script }: { scene: Scene; script: Script }) {
   const reduce = useMemo(prefersReducedMotion, []);
-  const live = useMemo(() => storyFacts(progress.peek(), campaign.peek(), loadDays(), now()), []);
+  const live = useMemo(() => storyFacts(progress.peek(), campaign.peek(), loadDays(), now(), admissions.peek()), []);
   const n = useMemo(() => numbersFor(scene.id, numbersOf(live)), [scene.id, live]);
-  const ctx = useMemo(() => ({ n }), [n]);
+  const ctx = useMemo(() => ({ n, rel: story.peek().relationships }), [n]);
+  const title = titleOf(scene, ctx);
   const seq = useMemo(() => expand(script, ctx), [script, ctx]);
   const [play, setPlay] = useState(0);
   const [st, setSt] = useState<PlayerState>(() => startPlayer(seq));
@@ -164,7 +182,7 @@ function Play({ scene, script }: { scene: Scene; script: Script }) {
 
   const onFrameClick = (e: MouseEvent): void => {
     const t = e.target as Element | null;
-    if (t?.closest('.sp-choices, .sp-end, .sp-skip') != null) return;
+    if (t?.closest('.sp-choices, .sp-end, .sp-skip, .sp-doc') != null) return;
     if (!choosing) next();
   };
 
@@ -172,7 +190,8 @@ function Play({ scene, script }: { scene: Scene; script: Script }) {
   const fx = firedFx(st);
   const nowFx = cur !== undefined && cur.kind !== 'choice' ? cur.fx : null;
   const t = st.seq.length === 0 ? 0 : Math.max(0, st.i) / st.seq.length;
-  const label = `${scene.kicker}: ${scene.title}`;
+  const label = `${scene.kicker}: ${title}`;
+  const showOffer = st.phase === 'lines' && fx.includes('offer-letter') && !fx.includes('offer-away');
   const after = scene.script === null ? undefined : nextScene(SCENES, scene.id);
 
   return (
@@ -182,9 +201,10 @@ function Play({ scene, script }: { scene: Scene; script: Script }) {
     >
       <div class="sp-box">
         <div class={`sp-frame${st.phase !== 'title' ? ' sp-open' : ''}`}>
-          {Art !== null && <Art fx={fx} now={nowFx} t={t} reduce={reduce} />}
+          {Art !== null && <Art fx={fx} now={nowFx} t={t} reduce={reduce} n={n} />}
           <div class="sp-bar sp-bar-top" /><div class="sp-bar sp-bar-bot" />
         </div>
+        {showOffer && <SceneOffer entry={n.campaign?.entry ?? null} />}
         {st.phase === 'lines' && cur !== undefined && (
           <div class="sp-dlg">
             {cur.kind === 'choice' ? (
@@ -218,7 +238,7 @@ function Play({ scene, script }: { scene: Scene; script: Script }) {
       <div class={`sp-title${st.phase === 'title' ? '' : ' sp-hide'}`} aria-hidden={st.phase === 'title' ? undefined : 'true'}>
         <div>
           <div class="sp-k">{scene.kicker}</div>
-          <h1>{scene.title}</h1>
+          <h1>{title}</h1>
           <div class="sp-p">{scene.place}</div>
         </div>
       </div>
@@ -226,7 +246,7 @@ function Play({ scene, script }: { scene: Scene; script: Script }) {
         <div class="sp-end">
           <div>
             <div class="sp-k">{scene.kicker} complete</div>
-            <h2>{scene.title}</h2>
+            <h2>{title}</h2>
             <ul>
               {script.endCard.map((item) => (
                 <li key={item.label}>

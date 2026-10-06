@@ -1,14 +1,19 @@
 /**
  * The real data story mode reads (see story.ts), from the progress document, the campaign,
- * and the day planner's log. Pure: callers pass every input, including the time.
+ * the paper registry, and the day planner's log. Pure: callers pass every input, including
+ * the time and the registry (it loads on demand, so it may not be there yet).
  */
 import type { Progress } from '@learnhub/mastery';
 import { BOOK } from '@learnhub/content/book';
-import type { Campaign } from './campaign';
-import { daysStudied, weekHours } from './campaignCalendar';
-import { planDate } from './day';
+import {
+  SUBJECT_NAMES, aLevelRows, offerConditions, paperName, stepRows, tmuaRows,
+  type ALevelGrade, type Admissions, type Campaign, type Condition, type Sitting,
+} from './campaign';
+import { TARGET_WEEK_HOURS, daysStudied, weekHours } from './campaignCalendar';
+import { summarize } from './campaignSummary';
+import { addDays, planDate, weekOf } from './day';
 import type { DayLog } from './dayLog';
-import type { StoryFacts } from './story';
+import type { StoryCampaign, StoryCondition, StoryFacts } from './story';
 
 /** Every date: days studied count from the beginning, not from the campaign's start. */
 const ALL_TIME = '0000-01-01';
@@ -20,10 +25,68 @@ export function papersSat(c: Campaign | null): number {
 }
 
 /**
- * The facts at `now`. `actsComplete` is passed in because the acts need the paper
- * registry, which loads on demand; null when it is not known.
+ * Of the two full weeks (Sunday to Saturday) before the one containing `today`, those the
+ * learner planned in the day planner whose ticked hours fell below the target. A week with
+ * no planned day is not counted: the planner cannot say how it went.
  */
-export function storyFacts(p: Progress | null, c: Campaign | null, log: DayLog, now: number, actsComplete: number | null = null): StoryFacts {
+export function weeksShort(log: DayLog, today: string): number {
+  let n = 0;
+  for (const back of [7, 14]) {
+    const day = addDays(today, -back);
+    if (!weekOf(day).some((d) => log[d] !== undefined)) continue;
+    if (weekHours(log, day) < TARGET_WEEK_HOURS) n++;
+  }
+  return n;
+}
+
+const A_ORDER: readonly ALevelGrade[] = ['A*', 'A', 'B', 'C', 'D', 'E', 'U'];
+const STEP_ORDER: readonly string[] = ['S', '1', '2', '3', 'U'];
+
+/** The latest sitting of each paper, oldest first: a resit replaces the earlier mark, as in the offer. */
+function latestBy<T extends { sitting: Sitting }>(rows: readonly T[], key: (r: T) => string): T[] {
+  const m = new Map<string, T>();
+  for (const r of [...rows].sort((a, b) => a.sitting.startedAt - b.sitting.startedAt)) m.set(key(r), r);
+  return [...m.values()];
+}
+
+/** The campaign's real results for a scene to read (see StoryCampaign). */
+export function storyCampaign(adm: Admissions, c: Campaign, entry: number | null): StoryCampaign {
+  const aRows = latestBy(aLevelRows(adm, c), (r) => r.paper.paper);
+  const sRows = latestBy(stepRows(adm, c), (r) => r.paper);
+  const aLevels = c.aLevelOrder.flatMap((sub) => aRows.filter((r) => r.subject === sub).map((r) => ({
+    name: paperName(r.paper).replace(/:.*$/, ''), mark: r.mark, max: r.max, grade: r.grade as string | null, subject: SUBJECT_NAMES[sub],
+  })));
+  const tmua = tmuaRows(adm, c).flatMap((r) => [
+    ...(r.p1 === null ? [] : [{ name: `TMUA ${r.year} Paper 1`, mark: r.p1, max: 20, grade: null }]),
+    ...(r.p2 === null ? [] : [{ name: `TMUA ${r.year} Paper 2`, mark: r.p2, max: 20, grade: null }]),
+  ]);
+  const step = sRows.map((r) => ({ name: `${r.paper} ${r.year}`, mark: r.mark, max: 120, grade: r.grade as string | null }));
+  // How far short each condition is: its weakest latest paper's grade against the need.
+  const below = (x: Condition): number | null => {
+    if (x.status === 'pending') return null;
+    if (x.status === 'met') return 0;
+    if (/^STEP \d$/.test(x.label)) {
+      const r = sRows.find((y) => y.paper === x.label);
+      return r === undefined ? null : Math.max(0, STEP_ORDER.indexOf(r.grade) - STEP_ORDER.indexOf('1'));
+    }
+    const need = A_ORDER.indexOf(x.need.split(' ')[0] as ALevelGrade);
+    const rows = aRows.filter((r) => SUBJECT_NAMES[r.subject] === x.label);
+    if (need < 0 || rows.length === 0) return null;
+    return Math.max(0, Math.max(...rows.map((r) => A_ORDER.indexOf(r.grade))) - need);
+  };
+  const conditions: StoryCondition[] = offerConditions(adm, c).map((x) => ({ label: x.label, need: x.need, you: x.you, status: x.status, below: below(x) }));
+  return {
+    route: c.route, aLevels, tmua, step,
+    interviews: c.interviews.flatMap((i) => (i.mark === null ? [] : [i.mark])),
+    conditions, filedAt: c.applicationFiledAt, entry,
+  };
+}
+
+/**
+ * The facts at `now`. With the paper registry (`adm`), a campaign, and a learner, the acts
+ * complete and the campaign's results are known; without any of them they are null.
+ */
+export function storyFacts(p: Progress | null, c: Campaign | null, log: DayLog, now: number, adm: Admissions | null = null): StoryFacts {
   const learned = (id: string): boolean => p !== null && p.memory[id] !== undefined;
   let sectionsMastered = 0;
   const chaptersComplete: string[] = [];
@@ -49,6 +112,14 @@ export function storyFacts(p: Progress | null, c: Campaign | null, log: DayLog, 
     }
   }
   const history = p?.history ?? [];
+  let actsComplete: number | null = null;
+  let campaign: StoryCampaign | null = null;
+  if (adm !== null && c !== null && p !== null) {
+    const s = summarize(adm, c, p, log, now);
+    // Acts complete in order, so the count is the number of acts done.
+    actsComplete = s.acts.filter((a) => a.complete).length;
+    campaign = storyCampaign(adm, c, s.projection.entry);
+  }
   return {
     sectionsMastered,
     papersSat: papersSat(c),
@@ -56,9 +127,12 @@ export function storyFacts(p: Progress | null, c: Campaign | null, log: DayLog, 
     supervisionsPassed: history.filter((h) => h.kind === 'supervision' && h.correct).length,
     daysStudied: daysStudied(log, history.filter((h) => h.kind !== 'placement').map((h) => planDate(h.at)), ALL_TIME),
     weekHours: weekHours(log, planDate(now)),
+    weeksShort: weeksShort(log, planDate(now)),
+    campaign,
     chaptersComplete,
     termShare,
     actsComplete,
-    letters: c?.letters.map((l) => l.id) ?? [],
+    // A letter's scene reads the results behind it, so letters count once the results are known.
+    letters: campaign === null || c === null ? [] : c.letters.map((l) => l.id),
   };
 }

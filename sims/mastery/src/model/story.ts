@@ -58,9 +58,69 @@ export interface StoryNumbers {
   daysStudied: number;
   /** Hours ticked off in the day planner in the week of the scene's trigger. */
   weekHours: number;
+  /** Of the two full weeks before the trigger's, those planned in the day planner whose ticked hours fell below the target. */
+  weeksShort: number;
+  /** The campaign's real results at the trigger, or null with no campaign or before the paper registry loads. */
+  campaign: StoryCampaign | null;
 }
 
-export const NO_NUMBERS: Readonly<StoryNumbers> = { sectionsMastered: 0, papersSat: 0, supervisionsPassed: 0, daysStudied: 0, weekHours: 0 };
+/** A timed paper as a scene reads it: its name, the real mark, and the grade it earned where papers have grades. */
+export interface StoryPaper {
+  /** "9MA0/01 June 2024", "TMUA 2016 Paper 1", "STEP 2 2019". */
+  name: string;
+  mark: number;
+  max: number;
+  /** "A*", "1"; null for the TMUA, which has no grades. */
+  grade: string | null;
+}
+
+export type StoryConditionStatus = 'met' | 'short' | 'pending';
+
+/** One condition of the offer against the results, as the Report shows it. */
+export interface StoryCondition {
+  label: string;
+  need: string;
+  you: string;
+  status: StoryConditionStatus;
+  /** Grades below the need on the weakest paper: 0 when met, null when not sat or not gradable. */
+  below: number | null;
+}
+
+/**
+ * The campaign's real results, copied when a scene triggers so a replay reads them as they
+ * were. Each list holds the latest sitting of each paper.
+ */
+export interface StoryCampaign {
+  route: 'maths' | 'cs';
+  /** A level papers, with `subject` the subject's name ("A level Mathematics"). */
+  aLevels: (StoryPaper & { subject: string })[];
+  tmua: StoryPaper[];
+  step: StoryPaper[];
+  /** Mock interview marks out of 20, in the order recorded. */
+  interviews: number[];
+  conditions: StoryCondition[];
+  /** When the application was filed (ms), or null. */
+  filedAt: number | null;
+  /** The projected entry year, or null when beyond the horizon. */
+  entry: number | null;
+}
+
+export type OfferOutcome = 'met' | 'narrow' | 'missed';
+
+/**
+ * Results against the offer: met when every condition is met; a narrow miss when exactly
+ * one is short, by one grade (the College looks again and confirms); otherwise missed. A
+ * condition not sat counts as missed: the College cannot confirm on a result it has not seen.
+ */
+export function offerOutcome(c: StoryCampaign): OfferOutcome {
+  const open = c.conditions.filter((x) => x.status !== 'met');
+  if (open.length === 0) return 'met';
+  return open.length === 1 && open[0]?.below === 1 ? 'narrow' : 'missed';
+}
+
+export const NO_NUMBERS: Readonly<StoryNumbers> = {
+  sectionsMastered: 0, papersSat: 0, supervisionsPassed: 0, daysStudied: 0, weekHours: 0, weeksShort: 0, campaign: null,
+};
 
 /** Everything a trigger can read. */
 export interface StoryFacts extends StoryNumbers {
@@ -70,7 +130,7 @@ export interface StoryFacts extends StoryNumbers {
   termShare: Readonly<Record<string, number>>;
   /** Campaign acts complete in order, or null when unknown (no campaign, or the paper registry not loaded). */
   actsComplete: number | null;
-  /** Campaign letters delivered. */
+  /** Campaign letters delivered; empty until the campaign's results are known (`campaign` not null), since letter scenes read them. */
   letters: readonly string[];
 }
 
@@ -120,9 +180,11 @@ export function repLevel(rep: number): RepLevel {
 
 export type LineKind = 'narration' | 'inner' | 'spoken' | 'message';
 
-/** What a line's text can read: the real numbers, as of the scene's trigger. */
+/** What a line's text can read: the real numbers, as of the scene's trigger, and the relationships when it plays. */
 export interface SceneContext {
   n: StoryNumbers;
+  /** Absent reads as no relationships. */
+  rel?: Readonly<Relationships>;
 }
 
 export type Text = string | ((ctx: SceneContext) => string);
@@ -173,8 +235,10 @@ export interface EndItem {
 }
 
 export interface Script {
-  /** The scene's variant from the real numbers; lines with `only` play in their variants. */
-  variant?: (n: StoryNumbers) => string;
+  /** The scene's variant from the real numbers (and relationships); lines with `only` play in their variants. */
+  variant?: (n: StoryNumbers, rel: Readonly<Relationships>) => string;
+  /** A title card per variant, where the variants are different scenes ("The Long Winter", "Momentum"). */
+  titles?: Readonly<Record<string, string>>;
   lines: readonly ScriptLine[];
   endCard: readonly EndItem[];
 }
@@ -184,10 +248,14 @@ export type Trigger =
   | { kind: 'chapter'; chapterId: string; name: string }
   | { kind: 'termHalf'; term: string; name: string }
   | { kind: 'act'; n: 1 | 2 | 3 | 4 | 5; name: string }
-  | { kind: 'letter'; id: string; name: string };
+  | { kind: 'letter'; id: string; name: string }
+  /** Act V complete and the offer met or narrowly missed: the place is confirmed. */
+  | { kind: 'confirmed' };
 
 /** The art a scene is drawn with; the player maps each to a component. */
-export type ArtId = 'kitchen-night' | 'kitchen-dawn';
+export type ArtId =
+  | 'kitchen-night' | 'kitchen-dawn' | 'desk-night' | 'window-winter' | 'kitchen-results' | 'train-hall' | 'kitchen-apply'
+  | 'video-call' | 'kitchen-offer' | 'senate-board' | 'college-gate';
 
 export interface Scene {
   id: string;
@@ -218,6 +286,7 @@ export function triggerText(t: Trigger): string {
     case 'termHalf': return `plays when you are halfway through ${t.name}`;
     case 'act': return `plays when ${t.name} is complete`;
     case 'letter': return `plays when ${t.name} arrives`;
+    case 'confirmed': return 'plays when your place is confirmed';
   }
 }
 
@@ -228,6 +297,7 @@ export function triggered(t: Trigger, f: StoryFacts): boolean {
     case 'termHalf': return (f.termShare[t.term] ?? 0) >= 0.5;
     case 'act': return f.actsComplete !== null && f.actsComplete >= t.n;
     case 'letter': return f.letters.includes(t.id);
+    case 'confirmed': return f.actsComplete !== null && f.actsComplete >= 5 && f.campaign !== null && offerOutcome(f.campaign) !== 'missed';
   }
 }
 
@@ -262,9 +332,20 @@ function resolve(l: Line, ctx: SceneContext): PlayLine {
   return { kind: l.kind, speaker: l.speaker ?? null, text: typeof l.text === 'string' ? l.text : l.text(ctx), fx: l.fx ?? null };
 }
 
+/** The scene's variant for these numbers and relationships, or null for a scene without variants. */
+export function variantOf(script: Script, ctx: SceneContext): string | null {
+  return script.variant?.(ctx.n, ctx.rel ?? NO_RELATIONSHIPS) ?? null;
+}
+
+/** The title card: the variant's title where the script names one, else the scene's. */
+export function titleOf(scene: Scene, ctx: SceneContext): string {
+  const v = scene.script === null ? null : variantOf(scene.script, ctx);
+  return (v === null ? undefined : scene.script?.titles?.[v]) ?? scene.title;
+}
+
 /** The scene's lines for its variant, texts resolved. */
 export function expand(script: Script, ctx: SceneContext): PlayLine[] {
-  const v = script.variant?.(ctx.n) ?? null;
+  const v = variantOf(script, ctx);
   return script.lines
     .filter((l) => isChoice(l) || l.only === undefined || (v !== null && l.only.includes(v)))
     .map((l) => (isChoice(l) ? l : resolve(l, ctx)));
@@ -354,7 +435,10 @@ export function enqueue(st: StoryState, due: readonly Scene[], f: StoryFacts, no
 }
 
 export function numbersOf(f: StoryNumbers): StoryNumbers {
-  return { sectionsMastered: f.sectionsMastered, papersSat: f.papersSat, supervisionsPassed: f.supervisionsPassed, daysStudied: f.daysStudied, weekHours: f.weekHours };
+  return {
+    sectionsMastered: f.sectionsMastered, papersSat: f.papersSat, supervisionsPassed: f.supervisionsPassed, daysStudied: f.daysStudied,
+    weekHours: f.weekHours, weeksShort: f.weeksShort, campaign: f.campaign,
+  };
 }
 
 /** Records a play that reached its end card. */
@@ -407,10 +491,52 @@ export function nextScene(scenes: readonly Scene[], id: string): Scene | undefin
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 
+const isStr = (v: unknown): v is string => typeof v === 'string';
+const list = <T>(x: unknown, f: (y: unknown) => T | null): T[] | null => {
+  if (!Array.isArray(x)) return null;
+  const out = x.map(f);
+  return out.every((y): y is T => y !== null) ? out : null;
+};
+
+function parsePaper(v: unknown): StoryPaper | null {
+  if (!isObj(v) || !isStr(v.name) || !isNum(v.mark) || !isNum(v.max) || (v.grade !== null && !isStr(v.grade))) return null;
+  return { name: v.name, mark: v.mark, max: v.max, grade: v.grade };
+}
+
+const STATUSES: readonly StoryConditionStatus[] = ['met', 'short', 'pending'];
+
+function parseCondition(v: unknown): StoryCondition | null {
+  if (!isObj(v) || !isStr(v.label) || !isStr(v.need) || !isStr(v.you) || !STATUSES.includes(v.status as StoryConditionStatus)) return null;
+  if (v.below !== null && !(isNum(v.below) && v.below >= 0)) return null;
+  return { label: v.label, need: v.need, you: v.you, status: v.status as StoryConditionStatus, below: v.below };
+}
+
+/** A stored campaign snapshot, or null when any part of it is unreadable: a scene never reads half a result. */
+function parseStoryCampaign(v: unknown): StoryCampaign | null {
+  if (!isObj(v) || (v.route !== 'maths' && v.route !== 'cs')) return null;
+  const aLevels = list(v.aLevels, (x) => {
+    const p = parsePaper(x);
+    return p === null || !isObj(x) || !isStr(x.subject) ? null : { ...p, subject: x.subject };
+  });
+  const tmua = list(v.tmua, parsePaper);
+  const step = list(v.step, parsePaper);
+  const interviews = list(v.interviews, (x) => (isNum(x) && x >= 0 ? x : null));
+  const conditions = list(v.conditions, parseCondition);
+  const time = (x: unknown): number | null | undefined => (x === null ? null : isNum(x) ? x : undefined);
+  const filedAt = time(v.filedAt);
+  const entry = time(v.entry);
+  if (aLevels === null || tmua === null || step === null || interviews === null || conditions === null || filedAt === undefined || entry === undefined) return null;
+  return { route: v.route, aLevels, tmua, step, interviews, conditions, filedAt, entry };
+}
+
 function parseNumbers(v: unknown): StoryNumbers {
   const o = isObj(v) ? v : {};
-  const g = (k: keyof StoryNumbers): number => (isNum(o[k]) && (o[k] as number) >= 0 ? (o[k] as number) : 0);
-  return { sectionsMastered: g('sectionsMastered'), papersSat: g('papersSat'), supervisionsPassed: g('supervisionsPassed'), daysStudied: g('daysStudied'), weekHours: g('weekHours') };
+  const g = (k: 'sectionsMastered' | 'papersSat' | 'supervisionsPassed' | 'daysStudied' | 'weekHours' | 'weeksShort'): number =>
+    (isNum(o[k]) && (o[k] as number) >= 0 ? (o[k] as number) : 0);
+  return {
+    sectionsMastered: g('sectionsMastered'), papersSat: g('papersSat'), supervisionsPassed: g('supervisionsPassed'), daysStudied: g('daysStudied'),
+    weekHours: g('weekHours'), weeksShort: g('weeksShort'), campaign: parseStoryCampaign(o.campaign),
+  };
 }
 
 /**

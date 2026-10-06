@@ -8,7 +8,7 @@ import { campaign } from '@/model/campaignStore';
 import { loadDays } from '@/model/dayLog';
 import { now } from '@/model/store';
 import {
-  CHARACTERS, REL_IDS, REP_TABLE, isShabbat, metOf, relationWord, repLevel, repOf, triggerText, type Scene, type StoryState,
+  CHARACTERS, REL_IDS, REP_TABLE, isShabbat, metOf, relationWord, repLevel, repOf, titleOf, triggerText, type Scene, type StoryState,
 } from '@/model/story';
 import { BOOKS, LATER_BOOKS, SCENES } from '@/model/storyScenes';
 import { storyFacts } from '@/model/storyFacts';
@@ -20,13 +20,15 @@ const sentence = (s: string): string => `${s.charAt(0).toUpperCase()}${s.slice(1
 function SceneRow({ s, st, shabbat }: { s: Scene; st: StoryState; shabbat: boolean }) {
   const seen = st.seen[s.id];
   const queued = st.queued.some((q) => q.id === s.id);
-  const name = s.book === 0 ? s.title : `${s.chapter}. ${s.title}`;
+  // A seen scene goes by the title it played under ("The Long Winter" or "Momentum").
+  const title = seen === undefined ? s.title : titleOf(s, { n: seen.n, rel: st.relationships });
+  const name = s.book === 0 ? title : `${s.chapter}. ${title}`;
   const open = (): void => { playing.value = { id: s.id, auto: false }; };
   if (s.script !== null && seen !== undefined) {
     return (
       <li>
         <span>{name}</span>
-        <span class="r"><button type="button" class="story-play" onClick={open} aria-label={`Replay ${s.title}`}>Replay</button></span>
+        <span class="r"><button type="button" class="story-play" onClick={open} aria-label={`Replay ${title}`}>Replay</button></span>
         <span class="s">Seen {shortStamp(seen.first)}{seen.plays > 1 ? `, played ${seen.plays} times` : ''}.</span>
       </li>
     );

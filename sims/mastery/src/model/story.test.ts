@@ -67,16 +67,17 @@ describe('triggers', () => {
     expect(triggerText(PROLOGUE.trigger)).toBe('plays the first time you open the app');
     expect(SCENES.map((s) => triggerText(s.trigger))).toContain('plays when Act IV, The interview, is complete');
     expect(SCENES.map((s) => triggerText(s.trigger))).toContain('plays when the offer letter arrives');
+    expect(SCENES.map((s) => triggerText(s.trigger))).toContain('plays when your place is confirmed');
   });
 });
 
 describe('the scenes', () => {
-  it('are the Prologue, First Light, then the rest of Book One in the design order, not yet written', () => {
+  it('are the Prologue, First Light, then the rest of Book One in the design order, all written', () => {
     expect(SCENES.map((s) => s.title)).toEqual([
       'The Kitchen Table', 'First Light', 'Proof', 'The Long Winter (or Momentum)', 'Act I: Recent Qualifications',
       'Act II: The Admissions Test', 'Act III: The Application', 'Act IV: The Interview', 'The Offer', 'Results Day', 'Matriculation',
     ]);
-    expect(SCENES.filter((s) => s.script !== null).map((s) => s.id)).toEqual(['prologue', 'first-light']);
+    expect(SCENES.filter((s) => s.script === null)).toEqual([]);
     expect(SCENES.filter((s) => s.book === 1).map((s) => s.chapter)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     expect(new Set(SCENES.map((s) => s.id)).size).toBe(SCENES.length);
   });
@@ -230,8 +231,8 @@ describe('story state', () => {
 
   it('never queues a scene not yet written, however its trigger stands', () => {
     const f = facts({ chaptersComplete: [CS0_PROOF], actsComplete: 5, letters: ['offer', 'results'], termShare: { [STAGE_A]: 1 } });
-    const seen = { prologue: { first: 0, last: 0, plays: 1, n: NO_NUMBERS } };
-    expect(newlyDue(SCENES, { ...emptyStory(), seen }, f)).toEqual([]);
+    const unwritten = SCENES.map((s) => ({ ...s, script: null }));
+    expect(newlyDue(unwritten, emptyStory(), f)).toEqual([]);
   });
 
   it('parses what it saves, and drops what it cannot read', () => {
@@ -346,6 +347,9 @@ describe('the facts, from real data', () => {
     expect(f.papersSat).toBe(2);
     expect(papersSat(null)).toBe(0);
     expect(f.weekHours).toBe(1.5);
-    expect(f.letters).toEqual(['received']);
+    // Without the paper registry the results are unknown, so neither the acts nor the letters count yet.
+    expect(f.actsComplete).toBeNull();
+    expect(f.campaign).toBeNull();
+    expect(f.letters).toEqual([]);
   });
 });

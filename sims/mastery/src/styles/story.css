@@ -93,6 +93,24 @@ svg.sp-art { position: absolute; inset: -3%; width: 106%; height: 106%; }
 @keyframes sp-rise { 0% { transform: translateY(6px); opacity: 0; } 30% { opacity: 0.5; } 100% { transform: translateY(-26px); opacity: 0; } }
 .sp-flick { animation: sp-flick 7s steps(1) infinite; }
 @keyframes sp-flick { 0%, 62%, 100% { opacity: 1; } 63%, 66% { opacity: 0.2; } }
+.sp-snow circle { animation: sp-fall 6s linear infinite; }
+@keyframes sp-fall { from { transform: translate(0, -40px); } to { transform: translate(14px, 60px); } }
+.sp-streak path { animation: sp-streak 0.9s linear infinite; }
+@keyframes sp-streak { from { transform: translateX(260px); } to { transform: translateX(-60px); } }
+.sp-flash { opacity: 0; animation: sp-flash 1.1s ease-out 1; }
+@keyframes sp-flash { 0% { opacity: 0.95; } 100% { opacity: 0; } }
+
+/*
+ * A document over the art (the offer letter): on paper, as in the Letters tab, scrolled
+ * inside its own panel. On a wide screen it stands in the frame above the lines; on a
+ * portrait screen it fills the space above the lines, from the top of the screen.
+ */
+.sp-doc {
+  position: absolute; z-index: 7; top: 9%; bottom: 36%; left: 50%; transform: translateX(-50%); width: min(92%, 680px);
+  overflow-y: auto; overscroll-behavior: contain; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  animation: sp-fade 0.8s ease both; color-scheme: light;
+}
+.sp-doc .offer { font-family: var(--serif); font-size: 15px; padding: 28px 30px 24px; }
 
 /* Portrait and narrow screens: the frame spans the width and the lines hang below it. */
 @media (max-aspect-ratio: 4 / 3) {
@@ -102,16 +120,21 @@ svg.sp-art { position: absolute; inset: -3%; width: 106%; height: 106%; }
   .sp-txt { font-size: 17px; }
   .sp-choices button { font-size: 16px; }
   .sp-who { font-size: 12px; }
+  /* From just below the Skip button (the box starts 64px + 8vh below the safe top) to the frame's foot. */
+  .sp-doc { top: calc(-8vh - 4px); bottom: 0; width: calc(100% - 24px); }
+  .sp-doc .offer { font-size: 13.5px; padding: 18px 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .sp-layer, .sp-bar, .sp-title { transition: none !important; }
   .sp-end { animation: none !important; }
-  .sp-steam path, .sp-flick, .sp-buzz { animation: none !important; }
+  .sp-steam path, .sp-flick, .sp-buzz, .sp-snow circle, .sp-streak path, .sp-doc { animation: none !important; }
+  .sp-flash { display: none; }
   .sp-steam path { opacity: 0.35; }
 }
 .sp-reduce .sp-layer, .sp-reduce .sp-bar, .sp-reduce .sp-title { transition: none; }
-.sp-reduce .sp-end, .sp-reduce .sp-steam path, .sp-reduce .sp-flick, .sp-reduce .sp-buzz { animation: none; }
+.sp-reduce .sp-end, .sp-reduce .sp-steam path, .sp-reduce .sp-flick, .sp-reduce .sp-buzz, .sp-reduce .sp-snow circle, .sp-reduce .sp-streak path, .sp-reduce .sp-doc { animation: none; }
+.sp-reduce .sp-flash { display: none; }
 .sp-reduce .sp-steam path { opacity: 0.35; }
 
 /* The Story tab: the minimal look of the other tabs. */
