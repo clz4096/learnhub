@@ -23,8 +23,9 @@ interface CombineP { a: number; b: number; c: number }
 const combine = generator<CombineP>({
   id: 'combine',
   skill: 'Multiply and divide powers of the same base by adding and subtracting indices.',
-  params: (rng) => ({ a: int(rng, 2, 9), b: int(rng, 2, 9), c: int(rng, 1, 12) }),
-  sane: ({ a, b, c }) => (a >= 2 && a <= 9 && b >= 2 && b <= 9 && c >= 1 && c <= 12 ? null : 'out of range'),
+  // c from 2: x^{1} would be written x.
+  params: (rng) => ({ a: int(rng, 2, 9), b: int(rng, 2, 9), c: int(rng, 2, 12) }),
+  sane: ({ a, b, c }) => (a >= 2 && a <= 9 && b >= 2 && b <= 9 && c >= 2 && c <= 12 ? null : 'out of range'),
   problem: ({ a, b, c }) => ({
     prompt: t`Write ${math`\frac{x^{${a}} \times x^{${b}}}{x^{${c}}}`} as a single power of ${mx}. What is the [[index|index]]?`,
     answer: { kind: 'exact', expected: String(a + b - c) },
@@ -50,8 +51,9 @@ interface PowerP { a: number; b: number; c: number }
 const powerOfPower = generator<PowerP>({
   id: 'power-of-power',
   skill: 'Raise a power to a power by multiplying indices.',
-  params: (rng) => ({ a: int(rng, 2, 6), b: int(rng, 2, 5), c: int(rng, 1, 9) }),
-  sane: ({ a, b, c }) => (a >= 2 && a <= 6 && b >= 2 && b <= 5 && c >= 1 && c <= 9 ? null : 'out of range'),
+  // c from 2: x^{1} would be written x.
+  params: (rng) => ({ a: int(rng, 2, 6), b: int(rng, 2, 5), c: int(rng, 2, 9) }),
+  sane: ({ a, b, c }) => (a >= 2 && a <= 6 && b >= 2 && b <= 5 && c >= 2 && c <= 9 ? null : 'out of range'),
   problem: ({ a, b, c }) => ({
     prompt: t`Write ${math`(x^{${a}})^{${b}} \times x^{${c}}`} as a single power of ${mx}. What is the index?`,
     answer: { kind: 'exact', expected: String(a * b + c) },

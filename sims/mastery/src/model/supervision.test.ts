@@ -106,7 +106,7 @@ describe('the copied block', () => {
     expect(text).toMatch(/Never give me a full solution/);
     expect(text).toMatch(/smallest hint/);
     expect(text).toMatch(/define it/);
-    expect(text).toContain(resultTemplate(PROOF, NONCE));
+    expect(text).toContain(resultTemplate(PROOF, NONCE, true));
     expect(lines[lines.length - 1]).toBe(`${PACKET_END} ${NONCE}`);
     expect(text).not.toMatch(/[–—]/);
   });
@@ -338,7 +338,7 @@ describe('the /supervise command', () => {
   it('lists the same fields, in the same order, as the app\'s template', () => {
     const labels = (s: string): string[] => s.split('\n').map((l) => /^([A-Z][A-Z0-9 ]*?):/.exec(l)?.[1]).filter((x): x is string => x !== undefined);
     const template = [...md.matchAll(/```text\n([\s\S]*?)```/g)][0]?.[1] ?? '';
-    expect(labels(template)).toEqual(labels(resultTemplate(PROOF, NONCE)));
+    expect(labels(template)).toEqual(labels(resultTemplate(PROOF, NONCE, true)));
     expect(md).toContain(RESULT_HEADER);
     expect(md).toContain(PACKET_HEADER);
     expect(md).not.toMatch(/[–—]/);

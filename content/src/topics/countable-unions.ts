@@ -134,7 +134,8 @@ const intervals = generator<IntP>({
     if (looks !== k) out.push({ response: [looks], why: t`The limit need not keep the brackets of the ${math`I_n`}. Check each endpoint: is it in ${s.op === 'cap' ? 'every' : 'some'} ${math`I_n`}?` });
     const flipped: Kind = k === 'closed' ? 'open' : k === 'open' ? 'closed' : k === 'left-open' ? 'right-open' : 'left-open';
     out.push({ response: [flipped], why: t`Both endpoints are the other way round. ${s.op === 'cap' ? t`For an intersection, an endpoint is in it only if it is in every ${math`I_n`}.` : t`For a union, an endpoint is in it if it is in at least one ${math`I_n`}.`}` });
-    if (out.length < 2) {
+    // Two slips that name the same interval are one distractor: add a third.
+    if (new Set(out.map((m) => m.response[0])).size < 2) {
       const other = (['closed', 'open', 'right-open', 'left-open'] as const).find((x) => x !== k && x !== flipped) as Kind;
       out.push({ response: [other], why: t`Check each endpoint on its own: is it in ${s.op === 'cap' ? 'every' : 'some'} ${math`I_n`}?` });
     }

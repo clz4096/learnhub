@@ -45,6 +45,9 @@ Follow the block's own instructions. In short:
    clear writing, not only the final line. Give the mark and one sentence on why. 14 or
    more counts as a passed review of the topic in learnhub; below 14 brings it back
    sooner.
+7. A written answer (`ANSWER WANTED: a proof`, an explanation, or a sketch) comes with a
+   `MARKING RUBRIC` section: mark each of its four parts (correctness out of 8,
+   completeness, rigor, and clarity out of 4 each) and add them up for the mark.
 
 ## The result block
 
@@ -54,6 +57,9 @@ not match exactly. Rules:
 
 - Copy `PROBLEM` and `NONCE` exactly from the block. The end line repeats the nonce.
 - `MARK` is a whole number from 0 to 20, written as `13/20`.
+- `RUBRIC`, only when the block has a `RUBRIC:` line in its result format: each part's
+  mark, as `correctness 6/8, completeness 3/4, rigor 1/4, clarity 2/4`. The four marks
+  must add up to `MARK`. Leave the line out when the block's result format has none.
 - Exactly three weak points, `WEAK 1` to `WEAK 3`, the weakest first, each on one line of
   at most 400 characters. Even at 20/20, name three points to sharpen.
 - `REDO` lists up to 3 problem ids, copied exactly from the block's redo list, separated
@@ -66,6 +72,7 @@ LEARNHUB RESULT v1
 PROBLEM: <the PROBLEM line of the block>
 NONCE: <the NONCE line of the block>
 MARK: <0 to 20>/20
+RUBRIC: correctness <0 to 8>/8, completeness <0 to 4>/4, rigor <0 to 4>/4, clarity <0 to 4>/4
 WEAK 1: <weakest point>
 WEAK 2: <second weakest point>
 WEAK 3: <third weakest point>
@@ -82,6 +89,7 @@ LEARNHUB RESULT v1
 PROBLEM: prob.event-spaces/q4-a-finite
 NONCE: K7Q2XMPA
 MARK: 12/20
+RUBRIC: correctness 6/8, completeness 3/4, rigor 1/4, clarity 2/4
 WEAK 1: Padded the finite union with empty sets without first showing the empty set is an event.
 WEAK 2: Used De Morgan's law for intersections without saying which complements are events.
 WEAK 3: The set difference step skipped writing A1 minus A2 as A1 intersect the complement of A2.

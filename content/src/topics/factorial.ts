@@ -129,7 +129,8 @@ const fixed = generator<FixedP>({
   misconceptions: ({ n, rule }): Misconception[] => rule === 'first'
     ? [
       { response: String(factorial(n)), why: t`That counts every order, including those where Ana is not first. Fix Ana and arrange only the others.` },
-      { response: String(n * factorial(n - 1)), why: t`Ana's place is fixed: there is ${1} way to place her, not ${n}. Arrange only the other ${n - 1}.` },
+      // Not n times (n - 1)!: that is n! again, the slip above.
+      { response: String(factorial(n) - factorial(n - 1)), why: t`That counts the orders where Ana is not first: all orders less those with Ana first. The question asks for the orders with Ana first.` },
     ]
     : [
       { response: String(factorial(n - 2)), why: t`That fixes Ana on the left and Ben on the right. They can also swap ends, which doubles the count.` },

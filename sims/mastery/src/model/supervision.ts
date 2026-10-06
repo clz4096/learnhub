@@ -33,6 +33,7 @@ import {
 } from '@learnhub/mastery';
 import { contentStore } from './content';
 import { titleOf } from './courses';
+import { RUBRIC_FIELD, formatRubric, parseRubric, rubricLines, rubricTemplate, rubricTotal, type RubricMarks } from './rubric';
 
 export const PACKET_HEADER = 'LEARNHUB SUPERVISION v1';
 export const PACKET_END = 'END LEARNHUB SUPERVISION';
@@ -179,13 +180,18 @@ export const SUPERVISOR_RULES: readonly string[] = [
   'Then print the result block below inside a code block, filled in, and nothing after it. Keep every field on one line. Copy PROBLEM and NONCE exactly. For REDO use only ids from the redo list, up to 3, separated by commas, or the word none.',
 ];
 
-/** The result block the supervisor must print, with the fields to fill in shown in angle brackets. */
-export function resultTemplate(key: string, nonce: string): string {
+/**
+ * The result block the supervisor must print, with the fields to fill in shown in angle
+ * brackets. `rubric`: a written answer, marked with the write-up rubric (rubric.ts), so the
+ * block has a RUBRIC line under MARK.
+ */
+export function resultTemplate(key: string, nonce: string, rubric = false): string {
   return [
     RESULT_HEADER,
     `PROBLEM: ${key}`,
     `NONCE: ${nonce}`,
     `MARK: <whole number from 0 to ${SUPERVISION_MARK_MAX}>/${SUPERVISION_MARK_MAX}`,
+    ...(rubric ? [rubricTemplate()] : []),
     'WEAK 1: <my weakest point, one line>',
     'WEAK 2: <my second weakest point, one line>',
     'WEAK 3: <my third weakest point, one line>',
@@ -228,6 +234,7 @@ export function buildPacket(input: PacketInput): string {
   else if (input.checked === undefined) mine.push('(Nothing typed. My handwritten work is attached as photos.)');
 
   const recent = recentAttempts(input.progress, topicId);
+  const writeUpWanted = problem.mode === 'supervision';
   const redoList = topic.cambridge.map((c) => `${problemKey(topicId, c.id)}: ${plain(c.title)}`);
 
   return [
@@ -248,8 +255,9 @@ export function buildPacket(input: PacketInput): string {
     '--- INSTRUCTIONS FOR THE SUPERVISOR ---',
     ...SUPERVISOR_RULES.map((r, i) => `${i + 1}. ${r}`),
     '',
+    ...(writeUpWanted ? ['--- MARKING RUBRIC ---', ...rubricLines(), ''] : []),
     '--- RESULT FORMAT ---',
-    resultTemplate(input.key, input.nonce),
+    resultTemplate(input.key, input.nonce, writeUpWanted),
     '',
     `${PACKET_END} ${input.nonce}`,
   ].join('\n');
@@ -261,6 +269,8 @@ export interface ParsedResult {
   problem: string;
   nonce: string;
   result: SupervisionResult;
+  /** The write-up rubric's marks, when the block has a RUBRIC line; they add up to the mark. Shown, not stored. */
+  rubric?: RubricMarks;
 }
 
 export type ParseResult = { ok: true; value: ParsedResult } | { ok: false; error: string };
@@ -272,6 +282,7 @@ export function formatResult(r: ParsedResult): string {
     `PROBLEM: ${r.problem}`,
     `NONCE: ${r.nonce}`,
     `MARK: ${r.result.mark}/${SUPERVISION_MARK_MAX}`,
+    ...(r.rubric === undefined ? [] : [`${RUBRIC_FIELD}: ${formatRubric(r.rubric)}`]),
     ...r.result.weakPoints.map((w, i) => `WEAK ${i + 1}: ${w}`),
     `REDO: ${r.result.redo.length === 0 ? 'none' : r.result.redo.join(', ')}`,
     `SUMMARY: ${r.result.summary}`,
@@ -279,10 +290,12 @@ export function formatResult(r: ParsedResult): string {
   ].join('\n');
 }
 
-const FIELDS = ['PROBLEM', 'NONCE', 'MARK', 'WEAK 1', 'WEAK 2', 'WEAK 3', 'REDO', 'SUMMARY'] as const;
+const FIELDS = ['PROBLEM', 'NONCE', 'MARK', 'RUBRIC', 'WEAK 1', 'WEAK 2', 'WEAK 3', 'REDO', 'SUMMARY'] as const;
 type Field = (typeof FIELDS)[number];
+/** RUBRIC is printed for a written answer only, and a block copied before the rubric has none. */
+const OPTIONAL: ReadonlySet<Field> = new Set(['RUBRIC']);
 /** Fields a terminal may wrap onto several lines; the others are short and must be on one. */
-const WRAPPABLE: ReadonlySet<Field> = new Set(['WEAK 1', 'WEAK 2', 'WEAK 3', 'REDO', 'SUMMARY']);
+const WRAPPABLE: ReadonlySet<Field> = new Set(['RUBRIC', 'WEAK 1', 'WEAK 2', 'WEAK 3', 'REDO', 'SUMMARY']);
 const FIELD_LINE = /^([A-Z][A-Z0-9 ]*?)\s*:\s?(.*)$/;
 const COPY_ALL = 'Copy the whole block, from its first line to its END line, and paste it again.';
 
@@ -327,7 +340,7 @@ export function parseResult(text: string): ParseResult {
     if (last === null || !WRAPPABLE.has(last)) return fail(`The line "${line.slice(0, 40)}" is not part of the result format. ${COPY_ALL}`);
     values.set(last, `${values.get(last) ?? ''} ${line}`.trim());
   }
-  const missing = FIELDS.filter((f) => !values.has(f));
+  const missing = FIELDS.filter((f) => !values.has(f) && !OPTIONAL.has(f));
   if (missing.length > 0) {
     return fail(`The result is missing ${missing.join(', ')}, so part of it was not pasted. ${COPY_ALL}`);
   }
@@ -348,6 +361,17 @@ export function parseResult(text: string): ParseResult {
   if (Number(mm[2]) !== SUPERVISION_MARK_MAX) return fail(`MARK must be out of ${SUPERVISION_MARK_MAX}, but it is out of ${mm[2]}.`);
   const mark = Number(mm[1]);
   if (mark > SUPERVISION_MARK_MAX) return fail(`MARK is ${mark}/${SUPERVISION_MARK_MAX}, which is more than the most possible. It must be from 0 to ${SUPERVISION_MARK_MAX}.`);
+
+  let rubric: RubricMarks | undefined;
+  const rubricText = values.get('RUBRIC');
+  if (rubricText !== undefined) {
+    const r = parseRubric(rubricText);
+    if (!r.ok) return fail(`${r.error} Ask Claude to print the block again.`);
+    if (rubricTotal(r.value) !== mark) {
+      return fail(`The RUBRIC marks add up to ${rubricTotal(r.value)}, but MARK is ${mark}. Ask Claude to check the marks and print the block again.`);
+    }
+    rubric = r.value;
+  }
 
   const weakPoints: string[] = [];
   for (let i = 1; i <= SUPERVISION_WEAK_POINTS; i++) {
@@ -373,7 +397,9 @@ export function parseResult(text: string): ParseResult {
   if (summary === '' || /^<.*>$/.test(summary)) return fail('SUMMARY is empty.');
   if (summary.length > MAX_SUMMARY) return fail(`SUMMARY is longer than ${MAX_SUMMARY} characters. Ask Claude to shorten it and print the block again.`);
 
-  return { ok: true, value: { problem, nonce, result: { mark, weakPoints, redo, summary } } };
+  const value: ParsedResult = { problem, nonce, result: { mark, weakPoints, redo, summary } };
+  if (rubric !== undefined) value.rubric = rubric;
+  return { ok: true, value };
 }
 
 /**

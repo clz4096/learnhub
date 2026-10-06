@@ -74,10 +74,11 @@ const primeCount = generator<PrimesP>({
       const k = int(rng, 3, 5);
       const ps = Array.from({ length: k }, () => pick(rng, SMALL));
       const n = ps.reduce((x, y) => x * y, 1);
-      if (n <= 3000 && new Set(ps).size < ps.length && new Set(ps).size >= 2) return { n };
+      // At least two repeats, so the count of different primes is not one less than the count with repetition (the two slips below would agree).
+      if (n <= 3000 && ps.length - new Set(ps).size >= 2 && new Set(ps).size >= 2) return { n };
     }
   },
-  sane: ({ n }) => (factorise(n).some(([, e]) => e > 1) && factorise(n).length >= 2 ? null : 'out of range'),
+  sane: ({ n }) => (bigOmega(n) - factorise(n).length >= 2 && factorise(n).length >= 2 ? null : 'out of range'),
   problem: ({ n }) => {
     const f = factorise(n);
     const [p] = f[0] as [number, number];

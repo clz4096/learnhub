@@ -12,7 +12,7 @@ import { auto, cite, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { farApart, poissonCdf, sig } from '../partv-d';
 import { generator, type Misconception } from '../problem';
-import { computedMath, math, t, type Rich } from '../rich';
+import { computedMath, computedTex, math, t, type Rich, type Span } from '../rich';
 import { worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mX, mth] = [math`X`, math`\theta`];
@@ -24,12 +24,14 @@ const ONE = q(1);
 // ---------------------------------------------------------------- moments from an mgf
 
 type Fam = 'normal' | 'poisson' | 'binomial' | 'exponential';
+/** A coefficient as written: 1 is left out, so 1θ reads θ. */
+const coef = (r: Rational): Rational | Span => (r.num === r.den ? computedTex('') : r);
 interface MomP { fam: Fam; a: Rational; b: Rational; n: number; ask: 'mean' | 'variance' | 'second' }
 function famMoments({ fam, a, b, n }: MomP): { mean: Rational; variance: Rational; m: Rich } {
   switch (fam) {
     // M(theta) = exp(a theta + b theta^2): N(a, 2b).
-    case 'normal': return { mean: a, variance: mul(q(2), b), m: t`${math`M(\theta) = e^{${a}\theta + ${b}\theta^{${2}}}`}` };
-    case 'poisson': return { mean: a, variance: a, m: t`${math`M(\theta) = e^{${a}(e^{\theta} - ${1})}`}` };
+    case 'normal': return { mean: a, variance: mul(q(2), b), m: t`${math`M(\theta) = e^{${coef(a)}\theta + ${coef(b)}\theta^{${2}}}`}` };
+    case 'poisson': return { mean: a, variance: a, m: t`${math`M(\theta) = ${a.num === a.den ? math`e^{e^{\theta} - ${1}}` : math`e^{${a}(e^{\theta} - ${1})}`}`}` };
     case 'binomial': return { mean: mul(q(n), a), variance: mul(q(n), mul(a, sub(ONE, a))), m: t`${math`M(\theta) = \left(${sub(ONE, a)} + ${a}e^{\theta}\right)^{${n}}`}` };
     case 'exponential': return { mean: q(a.den, a.num), variance: q(a.den * a.den, a.num * a.num), m: t`${math`M(\theta) = \frac{${a}}{${a} - \theta}`} for ${math`\theta < ${a}`}` };
   }
@@ -193,7 +195,8 @@ const tail = generator<ChP>({
   skill: 'Bound a Poisson tail by e^(-theta x) M(theta), with the best theta = log(x / lambda).',
   params: (rng) => {
     for (;;) {
-      const lambda = int(rng, 1, 4);
+      // From 2: a rate of 1 would print e^{1(e^θ - 1)} and ln(x/1).
+      const lambda = int(rng, 2, 4);
       const p: ChP = { lambda, x: lambda + int(rng, 2, 6) };
       if (chMis(p).filter((m) => farApart(m, chernoff(p), 0.02)).length >= 2) return p;
     }

@@ -257,15 +257,23 @@ export function sameAnswer(spec: AnswerSpec, a: Response, b: Response): boolean 
 /**
  * Grades a response. A wrong answer that matches a known misconception gets that
  * misconception's explanation; any other wrong answer gets the grader's own feedback.
+ * When two slips give the same answer for these numbers (the generator audit reports how
+ * often), the learner may have made either, so both explanations are given.
  */
 export function grade(problem: Problem, response: Response, misconceptions: readonly Misconception[] = []): Feedback {
   const g = gradeSpec(problem.answer, response);
   const wrong = (g as { wrong?: readonly number[] }).wrong;
   const r: Feedback = wrong === undefined || wrong.length === 0 ? g : { ...g, wrongCells: wrong };
   if (r.correct) return r;
-  const m = misconceptions.find((x) => sameAnswer(problem.answer, response, x.response));
-  return m === undefined ? r : { ...r, misconception: m.why };
+  const matches = misconceptions.filter((x) => sameAnswer(problem.answer, response, x.response));
+  const whys: Rich[] = [];
+  for (const m of matches) if (!whys.some((w) => plainKey(w) === plainKey(m.why))) whys.push(m.why);
+  const [first, ...rest] = whys;
+  if (first === undefined) return r;
+  return { ...r, misconception: rest.length === 0 ? first : [...first, ...rest.flatMap((w) => [...t` Or another slip gives the same answer: `, ...w])] };
 }
+
+const plainKey = (r: Rich): string => r.map((s) => s.text).join('');
 
 /** The expected answer as text: the value, or the labels of the correct options. */
 export function answerText(spec: AnswerSpec): Rich {

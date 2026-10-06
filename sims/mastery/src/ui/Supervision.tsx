@@ -16,6 +16,7 @@ import {
 import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
 import { buildPacket, catalogTitle, checkResultFor, newNonce, parseResult, type CheckedAnswer } from '@/model/supervision';
+import { rubricSummary } from '@/model/rubric';
 
 /** A problem's title as plain text, or its key when it is no longer in the app. */
 export function problemTitle(key: string): string {
@@ -151,7 +152,7 @@ export function PasteResult({ expected, id }: { expected?: string; id: string })
     setError(null);
     setText('');
     setOpen(false);
-    setDone(importSummary(p, r.problem, r.result.mark, r.result.redo));
+    setDone(`${importSummary(p, r.problem, r.result.mark, r.result.redo)}${r.rubric === undefined ? '' : ` ${rubricSummary(r.rubric)}`}`);
     void commit(importSupervisionResult(p, r, now()));
   };
   return (

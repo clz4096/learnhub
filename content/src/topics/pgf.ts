@@ -201,7 +201,9 @@ const family = generator<FamP>({
     const { fam, n, pr, lambda, ask } = p;
     const qq = sub(ONE, pr);
     const binTex = math`\left(${qq} + ${pr}t\right)^{${n}}`;
-    const poiTex = math`e^{${lambda}(t - ${1})}`;
+    // A rate of 1 is written e^{t - 1}, not e^{1(t - 1)}.
+    const lam = lambda === 1 ? computedTex('') : lambda;
+    const poiTex = lambda === 1 ? math`e^{t - ${1}}` : math`e^{${lambda}(t - ${1})}`;
     const g = fam === 'binomial' ? binTex : fam === 'poisson' ? poiTex : math`${poiTex}${binTex}`;
     const what = fam === 'binomial' ? t`the pgf of ${math`B(${n}, ${pr})`}, the sum of ${n} independent trials each with pgf ${math`${qq} + ${pr}t`}` : fam === 'poisson' ? t`the pgf of ${math`\text{Po}(${lambda})`}` : t`a product: ${mX} is the sum of independent ${math`\text{Po}(${lambda})`} and ${math`B(${n}, ${pr})`} variables`;
     return {
@@ -210,7 +212,7 @@ const family = generator<FamP>({
       solution: [
         t`This is ${what}. A pgf determines the distribution.`,
         ask === 'mean'
-          ? t`${math`E(X) = G'(${1})`}. ${fam === 'poisson' ? t`${math`G'(t) = ${lambda}e^{${lambda}(t - ${1})}`}, so ${math`E(X) = ${lambda}`}.` : fam === 'binomial' ? t`${math`G'(t) = ${n} \times ${pr}\left(${qq} + ${pr}t\right)^{${n - 1}}`}, so ${math`E(X) = ${n} \times ${pr} = ${famMean(p)}`}.` : t`Means of independent summands add: ${math`${lambda} + ${n} \times ${pr} = ${famMean(p)}`}.`}`
+          ? t`${math`E(X) = G'(${1})`}. ${fam === 'poisson' ? t`${math`G'(t) = ${lam}${poiTex}`}, so ${math`E(X) = ${lambda}`}.` : fam === 'binomial' ? t`${math`G'(t) = ${n} \times ${pr}\left(${qq} + ${pr}t\right)^{${n - 1}}`}, so ${math`E(X) = ${n} \times ${pr} = ${famMean(p)}`}.` : t`Means of independent summands add: ${math`${lambda} + ${n} \times ${pr} = ${famMean(p)}`}.`}`
           : t`${fam === 'poisson' ? t`${math`G''(${1}) = ${lambda * lambda}`} and ${math`G'(${1}) = ${lambda}`}, so the variance is ${math`${lambda * lambda} + ${lambda} - ${lambda * lambda} = ${lambda}`}.` : fam === 'binomial' ? t`${math`G''(${1}) = ${n} \times ${n - 1} \times \left(${pr}\right)^{${2}}`} and ${math`G'(${1}) = ${famMean(p)}`}, so the variance is ${math`G''(${1}) + G'(${1}) - G'(${1})^{${2}} = ${famVar(p)}`}, which is ${math`npq`}.` : t`Variances of independent summands add: ${math`${lambda} + ${n} \times ${pr} \times ${qq} = ${famVar(p)}`}.`}`,
       ],
     };

@@ -161,10 +161,11 @@ const trickCoins = generator<BagCoinsP>({
     for (;;) {
       const p = { normal: int(rng, 1, 4), hh: int(rng, 1, 4), tt: int(rng, 0, 3) };
       // With twice as many normal coins as double-headed ones the answer is a half, and the "fair toss" slip would be right.
-      if (p.normal !== 2 * p.hh) return p;
+      // With as many normal coins as double-headed ones, the "count coins" slip is a half too, the same answer as the fair toss slip.
+      if (p.normal !== 2 * p.hh && p.normal !== p.hh) return p;
     }
   },
-  sane: ({ normal, hh, tt }) => (normal >= 1 && normal <= 4 && hh >= 1 && hh <= 4 && tt >= 0 && tt <= 3 && normal !== 2 * hh ? null : 'out of range'),
+  sane: ({ normal, hh, tt }) => (normal >= 1 && normal <= 4 && hh >= 1 && hh <= 4 && tt >= 0 && tt <= 3 && normal !== 2 * hh && normal !== hh ? null : 'out of range'),
   problem: ({ normal, hh, tt }) => {
     const headSides = normal + 2 * hh;
     const p = q(2 * hh, headSides);

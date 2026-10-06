@@ -59,8 +59,9 @@ interface PirP { p: number; n: number }
 const pirates = generator<PirP>({
   id: 'pirates',
   skill: 'Solve the notes\' pirates puzzle for other numbers: n^(p - 1) leaves remainder 0 or 1 on division by a prime p.',
-  params: (rng) => ({ p: pick(rng, [3, 5, 7, 11]), n: int(rng, 2, 80) }),
-  sane: ({ p }) => (p >= 3 ? null : 'out of range'),
+  // p from 5: with 3 the blocks hold n^{1} coins, which reads as a typo.
+  params: (rng) => ({ p: pick(rng, [5, 7, 11]), n: int(rng, 2, 80) }),
+  sane: ({ p }) => (p >= 5 ? null : 'out of range'),
   problem: ({ p, n }) => {
     const r = powMod(n, p - 1, p);
     return {

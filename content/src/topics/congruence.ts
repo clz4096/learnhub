@@ -34,7 +34,10 @@ const whichCongruent = generator<WhichP>({
       const xs = [a + m * int(rng, 1, 5), a - m * int(rng, 2, 9), a + m * int(rng, -6, 6) + int(rng, 1, m - 1), -a + m * int(rng, 0, 4), a - m * int(rng, 5, 12) + int(rng, 1, m - 1)];
       const shuffled = sample(rng, [...new Set(xs)], new Set(xs).size);
       const right = ids(shuffled, (x) => isCong(x, a, m)).join();
-      if (shuffled.length >= 4 && ids(shuffled, (x) => truncSame(x, a, m)).join() !== right && ids(shuffled, (x) => absSame(x, a, m)).join() !== right) return { a, m, xs: shuffled };
+      const trunc = ids(shuffled, (x) => truncSame(x, a, m)).join();
+      const abs = ids(shuffled, (x) => absSame(x, a, m)).join();
+      // Each slip wrong, and the two slips different, so each is its own distractor.
+      if (shuffled.length >= 4 && trunc !== right && abs !== right && trunc !== abs) return { a, m, xs: shuffled };
     }
   },
   sane: ({ xs }) => (xs.length >= 4 ? null : 'out of range'),

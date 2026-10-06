@@ -12,7 +12,7 @@ import { auto, cite, supervision } from '../cambridge';
 import { int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { integrateToInfinity, near, powQ, rootTex, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
+import { math, t, type Span } from '../rich';
 import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mX, mY] = [math`X`, math`Y`];
@@ -34,7 +34,7 @@ const cdfOfPower = generator<PowP>({
   problem: ({ j, n, r }) => {
     const y0 = powQ(r, n);
     const v = powQ(r, j + 1);
-    const dens = j === 0 ? t`is uniform on ${math`[${0}, ${1}]`}` : t`has density ${math`${j + 1}x^{${j}}`} on ${math`[${0}, ${1}]`}`;
+    const dens = j === 0 ? t`is uniform on ${math`[${0}, ${1}]`}` : t`has density ${j === 1 ? math`${j + 1}x` : math`${j + 1}x^{${j}}`} on ${math`[${0}, ${1}]`}`;
     return {
       prompt: t`${mX} ${dens}, and ${math`Y = X^{${n}}`}. Find ${math`P(Y \le ${y0})`}.`,
       answer: { kind: 'exact', expected: str(v) },
@@ -159,12 +159,15 @@ const densityOfTransform = generator<TrP>({
     const hTex = p.kind === 'square' ? math`\sqrt{y}` : p.kind === 'root' ? math`y^{${2}}` : math`y / ${p.c}`;
     const dTex = p.kind === 'square' ? math`\frac{${1}}{${2}\sqrt{y}}` : p.kind === 'root' ? math`${2}y` : math`\frac{${1}}{${p.c}}`;
     const v = trDensity(p);
+    // A rate of 1 is written e^{-x}, not 1 e^{-1x}.
+    const one = lam.num === lam.den;
+    const expOf = (arg: Span): Span => (one ? math`e^{-${arg}}` : math`${lam}\,e^{-${lam}\,${arg}}`);
     return {
-      prompt: t`${mX} has the exponential density ${math`${lam}\,e^{-${lam}x}`} for ${math`x \ge ${0}`}, and ${yTex}. Find the density of ${mY} at ${math`y = ${p.y}`}, to four significant figures.`,
+      prompt: t`${mX} has the exponential density ${one ? math`e^{-x}` : math`${lam}\,e^{-${lam}x}`} for ${math`x \ge ${0}`}, and ${yTex}. Find the density of ${mY} at ${math`y = ${p.y}`}, to four significant figures.`,
       answer: { kind: 'numeric', expected: sig4(v), relTol: 0.001 },
       solution: [
-        t`For ${math`y > ${0}`}, ${math`F_{Y}(y) = P(X \le ${hTex}) = ${1} - e^{-${lam}\,${hTex}}`}, since the transformation is increasing.`,
-        t`Differentiate by the chain rule: ${math`f_{Y}(y) = ${lam}\,e^{-${lam}\,${hTex}} \times ${dTex}`}. At ${math`y = ${p.y}`} that is about ${sig4(v)}.`,
+        t`For ${math`y > ${0}`}, ${math`F_{Y}(y) = P(X \le ${hTex}) = ${1} - ${one ? math`e^{-${hTex}}` : math`e^{-${lam}\,${hTex}}`}`}, since the transformation is increasing.`,
+        t`Differentiate by the chain rule: ${math`f_{Y}(y) = ${expOf(hTex)} \times ${dTex}`}. At ${math`y = ${p.y}`} that is about ${sig4(v)}.`,
       ],
     };
   },
