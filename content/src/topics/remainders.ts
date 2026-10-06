@@ -3,7 +3,8 @@
  * remainder smaller than the divisor, including negative numbers, and work with the
  * remainder of a combination. Sources: the GCSE subject content (DfE 2013), and STEP
  * Support Foundation Assignment 3 Q4 (the shipwrecked bananas). Every quotient and
- * remainder is found by brute force: counting how many times the divisor fits.
+ * remainder is found by brute force: counting how many times the divisor fits. Batch 7 adds IA
+ * Numbers and Sets Example Sheet 2, Q12 (first part) and Q13: remainders of powers and digit sums.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q } from '../math';
@@ -171,6 +172,64 @@ const bananasShow = supervision({
   official: cite(F03H, 'Q4'),
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking ns2-q13 (20 marks):
+ * 1. Writes n with digits d_k ... d_1 d_0: n = d_0 + 10 d_1 + 100 d_2 + ... + 10^k d_k, and s for the
+ *    digit sum (3).
+ * 2. n - s = 9 d_1 + 99 d_2 + ... + (10^k - 1) d_k, and each 10^i - 1 = 99...9 is a multiple of 9 (7).
+ * 3. So n and s leave the same remainder on division by 9 (4); in particular n is a multiple of 9
+ *    exactly when s is, both directions stated (3).
+ * 4. Clear "if and only if": both directions, or one argument that is reversible (3).
+ */
+const ns2q13 = supervision({
+  id: 'ns2-q13',
+  source: cite('ia-ns-sheet-2', 'Q13, first part'),
+  title: t`Nines and digit sums`,
+  prompt: t`Show that a positive integer ${math`n`} is a multiple of ${9} if and only if the sum of its digits is a multiple of ${9}.`,
+  writeUp: 'proof',
+});
+
+const POW = 29;
+const powDigits = (BigInt(2) ** BigInt(POW)).toString();
+const MISSING = [...'0123456789'].filter((d) => !powDigits.includes(d));
+const ns2q13Digit = auto({
+  id: 'ns2-q13-missing',
+  source: cite('ia-ns-sheet-2', 'Q13, second part'),
+  title: t`The missing digit`,
+  prompt: t`The number ${math`${2}^{${POW}}`} has nine distinct digits. Which digit is missing? (Use remainders on division by ${9}, not a calculator.)`,
+  answer: { kind: 'exact', expected: MISSING[0] as string },
+  solution: [
+    t`A number and its digit sum leave the same remainder on division by ${9} (the problem Nines and digit sums). The digits ${0} to ${9} add to ${45}, a multiple of ${9}; leaving out the digit ${math`d`} gives the sum ${math`${45} - d`}.`,
+    t`${math`${2}^{${3}} = ${8}`} leaves remainder ${8}, one less than ${9}. So ${math`${2}^{${6}} = ${8} \times ${8}`} leaves remainder ${1}, and so does every power ${math`${2}^{${6}k}`}. Then ${math`${2}^{${POW}} = ${2}^{${24}} \times ${2}^{${5}}`} leaves the remainder of ${math`${2}^{${5}} = ${32}`}, which is ${32 % 9}.`,
+    t`So ${math`${45} - d`} leaves remainder ${32 % 9}: ${math`${45} - d = ${40}`}, since ${math`d`} is between ${0} and ${9}. The missing digit is ${Number(MISSING[0])}. (Indeed ${math`${2}^{${POW}} = ${2 ** POW}`}.)`,
+  ],
+  reference: MISSING[0] as string,
+  verify: () => {
+    const e = same('the digits of 2^29 are nine and distinct', `${powDigits.length} ${new Set(powDigits).size}`, '9 9');
+    if (e !== null) return e;
+    return same('the missing digit by remainders', (9 - ((2 ** POW) % 9)) % 9, MISSING[0]);
+  },
+  misconceptions: [{ response: String((2 ** POW) % 9), why: t`That is the remainder of ${math`${2}^{${POW}}`} itself. The digits present add to ${math`${45} - d`}, and that is what leaves this remainder; solve for the missing digit ${math`d`}.` }],
+});
+
+/*
+ * Outline for marking ns2-q12-i (20 marks):
+ * 1. Looks for a small divisor and tries 3 (2).
+ * 2. 4 leaves remainder 1 on division by 3, so 4^9 does, and 2^19 = 2 x 4^9 leaves remainder 2 (6).
+ * 3. 25 leaves remainder 1, so 5^40 = 25^20 leaves remainder 1 (6).
+ * 4. The sum leaves remainder 2 + 1 = 3, that is 0: 3 divides 2^19 + 5^40 (4).
+ * 5. The number is larger than 3, so 3 is a proper factor and it is not prime (2).
+ */
+const ns2q12i = supervision({
+  id: 'ns2-q12-i',
+  source: cite('ia-ns-sheet-2', 'Q12, first part'),
+  title: t`A sum of powers that is not prime`,
+  prompt: t`Show that ${math`${2}^{${19}} + ${5}^{${40}}`} is not prime.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const remainders: TopicContent = {
@@ -218,8 +277,10 @@ export const remainders: TopicContent = {
   generators: [divide, negative, combination],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quotient', 'remainder'],
-  cambridge: [bananasShow],
-  gate: ['a3-q4-i'],
+  cambridge: [bananasShow, ns2q13, ns2q13Digit, ns2q12i],
+  // The digit sum rule first (a remainder argument in general), then the bananas and the sum of
+  // powers; the missing digit is the rule applied, a value a calculator also gives.
+  gate: ['ns2-q13', 'a3-q4-i', 'ns2-q12-i'],
   recall: [
     { front: t`State division with remainder.`, back: t`For integers ${math`n`} and ${math`d \ge ${1}`} there are unique ${math`q, r`} with ${math`n = dq + r`} and ${math`${0} \le r < d`}.` },
     { front: t`The remainder of ${math`-${7}`} on division by ${3}?`, back: t`${2}, since ${math`-${7} = ${3} \times (-${3}) + ${2}`}.` },

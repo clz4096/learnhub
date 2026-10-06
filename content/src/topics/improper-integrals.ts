@@ -4,14 +4,15 @@
  * x^n e^(-x) to n!. The Cambridge problems are STEP 2 Statistics Q4 (2012 S2 Q13, the
  * distance to the nearest supermarket), whose official answers E(Y) = 1/(2 sqrt k) and
  * Var(Y) = (4 - pi)/(4 pi k) are compared in the content checks, and the NST Mathematics
- * Workbook, I2(i) and IN2. The STEP 2 specification: "Evaluate improper integrals where ...
+ * Workbook, I2(i) and IN2. The gate is STEP II 2016 Q8 (the sum of 1/r^2 from the area under
+ * 1/x^2), from the STEP Questions Database. The STEP 2 specification: "Evaluate improper integrals where ...
  * the range of integration extends to infinity."
  */
 import { auto, cite, supervision } from '../cambridge';
-import { int, pick, q, str, type Rational } from '../math';
+import { add, int, pick, q, str, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { apart, close, fn, simpson } from '../prep-c';
-import { math, t, type Rich } from '../rich';
+import { dmath, math, t, type Rich } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const S2 = 'step-s2-stats' as const;
@@ -211,6 +212,51 @@ const nstIN2 = supervision({
   writeUp: 'proof',
 });
 
+// STEP II 2016 Q8 (STEP Questions Database): the sum of 1/r^2 estimated by the area under 1/x^2.
+const DB16 = 'stepdb-16-s2' as const;
+
+/** The approximation (*) to E with the first `k` terms added exactly: sum_{r<=k} 1/r^2 + the integral of x^-2 from k + 1/2 to infinity. */
+const approxE = (k: number): Rational => {
+  let s = q(2, 2 * k + 1);
+  for (let r = 1; r <= k; r++) s = add(s, q(1, r * r));
+  return s;
+};
+
+const db16q8Approx = auto({
+  id: 'step16-q8-i',
+  source: cite(DB16, 'Q8(i)', true),
+  title: t`The sum of the reciprocal squares, estimated`,
+  prompt: t`For ${math`m > \frac{${1}}{${2}}`}, ${math`\int_{m - \frac{${1}}{${2}}}^{\infty} \frac{${1}}{x^{${2}}}\,dx = \frac{${1}}{m - \frac{${1}}{${2}}}`}, and a sketch of ${math`y = \frac{${1}}{x^{${2}}}`} shows ${math`\sum_{r = m}^{n} \frac{${1}}{r^{${2}}} \approx \int_{m - \frac{${1}}{${2}}}^{n + \frac{${1}}{${2}}} \frac{${1}}{x^{${2}}}\,dx \quad (*)`}. The series ${math`\sum_{r = ${1}}^{\infty} \frac{${1}}{r^{${2}}}`} converges to ${math`E`}. Add the terms with ${math`r = ${1}`} and ${math`r = ${2}`} exactly, and use ${math`(*)`} with ${math`n \to \infty`} for the rest. What approximation to ${math`E`} do you get? Give it as a fraction.`,
+  answer: { kind: 'exact', expected: str(approxE(2)) },
+  solution: [
+    t`The first two terms are ${math`${1} + \frac{${1}}{${4}} = \frac{${5}}{${4}}`}.`,
+    t`For the rest take ${math`m = ${3}`} in ${math`(*)`} and let ${math`n \to \infty`}: ${math`\sum_{r = ${3}}^{\infty} \frac{${1}}{r^{${2}}} \approx \int_{${q(5, 2)}}^{\infty} \frac{${1}}{x^{${2}}}\,dx = \frac{${1}}{${q(5, 2)}} = ${q(2, 5)}`}.`,
+    t`So ${math`E \approx \frac{${5}}{${4}} + ${q(2, 5)} = ${approxE(2)}`}. (With no terms added exactly the same method gives ${approxE(0)}, and with one, ${approxE(1)}; the true value is ${math`\frac{\pi^{${2}}}{${6}} \approx ${1.6449}`}.)`,
+  ],
+  reference: str(approxE(2)),
+  verify: () => {
+    // The question prints the three approximations 2, 5/3, 33/20; the third is this one.
+    const want = ['2', '5/3', '33/20'];
+    for (let k = 0; k <= 2; k++) if (str(approxE(k)) !== want[k]) return `approximation ${k}: ${str(approxE(k))}, printed ${want[k]}`;
+    // The tail estimate is close: the sum of 1/r^2 from 3 on (to 10^6, plus the rest, about 10^-6) is within 0.01 of 2/5.
+    let tail = 1e-6;
+    for (let r = 3; r <= 1e6; r++) tail += 1 / (r * r);
+    return Math.abs(tail - 0.4) < 0.01 ? null : `tail ${tail}`;
+  },
+  misconceptions: [
+    { response: '5/3', why: t`That adds only the first term exactly. Add ${math`r = ${1}`} and ${math`r = ${2}`}, then start the integral at ${math`${2} + \frac{${1}}{${2}}`}.` },
+    { response: '19/12', why: t`The integral for the tail starts at ${math`m - \frac{${1}}{${2}}`} with ${math`m = ${3}`}, that is at ${q(5, 2)}, not at ${3}.` },
+  ],
+});
+
+const db16q8 = supervision({
+  id: 'step16-q8',
+  source: cite(DB16, 'Q8'),
+  title: t`Reciprocal squares and fourth powers`,
+  prompt: t`Evaluate the integral ${dmath`\int_{m - \frac{${1}}{${2}}}^{\infty} \frac{${1}}{x^{${2}}}\,dx \qquad \left(m > \tfrac{${1}}{${2}}\right).`} Show by means of a sketch that ${dmath`\sum_{r = m}^{n} \frac{${1}}{r^{${2}}} \approx \int_{m - \frac{${1}}{${2}}}^{n + \frac{${1}}{${2}}} \frac{${1}}{x^{${2}}}\,dx, \qquad (*)`} where ${math`m`} and ${math`n`} are positive integers with ${math`m < n`}. (i) You are given that the infinite series ${math`\sum_{r = ${1}}^{\infty} \frac{${1}}{r^{${2}}}`} converges to a value denoted by ${math`E`}. Use ${math`(*)`} to obtain the following approximations for ${math`E`}: ${math`E \approx ${2}`}; ${math`E \approx \frac{${5}}{${3}}`}; ${math`E \approx \frac{${33}}{${20}}`}. (ii) Show that, when ${math`r`} is large, the error in approximating ${math`\frac{${1}}{r^{${2}}}`} by ${math`\int_{r - \frac{${1}}{${2}}}^{r + \frac{${1}}{${2}}} \frac{${1}}{x^{${2}}}\,dx`} is approximately ${math`\frac{${1}}{${4}r^{${4}}}`}. Given that ${math`E \approx ${1.645}`}, show that ${math`\sum_{r = ${1}}^{\infty} \frac{${1}}{r^{${4}}} \approx ${1.08}`}.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const RS = [10, 100, 1000];
@@ -254,10 +300,11 @@ export const improperIntegrals: TopicContent = {
   generators: [powerTail, expTail, converge],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['improper-integral'],
-  cambridge: [varY, nstLimit, nstIN2],
-  // No gate: IN2 (n! as an integral) is worked in the lesson, and STEP 2 Q4's variance needs
-  // densities and variance, later topics; the I2(i) limit is one step.
-  gate: [],
+  cambridge: [db16q8, db16q8Approx, varY, nstLimit, nstIN2],
+  // STEP II 2016 Q8 is the gate: an improper integral of x^-2 used to estimate a series, which
+  // needs only this topic. IN2 (n! as an integral) is worked in the lesson, STEP 2 Q4's variance
+  // needs densities and variance, later topics, and the I2(i) limit is one step.
+  gate: ['step16-q8', 'step16-q8-i'],
   recall: [
     { front: t`Define ${math`\int_{a}^{\infty} f(x)\,dx`}.`, back: t`${math`\lim_{R \to \infty}\int_{a}^{R} f(x)\,dx`}, when the limit exists.` },
     { front: t`When does ${math`\int_{${1}}^{\infty} x^{-p}\,dx`} converge?`, back: t`Exactly when ${math`p > ${1}`}; then it is ${math`\frac{${1}}{p - ${1}}`}.` },

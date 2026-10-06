@@ -3,14 +3,16 @@
  * (Fermat), and how to tell a maximum from a minimum by the sign of f' either side or by
  * f''. The Cambridge problems: STEP Support Foundation Assignment 7, Q1(i) (y = x + 1/x and
  * y = x - 1/x, with the Assignment 7 hints), Assignment 9, Q2(ii)(b), and the NST
- * Mathematics Workbook, D1, whose printed answers are compared in the content checks.
+ * Mathematics Workbook, D1, whose printed answers are compared in the content checks. The gate
+ * adds STEP I 2015 Q7 and STEP I 1996 Q1 (STEP Questions Database) and STEP Support STEP 2
+ * Equations and Inequalities Q4(i) (2010 STEP II Q7(i)).
  */
 import { auto, cite, same, supervision } from '../cambridge';
-import { int, pick, q, str, type Rational } from '../math';
+import { div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { poly } from '../poly';
-import { firstError, numDeriv, polyAt, polyDeriv, powerOfLinear } from '../prep-c';
-import { computedMath as cm, math, t, type Rich } from '../rich';
+import { close, firstError, numDeriv, polyAt, polyDeriv, powerOfLinear } from '../prep-c';
+import { computedMath as cm, dmath, math, t, type Rich } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const F07 = 'step-f07' as const;
@@ -295,6 +297,121 @@ const sketchQ = supervision({
   official: cite(F07H, 'Assignment 7 hints, Q1(i)'),
 });
 
+// STEP I 2015 Q7 and STEP I 1996 Q1 (STEP Questions Database), and STEP Support STEP 2
+// Equations and Inequalities Q4(i) (2010 STEP II Q7(i)).
+const DB15 = 'stepdb-15-s1' as const;
+const DB96 = 'stepdb-96-s1' as const;
+const EQNS = 'step-s2-eqns' as const;
+const EQNSS = 'step-s2-eqns-solutions' as const;
+
+const db15q7 = supervision({
+  id: 'step15-q7',
+  source: cite(DB15, 'Q7'),
+  title: t`The greatest value on an interval, as the cubic changes`,
+  prompt: t`Let ${dmath`f(x) = ${3}ax^{${2}} - ${6}x^{${3}}`} and, for each real number ${math`a`}, let ${math`M(a)`} be the greatest value of ${math`f(x)`} in the interval ${math`-\frac{${1}}{${3}} \le x \le ${1}`}. Determine ${math`M(a)`} for ${math`a \ge ${0}`}. (The formula for ${math`M(a)`} is different in different ranges of ${math`a`}; you will need to identify three ranges.)`,
+  writeUp: 'explanation',
+});
+
+/** M(a): the greatest of f at -1/3, at 1, and at the stationary point a/3 when it lies in the interval, exactly. */
+const M15 = (a: Rational): Rational => {
+  const f = (x: Rational): Rational => sub(mul(q(3), mul(a, mul(x, x))), mul(q(6), mul(x, mul(x, x))));
+  const xs = [q(-1, 3), q(1)];
+  const s = div(a, q(3));
+  if (toFloat(s) >= -1 / 3 && toFloat(s) <= 1) xs.push(s);
+  return xs.map(f).reduce((m, v) => (toFloat(v) > toFloat(m) ? v : m));
+};
+const A15: readonly Rational[] = [q(1), q(5, 2), q(4)];
+
+const db15q7values = auto({
+  id: 'step15-q7-values',
+  source: cite(DB15, 'Q7', true),
+  title: t`Three values of ${math`M(a)`}`,
+  prompt: t`Let ${math`f(x) = ${3}ax^{${2}} - ${6}x^{${3}}`} and let ${math`M(a)`} be the greatest value of ${math`f(x)`} for ${math`-\frac{${1}}{${3}} \le x \le ${1}`}. Find ${math`M(a)`} for each value of ${math`a`}.`,
+  answer: {
+    kind: 'table',
+    cell: 'exact',
+    columns: [t`${math`a`}`, t`${math`M(a)`}`],
+    rows: A15.map((a) => [t`${a}`, null]),
+    expected: A15.map((a) => str(M15(a))),
+  },
+  solution: [
+    t`${math`f'(x) = ${6}ax - ${18}x^{${2}} = ${6}x(a - ${3}x)`}, so the stationary points are ${math`x = ${0}`} (a minimum for ${math`a > ${0}`}) and ${math`x = \frac{a}{${3}}`}, a maximum, with ${math`f\left(\frac{a}{${3}}\right) = \frac{a^{${3}}}{${9}}`}. It lies in the interval when ${math`a \le ${3}`}.`,
+    t`The ends: ${math`f\left(-\frac{${1}}{${3}}\right) = \frac{a}{${3}} + \frac{${2}}{${9}}`} and ${math`f(${1}) = ${3}a - ${6}`}.`,
+    t`${math`\frac{a^{${3}}}{${9}} \ge \frac{a}{${3}} + \frac{${2}}{${9}}`} exactly when ${math`a^{${3}} - ${3}a - ${2} \ge ${0}`}, that is ${math`(a - ${2})(a + ${1})^{${2}} \ge ${0}`}, that is ${math`a \ge ${2}`}. For ${math`a \ge ${3}`}, ${math`f`} increases on ${math`[${0}, ${1}]`} and ${math`${3}a - ${6} \ge \frac{a}{${3}} + \frac{${2}}{${9}}`}.`,
+    t`So ${math`M(a) = \frac{a}{${3}} + \frac{${2}}{${9}}`} for ${math`${0} \le a \le ${2}`}, ${math`\frac{a^{${3}}}{${9}}`} for ${math`${2} \le a \le ${3}`}, and ${math`${3}a - ${6}`} for ${math`a \ge ${3}`}: ${math`M(${1}) = ${M15(q(1))}`}, ${math`M\left(${q(5, 2)}\right) = ${M15(q(5, 2))}`}, ${math`M(${4}) = ${M15(q(4))}`}.`,
+  ],
+  reference: A15.map((a) => str(M15(a))),
+  verify: () => {
+    // A grid search for the maximum agrees with the three-range formula at many a.
+    const formula = (a: number): number => (a <= 2 ? a / 3 + 2 / 9 : a <= 3 ? a ** 3 / 9 : 3 * a - 6);
+    for (let i = 0; i <= 60; i++) {
+      const a = i / 10;
+      let best = -Infinity;
+      for (let j = 0; j <= 40000; j++) {
+        const x = -1 / 3 + (j / 40000) * (4 / 3);
+        best = Math.max(best, 3 * a * x * x - 6 * x ** 3);
+      }
+      const e = close(`M(${a})`, best, formula(a), 1e-6) ?? close(`exact M(${a})`, toFloat(M15(q(i, 10))), formula(a), 1e-12);
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: ['1/9', '125/72', '64/9'], why: t`The stationary value ${math`\frac{a^{${3}}}{${9}}`} is only a candidate when ${math`\frac{a}{${3}}`} is in the interval, and it must beat the ends: at ${math`a = ${1}`} the end ${math`x = -\frac{${1}}{${3}}`} gives more, and at ${math`a = ${4}`} the point ${math`\frac{${4}}{${3}}`} is outside.` },
+  ],
+});
+
+const db96q1 = supervision({
+  id: 'step96-q1',
+  source: cite(DB96, 'Q1'),
+  title: t`The best biscuit tin`,
+  prompt: t`A cylindrical biscuit tin has volume ${math`V`} and surface area ${math`S`} (including the ends). Show that the minimum possible surface area for a given value of ${math`V`} is ${math`S = ${3}(${2}\pi V^{${2}})^{\frac{${1}}{${3}}}`}. For this value of ${math`S`} show that the volume of the largest sphere which can fit inside the tin is ${math`\frac{${2}}{${3}}V`}, and find the volume of the smallest sphere into which the tin fits.`,
+  writeUp: 'proof',
+});
+
+const db96q1sphere = auto({
+  id: 'step96-q1-sphere',
+  source: cite(DB96, 'Q1'),
+  title: t`The smallest sphere round the best tin`,
+  prompt: t`A closed cylindrical tin of volume ${math`V`} has the least possible surface area for that volume. Find the volume of the smallest sphere into which the tin fits, as a multiple of ${math`V`}.`,
+  answer: { kind: 'expression', expected: '4 sqrt(2)/3 * V', variables: ['V'], domains: { V: { kind: 'real', min: 1, max: 10 } } },
+  solution: [
+    t`With radius ${math`r`} and height ${math`h`}: ${math`V = \pi r^{${2}}h`}, so ${math`S = ${2}\pi r^{${2}} + ${2}\pi rh = ${2}\pi r^{${2}} + \frac{${2}V}{r}`}.`,
+    t`${math`\frac{dS}{dr} = ${4}\pi r - \frac{${2}V}{r^{${2}}} = ${0}`} when ${math`r^{${3}} = \frac{V}{${2}\pi}`}; ${math`\frac{d^{${2}}S}{dr^{${2}}} = ${4}\pi + \frac{${4}V}{r^{${3}}} > ${0}`}, so this is the minimum. Then ${math`h = \frac{V}{\pi r^{${2}}} = \frac{${2}\pi r^{${3}}}{\pi r^{${2}}} = ${2}r`}: the best tin is as tall as it is wide.`,
+    t`The smallest sphere round it passes through the rims, so its radius is the distance from the centre of the tin to a rim: ${math`\sqrt{r^{${2}} + r^{${2}}} = \sqrt{${2}}\,r`}.`,
+    t`Its volume is ${math`\frac{${4}}{${3}}\pi(\sqrt{${2}}r)^{${3}} = \frac{${4}}{${3}}\pi \cdot ${2}\sqrt{${2}}\,r^{${3}} = \frac{${8}\sqrt{${2}}}{${3}}\pi \cdot \frac{V}{${2}\pi} = \frac{${4}\sqrt{${2}}}{${3}}V`}.`,
+  ],
+  reference: '4 sqrt(2)/3 * V',
+  verify: () => {
+    // Search the radius that minimises S for V = 1, then the circumscribed sphere, by numbers.
+    let best = Infinity;
+    let r0 = 0;
+    for (let i = 1; i <= 200000; i++) {
+      const r = i / 100000;
+      const S = 2 * Math.PI * r * r + 2 / r;
+      if (S < best) { best = S; r0 = r; }
+    }
+    const h = 1 / (Math.PI * r0 * r0);
+    const R = Math.sqrt(r0 * r0 + (h / 2) ** 2);
+    return close('S', best, 3 * Math.cbrt(2 * Math.PI), 1e-6)
+      ?? close('inscribed sphere', (4 / 3) * Math.PI * Math.min(r0, h / 2) ** 3, 2 / 3, 1e-3)
+      ?? close('circumscribed sphere', (4 / 3) * Math.PI * R ** 3, (4 * Math.SQRT2) / 3, 1e-3);
+  },
+  misconceptions: [
+    { response: '2/3 * V', why: t`That is the largest sphere inside the tin. The smallest sphere outside it must reach the rims, at distance ${math`\sqrt{${2}}\,r`} from the centre.` },
+    { response: '10 sqrt(5)/3 * V', why: t`The centre of the sphere is the centre of the tin, halfway up: the rim is ${math`r`} along and ${math`\frac{h}{${2}} = r`} up, so the radius is ${math`\sqrt{${2}}\,r`}, not ${math`\sqrt{r^{${2}} + h^{${2}}}`}.` },
+  ],
+});
+
+const eqns4 = supervision({
+  id: 's2eqns-q4-i',
+  source: cite(EQNS, 'Q4(i) (2010 STEP II Q7(i))'),
+  title: t`A cubic that crosses once`,
+  prompt: t`By considering the positions of its turning points, show that the curve with equation ${dmath`y = x^{${3}} - ${3}qx - q(${1} + q),`} where ${math`q > ${0}`} and ${math`q \ne ${1}`}, crosses the ${math`x`}-axis once only.`,
+  writeUp: 'proof',
+  official: cite(EQNSS, 'Q4(i)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EX: CubicP = { s: 1, p: -2, q: 2, d: 1 };
@@ -350,8 +467,11 @@ export const stationaryPoints: TopicContent = {
   generators: [maxPoint, minValue, classify],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['stationary-point', 'local-maximum'],
-  cambridge: [minusTurns, whichMax, nstD1, nstD1iii, sketchQ],
-  gate: ['a7-q1-i'],
+  cambridge: [db15q7, db96q1, eqns4, db15q7values, db96q1sphere, minusTurns, whichMax, nstD1, nstD1iii, sketchQ],
+  // Best first: STEP I 2015 Q7 (a maximum on an interval in three regimes), STEP I 1996 Q1 (the
+  // biscuit tin), 2010 STEP II Q7(i) (with official solutions), Assignment 7 Q1(i), then the
+  // auto-checked parts of 2015 Q7 and 1996 Q1.
+  gate: ['step15-q7', 'step96-q1', 's2eqns-q4-i', 'a7-q1-i', 'step15-q7-values', 'step96-q1-sphere'],
   recall: [
     { front: t`What is a stationary point?`, back: t`A point where ${math`f'(a) = ${0}`}: the tangent is horizontal.` },
     { front: t`State the second derivative test.`, back: t`If ${math`f'(a) = ${0}`}: ${math`f''(a) < ${0}`} gives a local maximum, ${math`f''(a) > ${0}`} a local minimum, and ${math`f''(a) = ${0}`} no conclusion.` },

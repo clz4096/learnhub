@@ -254,6 +254,17 @@ const focs34 = supervision({
   writeUp: 'explanation',
 });
 
+// Computer Science Tripos Part IA 2025, Paper 1, Question 1(b): a polymorphic test of order. The
+// paper also asks for its time and space complexity, a later topic; here the question asks
+// instead why the type is polymorphic, so it is marked adapted.
+const cst25b = supervision({
+  id: 'cst-2025-p1-q1-b',
+  source: cite('cst-y2025p1q1', '(b)', true),
+  title: t`Is this list sorted?`,
+  prompt: t`Write a function ${code`val check_sorted : 'a list -> bool`} that returns ${code`true`} if the input list is already sorted. (Hint: you can use the polymorphic ${code`<=`} operator here.) Explain why OCaml infers the type ${code`'a list -> bool`} for your function rather than ${code`int list -> bool`}.`,
+  writeUp: 'explanation',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const fpPolymorphism: TopicContent = {
@@ -317,8 +328,9 @@ export const fpPolymorphism: TopicContent = {
   generators: [inferType, instance, literal],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['type-variable', 'polymorphic-type', 'most-general-type'],
-  cambridge: [polyF, polyG, polyI, focs34],
-  gate: ['focs-3-4'],
+  cambridge: [polyF, polyG, polyI, focs34, cst25b],
+  // FoCS Exercise 3.4 first; then the 2025 Tripos check_sorted, a shorter exercise.
+  gate: ['focs-3-4', 'cst-2025-p1-q1-b'],
   recall: [
     { front: t`What is an instance of a polymorphic type?`, back: t`The type with each type variable replaced by a type, the same type at every occurrence of the same variable.` },
     { front: t`What is a most general type of ${math`e`}?`, back: t`A type of ${math`e`} of which every type of ${math`e`} is an instance; OCaml's inference finds it.` },

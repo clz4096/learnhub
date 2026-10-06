@@ -4,7 +4,8 @@
  * so y = s(x) is an asymptote when s is linear), and its turning points. The Cambridge
  * problems are STEP Support Foundation Assignment 18, Q1 (1/(x - 1), x/(x - 1), x^2/(x - 1),
  * and 1/(x - 1) + 1/(x + 1)), whose hints give x^2/(x - 1) = x + 1 + 1/(x - 1) and the turning
- * points (0, 0) and (2, 4), and Assignment 7, Q1(i).
+ * points (0, 0) and (2, 4), and Assignment 7, Q1(i). The gate adds STEP II 2012 Q5(i) (STEP
+ * Questions Database), the sketch of 1/((x - a)^2 - 1).
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
@@ -241,6 +242,16 @@ const sketchAll = supervision({
   official: cite(F18H, 'Assignment 18 hints, Q1'),
 });
 
+// STEP II 2012 Q5(i) (STEP Questions Database): a sketch with a parameter. Part (ii) needs the
+// quotient rule, not a prerequisite.
+const db12q5 = supervision({
+  id: 'step12-q5-i',
+  source: cite('stepdb-12-s2', 'Q5(i)'),
+  title: t`A reciprocal quadratic, moved by ${math`a`}`,
+  prompt: t`Sketch the curve ${math`y = f(x)`}, where ${dmath`f(x) = \frac{${1}}{(x - a)^{${2}} - ${1}} \qquad (x \ne a \pm ${1}),`} and ${math`a`} is a constant.`,
+  writeUp: 'sketch',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const rationalFunctions: TopicContent = {
@@ -293,8 +304,9 @@ export const rationalFunctions: TopicContent = {
   generators: [vertical, horizontal, oblique],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['rational-function', 'asymptote'],
-  cambridge: [turnsQ, horizQ, sumQ, crossQ, sketchAll],
-  gate: ['a18-q1'],
+  cambridge: [turnsQ, horizQ, sumQ, crossQ, sketchAll, db12q5],
+  // Assignment 18 Q1 (2014 STEP I Q3) first; then STEP II 2012 Q5(i), a sketch with a parameter.
+  gate: ['a18-q1', 'step12-q5-i'],
   recall: [
     { front: t`What is an asymptote ${math`y = mx + k`}?`, back: t`A line with ${math`f(x) - (mx + k) \to ${0}`} as ${math`x \to \infty`} or ${math`x \to -\infty`}.` },
     { front: t`How do you find the asymptote of ${math`\frac{p}{q}`} far out?`, back: t`Divide: ${math`\frac{p}{q} = s + \frac{r}{q}`} with ${math`\deg r < \deg q`}; then ${math`y = s(x)`}.` },

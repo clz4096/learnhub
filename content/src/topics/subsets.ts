@@ -3,7 +3,10 @@
  * 1.4 (subsets, power sets, |P(A)| = 2^|A|); the problems are the Section 1.3 and 1.4
  * exercises, checked against the book's solutions to the odd ones, and CST Discrete
  * Mathematics supervision exercises 5.1.1 (inclusion is a partial order) and 5.2.2 (prove or
- * disprove five statements about power sets), checked by brute force over small sets.
+ * disprove five statements about power sets), checked by brute force over small sets. Batch 7 adds
+ * exercises 5.2.3 (four ways to say A is inside B) and 5.1.2(b), with the 2023-24 official
+ * solutions to sheet 5. Exercise 5.1.2(a), the empty set is a subset of every set, is the lesson's
+ * theorem, so it is not set.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, sample } from '../math';
@@ -414,6 +417,41 @@ const cstPartialOrder = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking sw-5-2-3 (20 marks): a cycle of implications, each by elements.
+ * (a) => (b): A is inside A u B = B (4).
+ * (b) => (c): A n B is inside A always; and A inside B gives A inside A n B; equal by two inclusions (4).
+ * (c) => (d): if x is not in B, then x is not in A n B = A (4).
+ * (d) => (b): x in A and x not in B would put x in the complement of B, so outside A: contradiction (4).
+ * (b) => (a): B is inside A u B always; A and B inside B give A u B inside B (4).
+ * (Any cycle, or pairs of implications, that links all four earns full credit.)
+ */
+const sw523 = supervision({
+  id: 'sw-5-2-3',
+  source: cite('cst-dm-sw1', 'Exercises 5, 5.2.3'),
+  title: t`Four ways to say A is inside B`,
+  prompt: t`Let ${math`U`} be a set. For all subsets ${math`A, B`} of ${math`U`}, with complements taken in ${math`U`}, prove that the following statements are equivalent: (a) ${math`A \cup B = B`}; (b) ${math`A \subseteq B`}; (c) ${math`A \cap B = A`}; (d) ${math`B^{c} \subseteq A^{c}`}.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-5', '5.2.3'),
+});
+
+/*
+ * Outline for marking sw-5-1-2-b (20 marks):
+ * 1. (=>) Assume no x is in A. Then A is inside the empty set vacuously (no element to check), and the
+ *    empty set is inside A (the lesson's theorem); equal by two inclusions (12).
+ * 2. (<=) If A is the empty set, it has no elements, so no x is in A (6). Both directions named (2).
+ */
+const sw512b = supervision({
+  id: 'sw-5-1-2-b',
+  source: cite('cst-dm-sw1', 'Exercises 5, 5.1.2(b)'),
+  title: t`Having no elements is being empty`,
+  prompt: t`Prove that for every set ${mA}, ${math`(\forall x.\ x \notin A) \iff A = \varnothing`}.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-5', '5.1.2(b)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EX3 = mk([1, 2, 3]);
@@ -482,8 +520,10 @@ export const subsetsTopic: TopicContent = {
   generators: [countGen, statGen, cardGen, withGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['subset', 'power-set'],
-  cambridge: [cstPowers, cstPowersProof, cstPartialOrder, b1314, b1413, b1415, b1416, b1418, b1419, b1420],
-  gate: ['sw-5-2-2-proof'],
+  cambridge: [cstPowers, cstPowersProof, cstPartialOrder, b1314, b1413, b1415, b1416, b1418, b1419, b1420, sw523, sw512b],
+  // The CST proofs: power sets, then the four equivalent forms of inclusion. The empty set exercise is
+  // two short vacuous arguments, practice rather than a gate.
+  gate: ['sw-5-2-2-proof', 'sw-5-2-3'],
   recall: [
     { front: t`Define ${math`A \subseteq B`}.`, back: t`Every element of ${mA} is an element of ${mB}: ${math`\forall x\,(x \in A \implies x \in B)`}.` },
     { front: t`Define the power set ${math`\mathcal{P}(A)`}, and give its size when ${math`|A| = n`}.`, back: t`${math`\mathcal{P}(A) = \{X : X \subseteq A\}`}; it has ${math`${2}^{n}`} elements.` },

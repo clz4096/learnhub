@@ -3,7 +3,10 @@
  * countable additivity; on a countable Ω a probability is the same as point masses p_ω >= 0
  * adding to 1. From IA Probability Example Sheet 1 Q4 (state what it means for P to be a
  * probability measure; prove P(∅) = 0 and finite additivity from the definitions) and the
- * Faculty schedule's "Axioms (countable case)". The sheet has no official solutions.
+ * Faculty schedule's "Axioms (countable case)". The sheet has no official solutions. Batch 7 adds
+ * Grinstead and Snell, Section 5.1, Exercise 12 (the Poisson probabilities sum to 1), as practice:
+ * it leans on the exponential series. Their Exercise 3 (no uniform distribution on a countable set)
+ * is this lesson's pitfall, so it is not set.
  */
 import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
@@ -236,6 +239,24 @@ const countableCase = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: batch 7
+
+/*
+ * Outline for marking gs-5-1-12 (20 marks):
+ * 1. Each value e^(-lambda) lambda^k / k! is at least 0 (4).
+ * 2. Sum over k = 0, 1, 2, ...: take out e^(-lambda), leaving the exponential series of lambda,
+ *    which converges for every real lambda to e^lambda (10).
+ * 3. e^(-lambda) e^lambda = 1, so the values are point masses of a probability measure on
+ *    {0, 1, 2, ...} (6).
+ */
+const gs5112 = supervision({
+  id: 'gs-5-1-12',
+  source: cite('gs-ch5', 'Section 5.1, Exercise 12 (page 199)', true),
+  title: t`The Poisson probabilities add to one`,
+  prompt: t`For ${math`\lambda > ${0}`}, the Poisson distribution with parameter ${math`\lambda`} gives the value ${math`k \in \{${0}, ${1}, ${2}, \ldots\}`} the probability ${math`p_k = e^{-\lambda} \frac{\lambda^{k}}{k!}`}. Show that these values sum to ${1}, so that they define a probability measure on ${math`\{${0}, ${1}, ${2}, \ldots\}`}.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
@@ -302,7 +323,7 @@ export const axioms: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['probability-measure', 'countable-additivity'],
   claims,
-  cambridge: [disjointHalves, q4c, countableCase],
+  cambridge: [disjointHalves, q4c, countableCase, gs5112],
   gate: ['ia-q4-c'],
   recall: [
     { front: t`The three axioms of a probability measure.`, back: t`${math`\mathbb{P}(A) \ge ${0}`}; ${math`\mathbb{P}(\Omega) = ${1}`}; for pairwise disjoint ${math`A_{${1}}, A_{${2}}, \ldots`}, ${math`\mathbb{P}\left(\bigcup A_{n}\right) = \sum \mathbb{P}(A_{n})`}.` },

@@ -3,7 +3,8 @@
  * F_(n+k) = F_k F_(n+1) + F_(k-1) F_n), and the closed form F_n = (phi^n - psi^n)/sqrt 5 from
  * the roots of x^2 = x + 1. From STEP Support Assignment 14, Q3 (2010 STEP II Q3) and
  * Assignment 20, Q3 (1996 STEP II Q3), checked against their hints and by computing the
- * sequence.
+ * sequence. The gate adds STEP Support STEP 2 Miscellaneous Q5 (2009 STEP II Q6) and STEP II
+ * 2013 Q6(i), (ii) (STEP Questions Database).
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick } from '../math';
@@ -227,6 +228,28 @@ const a14ii = auto({
   official: { source: cite('step-f14-hints', 'Assignment 14, Q3(ii)'), answer: '8', agrees: true },
 });
 
+// STEP 2 Miscellaneous Q5 (2009 S2 Q6) and STEP II 2013 Q6(i), (ii) (STEP Questions Database).
+const MISC = 'step-s2-misc' as const;
+const MISCS = 'step-s2-misc-solutions' as const;
+const DB13 = 'stepdb-13-s2' as const;
+
+const misc5 = supervision({
+  id: 's2misc-q5',
+  source: cite(MISC, 'Q5 (2009 STEP II Q6)'),
+  title: t`The sum of the reciprocal Fibonacci numbers`,
+  prompt: t`The Fibonacci sequence ${math`F_{${1}}, F_{${2}}, F_{${3}}, \ldots`} is defined by ${math`F_{${1}} = ${1}`}, ${math`F_{${2}} = ${1}`} and ${math`F_{n + ${1}} = F_{n} + F_{n - ${1}}`} ${math`(n \ge ${2})`}. Write down the values of ${math`F_{${3}}, F_{${4}}, \ldots, F_{${10}}`}. Let ${math`S = \sum_{i = ${1}}^{\infty} \frac{${1}}{F_{i}}`}. (i) Show that ${math`\frac{${1}}{F_{i}} > \frac{${1}}{${2}F_{i - ${1}}}`} for ${math`i \ge ${4}`} and deduce that ${math`S > ${3}`}. Show also that ${math`S < ${3}\tfrac{${2}}{${3}}`}. (ii) Show further that ${math`${3.2} < S < ${3.5}`}.`,
+  writeUp: 'proof',
+  official: cite(MISCS, 'Q5'),
+});
+
+const db13q6 = supervision({
+  id: 'step13-q6',
+  source: cite(DB13, 'Q6(i), (ii)'),
+  title: t`The ratios of neighbours stay between one and two`,
+  prompt: t`The sequence ${math`u_{${1}}, u_{${2}}, \ldots`} is defined by ${math`u_{${1}} = ${1}`} and ${dmath`u_{n + ${1}} = ${1} + \frac{${1}}{u_{n}} \qquad (n \ge ${1}). \qquad (*)`} (i) Show that, for ${math`n \ge ${3}`}, ${dmath`u_{n + ${2}} - u_{n} = \frac{u_{n} - u_{n - ${2}}}{(${1} + u_{n})(${1} + u_{n - ${2}})}.`} (ii) Prove, by induction or otherwise, that ${math`${1} \le u_{n} \le ${2}`} for all ${math`n`}.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const FIRST = fibs(12);
@@ -293,8 +316,10 @@ export const fibonacci: TopicContent = {
   generators: [termGen, cassGen, sumGen, linGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fibonacci-numbers', 'golden-ratio'],
-  cambridge: [a14i, a20sup, a14ii, a20f7],
-  gate: ['a20-q3-addition'],
+  cambridge: [misc5, db13q6, a14i, a20sup, a14ii, a20f7],
+  // Best first: 2009 STEP II Q6 (the reciprocal sum, with official solutions), 2013 STEP II
+  // Q6(i), (ii) (part (iii) needs limits of sequences, not a prerequisite), then Assignment 20 Q3.
+  gate: ['s2misc-q5', 'step13-q6', 'a20-q3-addition'],
   recall: [
     { front: t`State Cassini's identity.`, back: t`${math`F_{n + ${1}}F_{n - ${1}} - F_{n}^{${2}} = (-${1})^{n}`} for ${math`n \ge ${1}`}.` },
     { front: t`State Binet's formula, and where ${math`\varphi`}, ${math`\psi`} come from.`, back: t`${math`F_{n} = \frac{\varphi^{n} - \psi^{n}}{\sqrt{${5}}}`}, with ${math`\varphi, \psi = \frac{${1} \pm \sqrt{${5}}}{${2}}`} the roots of ${math`x^{${2}} = x + ${1}`}.` },

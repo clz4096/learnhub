@@ -4,7 +4,8 @@
  * is weaker. From IA Probability Example Sheet 1 Q11 (Mary's n + 1 coins against John's n:
  * the proof splits off Mary's last coin, which is independent of everything else) and the
  * Faculty schedule's "Independence". The sheet has no official solutions; every answer is
- * checked by listing the outcomes.
+ * checked by listing the outcomes. Batch 7 adds Grinstead and Snell, Section 4.1, Exercises 8, 33
+ * (with its printed odd answer), and 50.
  */
 import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
@@ -242,6 +243,81 @@ const bernstein = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking gs-4-1-50 (20 marks):
+ * 1. For each of the 2^n choices of B_j in {A_j, complement of A_j}, the event B_1 n ... n B_n has
+ *    probability P(B_1) ... P(B_n), since complements of independent events are independent (the
+ *    lesson's theorem, applied once per complement) (6).
+ * 2. Each factor is positive, as 0 < P(A_j) < 1; so each of the 2^n events is non-empty (5).
+ * 3. Two different choices differ at some j: one lies in A_j and the other outside it, so the
+ *    events are disjoint (5).
+ * 4. Choosing one point from each gives 2^n different points of the sample space (4).
+ */
+const gs4150 = supervision({
+  id: 'gs-4-1-50',
+  source: cite('gs-ch4', 'Section 4.1, Exercise 50 (page 159)'),
+  title: t`Independent events need room`,
+  prompt: t`Prove that, if ${math`A_{${1}}, A_{${2}}, \ldots, A_{n}`} are independent events defined on a sample space ${math`\Omega`} and if ${math`${0} < \mathbb{P}(A_j) < ${1}`} for all ${math`j`}, then ${math`\Omega`} must have at least ${math`${2}^{n}`} points.`,
+  writeUp: 'proof',
+});
+
+/*
+ * Outline for marking gs-4-1-33 (20 marks):
+ * 1. If A_1, A_2, A_3 are independent, so is any family with some events replaced by complements
+ *    (the lesson's theorem, used up to three times); so all eight products hold (6).
+ * 2. Conversely, the choice (A_1, A_2, A_3) gives the triple product (2).
+ * 3. Pairs: P(A_1 n A_2) = P(A_1 n A_2 n A_3) + P(A_1 n A_2 n complement of A_3), which by two of the eight
+ *    products is P(A_1)P(A_2)(P(A_3) + P(complement of A_3)) = P(A_1)P(A_2) (8).
+ * 4. Likewise for the other two pairs; so all conditions of mutual independence hold (4).
+ */
+const gs4133 = supervision({
+  id: 'gs-4-1-33',
+  source: cite('gs-ch4', 'Section 4.1, Exercise 33 (page 155)'),
+  title: t`Eight products for three events`,
+  prompt: t`Let ${math`A_{${1}}, A_{${2}}, A_{${3}}`} be events, and let ${math`B_i`} represent either ${math`A_i`} or its complement ${math`A_i^{c}`}. Then there are eight possible choices for the triple ${math`(B_{${1}}, B_{${2}}, B_{${3}})`}. Prove that the events ${math`A_{${1}}, A_{${2}}, A_{${3}}`} are independent if and only if ${math`\mathbb{P}(B_{${1}} \cap B_{${2}} \cap B_{${3}}) = \mathbb{P}(B_{${1}})\,\mathbb{P}(B_{${2}})\,\mathbb{P}(B_{${3}})`} for all eight of the possible choices.`,
+  writeUp: 'proof',
+  official: cite('gs-answers-odd', 'Section 4.1, Exercise 33'),
+});
+
+/** Grinstead and Snell 4.1.8: six outcomes with masses 1/8, 1/8, 3/16, 3/16, 3/16, 3/16. */
+const MASS: Readonly<Record<string, Rational>> = { a: q(1, 8), b: q(1, 8), c: q(3, 16), d: q(3, 16), e: q(3, 16), f: q(3, 16) };
+const EV8: Readonly<Record<'A' | 'B' | 'C', readonly string[]>> = { A: ['d', 'e', 'a'], B: ['c', 'e', 'a'], C: ['c', 'd', 'a'] };
+const prob8 = (...evs: ('A' | 'B' | 'C')[]): Rational =>
+  Object.keys(MASS).filter((w) => evs.every((e) => EV8[e].includes(w))).reduce((s, w) => add(s, MASS[w] as Rational), q(0));
+const ROWS8: readonly { tex: string; evs: ('A' | 'B' | 'C')[] }[] = [
+  { tex: 'A', evs: ['A'] }, { tex: 'B', evs: ['B'] }, { tex: 'C', evs: ['C'] },
+  { tex: 'A \\cap B', evs: ['A', 'B'] }, { tex: 'A \\cap C', evs: ['A', 'C'] }, { tex: 'B \\cap C', evs: ['B', 'C'] },
+  { tex: 'A \\cap B \\cap C', evs: ['A', 'B', 'C'] },
+];
+
+const gs418 = auto({
+  id: 'gs-4-1-8',
+  source: cite('gs-ch4', 'Section 4.1, Exercise 8 (page 151)', true),
+  title: t`The triple product without the pairs`,
+  prompt: t`Let ${math`\Omega = \{a, b, c, d, e, f\}`}, with ${math`m(a) = m(b) = \frac{${1}}{${8}}`} and ${math`m(c) = m(d) = m(e) = m(f) = \frac{${3}}{${16}}`}. Let ${math`A = \{d, e, a\}`}, ${math`B = \{c, e, a\}`}, ${math`C = \{c, d, a\}`}. Find each probability below. Then compare: ${math`\mathbb{P}(A \cap B \cap C) = \mathbb{P}(A)\mathbb{P}(B)\mathbb{P}(C)`}, but no two of these events are independent.`,
+  answer: {
+    kind: 'table', columns: [t`event`, t`probability`], cell: 'exact',
+    rows: ROWS8.map(({ evs }) => [[math`\mathbb{P}(${evs.join(' \\cap ')})`], null]),
+    expected: ROWS8.map(({ evs }) => str(prob8(...evs))),
+  },
+  solution: [
+    t`Each of ${math`A, B, C`} holds ${math`a`} and two of ${math`c, d, e, f`}: ${math`\frac{${1}}{${8}} + \frac{${3}}{${16}} + \frac{${3}}{${16}} = ${prob8('A')}`}.`,
+    t`Each pair shares ${math`a`} and one more letter, so its intersection has probability ${math`\frac{${1}}{${8}} + \frac{${3}}{${16}} = ${prob8('A', 'B')}`}, not ${math`${prob8('A')} \times ${prob8('B')} = ${mul(prob8('A'), prob8('B'))}`}: no pair is independent.`,
+    t`All three share only ${math`a`}: ${math`\mathbb{P}(A \cap B \cap C) = ${prob8('A', 'B', 'C')} = \left(${prob8('A')}\right)^{${3}}`}, the product of the three.`,
+  ],
+  reference: ROWS8.map(({ evs }) => str(prob8(...evs))),
+  verify: () => {
+    const e = same('the masses add to 1', str(Object.values(MASS).reduce(add, q(0))), '1');
+    if (e !== null) return e;
+    const triple = same('the triple product', str(prob8('A', 'B', 'C')), str(mul(mul(prob8('A'), prob8('B')), prob8('C'))));
+    if (triple !== null) return triple;
+    const pairs = (['A', 'B', 'C'] as const).flatMap((x, i) => (['A', 'B', 'C'] as const).slice(i + 1).map((y) => str(prob8(x, y)) !== str(mul(prob8(x), prob8(y)))));
+    return same('every pair dependent', pairs.every((b) => b), true);
+  },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
@@ -315,9 +391,11 @@ export const independence: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['mutual-independence', 'pairwise-independence'],
   claims,
-  cambridge: [q11proof, bernstein],
-  // The sheet's question for general n: the only Cambridge-standard problem here, and a good one.
-  gate: ['ia-q11-by-independence'],
+  cambridge: [q11proof, bernstein, gs4150, gs4133, gs418],
+  // The sheet's question for general n, then Grinstead and Snell's counting of points (every choice of
+  // events and complements has positive probability) and the eight products. The triple product
+  // without the pairs is a computation, and the lesson's pitfall shows the idea, so it is practice.
+  gate: ['ia-q11-by-independence', 'gs-4-1-50', 'gs-4-1-33'],
   recall: [
     { front: t`Define mutual independence of ${math`A_{${1}}, \ldots, A_{n}`}.`, back: t`For every subfamily of at least two of them, the probability of the intersection is the product of their probabilities.` },
     { front: t`Define pairwise independence.`, back: t`${math`\mathbb{P}(A_{i} \cap A_{j}) = \mathbb{P}(A_{i})\,\mathbb{P}(A_{j})`} for every pair ${math`i \ne j`}. It is weaker than mutual independence.` },

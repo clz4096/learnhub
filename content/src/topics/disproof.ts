@@ -4,7 +4,9 @@
  * Sections 9.2 and 9.3 (Examples 9.3 and 9.5: no real x has x^4 < x < x^2); the problems
  * are Chapter 9's exercises 2, 20, 21 and 30 (checked against the book's solution to 21) and
  * CST Discrete Mathematics supervision exercise 1.1.5 (for all integers x and y there is an
- * integer z with x + z = y - z), whose disproof needs a "there is no z" argument.
+ * integer z with x + z = y - z), whose disproof needs a "there is no z" argument. Batch 7 adds IA
+ * Numbers and Sets Example Sheet 2, Q7 (second question: 3381x + 2646y = 21). The CST exercises
+ * 2.3.1 and 2.3.2(b) are gates of proof.cases and proof.contradiction, so they are not set again.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { gcd, int, pick } from '../math';
@@ -341,6 +343,25 @@ const b92 = auto({
   misconceptions: [{ response: 'n = 29', why: t`${math`n = ${29}`} gives ${1597}, which is prime.` }],
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking ns2-q7-ii (20 marks):
+ * 1. Answer: no such integers (2).
+ * 2. Finds a common factor of 3381 and 2646 that does not divide 21: 3381 = 3 x 7^2 x 23 and
+ *    2646 = 2 x 3^3 x 7^2, so 49 (or 147, their HCF) divides both (6).
+ * 3. Then 49 divides 3381x + 2646y for all integers x and y, as each term is a multiple of 49 (6).
+ * 4. 49 does not divide 21, so no x, y work; the statement "for all x, y, 3381x + 2646y != 21" is
+ *    proved, which is the negation of the existence claim (6).
+ */
+const ns2q7ii = supervision({
+  id: 'ns2-q7-ii',
+  source: cite('ia-ns-sheet-2', 'Q7, second question'),
+  title: t`No integers make twenty-one`,
+  prompt: t`Do there exist integers ${math`x`} and ${math`y`} with ${math`${3381}x + ${2646}y = ${21}`}? Prove your answer.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const disproof: TopicContent = {
@@ -392,8 +413,8 @@ export const disproof: TopicContent = {
   generators: [linGen, primeGen, negGen, sqGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['disproof-of-existence'],
-  cambridge: [sw115, sw115proof, b921, b930, b920, b92],
-  gate: ['sw-1-1-5-proof'],
+  cambridge: [sw115, sw115proof, b921, b930, b920, b92, ns2q7ii],
+  gate: ['sw-1-1-5-proof', 'ns2-q7-ii'],
   recall: [
     { front: t`What is the negation of ${math`\exists x \in S,\ P(x)`}?`, back: t`${math`\forall x \in S,\ \neg P(x)`}.` },
     { front: t`How do you disprove a statement ${mP} by contradiction?`, back: t`Assume ${mP} is true and deduce a contradiction.` },

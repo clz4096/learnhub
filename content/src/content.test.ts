@@ -169,7 +169,7 @@ const UNWRITTEN = 'prob.simpsons-paradox';
 /** Source ids of the batch, from the committed batch file; the manifest too when the local source cache exists. */
 const readBatch = (n: number) => (JSON.parse(readFileSync(new URL(`../../scripts/sources/batch-${n}.json`, import.meta.url), 'utf8')) as { sources: { id: string }[] }).sources.map((x) => x.id);
 const batchIds = new Set(readBatch(1));
-const citableIds = new Set([...readBatch(1), ...readBatch(2), ...readBatch(6)]);
+const citableIds = new Set([...readBatch(1), ...readBatch(2), ...readBatch(6), ...readBatch(7), ...readBatch(8)]);
 const manifestUrl = new URL('../../sources/manifest.json', import.meta.url);
 const manifest: Map<string, string> | null = existsSync(manifestUrl)
   ? new Map((JSON.parse(readFileSync(manifestUrl, 'utf8')) as { sources: { id: string; status: string }[] }).sources.map((x) => [x.id, x.status]))
@@ -177,7 +177,7 @@ const manifest: Map<string, string> | null = existsSync(manifestUrl)
 
 /** A citation names a document of the batch (and, with the cache present, one fetched OK) and a location, with no dashes. */
 function checkCitation(cit: Citation, where: string): void {
-  expect(citableIds.has(cit.doc), `${where}: ${cit.doc} is not in scripts/sources/batch-1.json or batch-2.json`).toBe(true);
+  expect(citableIds.has(cit.doc), `${where}: ${cit.doc} is not in scripts/sources/batch-1.json, batch-2.json, batch-6.json, batch-7.json, or batch-8.json`).toBe(true);
   if (manifest !== null) expect(manifest.get(cit.doc), `${where}: ${cit.doc} in sources/manifest.json`).toBe('ok');
   expect(cit.at.trim().length, where).toBeGreaterThan(0);
   expect(DASH.test(citationText(cit)), `${where}: dash in "${citationText(cit)}"`).toBe(false);
@@ -561,16 +561,6 @@ describe('the Cambridge gate', () => {
    * is written. Explicit, so a new gap fails here and a filled one is taken off the list.
    */
   const NO_GATE: ReadonlySet<string> = new Set([
-    'calc.improper-integrals',
-    'comb.factorial',
-    'ineq.am-gm',
-    'logic.connectives',
-    'logic.nested-quantifiers',
-    'pre.hcf-lcm',
-    'pre.probability-scale',
-    'pre.set-notation',
-    'rv.simulation',
-    'trig.right-triangle',
   ]);
 
   it('only the known topics have no gate problem', () => {
@@ -594,6 +584,8 @@ describe('the Cambridge gate', () => {
     expect(GATE_DOCS.has('tmua-logic-proof')).toBe(false);
     expect(GATE_DOCS.has('cs3110-book')).toBe(false);
     expect(GATE_DOCS.has('step-f01-hints')).toBe(false);
+    expect(GATE_DOCS.has('gs-answers-odd')).toBe(false);
+    expect(GATE_DOCS.has('cst-dm-sols-2324-5')).toBe(false);
     for (const d of GATE_DOCS) expect(Object.hasOwn(CITED_DOCS, d), d).toBe(true);
     const c = contentFor('proof.contradiction') as TopicContent;
     expect(gateCandidates(c.cambridge).every((id) => GATE_DOCS.has(c.cambridge.find((p) => p.id === id)?.source.doc ?? ''))).toBe(true);

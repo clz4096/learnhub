@@ -2,7 +2,8 @@
  * ineq.linear-quadratic: solve linear inequalities, and quadratic ones from the sign of
  * a(x - α)(x - β), never multiplying by a quantity of unknown sign. Sources: STEP Support
  * Foundation Assignment 1 Q2(iii) and Q3 (2005 STEP I Q3), Assignment 4 Q2(i), Assignment
- * 22 Q3(i), and the NST Maths Workbook A5. Every solution set is found twice: by the
+ * 22 Q3(i), the NST Maths Workbook A5, and STEP I Specimen Q1(i) and STEP I 2006 Q3(i), (ii)
+ * (STEP Questions Database). Every solution set is found twice: by the
  * factor argument in the worked solution, and by a sign test at and between the critical
  * values (prep-a.ts, setWhere).
  */
@@ -274,6 +275,50 @@ const step2005 = supervision({
   official: cite('step-f01-hints', 'Q3'),
 });
 
+// STEP I Specimen Paper Q1(i) and STEP I 2006 Q3(i), (ii) (STEP Questions Database): the
+// discriminant as an inequality. 2006 Q3(iii) is about cubics, a later topic.
+const SPEC = 'stepdb-spec-s1' as const;
+const DB06 = 'stepdb-06-s1' as const;
+
+const specQ1 = supervision({
+  id: 'stepspec-q1-i',
+  source: cite(SPEC, 'Q1(i)'),
+  title: t`Where a conic can be`,
+  prompt: t`The real numbers ${math`x`} and ${math`y`} satisfy the equation ${math`${4}x^{${2}} + ${16}xy + y^{${2}} + ${24}x = ${0}`}. Prove that either ${math`x \le ${0}`} or ${math`x \ge \frac{${2}}{${5}}`}, and, similarly, find restrictions on the values of ${math`y`}.`,
+  writeUp: 'proof',
+});
+
+const specQ1y = setProblem({
+  id: 'stepspec-q1-i-y',
+  source: cite(SPEC, 'Q1(i)'),
+  title: t`The values ${math`y`} can take`,
+  prompt: t`The real numbers ${math`x`} and ${math`y`} satisfy ${math`${4}x^{${2}} + ${16}xy + y^{${2}} + ${24}x = ${0}`}. For which ${math`y`} is there a real ${math`x`}?`,
+  v: 'y',
+  right: [closed(null, q(-2)), closed(q(-6, 5), null)],
+  wrong: [
+    { set: [closed(q(-2), q(-6, 5))], why: t`A real ${math`x`} needs the discriminant to be at least ${0}, not at most: ${math`(${5}y + ${6})(y + ${2}) \ge ${0}`} holds outside the roots.` },
+    { set: [open(null, q(-2)), open(q(-6, 5), null)], why: t`At ${math`y = -${2}`} the discriminant is ${0}, which gives one real ${math`x`} (here ${math`x = ${1}`}). The ends belong to the answer.` },
+  ],
+  solution: [
+    t`As a quadratic in ${math`x`}: ${math`${4}x^{${2}} + (${16}y + ${24})x + y^{${2}} = ${0}`}. It has a real root exactly when its discriminant is not negative: ${math`(${16}y + ${24})^{${2}} - ${16}y^{${2}} \ge ${0}`}.`,
+    t`Expand: ${math`${256}y^{${2}} + ${768}y + ${576} - ${16}y^{${2}} = ${240}y^{${2}} + ${768}y + ${576} = ${48}(${5}y^{${2}} + ${16}y + ${12}) = ${48}(${5}y + ${6})(y + ${2})`}.`,
+    t`This is at least ${0} outside the roots: ${math`y \le -${2}`} or ${math`y \ge -\frac{${6}}{${5}}`}.`,
+  ],
+  test: (y) => {
+    const b = add(mul(q(16), y), q(24));
+    return sub(mul(b, b), mul(q(16), mul(y, y))).num >= 0n;
+  },
+  critical: [q(-2), q(-6, 5)],
+});
+
+const db06q3 = supervision({
+  id: 'step06-q3',
+  source: cite(DB06, 'Q3(i), (ii)'),
+  title: t`Sufficient, necessary, and both`,
+  prompt: t`In this question ${math`b`} and ${math`c`} are real numbers. (i) By considering the graph ${math`y = x^{${2}} + bx + c`} show that ${math`c < ${0}`} is a sufficient condition for the equation ${math`x^{${2}} + bx + c = ${0}`} to have distinct real roots. Determine whether ${math`c < ${0}`} is a necessary condition for the equation to have distinct real roots. (ii) Determine necessary and sufficient conditions for the equation ${math`x^{${2}} + bx + c = ${0}`} to have distinct positive real roots.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const LIN_EX: LinP = { a: 2, b: 5, c: 5, d: -1, op: '<' };
@@ -343,8 +388,10 @@ export const linearQuadraticInequalities: TopicContent = {
   generators: [linear, quadratic, noRealRoots],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inequality', 'critical-value'],
-  cambridge: [a4q2i, a22q3i, nstA5, step2005],
-  gate: ['a1-q3'],
+  cambridge: [specQ1, db06q3, specQ1y, a4q2i, a22q3i, nstA5, step2005],
+  // Best first: Assignment 1 Q3 (2005 STEP I Q3), STEP I 2006 Q3(i), (ii), the STEP I Specimen
+  // Q1(i), then its auto-checked restriction on y.
+  gate: ['a1-q3', 'step06-q3', 'stepspec-q1-i', 'stepspec-q1-i-y'],
   recall: [
     { front: t`When does multiplying an inequality reverse it?`, back: t`When the multiplier is negative. If you do not know its sign, do not multiply by it.` },
     { front: t`For ${math`a > ${0}`} and roots ${math`\alpha < \beta`}, where is ${math`a(x - \alpha)(x - \beta) < ${0}`}?`, back: t`Strictly between the roots: ${math`\alpha < x < \beta`}.` },

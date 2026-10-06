@@ -4,7 +4,9 @@
  * quotient rule (from the other two). The Cambridge problems are STEP Support Foundation
  * Assignment 22, Q1 and Q2(iii), Assignment 23, Q1, Assignment 25, Q2(iv), with their hints,
  * and STEP 2 Statistics Q3 (2011 S2 Q12), whose derivative dw/dp and the turning value
- * p = 2 - sqrt 3 are compared with the official solution.
+ * p = 2 - sqrt 3 are compared with the official solution. The gate adds STEP Support STEP 2
+ * Calculus Q1 (2005 STEP II Q1), STEP I 1994 Q2(iv), (v) (STEP Questions Database), and IA
+ * Differential Equations Example Sheet 1, Q3(ii) (DAMTP).
  */
 import { auto, cite, supervision } from '../cambridge';
 import { int, pick, q, str } from '../math';
@@ -250,6 +252,127 @@ const tanProof = supervision({
   official: cite(F25H, 'Assignment 25 hints, Q2(iv)'),
 });
 
+// STEP 2 Calculus Q1 (2005 S2 Q1), STEP I 1994 Q2 (STEP Questions Database), and IA Differential
+// Equations Example Sheet 1, Q3(ii) (DAMTP).
+const CALC = 'step-s2-calc' as const;
+const CALCS = 'step-s2-calc-solutions' as const;
+const DB94 = 'stepdb-94-s1' as const;
+const XPOS = { x: { kind: 'real' as const, min: 0.5, max: 3 } };
+
+const calc1 = supervision({
+  id: 's2calc-q1',
+  source: cite(CALC, 'Q1 (2005 STEP II Q1)'),
+  title: t`Where the derivative of ${math`P(x)e^{-x^{${2}}}`} vanishes`,
+  prompt: t`Find the three values of ${math`x`} for which the derivative of ${math`x^{${2}}e^{-x^{${2}}}`} is zero. Given that ${math`a`} and ${math`b`} are distinct positive numbers, find a polynomial ${math`P(x)`} such that the derivative of ${math`P(x)e^{-x^{${2}}}`} is zero for ${math`x = ${0}`}, ${math`x = \pm a`} and ${math`x = \pm b`}, but for no other values of ${math`x`}.`,
+  writeUp: 'explanation',
+  official: cite(CALCS, 'Q1'),
+});
+
+const calc1zeros = auto({
+  id: 's2calc-q1-zeros',
+  source: cite(CALC, 'Q1 (2005 STEP II Q1)'),
+  title: t`The turning points of ${math`x^{${2}}e^{-x^{${2}}}`}`,
+  prompt: t`Find the three values of ${math`x`} for which the derivative of ${math`x^{${2}}e^{-x^{${2}}}`} is zero.`,
+  answer: {
+    kind: 'witness',
+    count: 3,
+    unordered: true,
+    example: '-1, 0, 1',
+    check: (v) => {
+      const keys = new Set(v.map((r) => `${r.num}/${r.den}`));
+      if (keys.size !== 3) return 'Give three different values.';
+      for (const r of v) {
+        const x = Number(r.num) / Number(r.den);
+        if (Math.abs(x * (1 - x * x)) > 1e-12) return `At ${x} the derivative is not zero.`;
+      }
+      return null;
+    },
+  },
+  solution: [
+    t`Product rule, with the chain rule for ${math`e^{-x^{${2}}}`}: ${math`\frac{d}{dx}\left(x^{${2}}e^{-x^{${2}}}\right) = ${2}xe^{-x^{${2}}} + x^{${2}} \cdot (-${2}x)e^{-x^{${2}}} = ${2}x(${1} - x^{${2}})e^{-x^{${2}}}`}.`,
+    t`${math`e^{-x^{${2}}} > ${0}`} for every ${math`x`}, so the derivative is zero exactly when ${math`x(${1} - x^{${2}}) = ${0}`}: ${math`x = -${1}`}, ${0}, or ${1}.`,
+  ],
+  reference: '-1, 0, 1',
+  verify: () => {
+    // The derivative, checked numerically, and its sign changes found by scanning [-3, 3].
+    const d = (x: number): number => 2 * x * (1 - x * x) * Math.exp(-x * x);
+    const e = agreesAt('derivative', '2x(1 - x^2) e^(-x^2)', (x) => numDeriv((u) => u * u * Math.exp(-u * u), x), [-1.5, -0.3, 0.7, 2]);
+    if (e !== null) return e;
+    const roots: number[] = [];
+    for (let i = -3000; i < 3000; i++) {
+      const [x0, x1] = [i / 1000 + 0.0005, (i + 1) / 1000 + 0.0005];
+      if (d(x0) * d(x1) < 0) roots.push(Math.round((x0 + x1) / 2));
+    }
+    return roots.join(' ') === '-1 0 1' ? null : `sign changes at ${roots.join(' ')}`;
+  },
+  misconceptions: [
+    { response: '0, 1, 2', why: t`The derivative is ${math`${2}x(${1} - x^{${2}})e^{-x^{${2}}}`}: the factor ${math`${1} - x^{${2}}`} vanishes at ${math`x = \pm ${1}`}.` },
+  ],
+  official: { source: cite(CALCS, 'Q1'), answer: '-1, 0, 1', agrees: true },
+});
+
+const db94q2iv = auto({
+  id: 'step94-q2-iv',
+  source: cite(DB94, 'Q2(iv)'),
+  title: t`A tower of powers`,
+  prompt: t`Differentiate ${math`x^{(x^{x})}`} with respect to ${math`x`}, for ${math`x > ${0}`}.`,
+  answer: { kind: 'expression', expected: 'x^(x^x) * x^x * ((ln(x))^2 + ln(x) + 1/x)', variables: ['x'], domains: XPOS },
+  solution: [
+    t`Write powers with a variable exponent through ${math`e`}: ${math`x^{x} = e^{x\ln x}`}, so by the chain and product rules ${math`\frac{d}{dx}x^{x} = x^{x}(\ln x + ${1})`}.`,
+    t`In the same way ${math`y = x^{(x^{x})} = e^{x^{x}\ln x}`}, so ${math`\frac{dy}{dx} = y\,\frac{d}{dx}\left(x^{x}\ln x\right)`}.`,
+    t`Product rule: ${math`\frac{d}{dx}\left(x^{x}\ln x\right) = x^{x}(\ln x + ${1})\ln x + \frac{x^{x}}{x} = x^{x}\left((\ln x)^{${2}} + \ln x + \frac{${1}}{x}\right)`}.`,
+    t`So ${math`\frac{dy}{dx} = x^{(x^{x})}\,x^{x}\left((\ln x)^{${2}} + \ln x + \frac{${1}}{x}\right)`}.`,
+  ],
+  reference: 'x^(x^x) * x^x * ((ln(x))^2 + ln(x) + 1/x)',
+  verify: () => agreesAt('d/dx x^(x^x)', 'x^(x^x) * x^x * ((ln(x))^2 + ln(x) + 1/x)', (x) => numDeriv((u) => u ** (u ** u), x), [0.6, 1, 1.5, 2.2], 1e-4),
+  misconceptions: [
+    { response: 'x^(x^x) * x^x * (ln(x) + 1)', why: t`The exponent is ${math`x^{x}\ln x`}, a product: differentiate both factors, ${math`x^{x}(\ln x + ${1})\ln x + x^{x} \cdot \frac{${1}}{x}`}.` },
+    { response: 'x^x * x^(x^x - 1)', why: t`The power rule ${math`nx^{n - ${1}}`} needs a constant exponent. Here the exponent varies, so write ${math`x^{(x^{x})} = e^{x^{x}\ln x}`}.` },
+  ],
+});
+
+const db94q2v = auto({
+  id: 'step94-q2-v',
+  source: cite(DB94, 'Q2(v)'),
+  title: t`A power of a power`,
+  prompt: t`Differentiate ${math`(x^{x})^{x}`} with respect to ${math`x`}, for ${math`x > ${0}`}.`,
+  answer: { kind: 'expression', expected: 'x^(x^2 + 1) * (2 ln(x) + 1)', variables: ['x'], domains: XPOS },
+  solution: [
+    t`${math`(x^{x})^{x} = x^{x \cdot x} = x^{x^{${2}}} = e^{x^{${2}}\ln x}`}.`,
+    t`${math`\frac{d}{dx}\left(x^{${2}}\ln x\right) = ${2}x\ln x + x`}, so the derivative is ${math`x^{x^{${2}}}(${2}x\ln x + x) = x^{x^{${2}} + ${1}}(${2}\ln x + ${1})`}.`,
+  ],
+  reference: 'x^(x^2 + 1) * (2 ln(x) + 1)',
+  verify: () => agreesAt('d/dx (x^x)^x', 'x^(x^2 + 1) * (2 ln(x) + 1)', (x) => numDeriv((u) => (u ** u) ** u, x), [0.6, 1, 1.5, 2.2], 1e-4),
+  misconceptions: [
+    { response: 'x^(x^x) * x^x * ((ln(x))^2 + ln(x) + 1/x)', why: t`That is the derivative of ${math`x^{(x^{x})}`}. Here the brackets come first: ${math`(x^{x})^{x} = x^{x^{${2}}}`}.` },
+  ],
+});
+
+const damtpQ3ii = auto({
+  id: 'damtp-de1-q3-ii',
+  source: cite('damtp-ia-de1', 'Q3(ii)'),
+  title: t`The third derivative of ${math`(\ln x)^{${2}}`}`,
+  prompt: t`Calculate ${math`\frac{d^{${3}}}{dx^{${3}}}(\ln x)^{${2}}`}, for ${math`x > ${0}`}.`,
+  answer: { kind: 'expression', expected: '(4 ln(x) - 6)/x^3', variables: ['x'], domains: XPOS },
+  solution: [
+    t`Chain rule: ${math`\frac{d}{dx}(\ln x)^{${2}} = \frac{${2}\ln x}{x}`}.`,
+    t`Quotient rule: ${math`\frac{d}{dx}\frac{${2}\ln x}{x} = \frac{\frac{${2}}{x} \cdot x - ${2}\ln x}{x^{${2}}} = \frac{${2} - ${2}\ln x}{x^{${2}}}`}.`,
+    t`Quotient rule again: ${math`\frac{d}{dx}\frac{${2} - ${2}\ln x}{x^{${2}}} = \frac{-\frac{${2}}{x} \cdot x^{${2}} - (${2} - ${2}\ln x) \cdot ${2}x}{x^{${4}}} = \frac{-${2}x - ${4}x + ${4}x\ln x}{x^{${4}}} = \frac{${4}\ln x - ${6}}{x^{${3}}}`}.`,
+  ],
+  reference: '(4 ln(x) - 6)/x^3',
+  verify: () => {
+    // Each derivative is checked numerically against the one before.
+    const pts = [0.6, 1, 1.7, 2.5];
+    return agreesAt('first', '2 ln(x) / x', (x) => numDeriv((u) => Math.log(u) ** 2, x), pts)
+      ?? agreesAt('second', '(2 - 2 ln(x))/x^2', (x) => numDeriv((u) => (2 * Math.log(u)) / u, x), pts)
+      ?? agreesAt('third', '(4 ln(x) - 6)/x^3', (x) => numDeriv((u) => (2 - 2 * Math.log(u)) / (u * u), x), pts);
+  },
+  misconceptions: [
+    { response: '(4 ln(x) + 6)/x^3', why: t`Watch the signs in the last quotient rule: ${math`-${2}x - ${4}x = -${6}x`}.` },
+    { response: '2/x^3', why: t`${math`(\ln x)^{${2}}`} is not ${math`${2}\ln x`}: by the chain rule its derivative is ${math`\frac{${2}\ln x}{x}`}, which still contains ${math`\ln x`}.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const differentiationRules: TopicContent = {
@@ -301,8 +424,10 @@ export const differentiationRules: TopicContent = {
   generators: [product, chain, quotient],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['product-rule-calculus', 'chain-rule'],
-  cambridge: [xex, lnSquare, dwdp, turnP, productProof, chainProof, tanProof],
-  gate: ['s2-q3-turn'],
+  cambridge: [calc1, calc1zeros, db94q2iv, db94q2v, damtpQ3ii, xex, lnSquare, dwdp, turnP, productProof, chainProof, tanProof],
+  // Best first: 2005 STEP II Q1 (with official solutions), then the auto-checked STEP I 1994
+  // Q2(iv), the IA sheet's Q3(ii), and STEP 2 Statistics Q3(i).
+  gate: ['s2calc-q1', 'step94-q2-iv', 'damtp-de1-q3-ii', 's2-q3-turn'],
   recall: [
     { front: t`State the product rule.`, back: t`${math`(uv)' = u'v + uv'`}.` },
     { front: t`State the chain rule.`, back: t`${math`(f \circ g)'(x) = f'(g(x))g'(x)`}, or ${math`\frac{dy}{dx} = \frac{dy}{du}\frac{du}{dx}`}.` },

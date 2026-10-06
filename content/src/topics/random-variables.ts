@@ -4,7 +4,8 @@
  * and IA Probability Example Sheet 2 Q5(a), (b): on Ω = {0, 1}^3 with equally likely
  * outcomes there are 70 Bernoulli(1/2) random variables and no Bernoulli(1/3) ones. The
  * sheet has no official solutions; every count is checked by listing all 256 functions
- * from Ω to {0, 1}.
+ * from Ω to {0, 1}. Batch 7 adds Grinstead and Snell, Section 4.1, Exercise 38 (heads on three
+ * tosses: X, Y, X + Y, X - Y) and Exercise 34, first question (the hat check indicator).
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, pick, q, str, type Rational } from '../math';
@@ -290,6 +291,75 @@ const scheduleRv = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/** Three tosses as 0/1 lists; X = heads on the first two, Y = heads on the third. */
+const TOSSES = [0, 1].flatMap((a) => [0, 1].flatMap((b) => [0, 1].map((c) => [a, b, c] as const)));
+const VALUES38 = [-1, 0, 1, 2, 3] as const;
+const RV38: readonly { name: Rich; f: (o: readonly [number, number, number]) => number }[] = [
+  { name: [math`X`], f: (o) => o[0] + o[1] },
+  { name: [math`Y`], f: (o) => o[2] },
+  { name: [math`Z = X + Y`], f: (o) => o[0] + o[1] + o[2] },
+  { name: [math`W = X - Y`], f: (o) => o[0] + o[1] - o[2] },
+];
+const dist38 = (f: (o: readonly [number, number, number]) => number): string[] =>
+  VALUES38.map((v) => str(q(TOSSES.filter((o) => f(o) === v).length, TOSSES.length)));
+
+const gs4138 = auto({
+  id: 'gs-4-1-38',
+  source: cite('gs-ch4', 'Section 4.1, Exercise 38 (page 156)'),
+  title: t`Heads before and after`,
+  prompt: t`A fair coin is tossed three times. Let ${math`X`} be the number of heads that turn up on the first two tosses and ${math`Y`} the number of heads that turn up on the third toss. Give the distribution of ${math`X`}, ${math`Y`}, ${math`Z = X + Y`}, and ${math`W = X - Y`}: write each probability in the table, ${0} where the value cannot happen.`,
+  answer: {
+    kind: 'table', columns: [t`variable`, ...VALUES38.map((v) => [math`${v}`])], cell: 'exact',
+    rows: RV38.map(({ name }) => [name, ...VALUES38.map(() => null)]),
+    expected: RV38.flatMap(({ f }) => dist38(f)),
+  },
+  solution: [
+    t`The ${8} sequences of three tosses are equally likely. ${math`X`} is ${0}, ${1}, ${2} with probabilities ${q(1, 4)}, ${q(1, 2)}, ${q(1, 4)}, and ${math`Y`} is ${0} or ${1}, each ${q(1, 2)}.`,
+    t`${math`Z`} counts all the heads: ${0}, ${1}, ${2}, ${3} in ${1}, ${3}, ${3}, ${1} of the ${8} sequences.`,
+    t`${math`W = ${-1}`} needs no head first and a head third: ${1} sequence. ${math`W = ${0}`}: both zero, or one head first and one third, ${math`${1} + ${2} = ${3}`} sequences. ${math`W = ${1}`}: one head first and none third, or two first and one third, ${math`${2} + ${1} = ${3}`}. ${math`W = ${2}`}: ${1} sequence.`,
+  ],
+  reference: RV38.flatMap(({ f }) => dist38(f)),
+  verify: () => {
+    for (const { f } of RV38) {
+      const total = TOSSES.filter((o) => VALUES38.includes(f(o) as (typeof VALUES38)[number])).length;
+      const e = same('every outcome has a listed value', total, TOSSES.length);
+      if (e !== null) return e;
+    }
+    return same('W = X - Y', dist38((o) => o[0] + o[1] - o[2]).join(' '), ['1/8', '3/8', '3/8', '1/8', '0'].join(' '));
+  },
+});
+
+const HATS = 4;
+/** Every way to hand back 4 hats, as lists: entry i is the hat woman i receives. */
+const hatOrders = (): number[][] => {
+  const out: number[][] = [];
+  const go = (pre: number[]): void => {
+    if (pre.length === HATS) { out.push(pre); return; }
+    for (let h = 0; h < HATS; h++) if (!pre.includes(h)) go([...pre, h]);
+  };
+  go([]);
+  return out;
+};
+const gs4134 = auto({
+  id: 'gs-4-1-34',
+  source: cite('gs-ch4', 'Section 4.1, Exercise 34, first question (page 155)', true),
+  title: t`Her own hat back`,
+  prompt: t`Four women, A, B, C, and D, check their hats, and the hats are returned in a random manner. Let ${math`\Omega`} be the set of all possible permutations of A, B, C, D, each equally likely. Let ${math`X_j = ${1}`} if the ${math`j`}th woman gets her own hat back and ${0} otherwise. ${math`X_j`} is a Bernoulli random variable: find ${math`\mathbb{P}(X_j = ${1})`}.`,
+  answer: { kind: 'exact', expected: str(q(1, HATS)) },
+  solution: [
+    t`There are ${math`${4}! = ${24}`} equally likely ways to return the hats. Woman ${math`j`} gets her own hat when the other three hats go to the other three women in any order: ${math`${3}! = ${6}`} ways.`,
+    t`So ${math`\mathbb{P}(X_j = ${1}) = \frac{${6}}{${24}} = ${q(1, HATS)}`} and ${math`\mathbb{P}(X_j = ${0}) = ${q(3, 4)}`}, the same for every ${math`j`}.`,
+  ],
+  reference: str(q(1, HATS)),
+  verify: () => {
+    const all = hatOrders();
+    return same('orders giving woman 0 her hat', str(q(all.filter((o) => o[0] === 0).length, all.length)), str(q(1, HATS)));
+  },
+  misconceptions: [{ response: str(q(1, 24)), why: t`That is the chance that every woman gets her own hat. For one woman, the other three hats may go anywhere: ${math`${3}!`} of the ${math`${4}!`} orders.` }],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const SUM_FOUR = q(3, 36);
@@ -377,10 +447,11 @@ export const randomVariables: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['random-variable', 'rv-distribution'],
   claims,
-  cambridge: [q5b, quarter, scheduleRv],
+  cambridge: [q5b, quarter, scheduleRv, gs4138, gs4134],
   // The parameter one quarter needs the count of events of two outcomes. Parameter one third has the
   // answer 0, which can be guessed. The schedule write-up is not from a gate document.
-  gate: ['ia-s2-q5-quarter'],
+  // Batch 7: four variables built on one space, X, Y, X + Y, X - Y; the hat check indicator is one count.
+  gate: ['ia-s2-q5-quarter', 'gs-4-1-38'],
   recall: [
     { front: t`Define a random variable on a countable probability space.`, back: t`A function ${math`X: \Omega \to \mathbb{R}`}.` },
     { front: t`Define the distribution of ${mX}.`, back: t`${math`\mathbb{P}(X = x) = \mathbb{P}(\{\omega : X(\omega) = x\})`} for each value ${math`x`}.` },

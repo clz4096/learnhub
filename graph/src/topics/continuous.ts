@@ -39,7 +39,7 @@ export const continuous: Topic[] = [
     summary: 'Find the density of $Y = g(X)$ by writing $F_Y(y)$ in terms of $F_X$ and differentiating.',
     level: 'step',
     area: 'continuous',
-    prereqs: ['rv.pdf', 'calc.differentiation-rules'],
+    prereqs: ['rv.pdf'],
     encompasses: { 'rv.pdf': 0.6, 'calc.differentiation-rules': 0.5 },
     sources: [{ doc: STEP, course: 'STEP Mathematics 3', section: M3_ALGEBRA_OF_EXPECTATION, note: 'Spec: "Use cumulative distribution functions to calculate the probability density function of a related random variable; for example, X^2 from X."', verified: true }],
     estMinutes: 20,

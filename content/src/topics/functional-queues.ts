@@ -224,6 +224,17 @@ const focs101 = supervision({
   writeUp: 'explanation',
 });
 
+// Computer Science Tripos Part IA 2018, Paper 1, Question 2(b): a functional deque. The paper
+// is in Standard ML and its part (b) refers to part (a)'s helpers; restated self-contained in
+// OCaml, so marked adapted.
+const cst18 = supervision({
+  id: 'cst-2018-p1-q2-b',
+  source: cite('cst-y2018p1q2', '(b)', true),
+  title: t`A functional deque`,
+  prompt: t`A row of coins is held as a list, and a game removes coins from either end. We are interested in implementing a functional deque that computes ${ml`poplast`} (the deque without its last element) and ${ml`last`} (its last element) in amortised constant time, and that also enables access to the first element in amortised constant time. Write the OCaml code for the data type, and functions ${ml`poplast`} and ${ml`last`}. You may also need to code a function ${ml`norm`} that guarantees amortised constant time in all circumstances. Explain why your operations are amortised constant time.`,
+  writeUp: 'explanation',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const functionalQueues: TopicContent = {
@@ -288,8 +299,9 @@ export const functionalQueues: TopicContent = {
   generators: [queueTrace, naiveCost, batchCost],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['queue', 'amortised-cost'],
-  cambridge: [focsTwoN, queueOption, focs101],
-  gate: ['focs-10-1'],
+  cambridge: [cst18, focsTwoN, queueOption, focs101],
+  // Best first: the 2018 Tripos deque (amortised constant time at both ends), then FoCS 10.1.
+  gate: ['cst-2018-p1-q2-b', 'focs-10-1'],
   recall: [
     { front: t`What queue does ${ml`Q (front, rear)`} represent?`, back: t`${ml`front @ List.rev rear`}: the rear list holds the newest elements, newest first.` },
     { front: t`What is normal form for the two-list queue?`, back: t`The front list is empty only if the whole queue is; ${ml`norm`} reverses the rear into the front when the front runs out.` },

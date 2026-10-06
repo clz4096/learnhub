@@ -9,6 +9,10 @@
  * Source note: Example 98 prints 1224 = 2^2 · 3^2 · 17, but that product is 612; 1224 is
  * 2^3 · 3^2 · 17. Example 99's gcd(1224, 660) = 12 is right either way (the exponent of 2 in
  * 660 is 2), and Example 68's 24 divisors of 1224 agree with 2^3. Recorded as a mismatch.
+ *
+ * Batch 7 adds IA Numbers and Sets Example Sheet 3, Q11 (a root of a monic integer polynomial is
+ * an integer or irrational) and CST supervision exercise 3.2.3 with its 2023-24 solution. CST 3.3.1
+ * and 3.2.5 are set in num.euclid-theorem and num.number-systems, so they are not set again.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick } from '../math';
@@ -218,6 +222,43 @@ const bop101 = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking ns3-q11 (20 marks):
+ * 1. Suppose x is rational, x = p/q in lowest terms with q >= 1 (3).
+ * 2. Multiply the equation by q^n: p^n = -q (a_(n-1) p^(n-1) + a_(n-2) p^(n-2) q + ... + a_0 q^(n-1)),
+ *    so q divides p^n (6).
+ * 3. If q > 1, it has a prime factor r; r divides p^n, so r divides p (Euclid's lemma, or unique
+ *    factorisation) (6).
+ * 4. Then r divides both p and q, against lowest terms; so q = 1 and x = p is an integer. Hence x is
+ *    an integer or irrational (5).
+ */
+const ns3q11 = supervision({
+  id: 'ns3-q11',
+  source: cite('ia-ns-sheet-3', 'Q11'),
+  title: t`Roots of monic integer polynomials`,
+  prompt: t`Suppose that ${math`x \in \mathbb{R}`} is a root of a monic integer polynomial, that is, ${math`x^{n} + a_{n - ${1}}x^{n - ${1}} + a_{n - ${2}}x^{n - ${2}} + \cdots + a_{${0}} = ${0}`} for some integers ${math`a_{n - ${1}}, \ldots, a_{${0}}`}. Prove that ${math`x`} is either an integer or irrational.`,
+  writeUp: 'proof',
+});
+
+/*
+ * Outline for marking sw-3-2-3 (20 marks):
+ * 1. By unique factorisation, gcd(u, v) is the product over primes p of p^min(u_p, v_p) (4).
+ * 2. gcd(a, c) = 1 means no prime divides both: for each p with c_p > 0, a_p = 0 (4).
+ * 3. For such p, (ab)_p = a_p + b_p = b_p, so min((ab)_p, c_p) = min(b_p, c_p) (6).
+ * 4. For p with c_p = 0, both minima are 0 (3). So the products agree: gcd(ab, c) = gcd(b, c) (3).
+ *    (A proof by mutual divisibility with Euclid's lemma earns the same marks.)
+ */
+const sw323 = supervision({
+  id: 'sw-3-2-3',
+  source: cite('cst-dm-sw1', 'Exercises 3, 3.2.3'),
+  title: t`A coprime factor does not change the gcd`,
+  prompt: t`Prove that for all positive integers ${math`a, b, c`}, if ${math`\gcd(a, c) = ${1}`} then ${math`\gcd(a \cdot b, c) = \gcd(b, c)`}.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-3', '3.2.3'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const [mm, md] = [math`m`, math`d`];
@@ -295,9 +336,10 @@ export const fundamentalTheorem: TopicContent = {
   generators: [gcdLcm, countDivisors, makeSquare],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fundamental-theorem-arithmetic'],
-  cambridge: [notes98, notes68, homework302, bop101],
-  // The uniqueness proof by induction. Examples 98 and 68 are single computations, left out.
-  gate: ['notes-302-homework'],
+  cambridge: [notes98, notes68, homework302, bop101, ns3q11, sw323],
+  // The IA monic polynomial question first (unique factorisation does the work), then the
+  // uniqueness proof by induction and the gcd exercise. Examples 98 and 68 are single computations, left out.
+  gate: ['ns3-q11', 'notes-302-homework', 'sw-3-2-3'],
   recall: [
     { front: t`State the fundamental theorem of arithmetic.`, back: t`Every integer ${math`n \ge ${2}`} is a product of primes, and the sorted list of primes is unique.` },
     { front: t`Which lemma gives uniqueness?`, back: t`Euclid's lemma: if a prime divides a product, it divides one of the factors.` },

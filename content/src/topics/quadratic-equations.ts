@@ -4,7 +4,9 @@
  * quadratics in a function of the unknown. The batch 2 sources assume it: STEP 2
  * Statistics Q5 (2010 S1 Q13) turns a Poisson waiting time into pe^(2λ) - e^λ + 1 = 0, a
  * quadratic in e^λ, whose two roots give Mildred's two phones. The official solution's
- * answers, λ1 + λ2 = -ln p and p(1 - p), are compared in the content checks.
+ * answers, λ1 + λ2 = -ln p and p(1 - p), are compared in the content checks. Batch 7 adds STEP
+ * Foundation Assignment 1 Q2(ii) and Assignment 2 Q2(vi) with their hints; Assignment 1 Q2(iii)
+ * and Q3 are set in ineq.linear-quadratic.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
@@ -262,6 +264,71 @@ const showQuadratic = supervision({
   official: cite(S2S, 'Q5'),
 });
 
+// ---------------------------------------------------------------- Cambridge problems: STEP Foundation (batch 7)
+
+/** 9x^2 + bx + 4 has a repeated root exactly when b^2 = 4 x 9 x 4. */
+const REPEAT_B = [q(-12), q(12)];
+const a1q2ii = auto({
+  id: 'a1-q2-ii',
+  source: cite('step-f01', 'Q2(ii)'),
+  title: t`A repeated root`,
+  prompt: t`Find the value(s) of ${math`b`} for which the following equation has a single (repeated) root: ${math`${9}x^{${2}} + bx + ${4} = ${0}`}. Give every value, separated by commas.`,
+  answer: {
+    kind: 'witness', count: { min: 1, max: 3 }, unordered: true, example: asList(REPEAT_B),
+    check: (vals) => {
+      if (setKey(vals) === setKey(REPEAT_B)) return null;
+      if (vals.length === 1 && REPEAT_B.some((b) => setKey([b]) === setKey(vals))) return 'That value works, but there is another.';
+      return 'A repeated root needs the discriminant to be zero: solve that for b.';
+    },
+  },
+  solution: [
+    t`A repeated root means the discriminant is zero: ${math`b^{${2}} - ${4} \times ${9} \times ${4} = ${0}`}, so ${math`b^{${2}} = ${144}`}.`,
+    t`So ${math`b = ${12}`} or ${math`b = ${-12}`}: both values, since ${math`(${-12})^{${2}} = ${144}`} too.`,
+  ],
+  reference: asList(REPEAT_B),
+  verify: () => {
+    for (const b of REPEAT_B) {
+      const e = same(`the discriminant at b = ${str(b)}`, str(sub(mul(b, b), q(4 * 9 * 4))), '0');
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [{ response: '12', why: t`${math`b^{${2}} = ${144}`} has two solutions. The negative one, ${math`b = ${-12}`}, also gives a repeated root.` }],
+  official: { source: cite('step-f01-hints', 'Q2(ii)'), answer: '12, -12', agrees: true },
+});
+
+/** x^2 - 8x + 21 = (x + a)^2 + b, and its greatest and least values on 0 <= x <= 5. */
+const VI = { p: -8, c: 21, lo: 0, hi: 5 };
+const viA = VI.p / 2;
+const viB = VI.c - viA * viA;
+const viF = (x: number): number => x * x + VI.p * x + VI.c;
+const a2q2vi = auto({
+  id: 'a2-q2-vi',
+  source: cite('step-f02', 'Q2(vi)', true),
+  title: t`Completing the square on an interval`,
+  prompt: t`Write the expression ${math`x^{${2}} - ${8}x + ${21}`} in the form ${math`(x + a)^{${2}} + b`}. Hence find the greatest and least values of ${math`x^{${2}} - ${8}x + ${21}`} in the range ${math`${0} \le x \le ${5}`}. (A sketch of the curve helps.)`,
+  answer: {
+    kind: 'table', columns: [t`quantity`, t`value`], cell: 'exact',
+    rows: [[[math`a`], null], [[math`b`], null], [t`the greatest value`, null], [t`the least value`, null]],
+    expected: [String(viA), String(viB), String(Math.max(viF(VI.lo), viF(VI.hi))), String(viB)],
+  },
+  solution: [
+    t`Half the coefficient of ${math`x`} is ${viA}, so ${math`x^{${2}} - ${8}x + ${21} = (x - ${4})^{${2}} - ${16} + ${21} = (x - ${4})^{${2}} + ${5}`}: ${math`a = ${viA}`}, ${math`b = ${viB}`}.`,
+    t`A square is never negative, so the least value is ${viB}, at ${math`x = ${4}`}, which lies in the range.`,
+    t`The square grows with the distance from ${4}. In the range, ${math`x = ${0}`} is farthest (distance ${4}, against ${1} at ${math`x = ${5}`}), so the greatest value is ${math`${16} + ${5} = ${viF(0)}`}.`,
+  ],
+  reference: [String(viA), String(viB), String(viF(0)), String(viB)],
+  verify: () => {
+    const e = same('(x + a)^2 + b expanded', `${2 * viA} ${viA * viA + viB}`, `${VI.p} ${VI.c}`);
+    if (e !== null) return e;
+    const xs = Array.from({ length: 501 }, (_, i) => VI.lo + (i * (VI.hi - VI.lo)) / 500);
+    const ys = xs.map(viF);
+    return same('greatest and least on a fine grid', `${Math.max(...ys)} ${Math.min(...ys)}`, `${viF(0)} ${viB}`);
+  },
+  misconceptions: [{ response: [String(viA), String(viB), String(viF(5)), String(viB)], why: t`The greatest value is at the end of the range farther from the vertex at ${math`x = ${4}`}: that is ${math`x = ${0}`}, not ${math`x = ${5}`}.` }],
+  official: { source: cite('step-f02-hints', 'Q2(vi)'), answer: ['-4', '5', '21', '5'], agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EXP = { a: 2, b: -7, c: 3 };
@@ -349,10 +416,12 @@ export const quadraticEquations: TopicContent = {
   generators: [solveQuadratic, repeatedRoot, hiddenQuadratic],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quadratic-formula', 'discriminant'],
-  cambridge: [mildredWait, twoRates, showQuadratic],
+  cambridge: [mildredWait, twoRates, showQuadratic, a1q2ii, a2q2vi],
   // The two values of the exponential test the quadratic. The write-up (s2-q5-show) and
   // Mildred's first text both need Poisson processes, not yet met here, so neither gates.
-  gate: ['s2-q5-two-values'],
+  // Batch 7 adds the STEP Foundation warm-ups (Assignment 1 Q2(ii), Assignment 2 Q2(vi)); completing
+  // the square on an interval has four parts, so it gates too. The repeated root is one step.
+  gate: ['s2-q5-two-values', 'a2-q2-vi'],
   recall: [
     { front: t`State the quadratic formula.`, back: t`${math`x = \frac{-b \pm \sqrt{b^{${2}} - ${4}ac}}{${2}a}`}, for ${math`a \ne ${0}`}.` },
     { front: t`How does the discriminant count the real roots?`, back: t`${math`\Delta > ${0}`}: two. ${math`\Delta = ${0}`}: one repeated root. ${math`\Delta < ${0}`}: none.` },

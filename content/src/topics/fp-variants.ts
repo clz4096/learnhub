@@ -339,6 +339,24 @@ const focs61 = supervision({
   writeUp: 'explanation',
 });
 
+// Computer Science Tripos Part IA 2025, Paper 1, Question 2(a), (b), and 2020, Paper 1, Question
+// 1(a), (b). 2020 Q1(c) uses exceptions, a later topic.
+const cst25expr = supervision({
+  id: 'cst-2025-p1-q2-ab',
+  source: cite('cst-y2025p1q2', '(a), (b)'),
+  title: t`Expressions as a variant type`,
+  prompt: t`The following type definition allows the representation of some mathematical expressions as an OCaml value: ${codeBlock(code`type expr =`, code`  | Add of expr * expr`, code`  | Mul of expr * expr`, code`  | Number of int`)} (a) Write the OCaml value that corresponds to the expression ${math`(${1} + ${4}) \times (${10} + ${2})`}. (b) Write a function that will evaluate the numerical result of an ${code`expr`} argument. What is the OCaml type of your function?`,
+  writeUp: 'explanation',
+});
+
+const cst20trees = supervision({
+  id: 'cst-2020-p1-q1-ab',
+  source: cite('cst-y2020p1q1', '(a), (b)'),
+  title: t`Counting trees in a wood`,
+  prompt: t`You need to write OCaml code to help a local park ranger count the different types of trees present in a region of Cambridgeshire woodland. (a) Define an OCaml type ${code`tree`} that can distinguish between an oak, birch or maple tree, and also any other species with an arbitrary string name. (b) Define two OCaml values with the following signatures: (i) ${code`val describe : tree -> string`} that accepts a ${code`tree`} parameter and returns a human-readable string; (ii) ${code`val identify : string -> tree`} that accepts a lowercase string parameter and returns a ${code`tree`}. Explain briefly how the OCaml compiler can statically check if you have handled all the input possibilities for the input parameters to ${code`describe`} and ${code`identify`}.`,
+  writeUp: 'explanation',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const fpVariants: TopicContent = {
@@ -399,8 +417,9 @@ export const fpVariants: TopicContent = {
   generators: [wheelsGen, optionGen, whichMatches],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['variant-type', 'constructor', 'option-type'],
-  cambridge: [matchingII, quadrant, safeHdTl, focs61],
-  gate: ['cs3110-ex3-safe-hd-tl'],
+  cambridge: [cst25expr, cst20trees, matchingII, quadrant, safeHdTl, focs61],
+  // Best first: the 2025 and 2020 Tripos questions, then the CS3110 exercise.
+  gate: ['cst-2025-p1-q2-ab', 'cst-2020-p1-q1-ab', 'cs3110-ex3-safe-hd-tl'],
   recall: [
     { front: t`What are the values of a variant type ${code`type t = C${1} of t${1} | ... | Cn of tn`}?`, back: t`Exactly the ${code`Ci v`} with ${code`v : ti`} (or ${code`Ci`} alone for a constant constructor); different constructors give different values.` },
     { front: t`What is ${code`'a option`}?`, back: t`${code`type 'a option = None | Some of 'a`}: no value, or one value of type ${code`'a`}.` },

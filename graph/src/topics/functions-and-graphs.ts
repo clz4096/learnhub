@@ -64,7 +64,7 @@ export const functionsAndGraphs: Topic[] = [
     summary: 'Solve inequalities such as $x - \\frac{1}{x} \\ge \\frac{3}{2}$ by multiplying by a square or by splitting into sign cases.',
     level: 'step',
     area: 'functions-and-graphs',
-    prereqs: ['ineq.linear-quadratic', 'fn.rational-functions'],
+    prereqs: ['ineq.linear-quadratic', 'fn.rational-functions', 'trig.right-triangle'],
     encompasses: { 'ineq.linear-quadratic': 0.6, 'fn.rational-functions': 0.3 },
     sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_ALGEBRA_FUNCTIONS, note: 'Spec: "Solve inequalities and interpret them graphically; including, but not limited to, those involving rational algebraic expressions".', verified: true }],
     estMinutes: 15,

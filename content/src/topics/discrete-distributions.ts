@@ -3,7 +3,9 @@
  * probabilities that sum to one. From the STEP specification's statistical distributions; the
  * problems are STEP Support Assignment 19, Q4(ii) (three dice: the number of sixes, and a bet
  * on it, checked against the hints) and IA Probability Example Sheet 1, Q11 (Mary's and
- * John's coins), each checked by listing every outcome.
+ * John's coins), each checked by listing every outcome. Batch 7 adds Grinstead and Snell, Section
+ * 4.1, Exercise 36 (the smaller of two dice) and Section 5.1, Exercise 6 (the smallest of n), the
+ * second worded with dice, since independence comes later.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, q, str, type Rational } from '../math';
@@ -255,6 +257,69 @@ const ia11sup = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/** The distribution of the smallest of n dice with faces 1 .. k, by listing all k^n outcomes. */
+function minDist(n: number, k: number): number[] {
+  const counts = Array.from({ length: k + 1 }, () => 0);
+  for (let a = 0; a < k ** n; a++) {
+    let m = k;
+    for (let x = a, i = 0; i < n; i++, x = Math.floor(x / k)) m = Math.min(m, (x % k) + 1);
+    counts[m] = (counts[m] as number) + 1;
+  }
+  return counts;
+}
+
+const MIN2 = minDist(2, 6);
+const gs4136 = auto({
+  id: 'gs-4-1-36',
+  source: cite('gs-ch4', 'Section 4.1, Exercise 36 (page 156)'),
+  title: t`The smaller of two dice`,
+  prompt: t`A die is thrown twice. Let ${math`X_{${1}}`} and ${math`X_{${2}}`} denote the outcomes. Define ${math`X = \min(X_{${1}}, X_{${2}})`}. Find the distribution of ${math`X`}.`,
+  answer: {
+    kind: 'table', columns: [[math`x`], [math`P(X = x)`]], cell: 'exact',
+    rows: [1, 2, 3, 4, 5, 6].map((x) => [t`${x}`, null]),
+    expected: [1, 2, 3, 4, 5, 6].map((x) => str(q(MIN2[x] as number, 36))),
+  },
+  solution: [
+    t`The ${36} ordered pairs are equally likely. ${math`X = x`} when both dice show at least ${math`x`} and at least one shows exactly ${math`x`}.`,
+    t`Both dice at least ${math`x`}: ${math`(${7} - x)^{${2}}`} pairs; both at least ${math`x + ${1}`}: ${math`(${6} - x)^{${2}}`}. The difference is ${math`${13} - ${2}x`} pairs.`,
+    t`So ${math`P(X = x) = \frac{${13} - ${2}x}{${36}}`}: ${math`\frac{${11}}{${36}}, \frac{${9}}{${36}}, \frac{${7}}{${36}}, \frac{${5}}{${36}}, \frac{${3}}{${36}}, \frac{${1}}{${36}}`}, which add to ${1}.`,
+  ],
+  reference: [1, 2, 3, 4, 5, 6].map((x) => str(q(13 - 2 * x, 36))),
+  verify: () => same('the smaller of two dice, listed', MIN2.slice(1).join(' '), [1, 2, 3, 4, 5, 6].map((x) => 13 - 2 * x).join(' ')),
+  misconceptions: [{ response: [1, 2, 3, 4, 5, 6].map((x) => str(q(2 * x - 1, 36))), why: t`Those are the probabilities for the larger of the two dice, which is largest at ${6}. The smaller is most likely to be ${1}: reverse the order.` }],
+});
+
+const KN = { k: { kind: 'integer' as const, min: 1, max: 8 }, n: { kind: 'integer' as const, min: 1, max: 4 }, j: { kind: 'integer' as const, min: 1, max: 8 } };
+const gs516 = auto({
+  id: 'gs-5-1-6',
+  source: cite('gs-ch5', 'Section 5.1, Exercise 6 (page 197)', true),
+  title: t`The smallest of several dice`,
+  prompt: t`${math`n`} dice, each with faces numbered ${1} to ${math`k`}, are rolled, and all ${math`k^{n}`} outcomes are equally likely. Let ${math`Y`} be the smallest number showing. Find ${math`P(Y = j)`} for ${math`j = ${1}, \ldots, k`}, as a formula in ${math`j`}, ${math`k`}, and ${math`n`}. (Type powers with a caret, as on a calculator.)`,
+  answer: { kind: 'expression', expected: '((k - j + 1)^n - (k - j)^n) / k^n', variables: ['j', 'k', 'n'], domains: KN },
+  solution: [
+    t`First the tail: ${math`Y \ge j`} means every die shows one of the ${math`k - j + ${1}`} numbers ${math`j, \ldots, k`}. That happens in ${math`(k - j + ${1})^{n}`} of the ${math`k^{n}`} outcomes.`,
+    t`Then ${math`P(Y = j) = P(Y \ge j) - P(Y \ge j + ${1}) = \frac{(k - j + ${1})^{n} - (k - j)^{n}}{k^{n}}`}.`,
+    t`Check with two six-sided dice: ${math`j = ${1}`} gives ${math`\frac{${36} - ${25}}{${36}} = \frac{${11}}{${36}}`}, as in the previous problem.`,
+  ],
+  reference: '((k - j + 1)^n - (k - j)^n) / k^n',
+  verify: () => {
+    for (let n = 1; n <= 3; n++) for (let k = 1; k <= 6; k++) {
+      const d = minDist(n, k);
+      for (let j = 1; j <= k; j++) {
+        const e = same(`n = ${n}, k = ${k}, j = ${j}`, d[j], (k - j + 1) ** n - (k - j) ** n);
+        if (e !== null) return e;
+      }
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: '((k - j + 1) / k)^n', why: t`That is ${math`P(Y \ge j)`}: every die at least ${math`j`}. Subtract ${math`P(Y \ge j + ${1})`} to get exactly ${math`j`}.` },
+    { response: '1 / k', why: t`One die is uniform, but the smallest of several is not: it is pulled towards ${1}. Count the outcomes with every die at least ${math`j`}.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const TWO_DICE = Array.from({ length: 11 }, (_, i) => i + 2).map((s) => q(6 - Math.abs(s - 7), 36));
@@ -299,8 +364,10 @@ export const discreteDistributions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['distribution-table'],
   claims,
-  cambridge: [ia11, a19bet, a19three, ia11sup],
-  gate: ['a19-q4-ii-bet'],
+  cambridge: [ia11, a19bet, a19three, ia11sup, gs4136, gs516],
+  // The STEP bet, then the smallest of n dice as a formula. The smaller of two dice mirrors the
+  // lesson's worked example (the larger of two), so it is practice.
+  gate: ['a19-q4-ii-bet', 'gs-5-1-6'],
   recall: [
     { front: t`What two conditions make ${math`p_{${1}}, p_{${2}}, \ldots`} a probability distribution?`, back: t`Each ${math`p_{i} \ge ${0}`}, and ${math`\sum p_{i} = ${1}`}.` },
     { front: t`How do you find ${math`P(X \in A)`} from a distribution?`, back: t`Add ${math`P(X = x)`} over the values ${mx} in ${math`A`}.` },

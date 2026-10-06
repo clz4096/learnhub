@@ -4,7 +4,8 @@
  * (u = px + q, u = x^2 + c) and ones that remove a square root (x = 2 sin theta). The
  * Cambridge problems are STEP Support Foundation Assignment 25, Q1 and Q3 (1994 STEP I Q8),
  * with the Assignment 25 hints, and STEP 3 Statistics Q4 (2005 S3 Q14, the substitution
- * u = k^2/x).
+ * u = k^2/x). The gate adds STEP Support STEP 2 Calculus Q2 (2006 STEP II Q4, x f(sin x)) and
+ * STEP I 2010 Q4, first part (STEP Questions Database).
  */
 import { auto, cite, supervision } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
@@ -195,6 +196,91 @@ const statsQ = supervision({
   official: cite(S3S, 'Q4'),
 });
 
+// STEP Support STEP 2 Calculus Q2 (2006 STEP II Q4) and STEP I 2010 Q4, first part (STEP
+// Questions Database). Both need the integral of 1/(a^2 - u^2), which takes partial fractions
+// (not a prerequisite): STEP I 2010 gives it, and the 2006 question is set with it given.
+const CALC = 'step-s2-calc' as const;
+const CALCS = 'step-s2-calc-solutions' as const;
+const DB10 = 'stepdb-10-s1' as const;
+const GIVEN_LOG = (): ReturnType<typeof math> => math`\int \frac{${1}}{a^{${2}} - u^{${2}}}\,du = \frac{${1}}{${2}a}\ln\left|\frac{a + u}{a - u}\right| + \text{constant}`;
+
+const calc2 = supervision({
+  id: 's2calc-q2',
+  source: cite(CALC, 'Q2 (2006 STEP II Q4)', true),
+  title: t`Integrals with ${math`x f(\sin x)`}`,
+  prompt: t`By making the substitution ${math`x = \pi - t`}, show that ${dmath`\int_{${0}}^{\pi} x f(\sin x)\,dx = \tfrac{${1}}{${2}}\pi \int_{${0}}^{\pi} f(\sin x)\,dx,`} where ${math`f(\sin x)`} is a given function of ${math`\sin x`}. Evaluate the following integrals: (i) ${math`\int_{${0}}^{\pi} \frac{x\sin x}{${3} + \sin^{${2}} x}\,dx`}; (ii) ${math`\int_{${0}}^{${2}\pi} \frac{x\sin x}{${3} + \sin^{${2}} x}\,dx`}; (iii) ${math`\int_{${0}}^{\pi} \frac{x|\sin ${2}x|}{${3} + \sin^{${2}} x}\,dx`}. You may use ${GIVEN_LOG()}.`,
+  writeUp: 'explanation',
+  official: cite(CALCS, 'Q2'),
+});
+
+const PI_LN3_4 = 'pi/4 * ln(3)';
+const calc2i = auto({
+  id: 's2calc-q2-i',
+  source: cite(CALC, 'Q2(i) (2006 STEP II Q4)', true),
+  title: t`${math`\int_{${0}}^{\pi} \frac{x\sin x}{${3} + \sin^{${2}} x}\,dx`}`,
+  prompt: t`Given that ${math`\int_{${0}}^{\pi} x f(\sin x)\,dx = \frac{\pi}{${2}}\int_{${0}}^{\pi} f(\sin x)\,dx`}, evaluate ${math`\int_{${0}}^{\pi} \frac{x\sin x}{${3} + \sin^{${2}} x}\,dx`} exactly. You may use ${GIVEN_LOG()}.`,
+  answer: { kind: 'expression', expected: PI_LN3_4, variables: [] },
+  solution: [
+    t`The integrand is ${math`x f(\sin x)`} with ${math`f(s) = \frac{s}{${3} + s^{${2}}}`}, so the integral is ${math`\frac{\pi}{${2}}\int_{${0}}^{\pi} \frac{\sin x}{${3} + \sin^{${2}} x}\,dx`}.`,
+    t`${math`${3} + \sin^{${2}} x = ${4} - \cos^{${2}} x`}. Put ${math`u = \cos x`}, ${math`du = -\sin x\,dx`}; ${math`x = ${0}`} gives ${math`u = ${1}`} and ${math`x = \pi`} gives ${math`u = -${1}`}: ${math`\int_{${0}}^{\pi} \frac{\sin x}{${4} - \cos^{${2}} x}\,dx = \int_{-${1}}^{${1}} \frac{du}{${4} - u^{${2}}}`}.`,
+    t`With ${math`a = ${2}`}: ${math`\left[\frac{${1}}{${4}}\ln\frac{${2} + u}{${2} - u}\right]_{-${1}}^{${1}} = \frac{${1}}{${4}}\left(\ln ${3} - \ln\frac{${1}}{${3}}\right) = \frac{${1}}{${2}}\ln ${3}`}.`,
+    t`So the integral is ${math`\frac{\pi}{${2}} \cdot \frac{${1}}{${2}}\ln ${3} = \frac{\pi}{${4}}\ln ${3}`}.`,
+  ],
+  reference: PI_LN3_4,
+  verify: () => close('integral (i)', simpson((x) => (x * Math.sin(x)) / (3 + Math.sin(x) ** 2), 0, Math.PI, 20000), (Math.PI / 4) * Math.log(3), 1e-9),
+  misconceptions: [
+    { response: 'pi/2 * ln(3)', why: t`${math`\int_{-${1}}^{${1}} \frac{du}{${4} - u^{${2}}} = \frac{${1}}{${2}}\ln ${3}`}, and the stem's factor is ${math`\frac{\pi}{${2}}`}: the product is ${math`\frac{\pi}{${4}}\ln ${3}`}.` },
+  ],
+  official: { source: cite(CALCS, 'Q2(i)'), answer: PI_LN3_4, agrees: true },
+});
+
+const calc2ii = auto({
+  id: 's2calc-q2-ii',
+  source: cite(CALC, 'Q2(ii) (2006 STEP II Q4)', true),
+  title: t`The same integrand, over ${math`[${0}, ${2}\pi]`}`,
+  prompt: t`Given that ${math`\int_{${0}}^{\pi} \frac{x\sin x}{${3} + \sin^{${2}} x}\,dx = \frac{\pi}{${4}}\ln ${3}`} and ${math`\int_{${0}}^{\pi} \frac{\sin x}{${3} + \sin^{${2}} x}\,dx = \frac{${1}}{${2}}\ln ${3}`}, evaluate ${math`\int_{${0}}^{${2}\pi} \frac{x\sin x}{${3} + \sin^{${2}} x}\,dx`} exactly.`,
+  answer: { kind: 'expression', expected: '-pi/2 * ln(3)', variables: [] },
+  solution: [
+    t`Split at ${math`\pi`}. On ${math`[\pi, ${2}\pi]`} put ${math`x = t + \pi`}: ${math`\sin(t + \pi) = -\sin t`} and ${math`\sin^{${2}}(t + \pi) = \sin^{${2}} t`}, so that part is ${math`\int_{${0}}^{\pi} \frac{-(t + \pi)\sin t}{${3} + \sin^{${2}} t}\,dt`}.`,
+    t`The ${math`t`} part cancels the integral over ${math`[${0}, \pi]`}, leaving ${math`-\pi\int_{${0}}^{\pi} \frac{\sin t}{${3} + \sin^{${2}} t}\,dt = -\pi \cdot \frac{${1}}{${2}}\ln ${3} = -\frac{\pi}{${2}}\ln ${3}`}.`,
+  ],
+  reference: '-pi/2 * ln(3)',
+  verify: () => close('integral (ii)', simpson((x) => (x * Math.sin(x)) / (3 + Math.sin(x) ** 2), 0, 2 * Math.PI, 20000), (-Math.PI / 2) * Math.log(3), 1e-9),
+  misconceptions: [
+    { response: 'pi/2 * ln(3)', why: t`On ${math`[\pi, ${2}\pi]`}, ${math`\sin x`} is negative, so that half pulls the integral down: the total is negative.` },
+    { response: 'pi * ln(3)', why: t`The stem's formula is for ${math`[${0}, \pi]`} only. Over ${math`[${0}, ${2}\pi]`}, shift the second half back by ${math`\pi`} and watch the sign of ${math`\sin`}.` },
+  ],
+  official: { source: cite(CALCS, 'Q2(ii)'), answer: '-pi/2 * ln(3)', agrees: true },
+});
+
+const calc2iii = auto({
+  id: 's2calc-q2-iii',
+  source: cite(CALC, 'Q2(iii) (2006 STEP II Q4)'),
+  title: t`With ${math`|\sin ${2}x|`} on top`,
+  prompt: t`Given that ${math`\int_{${0}}^{\pi} x f(\sin x)\,dx = \frac{\pi}{${2}}\int_{${0}}^{\pi} f(\sin x)\,dx`} for any function ${math`f`} of ${math`\sin x`}, evaluate ${math`\int_{${0}}^{\pi} \frac{x|\sin ${2}x|}{${3} + \sin^{${2}} x}\,dx`} exactly.`,
+  answer: { kind: 'expression', expected: 'pi * ln(4/3)', variables: [] },
+  solution: [
+    t`${math`|\sin ${2}x| = ${2}\sin x\,|\cos x|`} on ${math`[${0}, \pi]`}, and ${math`|\cos x| = \sqrt{${1} - \sin^{${2}} x}`}, so the integrand is ${math`x f(\sin x)`}: the integral is ${math`\frac{\pi}{${2}}\int_{${0}}^{\pi} \frac{${2}\sin x\,|\cos x|}{${4} - \cos^{${2}} x}\,dx`}.`,
+    t`Put ${math`u = \cos x`}: this is ${math`\frac{\pi}{${2}}\int_{-${1}}^{${1}} \frac{${2}|u|}{${4} - u^{${2}}}\,du = \pi\int_{${0}}^{${1}} \frac{${2}u}{${4} - u^{${2}}}\,du`}, by symmetry.`,
+    t`The top is minus the derivative of the bottom: ${math`\pi\left[-\ln(${4} - u^{${2}})\right]_{${0}}^{${1}} = \pi(\ln ${4} - \ln ${3}) = \pi\ln\frac{${4}}{${3}}`}.`,
+  ],
+  reference: 'pi * ln(4/3)',
+  verify: () => close('integral (iii)', simpson((x) => (x * Math.abs(Math.sin(2 * x))) / (3 + Math.sin(x) ** 2), 0, Math.PI, 40000), Math.PI * Math.log(4 / 3), 1e-7),
+  misconceptions: [
+    { response: '0', why: t`Without the modulus, ${math`\sin ${2}x`} is not a function of ${math`\sin x`} and the halves cancel; with it, the integrand is never negative.` },
+    { response: 'pi/2 * ln(4/3)', why: t`${math`|u|`} is even, so ${math`\int_{-${1}}^{${1}}`} is twice ${math`\int_{${0}}^{${1}}`}: that doubles the ${math`\frac{\pi}{${2}}`}.` },
+  ],
+  official: { source: cite(CALCS, 'Q2(iii)'), answer: 'pi * ln(4/3)', agrees: true },
+});
+
+const db10q4 = supervision({
+  id: 'step10-q4',
+  source: cite(DB10, 'Q4, first part'),
+  title: t`A substitution that clears two square roots`,
+  prompt: t`Use the substitution ${math`x = \frac{${1}}{t^{${2}} - ${1}}`}, where ${math`t > ${1}`}, to show that, for ${math`x > ${0}`}, ${dmath`\int \frac{${1}}{\sqrt{x(x + ${1})}}\,dx = ${2}\ln\left(\sqrt{x} + \sqrt{x + ${1}}\right) + c.`} [Note: you may use without proof the result ${math`\int \frac{${1}}{t^{${2}} - a^{${2}}}\,dt = \frac{${1}}{${2}a}\ln\left|\frac{t - a}{t + a}\right| + \text{constant}`}.]`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const substitution: TopicContent = {
@@ -241,8 +327,10 @@ export const substitution: TopicContent = {
   generators: [linear, reverseChain, sqrtSub],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['substitution'],
-  cambridge: [fracQ, rootQ, tanSubQ, statsQ],
-  gate: ['a25-q3-tan'],
+  cambridge: [calc2, db10q4, calc2i, calc2ii, calc2iii, fracQ, rootQ, tanSubQ, statsQ],
+  // Best first: 2006 STEP II Q4 (with official solutions), STEP I 2010 Q4's substitution (its
+  // volume of revolution is not a prerequisite), Assignment 25 Q3, then 2006 Q4(iii) auto-checked.
+  gate: ['s2calc-q2', 'step10-q4', 'a25-q3-tan', 's2calc-q2-iii'],
   recall: [
     { front: t`State integration by substitution.`, back: t`${math`\int_{\alpha}^{\beta} f(g(u))g'(u)\,du = \int_{g(\alpha)}^{g(\beta)} f(x)\,dx`}.` },
     { front: t`What three things change in a substitution?`, back: t`The integrand, ${math`dx`} (to ${math`g'(u)\,du`}), and the limits.` },

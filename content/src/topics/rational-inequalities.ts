@@ -2,7 +2,8 @@
  * ineq.rational: inequalities with fractions, such as x - 1/x >= 3/2, solved by
  * multiplying by a square (which is never negative) or by a sign diagram in which the
  * zeros of the denominator are critical values that never belong to the answer. Sources:
- * STEP Support Foundation Assignment 7 Q1(ii) and Assignment 18 Q2(iii). Every solution
+ * STEP Support Foundation Assignment 7 Q1(ii) and Assignment 18 Q2(iii), and STEP I 2001
+ * Q2(i) (STEP Questions Database). Every solution
  * set is checked by the sign test (prep-a.ts, setWhere), which treats a zero denominator
  * as "undefined, so not a solution".
  */
@@ -190,6 +191,37 @@ const a18iii = supervision({
   official: cite('step-f18-hints', 'Q2(iii)'),
 });
 
+// STEP I 2001 Q2(i) (STEP Questions Database): a rational inequality that becomes a cubic over x.
+const DB01 = 'stepdb-01-s1' as const;
+
+const db01q2 = supervision({
+  id: 'step01-q2-i',
+  source: cite(DB01, 'Q2(i)'),
+  title: t`A quadratic against ${math`\frac{${2}}{x}`}`,
+  prompt: t`Solve the inequality ${math`${1} + ${2}x - x^{${2}} > \frac{${2}}{x}`} ${math`(x \ne ${0})`}. Explain how you deal with the sign of ${math`x`}.`,
+  writeUp: 'explanation',
+});
+
+const db01q2auto = setProblem({
+  id: 'step01-q2-i-set',
+  source: cite(DB01, 'Q2(i)'),
+  title: t`Solve ${math`${1} + ${2}x - x^{${2}} > \frac{${2}}{x}`}`,
+  prompt: t`For what values of ${math`x`} (with ${math`x \ne ${0}`}) is ${math`${1} + ${2}x - x^{${2}} > \frac{${2}}{x}`}?`,
+  right: [open(q(-1), q(0)), open(q(1), q(2))],
+  wrong: [
+    { set: [open(null, q(-1)), open(q(0), q(1)), open(q(2), null)], why: t`That is where the left side is smaller. Check a point: at ${math`x = ${q(3, 2)}`}, ${math`${1} + ${3} - ${q(9, 4)} = ${q(7, 4)}`} and ${math`\frac{${2}}{x} = ${q(4, 3)}`}, so the inequality holds there.` },
+    { set: [open(q(1), q(2))], why: t`Multiplying by ${math`x`} keeps the direction only for ${math`x > ${0}`}. Multiply by ${math`x^{${2}}`} instead, or take the cases: negative ${math`x`} between ${math`-${1}`} and ${0} work too.` },
+  ],
+  solution: [
+    t`Multiply by ${math`x^{${2}} > ${0}`}, which keeps the direction: ${math`x^{${2}} + ${2}x^{${3}} - x^{${4}} > ${2}x`}, that is ${math`x(x^{${3}} - ${2}x^{${2}} - x + ${2}) < ${0}`}.`,
+    t`Group the cubic: ${math`x^{${2}}(x - ${2}) - (x - ${2}) = (x - ${2})(x - ${1})(x + ${1})`}. So we need ${math`x(x + ${1})(x - ${1})(x - ${2}) < ${0}`}.`,
+    t`The critical values are ${math`-${1}, ${0}, ${1}, ${2}`}. For large ${math`x`} the product is positive, and it changes sign at each simple root: negative on ${math`(${1}, ${2})`}, positive on ${math`(${0}, ${1})`}, negative on ${math`(-${1}, ${0})`}, positive below ${math`-${1}`}.`,
+    t`So ${math`-${1} < x < ${0}`} or ${math`${1} < x < ${2}`}.`,
+  ],
+  test: (x) => x.num !== 0n && sub(add(q(1), sub(mul(q(2), x), mul(x, x))), div(q(2), x)).num > 0n,
+  critical: [q(-1), q(0), q(1), q(2)],
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const rationalInequalities: TopicContent = {
@@ -236,8 +268,9 @@ export const rationalInequalities: TopicContent = {
   generators: [quotientSign, fractionVsNumber, xPlusReciprocal],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['rational-inequality'],
-  cambridge: [a7a, a18iii],
-  gate: ['a18-q2-iii'],
+  cambridge: [db01q2, db01q2auto, a7a, a18iii],
+  // Best first: STEP I 2001 Q2(i), then Assignment 18 Q2(iii), then 2001 Q2(i) auto-checked.
+  gate: ['step01-q2-i', 'a18-q2-iii', 'step01-q2-i-set'],
   recall: [
     { front: t`Why multiply a rational inequality by ${math`Q(x)^{${2}}`} rather than ${math`Q(x)`}?`, back: t`${math`Q(x)^{${2}}`} is positive wherever the inequality makes sense, so the direction is kept.` },
     { front: t`Which critical values never belong to the answer?`, back: t`The zeros of the denominator, where the expression is undefined.` },

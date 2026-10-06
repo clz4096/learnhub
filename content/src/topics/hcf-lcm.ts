@@ -3,10 +3,11 @@
  * numbers, by listing and from prime factorisations, and HCF x LCM = ab. Sources: the GCSE
  * subject content (DfE 2013), and STEP Support Foundation Assignment 10 Q2(iii). HCFs are
  * computed by Euclid's algorithm and LCMs by searching the multiples, independently of the
- * prime-power method the solutions use.
+ * prime-power method the solutions use. The gate is IA Numbers and Sets Example Sheet 2, Q8
+ * (batch 7), with HCF written for the sheet's (a, b).
  */
-import { auto, cite, same } from '../cambridge';
-import { gcd, int, pick, q } from '../math';
+import { auto, cite, same, supervision } from '../cambridge';
+import { gcd, int, pick, q, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, math, t } from '../rich';
 import { checkFrom, workedCambridge, worked, type TopicContent } from '../topic';
@@ -174,6 +175,66 @@ const a10lcm = auto({
   misconceptions: [{ response: '2095632000', why: t`That is the product of the two numbers, which counts the common factor ${360} twice.` }],
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+const HCF = (x: string, y: string) => math`\text{HCF}(${x}, ${y})`;
+
+/*
+ * Outline for marking ns2-q8 (20 marks):
+ * 1. Not always equal: a = d = 2, b = c = 1 gives HCF(2, 1) HCF(1, 2) = 1 but HCF(2, 2) = 2 (5).
+ * 2. HCF(a, b) HCF(c, d) always divides HCF(ac, bd): HCF(a, b) | a and HCF(c, d) | c, so the product
+ *    divides ac; likewise bd; a common divisor divides the HCF (by prime powers: each prime's
+ *    power in the product is min(a_p, b_p) + min(c_p, d_p) <= min(a_p + c_p, b_p + d_p)) (6). The other
+ *    direction fails (the example in 1) (1).
+ * 3. Yes: if a prime p divided a and bc, then p | b or p | c (unique factorisation), so p would
+ *    divide HCF(a, b) or HCF(a, c), both 1. So no prime divides both a and bc: HCF(a, bc) = 1 (8).
+ */
+const ns2q8 = supervision({
+  id: 'ns2-q8',
+  source: cite('ia-ns-sheet-2', 'Q8', true),
+  title: t`Highest common factors of products`,
+  prompt: t`Let ${math`a, b, c, d`} be positive integers. Must the numbers ${math`\text{HCF}(a, b) \cdot \text{HCF}(c, d)`} and ${HCF('ac', 'bd')} be equal? If not, must one be a factor of the other? If ${math`\text{HCF}(a, b) = \text{HCF}(a, c) = ${1}`}, must we have ${math`\text{HCF}(a, bc) = ${1}`}? Prove each answer, or give a counterexample.`,
+  writeUp: 'proof',
+});
+
+/** Searches every a, b, c, d up to n: does the product of HCFs always divide the HCF of products, and coprimality pass to bc? */
+const ns2q8Facts = (n: number): string | null => {
+  for (let a = 1; a <= n; a++) for (let b = 1; b <= n; b++) for (let c = 1; c <= n; c++) for (let d = 1; d <= n; d++) {
+    if (gcd(a * c, b * d) % (gcd(a, b) * gcd(c, d)) !== 0) return `HCF(a, b) HCF(c, d) does not divide HCF(ac, bd) at ${a}, ${b}, ${c}, ${d}`;
+    if (gcd(a, b) === 1 && gcd(a, c) === 1 && gcd(a, b * c) !== 1) return `HCF(a, bc) is not 1 at ${a}, ${b}, ${c}`;
+  }
+  return null;
+};
+
+const ns2q8Witness = auto({
+  id: 'ns2-q8-unequal',
+  source: cite('ia-ns-sheet-2', 'Q8, first question', true),
+  title: t`Not always equal`,
+  prompt: t`Give positive integers ${math`a, b, c, d`} for which ${math`\text{HCF}(a, b) \cdot \text{HCF}(c, d) \ne \text{HCF}(ac, bd)`}.`,
+  answer: {
+    kind: 'witness', count: 4, names: ['a', 'b', 'c', 'd'], example: 'a = 2, b = 1, c = 1, d = 2',
+    check: (vals: readonly Rational[]) => {
+      const v = vals.map((x) => (x.den === 1n && x.num >= 1n && x.num <= 1_000_000n ? Number(x.num) : NaN));
+      if (v.some(Number.isNaN)) return 'Give four positive whole numbers, each at most a million.';
+      const [a, b, c, d] = v as [number, number, number, number];
+      const left = gcd(a, b) * gcd(c, d);
+      const right = gcd(a * c, b * d);
+      return left !== right ? null : `Both sides are ${left} for these numbers.`;
+    },
+  },
+  solution: [
+    t`Make ${math`a`} and ${math`d`} share a factor that neither pair sees: ${math`a = d = ${2}`} and ${math`b = c = ${1}`}.`,
+    t`Then ${math`\text{HCF}(${2}, ${1}) \cdot \text{HCF}(${1}, ${2}) = ${1}`}, but ${math`\text{HCF}(${2}, ${2}) = ${2}`}.`,
+    t`In general the left side divides the right side, but the right side can be larger.`,
+  ],
+  reference: 'a = 2, b = 1, c = 1, d = 2',
+  verify: () => {
+    const e = same('HCF(2, 1) HCF(1, 2) against HCF(2, 2)', `${gcd(2, 1) * gcd(1, 2)} ${gcd(2, 2)}`, '1 2');
+    return e ?? ns2q8Facts(12);
+  },
+  misconceptions: [{ response: 'a = 2, b = 2, c = 3, d = 3', why: t`Here both sides are ${6}: when ${math`a = b`} and ${math`c = d`} nothing is lost. Look for a factor shared across the pairs, between ${math`a`} and ${math`d`}.` }],
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const hcfLcm: TopicContent = {
@@ -218,9 +279,10 @@ export const hcfLcm: TopicContent = {
   generators: [hcf, lcm, product],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hcf', 'lcm'],
-  cambridge: [a10lcm],
-  // No gate: the one approved problem (the LCM from given factorisations) is a single step.
-  gate: [],
+  cambridge: [a10lcm, ns2q8, ns2q8Witness],
+  // The IA question: three claims about HCFs of products, each proved or refuted. The LCM from given
+  // factorisations is a single step, and the counterexample alone is the question's first line.
+  gate: ['ns2-q8'],
   recall: [
     { front: t`HCF and LCM from prime factorisations?`, back: t`HCF: the lower power of each prime. LCM: the higher power.` },
     { front: t`How are the HCF and LCM of ${math`a`} and ${math`b`} related?`, back: t`${math`\text{HCF}(a, b) \times \text{LCM}(a, b) = ab`}.` },

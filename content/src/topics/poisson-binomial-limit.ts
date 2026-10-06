@@ -6,7 +6,10 @@
  * STEP Support STEP 2 Statistics topic notes, page 2 ("If n is large and p is very small
  * then a Poisson distribution with mean np can be used to approximate a Binomial
  * distribution"). Neither source sets a numbered problem, so the problems adapt them and
- * have no official answers; each answer is checked against the exact binomial.
+ * have no official answers; each answer is checked against the exact binomial. Batch 7 adds
+ * Grinstead and Snell, Section 5.1, Exercises 11, 17, and 29, the last two with printed odd answers.
+ * Exercise 17's printed 649741 comes from the Poisson approximation with a strict inequality; the
+ * exact binomial answer is 649740, recorded as a mismatch.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q } from '../math';
@@ -235,6 +238,82 @@ const when = supervision({
   writeUp: 'explanation',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/** x to three decimal places. */
+const round3 = (x: number): number => Math.round(x * 1000) / 1000;
+
+const BOXES = 500;
+/** The king tests one coin from each of 500 boxes, each with one fake in 500. */
+const KING = 1 - (1 - 1 / BOXES) ** BOXES;
+const gs5129 = auto({
+  id: 'gs-5-1-29',
+  source: cite('gs-ch5', 'Section 5.1, Exercise 29, first question (page 201)'),
+  title: t`The king's counterfeit coins`,
+  prompt: t`The king's coinmaster boxes his coins ${BOXES} to a box and puts ${1} counterfeit coin in each box. The king is suspicious, but, instead of testing all the coins in ${1} box, he tests ${1} coin chosen at random out of each of ${BOXES} boxes. What is the probability that he finds at least one fake? Give three decimal places.`,
+  answer: { kind: 'numeric', expected: KING, absTol: 0.001 },
+  solution: [
+    t`Each test finds a fake with probability ${q(1, BOXES)}, independently, so the number of fakes found is ${math`B(${BOXES}, \tfrac{${1}}{${BOXES}})`}.`,
+    t`Exactly: ${math`${1} - \left(${1} - \tfrac{${1}}{${BOXES}}\right)^{${BOXES}} \approx ${round3(KING)}`}. The Poisson approximation with ${math`\lambda = np = ${1}`} gives ${math`${1} - e^{-${1}} \approx ${round3(1 - Math.exp(-1))}`}: the two agree to three places.`,
+  ],
+  reference: round3(KING).toFixed(3),
+  verify: () => {
+    // The exact value, the product written out, against the Poisson value.
+    let none = 1;
+    for (let i = 0; i < BOXES; i++) none *= (BOXES - 1) / BOXES;
+    const e = same('the exact value, two ways', (1 - none).toFixed(12), KING.toFixed(12));
+    return e ?? same('exact and Poisson to three places', round3(KING), round3(1 - Math.exp(-1)));
+  },
+  misconceptions: [{ response: round3(1 - KING).toFixed(3), why: t`That is the chance of finding no fake. The question asks for at least one: take it from ${1}.` }],
+  official: { source: cite('gs-answers-odd', 'Section 5.1, Exercise 29'), answer: '0.632', agrees: true },
+});
+
+/** A royal flush has probability 1/649740; the smallest n with (1 - p)^n < 1/e. */
+const ROYAL = 649740;
+const smallestN = (): number => Math.floor(-1 / Math.log1p(-1 / ROYAL)) + 1;
+const gs5117 = auto({
+  id: 'gs-5-1-17',
+  source: cite('gs-ch5', 'Section 5.1, Exercise 17 (page 199)', true),
+  title: t`How many hands before a royal flush`,
+  prompt: t`The probability of a royal flush in a poker hand is ${math`p = \frac{${1}}{${ROYAL}}`}. How large must ${math`n`} be to render the probability of having no royal flush in ${math`n`} hands smaller than ${math`\frac{${1}}{e}`}? Give the smallest such ${math`n`}, for independent hands.`,
+  answer: { kind: 'exact', expected: String(smallestN()) },
+  solution: [
+    t`No royal flush in ${math`n`} hands has probability ${math`(${1} - p)^{n}`}, which falls as ${math`n`} grows. Write ${math`N = \frac{${1}}{p} = ${ROYAL}`}.`,
+    t`${math`n = N`} works: ${math`\ln(${1} - x) < -x`} for ${math`${0} < x < ${1}`}, so ${math`N \ln\left(${1} - \tfrac{${1}}{N}\right) < -${1}`}, that is ${math`(${1} - p)^{N} < e^{-${1}}`}.`,
+    t`${math`n = N - ${1}`} does not: ${math`\ln(${1} + y) < y`} for ${math`y > ${0}`}; with ${math`y = \frac{${1}}{N - ${1}}`}, ${math`\ln \frac{N}{N - ${1}} < \frac{${1}}{N - ${1}}`}, which rearranges to ${math`(N - ${1}) \ln\left(${1} - \tfrac{${1}}{N}\right) > -${1}`}, that is ${math`(${1} - p)^{N - ${1}} > e^{-${1}}`}.`,
+    t`So the smallest ${math`n`} is ${math`N = ${ROYAL}`}. The Poisson approximation ${math`e^{-np} < e^{-${1}}`} asks for ${math`np > ${1}`}, giving ${ROYAL + 1}; the exact binomial probability is already below ${math`\frac{${1}}{e}`} one hand sooner.`,
+  ],
+  reference: String(smallestN()),
+  verify: () => {
+    const p = 1 / ROYAL;
+    const below = (n: number): boolean => n * Math.log1p(-p) < -1;
+    const e = same('the smallest n', `${below(ROYAL)} ${below(ROYAL - 1)}`, 'true false');
+    return e ?? same('the smallest n by the logarithm', smallestN(), ROYAL);
+  },
+  misconceptions: [{ response: String(ROYAL + 1), why: t`That is the Poisson answer, from ${math`np > ${1}`}. The exact probability ${math`(${1} - p)^{n}`} is a little smaller than ${math`e^{-np}`}, and at ${math`n = ${ROYAL}`} it is already below ${math`\frac{${1}}{e}`}.` }],
+  official: {
+    source: cite('gs-answers-odd', 'Section 5.1, Exercise 17'), answer: String(ROYAL + 1), agrees: false,
+    note: 'The printed 649741 is the Poisson answer: e^(-np) < 1/e needs np > 1, so n > 649740. The exact probability (1 - p)^n is below 1/e already at n = 1/p = 649740, since (1 - 1/N)^N < 1/e for every N, and above it at n = 649739. The exact answer, 649740, is used.',
+  },
+});
+
+/*
+ * Outline for marking gs-5-1-11 (20 marks):
+ * 1. The Poisson model for one-minute counts comes from splitting the minute into n short pieces, each
+ *    with one call with probability about lambda/n, independently, and letting n grow (5).
+ * 2. For an interval of length t, split it into n pieces of length t/n: each holds a call with
+ *    probability about lambda t / n, so the count is about B(n, lambda t / n) (8).
+ * 3. By the Poisson limit of the binomial with lambda t in place of lambda, P(Y = k) tends to
+ *    e^(-lambda t) (lambda t)^k / k! (5). The Martian's unit of t minutes says the same (2).
+ */
+const gs5111 = supervision({
+  id: 'gs-5-1-11',
+  source: cite('gs-ch5', 'Section 5.1, Exercise 11 (pages 198 and 199)'),
+  title: t`Calls in a longer interval`,
+  prompt: t`Suppose that ${math`X`} is a random variable which represents the number of calls coming in to a police station in a one-minute interval, modelled by a Poisson distribution with parameter ${math`\lambda`}, the average number of incoming calls per minute. Now suppose that ${math`Y`} is a random variable which represents the number of incoming calls in an interval of length ${math`t`}. Show that ${math`P(Y = k) = e^{-\lambda t} \frac{(\lambda t)^{k}}{k!}`}, that is, ${math`Y`} is Poisson with parameter ${math`\lambda t`}. (Hint: suppose a Martian observes the police station, and the basic time interval used on Mars is exactly ${math`t`} Earth minutes. What would she write down for the distribution of ${math`Y`}?)`,
+  writeUp: 'explanation',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const L = 2;
@@ -295,10 +374,12 @@ export const poissonBinomialLimit: TopicContent = {
   generators: [approx, limit, expLimit],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['poisson-approximation'],
-  cambridge: [notesAtMost, notesVar, general, when],
+  cambridge: [notesAtMost, notesVar, general, when, gs5129, gs5117, gs5111],
   // The explanation the notes call for. The faulty-items estimate is one Poisson probability with
   // np put in, the variance substitution is one line, and the general limit is from the schedule.
-  gate: ['s2-notes-when'],
+  // Batch 7: the royal flush, where the exact binomial and the Poisson answers differ by one hand,
+  // and the king's coins. The Martian's interval is an argument by analogy, kept as practice.
+  gate: ['s2-notes-when', 'gs-5-1-17', 'gs-5-1-29'],
   recall: [
     { front: t`State the Poisson limit of the binomial.`, back: t`For fixed ${ml} and ${mk}, ${math`P(B(n, \lambda/n) = k) \to e^{-\lambda}\lambda^{k}/k!`}.` },
     { front: t`When does ${math`\text{Po}(np)`} approximate ${math`B(n, p)`} well?`, back: t`When ${mn} is large and ${math`p`} is small: the means agree, and the variances differ by the factor ${math`${1} - p`}.` },

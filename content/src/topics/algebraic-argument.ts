@@ -3,7 +3,10 @@
  * and algebra that shows a claim for all of them. From STEP Support Assignment 12, Q1 (the
  * warm-up: products of consecutive integers; n - 1 = 3k, so n³ - 1 is a multiple of 9) and
  * Book of Proof Sections 4.1 to 4.5 with Chapter 4, exercises 1 to 5 (parity by direct
- * proof), checked against the hints and the book's solutions to odd exercises.
+ * proof), checked against the hints and the book's solutions to odd exercises. Batch 7 adds IA
+ * Numbers and Sets Example Sheet 1, Q1 and Q4, and CST supervision exercise 1.3.1(d) with its
+ * 2023-24 official solution. (Sheet 1, Q2, the primes 41, 43, 47, ..., is this lesson's pitfall,
+ * and CST 3.2.7(b) is proof.direct's theorem, so neither is set.)
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { gcd, int, pick, upTo } from '../math';
@@ -335,6 +338,92 @@ const a12ii = supervision({
   official: cite('step-f12-hints', 'Q1(ii)'),
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/** The largest product of positive integers adding to s, by trying every first part (dynamic programming). */
+function bestProduct(s: number): bigint {
+  const best: bigint[] = [1n];
+  for (let n = 1; n <= s; n++) {
+    let b = BigInt(n);
+    for (let k = 1; k < n; k++) {
+      const v = BigInt(k) * (best[n - k] as bigint);
+      if (v > b) b = v;
+    }
+    best.push(b);
+  }
+  return best[s] as bigint;
+}
+const SUM = 100;
+const THREES = Math.floor((SUM - 4) / 3);
+
+const ns1q4 = auto({
+  id: 'ns1-q4',
+  source: cite('ia-ns-sheet-1', 'Q4'),
+  title: t`Largest product for a fixed sum`,
+  prompt: t`Suppose that we have some positive integers (not necessarily distinct) whose sum is ${SUM}. How large can their product be? (You may leave powers in your answer. Type powers with a caret, as on a calculator.)`,
+  answer: { kind: 'expression', expected: `2^2 * 3^${THREES}`, variables: [] },
+  solution: [
+    t`A part ${math`k \ge ${5}`} can be split into ${2} and ${math`k - ${2}`}, with product ${math`${2}(k - ${2}) = ${2}k - ${4} > k`}; so a best choice has no part above ${4}, and a ${4} can be written ${math`${2} + ${2}`} with the same product.`,
+    t`A part ${1} only adds to the sum: merging it into another part ${math`a`} gives ${math`a + ${1} > a`}. And three ${2}s can become two ${3}s, with ${math`${3} \times ${3} = ${9} > ${8} = ${2} \times ${2} \times ${2}`}.`,
+    t`So the parts are ${3}s with at most two ${2}s. As ${math`${SUM} = ${3} \times ${THREES} + ${4}`}, the best is ${THREES} threes and two twos: ${math`${2}^{${2}} \times ${3}^{${THREES}}`}.`,
+  ],
+  reference: `2^2 * 3^${THREES}`,
+  verify: () => same('the best product by dynamic programming', bestProduct(SUM), 4n * 3n ** BigInt(THREES)),
+  misconceptions: [
+    { response: `3^${THREES + 1}`, why: t`${THREES + 1} threes add to ${3 * (THREES + 1)}, so a part ${1} is left over, and it adds nothing to the product. Trade the ${3} and the ${1} for two ${2}s.` },
+    { response: `2^${SUM / 2}`, why: t`Two ${2}s give ${4} but cost ${4}; a ${3} and a ${3} give ${9} for ${6}, more than three ${2}s for the same ${6}. Use as many ${3}s as you can.` },
+  ],
+});
+
+/*
+ * Outline for marking ns1-q4-proof (20 marks):
+ * 1. A best choice exists: finitely many ways to write 100 as a sum of positive integers (2).
+ * 2. No part of 5 or more: 2(k - 2) > k for k >= 5; a 4 may be replaced by 2 + 2 (5).
+ * 3. No part 1: merge it with another part (3).
+ * 4. At most two 2s: 2 + 2 + 2 becomes 3 + 3, product 8 to 9 (4).
+ * 5. So all 3s and at most two 2s; 100 = 3 x 32 + 4 forces thirty-two 3s and two 2s (one 2 would
+ *    need 98 to be a multiple of 3; none would need 100 to be) (4).
+ * 6. Answer 4 x 3^32 stated (2).
+ */
+const ns1q4Proof = supervision({
+  id: 'ns1-q4-proof',
+  source: cite('ia-ns-sheet-1', 'Q4'),
+  title: t`Why that product is the largest`,
+  prompt: t`Suppose that we have some positive integers (not necessarily distinct) whose sum is ${SUM}. How large can their product be? Prove that no choice of integers does better than your answer.`,
+  writeUp: 'proof',
+});
+
+/*
+ * Outline for marking ns1-q1 (20 marks):
+ * 1. Answer: yes (2).
+ * 2. Contrapositive or cases: if n is not a multiple of 3, then n = 3q + 1 or n = 3q + 2 (4).
+ * 3. (3q + 1)^2 = 3(3q^2 + 2q) + 1 and (3q + 2)^2 = 3(3q^2 + 4q + 1) + 1, each with the bracket an
+ *    integer (8).
+ * 4. So n^2 leaves remainder 1, not a multiple of 3; hence if n^2 is a multiple of 3 so is n (6).
+ */
+const ns1q1 = supervision({
+  id: 'ns1-q1',
+  source: cite('ia-ns-sheet-1', 'Q1'),
+  title: t`Squares that are multiples of three`,
+  prompt: t`If ${math`n^{${2}}`} is a multiple of ${3}, must ${mn} be a multiple of ${3}? Prove your answer.`,
+  writeUp: 'proof',
+});
+
+/*
+ * Outline for marking sw-1-3-1-d (20 marks):
+ * 1. Names two consecutive triangular numbers t_k and t_(k+1) for a natural number k (4).
+ * 2. t_k + t_(k+1) = k(k + 1)/2 + (k + 1)(k + 2)/2 = (k + 1)(2k + 2)/2 (8).
+ * 3. = (k + 1)^2, a square of a natural number (6). Each step shown, no division left unexplained (2).
+ */
+const sw131d = supervision({
+  id: 'sw-1-3-1-d',
+  source: cite('cst-dm-sw1', 'Exercises 1, 1.3.1(d)', true),
+  title: t`Two triangular numbers make a square`,
+  prompt: t`A natural number is triangular if it is ${math`t_k = ${0} + ${1} + \cdots + k`} for some natural number ${mk}; for example ${math`t_{${0}} = ${0}`}, ${math`t_{${1}} = ${1}`}, ${math`t_{${2}} = ${3}`}. Using ${math`t_k = \frac{k(k + ${1})}{${2}}`}, show that the sum of every two consecutive triangular numbers is a square. (Nicomachus, around ${100} BC.)`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-1', '1.3.1(d)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const algebraicArgument: TopicContent = {
@@ -436,8 +525,10 @@ export const algebraicArgument: TopicContent = {
   generators: [writeTwoM, divides, parity, substitute],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['parity', 'consecutive'],
-  cambridge: [bop41, bop43, bop45, bop42, bop44, a12ii],
-  gate: ['a12-q1-ii-six'],
+  cambridge: [bop41, bop43, bop45, bop42, bop44, a12ii, ns1q4, ns1q4Proof, ns1q1, sw131d],
+  // The IA largest-product argument first (the auto-checked value alone can be found by trial, so
+  // the write-up gates before it), then the STEP warm-up, the squares, and the triangular numbers.
+  gate: ['ns1-q4-proof', 'a12-q1-ii-six', 'ns1-q1', 'sw-1-3-1-d', 'ns1-q4'],
   recall: [
     { front: t`Define even and odd integers.`, back: t`${mn} is even if ${math`n = ${2}k`}, and odd if ${math`n = ${2}k + ${1}`}, for some ${math`k \in \mathbb{Z}`}.` },
     { front: t`How do you show an expression is odd?`, back: t`Write it as ${math`${2} \times (\text{an integer}) + ${1}`}, and say why the bracket is an integer.` },

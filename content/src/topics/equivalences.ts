@@ -6,7 +6,10 @@
  * B" as "(not A) or B" (pages 31 and 32), and on the contrapositive (pages 41 to 48), and
  * the CST notes' table of equivalences for negation (printed page 134). The problems are
  * Book of Proof's exercises for Section 2.6 (exercises 4, 9, and 13 are set in
- * logic.connectives), TMUA Exercises F and K, and the CST notes' question on Lemma 43.
+ * logic.connectives), TMUA Exercises F and K, the CST notes' question on Lemma 43, and (batch 7)
+ * Exercises 1 and 4 of the CST Logic and Proof notes. Their Exercise 2 (De Morgan and the
+ * distributive laws by truth tables) is what the lesson and its first worked example do, so it is
+ * not set.
  */
 import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
 import { column, differingRows, equivalent, fm, rowText, TF, truthTable } from '../logic';
@@ -432,6 +435,77 @@ const lemma43 = supervision({
   writeUp: 'explanation',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+const SAT_DEF = t`A formula is satisfiable if some assignment of truth values makes it true, valid if every assignment does, and unsatisfiable if none does.`;
+
+const lp1 = auto({
+  id: 'lp-ex-1',
+  source: cite('cst-lp-notes', 'Section 2, Exercise 1 (page 5)'),
+  title: t`A statement that implies its negation`,
+  prompt: t`${SAT_DEF} Is the formula ${fm('P => ~P', ['P'])} satisfiable, or valid?`,
+  answer: {
+    kind: 'choice',
+    options: [
+      { id: 'sat', label: t`Satisfiable but not valid: it is true when ${mP} is false and false when ${mP} is true.` },
+      { id: 'valid', label: t`Valid: it is true in both rows.` },
+      { id: 'unsat', label: t`Unsatisfiable: no statement can imply its own negation.` },
+    ],
+    correct: 'sat',
+  },
+  solution: [
+    t`As an "or", ${math`P \Rightarrow \lnot P`} is ${math`\lnot P \lor \lnot P`}, which is equivalent to ${math`\lnot P`}.`,
+    t`So it is true in the row where ${mP} is false (satisfiable) and false in the row where ${mP} is true (not valid).`,
+  ],
+  reference: ['sat'],
+  verify: () => same('the column of P => ~P', column('P => ~P', ['P']).map(TF).join(''), 'FT'),
+  misconceptions: [{ response: ['unsat'], why: t`An implication with a false premise is true. When ${mP} is false, ${math`P \Rightarrow \lnot P`} is true, so the formula is satisfiable.` }],
+});
+
+/** Logic and Proof Exercise 4, in the formula grader's syntax. */
+const LP4 = ['(P => Q) & (Q => P)', '((P & Q) | R) & ~(P | R)', '~(P | Q | R) | ((P & Q) | R)'] as const;
+const lp4Verdict = (x: string): [boolean, boolean] => {
+  const c = column(x, PQR);
+  return [c.every((v) => v), c.some((v) => v)];
+};
+
+/*
+ * Outline for marking lp-ex-4 (20 marks; for each formula 2 for the CNF, 2 for the DNF, 2 for the
+ * verdict with its rows, and 2 overall for showing each rewriting step by a named law):
+ * 1. (P => Q) & (Q => P): CNF (~P | Q) & (~Q | P); DNF (P & Q) | (~P & ~Q), after distributing and
+ *    dropping the contradictory terms. Satisfiable (P, Q both true), not valid (P true, Q false).
+ * 2. ((P & Q) | R) & ~(P | R): CNF (P | R) & (Q | R) & ~P & ~R; DNF (P & Q & ~P & ~R) | (R & ~P & ~R).
+ *    Every DNF term holds a letter and its negation, so it is unsatisfiable.
+ * 3. ~(P | Q | R) | ((P & Q) | R): DNF (~P & ~Q & ~R) | (P & Q) | R; CNF (P | ~Q | R) & (~P | Q | R).
+ *    Satisfiable (R true), not valid (P true, Q and R false).
+ */
+const lp4 = supervision({
+  id: 'lp-ex-4',
+  source: cite('cst-lp-notes', 'Section 2, Exercise 4 (page 5)', true),
+  title: t`Normal forms and verdicts`,
+  prompt: t`A literal is a letter or the negation of a letter. A formula is in conjunctive normal form (CNF) if it is an "and" of clauses, each an "or" of literals, and in disjunctive normal form (DNF) if it is an "or" of terms, each an "and" of literals. Convert each of the following formulas into CNF and also into DNF: ${fm(LP4[0])}; ${fm(LP4[1])}; ${fm(LP4[2])}. For each formula, state whether it is valid, satisfiable, or unsatisfiable; justify each answer. (${SAT_DEF})`,
+  writeUp: 'explanation',
+});
+
+const lp4Verdicts = auto({
+  id: 'lp-ex-4-verdicts',
+  source: cite('cst-lp-notes', 'Section 2, Exercise 4 (page 5)', true),
+  title: t`Valid, satisfiable, or neither`,
+  prompt: t`${SAT_DEF} For each formula, is it valid? Is it satisfiable? Write T or F.`,
+  answer: {
+    kind: 'table', columns: [t`formula`, t`valid`, t`satisfiable`], cell: 'truth',
+    rows: LP4.map((x) => [[fm(x)], null, null]),
+    expected: LP4.flatMap((x) => lp4Verdict(x).map(TF)),
+  },
+  solution: [
+    t`${fm(LP4[0])} says ${mP} and ${mQ} have the same truth value: true when both are true, false when only ${mP} is. Satisfiable, not valid.`,
+    t`${fm(LP4[1])} needs ${math`\lnot (P \lor R)`}, so ${mP} and ${math`R`} false; then ${math`(P \land Q) \lor R`} is false. No row makes it true: unsatisfiable, so not valid either.`,
+    t`${fm(LP4[2])} is true whenever ${math`R`} is true, so it is satisfiable; with ${mP} true and ${mQ}, ${math`R`} false both parts are false, so it is not valid.`,
+  ],
+  reference: LP4.flatMap((x) => lp4Verdict(x).map(TF)),
+  verify: () => same('the verdicts, valid and satisfiable in turn', LP4.map((x) => lp4Verdict(x).map(TF).join('')).join(' '), 'FT FF FT'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const DM_A = ['T', 'F'];
@@ -535,10 +609,11 @@ export const equivalences: TopicContent = {
   generators: [whichImplies, deMorganWords, whereDiffer],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['logically-equivalent', 'de-morgans-laws', 'contrapositive'],
-  cambridge: [bop3, bop5, bop7, bop10, bop11, bop12, tmuaF1, tmuaK2, tmuaK4, tmuaF3, tmuaK5, lemma43],
-  // The only problem from a Cambridge-standard document. It also negates quantifiers, taught in
-  // logic.negating-quantifiers, so a learner may meet this gate after that lesson.
-  gate: ['cst-lemma-43-equivalences'],
+  cambridge: [bop3, bop5, bop7, bop10, bop11, bop12, tmuaF1, tmuaK2, tmuaK4, tmuaF3, tmuaK5, lemma43, lp1, lp4, lp4Verdicts],
+  // Logic and Proof Exercise 4 first: normal forms by the laws of the lesson, and a verdict for each.
+  // The Lemma 43 question also negates quantifiers, taught in logic.negating-quantifiers, so a
+  // learner may meet it after that lesson. Exercise 1 is one formula of one letter: practice.
+  gate: ['lp-ex-4', 'cst-lemma-43-equivalences', 'lp-ex-4-verdicts'],
   recall: [
     { front: t`When are two statements logically equivalent?`, back: t`When they have the same truth value in every row of the truth table.` },
     { front: t`State De Morgan's laws.`, back: t`${math`\lnot (P \land Q)`} is equivalent to ${math`(\lnot P) \lor (\lnot Q)`}; ${math`\lnot (P \lor Q)`} is equivalent to ${math`(\lnot P) \land (\lnot Q)`}.` },

@@ -3,13 +3,16 @@
  * scalar product, with its geometric meaning |a||b|cos theta, for angles and
  * perpendicularity. Problems: NST Maths Workbook V1 (four vectors ordered by magnitude, and
  * a distance), and STEP Support Foundation Assignment 5 Q3(ii) (2006 STEP I Q8), whose angle
- * the scalar product finds in one line.
+ * the scalar product finds in one line. The gate adds IA Vectors and Matrices Example Sheet 1
+ * Q7 (DAMTP: the altitudes are concurrent) and STEP Support STEP 2 Vectors Q2 (2011 STEP II Q5)
+ * and Q1, first paragraph (2002 STEP II Q7), with their official solutions.
  */
 import { auto, cite, supervision } from '../cambridge';
 import { colTex, dot, norm2, sub3, surd } from '../geometry';
 import { int, pick, q, str } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, t } from '../rich';
+import { close } from '../prep-c';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 import { far } from '../partv-a';
 
@@ -206,6 +209,108 @@ const a5angle = supervision({
 });
 
 
+// IA Vectors and Matrices Example Sheet 1, Q7 (DAMTP), and STEP Support STEP 2 Vectors Q2
+// (2011 STEP II Q5) and Q1, first paragraph (2002 STEP II Q7). The later parts of 2002 Q7 need
+// vector equations of lines, a later topic.
+const VEC = 'step-s2-vectors' as const;
+const VECS = 'step-s2-vectors-solutions' as const;
+
+const damtpQ7 = supervision({
+  id: 'damtp-vm1-q7',
+  source: cite('damtp-ia-vm1', 'Q7'),
+  title: t`The altitudes of a triangle meet`,
+  prompt: t`Show by vector methods that the altitudes of a triangle are concurrent. [Hint: let the altitudes ${math`AD`}, ${math`BE`} of ${math`\triangle ABC`} meet at ${math`H`}, and show that ${math`CH`} is perpendicular to ${math`AB`}.]`,
+  writeUp: 'proof',
+});
+
+const vec2 = supervision({
+  id: 's2vec-q2',
+  source: cite(VEC, 'Q2 (2011 STEP II Q5)'),
+  title: t`Two reflections`,
+  prompt: t`The points ${math`A`} and ${math`B`} have position vectors ${math`\mathbf{a}`} and ${math`\mathbf{b}`} with respect to an origin ${math`O`}, and ${math`O`}, ${math`A`} and ${math`B`} are non-collinear. The point ${math`C`}, with position vector ${math`\mathbf{c}`}, is the reflection of ${math`B`} in the line through ${math`O`} and ${math`A`}. Show that ${math`\mathbf{c}`} can be written in the form ${math`\mathbf{c} = \lambda\mathbf{a} - \mathbf{b}`}, where ${math`\lambda = \frac{${2}\,\mathbf{a} \cdot \mathbf{b}}{\mathbf{a} \cdot \mathbf{a}}`}. The point ${math`D`}, with position vector ${math`\mathbf{d}`}, is the reflection of ${math`C`} in the line through ${math`O`} and ${math`B`}. Show that ${math`\mathbf{d}`} can be written in the form ${math`\mathbf{d} = \mu\mathbf{b} - \lambda\mathbf{a}`} for some scalar ${math`\mu`} to be determined. Given that ${math`A`}, ${math`B`} and ${math`D`} are collinear, find the relationship between ${math`\lambda`} and ${math`\mu`}. In the case ${math`\lambda = -\frac{${1}}{${2}}`}, determine the cosine of ${math`\angle AOB`} and describe the relative positions of ${math`A`}, ${math`B`} and ${math`D`}.`,
+  writeUp: 'proof',
+  official: cite(VECS, 'Q2'),
+});
+
+type P2 = readonly [number, number];
+/** The reflection of p in the line through the origin along u. */
+const reflect = (p: P2, u: P2): P2 => {
+  const k = (2 * (p[0] * u[0] + p[1] * u[1])) / (u[0] * u[0] + u[1] * u[1]);
+  return [k * u[0] - p[0], k * u[1] - p[1]];
+};
+
+const COS_AOB = '-sqrt(6)/4';
+const vec2cos = auto({
+  id: 's2vec-q2-cos',
+  source: cite(VEC, 'Q2 (2011 STEP II Q5)', true),
+  title: t`The angle that makes ${math`D`} the midpoint`,
+  prompt: t`${math`C`} is the reflection of ${math`B`} in the line ${math`OA`}, so ${math`\mathbf{c} = \lambda\mathbf{a} - \mathbf{b}`} with ${math`\lambda = \frac{${2}\,\mathbf{a} \cdot \mathbf{b}}{\mathbf{a} \cdot \mathbf{a}}`}, and ${math`D`} is the reflection of ${math`C`} in the line ${math`OB`}, so ${math`\mathbf{d} = \mu\mathbf{b} - \lambda\mathbf{a}`} with ${math`\mu = \frac{${4}(\mathbf{a} \cdot \mathbf{b})^{${2}}}{(\mathbf{a} \cdot \mathbf{a})(\mathbf{b} \cdot \mathbf{b})} - ${1}`}. Given that ${math`A`}, ${math`B`} and ${math`D`} are collinear and ${math`\lambda = -\frac{${1}}{${2}}`}, find the cosine of ${math`\angle AOB`} exactly.`,
+  answer: { kind: 'expression', expected: COS_AOB, variables: [] },
+  solution: [
+    t`${math`A`}, ${math`B`}, ${math`D`} are collinear exactly when ${math`\mathbf{d} = s\mathbf{a} + (${1} - s)\mathbf{b}`} for some ${math`s`}; as ${math`\mathbf{a}`} and ${math`\mathbf{b}`} are not parallel, compare coefficients: ${math`s = -\lambda`} and ${math`${1} - s = \mu`}, so ${math`\mu = \lambda + ${1}`}. With ${math`\lambda = -\frac{${1}}{${2}}`}, ${math`\mu = \frac{${1}}{${2}}`}.`,
+    t`With ${math`\cos\theta = \frac{\mathbf{a} \cdot \mathbf{b}}{|\mathbf{a}||\mathbf{b}|}`}, the formula for ${math`\mu`} reads ${math`\mu = ${4}\cos^{${2}}\theta - ${1}`}. So ${math`${4}\cos^{${2}}\theta = \frac{${3}}{${2}}`} and ${math`\cos^{${2}}\theta = \frac{${3}}{${8}}`}.`,
+    t`${math`\lambda`} has the sign of ${math`\mathbf{a} \cdot \mathbf{b}`}, which is negative, so ${math`\cos\theta = -\sqrt{\frac{${3}}{${8}}} = -\frac{\sqrt{${6}}}{${4}}`}. Then ${math`\mathbf{d} = \frac{${1}}{${2}}\mathbf{a} + \frac{${1}}{${2}}\mathbf{b}`}: ${math`D`} is the midpoint of ${math`AB`}.`,
+  ],
+  reference: COS_AOB,
+  verify: () => {
+    // Build a and b with this angle and lambda = -1/2, reflect twice, and land on the midpoint of AB.
+    const cos = -Math.sqrt(6) / 4;
+    const a: P2 = [1, 0];
+    const lenB = -0.5 / (2 * cos); // lambda = 2|b|cos/|a|
+    const b: P2 = [lenB * cos, lenB * Math.sqrt(1 - cos * cos)];
+    const lambda = (2 * (a[0] * b[0] + a[1] * b[1])) / (a[0] * a[0] + a[1] * a[1]);
+    const d = reflect(reflect(b, a), b);
+    return close('lambda', lambda, -0.5, 1e-12) ?? close('d x', d[0], (a[0] + b[0]) / 2, 1e-12) ?? close('d y', d[1], (a[1] + b[1]) / 2, 1e-12);
+  },
+  misconceptions: [
+    { response: 'sqrt(6)/4', why: t`${math`\lambda = \frac{${2}\,\mathbf{a} \cdot \mathbf{b}}{\mathbf{a} \cdot \mathbf{a}}`} is negative, so ${math`\mathbf{a} \cdot \mathbf{b} < ${0}`}: the angle is obtuse and the cosine negative.` },
+    { response: '-3/8', why: t`That is ${math`\cos^{${2}}\theta`}. Take the square root, with the sign of ${math`\lambda`}.` },
+  ],
+  official: { source: cite(VECS, 'Q2'), answer: '-sqrt(3/8)', agrees: true },
+});
+
+const vec1 = supervision({
+  id: 's2vec-q1',
+  source: cite(VEC, 'Q1 (2002 STEP II Q7), first paragraph'),
+  title: t`Two lines at ${math`\frac{\pi}{${4}}`} to two others`,
+  prompt: t`In ${3}-dimensional space, the lines ${math`m_{${1}}`} and ${math`m_{${2}}`} pass through the origin and have directions ${math`\mathbf{i} + \mathbf{j}`} and ${math`\mathbf{i} + \mathbf{k}`}, respectively. Find the directions of the two lines ${math`m_{${3}}`} and ${math`m_{${4}}`} that pass through the origin and make angles of ${math`\frac{\pi}{${4}}`} with both ${math`m_{${1}}`} and ${math`m_{${2}}`}. Find also the cosine of the acute angle between ${math`m_{${3}}`} and ${math`m_{${4}}`}.`,
+  writeUp: 'explanation',
+  official: cite(VECS, 'Q1'),
+});
+
+const vec1cos = auto({
+  id: 's2vec-q1-cos',
+  source: cite(VEC, 'Q1 (2002 STEP II Q7), first paragraph'),
+  title: t`The angle between the two new lines`,
+  prompt: t`The lines ${math`m_{${1}}`} and ${math`m_{${2}}`} pass through the origin with directions ${math`\mathbf{i} + \mathbf{j}`} and ${math`\mathbf{i} + \mathbf{k}`}. The two lines ${math`m_{${3}}`} and ${math`m_{${4}}`} through the origin each make angles of ${math`\frac{\pi}{${4}}`} with both ${math`m_{${1}}`} and ${math`m_{${2}}`}. Find the cosine of the acute angle between ${math`m_{${3}}`} and ${math`m_{${4}}`}.`,
+  answer: { kind: 'exact', expected: '1/3' },
+  solution: [
+    t`Let a unit direction be ${math`x\mathbf{i} + y\mathbf{j} + z\mathbf{k}`}. The angle with ${math`\mathbf{i} + \mathbf{j}`} (length ${math`\sqrt{${2}}`}) is ${math`\frac{\pi}{${4}}`}, so ${math`\frac{|x + y|}{\sqrt{${2}}} = \frac{${1}}{\sqrt{${2}}}`}: ${math`|x + y| = ${1}`}. Likewise ${math`|x + z| = ${1}`}.`,
+    t`If ${math`x + y = ${1}`} and ${math`x + z = ${1}`} (or both ${math`-${1}`}, the same line reversed), then ${math`y = z = ${1} - x`} and ${math`x^{${2}} + ${2}(${1} - x)^{${2}} = ${1}`}, so ${math`${3}x^{${2}} - ${4}x + ${1} = ${0}`}: ${math`x = ${1}`} or ${math`x = \frac{${1}}{${3}}`}. Mixed signs give ${math`${3}x^{${2}} + ${2} = ${1}`}, impossible.`,
+    t`The directions are ${math`\mathbf{i}`} and ${math`\frac{${1}}{${3}}(\mathbf{i} + ${2}\mathbf{j} + ${2}\mathbf{k})`}, both unit vectors, with scalar product ${math`\frac{${1}}{${3}}`}: the cosine of the acute angle is ${math`\frac{${1}}{${3}}`}.`,
+  ],
+  reference: '1/3',
+  verify: () => {
+    // Search unit directions on a fine grid of the sphere for those at pi/4 to both lines.
+    const hits: number[][] = [];
+    for (let i = 0; i <= 600; i++) for (let j = 0; j < 1200; j++) {
+      const th = (i / 600) * Math.PI;
+      const ph = (j / 1200) * 2 * Math.PI;
+      const v = [Math.sin(th) * Math.cos(ph), Math.sin(th) * Math.sin(ph), Math.cos(th)] as const;
+      if (Math.abs(Math.abs(v[0] + v[1]) - 1) < 2e-3 && Math.abs(Math.abs(v[0] + v[2]) - 1) < 2e-3) hits.push([...v]);
+    }
+    // Every hit is close to +-i or +-(i + 2j + 2k)/3.
+    const near = (v: number[], w: number[]): boolean => Math.hypot(v[0]! - w[0]!, v[1]! - w[1]!, v[2]! - w[2]!) < 0.05;
+    const known = [[1, 0, 0], [-1, 0, 0], [1 / 3, 2 / 3, 2 / 3], [-1 / 3, -2 / 3, -2 / 3]];
+    if (hits.length === 0 || !hits.every((h) => known.some((k) => near(h, k)))) return `unexpected directions: ${hits.length}`;
+    return close('cos', 1 / 3, (1 * 1 + 0 * 2 + 0 * 2) / 3, 1e-12);
+  },
+  misconceptions: [
+    { response: '0', why: t`The two directions are ${math`\mathbf{i}`} and ${math`\frac{${1}}{${3}}(\mathbf{i} + ${2}\mathbf{j} + ${2}\mathbf{k})`}; their scalar product is ${math`\frac{${1}}{${3}}`}, not ${0}.` },
+  ],
+  official: { source: cite(VECS, 'Q1'), answer: '1/3', agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EXA = [1, 2, 2];
@@ -251,8 +356,10 @@ export const vectors: TopicContent = {
   generators: [magnitude, angle, perpendicular],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['vector', 'scalar-product'],
-  cambridge: [v1ii, a5angle],
-  gate: ['a5-q3-ii-scalar'],
+  cambridge: [damtpQ7, vec2, vec1, vec2cos, vec1cos, v1ii, a5angle],
+  // Best first: the IA sheet's altitudes (DAMTP), 2011 STEP II Q5 (two reflections), 2002 STEP II
+  // Q7's first paragraph, Assignment 5 Q3(ii), then the auto-checked cosine of 2011 Q5.
+  gate: ['damtp-vm1-q7', 's2vec-q2', 's2vec-q1', 'a5-q3-ii-scalar', 's2vec-q2-cos'],
   recall: [
     { front: t`Define the scalar product and state its geometric meaning.`, back: t`${math`\mathbf{a} \cdot \mathbf{b} = a_{${1}}b_{${1}} + a_{${2}}b_{${2}} + a_{${3}}b_{${3}} = |\mathbf{a}||\mathbf{b}|\cos\theta`}.` },
     { front: t`When are two nonzero vectors perpendicular?`, back: t`Exactly when their scalar product is ${0}.` },

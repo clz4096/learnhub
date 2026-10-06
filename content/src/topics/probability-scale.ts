@@ -2,7 +2,8 @@
  * pre.probability-scale: Probability of equally likely outcomes. No Cambridge source
  * teaches it from the start (decision 11); STEP Support Assignment 6 Q4 defines "at
  * random" (any person as likely to be picked as any other), and Assignment 12 Q2 supplies
- * the sweets problems.
+ * the sweets problems. The gate is Grinstead and Snell, Section 3.1, Exercise 10 (batch 7):
+ * the last of thirteen cards dealt, by symmetry.
  */
 import { auto, cite, same } from '../cambridge';
 import { int, pick, q, str, sub, toFloat, upTo } from '../math';
@@ -288,6 +289,42 @@ const a12Goggles = auto({
   official: { source: cite('step-f12-hints', 'Q2(iv)(b)'), answer: '1/4', agrees: true },
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/** n (n - 1) ... (n - k + 1), exactly. */
+const falling = (n: number, k: number): bigint => {
+  let v = 1n;
+  for (let i = 0; i < k; i++) v *= BigInt(n - i);
+  return v;
+};
+const chooseBig = (n: number, k: number): bigint => falling(n, k) / falling(k, k);
+const DEALT = 13;
+const LAST_ACE = q(4, 52);
+
+const gs3110 = auto({
+  id: 'gs-3-1-10',
+  source: cite('gs-ch3', 'Section 3.1, Exercise 10 (page 89)', true),
+  title: t`The last card dealt`,
+  prompt: t`A deck of ordinary cards (${52} cards, ${4} of them aces) is shuffled and ${DEALT} cards are dealt. What is the probability that the last card dealt is an ace? Give a fraction in lowest terms.`,
+  answer: { kind: 'exact', expected: str(LAST_ACE) },
+  solution: [
+    t`The last card dealt is the card in place ${DEALT} of the shuffled deck. The earlier cards are not looked at, so they change nothing.`,
+    t`Shuffling makes every order of the ${52} cards equally likely, so each of the ${52} cards is equally likely to be in place ${DEALT}: swapping the cards in places ${1} and ${DEALT} pairs off the orders, and the same holds for any two places.`,
+    t`${4} of the ${52} cards are aces, so the probability is ${math`\frac{${4}}{${52}} = ${LAST_ACE}`}, the same as for the first card.`,
+  ],
+  reference: str(LAST_ACE),
+  verify: () => {
+    // Ordered deals of 13 cards: the last is an ace in 4 ways, the 12 before it from the other 51 cards.
+    const good = 4n * falling(51, DEALT - 1);
+    const all = falling(52, DEALT);
+    return same('ordered deals with an ace last', str(q(good, all)), str(LAST_ACE));
+  },
+  misconceptions: [
+    { response: str(q(4, DEALT)), why: t`That divides the ${4} aces by the ${DEALT} cards dealt. The last card can be any of the ${52} cards, each equally likely, so divide by ${52}.` },
+    { response: str(sub(q(1), q(chooseBig(48, DEALT), chooseBig(52, DEALT)))), why: t`That is the chance of at least one ace among the ${DEALT} cards. The question asks about the last card only.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const L = { red: 3, blue: 5 };
@@ -382,10 +419,10 @@ export const probabilityScale: TopicContent = {
   generators: [bag, die, complement, letters],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['probability', 'event', 'equally-likely', 'complement-event'],
-  cambridge: [a12Mint, a12Goggles],
-  // No gate: both approved problems are one-step (the goggles chance is given in the question,
-  // the mints a direct count), so neither is a Cambridge-standard test.
-  gate: [],
+  cambridge: [a12Mint, a12Goggles, gs3110],
+  // The last card dealt: equally likely outcomes chosen well, by symmetry. The two STEP problems are
+  // one-step (the goggles chance is given in the question, the mints a direct count).
+  gate: ['gs-3-1-10'],
   recall: [
     { front: t`With equally likely outcomes, what is ${math`P(A)`}?`, back: t`${math`P(A) = \frac{\lvert A \rvert}{\lvert \Omega \rvert}`}: the number of outcomes in ${mA} over the number of outcomes there are.` },
     { front: t`What does "at random" mean?`, back: t`Every item has the same probability of being picked as any other.` },

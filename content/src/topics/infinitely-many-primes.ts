@@ -3,7 +3,9 @@
  * product plus one has a prime factor not in the list, so the primes never run out. The
  * lesson follows the CST notes (printed pages 306 to 308: Theorem 100 and its proof by
  * contradiction, and the Theorem of the Day sheet, whose remark gives 2 × 3 × 5 × 7 × 11 ×
- * 13 + 1 = 30031 = 59 × 509) and Book of Proof Section 6.1.
+ * 13 + 1 = 30031 = 59 × 509) and Book of Proof Section 6.1. Batch 7 adds IA Numbers and Sets
+ * Example Sheet 2, Q5 (its second and third parts: primes of the form 4n - 1; the first part is
+ * this lesson's theorem) and Q6 (2^(2^n) - 1 has at least n distinct prime factors).
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, upTo } from '../math';
@@ -238,6 +240,44 @@ const bopVersion = supervision({
   writeUp: 'explanation',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking ns2-q5 (20 marks):
+ * 1. Suppose p_1, ..., p_k are all the primes of the form 4n - 1 (3 is one, so k >= 1); let
+ *    N = 4 p_1 ... p_k - 1. Then N > 1, N is odd, and N leaves remainder 3 on division by 4 (4).
+ * 2. Every odd prime leaves remainder 1 or 3; a product of numbers leaving remainder 1 leaves
+ *    remainder 1. So some prime factor q of N leaves remainder 3 (6).
+ * 3. q is some p_i, which divides 4 p_1 ... p_k; then p_i divides their difference 1: contradiction (4).
+ * 4. For 4n + 1: N = 4 p_1 ... p_k + 1 leaves remainder 1, but that does not force a prime factor
+ *    of the form 4n + 1, since two primes of the form 4n - 1 multiply to one of the form 4n + 1
+ *    (3 x 7 = 21) (6).
+ */
+const ns2q5 = supervision({
+  id: 'ns2-q5',
+  source: cite('ia-ns-sheet-2', 'Q5, second and third parts', true),
+  title: t`Infinitely many primes of the form ${math`${4}n - ${1}`}`,
+  prompt: t`By considering numbers of the form ${math`${4}p_{${1}}p_{${2}} \cdots p_{k} - ${1}`}, prove that there are infinitely many primes of the form ${math`${4}n - ${1}`}. What would go wrong if we tried a similar proof to show that there are infinitely many primes of the form ${math`${4}n + ${1}`}?`,
+  writeUp: 'proof',
+});
+
+/*
+ * Outline for marking ns2-q6 (20 marks):
+ * 1. Induction on n; base case n = 1: 2^2 - 1 = 3 has one prime factor (n = 0 is trivial) (3).
+ * 2. Step: 2^(2^(n+1)) - 1 = (2^(2^n) - 1)(2^(2^n) + 1), by the difference of two squares (5).
+ * 3. The two factors are odd and differ by 2, so a common divisor divides 2 and is odd: they are
+ *    coprime (6).
+ * 4. 2^(2^n) + 1 > 1 has a prime factor, which does not divide the first factor; with the n primes of
+ *    the first factor that makes at least n + 1 distinct primes (6).
+ */
+const ns2q6 = supervision({
+  id: 'ns2-q6',
+  source: cite('ia-ns-sheet-2', 'Q6'),
+  title: t`Distinct prime factors of a tower`,
+  prompt: t`Prove that ${math`${2}^{${2}^{n}} - ${1}`} has at least ${math`n`} distinct prime factors.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EX = [2, 3, 5];
@@ -302,9 +342,11 @@ export const infinitelyManyPrimes: TopicContent = {
   generators: [newPrime, remainder, euclidNumbers],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['euclids-theorem'],
-  cambridge: [firstComposite, notPrime, bopVersion],
-  // The sheet's remark asks for the proof rewritten correctly: that tests the theorem. The first composite is a factoring exercise, and Book of Proof is not Cambridge standard.
-  gate: ['cst-totd-remarks'],
+  cambridge: [firstComposite, notPrime, bopVersion, ns2q5, ns2q6],
+  // The IA sheet's variations on Euclid first: primes of the form 4n - 1, then a tower with many
+  // prime factors. The CST sheet's remark asks for the proof rewritten correctly. The first composite
+  // is a factoring exercise, and Book of Proof is not Cambridge standard.
+  gate: ['ns2-q5', 'ns2-q6', 'cst-totd-remarks'],
   recall: [
     { front: t`State Euclid's theorem.`, back: t`There are infinitely many primes.` },
     { front: t`The key number in Euclid's proof.`, back: t`${math`N = p_{${1}} \cdots p_{\ell} + ${1}`}: no prime on the list divides it, yet it has a prime factor.` },

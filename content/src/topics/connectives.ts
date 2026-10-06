@@ -3,7 +3,8 @@
  * making new statements (pages 8 to 24), Book of Proof Sections 2.1, 2.2, and 2.5, and the
  * CST notes on conjunction, disjunction, and negation (printed pages 77 to 84, 104 to 115,
  * 133). The problems are Book of Proof's exercises for Sections 2.1, 2.2, 2.5, and 2.6,
- * and TMUA Exercises A to C.
+ * and TMUA Exercises A to C; the gate is Exercise 3 of the CST Logic and Proof notes (batch 7),
+ * on the two of its formulas built from "and", "or", and "not" alone.
  */
 import { assignments, evalFormula, parseFormula, type Formula } from '@learnhub/mastery';
 import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
@@ -634,6 +635,57 @@ const bop22_12 = supervision({
   writeUp: 'explanation',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/** Logic and Proof Exercise 3, the two formulas with no implication: each is true in exactly one row. */
+const LP3: readonly { f: F; tex: string }[] = [
+  { f: not(or(or(P, Q), R)), tex: String.raw`\lnot (P \lor Q \lor R)` },
+  { f: and(and(not(and(P, Q)), not(or(Q, R))), or(P, R)), tex: String.raw`\lnot (P \land Q) \land \lnot (Q \lor R) \land (P \lor R)` },
+];
+const lp3Rows = (f: F): Row[] => rows(['P', 'Q', 'R']).filter((r) => evalF(f, r));
+const LP3_TRUE: readonly Row[] = LP3.map(({ f }) => lp3Rows(f)[0] as Row);
+
+const lp3 = auto({
+  id: 'lp-ex-3',
+  source: cite('cst-lp-notes', 'Section 2, Exercise 3, the two formulas without implication (page 5)', true),
+  title: t`The one row that makes it true`,
+  prompt: t`Each formula below is true for exactly one assignment of truth values to ${mP}, ${mQ}, and ${mR}. Find that assignment: write T or F for each letter.`,
+  answer: {
+    kind: 'table', columns: [t`formula`, [mP], [mQ], [mR]], cell: 'truth',
+    rows: LP3.map(({ tex }) => [[{ kind: 'math', text: tex, typed: [] }], null, null, null]),
+    expected: LP3_TRUE.flatMap((r) => [TF(r.P), TF(r.Q), TF(r.R)]),
+  },
+  solution: [
+    t`${math`\lnot (P \lor Q \lor R)`} is true exactly when ${math`P \lor Q \lor R`} is false, that is when all three letters are false.`,
+    t`${math`\lnot (P \land Q) \land \lnot (Q \lor R) \land (P \lor R)`} needs all three parts true. ${math`\lnot (Q \lor R)`} forces ${mQ} and ${mR} false. Then ${math`P \lor R`} forces ${mP} true, and ${math`\lnot (P \land Q)`} holds because ${mQ} is false.`,
+    t`Every other row makes each formula false, so each is satisfiable but not valid, as the notes say.`,
+  ],
+  reference: LP3_TRUE.flatMap((r) => [TF(r.P), TF(r.Q), TF(r.R)]),
+  verify: () => {
+    for (const { f, tex } of LP3) {
+      const e = same(`rows making ${tex} true`, lp3Rows(f).length, 1);
+      if (e !== null) return e;
+    }
+    return same('the true rows', LP3_TRUE.map((r) => [r.P, r.Q, r.R].map(TF).join('')).join(' '), 'FFF TFF');
+  },
+});
+
+/*
+ * Outline for marking lp-ex-3-why (20 marks):
+ * 1. States what satisfiable and not valid need: one row true, one row false (2).
+ * 2. First formula: true at P, Q, R all false; false at P true (4). Only row: the negation of an
+ *    "or" is true only when every part is false (4).
+ * 3. Second formula: true at P true, Q and R false; false at all false (4). Only row: the middle
+ *    conjunct forces Q and R false, then P or R forces P true; the first conjunct then holds (6).
+ */
+const lp3Why = supervision({
+  id: 'lp-ex-3-why',
+  source: cite('cst-lp-notes', 'Section 2, Exercise 3, the two formulas without implication (page 5)', true),
+  title: t`Satisfiable but not valid`,
+  prompt: t`A formula is satisfiable if some assignment of truth values makes it true, and valid if every assignment does. Each of ${math`\lnot (P \lor Q \lor R)`} and ${math`\lnot (P \land Q) \land \lnot (Q \lor R) \land (P \lor R)`} is satisfiable but not valid. Exhibit an interpretation that makes each formula true and another that makes it false. Then show that, for each formula, the interpretation making it true is the only one.`,
+  writeUp: 'explanation',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const two = rows(['P', 'Q']);
@@ -703,9 +755,11 @@ export const connectives: TopicContent = {
   terms: ['statement', 'open-sentence', 'truth-value', 'conjunction', 'disjunction', 'negation', 'truth-table'],
   cambridge: [
     tmuaA1, tmuaB1, bop21_1, bop21_3, bop21_9, bop21_11, bop21_13, bop22_8, bop22_9, bop22_10,
-    bop25_5, bop25_8, bop26_4, bop26_9, bop26_13, tmuaC4, tmuaA2, tmuaB2, bop22_12,
+    bop25_5, bop25_8, bop26_4, bop26_9, bop26_13, tmuaC4, tmuaA2, tmuaB2, bop22_12, lp3, lp3Why,
   ],
-  gate: [],
+  // The Logic and Proof exercise: the write-up (true and false rows, and why the true one is the
+  // only one) first, then the auto-checked rows.
+  gate: ['lp-ex-3-why', 'lp-ex-3'],
   recall: [
     { front: t`When is ${math`P \land Q`} true? ${math`P \lor Q`}? ${math`\lnot P`}?`, back: t`${math`P \land Q`}: both true. ${math`P \lor Q`}: at least one true. ${math`\lnot P`}: ${mP} false.` },
     { front: t`The number of rows in a truth table for ${mn} statements.`, back: t`${math`${2}^{n}`}.` },

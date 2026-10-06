@@ -16,7 +16,7 @@
 import type { AnswerSpec, Instance, Misconception, Problem, Response } from './problem';
 import type { Rich } from './rich';
 
-/** The documents that problems cite, by their id in scripts/sources/batch-1.json, batch-2.json, or batch-6.json. */
+/** The documents that problems cite, by their id in scripts/sources/batch-1.json, batch-2.json, batch-6.json, batch-7.json, or batch-8.json. */
 export const CITED_DOCS = {
   'step-f05': 'STEP Support Assignment 5',
   'step-f06': 'STEP Support Assignment 6',
@@ -106,12 +106,67 @@ export const CITED_DOCS = {
   'cs3110-ex8': 'OCaml Programming (CS3110), Chapter 8 Exercises',
   'cs3110-ex9': 'OCaml Programming (CS3110), Chapter 9 Exercises',
   'focs-notes': 'Foundations of Computer Science notes (2025-26)',
+  // Batch 7 (scripts/sources/batch-7.json): stronger gates for proof, logic, probability, sets,
+  // and numbers. Grinstead and Snell (GNU FDL), the CST Logic and Proof notes, the last CST
+  // Discrete Mathematics solutions, and the IA Numbers and Sets example sheets.
+  'gs-ch3': 'Grinstead and Snell, Introduction to Probability, Chapter 3',
+  'gs-ch4': 'Grinstead and Snell, Introduction to Probability, Chapter 4',
+  'gs-ch5': 'Grinstead and Snell, Introduction to Probability, Chapter 5',
+  'gs-answers-odd': 'Grinstead and Snell, Introduction to Probability, Answers to the Odd-Numbered Exercises',
+  'cst-lp-notes': 'CST Logic and Proof notes (2025-26)',
+  'cst-dm-sols-2324-5': 'CST Discrete Mathematics Exercises 5, official solutions (2023-24)',
+  'ia-ns-sheet-1': 'IA Numbers and Sets Example Sheet 1',
+  'ia-ns-sheet-2': 'IA Numbers and Sets Example Sheet 2',
+  'ia-ns-sheet-3': 'IA Numbers and Sets Example Sheet 3',
+  'ia-ns-sheet-4': 'IA Numbers and Sets Example Sheet 4',
+  // Batch 8 (scripts/sources/batch-8.json): gate sources for the calculus, trigonometry, algebra,
+  // functions, vectors, inequalities, and OCaml topics.
+  'step-s2-calc': 'STEP Support STEP 2 Calculus',
+  'step-s2-calc-solutions': 'STEP Support STEP 2 Calculus, Solutions',
+  'step-s2-eqns': 'STEP Support STEP 2 Equations and Inequalities',
+  'step-s2-eqns-solutions': 'STEP Support STEP 2 Equations and Inequalities, Solutions',
+  'step-s2-misc': 'STEP Support STEP 2 Miscellaneous Pure',
+  'step-s2-misc-solutions': 'STEP Support STEP 2 Miscellaneous Pure, Solutions',
+  'step-s2-vectors': 'STEP Support STEP 2 Vectors',
+  'step-s2-vectors-solutions': 'STEP Support STEP 2 Vectors, Solutions',
+  'step-s3-hyp': 'STEP Support STEP 3 Hyperbolic Functions',
+  'step-s3-hyp-solutions': 'STEP Support STEP 3 Hyperbolic Functions, Solutions',
+  'stepdb-94-s1': 'STEP I 1994',
+  'stepdb-95-s1': 'STEP I 1995',
+  'stepdb-96-s1': 'STEP I 1996',
+  'stepdb-99-s1': 'STEP I 1999',
+  'stepdb-00-s1': 'STEP I 2000',
+  'stepdb-01-s1': 'STEP I 2001',
+  'stepdb-02-s1': 'STEP I 2002',
+  'stepdb-05-s1': 'STEP I 2005',
+  'stepdb-06-s1': 'STEP I 2006',
+  'stepdb-07-s1': 'STEP I 2007',
+  'stepdb-08-s2': 'STEP II 2008',
+  'stepdb-10-s1': 'STEP I 2010',
+  'stepdb-11-s1': 'STEP I 2011',
+  'stepdb-12-s1': 'STEP I 2012',
+  'stepdb-12-s2': 'STEP II 2012',
+  'stepdb-13-s2': 'STEP II 2013',
+  'stepdb-14-s1': 'STEP I 2014',
+  'stepdb-15-s1': 'STEP I 2015',
+  'stepdb-16-s2': 'STEP II 2016',
+  'stepdb-18-s1': 'STEP I 2018',
+  'stepdb-spec-s1': 'STEP I Specimen Paper',
+  'cst-y2016p1q2': 'Computer Science Tripos Part IA 2016, Paper 1, Question 2',
+  'cst-y2018p1q2': 'Computer Science Tripos Part IA 2018, Paper 1, Question 2',
+  'cst-y2020p1q1': 'Computer Science Tripos Part IA 2020, Paper 1, Question 1',
+  'cst-y2024p1q2': 'Computer Science Tripos Part IA 2024, Paper 1, Question 2',
+  'cst-y2025p1q1': 'Computer Science Tripos Part IA 2025, Paper 1, Question 1',
+  'cst-y2025p1q2': 'Computer Science Tripos Part IA 2025, Paper 1, Question 2',
+  'damtp-ia-vm1': 'IA Vectors and Matrices Example Sheet 1',
+  'damtp-ia-de1': 'IA Differential Equations Example Sheet 1',
+  'mit-18600-ps10': 'MIT 18.600 Problem Set 10',
 } as const;
 
 export type CitedDoc = keyof typeof CITED_DOCS;
 
 export interface Citation {
-  /** The source id in scripts/sources/batch-1.json, batch-2.json, or batch-6.json (and so in sources/manifest.json). */
+  /** The source id in scripts/sources/batch-1.json, batch-2.json, batch-6.json, batch-7.json, or batch-8.json (and so in sources/manifest.json). */
   doc: CitedDoc;
   /** Where in the document, as the learner would look it up: "Q4(ii)", "Exercises 3, 3.1.1", "Section 2.5, exercise 3". */
   at: string;

@@ -3,13 +3,15 @@
  * formulae, cosh 2x = 2cosh^2 x - 1, and the derivatives. STEP Support Foundation Assignment
  * 21, Q1 builds them from a^x as C(x) and S(x) (with a = e they are cosh and sinh), with the
  * Assignment 21 hints; the NST Mathematics Workbook, H1 and H2, asks for the identities and
- * the derivative of tanh. The STEP 3 specification lists hyperbolic functions.
+ * the derivative of tanh. The gate adds STEP Support STEP 3 Hyperbolic Functions Q4 (2005
+ * STEP III Q6, a cubic solved with cosh), first paragraph. The STEP 3 specification lists
+ * hyperbolic functions.
  */
 import { auto, cite, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { agreesAt, close, numDeriv } from '../prep-c';
-import { math, t, type Rich } from '../rich';
+import { dmath, math, t, type Rich } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const F21 = 'step-f21' as const;
@@ -219,6 +221,48 @@ const nstH = supervision({
   writeUp: 'proof',
 });
 
+// STEP Support STEP 3 Hyperbolic Functions Q4 (2005 STEP III Q6), first paragraph: a cubic
+// solved with cosh. The rest of the question needs complex numbers, not a prerequisite.
+const HYP = 'step-s3-hyp' as const;
+const HYPS = 'step-s3-hyp-solutions' as const;
+
+const hyp4 = supervision({
+  id: 's3hyp-q4',
+  source: cite(HYP, 'Q4 (2005 STEP III Q6), first paragraph'),
+  title: t`A cubic solved by ${math`\cosh`}`,
+  prompt: t`In this question, you may use without proof the results ${dmath`${4}\cosh^{${3}} y - ${3}\cosh y = \cosh(${3}y) \quad \text{and} \quad \operatorname{arcosh} y = \ln\left(y + \sqrt{y^{${2}} - ${1}}\right).`} Show that the equation ${math`x^{${3}} - ${3}a^{${2}}x = ${2}a^{${3}}\cosh T`} is satisfied by ${math`${2}a\cosh\left(\frac{${1}}{${3}}T\right)`} and hence that, if ${math`c^{${2}} \ge b^{${3}} > ${0}`}, one of the roots of the equation ${math`x^{${3}} - ${3}bx = ${2}c`} is ${math`u + \frac{b}{u}`}, where ${math`u = \left(c + \sqrt{c^{${2}} - b^{${3}}}\right)^{\frac{${1}}{${3}}}`}.`,
+  writeUp: 'proof',
+  official: cite(HYPS, 'Q4'),
+});
+
+const ROOT = '2^(2/3) + 2^(1/3)';
+const hyp4root = auto({
+  id: 's3hyp-q4-root',
+  source: cite(HYP, 'Q4 (2005 STEP III Q6), last line', true),
+  title: t`The real root of ${math`x^{${3}} - ${6}x = ${6}`}`,
+  prompt: t`If ${math`c^{${2}} \ge b^{${3}} > ${0}`}, one root of ${math`x^{${3}} - ${3}bx = ${2}c`} is ${math`u + \frac{b}{u}`}, where ${math`u = \left(c + \sqrt{c^{${2}} - b^{${3}}}\right)^{\frac{${1}}{${3}}}`}. Use this to find the real root of ${math`x^{${3}} - ${6}x = ${6}`} exactly.`,
+  answer: { kind: 'expression', expected: ROOT, variables: [] },
+  solution: [
+    t`Match ${math`x^{${3}} - ${6}x = ${6}`} with ${math`x^{${3}} - ${3}bx = ${2}c`}: ${math`b = ${2}`} and ${math`c = ${3}`}, and ${math`c^{${2}} = ${9} \ge ${8} = b^{${3}} > ${0}`}.`,
+    t`${math`u = (${3} + \sqrt{${9} - ${8}})^{\frac{${1}}{${3}}} = ${4}^{\frac{${1}}{${3}}} = ${2}^{\frac{${2}}{${3}}}`}, and ${math`\frac{b}{u} = \frac{${2}}{${2}^{\frac{${2}}{${3}}}} = ${2}^{\frac{${1}}{${3}}}`}.`,
+    t`So the root is ${math`${2}^{\frac{${2}}{${3}}} + ${2}^{\frac{${1}}{${3}}}`}, about ${Number((2 ** (2 / 3) + 2 ** (1 / 3)).toFixed(4))}. It is the only real root: ${math`x^{${3}} - ${6}x - ${6}`} has its turning points at ${math`x = \pm\sqrt{${2}}`}, where it is ${math`-${6} \pm ${4}\sqrt{${2}}`}, both negative, so it crosses the axis once.`,
+  ],
+  reference: ROOT,
+  verify: () => {
+    const x = 2 ** (2 / 3) + 2 ** (1 / 3);
+    const e = close('root', x ** 3 - 6 * x, 6, 1e-12);
+    if (e !== null) return e;
+    // Both turning values are negative, so there is exactly one real root.
+    const f = (y: number): number => y ** 3 - 6 * y - 6;
+    return f(-Math.SQRT2) < 0 && f(Math.SQRT2) < 0 ? null : 'more than one real root';
+  },
+  misconceptions: [
+    { response: '4^(1/3) + 2/3^(1/3)', why: t`${math`u`} is ${math`(c + \sqrt{c^{${2}} - b^{${3}}})^{\frac{${1}}{${3}}}`} with ${math`c = ${3}`} and ${math`b = ${2}`}: the bracket is ${math`${3} + ${1} = ${4}`}, and then ${math`\frac{b}{u} = \frac{${2}}{${4}^{\frac{${1}}{${3}}}}`}.` },
+    { response: '9/2', why: t`That takes ${math`u = ${4}`}. The root is ${math`u + \frac{b}{u}`} with ${math`u = ${4}^{\frac{${1}}{${3}}}`}, the cube root of the bracket.` },
+  ],
+  official: { source: cite(HYPS, 'Q4'), answer: ROOT, agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const hyperbolic: TopicContent = {
@@ -272,8 +316,10 @@ export const hyperbolic: TopicContent = {
   generators: [evaluateLog, solveHyp, derivative],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hyperbolic-functions'],
-  cambridge: [secondQ, coshDeriv, identities, nstH],
-  gate: ['a21-q1-iii'],
+  cambridge: [hyp4, hyp4root, secondQ, coshDeriv, identities, nstH],
+  // Best first: 2005 STEP III Q6, first paragraph (with official solutions), then Assignment 21
+  // Q1(iii), then the auto-checked real root of x^3 - 6x = 6.
+  gate: ['s3hyp-q4', 'a21-q1-iii', 's3hyp-q4-root'],
   recall: [
     { front: t`Define ${math`\cosh x`} and ${math`\sinh x`}.`, back: t`${math`\cosh x = \frac{e^{x} + e^{-x}}{${2}}`}, ${math`\sinh x = \frac{e^{x} - e^{-x}}{${2}}`}.` },
     { front: t`What is ${math`\cosh^{${2}} x - \sinh^{${2}} x`}?`, back: t`${1}, for every ${math`x`}.` },

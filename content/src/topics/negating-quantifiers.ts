@@ -5,7 +5,9 @@
  * (pages 61 to 63: S1, N1, S2, N2), Book of Proof Section 2.10 (Examples 2.12 to 2.15), and
  * the CST notes' equivalences for negation (printed page 134). The problems are Book of
  * Proof's exercises for Section 2.10, checked against the solutions to odd exercises, and
- * supervision exercise 1.1.5 with its 2023-24 official solution.
+ * supervision exercise 1.1.5 with its 2023-24 official solution. Batch 7 adds IA Numbers and
+ * Sets Example Sheet 1, Q5, and Exercise 16 of the CST Logic and Proof notes (the part by
+ * equivalences). Their Exercise 14, first line, is the lesson's theorem, so it is not set.
  */
 import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
 import { int, upTo } from '../math';
@@ -430,6 +432,45 @@ const bop12 = supervision({
   writeUp: 'explanation',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking ns1-q5 (20 marks):
+ * (i) 12 marks. Each quantifier swapped in order, order kept: exists m, for all n, exists a, exists b
+ *     (6). The inside negated by De Morgan: (n < m) or [(a != 1) and (b != 1) and (ab = n)] (6).
+ *     Optional remark: (i) says there are arbitrarily large n with no factorisation ab = n with
+ *     a, b != 1, so the negation says every n beyond some m factorises.
+ * (ii) 8 marks. The negation of "if P then Q" is "P and not Q" (4): "Bumrah is not a faster bowler
+ *     than Tait, and Australia is not worse than England in cricket" (4). A converse or "if P then
+ *     not Q" scores 0 for this part.
+ */
+const ns1q5 = supervision({
+  id: 'ns1-q5',
+  source: cite('ia-ns-sheet-1', 'Q5'),
+  title: t`Two negations from the first IA sheet`,
+  prompt: t`Write down the negation of the following assertions (where ${math`m, n, a, b \in \mathbb{N}`}): (i) ${math`\forall m\, \exists n\, \forall a\, \forall b\ (n \ge m) \land [(a = ${1}) \lor (b = ${1}) \lor (ab \ne n)]`}; (ii) if Bumrah is not a faster bowler than Tait, then Australia is worse than England in cricket.`,
+  writeUp: 'explanation',
+});
+
+/*
+ * Outline for marking lp-ex-16 (20 marks):
+ * 1. Push the negation in: not forall y [..] is exists y not[(Q(a) or Q(b)) and not Q(y)] (4).
+ * 2. De Morgan and double negation: exists y [(not Q(a) and not Q(b)) or Q(y)] (4).
+ * 3. Pull the quantifier past the part without y (y is not free there):
+ *    (not Q(a) and not Q(b)) or exists y Q(y) (4).
+ * 4. Q(a) implies exists y Q(y), and so does Q(b); so exists y Q(y) is equivalent to
+ *    exists y Q(y) or Q(a) or Q(b) (4).
+ * 5. Then the formula contains (not Q(a) and not Q(b)) or (Q(a) or Q(b)), which is true by De
+ *    Morgan and excluded middle; so the whole formula is valid (4).
+ */
+const lp16 = supervision({
+  id: 'lp-ex-16',
+  source: cite('cst-lp-notes', 'Section 5, Exercise 16, the proof by equivalences (page 14)', true),
+  title: t`A valid negated "for all"`,
+  prompt: t`Let ${math`Q`} be a one-place predicate and ${math`a`}, ${math`b`} constants, in a non-empty domain. Prove ${math`\lnot \forall y\, [(Q(a) \lor Q(b)) \land \lnot Q(y)]`} using equivalences: rewrite it step by step, naming the law used at each step, until it is plainly true whatever the domain, the predicate ${math`Q`}, and the constants are.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const mP = math`P(x)`;
@@ -506,10 +547,12 @@ export const negatingQuantifiers: TopicContent = {
   generators: [negateSymbols, whichTrue, negateWords],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['negation-of-quantifier'],
-  cambridge: [bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12],
-  // The CST proof only. Its witness (x = 0, y = 1) is guessed at once, and the multiple-choice
-  // negation can be guessed, so neither gates; the Book of Proof items are not Cambridge standard.
-  gate: ['sw-1-1-5'],
+  cambridge: [bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12, ns1q5, lp16],
+  // The IA sheet's two negations first (four quantifiers, and an implication in words), then the
+  // CST proof and the Logic and Proof equivalences. The witness (x = 0, y = 1) is guessed at once,
+  // and the multiple-choice negation can be guessed, so neither gates; the Book of Proof items are
+  // not Cambridge standard.
+  gate: ['ns1-q5', 'sw-1-1-5', 'lp-ex-16'],
   recall: [
     { front: t`Negate ${math`\forall x.\ P(x)`}.`, back: t`${math`\exists x.\ \lnot P(x)`}: at least one ${mx} fails.` },
     { front: t`Negate ${math`\exists x.\ P(x)`}.`, back: t`${math`\forall x.\ \lnot P(x)`}: every ${mx} fails.` },

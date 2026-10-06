@@ -4,7 +4,8 @@
  * reduce it to Pascal's rule and set that as homework, and Book of Proof Chapter 10,
  * exercises 24, 31, 35, 38, 40, and 41 (identities on Pascal's triangle), checked against
  * the solutions to odd exercises. Exercises 22, 23, and 25 of Chapter 4 are set in
- * comb.combinations.
+ * comb.combinations. Batch 7 adds IA Numbers and Sets Example Sheet 2, Q3, and Grinstead and
+ * Snell, Section 3.2, Exercises 9 and 13, with their printed odd answers.
  */
 import type { Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
@@ -304,6 +305,79 @@ const notesHomework2 = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking ns2-q3 (20 marks):
+ * 1. Ranges: first identity for integers 0 <= k <= n; second for every integer n >= 0 (2).
+ * 2. First identity: the right side counts (k + 1)-subsets of {1, ..., n + 1}. Sort them by their
+ *    largest element m + 1, for m = k, ..., n: the other k elements are chosen from {1, ..., m}, in
+ *    C(m, k) ways. The classes are disjoint and cover everything, so the counts add (8).
+ * 3. Second identity: C(2n, n) counts n-subsets of n red and n blue balls. Sort by the number j
+ *    of red ones: C(n, j) C(n, n - j) = C(n, j)^2 by symmetry; add over j = 0, ..., n (8).
+ * 4. Each "sort by" is a partition, said in words (2).
+ */
+const ns2q3 = supervision({
+  id: 'ns2-q3',
+  source: cite('ia-ns-sheet-2', 'Q3'),
+  title: t`Two identities by counting`,
+  prompt: t`By suitably interpreting each side, establish the identities ${dmath`\binom{k}{k} + \binom{k + ${1}}{k} + \binom{k + ${2}}{k} + \cdots + \binom{n - ${1}}{k} + \binom{n}{k} = \binom{n + ${1}}{k + ${1}}`} and ${dmath`\binom{n}{${0}}^{${2}} + \binom{n}{${1}}^{${2}} + \binom{n}{${2}}^{${2}} + \cdots + \binom{n}{n - ${1}}^{${2}} + \binom{n}{n}^{${2}} = \binom{${2}n}{n}`} for appropriate ranges of the parameters ${mn} and ${mk} (which you should specify).`,
+  writeUp: 'proof',
+});
+
+/** C(13, 5) + 2 C(13, 6) + C(13, 7), the sum in Grinstead and Snell 3.2.9. */
+const G329 = choose(13, 5) + 2 * choose(13, 6) + choose(13, 7);
+/** Any n, r with C(n, r) equal to it; n is at most G329, since C(n, r) >= n for 0 < r < n. */
+const gs329 = auto({
+  id: 'gs-3-2-9',
+  source: cite('gs-ch3', 'Section 3.2, Exercise 9 (page 114)'),
+  title: t`Three neighbours as one coefficient`,
+  prompt: t`Find integers ${mn} and ${mr} such that the following equation is true: ${dmath`\binom{${13}}{${5}} + ${2}\binom{${13}}{${6}} + \binom{${13}}{${7}} = \binom{n}{r}.`} Give ${mn} and ${mr}.`,
+  answer: {
+    kind: 'witness', count: 2, names: ['n', 'r'], example: 'n = 15, r = 7',
+    check: (vals: readonly Rational[]) => {
+      const [n, r] = vals.map((v) => (v.den === 1n && v.num >= 0n ? Number(v.num) : NaN)) as [number, number];
+      if (Number.isNaN(n) || Number.isNaN(r)) return 'n and r are natural numbers.';
+      if (r > n) return 'r is at most n.';
+      if (n > G329) return `For 0 < r < n, C(n, r) is at least n, and the sum is only ${G329}.`;
+      const c = choose(n, Math.min(r, n - r));
+      return c === G329 ? null : `C(${n}, ${r}) is ${c}, but the sum is ${G329}.`;
+    },
+  },
+  solution: [
+    t`Split the middle term: the left side is ${math`\left(\binom{${13}}{${5}} + \binom{${13}}{${6}}\right) + \left(\binom{${13}}{${6}} + \binom{${13}}{${7}}\right)`}.`,
+    t`Pascal's rule on each bracket: ${math`\binom{${14}}{${6}} + \binom{${14}}{${7}}`}.`,
+    t`Pascal's rule again: ${math`\binom{${15}}{${7}}`}, which is ${G329}. So ${math`n = ${15}, r = ${7}`}; by symmetry ${math`r = ${8}`} works too.`,
+  ],
+  reference: 'n = 15, r = 7',
+  verify: () => {
+    const e = same('the sum', G329, choose(15, 7));
+    if (e !== null) return e;
+    return same('Pascal twice, from row 13', (row(13)[5] as number) + 2 * (row(13)[6] as number) + (row(13)[7] as number), row(15)[7]);
+  },
+  misconceptions: [{ response: 'n = 14, r = 7', why: t`Pascal's rule once gives ${math`\binom{${14}}{${6}} + \binom{${14}}{${7}}`}: two terms of row ${14}. Apply the rule a second time to reach one coefficient in row ${15}.` }],
+  official: { source: cite('gs-answers-odd', 'Section 3.2, Exercise 9'), answer: 'n = 15, r = 7', agrees: true },
+});
+
+/*
+ * Outline for marking gs-3-2-13 (20 marks):
+ * 1. The number of j-subsets of a 2n-set is C(2n, j) (2).
+ * 2. Ratio of neighbours: C(2n, i)/C(2n, i - 1) = (2n - i + 1)/i for 1 <= i <= 2n, worked from the
+ *    factorial formula (6).
+ * 3. The ratio exceeds 1 exactly when i < n + 1/2, that is i <= n; it is below 1 for i >= n + 1 (6).
+ * 4. So the coefficients strictly rise up to i = n and strictly fall after it: C(2n, n) is larger
+ *    than every other C(2n, j) (4). Or by symmetry plus the rising half (equivalent credit).
+ * 5. Strictness stated, so "more than any other number" is shown, not only "at least" (2).
+ */
+const gs3213 = supervision({
+  id: 'gs-3-2-13',
+  source: cite('gs-ch3', 'Section 3.2, Exercise 13 (page 114)'),
+  title: t`The middle of a row is the largest`,
+  prompt: t`If a set has ${math`${2}n`} elements, show that it has more subsets with ${mn} elements than with any other number of elements.`,
+  writeUp: 'proof',
+  official: cite('gs-answers-odd', 'Section 3.2, Exercise 13'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const R = 6;
@@ -374,8 +448,10 @@ export const binomialIdentities: TopicContent = {
   generators: [nextRow, symmetry, pascalRule, rowSum],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['pascals-triangle', 'pascals-rule'],
-  cambridge: [bop1024, bop1040, bop1041, bop1035, bop1038, notesHomework2],
-  gate: ['notes-280-homework-2'],
+  cambridge: [bop1024, bop1040, bop1041, bop1035, bop1038, notesHomework2, ns2q3, gs329, gs3213],
+  // The IA sheet's two identities by counting first; the Pascal's rule homework and the middle of a
+  // row follow. Three coefficients into one is two uses of Pascal's rule, practice rather than a gate.
+  gate: ['ns2-q3', 'notes-280-homework-2', 'gs-3-2-13'],
   recall: [
     { front: t`Symmetry of binomial coefficients.`, back: t`${math`\binom{n}{r} = \binom{n}{n - r}`}: taking ${mr} is leaving ${math`n - r`}.` },
     { front: t`[[pascals-rule|Pascal's rule]].`, back: t`${math`\binom{n + ${1}}{k} = \binom{n}{k} + \binom{n}{k - ${1}}`}, for ${math`${1} \le k \le n`}.` },

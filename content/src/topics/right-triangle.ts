@@ -4,11 +4,14 @@
  * Follows STEP Support Foundation Assignment 5 Q1(i) (cos and sin from the sides; the
  * identity from Pythagoras) and uses the identity as Assignment 5 Q2(i) does (sin C from
  * cos C = 15/17, without finding C). The STEP specification asks for the definitions and
- * sin^2 + cos^2 = 1; the TMUA specification (MM4.3, MM4.5) for the exact values.
+ * sin^2 + cos^2 = 1; the TMUA specification (MM4.3, MM4.5) for the exact values. The gate
+ * problems put right triangles inside solids: STEP Support STEP 2 Miscellaneous Q2 (2010 STEP II
+ * Q6, a regular tetrahedron) and STEP I 2002 Q6 (STEP Questions Database, a pyramid).
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { exactValueError, sinDeg, cosDeg, tanDeg, TRIPLES } from '../geometry';
 import { int, pick, q, str } from '../math';
+import { close } from '../prep-c';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
@@ -210,6 +213,126 @@ const a5q1i = supervision({
   official: cite('step-f05-hints', 'Q1(i)'),
 });
 
+// STEP 2 Miscellaneous Q2 (2010 S2 Q6) and STEP I 2002 Q6 (STEP Questions Database): right
+// triangles inside solids.
+const MISC = 'step-s2-misc' as const;
+const MISCS = 'step-s2-misc-solutions' as const;
+const DB02 = 'stepdb-02-s1' as const;
+
+type V3 = readonly [number, number, number];
+const minus = (u: V3, v: V3): V3 => [u[0] - v[0], u[1] - v[1], u[2] - v[2]];
+const dot3 = (u: V3, v: V3): number => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+const cross3 = (u: V3, v: V3): V3 => [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+const len3 = (u: V3): number => Math.sqrt(dot3(u, u));
+
+/**
+ * A pyramid on an equilateral base of side a in the plane z = 0, with its apex above the
+ * centroid and lateral edges b, by coordinates: its height, the distance from the third base
+ * vertex to the plane of the face on the first two (the height when that face is on the
+ * ground), and the angle between the base and that face.
+ */
+function pyramid(a: number, b: number): { height: number; restingHeight: number; angle: number } {
+  const A: V3 = [0, 0, 0];
+  const B: V3 = [a, 0, 0];
+  const C: V3 = [a / 2, (Math.sqrt(3) * a) / 2, 0];
+  const G: V3 = [a / 2, (Math.sqrt(3) * a) / 6, 0];
+  const height = Math.sqrt(b * b - dot3(minus(G, A), minus(G, A)));
+  const D: V3 = [G[0], G[1], height];
+  const n = cross3(minus(B, A), minus(D, A));
+  return { height, restingHeight: Math.abs(dot3(minus(C, A), n)) / len3(n), angle: Math.acos(Math.abs(n[2]) / len3(n)) };
+}
+
+const misc2 = supervision({
+  id: 's2misc-q2',
+  source: cite(MISC, 'Q2 (2010 STEP II Q6)'),
+  title: t`Inside a regular tetrahedron`,
+  prompt: t`Each edge of the tetrahedron ${math`ABCD`} has unit length. The face ${math`ABC`} is horizontal, and ${math`P`} is the point in ${math`ABC`} that is vertically below ${math`D`}. (i) Find the length of ${math`PD`}. (ii) Show that the cosine of the angle between adjacent faces of the tetrahedron is ${math`\frac{${1}}{${3}}`}. (iii) Find the radius of the largest sphere that can fit inside the tetrahedron.`,
+  writeUp: 'proof',
+  official: cite(MISCS, 'Q2'),
+});
+
+const misc2pd = auto({
+  id: 's2misc-q2-i',
+  source: cite(MISC, 'Q2(i) (2010 STEP II Q6)'),
+  title: t`The height of a regular tetrahedron`,
+  prompt: t`Each edge of the tetrahedron ${math`ABCD`} has unit length. The face ${math`ABC`} is horizontal, and ${math`P`} is the point in ${math`ABC`} that is vertically below ${math`D`}. Find the length of ${math`PD`}, exactly.`,
+  answer: { kind: 'expression', expected: 'sqrt(6)/3', variables: [] },
+  solution: [
+    t`${math`DA = DB = DC = ${1}`} and ${math`DP`} is vertical, so the right triangles ${math`DPA`}, ${math`DPB`}, ${math`DPC`} give ${math`PA^{${2}} = PB^{${2}} = PC^{${2}} = ${1} - PD^{${2}}`}: ${math`P`} is the centre of the equilateral triangle ${math`ABC`}.`,
+    t`Let ${math`M`} be the midpoint of ${math`AB`}. In the right triangle ${math`AMP`}, the angle at ${math`A`} is ${math`${30}^\circ`} (half of ${math`${60}^\circ`}) and ${math`AM = \frac{${1}}{${2}}`}, so ${math`PA = \frac{AM}{\cos ${30}^\circ} = \frac{${1}/${2}}{\sqrt{${3}}/${2}} = \frac{${1}}{\sqrt{${3}}}`}.`,
+    t`So ${math`PD^{${2}} = ${1} - \frac{${1}}{${3}} = \frac{${2}}{${3}}`} and ${math`PD = \sqrt{\frac{${2}}{${3}}} = \frac{\sqrt{${6}}}{${3}}`}.`,
+  ],
+  reference: 'sqrt(6)/3',
+  verify: () => close('PD', pyramid(1, 1).height, Math.sqrt(6) / 3, 1e-12),
+  misconceptions: [
+    { response: 'sqrt(3)/2', why: t`That is the height of the face ${math`ABD`}, from ${math`D`} to the midpoint of ${math`AB`}. The point below ${math`D`} is the centre ${math`P`}, at distance ${math`\frac{${1}}{\sqrt{${3}}}`} from each vertex.` },
+  ],
+  official: { source: cite(MISCS, 'Q2(i)'), answer: 'sqrt(2/3)', agrees: true },
+});
+
+const misc2r = auto({
+  id: 's2misc-q2-iii',
+  source: cite(MISC, 'Q2(iii) (2010 STEP II Q6)'),
+  title: t`The largest sphere inside a regular tetrahedron`,
+  prompt: t`Each edge of the tetrahedron ${math`ABCD`} has unit length, and ${math`P`}, the centre of the face ${math`ABC`}, is the foot of the perpendicular from ${math`D`}, with ${math`PD = \frac{\sqrt{${6}}}{${3}}`}. Find the radius of the largest sphere that can fit inside the tetrahedron, exactly.`,
+  answer: { kind: 'expression', expected: 'sqrt(6)/12', variables: [] },
+  solution: [
+    t`By symmetry the sphere's centre ${math`S`} is on ${math`DP`}, at distance ${math`r`} from every face; it touches ${math`ABC`} at ${math`P`}, so ${math`SP = r`} and ${math`DS = PD - r`}.`,
+    t`It touches the face ${math`ABD`} at ${math`X`}, on the line from ${math`D`} to the midpoint ${math`M`} of ${math`AB`}. The tangents from ${math`M`} are equal: ${math`MX = MP = \frac{${1}}{${2}\sqrt{${3}}}`}, so ${math`DX = DM - MX = \frac{\sqrt{${3}}}{${2}} - \frac{${1}}{${2}\sqrt{${3}}} = \frac{${1}}{\sqrt{${3}}}`}.`,
+    t`The radius ${math`SX`} meets the face at a right angle, so in triangle ${math`DXS`}: ${math`(PD - r)^{${2}} = r^{${2}} + \frac{${1}}{${3}}`}. With ${math`PD^{${2}} = \frac{${2}}{${3}}`}: ${math`\frac{${2}}{${3}} - ${2}r\,PD = \frac{${1}}{${3}}`}, so ${math`r = \frac{${1}}{${6}\,PD} = \frac{${1}}{${6}} \cdot \frac{${3}}{\sqrt{${6}}} = \frac{\sqrt{${6}}}{${12}}`}.`,
+    t`That is a quarter of ${math`PD`}: the centre is a quarter of the way up the height.`,
+  ],
+  reference: 'sqrt(6)/12',
+  verify: () => {
+    // The insphere radius is 3 V / (total area): V = (1/3)(sqrt 3 / 4) PD and the area is 4 (sqrt 3 / 4).
+    const h = pyramid(1, 1).height;
+    const r = (3 * ((1 / 3) * (Math.sqrt(3) / 4) * h)) / (4 * (Math.sqrt(3) / 4));
+    return close('inradius', r, Math.sqrt(6) / 12, 1e-12);
+  },
+  misconceptions: [
+    { response: 'sqrt(6)/6', why: t`That puts the centre halfway up. The sphere touches all four faces, so its centre is a quarter of the way up: ${math`r = \frac{PD}{${4}}`}.` },
+  ],
+  official: { source: cite(MISCS, 'Q2(iii)'), answer: 'sqrt(6)/12', agrees: true },
+});
+
+const db02q6 = supervision({
+  id: 'step02-q6',
+  source: cite(DB02, 'Q6'),
+  title: t`A pyramid on an equilateral base, tipped over`,
+  prompt: t`A pyramid stands on horizontal ground. Its base is an equilateral triangle with sides of length ${math`a`}, the other three sides of the pyramid are of length ${math`b`} and its volume is ${math`V`}. Given that the formula for the volume of any pyramid is ${math`\frac{${1}}{${3}} \times \text{area of base} \times \text{height}`}, show that ${dmath`V = \frac{${1}}{${12}}a^{${2}}(${3}b^{${2}} - a^{${2}})^{\frac{${1}}{${2}}}.`} The pyramid is then placed so that a non-equilateral face lies on the ground. Show that the new height, ${math`h`}, of the pyramid is given by ${dmath`h^{${2}} = \frac{a^{${2}}(${3}b^{${2}} - a^{${2}})}{${4}b^{${2}} - a^{${2}}}.`} Find, in terms of ${math`a`} and ${math`b`}, the angle between the equilateral triangle and the horizontal.`,
+  writeUp: 'proof',
+});
+
+const PYR = { a: { kind: 'real' as const, min: 1, max: 2 }, b: { kind: 'real' as const, min: 2, max: 4 } };
+const db02q6angle = auto({
+  id: 'step02-q6-angle',
+  source: cite(DB02, 'Q6', true),
+  title: t`The tilt of the equilateral face`,
+  prompt: t`A pyramid has an equilateral base of side ${math`a`} and three other edges of length ${math`b`}, with its apex above the centre of the base. It is placed so that a non-equilateral face lies on the ground. The angle ${mt} between the equilateral face and the horizontal is the angle between the base and a sloping face. Find ${math`\tan \theta`} in terms of ${math`a`} and ${math`b`}.`,
+  answer: { kind: 'expression', expected: '2 sqrt(3b^2 - a^2)/a', variables: ['a', 'b'], domains: PYR },
+  solution: [
+    t`Stand the pyramid on its base, with apex ${math`D`} above the centre ${math`G`}. The face on edge ${math`AB`} meets the base along ${math`AB`}; let ${math`M`} be the midpoint of ${math`AB`}. Both ${math`GM`} and ${math`DM`} are at right angles to ${math`AB`}, so the angle between the two faces is the angle ${math`DMG`}.`,
+    t`${math`GA = \frac{a}{\sqrt{${3}}}`} (as for the centre of any equilateral triangle) and ${math`GM = \frac{a}{${2}\sqrt{${3}}}`}. By Pythagoras in the right triangle ${math`DGA`}, the height is ${math`DG = \sqrt{b^{${2}} - \frac{a^{${2}}}{${3}}}`}.`,
+    t`In the right triangle ${math`DGM`}: ${math`\tan \theta = \frac{DG}{GM} = \sqrt{b^{${2}} - \frac{a^{${2}}}{${3}}} \cdot \frac{${2}\sqrt{${3}}}{a} = \frac{${2}\sqrt{${3}b^{${2}} - a^{${2}}}}{a}`}.`,
+    t`Tipping the pyramid onto that face turns the whole solid, so the angle between the two faces stays ${mt}, now between the equilateral face and the ground.`,
+  ],
+  reference: '2 sqrt(3b^2 - a^2)/a',
+  verify: () => {
+    for (const [a, b] of [[1, 2], [1.5, 3], [2, 2.5]] as const) {
+      const p = pyramid(a, b);
+      let e = close(`tan theta at a = ${a}, b = ${b}`, Math.tan(p.angle), (2 * Math.sqrt(3 * b * b - a * a)) / a, 1e-9);
+      // The printed formulas for V and h agree with the coordinates too.
+      e ??= close('V', (1 / 3) * ((Math.sqrt(3) / 4) * a * a) * p.height, (a * a * Math.sqrt(3 * b * b - a * a)) / 12, 1e-9);
+      e ??= close('h^2', p.restingHeight ** 2, (a * a * (3 * b * b - a * a)) / (4 * b * b - a * a), 1e-9);
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: 'sqrt(3b^2 - a^2)/a', why: t`The foot ${math`M`} of the slant height is the midpoint of an edge, at ${math`\frac{a}{${2}\sqrt{${3}}}`} from the centre, not ${math`\frac{a}{\sqrt{${3}}}`} (that is the distance to a vertex).` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const T = { a: 5, b: 12, c: 13 };
@@ -264,9 +387,11 @@ export const rightTriangle: TopicContent = {
   generators: [ratioFromSides, exactValues, fromSine],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hypotenuse'],
-  cambridge: [a5q1i],
-  // No gate: the one approved problem (Assignment 5 Q1(i)) is the lesson's own proof.
-  gate: [],
+  cambridge: [misc2, db02q6, misc2pd, misc2r, db02q6angle, a5q1i],
+  // The gate is two STEP questions on right triangles inside solids, best first: 2010 II Q6 (the
+  // regular tetrahedron, with official solutions) and 2002 I Q6 (a pyramid tipped onto a face),
+  // then their auto-checked parts. Assignment 5 Q1(i) is the lesson's own proof.
+  gate: ['s2misc-q2', 'step02-q6', 's2misc-q2-iii', 'step02-q6-angle'],
   recall: [
     { front: t`Define ${math`\sin \theta`}, ${math`\cos \theta`}, ${math`\tan \theta`} for an acute angle of a right triangle.`, back: t`Opposite over hypotenuse, adjacent over hypotenuse, and opposite over adjacent.` },
     { front: t`State the Pythagorean identity and its proof in one line.`, back: t`${math`\cos^{${2}} \theta + \sin^{${2}} \theta = ${1}`}: divide ${math`a^{${2}} + b^{${2}} = c^{${2}}`} by ${math`c^{${2}}`}.` },

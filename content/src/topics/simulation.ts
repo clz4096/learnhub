@@ -4,7 +4,9 @@
  * Faculty schedule ("Simulation: generating continuous random variables, Box-Muller
  * transform, rejection sampling."); the example sheets set no simulation problem (batch 2,
  * question 5), so the Cambridge problems are the schedule's own results, set for
- * supervision, and Sheet 4 Q9 run backwards. Every sampler is checked by simulation.
+ * supervision, and Sheet 4 Q9 run backwards. Every sampler is checked by simulation. Batch 7 adds
+ * Grinstead and Snell, Section 5.2, Exercises 3, 7, and 21 (7 and 21 with printed odd answers),
+ * which give the topic its gate.
  */
 import { mulberry32 } from '@learnhub/mastery';
 import { auto, cite, supervision } from '../cambridge';
@@ -248,6 +250,66 @@ const rejectProof = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking gs-5-2-21 (20 marks):
+ * 1. F is continuous and strictly increasing on the range of X, so it has an inverse there, and for
+ *    0 < y < 1, F(X) <= y exactly when X <= F^(-1)(y) (8).
+ * 2. So P(Y <= y) = P(X <= F^(-1)(y)) = F(F^(-1)(y)) = y (6).
+ * 3. With P(Y <= y) = 0 for y < 0 and 1 for y > 1 (Y takes values in [0, 1]), that is the uniform
+ *    distribution function on [0, 1] (4). Says where continuity is used (2).
+ */
+const gs5221 = supervision({
+  id: 'gs-5-2-21',
+  source: cite('gs-ch5', 'Section 5.2, Exercise 21 (page 221)'),
+  title: t`The distribution function makes a uniform`,
+  prompt: t`Let ${math`X`} be a continuous random variable with cumulative distribution function ${math`F`} strictly increasing on the range of ${math`X`}. Let ${math`Y = F(X)`}. Show that ${math`Y`} is uniformly distributed in the interval ${math`[${0}, ${1}]`}. (The formula ${math`X = F^{-${1}}(Y)`} then tells us how to construct ${math`X`} from a uniform random variable ${math`Y`}.)`,
+  writeUp: 'proof',
+  official: cite('gs-answers-odd', 'Section 5.2, Exercise 21'),
+});
+
+/*
+ * Outline for marking gs-5-2-3 (20 marks):
+ * 1. The exponential distribution function F(y) = 1 - e^(-lambda y) for y >= 0 is continuous and
+ *    strictly increasing where 0 < F(y) < 1 (4).
+ * 2. Inverts it: u = 1 - e^(-lambda y) gives y = -(1/lambda) ln(1 - u) (6).
+ * 3. So -(1/lambda) ln(1 - U) is exponential with parameter lambda, by the inverse transform (4).
+ * 4. 1 - U is uniform on [0, 1] when U is, so -(1/lambda) ln U has the same distribution (6).
+ */
+const gs523 = supervision({
+  id: 'gs-5-2-3',
+  source: cite('gs-ch5', 'Section 5.2, Exercise 3 (page 219)', true),
+  title: t`Exponential samples from uniform ones`,
+  prompt: t`Grinstead and Snell's Corollary ${5.2} is the inverse transform: if ${math`F`} is a distribution function that is strictly increasing when ${math`${0} < F(y) < ${1}`}, and ${math`U`} is uniform on ${math`[${0}, ${1}]`}, then ${math`F^{-${1}}(U)`} has distribution function ${math`F`}. Use it to derive that ${math`Y = -\frac{${1}}{\lambda} \ln U`} is exponentially distributed with parameter ${math`\lambda`}, that is, ${math`P(Y \le y) = ${1} - e^{-\lambda y}`} for ${math`y \ge ${0}`}. (Hint: ${math`${1} - U`} and ${math`U`} are identically distributed.)`,
+  writeUp: 'proof',
+});
+
+const gs527 = auto({
+  id: 'gs-5-2-7',
+  source: cite('gs-ch5', 'Section 5.2, Exercise 7 (page 220)', true),
+  title: t`Sampling with distribution function x squared`,
+  prompt: t`Explain how you can generate a random variable ${math`X`} whose cumulative distribution function is ${math`F(x) = ${0}`} for ${math`x < ${0}`}, ${math`F(x) = x^{${2}}`} for ${math`${0} \le x \le ${1}`}, and ${math`F(x) = ${1}`} for ${math`x > ${1}`}: give ${math`X`} as the inverse transform ${math`F^{-${1}}(U)`} of a uniform random number ${math`U`} on ${math`[${0}, ${1}]`}, as a formula in ${math`U`}.`,
+  answer: { kind: 'expression', expected: 'sqrt(U)', variables: ['U'], domains: { U: { kind: 'real', min: 0.001, max: 1 } } },
+  solution: [
+    t`On ${math`[${0}, ${1}]`}, ${math`F`} is continuous and strictly increasing, and ${math`u = x^{${2}}`} with ${math`x \ge ${0}`} inverts to ${math`x = \sqrt{u}`}.`,
+    t`So ${math`X = \sqrt{U}`}. Check: ${math`P(\sqrt{U} \le x) = P(U \le x^{${2}}) = x^{${2}}`} for ${math`${0} \le x \le ${1}`}.`,
+  ],
+  reference: 'sqrt(U)',
+  verify: () => {
+    // P(sqrt(U) <= x) = x^2, checked by simulation at three points.
+    const rng = mulberry32(527);
+    const xs = Array.from({ length: 200_000 }, () => Math.sqrt(rng()));
+    for (const x of [0.3, 0.5, 0.8]) {
+      const freq = xs.filter((v) => v <= x).length / xs.length;
+      if (Math.abs(freq - x * x) > 0.005) return `P(sqrt(U) <= ${x}) is about ${freq}, not ${x * x}`;
+    }
+    return null;
+  },
+  misconceptions: [{ response: 'U^2', why: t`That applies ${math`F`} to ${math`U`}. The inverse transform applies ${math`F^{-${1}}`}: solve ${math`u = x^{${2}}`} for ${math`x`}.` }],
+  official: { source: cite('gs-answers-odd', 'Section 5.2, Exercise 7'), answer: 'sqrt(U)', agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
@@ -340,10 +402,11 @@ export const simulation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inverse-transform-sampling', 'box-muller', 'rejection-sampling'],
   claims,
-  cambridge: [rejectAuto, inverseProof, bmProof, rejectProof],
-  // The example sheets set no simulation problem; these come from the schedule, which is not a
-  // gate document, so the topic has no gate yet.
-  gate: [],
+  cambridge: [rejectAuto, inverseProof, bmProof, rejectProof, gs5221, gs523, gs527],
+  // The IA example sheets set no simulation problem, and the schedule is not a gate document, so the
+  // gate is Grinstead and Snell's: the converse of the inverse transform, the exponential sampler,
+  // and the sampler for F(x) = x^2.
+  gate: ['gs-5-2-21', 'gs-5-2-3', 'gs-5-2-7'],
   recall: [
     { front: t`State the inverse transform method.`, back: t`If ${mF} is continuous and strictly increasing and ${mU} is uniform, ${math`F^{-${1}}(U)`} has distribution function ${mF}.` },
     { front: t`State the Box-Muller transform.`, back: t`${math`R = \sqrt{-${2}\ln U_{${1}}}`}, ${math`\Theta = ${2}\pi U_{${2}}`}; then ${math`R\cos\Theta`} and ${math`R\sin\Theta`} are independent ${math`N(${0}, ${1})`}.` },

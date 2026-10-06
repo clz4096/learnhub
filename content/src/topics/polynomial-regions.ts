@@ -2,13 +2,14 @@
  * ineq.polynomial-regions: solve f(x) >= 0 for a factorised polynomial with a sign
  * diagram, and shade the regions of the plane where a product of linear factors in x and
  * y has a given sign. Sources: STEP Support Foundation Assignment 4 Q2(ii) to (iv) and Q3
- * (1995 STEP I Q1), and the NST Maths Workbook A5(ii). Solution sets are checked by the
+ * (1995 STEP I Q1), the NST Maths Workbook A5(ii), and STEP I 2000 Q6 (STEP Questions
+ * Database). Solution sets are checked by the
  * sign test (prep-a.ts, setWhere); regions by evaluating the product at the points.
  */
 import { cite, supervision, auto, same } from '../cambridge';
-import { int, pick, q, sample, type Rational } from '../math';
+import { add, int, mul, pick, q, sample, sub, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
-import { computedMath, math, t } from '../rich';
+import { computedMath, dmath, math, t } from '../rich';
 import { checkFrom, workedCambridge, worked, type TopicContent } from '../topic';
 import { poly } from '../poly';
 import { closed, evalPoly, fromRoots, open, optionFor, realSetSpan, setAnswer, setChoice, setProblem, setWhere, withExaminer, type RealSet, type WrongSet } from '../prep-a';
@@ -272,6 +273,60 @@ const a4q2iv = supervision({
   official: cite('step-f04-hints', 'Q2(iv)'),
 });
 
+// STEP I 2000 Q6 (STEP Questions Database): two regions bounded by pairs of lines, and a point in both.
+const DB00 = 'stepdb-00-s1' as const;
+
+/** x^2 - y^2 + x + 3y - 2 and x^2 - 4y^2 + 3x - 2y + 2, exactly. */
+const reg1 = (x: Rational, y: Rational): Rational => add(sub(add(mul(x, x), x), mul(y, y)), sub(mul(q(3), y), q(2)));
+const reg2 = (x: Rational, y: Rational): Rational => add(sub(add(mul(x, x), mul(q(3), x)), mul(q(4), mul(y, y))), sub(q(2), mul(q(2), y)));
+const bothRegions = (x: Rational, y: Rational): boolean => reg1(x, y).num > 0n && reg2(x, y).num < 0n;
+
+const db00q6 = supervision({
+  id: 'step00-q6',
+  source: cite(DB00, 'Q6'),
+  title: t`Two pairs of lines, and a point inside both regions`,
+  prompt: t`Show that ${dmath`x^{${2}} - y^{${2}} + x + ${3}y - ${2} = (x - y + ${2})(x + y - ${1})`} and hence, or otherwise, indicate by means of a sketch the region of the ${math`(x, y)`} plane for which ${math`x^{${2}} - y^{${2}} + x + ${3}y > ${2}`}. Sketch also the region of the ${math`(x, y)`} plane for which ${math`x^{${2}} - ${4}y^{${2}} + ${3}x - ${2}y < -${2}`}. Give the coordinates of a point for which both inequalities are satisfied or explain why no such point exists.`,
+  writeUp: 'sketch',
+});
+
+const db00q6point = auto({
+  id: 'step00-q6-point',
+  source: cite(DB00, 'Q6'),
+  title: t`A point in both regions`,
+  prompt: t`Give the coordinates of a point ${math`(x, y)`} for which both ${math`x^{${2}} - y^{${2}} + x + ${3}y > ${2}`} and ${math`x^{${2}} - ${4}y^{${2}} + ${3}x - ${2}y < -${2}`}. Type it as ${math`x = \ldots, y = \ldots`}.`,
+  answer: {
+    kind: 'witness',
+    names: ['x', 'y'],
+    count: 2,
+    example: 'x = -2, y = 1',
+    check: ([x, y]) => {
+      if (x === undefined || y === undefined) return 'Give both coordinates.';
+      if (reg1(x, y).num <= 0n) return 'That point is not in the first region: (x - y + 2)(x + y - 1) must be positive.';
+      if (reg2(x, y).num >= 0n) return 'That point is not in the second region: (x - 2y + 1)(x + 2y + 2) must be negative.';
+      return null;
+    },
+  },
+  solution: [
+    t`The first: ${math`(x - y + ${2})(x + y - ${1}) > ${0}`}. The second factorises the same way: ${math`x^{${2}} - ${4}y^{${2}} + ${3}x - ${2}y + ${2} = (x - ${2}y + ${1})(x + ${2}y + ${2})`}, which must be negative.`,
+    t`Each region is a pair of opposite wedges between two lines. The first is where both factors have the same sign, the second where its factors have opposite signs.`,
+    t`Try ${math`(-${2}, ${1})`}: ${math`(-${2} - ${1} + ${2})(-${2} + ${1} - ${1}) = (-${1})(-${2}) = ${2} > ${0}`} and ${math`(-${2} - ${2} + ${1})(-${2} + ${2} + ${2}) = (-${3})(${2}) = -${6} < ${0}`}. So ${math`(-${2}, ${1})`} works, and so does any point near it.`,
+  ],
+  reference: 'x = -2, y = 1',
+  verify: () => {
+    // The two factorisations, as polynomial identities at a grid of points, and the example point.
+    for (let i = -6; i <= 6; i++) for (let j = -6; j <= 6; j++) {
+      const [x, y] = [q(i, 2), q(j, 3)];
+      const f1 = mul(add(sub(x, y), q(2)), sub(add(x, y), q(1)));
+      const f2 = mul(add(sub(x, mul(q(2), y)), q(1)), add(add(x, mul(q(2), y)), q(2)));
+      if (sub(f1, reg1(x, y)).num !== 0n || sub(f2, reg2(x, y)).num !== 0n) return `factorisation fails at (${i}/2, ${j}/3)`;
+    }
+    return bothRegions(q(-2), q(1)) ? null : 'the example point is not in both regions';
+  },
+  misconceptions: [
+    { response: 'x = 0, y = 0', why: t`At the origin the first expression is ${math`-${2}`}, not more than ${0}: ${math`(${2})(-${1}) < ${0}`}.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const polynomialRegions: TopicContent = {
@@ -323,8 +378,10 @@ export const polynomialRegions: TopicContent = {
   generators: [cubicSign, repeatedRoot, regionPoints],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sign-diagram', 'region-test-point'],
-  cambridge: [a4q3i, nstA5ii, a4q2iii, a4q3iiLines, step1995, a4q2iv],
-  gate: ['a4-q3'],
+  cambridge: [db00q6, db00q6point, a4q3i, nstA5ii, a4q2iii, a4q3iiLines, step1995, a4q2iv],
+  // Best first: STEP I 2000 Q6 (two regions and a common point), Assignment 4 Q3 (1995 STEP I
+  // Q1), then the auto-checked common point of 2000 Q6.
+  gate: ['step00-q6', 'a4-q3', 'step00-q6-point'],
   recall: [
     { front: t`Where does a factorised polynomial change sign?`, back: t`At each root of odd multiplicity; not at a root of even multiplicity.` },
     { front: t`How do you shade where a product of linear factors in ${math`x, y`} is positive?`, back: t`Draw the lines where each factor is ${0}, then test one point in each region.` },

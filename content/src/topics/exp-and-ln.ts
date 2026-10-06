@@ -2,13 +2,14 @@
  * alg.exp-and-ln (a bridge): e^x and ln x as inverse functions, the laws of logarithms,
  * and logarithms to other bases. Sources: the STEP specification (Exponentials and
  * logarithms), the TMUA specification MM5.1 and MM5.2 and the TMUA Notes on Mathematics,
- * and the NST Maths Workbook FC5. Answers are computed exactly where they are rational, and
- * checked in floating point with Math.exp and Math.log.
+ * and the NST Maths Workbook FC5; the gate adds STEP I 2018 Q2 and STEP I 2000 Q1 (STEP
+ * Questions Database). Answers are computed exactly where they are rational, and checked in
+ * floating point with Math.exp and Math.log; first digits of powers by exact integers.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { div, int, mul, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
+import { dmath, math, t } from '../rich';
 import { checkFrom, workedCambridge, worked, type TopicContent } from '../topic';
 import { distinctFrom, setAnswer, withExaminer } from '../prep-a';
 
@@ -179,6 +180,66 @@ const fc5ii = supervision({
   writeUp: 'proof',
 });
 
+// STEP I 2018 Q2 and STEP I 2000 Q1 (STEP Questions Database): logarithms used to compare and to
+// read off leading digits.
+const DB18 = 'stepdb-18-s1' as const;
+const DB00 = 'stepdb-00-s1' as const;
+
+const db18q2 = supervision({
+  id: 'step18-q2',
+  source: cite(DB18, 'Q2(i), (ii), (iii)'),
+  title: t`Bounds on ${math`\ln \pi`}`,
+  prompt: t`You may use the change of base rule ${math`\frac{\log_{a} c}{\log_{a} b} = \log_{b} c`}. (i) Given that ${math`\pi^{${2}} < ${10}`}, prove that ${dmath`\frac{${1}}{\log_{${2}} \pi} + \frac{${1}}{\log_{${5}} \pi} > ${2}.`} (ii) Given that ${math`\log_{${2}} \frac{\pi}{e} > \frac{${1}}{${5}}`} and that ${math`e^{${2}} < ${8}`}, prove that ${math`\ln \pi > \frac{${17}}{${15}}`}. (iii) Given that ${math`e^{${3}} > ${20}`}, ${math`\pi^{${2}} < ${10}`} and ${math`\log_{${10}} ${2} > \frac{${3}}{${10}}`}, prove that ${math`\ln \pi < \frac{${15}}{${13}}`}.`,
+  writeUp: 'proof',
+});
+
+const db00q1 = supervision({
+  id: 'step00-q1',
+  source: cite(DB00, 'Q1'),
+  title: t`The first digit of a huge power`,
+  prompt: t`To nine decimal places, ${math`\log_{${10}} ${2} = ${0.301029996}`} and ${math`\log_{${10}} ${3} = ${0.477121255}`}. (i) Calculate ${math`\log_{${10}} ${5}`} and ${math`\log_{${10}} ${6}`} to three decimal places. By taking logs, or otherwise, show that ${dmath`${5} \times ${10}^{${47}} < ${3}^{${100}} < ${6} \times ${10}^{${47}}.`} Hence write down the first digit of ${math`${3}^{${100}}`}. (ii) Find the first digit of each of the following numbers: ${math`${2}^{${1000}}`}; ${math`${2}^{${10000}}`}; and ${math`${2}^{${100000}}`}.`,
+  writeUp: 'explanation',
+});
+
+/** The first digit of base^exp, by exact integer arithmetic. */
+const firstDigit = (base: bigint, exp: bigint): string => (base ** exp).toString()[0] as string;
+const POWERS_00: readonly (readonly [number, number])[] = [[3, 100], [2, 1000], [2, 10000], [2, 100000]];
+
+const db00q1digits = auto({
+  id: 'step00-q1-digits',
+  source: cite(DB00, 'Q1'),
+  title: t`Four first digits from two logarithms`,
+  prompt: t`To nine decimal places, ${math`\log_{${10}} ${2} = ${0.301029996}`} and ${math`\log_{${10}} ${3} = ${0.477121255}`}. Using these, find the first digit of each number.`,
+  answer: {
+    kind: 'table',
+    cell: 'exact',
+    columns: [t`number`, t`first digit`],
+    rows: POWERS_00.map(([b, e]) => [t`${math`${b}^{${e}}`}`, null]),
+    expected: POWERS_00.map(([b, e]) => firstDigit(BigInt(b), BigInt(e))),
+  },
+  solution: [
+    t`If ${math`\log_{${10}} N = n + f`} with ${math`n`} a whole number and ${math`${0} \le f < ${1}`}, then ${math`N = ${10}^{n} \times ${10}^{f}`}, so the first digit of ${math`N`} is the first digit of ${math`${10}^{f}`}: it is ${math`d`} exactly when ${math`\log_{${10}} d \le f < \log_{${10}} (d + ${1})`}.`,
+    t`The digits' logarithms: ${math`\log_{${10}} ${5} = ${1} - \log_{${10}} ${2} = ${0.698970004}`}, ${math`\log_{${10}} ${6} = \log_{${10}} ${2} + \log_{${10}} ${3} = ${0.778151251}`}, ${math`\log_{${10}} ${9} = ${2}\log_{${10}} ${3} = ${0.95424251}`}.`,
+    t`${math`${100}\log_{${10}} ${3} = ${47.7121255}`}, and ${math`${0.699} < ${0.7121} < ${0.778}`}, so ${math`${3}^{${100}}`} starts with ${5}.`,
+    t`${math`${1000}\log_{${10}} ${2} = ${301.029996}`}: ${math`f = ${0.029996} < \log_{${10}} ${2}`}, so ${math`${2}^{${1000}}`} starts with ${1}.`,
+    t`${math`${10000}\log_{${10}} ${2} = ${3010.29996}`}: ${math`f = ${0.29996}`}, still below ${math`\log_{${10}} ${2} = ${0.30103}`} (the nine-place value is within ${math`${5} \times ${10}^{-${10}}`}, so ${math`f`} is known to within ${math`${5} \times ${10}^{-${6}}`}). So ${math`${2}^{${10000}}`} starts with ${1}.`,
+    t`${math`${100000}\log_{${10}} ${2} = ${30102.9996}`}: ${math`f = ${0.9996} > \log_{${10}} ${9}`}, so ${math`${2}^{${100000}}`} starts with ${9}.`,
+  ],
+  reference: POWERS_00.map(([b, e]) => firstDigit(BigInt(b), BigInt(e))),
+  verify: () => {
+    // Exact integers against the logarithm argument above.
+    const byLogs = POWERS_00.map(([b, e]) => {
+      const f = (e * Math.log10(b)) % 1;
+      return String(Math.floor(10 ** f));
+    });
+    const exact = POWERS_00.map(([b, e]) => firstDigit(BigInt(b), BigInt(e)));
+    return same('first digits', exact.join(' '), byLogs.join(' ')) ?? same('first digits', exact.join(' '), '5 1 1 9');
+  },
+  misconceptions: [
+    { response: ['5', '1', '2', '9'], why: t`For ${math`${2}^{${10000}}`}, ${math`f = ${0.29996}`} is just below ${math`\log_{${10}} ${2} = ${0.30103}`}, so ${math`${10}^{f} < ${2}`}: the first digit is ${1}.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const expAndLn: TopicContent = {
@@ -228,8 +289,11 @@ export const expAndLn: TopicContent = {
   generators: [logLaws, solvePower, lnEquation],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exponential-function', 'natural-logarithm', 'laws-of-logarithms'],
-  cambridge: [fc5iii, fc5ii],
-  gate: ['nst-fc5-iii'],
+  cambridge: [db18q2, db00q1, db00q1digits, fc5iii, fc5ii],
+  // Best first: STEP I 2018 Q2 (bounds on ln pi), STEP I 2000 Q1 (first digits), its
+  // auto-checked digits, then the NST Workbook's FC5(iii). The change of base proof that opens
+  // 2018 Q2 is in the lesson, so the gate is its parts (i) to (iii).
+  gate: ['step18-q2', 'step00-q1', 'step00-q1-digits', 'nst-fc5-iii'],
   recall: [
     { front: t`Define ${math`\ln x`}.`, back: t`For ${math`x > ${0}`}, the unique ${math`y`} with ${math`e^{y} = x`}.` },
     { front: t`State the laws of logarithms.`, back: t`${math`\ln(ab) = \ln a + \ln b`}, ${math`\ln\frac{a}{b} = \ln a - \ln b`}, ${math`\ln(a^{k}) = k\ln a`}.` },

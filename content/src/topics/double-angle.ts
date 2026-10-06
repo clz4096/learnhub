@@ -4,13 +4,15 @@
  * compound angle formulae. Problems: STEP Support Foundation Assignment 10 Q1(iii)
  * (cos 3A), Assignment 16 Q2(ii) (sin 3A), Assignment 23 Q2(iv) and Q3(i) (tan 2a, and
  * tan 2 alpha = 4/3 in 2009 STEP I Q8), and Assignment 25 Q2(v). Official answers are from
- * the hints.
+ * the hints. The gate adds STEP I 2005 Q4 and the identity of STEP I 2011 Q3 (STEP Questions
+ * Database).
  */
 import { auto, cite, supervision } from '../cambridge';
 import { TRIPLES } from '../geometry';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t } from '../rich';
+import { close } from '../prep-c';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 import { far } from '../partv-a';
 
@@ -270,6 +272,74 @@ const a25q2v = supervision({
   official: cite('step-f25-hints', 'Q2(v)'),
 });
 
+// STEP I 2005 Q4 and STEP I 2011 Q3's identity (STEP Questions Database): triple angles.
+// 2011 Q3(i) needs differentiation and (ii) reciprocal functions, later topics.
+const DB05 = 'stepdb-05-s1' as const;
+const DB11 = 'stepdb-11-s1' as const;
+
+const db05q4 = supervision({
+  id: 'step05-q4',
+  source: cite(DB05, 'Q4'),
+  title: t`Triple angles from a ${math`${3}`}, ${math`${4}`}, ${math`${5}`} triangle, and ${math`\tan ${3}\theta`}`,
+  prompt: t`(i) Given that ${math`\cos\theta = \frac{${3}}{${5}}`} and that ${math`\frac{${3}\pi}{${2}} \le \theta \le ${2}\pi`}, show that ${math`\sin ${2}\theta = -\frac{${24}}{${25}}`}, and evaluate ${math`\cos ${3}\theta`}. (ii) Prove the identity ${dmath`\tan ${3}\theta \equiv \frac{${3}\tan\theta - \tan^{${3}}\theta}{${1} - ${3}\tan^{${2}}\theta}.`} Hence evaluate ${math`\tan\theta`}, given that ${math`\tan ${3}\theta = \frac{${11}}{${2}}`} and that ${math`\frac{\pi}{${4}} \le \theta \le \frac{\pi}{${2}}`}.`,
+  writeUp: 'proof',
+});
+
+const COS = q(3, 5);
+const COS3 = sub(mul(q(4), mul(COS, mul(COS, COS))), mul(q(3), COS));
+const db05q4cos = auto({
+  id: 'step05-q4-cos',
+  source: cite(DB05, 'Q4(i)'),
+  title: t`${math`\cos ${3}\theta`} from ${math`\cos\theta = \frac{${3}}{${5}}`}`,
+  prompt: t`Given that ${math`\cos\theta = \frac{${3}}{${5}}`} and that ${math`\frac{${3}\pi}{${2}} \le \theta \le ${2}\pi`}, evaluate ${math`\cos ${3}\theta`}.`,
+  answer: { kind: 'exact', expected: str(COS3) },
+  solution: [
+    t`${math`\cos ${3}\theta = ${4}\cos^{${3}}\theta - ${3}\cos\theta`}, which needs only ${math`\cos\theta`}.`,
+    t`${math`${4} \cdot \frac{${27}}{${125}} - ${3} \cdot \frac{${3}}{${5}} = \frac{${108}}{${125}} - \frac{${225}}{${125}} = ${COS3}`}.`,
+  ],
+  reference: str(COS3),
+  verify: () => close('cos 3 theta', Math.cos(3 * (2 * Math.PI - Math.acos(0.6))), Number(COS3.num) / Number(COS3.den), 1e-12),
+  misconceptions: [
+    { response: '117/125', why: t`${math`${4}\cos^{${3}}\theta = \frac{${108}}{${125}}`} is less than ${math`${3}\cos\theta = \frac{${225}}{${125}}`}, so the result is negative.` },
+    { response: '-9/5', why: t`${math`\cos ${3}\theta`} is not ${math`${3}\cos\theta`}. Use ${math`\cos ${3}\theta = ${4}\cos^{${3}}\theta - ${3}\cos\theta`}.` },
+  ],
+});
+
+const TAN = '8 + 5 sqrt(3)';
+const db05q4tan = auto({
+  id: 'step05-q4-tan',
+  source: cite(DB05, 'Q4(ii)'),
+  title: t`${math`\tan\theta`} from ${math`\tan ${3}\theta = \frac{${11}}{${2}}`}`,
+  prompt: t`Given ${math`\tan ${3}\theta = \frac{${3}\tan\theta - \tan^{${3}}\theta}{${1} - ${3}\tan^{${2}}\theta}`}, evaluate ${math`\tan\theta`}, given that ${math`\tan ${3}\theta = \frac{${11}}{${2}}`} and that ${math`\frac{\pi}{${4}} \le \theta \le \frac{\pi}{${2}}`}. Give it exactly.`,
+  answer: { kind: 'expression', expected: TAN, variables: [] },
+  solution: [
+    t`Let ${math`t = \tan\theta`}. Then ${math`${2}(${3}t - t^{${3}}) = ${11}(${1} - ${3}t^{${2}})`}, that is ${math`${2}t^{${3}} - ${33}t^{${2}} - ${6}t + ${11} = ${0}`}.`,
+    t`${math`t = \frac{${1}}{${2}}`} is a root: ${math`\frac{${2}}{${8}} - \frac{${33}}{${4}} - ${3} + ${11} = ${0}`}. Dividing out, ${math`(${2}t - ${1})(t^{${2}} - ${16}t - ${11}) = ${0}`}, so ${math`t = \frac{${1}}{${2}}`} or ${math`t = ${8} \pm \sqrt{${75}} = ${8} \pm ${5}\sqrt{${3}}`}.`,
+    t`For ${math`\frac{\pi}{${4}} \le \theta \le \frac{\pi}{${2}}`}, ${math`\tan\theta \ge ${1}`}: only ${math`t = ${8} + ${5}\sqrt{${3}}`} qualifies (${math`${8} - ${5}\sqrt{${3}}`} is negative).`,
+  ],
+  reference: TAN,
+  verify: () => {
+    const v = 8 + 5 * Math.sqrt(3);
+    const th = Math.atan(v);
+    if (!(th >= Math.PI / 4 && th <= Math.PI / 2)) return 'theta out of range';
+    // The other roots of the cubic fall outside the range.
+    if (Math.atan(0.5) >= Math.PI / 4 || 8 - 5 * Math.sqrt(3) >= 1) return 'another root in range';
+    return close('tan 3 theta', Math.tan(3 * th), 5.5, 1e-9);
+  },
+  misconceptions: [
+    { response: '1/2', why: t`${math`\tan\theta = \frac{${1}}{${2}}`} gives ${math`\theta < \frac{\pi}{${4}}`}, outside the range: ${math`\tan\theta \ge ${1}`} there.` },
+    { response: '8 - 5 sqrt(3)', why: t`${math`${8} - ${5}\sqrt{${3}}`} is negative, but ${math`\tan\theta \ge ${1}`} for ${math`\frac{\pi}{${4}} \le \theta \le \frac{\pi}{${2}}`}.` },
+  ],
+});
+
+const db11q3 = supervision({
+  id: 'step11-q3',
+  source: cite(DB11, 'Q3, identity (*)'),
+  title: t`A product of three sines`,
+  prompt: t`Prove the identity ${dmath`${4}\sin\theta\sin\left(\tfrac{${1}}{${3}}\pi - \theta\right)\sin\left(\tfrac{${1}}{${3}}\pi + \theta\right) = \sin ${3}\theta.`}`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const doubleAngle: TopicContent = {
@@ -322,8 +392,10 @@ export const doubleAngle: TopicContent = {
   generators: [doubleFromCos, cosForms, tripleAngle],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['double-angle-formula'],
-  cambridge: [a16sin3, a23tan, a23q2iv, a25q2v],
-  gate: ['a25-q2-v'],
+  cambridge: [db05q4, db11q3, db05q4cos, db05q4tan, a16sin3, a23tan, a23q2iv, a25q2v],
+  // Best first: STEP I 2005 Q4 (triple angles, then tan 3 theta), Assignment 25 Q2(v), STEP I
+  // 2011 Q3's identity, then the auto-checked tan theta of 2005 Q4(ii).
+  gate: ['step05-q4', 'a25-q2-v', 'step11-q3', 'step05-q4-tan'],
   recall: [
     { front: t`State the double angle formulae for sine and cosine.`, back: t`${math`\sin ${2}A = ${2}\sin A\cos A`}; ${math`\cos ${2}A = \cos^{${2}} A - \sin^{${2}} A = ${2}\cos^{${2}} A - ${1} = ${1} - ${2}\sin^{${2}} A`}.` },
     { front: t`State ${math`\tan ${2}A`}.`, back: t`${math`\frac{${2}\tan A}{${1} - \tan^{${2}} A}`}, where defined.` },

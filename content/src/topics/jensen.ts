@@ -4,7 +4,8 @@
  * inequality for general random variables, AM/GM inequality") and IA Probability Example
  * Sheet 3 Q1 (the harmonic mean is at most the arithmetic mean; (1/n) Σ y_i/x_i ≥ 1 for any
  * reordering y of x). The sheet has no official solutions; the reordering answers are
- * checked by trying every permutation, and the minima by a numerical search.
+ * checked by trying every permutation, and the minima by a numerical search. The gate adds
+ * MIT 18.600 Problem Set 10, C(a) (relative entropy is non-negative), asked through Jensen.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
@@ -206,6 +207,16 @@ const scheduleJensen = supervision({
   writeUp: 'proof',
 });
 
+// MIT 18.600 (Fall 2019) Problem Set 10, Problem C(a): relative entropy is never negative
+// (Gibbs' inequality). The set suggests calculus; here it is asked through Jensen, so adapted.
+const mitC = supervision({
+  id: 'mit-ps10-c-a',
+  source: cite('mit-18600-ps10', 'Problem C(a)', true),
+  title: t`Expected smugness is never negative`,
+  prompt: t`There are ${math`n`} possible outcomes of a tournament. I assign them probabilities ${math`p_{${1}}, \ldots, p_{n}`} and you assign ${math`q_{${1}}, \ldots, q_{n}`}, all positive. If outcome ${math`i`} occurs, my smugness is ${math`\log\frac{p_{i}}{q_{i}}`}, so before the event my expected smugness is ${math`\sum_{i} p_{i}\log\frac{p_{i}}{q_{i}}`}. Show, using Jensen's inequality, that my expected smugness is always non-negative, and that it is zero if and only if ${math`p_{i} = q_{i}`} for all ${math`i`}. Say which random variable you apply Jensen to, and why the equality case follows.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EX: Dist = POS[0] as Dist;
@@ -276,9 +287,10 @@ export const jensen: TopicContent = {
   generators: [reciprocalMean, amgmMinimum, harmonicMean],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['convex-function', 'jensen-inequality', 'am-gm'],
-  cambridge: [q1b, q1bProof, scheduleJensen],
-  // The sheet's proof is the test; the largest reordering is a search over six cases, which does not need Jensen.
-  gate: ['ia-s3-q1-b'],
+  cambridge: [q1b, q1bProof, scheduleJensen, mitC],
+  // The sheet's proof is the test; the largest reordering is a search over six cases, which does
+  // not need Jensen. MIT 18.600's relative entropy (Gibbs' inequality) is the second gate.
+  gate: ['ia-s3-q1-b', 'mit-ps10-c-a'],
   recall: [
     { front: t`Define a convex function.`, back: t`${math`f(tx + (${1} - t)y) \le tf(x) + (${1} - t)f(y)`} for all ${math`x, y`} and ${math`t \in [${0}, ${1}]`}: the curve lies below its chords.` },
     { front: t`State Jensen's inequality.`, back: t`For convex ${math`f`}, ${math`\mathbb{E}(f(X)) \ge f(\mathbb{E}(X))`}; reversed for concave ${math`f`}.` },

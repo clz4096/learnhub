@@ -339,6 +339,16 @@ const focs32 = supervision({
   writeUp: 'explanation',
 });
 
+// Computer Science Tripos Part IA 2016, Paper 1, Question 2(a): a prime sieve on a list. The
+// paper asks for Standard ML; here it is OCaml, so the citation is marked adapted.
+const cst16 = supervision({
+  id: 'cst-2016-p1-q2-a',
+  source: cite('cst-y2016p1q2', '(a)', true),
+  title: t`A prime sieve on a list`,
+  prompt: t`A prime number sieve is an algorithm for finding all prime numbers up to a given limit ${math`n`}. The algorithm maintains a list, which initially holds the integers from ${2} to ${math`n`}. The following step is then repeated: remove the head of this list, which will be a prime number, and remove all its multiples from the list. Write code for the algorithm above as an OCaml function of type ${code`int -> int list`}. Explain your code clearly, and keep it free of needless complexity.`,
+  writeUp: 'explanation',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const [L0, L1, L2] = [5, 6, 7];
@@ -415,8 +425,9 @@ export const fpLists: TopicContent = {
   generators: [lengths, listFn, consCount],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ocaml-list', 'cons', 'pattern-matching'],
-  cambridge: [listExpr, takeDrop, focs32],
-  gate: ['focs-3-2'],
+  cambridge: [cst16, listExpr, takeDrop, focs32],
+  // Best first: the 2016 Tripos sieve, then FoCS Exercise 3.2.
+  gate: ['cst-2016-p1-q2-a', 'focs-3-2'],
   recall: [
     { front: t`What are the two ways to build a list?`, back: t`${code`[]`}, the empty list, and ${code`x :: xs`}, an element on the front of a list of the same type.` },
     { front: t`How many conses does ${code`xs @ ys`} make?`, back: t`One per element of ${code`xs`}: it copies the left list and shares the right.` },

@@ -2,7 +2,9 @@
  * pre.indices: Laws of indices. No Cambridge source teaches indices from the start, so the
  * explanation is written from scratch (decision 11); STEP Support Assignment 12 Q1(iv)
  * (2^(2n) is 4^n) and CST supervision exercise 1.2.3 (2^0 = 1, and N starts at 0) supply
- * the worked example and the problems.
+ * the worked example and the problems. Batch 7 adds IA Numbers and Sets Example Sheet 2, Q12
+ * (second part): 2^91 - 1 is not prime, since 2^91 = (2^7)^13. CST exercise 4.2.1(a), the same idea
+ * with a sum, needs sigma notation, which this topic does not assume, so it is not set.
  */
 import type { Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
@@ -235,6 +237,25 @@ const a12Q1iii = supervision({
   official: cite('step-f12-hints', 'Q1(iii)'),
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking ns2-q12-ii (20 marks):
+ * 1. Spots 91 = 7 x 13 and writes 2^91 = (2^7)^13 = 128^13 by the power of a power law (6).
+ * 2. Factor x^13 - 1 = (x - 1)(x^12 + x^11 + ... + x + 1), checked by expanding (the middle terms
+ *    cancel in pairs) (6). Or: 128 leaves remainder 1 on division by 127, so 128^13 does too.
+ * 3. So 127 = 2^7 - 1 divides 2^91 - 1 (4).
+ * 4. 1 < 127 < 2^91 - 1, so it is a proper factor and 2^91 - 1 is not prime (4). (8191 = 2^13 - 1
+ *    works the same way.)
+ */
+const ns2q12ii = supervision({
+  id: 'ns2-q12-ii',
+  source: cite('ia-ns-sheet-2', 'Q12, second part'),
+  title: t`A large number that is not prime`,
+  prompt: t`Show that ${math`${2}^{${91}} - ${1}`} is not prime.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const [mm, mn] = [math`m`, math`n`];
@@ -299,9 +320,10 @@ export const indices: TopicContent = {
   generators: [combine, powerOfPower, evaluate, newBase],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['power', 'base', 'index', 'zero-index', 'negative-index', 'fractional-index'],
-  cambridge: [sw123verdict, sw123witness, a12Q1iii],
-  // The STEP proof first; the true or false verdict is dropped, since a guess passes it half the time.
-  gate: ['a12-q1-iii'],
+  cambridge: [sw123verdict, sw123witness, a12Q1iii, ns2q12ii],
+  // The IA question first (it needs the power of a power law to see the factor), then the STEP proof;
+  // the true or false verdict is dropped, since a guess passes it half the time.
+  gate: ['ns2-q12-ii', 'a12-q1-iii'],
   recall: [
     { front: t`The three laws of indices.`, back: t`${math`x^{m}x^{n} = x^{m + n}`}, ${math`(x^{m})^{n} = x^{mn}`}, ${math`x^{m}/x^{n} = x^{m - n}`}.` },
     { front: t`What are ${math`x^{${0}}`} and ${math`x^{-n}`}, for ${math`x \ne ${0}`}?`, back: t`${math`x^{${0}} = ${1}`} and ${math`x^{-n} = ${1}/x^{n}`}: the only values that keep the laws true.` },

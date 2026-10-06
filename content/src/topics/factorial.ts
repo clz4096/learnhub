@@ -1,10 +1,11 @@
 /**
  * comb.factorial: Factorials and arranging n objects. From STEP Support Assignment 6
  * (Q5(i): Claire's 6 x 5 x ... x 1 = 6!; Q2(i): Ben, Elsa, and Charlie) and the change
- * ringing discussion of Assignment 12 Q4 (an extent on 5 bells is 5! = 120 changes).
+ * ringing discussion of Assignment 12 Q4 (an extent on 5 bells is 5! = 120 changes). The gate
+ * problems are Grinstead and Snell, Section 3.1, Exercises 6, 7, and 14(a) (batch 7).
  */
-import { auto, cite, same } from '../cambridge';
-import { factorial, int, pick } from '../math';
+import { auto, cite, same, supervision } from '../cambridge';
+import { factorial, int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, computedMath as cm, dmath, ident, math, t } from '../rich';
 import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
@@ -200,6 +201,73 @@ const extent = (bells: number, id: string, at: string) => auto({
 const extent6 = extent(6, 'a12-q4-extent-6', 'Q4, discussion of change ringing (six bells, as in Plain Bob Minor)');
 const extent8 = extent(8, 'a12-q4-extent-8', 'Q4, discussion of change ringing (the extent on 8 bells rung in 1963)');
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking gs-3-1-6 (20 marks):
+ * 1. Says what "the same arrangement" means: one seating is a rotation of the other (4).
+ * 2. Counts seatings in n labelled chairs: n! (4).
+ * 3. Each circular arrangement comes from exactly n labelled seatings, its n rotations, and these
+ *    are different because the people are different (8). Or: fix one person's chair, then
+ *    arrange the other n - 1 clockwise from them, (n - 1)! ways, with a word on why fixing loses nothing.
+ * 4. Concludes n!/n = (n - 1)! (4).
+ */
+const gs316 = supervision({
+  id: 'gs-3-1-6',
+  source: cite('gs-ch3', 'Section 3.1, Exercise 6 (page 88)'),
+  title: t`People around a round table`,
+  prompt: t`In arranging people around a circular table, we take into account their seats relative to each other, not the actual position of any one person. Show that ${mn} people can be arranged around a circular table in ${math`(n - ${1})!`} ways.`,
+  writeUp: 'proof',
+});
+
+/** Every way of sending five people to five floors, as lists of floors 0 .. 4. */
+const FLOORS = 5;
+const allFloors = (): number[][] => {
+  let out: number[][] = [[]];
+  for (let i = 0; i < FLOORS; i++) out = out.flatMap((a) => Array.from({ length: FLOORS }, (_, f) => [...a, f]));
+  return out;
+};
+const ELEVATOR = q(factorial(FLOORS), FLOORS ** FLOORS);
+
+const gs317 = auto({
+  id: 'gs-3-1-7',
+  source: cite('gs-ch3', 'Section 3.1, Exercise 7 (page 89)'),
+  title: t`Five people in a lift`,
+  prompt: t`Five people get on an elevator that stops at five floors. Assuming that each has an equal probability of going to any one floor, find the probability that they all get off at different floors. Give a fraction in lowest terms.`,
+  answer: { kind: 'exact', expected: str(ELEVATOR) },
+  solution: [
+    t`The outcomes are the lists of floors, one for each person in order: each person has ${FLOORS} choices, so there are ${math`${FLOORS}^{${FLOORS}} = ${FLOORS ** FLOORS}`} equally likely lists.`,
+    t`All different means the five floors are used once each: the first person has ${FLOORS} choices, the next ${FLOORS - 1}, and so on, which is ${math`${FLOORS}! = ${factorial(FLOORS)}`} lists.`,
+    t`So the probability is ${math`\frac{${factorial(FLOORS)}}{${FLOORS ** FLOORS}} = ${ELEVATOR}`}.`,
+  ],
+  reference: str(ELEVATOR),
+  verify: () => {
+    const lists = allFloors();
+    const apart = lists.filter((a) => new Set(a).size === FLOORS).length;
+    return same('5 people on 5 floors, all different', str(q(apart, lists.length)), str(ELEVATOR));
+  },
+  misconceptions: [
+    { response: str(q(1, factorial(FLOORS))), why: t`That is one over the number of orders of the floors. Divide the number of good lists, ${math`${FLOORS}!`}, by the number of all lists, ${math`${FLOORS}^{${FLOORS}}`}, since each person may choose any floor.` },
+    { response: str(q(1, FLOORS)), why: t`That is the chance for one person to choose one given floor. Count whole lists: ${math`${FLOORS}!`} good ones out of ${math`${FLOORS}^{${FLOORS}}`}.` },
+  ],
+  official: { source: cite('gs-answers-odd', 'Section 3.1, Exercise 7'), answer: `${factorial(FLOORS)}/${FLOORS ** FLOORS}`, agrees: true },
+});
+
+const gs3114a = auto({
+  id: 'gs-3-1-14-a',
+  source: cite('gs-ch3', 'Section 3.1, Exercise 14(a) (pages 89 and 90)'),
+  title: t`A five button lock`,
+  prompt: t`The door on the computer center has a lock which has five buttons numbered from ${1} to ${5}. The combination of numbers that opens the lock is a sequence of five numbers and is reset every week. How many combinations are possible if every button must be used once?`,
+  answer: { kind: 'exact', expected: String(factorial(5)) },
+  solution: [
+    t`Using every button once, a combination is an ordering of the ${5} buttons.`,
+    t`So there are ${math`${5}! = ${factorial(5)}`} combinations.`,
+  ],
+  reference: String(factorial(5)),
+  verify: () => same('orderings of 5 buttons', permutations(5).length, factorial(5)),
+  misconceptions: [{ response: String(5 ** 5), why: t`That allows a button to be pushed twice. Each button is used exactly once, so each place has one fewer choice than the one before.` }],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const letters = ['A', 'B', 'C'];
@@ -271,10 +339,10 @@ export const factorialTopic: TopicContent = {
   generators: [arrange, ratio, fixed, names],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arrangement', 'factorial'],
-  cambridge: [extent6, extent8],
-  // None fits: the two extents are each one factorial, not a Cambridge-standard problem. A multi-part
-  // counting problem from STEP is needed before this topic can be mastered.
-  gate: [],
+  cambridge: [extent6, extent8, gs316, gs317, gs3114a],
+  // The round table needs an argument, not a formula; the lift needs the count of all outcomes as
+  // well. The lock and the two extents are each one factorial, so they are practice, not gates.
+  gate: ['gs-3-1-6', 'gs-3-1-7'],
   recall: [
     { front: t`Define ${math`n!`}.`, back: t`${ident('0!', '1')}, and ${math`n! = n \times (n - ${1})!`} for ${math`n \ge ${1}`}.` },
     { front: t`How many orderings have ${mn} different objects?`, back: t`${math`n!`}.` },

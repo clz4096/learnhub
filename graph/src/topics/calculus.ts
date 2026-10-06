@@ -61,7 +61,7 @@ export const calculus: Topic[] = [
     summary: 'Change the variable of a definite integral, with its limits, to turn it into one you can evaluate.',
     level: 'a-level',
     area: 'calculus',
-    prereqs: ['calc.definite-integrals', 'calc.differentiation-rules'],
+    prereqs: ['calc.definite-integrals', 'calc.differentiation-rules', 'alg.partial-fractions'],
     encompasses: { 'calc.definite-integrals': 0.6, 'calc.differentiation-rules': 0.5 },
     sources: [
       { doc: STEP, course: 'STEP Mathematics 1', section: `${M1_PURE}, Integration`, note: 'Spec: "Carry out simple and more complex cases of integration by substitution".', verified: true },
@@ -75,7 +75,7 @@ export const calculus: Topic[] = [
     summary: 'Evaluate $\\int_a^\\infty f(x) \\, dx$ as the limit of $\\int_a^R f(x) \\, dx$ as $R \\to \\infty$, and decide when it converges.',
     level: 'step',
     area: 'calculus',
-    prereqs: ['calc.definite-integrals', 'an.sequence-limits'],
+    prereqs: ['an.sequence-limits', 'calc.substitution'],
     encompasses: { 'calc.definite-integrals': 0.6, 'an.sequence-limits': 0.4 },
     sources: [
       { doc: STEP, course: 'STEP Mathematics 2', section: M2_FURTHER_CALCULUS, note: 'Spec: "Evaluate improper integrals where ... the range of integration extends to infinity."', verified: true },
@@ -111,7 +111,7 @@ export const calculus: Topic[] = [
     summary: 'Change variables in a double integral with the Jacobian determinant, as in polar coordinates $dx \\, dy = r \\, dr \\, d\\theta$.',
     level: 'tripos-ia',
     area: 'calculus',
-    prereqs: ['calc.double-integrals', 'calc.substitution'],
+    prereqs: ['calc.double-integrals'],
     encompasses: { 'calc.double-integrals': 0.6, 'calc.substitution': 0.5 },
     sources: [{ doc: TRIPOS, course: 'IA Vector Calculus', section: 'Integration in R2 and R3', note: 'Schedule: "change of variables."', verified: true }],
     estMinutes: 25,

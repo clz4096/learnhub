@@ -4,13 +4,16 @@
  * specification ("extend the binomial expansion of (a + bx)^n to any rational n, including
  * its use for approximation; be aware that the expansion is valid for |bx/a| < 1"); the
  * problems are the NST Mathematics Workbook, SS5 (checked against its printed answers) and
- * STEP Support Assignment 20, Q1(iii) (checked against the hints). Every coefficient is
- * computed exactly here.
+ * STEP Support Assignment 20, Q1(iii) (checked against the hints). The gate adds STEP Support
+ * STEP 2 Miscellaneous Q7 (2007 STEP II Q1, roots by the series, checked against the official
+ * solutions) and STEP I 2011 Q6 (STEP Questions Database, series summed through (1 - x)^-3).
+ * Every coefficient is computed exactly here.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t, type Span } from '../rich';
+import { close } from '../prep-c';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mx, mn, mk] = [math`x`, math`n`, math`k`];
@@ -255,6 +258,137 @@ const ss5sup = supervision({
   writeUp: 'explanation',
 });
 
+// STEP 2 Miscellaneous Q7 (2007 S2 Q1) and STEP I 2011 Q6 (STEP Questions Database).
+const MISC = 'step-s2-misc' as const;
+const MISCS = 'step-s2-misc-solutions' as const;
+const DB11 = 'stepdb-11-s1' as const;
+
+/** The binomial series of (1 + k/100)^(1/2) to the k^3 term, at k, exactly. */
+const root4 = (k: number): Rational => {
+  let s = q(0);
+  for (let j = 0; j <= 3; j++) s = add(s, mul(gbinom(q(1, 2), j), q(k ** j, 100 ** j)));
+  return s;
+};
+const SQRT3_APPROX = mul(q(10, 6), root4(8));
+const SQRT6_APPROX = mul(q(10, 4), root4(-4));
+/** To five decimal places, as a string. */
+const dp5 = (r: Rational): string => (Number(r.num) / Number(r.den)).toFixed(5);
+
+const misc7 = supervision({
+  id: 's2misc-q7',
+  source: cite(MISC, 'Q7 (2007 STEP II Q1)'),
+  title: t`Square and cube roots by the binomial series`,
+  prompt: t`In this question, you are not required to justify the accuracy of the approximations. (i) Write down the binomial expansion of ${math`\left(${1} + \frac{k}{${100}}\right)^{\frac{${1}}{${2}}}`} in ascending powers of ${mk}, up to and including the ${math`k^{${3}}`} term. (a) Use the value ${math`k = ${8}`} to find an approximation to five decimal places for ${math`\sqrt{${3}}`}. (b) By choosing a suitable integer value of ${mk}, find an approximation to five decimal places for ${math`\sqrt{${6}}`}. (ii) By considering the first two terms of the binomial expansion of ${math`\left(${1} + \frac{k}{${1000}}\right)^{\frac{${1}}{${3}}}`}, show that ${math`\frac{${3029}}{${2100}}`} is an approximation to ${math`\sqrt[${3}]{${3}}`}.`,
+  writeUp: 'explanation',
+  official: cite(MISCS, 'Q7'),
+});
+
+const misc7a = auto({
+  id: 's2misc-q7-i-a',
+  source: cite(MISC, 'Q7(i)(a) (2007 STEP II Q1)'),
+  title: t`Root three from the root of ${1.08}`,
+  prompt: t`Using the binomial expansion of ${math`\left(${1} + \frac{k}{${100}}\right)^{\frac{${1}}{${2}}}`} up to and including the ${math`k^{${3}}`} term, with ${math`k = ${8}`}, find an approximation to five decimal places for ${math`\sqrt{${3}}`}.`,
+  answer: { kind: 'numeric', expected: Number(dp5(SQRT3_APPROX)), absTol: 0.000005 },
+  solution: [
+    t`${math`\left(${1} + \frac{k}{${100}}\right)^{\frac{${1}}{${2}}} = ${1} + \frac{k}{${200}} - \frac{k^{${2}}}{${80000}} + \frac{k^{${3}}}{${16000000}} + \cdots`}, from the coefficients ${math`\binom{\frac{${1}}{${2}}}{${1}} = \frac{${1}}{${2}}`}, ${math`\binom{\frac{${1}}{${2}}}{${2}} = -\frac{${1}}{${8}}`}, ${math`\binom{\frac{${1}}{${2}}}{${3}} = \frac{${1}}{${16}}`}.`,
+    t`With ${math`k = ${8}`}: ${math`\sqrt{${1.08}} = \sqrt{\frac{${36} \times ${3}}{${100}}} = \frac{${6}\sqrt{${3}}}{${10}}`}, and the series gives ${math`${1} + ${0.04} - ${0.0008} + ${0.000032} = ${1.039232}`}.`,
+    t`So ${math`\sqrt{${3}} \approx \frac{${10}}{${6}} \times ${1.039232} = ${1.732053}`}, which is ${Number(dp5(SQRT3_APPROX))} to five decimal places.`,
+  ],
+  reference: dp5(SQRT3_APPROX),
+  verify: () => {
+    // The series value, exactly, then the rounding; and the expansion's coefficients 1/200, -1/80000, 1/16000000.
+    const coeffs = [1, 2, 3].map((j) => str(mul(gbinom(q(1, 2), j), q(1, 100 ** j))));
+    const e = same('coefficients', coeffs.join(' '), '1/200 -1/80000 1/16000000');
+    if (e !== null) return e;
+    return same('sqrt 3', dp5(SQRT3_APPROX), Math.sqrt(3).toFixed(5));
+  },
+  misconceptions: [
+    { response: '1.03923', why: t`That is the series value, which approximates ${math`\sqrt{${1.08}} = \frac{${6}\sqrt{${3}}}{${10}}`}. Multiply by ${math`\frac{${10}}{${6}}`} to get ${math`\sqrt{${3}}`}.` },
+  ],
+  official: { source: cite(MISCS, 'Q7(i)(a)'), answer: '1.73205', agrees: true },
+});
+
+const misc7b = auto({
+  id: 's2misc-q7-i-b',
+  source: cite(MISC, 'Q7(i)(b) (2007 STEP II Q1)'),
+  title: t`Root six, choosing ${mk}`,
+  prompt: t`By choosing a suitable integer value of ${mk} in the binomial expansion of ${math`\left(${1} + \frac{k}{${100}}\right)^{\frac{${1}}{${2}}}`} up to and including the ${math`k^{${3}}`} term, find an approximation to five decimal places for ${math`\sqrt{${6}}`}.`,
+  answer: { kind: 'numeric', expected: Number(dp5(SQRT6_APPROX)), absTol: 0.000005 },
+  solution: [
+    t`Look for ${math`${100} + k = ${6}a^{${2}}`} with ${mk} small: ${math`a = ${4}`} gives ${math`${96}`}, so ${math`k = -${4}`} (${math`a = ${3}`} gives ${math`k = -${46}`} and ${math`a = ${5}`} gives ${math`k = ${50}`}, both too large).`,
+    t`Then ${math`\sqrt{${0.96}} = \frac{${4}\sqrt{${6}}}{${10}}`}, and the series gives ${math`${1} - ${0.02} - ${0.0002} - ${0.000004} = ${0.979796}`}.`,
+    t`So ${math`\sqrt{${6}} \approx \frac{${10}}{${4}} \times ${0.979796} = ${2.44949}`}.`,
+  ],
+  reference: dp5(SQRT6_APPROX),
+  verify: () => same('sqrt 6', dp5(SQRT6_APPROX), Math.sqrt(6).toFixed(5)),
+  misconceptions: [
+    { response: '0.97980', why: t`That is the series value, which approximates ${math`\sqrt{${0.96}} = \frac{${4}\sqrt{${6}}}{${10}}`}. Multiply by ${math`\frac{${10}}{${4}}`}.` },
+  ],
+  official: { source: cite(MISCS, 'Q7(i)(b)'), answer: '2.44949', agrees: true },
+});
+
+const db11q6 = supervision({
+  id: 'step11-q6',
+  source: cite(DB11, 'Q6'),
+  title: t`Series summed by the binomial expansion`,
+  prompt: t`Use the binomial expansion to show that the coefficient of ${math`x^{r}`} in the expansion of ${math`(${1} - x)^{-${3}}`} is ${math`\frac{${1}}{${2}}(r + ${1})(r + ${2})`}. (i) Show that the coefficient of ${math`x^{r}`} in the expansion of ${dmath`\frac{${1} - x + ${2}x^{${2}}}{(${1} - x)^{${3}}}`} is ${math`r^{${2}} + ${1}`} and hence find the sum of the series ${dmath`${1} + \frac{${2}}{${2}} + \frac{${5}}{${4}} + \frac{${10}}{${8}} + \frac{${17}}{${16}} + \frac{${26}}{${32}} + \frac{${37}}{${64}} + \frac{${50}}{${128}} + \cdots.`} (ii) Find the sum of the series ${dmath`${1} + ${2} + \frac{${9}}{${4}} + ${2} + \frac{${25}}{${16}} + \frac{${9}}{${8}} + \frac{${49}}{${64}} + \cdots.`}`,
+  writeUp: 'proof',
+});
+
+/** Partial sums of sum_r f(r)/2^r, to 200 terms, as a float: the series converge fast. */
+const halfSum = (f: (r: number) => number): number => {
+  let s = 0;
+  for (let r = 0; r < 200; r++) s += f(r) / 2 ** r;
+  return s;
+};
+
+const db11q6i = auto({
+  id: 'step11-q6-i',
+  source: cite(DB11, 'Q6(i)'),
+  title: t`The sum of ${math`\frac{r^{${2}} + ${1}}{${2}^{r}}`}`,
+  prompt: t`Given that the coefficient of ${math`x^{r}`} in the expansion of ${math`\frac{${1} - x + ${2}x^{${2}}}{(${1} - x)^{${3}}}`} is ${math`r^{${2}} + ${1}`}, find the sum of the series ${dmath`${1} + \frac{${2}}{${2}} + \frac{${5}}{${4}} + \frac{${10}}{${8}} + \frac{${17}}{${16}} + \frac{${26}}{${32}} + \frac{${37}}{${64}} + \frac{${50}}{${128}} + \cdots.`}`,
+  answer: { kind: 'exact', expected: '8' },
+  solution: [
+    t`The ${math`r`}th term (from ${math`r = ${0}`}) is ${math`\frac{r^{${2}} + ${1}}{${2}^{r}} = (r^{${2}} + ${1})x^{r}`} at ${math`x = \frac{${1}}{${2}}`}.`,
+    t`The expansion of ${math`(${1} - x)^{-${3}}`} is valid for ${math`|x| < ${1}`}, so at ${math`x = \frac{${1}}{${2}}`} the series sums to ${math`\frac{${1} - \frac{${1}}{${2}} + \frac{${2}}{${4}}}{\left(\frac{${1}}{${2}}\right)^{${3}}} = \frac{${1}}{\frac{${1}}{${8}}} = ${8}`}.`,
+  ],
+  reference: '8',
+  verify: () => {
+    // The coefficients of (1 - x + 2x^2)(1 - x)^-3 are r^2 + 1, from (r + 1)(r + 2)/2 - r(r + 1)/2 + (r - 1)r.
+    for (let r = 0; r <= 30; r++) {
+      const c = ((r + 1) * (r + 2)) / 2 - (r * (r + 1)) / 2 + 2 * ((r - 1) * r) / 2;
+      if (c !== r * r + 1) return `coefficient of x^${r}: ${c}`;
+    }
+    return close('sum', halfSum((r) => r * r + 1), 8, 1e-12);
+  },
+  misconceptions: [
+    { response: '4', why: t`Evaluate the whole function at ${math`x = \frac{${1}}{${2}}`}: the numerator is ${math`${1} - \frac{${1}}{${2}} + ${2} \cdot \frac{${1}}{${4}} = ${1}`}, and ${math`(${1} - x)^{${3}} = \frac{${1}}{${8}}`}.` },
+  ],
+});
+
+const db11q6ii = auto({
+  id: 'step11-q6-ii',
+  source: cite(DB11, 'Q6(ii)'),
+  title: t`The sum of ${math`\frac{(r + ${1})^{${2}}}{${2}^{r}}`}`,
+  prompt: t`Find the sum of the series ${dmath`${1} + ${2} + \frac{${9}}{${4}} + ${2} + \frac{${25}}{${16}} + \frac{${9}}{${8}} + \frac{${49}}{${64}} + \cdots.`}`,
+  answer: { kind: 'exact', expected: '12' },
+  solution: [
+    t`The terms are ${math`\frac{${1}}{${1}}, \frac{${4}}{${2}}, \frac{${9}}{${4}}, \frac{${16}}{${8}}, \frac{${25}}{${16}}, \frac{${36}}{${32}}, \frac{${49}}{${64}}`}: the ${math`r`}th (from ${math`r = ${0}`}) is ${math`\frac{(r + ${1})^{${2}}}{${2}^{r}}`}, the coefficient of ${math`x^{r}`} in some function, at ${math`x = \frac{${1}}{${2}}`}.`,
+    t`${math`(r + ${1})^{${2}} = ${2} \cdot \frac{(r + ${1})(r + ${2})}{${2}} - (r + ${1})`}. The coefficient of ${math`x^{r}`} in ${math`(${1} - x)^{-${3}}`} is ${math`\frac{(r + ${1})(r + ${2})}{${2}}`} and in ${math`(${1} - x)^{-${2}}`} it is ${math`r + ${1}`}, so the function is ${math`\frac{${2}}{(${1} - x)^{${3}}} - \frac{${1}}{(${1} - x)^{${2}}} = \frac{${1} + x}{(${1} - x)^{${3}}}`}.`,
+    t`At ${math`x = \frac{${1}}{${2}}`}: ${math`\frac{${q(3, 2)}}{${q(1, 8)}} = ${12}`}.`,
+  ],
+  reference: '12',
+  verify: () => {
+    // The printed terms are (r + 1)^2 / 2^r for r = 0 to 6.
+    const printed = ['1', '2', '9/4', '2', '25/16', '9/8', '49/64'];
+    for (let r = 0; r < printed.length; r++) if (str(q((r + 1) ** 2, 2 ** r)) !== printed[r]) return `term ${r}`;
+    return close('sum', halfSum((r) => (r + 1) ** 2), 12, 1e-12);
+  },
+  misconceptions: [
+    { response: '8', why: t`That is part (i)'s series, with ${math`r^{${2}} + ${1}`} on top. Here the tops are the squares ${math`(r + ${1})^{${2}}`}: ${1}, ${4}, ${9}, ${16}, and so on.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const binomialRational: TopicContent = {
@@ -299,8 +433,10 @@ export const binomialRational: TopicContent = {
   generators: [coefGen, valGen, approxGen, termsGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binomial-series'],
-  cambridge: [a20k, ss5iii, ss5ii, ss5sup],
-  gate: ['nst-ss5-iii'],
+  cambridge: [misc7, db11q6, misc7a, misc7b, db11q6i, db11q6ii, a20k, ss5iii, ss5ii, ss5sup],
+  // Best first: two STEP questions (2007 II Q1, with official solutions; 2011 I Q6), then their
+  // auto-checked parts, then the NST Workbook's SS5(iii).
+  gate: ['s2misc-q7', 'step11-q6', 's2misc-q7-i-b', 'step11-q6-ii', 'nst-ss5-iii'],
   recall: [
     { front: t`State the binomial series for rational ${mn}, with its range.`, back: t`${math`(${1} + x)^{n} = ${1} + nx + \frac{n(n - ${1})}{${2}!}x^{${2}} + \cdots`}, valid for ${math`|x| < ${1}`}.` },
     { front: t`Where is the expansion of ${math`(a + bx)^{n}`} valid?`, back: t`For ${math`\left|\frac{bx}{a}\right| < ${1}`}, after writing it as ${math`a^{n}(${1} + \frac{b}{a}x)^{n}`}.` },

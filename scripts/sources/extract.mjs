@@ -1,6 +1,6 @@
 // Extracts readable text from every fetched source in sources/manifest.json:
 // PDFs through macOS PDFKit (pdf2txt.swift, compiled once into sources/.tools/), HTML pages
-// through a small tag stripper. Writes sources/<course>/<id>.txt next to each file and
+// through a small tag stripper, LaTeX source as it is. Writes sources/<course>/<id>.txt next to each file and
 // sources/extraction-report.json, which flags pages whose math probably did not survive and
 // lists the links each HTML page points to (listed, never fetched).
 //
@@ -106,6 +106,11 @@ for (const s of manifest.sources) {
     writeFileSync(txt, `${text}\n`);
     const files = links.filter((l) => /\.(pdf|ps|tex|zip)(\?|#|$)/i.test(l.url));
     Object.assign(entry, { chars: text.length, linked_files: files });
+  } else if (s.path.endsWith('.tex')) {
+    // LaTeX source is already text: the mathematics is exactly as typeset, so it is copied as is.
+    const text = readFileSync(file, 'utf8');
+    writeFileSync(txt, text);
+    Object.assign(entry, { chars: text.length });
   }
   report.sources.push(entry);
   const flags = entry.math_check?.length ? `, ${entry.math_check.length} pages to check` : '';

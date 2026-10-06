@@ -1,0 +1,121 @@
+{
+  "batch": "gates-batch-7",
+  "note": "Seventh batch: sources for stronger Cambridge gates on the proof, logic, probability, sets, and number topics. Grinstead and Snell, Introduction to Probability (second revised edition, AMS), chapters 3 to 5 and the answers to the odd exercises: released by the authors under the GNU Free Documentation License (stated on the book page, the licence_url). Logic and Proof notes for CST Part IB (University of Cambridge, 2025-26, M. Jamnik), openly published on the course page with no separate licence. The Discrete Mathematics Exercises 5 solutions (2023-24, M. Fiore) complete the official solutions of batch 1 (cst-dm-sols-2324-1 to -4). The IA Numbers and Sets example sheets 1 to 4 (Michaelmas 2025, DPMMS), linked from the course's previous-years page; www.dpmms.cam.ac.uk sends the wrong intermediate certificate, so Node's fetch rejects it and fetch.mjs downloads these four with the system curl (TLS verification on; the manifest records the route). The IA Probability sheets are batch 1's ia-prob-sheet-1 to -4 and are not fetched again. Each source records its author, licence, and licence URL; fetch.mjs reads only id, course, kind, role, title, and url.",
+  "hosts": [
+    "chance.dartmouth.edu",
+    "www.cl.cam.ac.uk",
+    "www.dpmms.cam.ac.uk"
+  ],
+  "sources": [
+    {
+      "id": "gs-ch3",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "textbook",
+      "title": "Grinstead and Snell, Introduction to Probability, Chapter 3: Combinatorics",
+      "url": "https://chance.dartmouth.edu/teaching_aids/books_articles/probability_book/Chapter3.pdf",
+      "author": "Charles M. Grinstead and J. Laurie Snell (Swarthmore College, Dartmouth College; published by the American Mathematical Society)",
+      "licence": "GNU Free Documentation License",
+      "licence_url": "https://chance.dartmouth.edu/teaching_aids/books_articles/probability_book/book.html"
+    },
+    {
+      "id": "gs-ch4",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "textbook",
+      "title": "Grinstead and Snell, Introduction to Probability, Chapter 4: Conditional Probability",
+      "url": "https://chance.dartmouth.edu/teaching_aids/books_articles/probability_book/Chapter4.pdf",
+      "author": "Charles M. Grinstead and J. Laurie Snell (Swarthmore College, Dartmouth College; published by the American Mathematical Society)",
+      "licence": "GNU Free Documentation License",
+      "licence_url": "https://chance.dartmouth.edu/teaching_aids/books_articles/probability_book/book.html"
+    },
+    {
+      "id": "gs-ch5",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "textbook",
+      "title": "Grinstead and Snell, Introduction to Probability, Chapter 5: Distributions and Densities",
+      "url": "https://chance.dartmouth.edu/teaching_aids/books_articles/probability_book/Chapter5.pdf",
+      "author": "Charles M. Grinstead and J. Laurie Snell (Swarthmore College, Dartmouth College; published by the American Mathematical Society)",
+      "licence": "GNU Free Documentation License",
+      "licence_url": "https://chance.dartmouth.edu/teaching_aids/books_articles/probability_book/book.html"
+    },
+    {
+      "id": "gs-answers-odd",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "solutions",
+      "title": "Grinstead and Snell, Introduction to Probability: answers to the odd-numbered exercises",
+      "url": "https://chance.dartmouth.edu/teaching_aids/books_articles/probability_book/Answersodd-10-14-08.pdf",
+      "author": "Charles M. Grinstead and J. Laurie Snell (Swarthmore College, Dartmouth College; published by the American Mathematical Society)",
+      "licence": "GNU Free Documentation License",
+      "licence_url": "https://chance.dartmouth.edu/teaching_aids/books_articles/probability_book/book.html"
+    },
+    {
+      "id": "cst-lp-notes",
+      "course": "logic-proof",
+      "kind": "pdf",
+      "role": "notes",
+      "title": "Logic and Proof, CST Part IB: lecture notes with exercises (2025-26)",
+      "url": "https://www.cl.cam.ac.uk/teaching/2526/LogicProof/logic-notes.pdf",
+      "author": "Mateja Jamnik, Department of Computer Science and Technology, University of Cambridge",
+      "licence": "Openly published University of Cambridge course material (no separate licence stated)",
+      "licence_url": "https://www.cl.cam.ac.uk/teaching/2526/LogicProof/"
+    },
+    {
+      "id": "cst-dm-sols-2324-5",
+      "course": "discrete-maths",
+      "kind": "pdf",
+      "role": "solutions",
+      "title": "Discrete Mathematics Exercises 5: official solutions (2023-24, M. Fiore)",
+      "url": "https://www.cl.cam.ac.uk/teaching/2324/DiscMath/solutions/DiscMaths5_Sols.pdf",
+      "author": "Marcelo Fiore, Department of Computer Science and Technology, University of Cambridge",
+      "licence": "Openly published University of Cambridge course material (no separate licence stated)",
+      "licence_url": "https://www.cl.cam.ac.uk/teaching/2324/DiscMath/materials.html"
+    },
+    {
+      "id": "ia-ns-sheet-1",
+      "course": "numbers-sets",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "IA Numbers and Sets, Example Sheet 1 (2025-26)",
+      "url": "https://www.dpmms.cam.ac.uk/study/IA/Numbers%2BSets/2025-2026/NS_1_probs.pdf",
+      "author": "Department of Pure Mathematics and Mathematical Statistics, University of Cambridge (Mathematical Tripos Part IA)",
+      "licence": "Openly published University of Cambridge course material (no separate licence stated)",
+      "licence_url": "https://www.dpmms.cam.ac.uk/study/IA/Numbers%2BSets/previous.html"
+    },
+    {
+      "id": "ia-ns-sheet-2",
+      "course": "numbers-sets",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "IA Numbers and Sets, Example Sheet 2 (2025-26)",
+      "url": "https://www.dpmms.cam.ac.uk/study/IA/Numbers%2BSets/2025-2026/NS_2_probs.pdf",
+      "author": "Department of Pure Mathematics and Mathematical Statistics, University of Cambridge (Mathematical Tripos Part IA)",
+      "licence": "Openly published University of Cambridge course material (no separate licence stated)",
+      "licence_url": "https://www.dpmms.cam.ac.uk/study/IA/Numbers%2BSets/previous.html"
+    },
+    {
+      "id": "ia-ns-sheet-3",
+      "course": "numbers-sets",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "IA Numbers and Sets, Example Sheet 3 (2025-26)",
+      "url": "https://www.dpmms.cam.ac.uk/study/IA/Numbers%2BSets/2025-2026/NS_3_probs.pdf",
+      "author": "Department of Pure Mathematics and Mathematical Statistics, University of Cambridge (Mathematical Tripos Part IA)",
+      "licence": "Openly published University of Cambridge course material (no separate licence stated)",
+      "licence_url": "https://www.dpmms.cam.ac.uk/study/IA/Numbers%2BSets/previous.html"
+    },
+    {
+      "id": "ia-ns-sheet-4",
+      "course": "numbers-sets",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "IA Numbers and Sets, Example Sheet 4 (2025-26)",
+      "url": "https://www.dpmms.cam.ac.uk/study/IA/Numbers%2BSets/2025-2026/NS_4_probs.pdf",
+      "author": "Department of Pure Mathematics and Mathematical Statistics, University of Cambridge (Mathematical Tripos Part IA)",
+      "licence": "Openly published University of Cambridge course material (no separate licence stated)",
+      "licence_url": "https://www.dpmms.cam.ac.uk/study/IA/Numbers%2BSets/previous.html"
+    }
+  ]
+}

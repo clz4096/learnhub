@@ -4,7 +4,9 @@
  * the statements S1 and S2), the CST notes' strategy for "for all x there exists y"
  * (printed page 103), and Book of Proof Sections 2.7 to 2.9. The problems are TMUA
  * Exercise N and Book of Proof's exercises for Sections 2.7 and 2.9, checked against the
- * solutions to odd exercises.
+ * solutions to odd exercises. The gate is Exercise 12 of the CST Logic and Proof notes (batch 7);
+ * their Exercise 10 (does one order of the quantifiers imply the other?) is the lesson's theorem,
+ * so it is not set.
  */
 import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
 import { gcd, int, pick, q, str, upTo } from '../math';
@@ -280,6 +282,76 @@ const bop29_13 = supervision({
   official: cite('bop', 'Solutions, Section 2.9, exercise 13'),
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/** Logic and Proof Exercise 12: six relations on N against reflexivity, symmetry, and transitivity. */
+const LP12: readonly { rel: Span; holds: (x: number, y: number) => boolean; answers: readonly [boolean, boolean, boolean] }[] = [
+  { rel: math`\varnothing`, holds: () => false, answers: [false, true, true] },
+  { rel: math`\{(x, y) \mid x, y \in \mathbb{N}\}`, holds: () => true, answers: [true, true, true] },
+  { rel: math`\{(x, x) \mid x \in \mathbb{N}\}`, holds: (x, y) => x === y, answers: [true, true, true] },
+  { rel: math`\{(x, y) \mid x, y \in \mathbb{N} \land x + y \text{ is even}\}`, holds: (x, y) => (x + y) % 2 === 0, answers: [true, true, true] },
+  { rel: math`\{(x, y) \mid x, y \in \mathbb{N} \land x + y = ${100}\}`, holds: (x, y) => x + y === 100, answers: [false, true, false] },
+  { rel: math`\{(x, y) \mid x, y \in \mathbb{N} \land x \le y\}`, holds: (x, y) => x <= y, answers: [true, false, true] },
+];
+/** Checked on 0 .. 120, which holds a counterexample to every axiom that fails (100 + 0 = 100 needs 100). */
+const LP12_RANGE = Array.from({ length: 121 }, (_, i) => i);
+const lp12Check = (r: (x: number, y: number) => boolean): [boolean, boolean, boolean] => {
+  const N = LP12_RANGE;
+  const refl = N.every((x) => r(x, x));
+  const sym = N.every((x) => N.every((y) => !r(x, y) || r(y, x)));
+  const trans = N.every((x) => N.every((y) => !r(x, y) || N.every((z) => !r(y, z) || r(x, z))));
+  return [refl, sym, trans];
+};
+const AXIOMS = math`(${1})\ \forall x.\ x \approx x`;
+const AXIOMS2 = math`(${2})\ \forall x\, y.\ (x \approx y \Rightarrow y \approx x)`;
+const AXIOMS3 = math`(${3})\ \forall x\, y\, z.\ (x \approx y \land y \approx z \Rightarrow x \approx z)`;
+const LP12_PROMPT = t`Let ${math`\approx`} be a two-place predicate symbol, written ${math`x \approx y`}. Consider the axioms ${AXIOMS}, ${AXIOMS2}, and ${AXIOMS3}. Let the universe be the set of natural numbers, ${math`\mathbb{N} = \{${0}, ${1}, ${2}, \ldots\}`}.`;
+
+const lp12 = auto({
+  id: 'lp-ex-12',
+  source: cite('cst-lp-notes', 'Section 4, Exercise 12 (page 11)'),
+  title: t`Which axioms hold?`,
+  prompt: t`${LP12_PROMPT} Which axioms hold if ${math`\approx`} is interpreted as each relation below? Write T if the axiom holds and F if it fails.`,
+  answer: {
+    kind: 'table', columns: [t`the relation`, [math`(${1})`], [math`(${2})`], [math`(${3})`]], cell: 'truth',
+    rows: LP12.map(({ rel }) => [[rel], null, null, null]),
+    expected: LP12.flatMap(({ answers }) => answers.map(TF)),
+  },
+  solution: [
+    t`The empty relation: ${math`x \approx x`} is false, so (${1}) fails. In (${2}) and (${3}) the hypothesis is never true, so both hold vacuously.`,
+    t`The universal relation and equality satisfy all three, and so does "${math`x + y`} is even": ${math`x + x = ${2}x`} is even; the sum is symmetric; and if ${math`x + y`} and ${math`y + z`} are even then ${math`x + z = (x + y) + (y + z) - ${2}y`} is even.`,
+    t`"${math`x + y = ${100}`}": (${1}) fails at ${math`x = ${0}`}; (${2}) holds since addition is symmetric; (${3}) fails: ${math`${0} + ${100} = ${100}`} and ${math`${100} + ${0} = ${100}`}, but ${math`${0} + ${0} \ne ${100}`}.`,
+    t`${math`x \le y`}: (${1}) and (${3}) hold; (${2}) fails, since ${math`${0} \le ${1}`} but not ${math`${1} \le ${0}`}.`,
+  ],
+  reference: LP12.flatMap(({ answers }) => answers.map(TF)),
+  verify: () => {
+    for (const { rel, holds, answers } of LP12) {
+      const e = same(`axioms for ${rel.text}`, lp12Check(holds).map(TF).join(''), answers.map(TF).join(''));
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [{
+    response: LP12.flatMap(({ answers }, i) => (i === 0 ? [false, false, false] : answers).map(TF)),
+    why: t`For the empty relation, (${2}) and (${3}) are implications whose hypothesis is never true, so they hold: there is no pair to break them.`,
+  }],
+});
+
+/*
+ * Outline for marking lp-ex-12-why (20 marks): for each of the 6 relations, the verdict on each
+ * axiom (1 mark each, 18) with the reason: a counterexample for every failure (empty: 0 ~ 0 fails;
+ * sum 100: 0 ~ 0 fails, then 0 ~ 100 and 100 ~ 0 without 0 ~ 0; x <= y: 0 <= 1 but not 1 <= 0) and a
+ * line for every success (vacuous truth for the empty relation; x + z = (x + y) + (y + z) - 2y for
+ * the even sums). 2 marks for saying why the empty relation passes (2) and (3) vacuously.
+ */
+const lp12Why = supervision({
+  id: 'lp-ex-12-why',
+  source: cite('cst-lp-notes', 'Section 4, Exercise 12 (page 11)'),
+  title: t`Which axioms hold, with reasons`,
+  prompt: t`${LP12_PROMPT} Which axioms hold if ${math`\approx`} is interpreted as: the empty relation ${math`\varnothing`}; the universal relation ${(LP12[1] as { rel: Span }).rel}; the equality relation ${(LP12[2] as { rel: Span }).rel}; the relation ${(LP12[3] as { rel: Span }).rel}; the relation ${(LP12[4] as { rel: Span }).rel}; the relation ${(LP12[5] as { rel: Span }).rel}? For every axiom that fails give a counterexample, and for every axiom that holds say why.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const TRUE_FALSE: ChoiceOption[] = [{ id: 'true', label: t`True` }, { id: 'false', label: t`False` }];
@@ -357,9 +429,9 @@ export const nestedQuantifiers: TopicContent = {
   generators: [order, construct, translate],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['dependent-witness'],
-  cambridge: [tmuaN, bop27_9, bop27_10, bop29_7, bop29_5, s1s2, bop29_13],
-  // None fits: every problem here is from the TMUA notes or Book of Proof, below Cambridge standard (not in GATE_DOCS).
-  gate: [],
+  cambridge: [tmuaN, bop27_9, bop27_10, bop29_7, bop29_5, s1s2, bop29_13, lp12, lp12Why],
+  // Logic and Proof Exercise 12: nested quantifiers in the axioms, checked on six interpretations.
+  gate: ['lp-ex-12-why', 'lp-ex-12'],
   recall: [
     { front: t`What may the witness depend on in ${math`\forall x\ \exists y.\ P(x, y)`}?`, back: t`On ${mx}: ${my} is chosen after ${mx}.` },
     { front: t`Which implies which: ${math`\exists y\ \forall x`} or ${math`\forall x\ \exists y`}?`, back: t`${math`\exists y\ \forall x.\ P \implies \forall x\ \exists y.\ P`}; not conversely.` },

@@ -38,6 +38,8 @@ function checkUrl(url) {
 function extFor(source, contentType) {
   if (source.kind === 'pdf' || contentType.includes('application/pdf')) return 'pdf';
   if (source.kind === 'html' || contentType.includes('text/html')) return 'html';
+  // LaTeX source (the STEP Questions Database): plain text, kept as written.
+  if (source.kind === 'tex' || contentType.includes('text/x-tex')) return 'tex';
   return 'bin';
 }
 

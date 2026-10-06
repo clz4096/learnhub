@@ -4,7 +4,10 @@
  * P(A_1 ∩ ... ∩ A_n) = P(A_1) P(A_2 | A_1) ... P(A_n | A_1 ∩ ... ∩ A_(n-1)). From IA
  * Probability Example Sheet 1 Q10 (the Pólya urn, whose sequences of draws are products of
  * conditional probabilities; the question itself is set in alg.proof-by-induction) and the
- * Faculty schedule's "Conditional probability". The sheet has no official solutions.
+ * Faculty schedule's "Conditional probability". The sheet has no official solutions. Batch 7 adds
+ * Grinstead and Snell, Section 4.1, Exercise 26. Their Exercises 16 (the multiplication rule) and
+ * 48 (the conditional distribution is a distribution) are this lesson's two theorems, so they are
+ * not set.
  */
 import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
@@ -270,6 +273,23 @@ const measure = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking gs-4-1-26 (20 marks):
+ * 1. P(A) and P(B) are at least P(A n B) > 0, so both conditional probabilities are defined (3).
+ * 2. P(A | B) = P(A n B)/P(B) and P(B | A) = P(A n B)/P(A); equal, and P(A n B) > 0, so P(A) = P(B) (6).
+ * 3. Addition rule: 1 = P(A u B) = P(A) + P(B) - P(A n B) = 2 P(A) - P(A n B) (6).
+ * 4. So P(A) = (1 + P(A n B))/2 > 1/2, using P(A n B) > 0 (5).
+ */
+const gs4126 = supervision({
+  id: 'gs-4-1-26',
+  source: cite('gs-ch4', 'Section 4.1, Exercise 26 (page 153)'),
+  title: t`Symmetric conditioning`,
+  prompt: t`Suppose that ${math`A`} and ${math`B`} are events such that ${math`\mathbb{P}(A \mid B) = \mathbb{P}(B \mid A)`}, ${math`\mathbb{P}(A \cup B) = ${1}`}, and ${math`\mathbb{P}(A \cap B) > ${0}`}. Prove that ${math`\mathbb{P}(A) > \frac{${1}}{${2}}`}.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
@@ -329,8 +349,8 @@ export const conditionalProbability: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['conditional-measure'],
   claims,
-  cambridge: [q10third, exchange, measure],
-  gate: ['ia-q10-exchangeable'],
+  cambridge: [q10third, exchange, measure, gs4126],
+  gate: ['ia-q10-exchangeable', 'gs-4-1-26'],
   recall: [
     { front: t`What kind of object is ${math`A \mapsto \mathbb{P}(A \mid B)`}?`, back: t`A probability measure, for any ${mB} with ${math`\mathbb{P}(B) > ${0}`}, giving ${mB} probability ${1}.` },
     { front: t`The multiplication rule for ${math`n`} events.`, back: t`${math`\mathbb{P}(A_{${1}} \cap \cdots \cap A_{n}) = \mathbb{P}(A_{${1}})\mathbb{P}(A_{${2}} \mid A_{${1}}) \cdots \mathbb{P}(A_{n} \mid A_{${1}} \cap \cdots \cap A_{n - ${1}})`}.` },

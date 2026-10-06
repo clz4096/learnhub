@@ -5,7 +5,9 @@
  * work is not a proof, writing good proofs, assumptions and goals), Book of Proof Sections
  * 4.1 to 4.3 (Definition 4.4 of divides), and the TMUA notes on proof and on common errors
  * (pages 64 and 72 to 73). The problems are Book of Proof Chapter 4, exercises 6, 7, 9 to
- * 13, 19, and 24 (solutions to odd ones), and TMUA Exercise R and the page 72 example.
+ * 13, 19, and 24 (solutions to odd ones), and TMUA Exercise R and the page 72 example. Batch 7
+ * adds IA Numbers and Sets Example Sheet 2, Q15 (first part). That sheet's Q14 (a hundred
+ * consecutive composites) is Book of Proof's exercise 24 here, so it is not set twice.
  */
 import { gradeExpression, type Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
@@ -416,6 +418,27 @@ const scratch = supervision({
   official: cite('cst-dm-notes', 'printed page 34, the notes\' proof'),
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking ns2-q15 (20 marks):
+ * 1. Among b consecutive numbers one, x, is a multiple of b (3).
+ * 2. If the block holds a multiple y of a with y != x, then ab | xy and we are done (4). This is
+ *    so when b >= 2a (the block holds at least two multiples of a) or when x is not a multiple of a.
+ * 3. Otherwise x is the only multiple of a in the block, so x is a multiple of a and of b, hence of
+ *    their LCM ab/g, where g = HCF(a, b) (4).
+ * 4. g divides b and g <= a < b, so g <= b/2 and the block holds b/g >= 2 multiples of g; take one,
+ *    y, other than x (5).
+ * 5. Then xy is a multiple of (ab/g) g = ab (4).
+ */
+const ns2q15 = supervision({
+  id: 'ns2-q15',
+  source: cite('ia-ns-sheet-2', 'Q15, first part'),
+  title: t`Products in a block of consecutive numbers`,
+  prompt: t`Let ${math`a < b`} be distinct natural numbers. Prove that every block of ${math`b`} consecutive natural numbers contains two distinct numbers whose product is a multiple of ${math`ab`}.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const [mn, mk, mm] = [math`n`, math`k`, math`m`];
@@ -506,10 +529,10 @@ export const directProof: TopicContent = {
   generators: [divides, factorialDivisor, errorStep],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['direct-proof', 'scratch-work', 'lemma'],
-  cambridge: [bop47, bop419, bop46, bop410, tmuaR3, tmua72, bop49, bop413, bop424, scratch],
-  // The only problem from a Cambridge-standard document; it asks for exactly this lesson's skill,
-  // scratch work turned into a written proof. The Book of Proof exercises are good practice but easier.
-  gate: ['notes-35-scratch'],
+  cambridge: [bop47, bop419, bop46, bop410, tmuaR3, tmua72, bop49, bop413, bop424, scratch, ns2q15],
+  // The IA block question first: a direct proof with a case the first idea misses. Then the CST
+  // notes' scratch work turned into a written proof. The Book of Proof exercises are good practice but easier.
+  gate: ['ns2-q15', 'notes-35-scratch'],
   recall: [
     { front: t`What is a direct proof of "if ${math`P`} then ${math`Q`}"?`, back: t`Assume ${math`P`}, unpack the definitions, deduce step by step, and arrive at ${math`Q`}.` },
     { front: t`Define ${math`d \mid n`}.`, back: t`${math`n = d \cdot k`} for some integer ${mk}.` },

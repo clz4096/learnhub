@@ -4,7 +4,9 @@
  * matching and counting problems. From IA Probability Example Sheet 1 Q7 (a committee of r
  * from n: the probability that m given people are all on it, directly and by
  * inclusion-exclusion, and the identity that follows) and the Faculty schedule's
- * "Inclusion-exclusion formula". The sheet has no official solutions.
+ * "Inclusion-exclusion formula". The sheet has no official solutions. Batch 7 adds Grinstead and
+ * Snell, Section 3.1, Exercise 15 (with its printed odd answer) and Section 3.2, Exercise 34(a),
+ * and IA Numbers and Sets Example Sheet 2, Q9.
  */
 import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
@@ -214,6 +216,89 @@ const ieProof = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking gs-3-2-34-a (20 marks):
+ * 1. E_k: the kth picture is missing after m boxes. P(all pictures) = 1 - P(E_1 u ... u E_n) (3).
+ * 2. For any j given pictures, all m boxes avoid them with probability ((n - j)/n)^m, by
+ *    independence of the boxes (6).
+ * 3. There are C(n, j) choices of the j pictures, so S_j = C(n, j)((n - j)/n)^m (5).
+ * 4. Inclusion-exclusion, with S_n = 0 (no box avoids every picture), gives the stated alternating
+ *    sum, up to the term (-1)^(n-1) C(n, n - 1)(1/n)^m (6).
+ */
+const gs3234a = supervision({
+  id: 'gs-3-2-34-a',
+  source: cite('gs-ch3', 'Section 3.2, Exercise 34(a) (page 118)', true),
+  title: t`Collecting every picture`,
+  prompt: t`Assume that every time you buy a box of Wheaties, you receive one of the pictures of the ${mn} players on the New York Yankees, each picture equally likely and independently of the other boxes. Over a period of time, you buy ${math`m \ge n`} boxes of Wheaties. Use the inclusion-exclusion formula to show that the probability that you get all ${mn} pictures is ${dmath`${1} - \binom{n}{${1}}\left(\frac{n - ${1}}{n}\right)^{m} + \binom{n}{${2}}\left(\frac{n - ${2}}{n}\right)^{m} - \cdots + (-${1})^{n - ${1}}\binom{n}{n - ${1}}\left(\frac{${1}}{n}\right)^{m}.`} (Hint: let ${math`E_k`} be the event that you do not get the ${math`k`}th player's picture.)`,
+  writeUp: 'proof',
+});
+
+/** Grinstead and Snell 3.1.15: n jobs on 3 processors; exactly one idle. */
+const IDLE = 'C(3, 1) * (2^n - 2) / 3^n';
+const idleCount = (n: number): number => {
+  let c = 0;
+  for (let a = 0; a < 3 ** n; a++) {
+    const used = new Set<number>();
+    for (let x = a, i = 0; i < n; i++, x = Math.floor(x / 3)) used.add(x % 3);
+    if (used.size === 2) c++;
+  }
+  return c;
+};
+const gs3115 = auto({
+  id: 'gs-3-1-15',
+  source: cite('gs-ch3', 'Section 3.1, Exercise 15 (page 90)'),
+  title: t`Exactly one idle processor`,
+  prompt: t`A computing center has ${3} processors that receive ${mn} jobs, with the jobs assigned to the processors purely at random so that all of the ${math`${3}^{n}`} possible assignments are equally likely. Find the probability that exactly one processor has no jobs, as a formula in ${mn}. (Type powers with a caret, as on a calculator, and C(n, k) for a binomial coefficient.)`,
+  answer: { kind: 'expression', expected: '3 * (2^n - 2) / 3^n', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 12 } }, binomial: true },
+  solution: [
+    t`Choose the idle processor: ${3} ways. The jobs then go to the other two, ${math`${2}^{n}`} ways, but two of those put every job on one processor, leaving two idle: ${math`${2}^{n} - ${2}`} ways.`,
+    t`These counts do not overlap (the idle processor is named), so the probability is ${math`\frac{${3}(${2}^{n} - ${2})}{${3}^{n}}`}.`,
+    t`Check at ${math`n = ${2}`}: exactly one processor is idle when the two jobs go to different processors, with probability ${math`\frac{${2}}{${3}}`}, and the formula gives ${math`\frac{${3}(${4} - ${2})}{${9}} = \frac{${2}}{${3}}`}.`,
+  ],
+  reference: '3 * (2^n - 2) / 3^n',
+  verify: () => {
+    for (let n = 1; n <= 8; n++) {
+      const e = same(`n = ${n}: assignments with exactly one idle processor`, idleCount(n), 3 * (2 ** n - 2));
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: '3 * 2^n / 3^n', why: t`That counts the assignments that use at most two processors, including those that put every job on one processor. Those leave two processors idle: subtract them.` },
+    { response: '(2^n - 2) / 3^n', why: t`That names one processor as the idle one. Any of the ${3} processors can be the idle one: multiply by ${3}.` },
+  ],
+  official: { source: cite('gs-answers-odd', 'Section 3.1, Exercise 15'), answer: IDLE, agrees: true },
+});
+
+/** IA Numbers and Sets 2.9: 1001 = 7 x 11 x 13. */
+const N1001 = 1001;
+const P1001 = [7, 11, 13] as const;
+const coprimeIE = (): number => N1001 - P1001.reduce((s, p) => s + N1001 / p, 0) + (N1001 / 77 + N1001 / 91 + N1001 / 143) - N1001 / N1001;
+const ns2q9 = auto({
+  id: 'ns2-q9',
+  source: cite('ia-ns-sheet-2', 'Q9'),
+  title: t`Coprime to a thousand and one`,
+  prompt: t`Use the inclusion-exclusion principle to count the number of positive integers up to ${N1001} that are coprime to ${N1001}.`,
+  answer: { kind: 'exact', expected: String(coprimeIE()) },
+  solution: [
+    t`${math`${N1001} = ${7} \times ${11} \times ${13}`}, so a number is coprime to ${N1001} exactly when none of ${7}, ${11}, ${13} divides it. Let ${math`A_p`} be the multiples of ${math`p`} up to ${N1001}.`,
+    t`${math`|A_{${7}}| = ${N1001 / 7}`}, ${math`|A_{${11}}| = ${N1001 / 11}`}, ${math`|A_{${13}}| = ${N1001 / 13}`}; the pairs give ${N1001 / 77}, ${N1001 / 91}, ${N1001 / 143}; all three give ${1}.`,
+    t`So ${math`|A_{${7}} \cup A_{${11}} \cup A_{${13}}| = ${N1001 / 7 + N1001 / 11 + N1001 / 13} - ${N1001 / 77 + N1001 / 91 + N1001 / 143} + ${1} = ${N1001 - coprimeIE()}`}, and ${math`${N1001} - ${N1001 - coprimeIE()} = ${coprimeIE()}`} numbers are coprime to ${N1001}.`,
+  ],
+  reference: String(coprimeIE()),
+  verify: () => {
+    const gcd2 = (a: number, b: number): number => (b === 0 ? a : gcd2(b, a % b));
+    const brute = Array.from({ length: N1001 }, (_, i) => i + 1).filter((k) => gcd2(k, N1001) === 1).length;
+    return same('coprime to 1001, by checking each number', brute, coprimeIE());
+  },
+  misconceptions: [
+    { response: String(N1001 - (N1001 / 7 + N1001 / 11 + N1001 / 13)), why: t`That subtracts the multiples of ${7}, ${11}, and ${13}, but a multiple of two of them was subtracted twice. Add back the pairs, then subtract the triple.` },
+    { response: String(coprimeIE() + 1), why: t`${N1001} itself is a multiple of all three primes. Inclusion-exclusion ends by subtracting the triple intersection once more.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
@@ -296,9 +381,11 @@ export const inclusionExclusion: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inclusion-exclusion-formula', 'derangement'],
   claims,
-  cambridge: [q7id, q7proof, ieProof],
-  // The sheet's question itself; evaluating the identity with numbers is arithmetic, not a test of the method.
-  gate: ['ia-q7'],
+  cambridge: [q7id, q7proof, ieProof, gs3234a, gs3115, ns2q9],
+  // The sheet's question itself, then the coupon collector by inclusion-exclusion and the idle
+  // processors. Evaluating the identity with numbers is arithmetic, and the count of numbers coprime
+  // to 1001 follows the lesson's worked example (coprime to 30), so neither gates.
+  gate: ['ia-q7', 'gs-3-2-34-a', 'gs-3-1-15'],
   recall: [
     { front: t`State inclusion-exclusion for ${mn} events.`, back: t`${math`\mathbb{P}(\bigcup_{i} A_{i}) = \sum_{k = ${1}}^{n} (-${1})^{k + ${1}} S_{k}`}, where ${math`S_{k}`} sums ${math`\mathbb{P}`} of every intersection of ${math`k`} of the events.` },
     { front: t`Why is an outcome in exactly ${math`t \ge ${1}`} of the events counted once?`, back: t`It is counted ${math`\sum_{k \ge ${1}} (-${1})^{k + ${1}}\binom{t}{k}`} times, and ${math`(${1} - ${1})^{t} = ${0}`} makes that ${1}.` },

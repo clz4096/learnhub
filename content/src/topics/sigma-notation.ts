@@ -4,10 +4,11 @@
  * squares and of k-th powers are polynomials in n, with the hint (n + 1)³ = Σ(i + 1)³ - Σi³),
  * checked against the 2023-24 official solution, and Book of Proof Chapter 10, exercises 1,
  * 3, 4, 6, 7, 15, and 20 (sum formulas, there proved by induction; here found by
- * manipulating sums, with the induction proofs left to the induction topic).
+ * manipulating sums, with the induction proofs left to the induction topic). The gate adds
+ * STEP I 1995 Q3(iii) and STEP I 2005 Q7(i), (ii) (STEP Questions Database).
  */
 import { auto, cite, same, supervision } from '../cambridge';
-import { add, int, pick, q, str, upTo, type Rational } from '../math';
+import { add, int, mul, pick, q, str, upTo, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
 import { computedMath as cm, computedTex, dmath, listOf, math, t, type Rich, type Span } from '../rich';
@@ -342,6 +343,94 @@ const bop10_20 = supervision({
   writeUp: 'proof',
 });
 
+// STEP I 1995 Q3(iii) and STEP I 2005 Q7(i), (ii) (STEP Questions Database): telescoping
+// for an alternating sum and for products.
+const DB95 = 'stepdb-95-s1' as const;
+const DB05 = 'stepdb-05-s1' as const;
+const NPOS = { n: { kind: 'integer' as const, min: 1, max: 40 } };
+const NTWO = { n: { kind: 'integer' as const, min: 2, max: 40 } };
+
+const db95q3 = supervision({
+  id: 'step95-q3-iii',
+  source: cite(DB95, 'Q3(iii)'),
+  title: t`An alternating sum of cubes`,
+  prompt: t`You may use ${math`\sum_{r = ${1}}^{n} r^{${3}} = \frac{${1}}{${4}}n^{${2}}(n + ${1})^{${2}}`}. Find the sum of the series ${math`${1}^{${3}} - ${2}^{${3}} + ${3}^{${3}} - ${4}^{${3}} + \cdots + (${2}n + ${1})^{${3}}`}, simplifying your answer as far as possible, and explain each step.`,
+  writeUp: 'explanation',
+});
+
+const db95q3auto = auto({
+  id: 'step95-q3-iii-sum',
+  source: cite(DB95, 'Q3(iii)'),
+  title: t`The alternating cubes, in closed form`,
+  prompt: t`Given ${math`\sum_{r = ${1}}^{n} r^{${3}} = \frac{${1}}{${4}}n^{${2}}(n + ${1})^{${2}}`}, find ${math`${1}^{${3}} - ${2}^{${3}} + ${3}^{${3}} - ${4}^{${3}} + \cdots + (${2}n + ${1})^{${3}}`} in terms of ${math`n`}, as a product of factors.`,
+  answer: { kind: 'expression', expected: '(n + 1)^2 (4n + 1)', variables: ['n'], domains: NPOS, form: 'product' },
+  solution: [
+    t`Add all the cubes up to ${math`(${2}n + ${1})^{${3}}`}, then take the even ones off twice: the series is ${math`\sum_{r = ${1}}^{${2}n + ${1}} r^{${3}} - ${2}\sum_{s = ${1}}^{n} (${2}s)^{${3}}`}.`,
+    t`${math`\sum_{r = ${1}}^{${2}n + ${1}} r^{${3}} = \frac{${1}}{${4}}(${2}n + ${1})^{${2}}(${2}n + ${2})^{${2}} = (${2}n + ${1})^{${2}}(n + ${1})^{${2}}`}, and ${math`${2}\sum_{s = ${1}}^{n} ${8}s^{${3}} = ${16} \cdot \frac{${1}}{${4}}n^{${2}}(n + ${1})^{${2}} = ${4}n^{${2}}(n + ${1})^{${2}}`}.`,
+    t`The difference is ${math`(n + ${1})^{${2}}\big((${2}n + ${1})^{${2}} - ${4}n^{${2}}\big) = (n + ${1})^{${2}}(${4}n + ${1})`}.`,
+  ],
+  reference: '(n + 1)^2 (4n + 1)',
+  verify: () => {
+    for (let n = 0; n <= 40; n++) {
+      let s = 0;
+      for (let r = 1; r <= 2 * n + 1; r++) s += (r % 2 === 1 ? 1 : -1) * r ** 3;
+      if (s !== (n + 1) ** 2 * (4 * n + 1)) return `n = ${n}: sum ${s}`;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: '(n + 1)^2 (2n + 1)^2 - 2n^2 (n + 1)^2', why: t`Taking the even cubes off once only leaves the odd cubes. To change their sign, take them off twice: subtract ${math`${2}\sum (${2}s)^{${3}}`}.` },
+  ],
+});
+
+const db05q7i = auto({
+  id: 'step05-q7-i',
+  source: cite(DB05, 'Q7(i)'),
+  title: t`A product that telescopes`,
+  prompt: t`The notation ${math`\prod_{r = ${1}}^{n} f(r)`} denotes the product ${math`f(${1}) \times f(${2}) \times f(${3}) \times \cdots \times f(n)`}. Simplify ${math`\prod_{r = ${1}}^{n} \frac{r + ${1}}{r}`} as far as possible.`,
+  answer: { kind: 'expression', expected: 'n + 1', variables: ['n'], domains: NPOS },
+  solution: [
+    t`Write it out: ${math`\frac{${2}}{${1}} \times \frac{${3}}{${2}} \times \frac{${4}}{${3}} \times \cdots \times \frac{n + ${1}}{n}`}.`,
+    t`Each numerator cancels the next denominator, as the terms of a telescoping sum cancel, leaving ${math`\frac{n + ${1}}{${1}} = n + ${1}`}.`,
+  ],
+  reference: 'n + 1',
+  verify: () => {
+    for (let n = 1; n <= 40; n++) {
+      let p = q(1);
+      for (let r = 1; r <= n; r++) p = mul(p, q(r + 1, r));
+      if (str(p) !== String(n + 1)) return `n = ${n}: ${str(p)}`;
+    }
+    return null;
+  },
+  misconceptions: [{ response: 'n', why: t`The last numerator is ${math`n + ${1}`}, and nothing cancels it.` }],
+});
+
+const db05q7ii = auto({
+  id: 'step05-q7-ii',
+  source: cite(DB05, 'Q7(ii)'),
+  title: t`A product of ${math`${1} - \frac{${1}}{r^{${2}}}`}`,
+  prompt: t`The notation ${math`\prod_{r = ${2}}^{n} f(r)`} denotes the product ${math`f(${2}) \times f(${3}) \times \cdots \times f(n)`}. Simplify ${math`\prod_{r = ${2}}^{n} \frac{r^{${2}} - ${1}}{r^{${2}}}`} as far as possible.`,
+  answer: { kind: 'expression', expected: '(n + 1)/(2n)', variables: ['n'], domains: NTWO },
+  solution: [
+    t`Factorise: ${math`\frac{r^{${2}} - ${1}}{r^{${2}}} = \frac{r - ${1}}{r} \cdot \frac{r + ${1}}{r}`}, so the product is ${math`\prod_{r = ${2}}^{n} \frac{r - ${1}}{r} \times \prod_{r = ${2}}^{n} \frac{r + ${1}}{r}`}.`,
+    t`The first telescopes: ${math`\frac{${1}}{${2}} \times \frac{${2}}{${3}} \times \cdots \times \frac{n - ${1}}{n} = \frac{${1}}{n}`}. The second: ${math`\frac{${3}}{${2}} \times \frac{${4}}{${3}} \times \cdots \times \frac{n + ${1}}{n} = \frac{n + ${1}}{${2}}`}.`,
+    t`So the product is ${math`\frac{${1}}{n} \cdot \frac{n + ${1}}{${2}} = \frac{n + ${1}}{${2}n}`}.`,
+  ],
+  reference: '(n + 1)/(2n)',
+  verify: () => {
+    for (let n = 2; n <= 40; n++) {
+      let p = q(1);
+      for (let r = 2; r <= n; r++) p = mul(p, q(r * r - 1, r * r));
+      if (str(p) !== str(q(n + 1, 2 * n))) return `n = ${n}: ${str(p)}`;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: '1/n', why: t`That is only the product of ${math`\frac{r - ${1}}{r}`}. The other factor, ${math`\prod \frac{r + ${1}}{r}`}, telescopes to ${math`\frac{n + ${1}}{${2}}`}.` },
+    { response: '(n + 1)/n', why: t`The second product starts at ${math`r = ${2}`}, so its first denominator is ${2}: it telescopes to ${math`\frac{n + ${1}}{${2}}`}, not ${math`n + ${1}`}.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const L = { n: 5 };
@@ -426,10 +515,11 @@ export const sigmaNotation: TopicContent = {
   generators: [evaluate, closedForm, shift, pattern],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sigma-notation', 'index-variable', 'telescoping'],
-  cambridge: [bop10_1, bop10_4, bop10_6, bop10_7, bop10_15, bop10_3, sw432d, bop10_20],
-  // The general polynomial for the sum of kth powers is the one Cambridge-standard problem
-  // here; the rest are Book of Proof.
-  gate: ['sw-4-3-2-d'],
+  cambridge: [db95q3, db95q3auto, db05q7i, db05q7ii, bop10_1, bop10_4, bop10_6, bop10_7, bop10_15, bop10_3, sw432d, bop10_20],
+  // Best first: STEP I 1995 Q3(iii) (an alternating sum of cubes; parts (i) and (ii), the
+  // telescoping sum and the sum of cubes, are in the lesson and its practice), the CST exercise
+  // on sums of kth powers, then the auto-checked 1995 Q3(iii) and STEP I 2005 Q7(ii).
+  gate: ['step95-q3-iii', 'sw-4-3-2-d', 'step95-q3-iii-sum', 'step05-q7-ii'],
   recall: [
     { front: t`How many terms has ${math`\sum_{i = m}^{n} a_{i}`}?`, back: t`${math`n - m + ${1}`}.` },
     { front: t`State the telescoping sum.`, back: t`${math`\sum_{i = ${0}}^{n} \big(f(i + ${1}) - f(i)\big) = f(n + ${1}) - f(${0})`}.` },

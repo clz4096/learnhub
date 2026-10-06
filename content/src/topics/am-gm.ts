@@ -3,6 +3,8 @@
  * extended to four and then three numbers by Cauchy's backward step, with equality exactly
  * when the numbers are equal. Follows STEP Support Assignment 8, Q1 and its hints; the
  * general n-number case is proved in IA Probability from Jensen's inequality (ineq.jensen).
+ * The gate problems are STEP I 2014 Q5, STEP II 2008 Q3, and STEP I 2012 Q1 (STEP Questions
+ * Database), each settled by AM-GM where the paper suggests calculus or a sketch.
  */
 import { auto, cite, supervision } from '../cambridge';
 import { int, pick, q, str } from '../math';
@@ -240,6 +242,97 @@ const a8q1iii = supervision({
   official: cite(F8H, 'Assignment 8, Q1(iii)'),
 });
 
+// STEP I 2014 Q5, STEP I 2012 Q1, and STEP II 2008 Q3 (STEP Questions Database): AM-GM at work.
+const DB14 = 'stepdb-14-s1' as const;
+const DB12 = 'stepdb-12-s1' as const;
+const DB08 = 'stepdb-08-s2' as const;
+
+const db14q5 = supervision({
+  id: 'step14-q5',
+  source: cite(DB14, 'Q5(i), (ii)', true),
+  title: t`A cubic that never goes negative, and the largest ${math`xy^{${2}}`}`,
+  prompt: t`(i) Let ${math`f(x) = (x + ${2}a)^{${3}} - ${27}a^{${2}}x`}, where ${math`a \ge ${0}`}. Show that ${math`f(x) \ge ${0}`} for ${math`x \ge ${0}`}. (The question asks for a sketch of ${math`f`}; an argument by AM-GM is as good.) (ii) Use part (i) to find the greatest value of ${math`xy^{${2}}`} in the region of the ${math`(x, y)`} plane given by ${math`x \ge ${0}`}, ${math`y \ge ${0}`} and ${math`x + ${2}y \le ${3}`}. For what values of ${math`x`} and ${math`y`} is this greatest value achieved?`,
+  writeUp: 'proof',
+});
+
+const db14q5ii = auto({
+  id: 'step14-q5-ii',
+  source: cite(DB14, 'Q5(ii)'),
+  title: t`The largest ${math`xy^{${2}}`} under a line`,
+  prompt: t`Given that ${math`(x + ${2}a)^{${3}} \ge ${27}a^{${2}}x`} for all ${math`x \ge ${0}`} and ${math`a \ge ${0}`}, find the greatest value of ${math`xy^{${2}}`} in the region of the ${math`(x, y)`} plane given by ${math`x \ge ${0}`}, ${math`y \ge ${0}`} and ${math`x + ${2}y \le ${3}`}.`,
+  answer: { kind: 'exact', expected: '1' },
+  solution: [
+    t`Take ${math`a = y`}: ${math`(x + ${2}y)^{${3}} \ge ${27}y^{${2}}x`}, so ${math`xy^{${2}} \le \frac{(x + ${2}y)^{${3}}}{${27}}`}.`,
+    t`In the region ${math`${0} \le x + ${2}y \le ${3}`}, so ${math`xy^{${2}} \le \frac{${3}^{${3}}}{${27}} = ${1}`}.`,
+    t`The bound is reached: equality in ${math`(x + ${2}a)^{${3}} \ge ${27}a^{${2}}x`} needs ${math`x = a`}, so ${math`x = y`}, and ${math`x + ${2}y = ${3}`} gives ${math`x = y = ${1}`}, where ${math`xy^{${2}} = ${1}`}. So the greatest value is ${1}.`,
+  ],
+  reference: '1',
+  verify: () => {
+    // Brute force over a fine grid of the triangle: the maximum is 1, at (1, 1).
+    let best = 0;
+    let at = [0, 0];
+    for (let i = 0; i <= 600; i++) for (let j = 0; j <= 300; j++) {
+      const x = i / 200;
+      const y = j / 200;
+      if (x + 2 * y <= 3 + 1e-12 && x * y * y > best) { best = x * y * y; at = [x, y]; }
+    }
+    return Math.abs(best - 1) < 1e-12 && at[0] === 1 && at[1] === 1 ? null : `max ${best} at ${at}`;
+  },
+  misconceptions: [
+    { response: '27/32', why: t`That is ${math`x = ${q(3, 2)}`}, ${math`y = ${q(3, 4)}`}, splitting the ${3} evenly between ${mx} and ${math`${2}y`}. AM-GM balances the three numbers ${mx}, ${math`y`}, ${math`y`}, so the best point has ${math`x = y`}.` },
+  ],
+});
+
+const db12q1 = supervision({
+  id: 'step12-q1',
+  source: cite(DB12, 'Q1, first part'),
+  title: t`The shortest way round a fixed point`,
+  prompt: t`The line ${math`L`} has equation ${math`y = c - mx`}, with ${math`m > ${0}`} and ${math`c > ${0}`}. It passes through the point ${math`R(a, b)`} and cuts the axes at the points ${math`P(p, ${0})`} and ${math`Q(${0}, q)`}, where ${math`a`}, ${math`b`}, ${math`p`} and ${math`q`} are all positive. Find ${math`p`} and ${math`q`} in terms of ${math`a`}, ${math`b`} and ${math`m`}. As ${math`L`} varies with ${math`R`} remaining fixed, show that the minimum value of the sum of the distances of ${math`P`} and ${math`Q`} from the origin is ${math`(a^{\frac{${1}}{${2}}} + b^{\frac{${1}}{${2}}})^{${2}}`}.`,
+  writeUp: 'proof',
+});
+
+const ABDOM = { a: { kind: 'real' as const, min: 0.5, max: 5 }, b: { kind: 'real' as const, min: 0.5, max: 5 } };
+const db12q1m = auto({
+  id: 'step12-q1-gradient',
+  source: cite(DB12, 'Q1', true),
+  title: t`Which line is shortest round the point`,
+  prompt: t`A line through the fixed point ${math`R(a, b)`}, with ${math`a, b > ${0}`}, has gradient ${math`-m`} with ${math`m > ${0}`}, and cuts the axes at ${math`P(p, ${0})`} and ${math`Q(${0}, q)`}. Then ${math`p = a + \frac{b}{m}`} and ${math`q = b + am`}. For which ${math`m`} is ${math`OP + OQ`} least? Give ${math`m`} in terms of ${math`a`} and ${math`b`}.`,
+  answer: { kind: 'expression', expected: 'sqrt(b/a)', variables: ['a', 'b'], domains: ABDOM },
+  solution: [
+    t`${math`OP + OQ = p + q = a + b + \frac{b}{m} + am`}.`,
+    t`AM-GM on the two positive numbers ${math`am`} and ${math`\frac{b}{m}`}: ${math`am + \frac{b}{m} \ge ${2}\sqrt{am \cdot \frac{b}{m}} = ${2}\sqrt{ab}`}, so ${math`OP + OQ \ge a + b + ${2}\sqrt{ab} = (\sqrt{a} + \sqrt{b})^{${2}}`}.`,
+    t`Equality holds exactly when ${math`am = \frac{b}{m}`}, that is ${math`m^{${2}} = \frac{b}{a}`}, so ${math`m = \sqrt{\frac{b}{a}}`} (positive, as ${math`m > ${0}`}).`,
+  ],
+  reference: 'sqrt(b/a)',
+  verify: () => {
+    // For several points, a search over m finds the least p + q at sqrt(b/a), with value (sqrt a + sqrt b)^2.
+    for (const [a, b] of [[1, 4], [2, 9], [3, 1], [0.5, 5]] as const) {
+      let best = Infinity;
+      let bestM = 0;
+      for (let i = 1; i <= 200000; i++) {
+        const m = i / 20000;
+        const v = a + b / m + b + a * m;
+        if (v < best) { best = v; bestM = m; }
+      }
+      if (Math.abs(bestM - Math.sqrt(b / a)) > 1e-3) return `a = ${a}, b = ${b}: least at m = ${bestM}`;
+      if (Math.abs(best - (Math.sqrt(a) + Math.sqrt(b)) ** 2) > 1e-6) return `a = ${a}, b = ${b}: least ${best}`;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: 'b/a', why: t`Equality in AM-GM needs ${math`am = \frac{b}{m}`}, so ${math`m^{${2}} = \frac{b}{a}`}: take the square root.` },
+    { response: 'sqrt(a/b)', why: t`Solve ${math`am = \frac{b}{m}`} for ${math`m`}: ${math`m^{${2}} = \frac{b}{a}`}, with ${math`b`} on top.` },
+  ],
+});
+
+const db08q3 = supervision({
+  id: 'step08-q3',
+  source: cite(DB08, 'Q3', true),
+  title: t`One of them is small`,
+  prompt: t`(i) Show that ${math`x^{${2}}(${1} - x) \le \frac{${4}}{${27}}`} for all ${math`x \ge ${0}`}. (The question finds the turning points of ${math`y = ${27}x^{${3}} - ${27}x^{${2}} + ${4}`}; an argument by AM-GM is as good.) Given that each of the numbers ${math`a`}, ${math`b`} and ${math`c`} lies between ${0} and ${1}, prove by contradiction that at least one of the numbers ${math`bc(${1} - a)`}, ${math`ca(${1} - b)`} and ${math`ab(${1} - c)`} is less than or equal to ${math`\frac{${4}}{${27}}`}. (ii) Given that each of the numbers ${math`p`} and ${math`q`} lies between ${0} and ${1}, prove that at least one of the numbers ${math`p(${1} - q)`} and ${math`q(${1} - p)`} is less than or equal to ${math`\frac{${1}}{${4}}`}.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const amGm: TopicContent = {
@@ -299,10 +392,11 @@ export const amGm: TopicContent = {
   generators: [minGen, prodGen, gapGen, signGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arithmetic-mean', 'geometric-mean'],
-  cambridge: [a8q1ii, a8q1iii, a8q1, a8eq],
-  // No gate: the lesson proves the two-, four-, and three-number cases, which are all the approved
-  // problems (Assignment 8 Q1); a fresh Cambridge-standard problem is needed.
-  gate: [],
+  cambridge: [db14q5, db08q3, db12q1, db14q5ii, db12q1m, a8q1ii, a8q1iii, a8q1, a8eq],
+  // The gate is three STEP questions the lesson does not touch, best first: 2014 I Q5 (a cubic
+  // bound that is AM-GM in disguise, then a maximum), 2008 II Q3 (bounds on products), 2012 I Q1
+  // (a minimum distance), then 2014 I Q5(ii) auto-checked. Assignment 8 Q1 is proved in the lesson.
+  gate: ['step14-q5', 'step08-q3', 'step12-q1', 'step14-q5-ii'],
   recall: [
     { front: t`State AM-GM for two numbers, with its hypotheses and equality case.`, back: t`For ${math`a, b \ge ${0}`}: ${math`\frac{a + b}{${2}} \ge \sqrt{ab}`}, with equality if and only if ${math`a = b`}.` },
     { front: t`What square proves AM-GM for two numbers?`, back: t`${math`(\sqrt{a} - \sqrt{b})^{${2}} \ge ${0}`}, which expands to ${math`a + b \ge ${2}\sqrt{ab}`}.` },

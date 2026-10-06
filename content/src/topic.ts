@@ -223,9 +223,14 @@ export function lessonSections(lesson: readonly Block[]): LessonSection[] {
  * The documents whose problems are of Cambridge standard, so the only sources of gate problems:
  * every STEP Support assignment (1 to 25; not their hints), the STEP statistics questions and
  * topic notes, the IA Probability sheets, the CST Discrete Mathematics notes and exercises, the
- * NST Mathematics Workbook, the Foundations of Computer Science notes, and the CS3110 chapter
- * exercises. Book of Proof and the TMUA notes are good practice but easier; the schedules state
- * a course, not problems; the CS3110 book's prose is a reference, not an exercise sheet.
+ * NST Mathematics Workbook, the Foundations of Computer Science notes, the CS3110 chapter
+ * exercises, (batch 7) the IA Numbers and Sets example sheets, the CST Logic and Proof notes,
+ * and chapters 3 to 5 of Grinstead and Snell, and batch 8's STEP Support STEP 2 and 3 modules,
+ * STEP papers, Computer Science Tripos Part IA questions, IA example sheets, and MIT 18.600
+ * problem set (not their hints or solutions). Book of Proof and the TMUA notes are good practice
+ * but easier; the schedules state a course, not problems; the CS3110 book's prose is a reference,
+ * not an exercise sheet; answers and solutions (Grinstead and Snell's odd answers, the CST
+ * solutions) support a gate but are not one.
  */
 export const GATE_DOCS: ReadonlySet<string> = new Set([
   'step-f01', 'step-f02', 'step-f03', 'step-f04', 'step-f05', 'step-f06', 'step-f07', 'step-f08', 'step-f09',
@@ -236,6 +241,14 @@ export const GATE_DOCS: ReadonlySet<string> = new Set([
   'cst-dm-notes', 'cst-dm-sw1',
   'nst-workbook', 'focs-notes',
   'cs3110-ex2', 'cs3110-ex3', 'cs3110-ex4', 'cs3110-ex5', 'cs3110-ex8', 'cs3110-ex9',
+  'ia-ns-sheet-1', 'ia-ns-sheet-2', 'ia-ns-sheet-3', 'ia-ns-sheet-4', 'cst-lp-notes', 'gs-ch3', 'gs-ch4', 'gs-ch5',
+  // Batch 8: STEP Support STEP 2 and 3 modules, STEP papers, CST Part IA FoCS questions, IA example sheets, MIT 18.600.
+  'step-s2-calc', 'step-s2-eqns', 'step-s2-misc', 'step-s2-vectors', 'step-s3-hyp',
+  'stepdb-94-s1', 'stepdb-95-s1', 'stepdb-96-s1', 'stepdb-99-s1', 'stepdb-00-s1', 'stepdb-01-s1', 'stepdb-02-s1',
+  'stepdb-05-s1', 'stepdb-06-s1', 'stepdb-07-s1', 'stepdb-08-s2', 'stepdb-10-s1', 'stepdb-11-s1', 'stepdb-12-s1',
+  'stepdb-12-s2', 'stepdb-13-s2', 'stepdb-14-s1', 'stepdb-15-s1', 'stepdb-16-s2', 'stepdb-18-s1', 'stepdb-spec-s1',
+  'cst-y2016p1q2', 'cst-y2018p1q2', 'cst-y2020p1q1', 'cst-y2024p1q2', 'cst-y2025p1q1', 'cst-y2025p1q2',
+  'damtp-ia-vm1', 'damtp-ia-de1', 'mit-18600-ps10',
 ]);
 
 /** The ids of a topic's Cambridge problems from a Cambridge-standard document (`GATE_DOCS`): the default gate. */

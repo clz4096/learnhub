@@ -200,6 +200,15 @@ const focs21 = supervision({
   writeUp: 'explanation',
 });
 
+// Computer Science Tripos Part IA 2024, Paper 1, Question 2(a): trial division by recursion.
+const cst24 = supervision({
+  id: 'cst-2024-p1-q2-a',
+  source: cite('cst-y2024p1q2', '(a)'),
+  title: t`A primality test by trial division`,
+  prompt: t`A prime number is a natural number greater than ${1} that has no positive divisors other than ${1} and itself. We wish to implement a primality test in OCaml that checks if a positive input integer is prime. A simple primality test is via trial division: given a positive input number ${math`n`}, check if it is divisible by any prime number between ${2} and ${math`\sqrt{n}`}. For any divisor ${math`p \ge \sqrt{n}`}, there must be another divisor ${math`\frac{n}{p} \le \sqrt{n}`}, and a prime divisor ${math`q`} of ${math`\frac{n}{p}`}, and therefore looking for prime divisors where ${math`p \le \sqrt{n}`} is sufficient. Define a function ${code`is_prime`} which accepts a positive input integer and returns a boolean to indicate if it is prime or not. To simplify your code, you can avoid calculating square roots by checking for prime divisors where ${math`p^{${2}} \le n`}. You can assume the existence of a ${code`(mod)`} operator which returns the integer remainder of two integers. For example, ${code`${3} mod ${2}`} will return ${1}. The type definitions are: ${codeBlock(code`val (mod) : int -> int -> int`, code`val is_prime : int -> bool`)}`,
+  writeUp: 'explanation',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const X = 2;
@@ -305,8 +314,9 @@ export const fpRecursion: TopicContent = {
   generators: [linearRec, fibCost, accumulator],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['recursive-function', 'tail-recursion', 'accumulator'],
-  cambridge: [fib30, focs21],
-  gate: ['focs-2-1'],
+  cambridge: [cst24, fib30, focs21],
+  // Best first: the 2024 Tripos question (trial division), then FoCS Exercise 2.1.
+  gate: ['cst-2024-p1-q2-a', 'focs-2-1'],
   recall: [
     { front: t`What makes a recursive function terminate?`, back: t`A base case with no recursive call, and recursive calls on arguments that move towards it, such as ${code`n - ${1}`} from ${code`n > ${0}`}.` },
     { front: t`What is a tail recursive function?`, back: t`One whose recursive calls are all tail calls: nothing is left to do after the call returns, so no work is pending on the stack.` },

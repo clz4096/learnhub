@@ -5,7 +5,8 @@
  * P#(m), the Principle of Strong Induction, and Proposition 96, that every n >= 2 is a
  * prime or a product of primes) and Book of Proof Section 10.2 (the postage example and
  * the tree proposition). The problems are Book of Proof Chapter 10, exercises 25, 32, and
- * 42, the postage example, and supervision exercise 4.3.1 with its 2023-24 solution.
+ * 42, the postage example, and supervision exercise 4.3.1 with its 2023-24 solution. Batch 7
+ * adds supervision exercise 4.2.3(b), the Fibonacci addition formula, with its 2023-24 solution.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, upTo } from '../math';
@@ -279,6 +280,26 @@ const bop1042proof = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking sw-4-2-3-b (20 marks):
+ * 1. Chooses the induction variable: k, with the claim "for all n" carried in the hypothesis (3).
+ * 2. Two base cases, because the step reaches back two: k = 0 gives F_(n+1) = F_(n+1) F_1 + F_n F_0,
+ *    and k = 1 gives F_(n+2) = F_(n+1) + F_n (5).
+ * 3. Step: assuming the formula for k and k + 1 (for all n), F_(n+k+3) = F_(n+k+1) + F_(n+k+2)
+ *    = F_(n+1)(F_(k+1) + F_(k+2)) + F_n (F_k + F_(k+1)) = F_(n+1) F_(k+3) + F_n F_(k+2) (8).
+ * 4. Concludes for all natural numbers k and n, naming the principle used (4).
+ */
+const sw423b = supervision({
+  id: 'sw-4-2-3-b',
+  source: cite('cst-dm-sw1', 'Exercises 4, 4.2.3(b)'),
+  title: t`The Fibonacci addition formula`,
+  prompt: t`The Fibonacci numbers ${math`F_n`} for ${math`n \in \mathbb{N}`} are defined by ${math`F_{${0}} = ${0}`}, ${math`F_{${1}} = ${1}`}, and ${math`F_{n + ${2}} = F_n + F_{n + ${1}}`}. Prove that for all natural numbers ${math`k`} and ${math`n`}, ${math`F_{n + k + ${1}} = F_{n + ${1}} F_{k + ${1}} + F_n F_k`}.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-4', '4.2.3(b)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const STAMP = { a: 3, b: 5, from: 8 };
@@ -347,10 +368,10 @@ export const strongInduction: TopicContent = {
   generators: [postageThreshold, primeCount, tilings],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['strong-induction'],
-  cambridge: [stamps47, bop1032, bop1025, bop1042, sheet431, treeProof, bop1042proof],
-  // The gcd correctness proof by induction from basis 2 is the one Cambridge-standard problem;
-  // the rest are Book of Proof.
-  gate: ['sheet-4-3-1'],
+  cambridge: [stamps47, bop1032, bop1025, bop1042, sheet431, treeProof, bop1042proof, sw423b],
+  // The CST problems: the gcd correctness proof by induction from basis 2, then the Fibonacci
+  // addition formula, whose step reaches back two cases. The rest are Book of Proof.
+  gate: ['sheet-4-3-1', 'sw-4-2-3-b'],
   recall: [
     { front: t`State strong induction from basis ${mell}.`, back: t`If ${math`P(\ell)`} holds and, for every ${math`n \ge \ell`}, ${math`P(\ell), \ldots, P(n)`} together imply ${mPn1}, then ${math`P(m)`} holds for every ${math`m \ge \ell`}.` },
     { front: t`Why is strong induction valid?`, back: t`It is ordinary induction on ${math`Q(m)`}: "${math`P(k)`} for every ${mk} from ${mell} to ${math`m`}".` },

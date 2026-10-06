@@ -4,6 +4,9 @@
  * its exercises, checked against the book's solutions to the odd ones, and CST Discrete
  * Mathematics supervision exercises 5.1.5 (the family A_i = {i, i + 1, i - 1, 2i} over
  * I = {2, 3, 4, 5}, computed here) and 5.2.6 (big unions and intersections, for supervision).
+ * Batch 7 adds exercises 5.2.7 and 5.3.1 with the 2023-24 official solutions to sheet 5. IA Numbers
+ * and Sets Example Sheet 1, Q7 (nested non-empty sets with empty intersection) is this lesson's
+ * pitfall, so it is not set.
  */
 import type { Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
@@ -420,6 +423,45 @@ const b1811 = supervision({
   official: cite('bop', 'Solutions, Section 1.8, exercise 11'),
 });
 
+// ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
+
+/*
+ * Outline for marking sw-5-2-7 (20 marks):
+ * (a) 10 marks. The union of F is in the family U: every S in F is inside it (3). So the
+ *     intersection of U is inside the union of F (3). Conversely every U in the family contains each
+ *     S in F, so contains their union (exercise 5.2.6(a)); hence the union of F is inside the
+ *     intersection of U (4).
+ * (b) 10 marks. L = {L inside A : L is inside every S in F} (3). The intersection of F is in L, so it
+ *     is inside the union of L (3); every L in L is inside the intersection of F (exercise 5.2.6(b)), so
+ *     the union of L is inside it (4).
+ */
+const sw527 = supervision({
+  id: 'sw-5-2-7',
+  source: cite('cst-dm-sw1', 'Exercises 5, 5.2.7'),
+  title: t`Unions as intersections`,
+  prompt: t`Let ${math`A`} be a set. (a) For a family ${math`\mathcal{F} \subseteq \mathcal{P}(A)`}, let ${math`\mathcal{U} = \{U \subseteq A \mid \forall S \in \mathcal{F}.\ S \subseteq U\}`}. Prove that ${math`\bigcup \mathcal{F} = \bigcap \mathcal{U}`}. (b) Analogously, define a family ${math`\mathcal{L} \subseteq \mathcal{P}(A)`} such that ${math`\bigcap \mathcal{F} = \bigcup \mathcal{L}`}, and prove this statement.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-5', '5.2.7'),
+});
+
+/*
+ * Outline for marking sw-5-3-1 (20 marks):
+ * 1. x is in the union of F_1 or in the union of F_2 iff x is in some member of F_1 or some member of
+ *    F_2 iff x is in some member of F_1 u F_2 (8).
+ * 2. States the analogue: for non-empty F_1 and F_2, the intersection of F_1 n the intersection of
+ *    F_2 equals the intersection of F_1 u F_2 (4).
+ * 3. Proves it the same way with "every member" in place of "some member" (6), and says why
+ *    non-empty is needed (the intersection of an empty family is not a set of elements of A) (2).
+ */
+const sw531 = supervision({
+  id: 'sw-5-3-1',
+  source: cite('cst-dm-sw1', 'Exercises 5, 5.3.1'),
+  title: t`Unions of two families`,
+  prompt: t`Prove that for all families of sets ${math`\mathcal{F}_{${1}}`} and ${math`\mathcal{F}_{${2}}`}, ${math`\left(\bigcup \mathcal{F}_{${1}}\right) \cup \left(\bigcup \mathcal{F}_{${2}}\right) = \bigcup \left(\mathcal{F}_{${1}} \cup \mathcal{F}_{${2}}\right)`}. State and prove the analogous property for intersections of non-empty families of sets.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-5', '5.3.1'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EXF = [1, 2, 3].map((i) => [i, i + 1, 2 * i]);
@@ -472,8 +514,8 @@ export const indexedSets: TopicContent = {
   generators: [famGen, ivGen, infGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['indexed-family', 'index-set'],
-  cambridge: [sw515u, sw515i, sw526, b181b, b185, b189, b1811],
-  gate: ['sw-5-2-6'],
+  cambridge: [sw515u, sw515i, sw526, b181b, b185, b189, b1811, sw527, sw531],
+  gate: ['sw-5-2-6', 'sw-5-2-7', 'sw-5-3-1'],
   recall: [
     { front: t`Define ${math`\bigcup_{\alpha \in I} A_{\alpha}`} and ${math`\bigcap_{\alpha \in I} A_{\alpha}`}.`, back: t`The ${mx} in ${math`A_{\alpha}`} for some ${math`\alpha \in I`}; the ${mx} in ${math`A_{\alpha}`} for every ${math`\alpha \in I`}.` },
     { front: t`What is ${math`\bigcap_{n \in \mathbb{N}} (${0}, \tfrac{${1}}{n})`}, and why?`, back: t`${math`\varnothing`}: a positive ${mx} is not in ${math`(${0}, \tfrac{${1}}{n})`} once ${math`n > \tfrac{${1}}{x}`}.` },

@@ -3,14 +3,15 @@
  * for positive integer powers from the binomial expansion), and the standard derivatives of
  * x^n, e^(kx), and ln x with sums and constant multiples. The Cambridge problems are STEP
  * Support Foundation Assignment 9, Q2(i) and (ii) (y = x^3 - 12x + 1), with the answers of
- * the Assignment 9 hints compared in the content checks. The STEP specification lists
+ * the Assignment 9 hints compared in the content checks, and STEP II 2013 Q1 (STEP Questions
+ * Database), on lines meeting y = ln x. The STEP specification lists
  * differentiation under STEP 1, Section A; the TMUA specification has it as MM6.1 and MM6.2.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
-import { firstError, numDeriv, polyAt, polyDeriv } from '../prep-c';
+import { close, firstError, numDeriv, polyAt, polyDeriv } from '../prep-c';
 import { computedMath as cm, dmath, math, t, type Span } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
@@ -250,6 +251,45 @@ const sketch = supervision({
   official: cite(F09H, 'Assignment 9 hints, Q2(ii)'),
 });
 
+// STEP II 2013 Q1 (STEP Questions Database): lines meeting y = ln x, and pi^e against e^pi.
+const DB13 = 'stepdb-13-s2' as const;
+
+const db13q1 = supervision({
+  id: 'step13-q1',
+  source: cite(DB13, 'Q1'),
+  title: t`Lines across ${math`y = \ln x`}, and ${math`\pi^{e}`} against ${math`e^{\pi}`}`,
+  prompt: t`(i) Find the value of ${math`m`} for which the line ${math`y = mx`} touches the curve ${math`y = \ln x`}. If instead the line intersects the curve when ${math`x = a`} and ${math`x = b`}, where ${math`a < b`}, show that ${math`a^{b} = b^{a}`}. Show by means of a sketch that ${math`a < e < b`}. (ii) The line ${math`y = mx + c`}, where ${math`c > ${0}`}, intersects the curve ${math`y = \ln x`} when ${math`x = p`} and ${math`x = q`}, where ${math`p < q`}. Show by means of a sketch, or otherwise, that ${math`p^{q} > q^{p}`}. (iii) Show by means of a sketch that the straight line through the points ${math`(p, \ln p)`} and ${math`(q, \ln q)`}, where ${math`e \le p < q`}, intersects the ${math`y`}-axis at a positive value of ${math`y`}. Which is greater, ${math`\pi^{e}`} or ${math`e^{\pi}`}? (iv) Show, using a sketch or otherwise, that if ${math`${0} < p < q`} and ${math`\frac{\ln q - \ln p}{q - p} = e^{-${1}}`}, then ${math`q^{p} > p^{q}`}.`,
+  writeUp: 'proof',
+});
+
+const db13q1m = auto({
+  id: 'step13-q1-i',
+  source: cite(DB13, 'Q1(i)'),
+  title: t`The tangent to ${math`y = \ln x`} through the origin`,
+  prompt: t`Find the value of ${math`m`} for which the line ${math`y = mx`} touches the curve ${math`y = \ln x`}. Give it exactly.`,
+  answer: { kind: 'expression', expected: '1/e', variables: [] },
+  solution: [
+    t`At the point of contact ${math`(x_{${0}}, \ln x_{${0}})`} the line and the curve have the same height and the same gradient: ${math`mx_{${0}} = \ln x_{${0}}`} and ${math`m = \frac{${1}}{x_{${0}}}`}.`,
+    t`Substitute the second into the first: ${math`${1} = \ln x_{${0}}`}, so ${math`x_{${0}} = e`} and ${math`m = \frac{${1}}{e}`}.`,
+  ],
+  reference: '1/e',
+  verify: () => {
+    // y = mx meets y = ln x exactly when m = ln x / x, whose largest value (the touching line) is found by search.
+    let best = -Infinity;
+    let at = 0;
+    for (let i = 1; i <= 200000; i++) {
+      const x = i / 10000;
+      const v = Math.log(x) / x;
+      if (v > best) { best = v; at = x; }
+    }
+    return close('m', best, 1 / Math.E, 1e-9) ?? close('contact', at, Math.E, 1e-3);
+  },
+  misconceptions: [
+    { response: 'e', why: t`That is where the line touches, ${math`x_{${0}} = e`}. The gradient there is ${math`\frac{${1}}{x_{${0}}}`}.` },
+    { response: '1', why: t`${math`y = x`} lies above ${math`y = \ln x`} everywhere (${math`\ln x \le x - ${1} < x`}), so it never touches. Match both height and gradient at the point of contact.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const H = [1, 0.1, 0.01];
@@ -321,8 +361,10 @@ export const derivatives: TopicContent = {
   generators: [powerRule, expLn, gradientAt],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['derivative', 'differentiable'],
-  cambridge: [solveQuad, turningY, rootCount, sketch],
-  gate: ['a9-q2-ii'],
+  cambridge: [db13q1, db13q1m, solveQuad, turningY, rootCount, sketch],
+  // Best first: STEP II 2013 Q1 (lines across y = ln x), then Assignment 9 Q2(ii), then the
+  // auto-checked 2013 Q1(i).
+  gate: ['step13-q1', 'a9-q2-ii', 'step13-q1-i'],
   recall: [
     { front: t`Define the derivative ${math`f'(a)`}.`, back: t`${math`f'(a) = \lim_{h \to ${0}} \frac{f(a + h) - f(a)}{h}`}, when the limit exists.` },
     { front: t`State the power rule.`, back: t`${math`\frac{d}{dx} x^{n} = nx^{n - ${1}}`}.` },

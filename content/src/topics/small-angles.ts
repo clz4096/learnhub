@@ -3,12 +3,14 @@
  * a sector (STEP Support Foundation Assignment 19 Q1(i) to (iii)), the approximations
  * sin theta ~ theta, tan theta ~ theta, and cos theta ~ 1 - theta^2/2 (Q1(iv), from
  * cos^2 + sin^2 = 1 and the binomial expansion), and why they need radians (Q1(v)). Problems
- * also from NST Maths Workbook SS6 (an approximation to third order, checked with sympy).
+ * also from NST Maths Workbook SS6 (an approximation to third order, checked with sympy), and
+ * the gate adds STEP I 1999 Q5 and STEP I 2006 Q4 (STEP Questions Database).
  */
 import { auto, cite, supervision } from '../cambridge';
 import { int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t } from '../rich';
+import { close } from '../prep-c';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 import { far } from '../partv-a';
 
@@ -180,6 +182,76 @@ const ss6 = auto({
   misconceptions: [{ response: '1 + x/2 + 2x^2 - x^3/48', why: t`The product with ${math`\cos\theta`} adds ${math`-\frac{\theta}{${2}} \cdot \frac{\theta^{${2}}}{${2}} = -\frac{\theta^{${3}}}{${4}}`} to the cube term.` }],
 });
 
+// STEP I 1999 Q5 and STEP I 2006 Q4 (STEP Questions Database): small angles at work. The part of
+// 2006 Q4 done by differentiation is left out (differentiation is not a prerequisite).
+const DB99 = 'stepdb-99-s1' as const;
+const DB06 = 'stepdb-06-s1' as const;
+
+const db99q5 = supervision({
+  id: 'step99-q5',
+  source: cite(DB99, 'Q5'),
+  title: t`How far a satellite can be seen`,
+  prompt: t`For this question, you may use the following approximations, valid if ${math`\theta`} is small: ${math`\sin\theta \approx \theta`} and ${math`\cos\theta \approx ${1} - \frac{\theta^{${2}}}{${2}}`}. A satellite ${math`X`} is directly above the point ${math`Y`} on the Earth's surface and can just be seen (on the horizon) from another point ${math`Z`} on the Earth's surface. The radius of the Earth is ${math`R`} and the height of the satellite above the Earth is ${math`h`}. (i) Find the distance ${math`d`} of ${math`Z`} from ${math`Y`} along the Earth's surface. (ii) If the satellite is in low orbit (so that ${math`h`} is small compared with ${math`R`}), show that ${math`d \approx k(Rh)^{\frac{${1}}{${2}}}`}, where ${math`k`} is to be found. (iii) If the satellite is very distant from the Earth (so that ${math`R`} is small compared with ${math`h`}), show that ${math`d \approx aR + b\frac{R^{${2}}}{h}`}, where ${math`a`} and ${math`b`} are to be found.`,
+  writeUp: 'explanation',
+});
+
+/** The exact distance along the surface: R arccos(R/(R + h)). */
+const horizon = (R: number, h: number): number => R * Math.acos(R / (R + h));
+
+const db99q5k = auto({
+  id: 'step99-q5-ii',
+  source: cite(DB99, 'Q5(ii)'),
+  title: t`A low satellite`,
+  prompt: t`A satellite at height ${math`h`} above a point ${math`Y`} on the Earth (radius ${math`R`}) can just be seen from ${math`Z`}, at distance ${math`d`} from ${math`Y`} along the surface. If ${math`h`} is small compared with ${math`R`}, then ${math`d \approx k(Rh)^{\frac{${1}}{${2}}}`}. Find ${math`k`}, using ${math`\cos\theta \approx ${1} - \frac{\theta^{${2}}}{${2}}`}.`,
+  answer: { kind: 'expression', expected: 'sqrt(2)', variables: [] },
+  solution: [
+    t`The line of sight ${math`ZX`} touches the Earth at ${math`Z`}, so it is at right angles to the radius ${math`OZ`}. In the right triangle ${math`OZX`}, ${math`OZ = R`} and ${math`OX = R + h`}, so the angle ${math`\theta = \angle ZOX`} has ${math`\cos\theta = \frac{R}{R + h}`}, and ${math`d = R\theta`}.`,
+    t`For small ${math`h`}, ${mth} is small: ${math`${1} - \frac{\theta^{${2}}}{${2}} \approx \frac{R}{R + h}`}, so ${math`\theta^{${2}} \approx ${2}\left(${1} - \frac{R}{R + h}\right) = \frac{${2}h}{R + h} \approx \frac{${2}h}{R}`}.`,
+    t`So ${math`d = R\theta \approx R\sqrt{\frac{${2}h}{R}} = \sqrt{${2}}\,(Rh)^{\frac{${1}}{${2}}}`}: ${math`k = \sqrt{${2}}`}.`,
+  ],
+  reference: 'sqrt(2)',
+  verify: () => close('d / sqrt(Rh) for small h', horizon(6400, 0.001) / Math.sqrt(6400 * 0.001), Math.SQRT2, 1e-6),
+  misconceptions: [
+    { response: '2', why: t`${math`\theta^{${2}} \approx \frac{${2}h}{R}`}, so ${math`\theta \approx \sqrt{\frac{${2}h}{R}}`}: the ${2} stays under the square root.` },
+    { response: '1', why: t`From ${math`\cos\theta \approx ${1} - \frac{\theta^{${2}}}{${2}}`} the half doubles back: ${math`\theta^{${2}} \approx ${2}(${1} - \cos\theta)`}.` },
+  ],
+});
+
+const RH = { R: { kind: 'real' as const, min: 1, max: 2 }, h: { kind: 'real' as const, min: 1000, max: 5000 } };
+const db99q5ab = auto({
+  id: 'step99-q5-iii',
+  source: cite(DB99, 'Q5(iii)', true),
+  title: t`A distant satellite`,
+  prompt: t`With ${math`d = R\theta`} and ${math`\cos\theta = \frac{R}{R + h}`} as for a satellite at height ${math`h`} above an Earth of radius ${math`R`}, suppose ${math`R`} is small compared with ${math`h`}. Find the approximation ${math`d \approx aR + b\frac{R^{${2}}}{h}`}: give the expression ${math`aR + b\frac{R^{${2}}}{h}`} with ${math`a`} and ${math`b`} found.`,
+  answer: { kind: 'expression', expected: 'pi/2 * R - R^2/h', variables: ['R', 'h'], domains: RH },
+  solution: [
+    t`${math`\frac{R}{R + h}`} is small, so ${mth} is close to ${math`\frac{\pi}{${2}}`}. Write ${math`\theta = \frac{\pi}{${2}} - \phi`}; then ${math`\sin\phi = \cos\theta = \frac{R}{R + h}`}, and ${math`\phi`} is small.`,
+    t`So ${math`\phi \approx \sin\phi = \frac{R}{R + h} \approx \frac{R}{h}`}, because ${math`R + h \approx h`}.`,
+    t`${math`d = R\theta = R\left(\frac{\pi}{${2}} - \phi\right) \approx \frac{\pi}{${2}}R - \frac{R^{${2}}}{h}`}: ${math`a = \frac{\pi}{${2}}`} and ${math`b = -${1}`}.`,
+  ],
+  reference: 'pi/2 * R - R^2/h',
+  verify: () => {
+    // The approximation's error is of order R^3/h^2, far smaller than the R^2/h term.
+    for (const [R, h] of [[1, 1e4], [2, 5e4]] as const) {
+      const e = close(`R = ${R}, h = ${h}`, horizon(R, h), (Math.PI / 2) * R - (R * R) / h, (10 * R ** 3) / (h * h));
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: 'pi/2 * R + R^2/h', why: t`${mth} is a little less than ${math`\frac{\pi}{${2}}`}: ${math`\theta = \frac{\pi}{${2}} - \phi`}, so the correction is subtracted.` },
+    { response: 'pi * R - R^2/h', why: t`The angle is close to a right angle, ${math`\frac{\pi}{${2}}`}, not ${math`\pi`}: the tangent from far away touches near the quarter circle.` },
+  ],
+});
+
+const db06q4 = supervision({
+  id: 'step06-q4',
+  source: cite(DB06, 'Q4', true),
+  title: t`Polygons that fill their circle`,
+  prompt: t`By sketching on the same axes the graphs of ${math`y = \sin x`} and ${math`y = x`}, show that, for ${math`x > ${0}`}: (i) ${math`x > \sin x`}; (ii) ${math`\frac{\sin x}{x} \approx ${1}`} for small ${math`x`}. A regular polygon has ${math`n`} sides, and perimeter ${math`P`}. Show that the area of the polygon is ${dmath`\frac{P^{${2}}}{${4}n\tan\left(\frac{\pi}{n}\right)}.`} Show also that, for large ${math`n`}, the ratio of the area of the polygon to the area of the smallest circle which can be drawn around the polygon is approximately ${1}. (The paper also asks you to show, by differentiation, that the area increases with ${math`n`} for fixed ${math`P`}; that part is left out here.)`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const TH = 0.1;
@@ -232,8 +304,10 @@ export const smallAngles: TopicContent = {
   generators: [ratioLimit, cosLimit, approx2],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['small-angle-approximation'],
-  cambridge: [a19q1, ss6],
-  gate: ['nst-ss6'],
+  cambridge: [db99q5, db06q4, db99q5k, db99q5ab, a19q1, ss6],
+  // Best first: STEP I 1999 Q5 (the horizon of a satellite), STEP I 2006 Q4 without its
+  // differentiation part, the NST Workbook's SS6, then the auto-checked 1999 Q5(ii).
+  gate: ['step99-q5', 'step06-q4', 'nst-ss6', 'step99-q5-ii'],
   recall: [
     { front: t`State the small angle approximations.`, back: t`For small ${mth} in radians: ${math`\sin\theta \approx \theta`}, ${math`\tan\theta \approx \theta`}, ${math`\cos\theta \approx ${1} - \frac{\theta^{${2}}}{${2}}`}.` },
     { front: t`Which areas prove ${math`\sin\theta < \theta < \tan\theta`}?`, back: t`The triangle inside the sector inside the tangent triangle: ${math`\frac{${1}}{${2}}r^{${2}}\sin\theta < \frac{${1}}{${2}}r^{${2}}\theta < \frac{${1}}{${2}}r^{${2}}\tan\theta`}.` },
