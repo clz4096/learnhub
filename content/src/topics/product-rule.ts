@@ -407,6 +407,7 @@ export const productRule: TopicContent = {
   ],
   generators: [menu, codes, wholeNumbers, weighings, bachet],
   cambridge: [a7Five, a7TwoPans, a7Forty, a7ThreeWays, a7Unique, a7Bound, a7Bound3],
+  gate: ['a7-q4-i-b', 'a7-q4-ii-a', 'a7-q4-ii-c', 'a7-q4-ii-b-count', 'a7-q4-i-a', 'a7-q4-i-c-show', 'a7-q4-ii-b-show'],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['product-rule', 'outcome'],
 };

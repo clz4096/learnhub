@@ -295,4 +295,5 @@ export const bivariateNormal: TopicContent = {
   terms: ['bivariate-normal', 'normal-independence'],
   claims,
   cambridge: [q12b, q7, q7proof, scheduleBivariate],
+  gate: ['ia-s4-q12-b-coefficient', 'ia-s4-q7-correlation', 'ia-s4-q7'],
 };

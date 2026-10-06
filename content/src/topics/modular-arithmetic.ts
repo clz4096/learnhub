@@ -268,4 +268,5 @@ export const modularArithmetic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['reduce-mod'],
   cambridge: [bop617, bop517, sheet212, sheet222, bop617proof],
+  gate: ['sheet-2-1-2', 'sheet-2-2-2'],
 };

@@ -244,4 +244,5 @@ export const totalProbability: TopicContent = {
   terms: ['law-of-total-probability'],
   claims,
   cambridge: [q9a, q8explain, totalProof],
+  gate: ['ia-q9-same-twice', 'ia-q8-reading'],
 };

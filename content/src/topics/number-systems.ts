@@ -438,4 +438,5 @@ export const numberSystems: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['natural-number', 'integer', 'rational-number', 'closed', 'additive-inverse'],
   cambridge: [notes174z, notes174q, notes167, sw116, sw325],
+  gate: ['notes-174-z', 'notes-174-q', 'notes-167-cancel', 'sw-1-1-6', 'sw-3-2-5'],
 };

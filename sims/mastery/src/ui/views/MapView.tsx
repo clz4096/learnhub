@@ -9,19 +9,20 @@
  * per browser.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { hasContent } from '@learnhub/content';
+import { catalogProblem, gateOf, hasContent } from '@learnhub/content';
 import { AREAS } from '@learnhub/graph';
 import { LEVELS, type Progress, type Topic } from '@learnhub/mastery';
 import { AREA_NAMES, LEVEL_NAMES, closureTopics, coursesWith, shortName, titleOf, topicOf } from '@/model/courses';
-import { daysFrom, statusMap, type TopicStatus } from '@/model/learner';
+import { daysFrom, masteryOf, statusMap, type TopicStatus } from '@/model/learner';
 import { NODE_H, NODE_W, layout } from '@/model/layout';
 import { go } from '@/model/route';
 import { now, progress } from '@/model/store';
-import { Sources } from '@/ui/views/Lesson';
+import { Sources, gateRule } from '@/ui/views/Lesson';
 import { TexText } from '@/ui/Tex';
 
 export const STATUS_TEXT: Record<TopicStatus, string> = {
-  mastered: 'Learned',
+  mastered: 'Mastered',
+  gate: 'Learned: needs the Cambridge problem',
   due: 'Learned, review due',
   ready: 'Ready to learn',
   unwritten: 'Lesson not written yet',
@@ -92,6 +93,25 @@ export function wrap(title: string, max = 19, maxLines = 3): string[] {
   return [...lines.slice(0, maxLines - 1), `${last.slice(0, max - 1).trimEnd()}…`];
 }
 
+/** A learned topic waiting for its Cambridge gate: its gate problems, each a link to its page. */
+function GateLinks({ id }: { id: string }) {
+  const gate = gateOf(id);
+  if (gate.length === 0) return <p class="small muted">No Cambridge-standard problem is written for this topic yet, so it cannot be mastered until one is.</p>;
+  return (
+    <>
+      <h3 class="small">To master it</h3>
+      <p class="small">{gateRule()}</p>
+      <ul class="small links">
+        {gate.map((pid) => (
+          <li key={pid}>
+            <button type="button" class="linklike" onClick={() => go({ view: 'problem', topicId: id, problemId: pid })}>{catalogProblem(id, pid)?.title ?? pid}</button>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 function Details({ p, id, status }: { p: Progress; id: string; status: TopicStatus | undefined }) {
   const t = topicOf(id);
   if (t === undefined) return null;
@@ -120,6 +140,7 @@ function Details({ p, id, status }: { p: Progress; id: string; status: TopicStat
       {status === 'ready' && written && closure.has(id) && (
         <button type="button" class="btn btn-primary" onClick={() => go({ view: 'learn', topicId: id })}>Learn it now</button>
       )}
+      {mem !== undefined && masteryOf(p, id).stage === 'needs-gate' && <GateLinks id={id} />}
       {needs.length > 0 && (<><h3 class="small">Builds on</h3><ul class="small links">{needs.map(link)}</ul></>)}
       {neededBy.length > 0 && (<><h3 class="small">Needed for</h3><ul class="small links">{neededBy.map(link)}</ul></>)}
       <Sources topicId={id} />
@@ -241,7 +262,8 @@ export function MapView({ topicId }: { topicId: string | null }) {
         </div>
       </div>
       <p class="legend small">
-        <span class="status-chip st-mastered">Learned {counts('mastered')}</span>
+        <span class="status-chip st-mastered">Mastered {counts('mastered')}</span>
+        <span class="status-chip st-gate">Needs the Cambridge problem {counts('gate')}</span>
         <span class="status-chip st-due">Review due {counts('due')}</span>
         <span class="status-chip st-ready">Ready {counts('ready')}</span>
         <span class="status-chip st-unwritten">Lesson not written yet {counts('unwritten')}</span>

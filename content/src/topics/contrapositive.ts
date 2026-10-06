@@ -398,4 +398,5 @@ export const contrapositive: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['proof-by-contrapositive'],
   cambridge: [bop1, bop9, bop7, sw112, sw118, bop25, sw112proof, sw118proof, corollary41, tmuaK3],
+  gate: ['sw-1-1-2-verdict', 'sw-1-1-8-verdict', 'sw-1-1-2', 'sw-1-1-8', 'cst-corollary-41'],
 };

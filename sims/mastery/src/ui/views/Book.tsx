@@ -60,7 +60,7 @@ function StepList({ sec, states, next }: { sec: BookSection; states: ReadonlyMap
                 : <span>{titleOf(s.topicId)}</span>}
               {s.bridge && <span class="book-tag">bridge</span>}
               {PREREQ_FLAGS[s.topicId] !== undefined && (
-                <span class="book-flag">Builds on {titleOf(PREREQ_FLAGS[s.topicId]?.prereq ?? '')}, later in the book.</span>
+                <span class="book-flag">Builds on {(PREREQ_FLAGS[s.topicId] ?? []).map((f) => titleOf(f.prereq)).join(' and ')}, later in the book.</span>
               )}
             </span>
             <span class="r">{isNext ? 'next' : STEP_TEXT[st]}</span>

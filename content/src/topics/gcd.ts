@@ -246,4 +246,5 @@ export const gcdTopic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['common-divisor', 'gcd'],
   cambridge: [bop732, sheet326, sheet313, sheet321, sheet326proof, bop531],
+  gate: ['sheet-3-2-6-numbers', 'sheet-3-1-3', 'sheet-3-2-1', 'sheet-3-2-6'],
 };

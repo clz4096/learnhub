@@ -16,7 +16,7 @@
 import type { AnswerSpec, Instance, Misconception, Problem, Response } from './problem';
 import type { Rich } from './rich';
 
-/** The documents of batch 1 that problems cite, by their id in scripts/sources/batch-1.json. */
+/** The documents that problems cite, by their id in scripts/sources/batch-1.json, batch-2.json, or batch-6.json. */
 export const CITED_DOCS = {
   'step-f05': 'STEP Support Assignment 5',
   'step-f06': 'STEP Support Assignment 6',
@@ -54,12 +54,64 @@ export const CITED_DOCS = {
   'ia-prob-sheet-2': 'IA Probability Example Sheet 2',
   'ia-prob-sheet-3': 'IA Probability Example Sheet 3',
   'ia-prob-sheet-4': 'IA Probability Example Sheet 4',
+  // Preparation, Stage A (graph/reviews/cambridge-prep.md): the other Foundation assignments
+  // (batch 1 scans), and batch 6 (scripts/sources/batch-6.json): their hints, the TMUA
+  // specification and notes, the NST Maths Workbook, CS3110, and the FoCS notes.
+  'step-f01': 'STEP Support Assignment 1',
+  'step-f02': 'STEP Support Assignment 2',
+  'step-f03': 'STEP Support Assignment 3',
+  'step-f04': 'STEP Support Assignment 4',
+  'step-f09': 'STEP Support Assignment 9',
+  'step-f10': 'STEP Support Assignment 10',
+  'step-f11': 'STEP Support Assignment 11',
+  'step-f13': 'STEP Support Assignment 13',
+  'step-f14': 'STEP Support Assignment 14',
+  'step-f15': 'STEP Support Assignment 15',
+  'step-f16': 'STEP Support Assignment 16',
+  'step-f17': 'STEP Support Assignment 17',
+  'step-f18': 'STEP Support Assignment 18',
+  'step-f20': 'STEP Support Assignment 20',
+  'step-f21': 'STEP Support Assignment 21',
+  'step-f22': 'STEP Support Assignment 22',
+  'step-f23': 'STEP Support Assignment 23',
+  'step-f24': 'STEP Support Assignment 24',
+  'step-f25': 'STEP Support Assignment 25',
+  'step-f01-hints': 'STEP Support Assignment 1, Hints and Partial Solutions',
+  'step-f02-hints': 'STEP Support Assignment 2, Hints and Partial Solutions',
+  'step-f03-hints': 'STEP Support Assignment 3, Hints and Partial Solutions',
+  'step-f04-hints': 'STEP Support Assignment 4, Hints and Partial Solutions',
+  'step-f09-hints': 'STEP Support Assignment 9, Hints and Partial Solutions',
+  'step-f10-hints': 'STEP Support Assignment 10, Hints and Partial Solutions',
+  'step-f11-hints': 'STEP Support Assignment 11, Hints and Partial Solutions',
+  'step-f13-hints': 'STEP Support Assignment 13, Hints and Partial Solutions',
+  'step-f14-hints': 'STEP Support Assignment 14, Hints and Partial Solutions',
+  'step-f15-hints': 'STEP Support Assignment 15, Hints and Partial Solutions',
+  'step-f16-hints': 'STEP Support Assignment 16, Hints and Partial Solutions',
+  'step-f17-hints': 'STEP Support Assignment 17, Hints and Partial Solutions',
+  'step-f18-hints': 'STEP Support Assignment 18, Hints and Partial Solutions',
+  'step-f20-hints': 'STEP Support Assignment 20, Hints and Partial Solutions',
+  'step-f21-hints': 'STEP Support Assignment 21, Hints and Partial Solutions',
+  'step-f22-hints': 'STEP Support Assignment 22, Hints and Partial Solutions',
+  'step-f23-hints': 'STEP Support Assignment 23, Hints and Partial Solutions',
+  'step-f24-hints': 'STEP Support Assignment 24, Hints and Partial Solutions',
+  'step-f25-hints': 'STEP Support Assignment 25, Hints and Partial Solutions',
+  'tmua-spec': 'TMUA Content Specification',
+  'tmua-maths-notes': 'TMUA Notes on Mathematics',
+  'nst-workbook': 'NST Mathematics Workbook',
+  'cs3110-book': 'OCaml Programming (CS3110)',
+  'cs3110-ex2': 'OCaml Programming (CS3110), Chapter 2 Exercises',
+  'cs3110-ex3': 'OCaml Programming (CS3110), Chapter 3 Exercises',
+  'cs3110-ex4': 'OCaml Programming (CS3110), Chapter 4 Exercises',
+  'cs3110-ex5': 'OCaml Programming (CS3110), Chapter 5 Exercises',
+  'cs3110-ex8': 'OCaml Programming (CS3110), Chapter 8 Exercises',
+  'cs3110-ex9': 'OCaml Programming (CS3110), Chapter 9 Exercises',
+  'focs-notes': 'Foundations of Computer Science notes (2025-26)',
 } as const;
 
 export type CitedDoc = keyof typeof CITED_DOCS;
 
 export interface Citation {
-  /** The source id in scripts/sources/batch-1.json (and so in sources/manifest.json). */
+  /** The source id in scripts/sources/batch-1.json, batch-2.json, or batch-6.json (and so in sources/manifest.json). */
   doc: CitedDoc;
   /** Where in the document, as the learner would look it up: "Q4(ii)", "Exercises 3, 3.1.1", "Section 2.5, exercise 3". */
   at: string;

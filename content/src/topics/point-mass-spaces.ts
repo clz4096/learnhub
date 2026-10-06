@@ -306,4 +306,5 @@ export const pointMassSpaces: TopicContent = {
   terms: ['point-mass', 'countable-probability-space'],
   claims,
   cambridge: [q13b, q13proof, scheduleProof],
+  gate: ['ia-s2-q13-coprime-six', 'ia-s2-q13-euler'],
 };

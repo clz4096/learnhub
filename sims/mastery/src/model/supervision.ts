@@ -128,13 +128,18 @@ function answerShape(a: AnswerSpec): string[] {
 const stamp = (ms: number): string => `${new Date(ms).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 const day = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
 
-/** One line per recent result on the topic: lessons, reviews, quizzes, and supervision marks with their weak points. */
+/**
+ * One line per recent result on the topic: lessons, reviews, quizzes, Cambridge problems
+ * answered in the app, and supervision marks with their weak points. Single drills and gym
+ * items are left out: the lesson or review they belong to says how the run went.
+ */
 export function recentAttempts(p: Readonly<Progress>, topicId: string, limit = 8): string[] {
   const lines: { at: number; text: string }[] = [];
   for (const h of p.history) {
-    if (h.topicId !== topicId || h.kind === 'supervision' || h.kind === 'placement') continue;
+    if (h.topicId !== topicId || h.kind === 'supervision' || h.kind === 'placement' || h.kind === 'drill' || h.kind === 'gym') continue;
     const what = h.kind === 'lesson' ? (h.correct ? 'lesson passed' : 'lesson not passed yet')
-      : `${h.kind} ${h.correct ? 'passed' : 'missed'}`;
+      : h.kind === 'cambridge' ? `Cambridge problem ${h.item?.id ?? ''} answered ${h.correct ? 'right' : 'wrong'}${h.item === undefined ? '' : ` (attempt ${h.item.attempt})`}`
+        : `${h.kind} ${h.correct ? 'passed' : 'missed'}`;
     lines.push({ at: h.at, text: `${day(h.at)} ${what}` });
   }
   for (const a of p.supervision) {

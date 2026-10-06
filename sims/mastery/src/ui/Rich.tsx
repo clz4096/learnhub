@@ -35,7 +35,7 @@ function spanNode(s: Span, i: number): ComponentChildren {
   return textNodes(s.text, i);
 }
 
-export function Rich({ text, as = 'span', class: cls }: { text: RichText; as?: 'span' | 'p' | 'div' | 'h2' | 'h3' | 'li' | 'figcaption' | 'caption'; class?: string }) {
+export function Rich({ text, as = 'span', class: cls }: { text: RichText; as?: 'span' | 'p' | 'div' | 'h2' | 'h3' | 'li' | 'dd' | 'figcaption' | 'caption'; class?: string }) {
   return h(as, { class: cls }, text.map(spanNode));
 }
 

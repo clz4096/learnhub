@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { DAY_MS, newMemory } from './memory';
 import {
-  MIGRATIONS, MemoryStorage, PROGRESS_VERSION, exportProgress, importProgress, loadProgress, newProgress, resetProgress, saveProgress,
-  withChoices, type Progress, type ProgressStorage,
+  MIGRATIONS, MemoryStorage, PROGRESS_VERSION, exportProgress, importProgress, isStudyEntry, loadProgress, newProgress, nextAttempt, resetProgress,
+  saveProgress, withChoices, type HistoryEntry, type Progress, type ProgressStorage,
 } from './progress';
+import { gateStatus } from './gate';
 
 const NOW = Date.UTC(2026, 9, 4);
 
@@ -38,6 +39,25 @@ function sample(): Progress {
   p.history.push({ at: NOW + 1000, kind: 'supervision', topicId: 'pre.fractions', correct: false });
   p.redos = [{ problem: 'pre.fractions/a6-show', from: 'K7Q2XMPA', setAt: NOW + 1000, due: NOW + 1000 + DAY_MS, doneAt: null }];
   return p;
+}
+
+/** The sample with the version 5 additions: item data, and drill, Cambridge, and gym entries. */
+function sampleV5(): Progress {
+  const p = sample();
+  p.history.push(
+    { at: NOW + 3000, kind: 'drill', topicId: 'pre.indices', correct: true, item: { id: 'pre.indices/laws', seed: 4_000_000_000, ms: 41_250, hints: 0, attempt: 1 } },
+    { at: NOW + 4000, kind: 'cambridge', topicId: 'pre.fractions', correct: true, item: { id: 'pre.fractions/a6-q1', ms: 300_000, hints: 0, attempt: 1 } },
+    { at: NOW + 5000, kind: 'gym', topicId: 'pre.indices', correct: false, item: { id: 'recall:pre.indices#0', hints: 0, attempt: 2 } },
+    { at: NOW + 6000, kind: 'quiz', topicId: 'pre.indices', correct: true, item: { id: 'pre.indices/laws', seed: 7, hints: 0, attempt: 1 } },
+  );
+  return p;
+}
+
+/** The sample as a version 4 document: nothing of version 5 in it, so only the number differs. */
+function sampleV4(): Record<string, any> {
+  const d = JSON.parse(exportProgress(sample()));
+  d.version = 4;
+  return d;
 }
 
 /** The sample as a version 3 document: no times of choices, and no reset. */
@@ -293,9 +313,37 @@ describe('migrations', () => {
     const r = importProgress(sampleV2());
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.value.version).toBe(4);
-    expect(JSON.parse(exportProgress(r.value)).version).toBe(4);
+    expect(r.value.version).toBe(PROGRESS_VERSION);
+    expect(JSON.parse(exportProgress(r.value)).version).toBe(PROGRESS_VERSION);
     expect(r.value.session).toEqual(sample().session);
+  });
+
+  it('migrates version 4 to 5 changing nothing but the version: memory and the review schedule are kept', () => {
+    const r = importProgress(JSON.stringify(sampleV4()));
+    expect(r).toEqual({ ok: true, value: sample(), warnings: [] });
+  });
+
+  it('re-gates a version 4 document: its learned topics need the Cambridge problem, and keep their schedule', () => {
+    const r = importProgress(sampleV4());
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.memory).toEqual(sample().memory);
+    // The sample's one supervision result is 12 of 20, below the gate.
+    expect(gateStatus(r.value, 'pre.fractions', ['a6-show']).stage).toBe('needs-gate');
+    expect(gateStatus(r.value, 'pre.indices', ['a12-q1-iii']).stage).toBe('needs-gate');
+    // A result of 14 or more on a gate problem that a version 4 document already holds still counts.
+    const passed = sampleV4();
+    passed.supervision[0].result.mark = 14;
+    const q = importProgress(passed);
+    expect(q.ok && gateStatus(q.value, 'pre.fractions', ['a6-show']).stage).toBe('mastered');
+  });
+
+  it('a version 4 build cannot read version 5 entries, which is why the version moved', () => {
+    const d = JSON.parse(exportProgress(sampleV5()));
+    expect(importProgress(d).ok).toBe(true);
+    // A build that reads only up to this version refuses a newer document whole instead of dropping entries.
+    d.version = PROGRESS_VERSION + 1;
+    expect(importProgress(d)).toEqual({ ok: false, errors: [`$.version: ${PROGRESS_VERSION + 1} was written by a newer build (this one reads up to ${PROGRESS_VERSION}); update the app`] });
   });
 
   it('migrates through every version in turn and validates the result', () => {
@@ -320,6 +368,54 @@ describe('migrations', () => {
   it('a migrated document that is still invalid is rejected', () => {
     const r = importProgress(mutate((d) => { d.version = 0; delete d.settings; d.history = 3; }), { migrations });
     expect(r.ok).toBe(false);
+  });
+});
+
+describe('item data (version 5)', () => {
+  it('round-trips item data and the new kinds exactly', () => {
+    const p = sampleV5();
+    const r = importProgress(exportProgress(p));
+    expect(r).toEqual({ ok: true, value: p, warnings: [] });
+  });
+
+  const withItem = (item: unknown): string => mutate((d) => { d.history.push({ at: NOW, kind: 'drill', topicId: 'pre.indices', correct: true, item }); });
+  const bad: [string, unknown, RegExp][] = [
+    ['an item that is not an object', 'x', /\.item: expected an object/],
+    ['an empty id', { id: ' ', hints: 0, attempt: 1 }, /\.item\.id/],
+    ['an id over two lines', { id: 'a\nb', hints: 0, attempt: 1 }, /\.item\.id/],
+    ['a negative seed', { id: 'a', seed: -1, hints: 0, attempt: 1 }, /\.item\.seed/],
+    ['a seed over 32 bits', { id: 'a', seed: 2 ** 32, hints: 0, attempt: 1 }, /\.item\.seed/],
+    ['a negative time', { id: 'a', ms: -5, hints: 0, attempt: 1 }, /\.item\.ms/],
+    ['a time over a day', { id: 'a', ms: 86_400_001, hints: 0, attempt: 1 }, /\.item\.ms/],
+    ['fractional hints', { id: 'a', hints: 0.5, attempt: 1 }, /\.item\.hints/],
+    ['missing hints', { id: 'a', attempt: 1 }, /\.item\.hints/],
+    ['attempt 0', { id: 'a', hints: 0, attempt: 0 }, /\.item\.attempt/],
+  ];
+  for (const [name, item, re] of bad) {
+    it(`rejects ${name}`, () => {
+      const r = importProgress(withItem(item));
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.errors.join('\n')).toMatch(re);
+    });
+  }
+
+  it('warns about an unknown item field and drops it', () => {
+    const r = importProgress(withItem({ id: 'a', hints: 0, attempt: 1, mood: 'good' }));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.warnings.some((w) => /item\.mood: unknown field/.test(w))).toBe(true);
+    expect(r.value.history.at(-1)?.item).toEqual({ id: 'a', hints: 0, attempt: 1 });
+  });
+
+  it('numbers attempts from the entries of one kind on one item', () => {
+    const h: HistoryEntry[] = sampleV5().history;
+    expect(nextAttempt(h, 'cambridge', 'pre.fractions/a6-q1')).toBe(2);
+    expect(nextAttempt(h, 'cambridge', 'pre.fractions/other')).toBe(1);
+    expect(nextAttempt(h, 'drill', 'pre.indices/laws')).toBe(2);
+  });
+
+  it('a gym entry or a placement answer alone does not make a day studied', () => {
+    expect(sampleV5().history.filter(isStudyEntry).map((h) => h.kind)).toEqual(['review', 'supervision', 'drill', 'cambridge', 'quiz']);
   });
 });
 

@@ -1,6 +1,8 @@
 /** Area `number-and-algebra`. Fraction, algebra, and index skills, plus e^x and ln x, and the whole-number skills (primes, factors, remainders) under number theory. */
 import type { Topic } from '@learnhub/mastery';
-import { GCSE, GCSE_ALGEBRA, GCSE_NUMBER, M1_ALGEBRA, M1_PURE, STEP, STEP_SUPPORT } from '../sources';
+import {
+  GCSE, GCSE_ALGEBRA, GCSE_NUMBER, M1_ALGEBRA, M1_ALGEBRA_FUNCTIONS, M1_EXP_LOG, M1_PURE, M2_FURTHER_ALGEBRA, STEP, STEP_SUPPORT,
+} from '../sources';
 
 export const numberAndAlgebra: Topic[] = [
   {
@@ -112,6 +114,98 @@ export const numberAndAlgebra: Topic[] = [
     prereqs: ['pre.algebraic-manipulation'],
     encompasses: { 'pre.algebraic-manipulation': 0.6 },
     sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_ALGEBRA, note: 'Spec: "solution of quadratic equations including solving quadratic equations in a function of the unknown." A bridge: the batch 2 sources assume it (STEP 2 Statistics Q5, a quadratic in e^lambda; Sheet 3 Q9; difference equations).', verified: true }],
+    estMinutes: 15,
+  },
+  // Preparation, Stage A (graph/reviews/cambridge-prep.md).
+  {
+    id: 'alg.surds',
+    title: 'Surds',
+    summary: 'Simplify surds, expand brackets with them, and rationalise a denominator such as $\\frac{1}{3 + \\sqrt{5}}$.',
+    level: 'pre-a-level',
+    area: 'number-and-algebra',
+    prereqs: ['pre.indices'],
+    encompasses: { 'pre.indices': 0.4 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_ALGEBRA_FUNCTIONS, note: 'Spec: "Use and manipulate surds, including rationalising the denominator."', verified: true }],
+    estMinutes: 15,
+  },
+  {
+    id: 'alg.simultaneous-equations',
+    title: 'Simultaneous equations',
+    summary: 'Solve linear systems in two to four unknowns by elimination, and one linear with one quadratic equation by substitution.',
+    level: 'a-level',
+    area: 'number-and-algebra',
+    prereqs: ['pre.quadratic-equations'],
+    encompasses: { 'pre.quadratic-equations': 0.4, 'pre.algebraic-manipulation': 0.4 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_ALGEBRA_FUNCTIONS, note: 'Spec: "Solve simultaneous equations in two (or more) variables by elimination and by substitution".', verified: true }],
+    estMinutes: 20,
+  },
+  {
+    id: 'alg.polynomials',
+    title: 'Polynomials and the factor theorem',
+    summary: 'Find a root by trial, divide out the factor, and write a cubic as a product of linear factors.',
+    level: 'a-level',
+    area: 'number-and-algebra',
+    prereqs: ['pre.quadratic-equations'],
+    encompasses: { 'pre.quadratic-equations': 0.5, 'pre.algebraic-manipulation': 0.5 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_ALGEBRA_FUNCTIONS, note: 'Spec: "simple algebraic division; use of the factor theorem and the remainder theorem; use of equating coefficients in identities".', verified: true }],
+    estMinutes: 20,
+  },
+  {
+    id: 'alg.roots-coefficients',
+    title: 'Roots and coefficients',
+    summary: 'Relate the roots of a polynomial to its coefficients by comparing $(x - \\alpha)(x - \\beta)(x - \\gamma)$ with the expanded form, and use it to find integer roots.',
+    level: 'step',
+    area: 'number-and-algebra',
+    prereqs: ['alg.polynomials'],
+    encompasses: { 'alg.polynomials': 0.6 },
+    sources: [
+      { doc: STEP, course: 'STEP Mathematics 1', section: M1_ALGEBRA_FUNCTIONS, note: 'Spec: "Know, understand and use the relationship between the roots and coefficients of quadratic equations."', verified: true },
+      { doc: STEP, course: 'STEP Mathematics 2', section: M2_FURTHER_ALGEBRA, note: 'Spec: "the relationship between roots and coefficients of polynomial equations up to quartic and higher degree equations."', verified: true },
+    ],
+    estMinutes: 20,
+  },
+  {
+    id: 'alg.factorisations',
+    title: 'Useful factorisations',
+    summary: 'Factorise $a^3 \\pm b^3$ and $a^n - b^n$, and spot a difference of two squares such as $x^4 + 1 = (x^2 + 1)^2 - 2x^2$.',
+    level: 'a-level',
+    area: 'number-and-algebra',
+    prereqs: ['alg.polynomials', 'alg.geometric-series'],
+    encompasses: { 'alg.polynomials': 0.5, 'alg.geometric-series': 0.4 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_ALGEBRA_FUNCTIONS, note: 'Spec: "Manipulate polynomials algebraically, including expanding brackets and collecting like terms, factorisation".', verified: true }],
+    estMinutes: 15,
+  },
+  {
+    id: 'alg.partial-fractions',
+    title: 'Partial fractions',
+    summary: 'Split a fraction such as $\\frac{1}{(x + 1)(x + 2)}$ into simpler fractions by substituting values or equating coefficients.',
+    level: 'a-level',
+    area: 'number-and-algebra',
+    prereqs: ['alg.polynomials', 'pre.fractions'],
+    encompasses: { 'alg.polynomials': 0.4, 'pre.fractions': 0.5 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_ALGEBRA_FUNCTIONS, note: 'Spec: "Decompose rational functions into partial fractions (denominators not more complicated than squared linear terms".', verified: true }],
+    estMinutes: 15,
+  },
+  {
+    id: 'alg.exponential-equations',
+    title: 'Exponential equations',
+    summary: 'Solve equations in $a^x$ by substituting $y = a^x$ to get a polynomial, keeping only positive $y$, and solve $a^x = b$ with logarithms.',
+    level: 'a-level',
+    area: 'number-and-algebra',
+    prereqs: ['alg.exp-and-ln', 'pre.quadratic-equations'],
+    encompasses: { 'alg.exp-and-ln': 0.5, 'pre.quadratic-equations': 0.5 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_EXP_LOG, note: 'Spec: "Solve equations of the form a^x = b."', verified: true }],
+    estMinutes: 15,
+  },
+  {
+    id: 'alg.surd-equations',
+    title: 'Equations with square roots',
+    summary: 'Solve equations with square roots by substituting for the root or squaring, then check for solutions that squaring introduced.',
+    level: 'a-level',
+    area: 'number-and-algebra',
+    prereqs: ['alg.surds', 'pre.quadratic-equations'],
+    encompasses: { 'alg.surds': 0.4, 'pre.quadratic-equations': 0.6 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_ALGEBRA_FUNCTIONS, note: 'Spec: "solution of quadratic equations including solving quadratic equations in a function of the unknown."', verified: true }],
     estMinutes: 15,
   },
 ];

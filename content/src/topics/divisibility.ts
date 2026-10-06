@@ -385,4 +385,5 @@ export const divisibility: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['divides'],
   cambridge: [sheet121a, sheet121b, bop619, bop420, sheet124, sheet126, bop411, a12q1iv],
+  gate: ['sheet-1-2-1-a', 'sheet-1-2-1-b', 'sheet-1-2-4', 'sheet-1-2-6', 'a12-q1-iv'],
 };

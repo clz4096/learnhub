@@ -461,4 +461,5 @@ export const equivalences: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['logically-equivalent', 'de-morgans-laws', 'contrapositive'],
   cambridge: [bop3, bop5, bop7, bop10, bop11, bop12, tmuaF1, tmuaK2, tmuaK4, tmuaF3, tmuaK5, lemma43],
+  gate: ['cst-lemma-43-equivalences'],
 };

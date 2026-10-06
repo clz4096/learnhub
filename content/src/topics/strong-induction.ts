@@ -299,4 +299,5 @@ export const strongInduction: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['strong-induction'],
   cambridge: [stamps47, bop1032, bop1025, bop1042, sheet431, treeProof, bop1042proof],
+  gate: ['sheet-4-3-1'],
 };

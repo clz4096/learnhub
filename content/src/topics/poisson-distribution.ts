@@ -323,4 +323,5 @@ export const poissonDistribution: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['poisson-distribution'],
   cambridge: [q1Mu, q1Var, q1Show, q1Normal, notesMean],
+  gate: ['s2-q1-mean', 's2-q1-variance', 's2-q1-show', 's2-q1-normal', 's2-notes-mean'],
 };

@@ -365,4 +365,5 @@ export const independentEvents: TopicContent = {
   terms: ['independent-events'],
   claims,
   cambridge: [a19two, a12one, a12dep, a19bet, disjointNotIndependent],
+  gate: ['a19-q4-ii-two', 'a12-q2-iv-one', 'a12-q2-iv-dependent', 'a19-q4-ii-independence', 'a12-q2-iv-disjoint'],
 };

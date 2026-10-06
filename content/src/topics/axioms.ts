@@ -262,4 +262,5 @@ export const axioms: TopicContent = {
   terms: ['probability-measure', 'countable-additivity'],
   claims,
   cambridge: [disjointHalves, q4c, countableCase],
+  gate: ['ia-q4-countable-additivity', 'ia-q4-c'],
 };

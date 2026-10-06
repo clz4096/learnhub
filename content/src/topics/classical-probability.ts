@@ -350,4 +350,5 @@ export const classicalProbability: TopicContent = {
   terms: ['sample-space-classical'],
   claims,
   cambridge: [q2b, q2c, q3, q11, q11proof, q2space],
+  gate: ['ia-q2-b', 'ia-q2-c', 'ia-q3', 'ia-q11', 'ia-q11-proof', 'ia-q2-space'],
 };

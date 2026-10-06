@@ -356,4 +356,5 @@ export const pgf: TopicContent = {
   terms: ['pgf'],
   claims,
   cambridge: [q5mean, q5var, q5proof, schedule],
+  gate: ['ia-s3-q5-mean', 'ia-s3-q5-variance', 'ia-s3-q5'],
 };

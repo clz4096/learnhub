@@ -369,4 +369,5 @@ export const expectation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expectation', 'fair-game'],
   cambridge: [q1b, a19, s2q3ii, q4iii, s3u3, s2q3iii, poissonMean],
+  gate: ['mixed-q1-i-b', 'a19-q4-ii-gain', 's2-q3-ii-fair-stake', 'mixed-q4-iii', 's3-q1-ii-u3', 's2-q3-iii-p-zero', 's2-notes-poisson-mean'],
 };

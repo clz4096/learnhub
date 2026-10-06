@@ -229,4 +229,5 @@ export const factorialTopic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arrangement', 'factorial'],
   cambridge: [extent6, extent8],
+  gate: ['a12-q4-extent-6', 'a12-q4-extent-8'],
 };

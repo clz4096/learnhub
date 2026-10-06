@@ -319,4 +319,5 @@ export const pigeonhole: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['pigeonhole-principle', 'worst-case', 'proof-by-cases'],
   cambridge: [a8i, a8ii, a5iii, a8iii, a5iiiShow, a8iiiShow, notesProof],
+  gate: ['a8-q4-i', 'a8-q4-ii', 'a5-q4-iii', 'a8-q4-iii', 'a5-q4-iii-show', 'a8-q4-iii-show', 'notes-87-proof'],
 };

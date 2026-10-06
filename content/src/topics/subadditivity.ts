@@ -210,4 +210,5 @@ export const subadditivity: TopicContent = {
   terms: ['union-bound'],
   claims,
   cambridge: [q6num, subaddProof, converse],
+  gate: ['ia-q6-numbers', 'ia-q6-subadditivity', 'ia-q6-c-converse'],
 };

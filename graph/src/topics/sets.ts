@@ -1,6 +1,8 @@
 /** Area `sets`. Set notation, then countable unions for the countable additivity axiom, and set-builder notation for CST Discrete Mathematics. */
 import type { Topic } from '@learnhub/mastery';
-import { CST, CST_DM, CST_NUMBERS, GCSE, GCSE_PROB, STEP, STEP_SET_NOTATION, TRIPOS } from '../sources';
+import {
+  CAMBRIDGE_COURSE, CST, CST_DM, CST_NUMBERS, GCSE, GCSE_PROB, STEP, STEP_SET_NOTATION, TRIPOS,
+} from '../sources';
 
 export const sets: Topic[] = [
   {
@@ -43,6 +45,40 @@ export const sets: Topic[] = [
       },
       { doc: CST, course: CST_DM, section: CST_NUMBERS, note: 'Syllabus: "Sets: membership and comprehension".', verified: true },
     ],
+    estMinutes: 15,
+  },
+  // Preparation, Stage A (graph/reviews/cambridge-prep.md).
+  {
+    id: 'sets.subsets',
+    title: 'Subsets and power sets',
+    summary: 'Decide whether $A \\subseteq B$, list every subset of a finite set, and count the $2^n$ subsets that form its power set.',
+    level: 'a-level',
+    area: 'sets',
+    prereqs: ['sets.comprehension'],
+    encompasses: { 'sets.comprehension': 0.5 },
+    sources: [{ doc: 'bop', course: CAMBRIDGE_COURSE.bop, section: 'Sections 1.3 and 1.4', note: 'Subsets; power sets. Book of Proof is the chapter source of CS-0 Proof (cambridge-prep.md).', verified: true }],
+    estMinutes: 15,
+  },
+  {
+    id: 'sets.cartesian-product',
+    title: 'Cartesian products',
+    summary: 'Form $A \\times B$ as the set of ordered pairs, count $|A \\times B| = |A||B|$, and draw products of intervals in the plane.',
+    level: 'a-level',
+    area: 'sets',
+    prereqs: ['sets.comprehension', 'pre.product-rule'],
+    encompasses: { 'sets.comprehension': 0.4, 'pre.product-rule': 0.3 },
+    sources: [{ doc: 'bop', course: CAMBRIDGE_COURSE.bop, section: 'Section 1.2', note: 'The Cartesian product.', verified: true }],
+    estMinutes: 15,
+  },
+  {
+    id: 'sets.indexed',
+    title: 'Indexed collections of sets',
+    summary: 'Write unions and intersections over an index set, such as $\\bigcup_{n \\in \\mathbb{N}} [n, n + 1]$, and compute them.',
+    level: 'step',
+    area: 'sets',
+    prereqs: ['sets.comprehension'],
+    encompasses: { 'sets.comprehension': 0.5, 'pre.set-notation': 0.4 },
+    sources: [{ doc: 'bop', course: CAMBRIDGE_COURSE.bop, section: 'Section 1.8', note: 'Indexed sets.', verified: true }],
     estMinutes: 15,
   },
 ];

@@ -308,4 +308,5 @@ export const expectationAlgebra: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['linearity-of-expectation', 'variance-of-sum'],
   cambridge: [q3iic, notesComb, notesProof],
+  gate: ['s3-q3-ii-c', 's3-notes-combination', 's3-notes-proofs'],
 };

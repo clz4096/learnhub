@@ -395,4 +395,5 @@ export const extinctionTopic: TopicContent = {
   terms: ['branching-process', 'extinction-probability'],
   claims,
   cambridge: [q9a, q12, q12proof, theorem],
+  gate: ['ia-s3-q9-a', 'ia-s3-q12-extinction', 'ia-s3-q12'],
 };

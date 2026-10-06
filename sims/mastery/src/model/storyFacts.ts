@@ -3,7 +3,7 @@
  * the paper registry, and the day planner's log. Pure: callers pass every input, including
  * the time and the registry (it loads on demand, so it may not be there yet).
  */
-import type { Progress } from '@learnhub/mastery';
+import { isStudyEntry, type Progress } from '@learnhub/mastery';
 import { BOOK } from '@learnhub/content/book';
 import {
   SUBJECT_NAMES, aLevelRows, offerConditions, paperName, stepRows, tmuaRows,
@@ -125,7 +125,8 @@ export function storyFacts(p: Progress | null, c: Campaign | null, log: DayLog, 
     papersSat: papersSat(c),
     // A supervision entry's `correct` is its mark at or above the pass mark (SUPERVISION_PASS_MARK).
     supervisionsPassed: history.filter((h) => h.kind === 'supervision' && h.correct).length,
-    daysStudied: daysStudied(log, history.filter((h) => h.kind !== 'placement').map((h) => planDate(h.at)), ALL_TIME),
+    // Gym work earns its own, lower REP (GYM_REP), so a gym-only day is not a day studied.
+    daysStudied: daysStudied(log, history.filter(isStudyEntry).map((h) => planDate(h.at)), ALL_TIME),
     weekHours: weekHours(log, planDate(now)),
     weeksShort: weeksShort(log, planDate(now)),
     campaign,

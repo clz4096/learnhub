@@ -3,17 +3,21 @@
  * functions: each takes a Progress and returns a new one, so the views stay thin and these
  * rules are tested without a browser.
  *
- * One document per learner (the engine's Progress, version 4), holding the chosen
+ * One document per learner (the engine's Progress, version 5), holding the chosen
  * courses, placement answers from earlier builds, memory, history, lesson minutes per
  * course for the planner's split, today's session, supervision attempts with the
  * problems they set to redo, and the times of choices and resets that sync merges by.
+ *
+ * Mastery (decisions of 2026-10-05): passing a lesson's practice makes a topic learned (it
+ * gets a memory state, is reviewed, and unlocks what builds on it); it is mastered once its
+ * Cambridge gate is met as well (`masteryOf`, the engine's gate.ts).
  */
-import { hasContent as written } from '@learnhub/content';
+import { gateOf, hasContent as written } from '@learnhub/content';
 import {
-  DAY_MS, SUPERVISION_PASS_MARK, classify, dueTopics, frontier, newProgress, placedMemory, placementGraph, placementResult, planSession,
-  recordLesson, recordLessonFailure, recordReview, topoOrder, withChoices,
-  type HistoryEntry, type MemoryMap, type PlacementGraph, type Progress, type Redo, type SessionPlan, type SessionRecord, type SessionTask,
-  type SupervisionAttempt, type Topic,
+  DAY_MS, SUPERVISION_PASS_MARK, classify, dueTopics, frontier, gateStatus, newProgress, nextAttempt, placedMemory, placementGraph,
+  placementResult, planSession, recordGym, recordLesson, recordLessonFailure, recordReview, topoOrder, withChoices,
+  type GateStatus, type GymCandidate, type HistoryEntry, type ItemData, type MemoryMap, type PlacementGraph, type Progress, type Redo,
+  type SessionPlan, type SessionRecord, type SessionTask, type SupervisionAttempt, type Topic,
 } from '@learnhub/mastery';
 import { BOOK_ORDER } from '@learnhub/content/book';
 import { bookFrontier } from './book';
@@ -208,6 +212,60 @@ export function completeLesson(
   }, now);
 }
 
+// ---------------------------------------------------------------- item data and the gate
+
+/** Item data for an answer, with the attempt number filled in from the history. */
+export type ItemInput = Omit<ItemData, 'attempt'> & { attempt?: number };
+
+function itemOf(p: Progress, kind: HistoryEntry['kind'], item: ItemInput): ItemData {
+  const out: ItemData = { id: item.id, hints: item.hints, attempt: item.attempt ?? nextAttempt(p.history, kind, item.id) };
+  if (item.seed !== undefined) out.seed = item.seed;
+  if (item.ms !== undefined) out.ms = Math.max(0, Math.round(item.ms));
+  return out;
+}
+
+/** The item id of a generated problem: "topic id/generator id". */
+export const drillItemId = (topicId: string, generatorId: string): string => `${topicId}/${generatorId}`;
+
+/**
+ * One generated problem answered, in lesson practice or a review: logged with its item
+ * data. The run's result (`completeLesson`, `completeReview`) is recorded separately.
+ */
+export function recordDrill(p: Progress, topicId: string, correct: boolean, item: ItemInput, now: number): Progress {
+  return touch({ ...p, history: log(p, [{ at: now, kind: 'drill', topicId, correct, item: itemOf(p, 'drill', item) }]) }, now);
+}
+
+/**
+ * One answer to an auto-checked Cambridge problem, the gate's evidence: logged with its
+ * item data (the item id is the problem key), its attempt number counted from the history.
+ * A right answer also closes the problem's open redos (`completeRedoByCheck`).
+ */
+export function recordCambridgeAnswer(p: Progress, key: string, correct: boolean, item: Omit<ItemInput, 'id'>, now: number): Progress {
+  const entry: HistoryEntry = { at: now, kind: 'cambridge', topicId: topicOfKey(key), correct, item: itemOf(p, 'cambridge', { ...item, id: key }) };
+  const next = touch({ ...p, history: log(p, [entry]) }, now);
+  return correct ? completeRedoByCheck(next, key, now) : next;
+}
+
+/**
+ * One gym item done (the engine's gym.ts): its effect on memory (`recordGym`), and a `gym`
+ * entry with its item data. Gym work never meets the gate.
+ */
+export function completeGymItem(
+  p: Progress, item: Pick<GymCandidate, 'kind' | 'topicId' | 'id'>, correct: boolean, data: Omit<ItemInput, 'id'>, now: number,
+): Progress {
+  const update = recordGym(p.memory, ALL_TOPICS, item, correct, now);
+  const entry: HistoryEntry = { at: now, kind: 'gym', topicId: item.topicId, correct, item: itemOf(p, 'gym', { ...data, id: item.id }) };
+  return touch({ ...p, memory: { ...update.memory }, history: log(p, [entry]) }, now);
+}
+
+/** Where a topic stands against the Cambridge gate, with its gate problems from the catalog. */
+export function masteryOf(p: Progress, topicId: string): GateStatus {
+  return gateStatus(p, topicId, gateOf(topicId));
+}
+
+/** Learned (drills passed) and the gate met. */
+export const isMastered = (p: Progress, topicId: string): boolean => masteryOf(p, topicId).stage === 'mastered';
+
 /** An explicit review. A topic that is not mastered (the document changed elsewhere) is skipped. */
 export function completeReview(p: Progress, topicId: string, correct: boolean, now: number, taskIndex: number | null): Progress {
   if (p.memory[topicId] === undefined) return touch({ ...p, session: markTask(p, taskIndex, null) }, now);
@@ -220,14 +278,22 @@ export function completeReview(p: Progress, topicId: string, correct: boolean, n
   }, now);
 }
 
-/** A quiz: each item is a review of its topic. Resets the count toward the next quiz. */
-export function completeQuiz(p: Progress, results: Readonly<Record<string, boolean>>, now: number, taskIndex: number | null): Progress {
+/**
+ * A quiz: each item is a review of its topic. Resets the count toward the next quiz.
+ * `items` gives each answered item's data, by topic id, when it was measured.
+ */
+export function completeQuiz(
+  p: Progress, results: Readonly<Record<string, boolean>>, now: number, taskIndex: number | null, items: Readonly<Record<string, ItemInput>> = {},
+): Progress {
   let memory: MemoryMap = p.memory;
   const entries: HistoryEntry[] = [];
   for (const [id, correct] of Object.entries(results)) {
     if (memory[id] === undefined) continue;
     memory = recordReview(memory, ALL_TOPICS, id, correct, now).memory;
-    entries.push({ at: now, kind: 'quiz', topicId: id, correct });
+    const entry: HistoryEntry = { at: now, kind: 'quiz', topicId: id, correct };
+    const item = Object.hasOwn(items, id) ? items[id] : undefined;
+    if (item !== undefined) entry.item = itemOf(p, 'quiz', item);
+    entries.push(entry);
   }
   const passed = Object.values(results).every(Boolean);
   return touch({
@@ -343,16 +409,23 @@ export function redoSource(p: Progress, d: Redo): SupervisionAttempt | undefined
 
 // ---------------------------------------------------------------- status
 
-/** `unwritten`: on the frontier, but its lesson is not written yet, so it cannot be learned or scheduled. */
-export type TopicStatus = 'mastered' | 'due' | 'ready' | 'unwritten' | 'locked';
+/**
+ * - `due`: learned, and its review is due (whatever its gate).
+ * - `gate`: learned, but its Cambridge gate is not met yet: "needs the Cambridge problem".
+ *   Topics learned before the gate existed start here (re-gating) and keep their schedule.
+ * - `mastered`: learned and the gate met.
+ * - `unwritten`: on the frontier, but its lesson is not written yet, so it cannot be learned or scheduled.
+ * Learned topics, gated or not, unlock what builds on them.
+ */
+export type TopicStatus = 'mastered' | 'gate' | 'due' | 'ready' | 'unwritten' | 'locked';
 
 export function statusMap(p: Progress, now: number, within: readonly Topic[] = closureTopics(p.courses)): Map<string, TopicStatus> {
-  const mastered = new Set(Object.keys(p.memory));
+  const learned = new Set(Object.keys(p.memory));
   const due = new Set(dueTopics(p.memory, now));
-  const ready = new Set(frontier(within, mastered));
+  const ready = new Set(frontier(within, learned));
   const of = (id: string): TopicStatus => {
     if (due.has(id)) return 'due';
-    if (mastered.has(id)) return 'mastered';
+    if (learned.has(id)) return isMastered(p, id) ? 'mastered' : 'gate';
     if (ready.has(id)) return hasContent(id) ? 'ready' : 'unwritten';
     return 'locked';
   };
@@ -362,7 +435,10 @@ export function statusMap(p: Progress, now: number, within: readonly Topic[] = c
 export interface CourseStats {
   id: string;
   total: number;
+  /** Learned and the gate met, due for review or not. */
   mastered: number;
+  /** Learned, waiting for the Cambridge gate, due for review or not. */
+  needsGate: number;
   due: number;
   ready: number;
   lessonMinutes: number;
@@ -372,17 +448,19 @@ export function courseStats(p: Progress, courseId: string, now: number): CourseS
   const ts = closureTopics([courseId]);
   const st = statusMap(p, now, ts);
   const count = (s: TopicStatus): number => [...st.values()].filter((x) => x === s).length;
+  const learned = ts.filter((t) => p.memory[t.id] !== undefined);
+  const mastered = learned.filter((t) => isMastered(p, t.id)).length;
   return {
-    id: courseId, total: ts.length, mastered: count('mastered') + count('due'), due: count('due'), ready: count('ready'),
+    id: courseId, total: ts.length, mastered, needsGate: learned.length - mastered, due: count('due'), ready: count('ready'),
     lessonMinutes: p.courseMinutes[courseId] ?? 0,
   };
 }
 
-/** The learnhub catalog card's summary: mastered topics in the chosen courses, out of their closure. */
+/** The learnhub catalog card's summary: mastered topics (gate met) in the chosen courses, out of their closure. */
 export function hubSummary(p: Progress, now: number): { done: number; total: number; updated: string } | null {
   const closure = closureOf(p.courses);
   if (closure.size === 0) return null;
-  const done = [...closure].filter((id) => p.memory[id] !== undefined).length;
+  const done = [...closure].filter((id) => isMastered(p, id)).length;
   return { done, total: closure.size, updated: new Date(now).toISOString() };
 }
 

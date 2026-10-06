@@ -223,4 +223,5 @@ export const modularExponentiation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['repeated-squaring'],
   cambridge: [totd341, btw341, sheet225why, costWhy],
+  gate: ['notes-132-totd-341', 'notes-131-btw-witness', 'sheet-2-2-5-flt', 'squaring-cost'],
 };

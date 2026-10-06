@@ -308,4 +308,5 @@ export const extendedEuclid: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['linear-combination', 'extended-euclid'],
   cambridge: [sheet314a, sheet314b, notes90, sheet315, bop71, allCombos],
+  gate: ['sheet-3-1-4-a', 'sheet-3-1-4-b', 'notes-255-example-90', 'sheet-3-1-5', 'notes-249-all-combinations'],
 };

@@ -341,4 +341,5 @@ export const linearRecurrences: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['difference-equation', 'auxiliary-equation'],
   cambridge: [frog, slotLimit, frogExplain, slotDerive, theory],
+  gate: ['s3-q1-iii-closed-form', 'sheet3-q11-long-run', 's3-q1-iii-explain', 'sheet3-q11-derive'],
 };

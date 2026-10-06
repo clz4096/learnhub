@@ -286,4 +286,5 @@ export const normalDistribution: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['normal-distribution', 'standard-normal'],
   cambridge: [q6mean, q6var, q6b, q5why],
+  gate: ['ia4-q6-a-mean', 'ia4-q6-a-variance', 'ia4-q6-b', 'ia4-q5-why'],
 };

@@ -14,7 +14,7 @@
  *   reach the other device; work done there since its last sync is lost, by design.
  * - Memory, per topic: the newer review wins (later `lastReviewed`, then more `reps`).
  * - History and placement answers: unioned. An entry's id is its content (time, kind,
- *   topic, result): two devices cannot log the same answer at the same millisecond, and a
+ *   topic, result, item data): two devices cannot log the same answer at the same millisecond, and a
  *   copy that holds an entry twice keeps it twice (a multiset union, by the larger count).
  * - Supervision attempts, by nonce: an attempt with a result beats one without, so an
  *   imported result is never lost; two results for one nonce keep the earlier import.

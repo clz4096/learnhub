@@ -265,4 +265,5 @@ export const exponentialDistribution: TopicContent = {
   terms: ['exponential-distribution', 'memoryless-property'],
   claims,
   cambridge: [q4three, memorylessProof, q4firstWhich],
+  gate: ['ia4-q4-three', 'ia4-q4-which'],
 };

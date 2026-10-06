@@ -8,7 +8,9 @@ import { useState } from 'preact/hooks';
 import { placeOf } from '@learnhub/content/book';
 import type { Progress, SessionTask } from '@learnhub/mastery';
 import { titleOf, topicOf } from '@/model/courses';
-import { completeLesson, completeQuiz, completeReview, hasContent, skipTask } from '@/model/learner';
+import {
+  completeLesson, completeQuiz, completeReview, drillItemId, hasContent, isMastered, recordDrill, skipTask, type ItemInput,
+} from '@/model/learner';
 import { clearLearnSalt, learnSalt } from '@/model/lessonState';
 import { REVIEW_PROBLEMS, instanceAt } from '@/model/practice';
 import { go, type Route } from '@/model/route';
@@ -23,13 +25,20 @@ function after(p: Progress, index: number): void {
   go(next >= 0 ? { view: 'task', index: next } : { view: 'today' });
 }
 
+/** What a passed lesson means for the topic: mastered, or learned and waiting for its Cambridge problem. */
+export function learnedText(p: Progress, topicId: string): string {
+  return isMastered(p, topicId)
+    ? 'Mastered: practice passed and the Cambridge problem done. It will come back as a short review to make it stick.'
+    : 'Learned. It will come back as a short review to make it stick. To master it, it still needs its Cambridge problem: open it from the map.';
+}
+
 function Done({ p, task, index }: { p: Progress; task: SessionTask; index: number }) {
   const next = p.session?.tasks.findIndex((t) => !t.done) ?? -1;
   const what = task.kind === 'quiz' ? 'The quiz' : titleOf(task.topicIds[0] as string);
   const msg = task.passed === null
     ? 'Left for another day.'
     : task.kind === 'lesson'
-      ? task.passed ? 'Learned. It will come back as a short review to make it stick.' : 'Not learned yet. It comes back in another session.'
+      ? task.passed ? learnedText(p, task.topicIds[0] as string) : 'Not learned yet. It comes back in another session.'
       : task.passed ? 'Passed. The next review is further away now.' : 'Missed this time. It comes back sooner, which is how it sticks.';
   return (
     <section class="page task-done" aria-labelledby="td-title">
@@ -93,9 +102,6 @@ function ReviewRunner({ p, task, index }: { p: Progress; task: SessionTask; inde
   const k = results.length;
   const n = fresh.k === k ? fresh.n : 0;
   const salt = `review-${p.session?.startedAt ?? 0}-${index}`;
-  const record = (correct: boolean): void => {
-    void commit(completeReview(p, id, correct, now(), index));
-  };
   return (
     <section class="page review" aria-labelledby="rv-title">
       <BackLink to={{ view: 'today' }} label="Back to today" />
@@ -105,26 +111,33 @@ function ReviewRunner({ p, task, index }: { p: Progress; task: SessionTask; inde
       {!hasContent(id)
         ? <NotWritten topicIds={[id]} onLeave={() => leave(p, index)} />
         : (
-          <ContentGate topicId={id} what="review">{(c) => (<>
-            <p class="small muted">Problem {results.length + 1} of {REVIEW_PROBLEMS}</p>
-            <ProblemCard
-              key={`${k}-${n}`}
-              index={k}
-              mode="review"
-              topicId={id}
-              instance={n === 0 ? instanceAt(c, salt, k) : instanceAt(c, `${salt}.fresh${n}`, k)}
-              consequence={(o) => reviewConsequence(results, o)}
-              onDone={(r) => {
-                if (r.outcome === 'problem-error') {
-                  setFresh({ k, n: n + 1 });
-                  return;
-                }
-                const rs = [...results, r.correct];
-                if (rs.length >= REVIEW_PROBLEMS) record(rs.every(Boolean));
-                else setResults(rs);
-              }}
-            />
-          </>)}</ContentGate>
+          <ContentGate topicId={id} what="review">{(c) => {
+            const inst = n === 0 ? instanceAt(c, salt, k) : instanceAt(c, `${salt}.fresh${n}`, k);
+            return (<>
+              <p class="small muted">Problem {results.length + 1} of {REVIEW_PROBLEMS}</p>
+              <ProblemCard
+                key={`${k}-${n}`}
+                index={k}
+                mode="review"
+                topicId={id}
+                instance={inst}
+                consequence={(o) => reviewConsequence(results, o)}
+                onDone={(r) => {
+                  if (r.outcome === 'problem-error') {
+                    setFresh({ k, n: n + 1 });
+                    return;
+                  }
+                  // Each problem is logged with its item data; the review's result once both are answered.
+                  const at = now();
+                  let doc = recordDrill(progress.value ?? p, id, r.correct, { id: drillItemId(id, inst.generatorId), seed: inst.seed, ms: r.ms, hints: 0 }, at);
+                  const rs = [...results, r.correct];
+                  if (rs.length >= REVIEW_PROBLEMS) doc = completeReview(doc, id, rs.every(Boolean), at, index);
+                  else setResults(rs);
+                  void commit(doc);
+                }}
+              />
+            </>);
+          }}</ContentGate>
         )}
     </section>
   );
@@ -133,6 +146,7 @@ function ReviewRunner({ p, task, index }: { p: Progress; task: SessionTask; inde
 /** A quiz: one problem per topic; each answer is that topic's review. */
 function QuizRunner({ p, task, index }: { p: Progress; task: SessionTask; index: number }) {
   const [results, setResults] = useState<Record<string, boolean>>({});
+  const [itemData, setItemData] = useState<Record<string, ItemInput>>({});
   // A broken problem is replaced by a fresh one for the same item; nothing is counted.
   const [fresh, setFresh] = useState({ k: -1, n: 0 });
   // Only items with problems can be asked; the planner schedules no others.
@@ -150,10 +164,14 @@ function QuizRunner({ p, task, index }: { p: Progress; task: SessionTask; index:
   }
   const n = fresh.k === done ? fresh.n : 0;
   const salt = `quiz-${p.session?.startedAt ?? 0}-${index}`;
-  const record = (correct: boolean): void => {
+  const record = (correct: boolean, item: ItemInput): void => {
     const rs = { ...results, [id]: correct };
-    if (Object.keys(rs).length >= items.length) void commit(completeQuiz(p, rs, now(), index));
-    else setResults(rs);
+    const data = { ...itemData, [id]: item };
+    if (Object.keys(rs).length >= items.length) void commit(completeQuiz(progress.value ?? p, rs, now(), index, data));
+    else {
+      setResults(rs);
+      setItemData(data);
+    }
   };
   return (
     <section class="page quiz" aria-labelledby="qz-title">
@@ -161,20 +179,23 @@ function QuizRunner({ p, task, index }: { p: Progress; task: SessionTask; index:
       <p class="small muted">Quiz: item {done + 1} of {items.length}, about {Math.round(task.minutes / task.topicIds.length)} minutes each</p>
       <progress class="bar" max={items.length} value={done} aria-label="Quiz progress" />
       <h1 id="qz-title">{titleOf(id)}</h1>
-      <ContentGate key={id} topicId={id} what="quiz item">{(c) => (
-        <ProblemCard
-          key={`${id}-${n}`}
-          topicId={id}
-          index={done}
-          mode="quiz"
-          instance={n === 0 ? instanceAt(c, salt, done) : instanceAt(c, `${salt}.fresh${n}`, done)}
-          consequence={(o) => quizConsequence(titleOf(id), done + 1 >= items.length, o)}
-          onDone={(r) => {
-            if (r.outcome === 'problem-error') setFresh({ k: done, n: n + 1 });
-            else record(r.correct);
-          }}
-        />
-      )}</ContentGate>
+      <ContentGate key={id} topicId={id} what="quiz item">{(c) => {
+        const inst = n === 0 ? instanceAt(c, salt, done) : instanceAt(c, `${salt}.fresh${n}`, done);
+        return (
+          <ProblemCard
+            key={`${id}-${n}`}
+            topicId={id}
+            index={done}
+            mode="quiz"
+            instance={inst}
+            consequence={(o) => quizConsequence(titleOf(id), done + 1 >= items.length, o)}
+            onDone={(r) => {
+              if (r.outcome === 'problem-error') setFresh({ k: done, n: n + 1 });
+              else record(r.correct, { id: drillItemId(id, inst.generatorId), seed: inst.seed, ms: r.ms, hints: 0 });
+            }}
+          />
+        );
+      }}</ContentGate>
     </section>
   );
 }
@@ -195,7 +216,8 @@ export function TaskView({ index }: { index: number }) {
   if (task.kind === 'quiz') return <QuizRunner key={index} p={p} task={task} index={index} />;
   const id = task.topicIds[0] as string;
   const end = (e: LessonEnd): void => {
-    void commit(completeLesson(p, id, e.passed, now(), index, task.minutes, task.course));
+    // The latest document: practice and Cambridge answers were logged while the lesson ran.
+    void commit(completeLesson(progress.value ?? p, id, e.passed, now(), index, task.minutes, task.course));
   };
   return (
     <LessonRunner
@@ -224,7 +246,7 @@ export function LearnView({ topicId, fromBook = false }: { topicId: string; from
     return (
       <section class="page task-done">
         <h1>{t.title}</h1>
-        <p>{done ? 'Learned. It will come back as a short review.' : 'Not learned yet. It stays ready for another session.'}</p>
+        <p>{done ? learnedText(p, topicId) : 'Not learned yet. It stays ready for another session.'}</p>
         <div class="actions">
           <button type="button" class="btn btn-primary" onClick={() => go({ view: 'today' })}>Back to today</button>
           <button type="button" class="btn" onClick={() => go(backTo)}>{backLabel}</button>
@@ -236,7 +258,7 @@ export function LearnView({ topicId, fromBook = false }: { topicId: string; from
     <LessonRunner
       topicId={topicId}
       salt={salt}
-      onEnd={(e) => { clearLearnSalt(topicId); void commit(completeLesson(p, topicId, e.passed, now(), null, t.estMinutes)).then(() => setDone(e.passed)); }}
+      onEnd={(e) => { clearLearnSalt(topicId); void commit(completeLesson(progress.value ?? p, topicId, e.passed, now(), null, t.estMinutes)).then(() => setDone(e.passed)); }}
       onSkip={() => go(backTo)}
       back={{ to: backTo, label: backLabel }}
     />

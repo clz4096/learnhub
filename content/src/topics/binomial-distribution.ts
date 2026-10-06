@@ -249,4 +249,5 @@ export const binomialDistribution: TopicContent = {
   terms: ['bernoulli-trial', 'binomial-distribution'],
   claims,
   cambridge: [a19two, a12two, a12dist, a19why],
+  gate: ['a19-q4-ii-at-least-two', 'a12-q2-iv-two', 'a12-q2-iv-distribution', 'a19-q4-ii-why-binomial'],
 };

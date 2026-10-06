@@ -364,4 +364,5 @@ export const algebraicArgument: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['parity', 'consecutive'],
   cambridge: [bop41, bop43, bop45, bop42, bop44, a12ii],
+  gate: ['a12-q1-ii-six'],
 };

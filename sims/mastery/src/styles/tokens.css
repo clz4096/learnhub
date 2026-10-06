@@ -17,6 +17,11 @@
   --cam-soft: rgba(63, 122, 99, 0.1);
   --serif: 'STIX Two Text', 'Times New Roman', serif;
   --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  /* the UI sans, for plain-words lines under formal objects (mastery/design-v4.html) */
+  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* definitions: a tinted panel with a gold rule (mastery/TEACHING-STYLE.md, "How it looks") */
+  --gold: #b68a2e;
+  --wash: #f3f4f0;
 
   /* roles used across the app, mapped onto the tokens above */
   --surface: var(--bg);
@@ -82,6 +87,8 @@
     --line: #232826;
     --cam: #9cc5b2;
     --cam-soft: rgba(156, 197, 178, 0.1);
+    --gold: #d9b56a;
+    --wash: #151a18;
     --surface-2: #171b19;
     --border-strong: #69716c;
     --accent-hover: #b6d6c7;
@@ -118,6 +125,8 @@
   --line: #232826;
   --cam: #9cc5b2;
   --cam-soft: rgba(156, 197, 178, 0.1);
+  --gold: #d9b56a;
+  --wash: #151a18;
   --surface-2: #171b19;
   --border-strong: #69716c;
   --accent-hover: #b6d6c7;

@@ -392,4 +392,5 @@ export const sampleSpaces: TopicContent = {
   terms: ['sample-space', 'sample-space-diagram'],
   claims,
   cambridge: [a19three, a19one, a19table, a19bet],
+  gate: ['a19-q4-ii-three', 'a19-q4-ii-one', 'a19-q4-ii-table', 'a19-q4-ii-bet'],
 };

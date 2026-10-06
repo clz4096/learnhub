@@ -20,8 +20,10 @@ describe('next in the book', () => {
   it('is the first written, unlearned step whose prerequisites are learned, in book order', () => {
     const p = learn(fresh(), 'pre.fractions', 'pre.indices', 'pre.algebraic-manipulation');
     const next = nextInBook(p);
-    expect(next?.step.topicId).toBe('pre.sequences');
-    expect(next?.section.title).toMatch(/^Assignment 3:/);
+    // Quadratic equations are taught in Assignment 1 since the Preparation map (graph/reviews/cambridge-prep.md).
+    expect(next?.step.topicId).toBe('pre.quadratic-equations');
+    expect(next?.section.title).toMatch(/^Assignment 1:/);
+    // The frontier is limited to the chosen courses' closure, which quadratic equations are not in.
     const front = bookFrontier(p);
     expect(front[0]).toBe('pre.sequences');
     expect([...front].sort((a, b) => bookIndex(a) - bookIndex(b))).toEqual(front);
@@ -31,9 +33,10 @@ describe('next in the book', () => {
   it('counts a chapter\'s steps, written lessons, and learned steps', () => {
     const p = learn(fresh(), 'pre.fractions');
     const ch = hereChapter(p);
-    expect(ch === undefined ? null : chapterProgress(p, ch)).toMatchObject({ steps: 10, learned: 1 });
+    expect(ch === undefined ? null : chapterProgress(p, ch)).toMatchObject({ steps: 21, learned: 1 });
     const st = stepStates(p, T0);
-    expect(st.get('pre.fractions')).toBe('mastered');
+    // Learned by its drills, but not mastered until its Cambridge gate is met.
+    expect(st.get('pre.fractions')).toBe('gate');
     expect(st.get('prob.simpsons-paradox')).toBe('towrite');
     expect(st.get('pre.indices')).toBe('ready');
     expect(st.get('proof.direct')).toBe('locked');

@@ -317,4 +317,5 @@ export const randomVariables: TopicContent = {
   terms: ['random-variable', 'rv-distribution'],
   claims,
   cambridge: [q5b, quarter, scheduleRv],
+  gate: ['ia-s2-q5-b', 'ia-s2-q5-quarter'],
 };

@@ -369,4 +369,5 @@ export const poissonRates: TopicContent = {
   terms: ['poisson-rate', 'thinning'],
   claims,
   cambridge: [q5Sum, q4None, q7a, q5George, q4Rest, q6, q7b],
+  gate: ['s2-q5-sum', 's2-q4-none', 'ia-s2-q7-a', 's2-q5-george', 's2-q4-nearest', 'ia-s2-q6', 'ia-s2-q7-b'],
 };

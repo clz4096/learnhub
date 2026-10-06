@@ -212,4 +212,5 @@ export const modularIntegers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['integers-mod-m'],
   cambridge: [notes62, sheet226, sheet214, bop1158, notes60],
+  gate: ['notes-193-example-62-row', 'sheet-2-2-6-z6-additive', 'sheet-2-1-4', 'notes-190-example-60'],
 };

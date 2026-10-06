@@ -239,4 +239,5 @@ export const inclusionExclusion: TopicContent = {
   terms: ['inclusion-exclusion-formula', 'derangement'],
   claims,
   cambridge: [q7id, q7proof, ieProof],
+  gate: ['ia-q7-identity', 'ia-q7'],
 };

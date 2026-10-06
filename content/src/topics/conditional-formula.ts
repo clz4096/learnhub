@@ -362,4 +362,5 @@ export const conditionalFormula: TopicContent = {
   terms: ['multiplication-rule'],
   claims,
   cambridge: [a19i, raffle121, raffle11, raffle3, smokersReverse],
+  gate: ['a19-q4-i-formula', 'a12-q3-ii-121', 'a12-q3-ii-11', 'a12-q3-iii', 'a6-q4-i-formula'],
 };

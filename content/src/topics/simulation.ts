@@ -282,4 +282,5 @@ export const simulation: TopicContent = {
   terms: ['inverse-transform-sampling', 'box-muller', 'rejection-sampling'],
   claims,
   cambridge: [rejectAuto, inverseProof, bmProof, rejectProof],
+  gate: [],
 };

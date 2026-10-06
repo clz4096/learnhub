@@ -182,3 +182,49 @@ describe('Cambridge batch 2 citations', () => {
     }
   });
 });
+
+describe('Preparation citations (Stage A, graph/reviews/cambridge-prep.md)', () => {
+  type Batch = { sources: { id: string; url: string; status?: string }[] };
+
+  it('name only graph topics, and cite each document by its source id in batch 6, or batch 1 for a Foundation assignment', async () => {
+    const { CAMBRIDGE_PREP, PREP_NEW_TOPICS } = await import('./topics/cambridge-prep');
+    const { existsSync, readFileSync } = await import('node:fs');
+    const read = (path: string): Batch => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8')) as Batch;
+    const batch6 = new Map(read('../../scripts/sources/batch-6.json').sources.map((s) => [s.id, s.url]));
+    const batch1 = new Map(read('../../scripts/sources/batch-1.json').sources.map((s) => [s.id, s.url]));
+    const manifestUrl = new URL('../../sources/manifest.json', import.meta.url);
+    const manifest = existsSync(manifestUrl) ? new Map(read('../../sources/manifest.json').sources.map((s) => [s.id, s])) : null;
+    const newTopics = new Set(PREP_NEW_TOPICS);
+    for (const [id, cites] of Object.entries(CAMBRIDGE_PREP)) {
+      expect(byId.has(id), id).toBe(true);
+      for (const s of cites) {
+        const url = (SOURCE_DOCS as Record<string, { url: string }>)[s.doc]?.url;
+        const fromBatch1 = /^step-f\d\d$/.test(s.doc) ? batch1.get(s.doc) : undefined;
+        expect(batch6.get(s.doc) ?? fromBatch1, `${id}: ${s.doc}`).toBe(url);
+        // A batch 1 citation on an existing topic would change content.test's mapped-topic order check.
+        if (fromBatch1 !== undefined) expect(newTopics.has(id), `${id}: batch 1 citation on an existing topic`).toBe(true);
+        if (manifest !== null) {
+          expect(manifest.get(s.doc)?.url, `${id}: ${s.doc} in the manifest`).toBe(url);
+          expect(manifest.get(s.doc)?.status, `${id}: ${s.doc} fetched`).toBe('ok');
+        }
+        expect(byId.get(id)?.sources, id).toContainEqual(s);
+      }
+    }
+  });
+
+  it('cite a Cambridge or admissions document on every new topic, and leave both course target sets as they were', async () => {
+    const { PREP_NEW_TOPICS } = await import('./topics/cambridge-prep');
+    const { CAMBRIDGE_COURSE } = await import('./sources');
+    expect(new Set(PREP_NEW_TOPICS).size).toBe(PREP_NEW_TOPICS.length);
+    for (const id of PREP_NEW_TOPICS) {
+      expect(byId.has(id), id).toBe(true);
+      expect(byId.get(id)?.sources.some((s) => s.doc in CAMBRIDGE_COURSE), id).toBe(true);
+    }
+    // No new topic is a course target or an ancestor of one, so the probstats slice and the
+    // two-course runs are unchanged.
+    for (const c of COURSES) {
+      const closure = coursesClosure(topics, [c]);
+      for (const id of PREP_NEW_TOPICS) expect(closure.has(id), `${c.id}: ${id}`).toBe(false);
+    }
+  });
+});

@@ -200,4 +200,5 @@ export const primeBinomial: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['prime-divides-binomial'],
   cambridge: [cor85, bop421, lemma27],
+  gate: ['notes-242-corollary-85', 'notes-116-lemmas-27-29'],
 };

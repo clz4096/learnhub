@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { contentFor } from '@learnhub/content/all';
 import { DAY_MS, ancestors, importProgress, exportProgress, placedMemory, type Progress } from '@learnhub/mastery';
+import { gateOf } from '@learnhub/content';
 import { ALL_TOPICS, closureOf, closureTopics } from '@/model/courses';
 import {
-  COURSE_OPTIONS, DEFAULT_COURSES, completeLesson, completeQuiz, completeReview, ensureSession, finishOpenPlacement, finishPlacement, hasContent,
-  hubSummary, localDay, planMore, replanToday, sessionTime, skipTask, startLearner, statusMap, withoutSelfReport,
+  COURSE_OPTIONS, DEFAULT_COURSES, completeGymItem, completeLesson, completeQuiz, completeReview, courseStats, drillItemId, ensureSession,
+  finishOpenPlacement, finishPlacement, hasContent, hubSummary, localDay, masteryOf, planMore, recordCambridgeAnswer, recordDrill, replanToday,
+  sessionTime, skipTask, startLearner, statusMap, withoutSelfReport,
 } from '@/model/learner';
 
 const T0 = new Date(2026, 9, 4, 9, 0).getTime();
@@ -170,24 +172,92 @@ describe('reviews and quizzes', () => {
   });
 });
 
+/** The first gate problem of pre.fractions, by its key. */
+const GATE_KEY = `pre.fractions/${gateOf('pre.fractions')[0] as string}`;
+
 describe('status and the hub summary', () => {
-  it('counts mastered topics in the closure of the chosen courses', () => {
+  it('counts mastered topics (drills passed and the gate met) in the closure of the chosen courses', () => {
     let p = ensureSession(fresh(), T0);
     expect(hubSummary(p, T0)).toMatchObject({ done: 0, total: 101 });
     p = completeLesson(p, 'pre.fractions', true, T0, 0, 15, 'ia-probability');
+    // Drills alone: learned, not mastered.
+    expect(hubSummary(p, T0)).toMatchObject({ done: 0, total: 101 });
+    p = recordCambridgeAnswer(p, GATE_KEY, true, { hints: 0, ms: 60_000 }, T0 + 1);
     expect(hubSummary(p, T0)).toMatchObject({ done: 1, total: 101 });
     expect(hubSummary({ ...p, courses: ['cst-discrete-maths'] }, T0)).toMatchObject({ done: 1, total: closureOf(['cst-discrete-maths']).size });
     expect(hubSummary({ ...p, courses: [] }, T0)).toBeNull();
   });
 
-  it('marks learned, due, ready, and locked topics', () => {
+  it('marks mastered, needs the Cambridge problem, due, ready, and locked topics', () => {
     let p = ensureSession(fresh(), T0);
     p = completeLesson(p, 'pre.fractions', true, T0, 0, 15, 'ia-probability');
+    expect(statusMap(p, T0).get('pre.fractions')).toBe('gate');
+    expect(courseStats(p, 'ia-probability', T0)).toMatchObject({ mastered: 0, needsGate: 1 });
+    p = recordCambridgeAnswer(p, GATE_KEY, true, { hints: 0 }, T0 + 1);
     const now = statusMap(p, T0);
     expect(now.get('pre.fractions')).toBe('mastered');
+    expect(courseStats(p, 'ia-probability', T0)).toMatchObject({ mastered: 1, needsGate: 0 });
+    // A learned topic unlocks what builds on it whether or not its gate is met.
     expect(now.get('pre.probability-scale')).toBe('ready');
     expect(now.get('num.fermat-little')).toBe('locked');
     expect(statusMap(p, T0 + 2 * DAY_MS).get('pre.fractions')).toBe('due');
+  });
+});
+
+describe('the Cambridge gate and item data', () => {
+  const learned1 = (): Progress => completeLesson(ensureSession(fresh(), T0), 'pre.fractions', true, T0, 0, 15, 'ia-probability');
+
+  it('re-gating: a topic learned before the gate keeps its review schedule and needs the Cambridge problem', () => {
+    const p = learned1();
+    const before = p.memory['pre.fractions'];
+    const r = importProgress({ ...JSON.parse(exportProgress(p)), version: 4 });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.memory['pre.fractions']).toEqual(before);
+    expect(masteryOf(r.value, 'pre.fractions')).toMatchObject({ stage: 'needs-gate', candidates: gateOf('pre.fractions').length });
+  });
+
+  it('a Cambridge answer is logged with its attempt number, and only a first right answer meets the gate', () => {
+    let p = recordCambridgeAnswer(learned1(), GATE_KEY, false, { hints: 0, ms: 90_000 }, T0 + 1);
+    p = recordCambridgeAnswer(p, GATE_KEY, true, { hints: 0, ms: 30_000 }, T0 + 2);
+    expect(p.history.filter((h) => h.kind === 'cambridge').map((h) => h.item)).toEqual([
+      { id: GATE_KEY, hints: 0, ms: 90_000, attempt: 1 },
+      { id: GATE_KEY, hints: 0, ms: 30_000, attempt: 2 },
+    ]);
+    expect(masteryOf(p, 'pre.fractions').stage).toBe('needs-gate');
+    expect(importProgress(exportProgress(p)).ok).toBe(true);
+  });
+
+  it('a right Cambridge answer closes the problem\'s open redos', () => {
+    const p = { ...learned1(), redos: [{ problem: GATE_KEY, from: 'ABCDEFGH', setAt: T0, due: T0 + DAY_MS, doneAt: null }] };
+    expect(recordCambridgeAnswer(p, GATE_KEY, false, { hints: 0 }, T0 + 1).redos[0]?.doneAt).toBeNull();
+    expect(recordCambridgeAnswer(p, GATE_KEY, true, { hints: 0 }, T0 + 1).redos[0]?.doneAt).toBe(T0 + 1);
+  });
+
+  it('a drill is logged with its generator, seed, time, and hints, and never meets the gate', () => {
+    const id = drillItemId('pre.fractions', 'multiply');
+    let p = recordDrill(learned1(), 'pre.fractions', true, { id, seed: 12345, ms: 20_000.4, hints: 0 }, T0 + 1);
+    p = recordDrill(p, 'pre.fractions', true, { id, seed: 12345, hints: 0 }, T0 + 2);
+    expect(p.history.filter((h) => h.kind === 'drill').map((h) => h.item)).toEqual([
+      { id, seed: 12345, ms: 20_000, hints: 0, attempt: 1 },
+      { id, seed: 12345, hints: 0, attempt: 2 },
+    ]);
+    expect(masteryOf(p, 'pre.fractions').stage).toBe('needs-gate');
+  });
+
+  it('gym work moves the schedule as the engine says, is logged, and never meets the gate', () => {
+    const p0 = learned1();
+    const p = completeGymItem(p0, { kind: 'review', topicId: 'pre.fractions', id: 'review:pre.fractions' }, true, { hints: 0, ms: 100_000 }, T0 + DAY_MS);
+    expect(p.memory['pre.fractions']?.reps).toBe(1);
+    expect(p.history.at(-1)).toEqual({ at: T0 + DAY_MS, kind: 'gym', topicId: 'pre.fractions', correct: true, item: { id: 'review:pre.fractions', hints: 0, ms: 100_000, attempt: 1 } });
+    const fake = completeGymItem(p0, { kind: 'drill', topicId: 'pre.fractions', id: GATE_KEY }, true, { hints: 0 }, T0 + 1);
+    expect(masteryOf(fake, 'pre.fractions').stage).toBe('needs-gate');
+  });
+
+  it('a quiz records each measured item', () => {
+    const p = learned1();
+    const q = completeQuiz(p, { 'pre.fractions': true }, T0 + DAY_MS, null, { 'pre.fractions': { id: drillItemId('pre.fractions', 'g'), seed: 9, hints: 0, ms: 5000 } });
+    expect(q.history.at(-1)?.item).toEqual({ id: 'pre.fractions/g', seed: 9, hints: 0, ms: 5000, attempt: 1 });
   });
 });
 

@@ -375,4 +375,5 @@ export const quantifiers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quantifier', 'witness', 'counterexample'],
   cambridge: [tmuaM, bop271, prop21k, prop22, prop18, sw132, sw1210],
+  gate: ['notes-93-prop21', 'notes-95-prop22', 'notes-72-prop18', 'sw-1-3-2', 'sw-1-2-10'],
 };

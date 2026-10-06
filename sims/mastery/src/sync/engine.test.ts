@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  MemoryStorage, exportProgress, mergeProgress, sameProgress, withChoices,
+  MemoryStorage, PROGRESS_VERSION, exportProgress, mergeProgress, sameProgress, withChoices,
   type HistoryEntry, type Progress, type SupervisionResult,
 } from '@learnhub/mastery';
 import { DEFAULT_COURSES, finishOpenPlacement, startLearner, withoutSelfReport } from '@/model/learner';
@@ -494,7 +494,7 @@ describe('a malformed synced copy', () => {
     await mac.signInByLink();
     expect(mac.status.phase).toBe('idle');
     expect(mac.doc?.history.map((h) => h.topicId)).toEqual(['pre.indices', 'pre.fractions']);
-    expect((server.rows.get(uid)?.doc as Progress).version).toBe(4);
+    expect((server.rows.get(uid)?.doc as Progress).version).toBe(PROGRESS_VERSION);
   });
 });
 

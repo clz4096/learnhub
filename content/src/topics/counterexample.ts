@@ -442,4 +442,5 @@ export const counterexample: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['disproof'],
   cambridge: [sw111, sw125, sw129, sw221, p2a, p2b, p2c, p2d, p2e, p1, p2f],
+  gate: ['sw-1-1-1', 'sw-1-2-5', 'sw-1-2-9', 'sw-2-2-1'],
 };

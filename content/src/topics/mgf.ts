@@ -372,4 +372,5 @@ export const mgf: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['mgf', 'continuity-theorem', 'chernoff-bound'],
   cambridge: [q6var, q3beta, q2b, q3, continuity],
+  gate: ['ia-s4-q6-a-variance', 'ia-s3-q3-a-beta', 'ia-s3-q2-b', 'ia-s3-q3'],
 };

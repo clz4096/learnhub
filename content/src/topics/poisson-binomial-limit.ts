@@ -259,4 +259,5 @@ export const poissonBinomialLimit: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['poisson-approximation'],
   cambridge: [notesAtMost, notesVar, general, when],
+  gate: ['s2-notes-approx', 's2-notes-variance', 's2-notes-when'],
 };

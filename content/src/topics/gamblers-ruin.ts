@@ -247,4 +247,5 @@ export const gamblersRuin: TopicContent = {
   terms: ['simple-random-walk', 'gamblers-ruin', 'absorbing-barrier'],
   claims,
   cambridge: [q8top, schedule, finiteT],
+  gate: ['sheet3-q8c-top', 'sheet3-q8c-finite'],
 };

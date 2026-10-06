@@ -7,7 +7,7 @@
  * learned, and whose prerequisites are all learned: the frontier, read in book order.
  * Jumping ahead stays allowed; this only orders what Today offers.
  */
-import { BOOK_STEPS, CHAPTERS, type BookChapter, type StepPlace } from '@learnhub/content/book';
+import { BOOK, BOOK_STEPS, CHAPTERS, placeOf, type BookChapter, type StepPlace } from '@learnhub/content/book';
 import type { Progress } from '@learnhub/mastery';
 import { closureOf, topicOf } from './courses';
 import { hasContent, statusMap, type TopicStatus } from './learner';
@@ -16,13 +16,34 @@ import { hasContent, statusMap, type TopicStatus } from './learner';
 export type StepState = TopicStatus | 'towrite';
 
 export const STEP_TEXT: Readonly<Record<StepState, string>> = {
-  mastered: 'learned',
+  mastered: 'mastered',
+  gate: 'needs the Cambridge problem',
   due: 'review due',
   ready: 'ready',
   unwritten: 'to write',
   towrite: 'to write',
   locked: 'needs earlier steps',
 };
+
+/** Where a topic sits in the book, for the lesson header's journey line: "Preparation › Writing proofs › 4 of 11". */
+export interface Journey {
+  /** The year's label: the stage of the journey. */
+  stage: string;
+  chapter: string;
+  /** 1-based position of the topic's step among the chapter's steps, and how many there are. */
+  n: number;
+  of: number;
+}
+
+/** The topic's journey line, or null for a topic the book does not place. */
+export function journeyOf(topicId: string): Journey | null {
+  const at = placeOf(topicId);
+  if (at === undefined) return null;
+  const steps = at.chapter.sections.flatMap((s) => s.steps);
+  const n = steps.indexOf(at.step) + 1;
+  const stage = BOOK.find((y) => y.id === at.chapter.yearId)?.label ?? at.chapter.termName;
+  return { stage, chapter: at.chapter.title, n, of: steps.length };
+}
 
 export function stepStates(p: Progress, now: number): Map<string, StepState> {
   const st = statusMap(p, now);

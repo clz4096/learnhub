@@ -262,4 +262,5 @@ export const infinitelyManyPrimes: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['euclids-theorem'],
   cambridge: [firstComposite, notPrime, bopVersion],
+  gate: ['cst-totd-first-composite', 'cst-totd-remarks'],
 };

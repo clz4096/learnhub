@@ -9,16 +9,16 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import katex from 'katex';
 import { describe, expect, it } from 'vitest';
 import { courseById, courseTargets, coursesClosure, topics } from '@learnhub/graph';
-import { mulberry32, planSession, placementGraph, recordLesson, recordReview, runPlacement, DAY_MS, type MemoryMap } from '@learnhub/mastery';
+import { gradeProof, mulberry32, planSession, placementGraph, recordLesson, recordReview, runPlacement, DAY_MS, type MemoryMap } from '@learnhub/mastery';
 import { GLOSSARY, glossaryEntry, searchGlossary } from './glossary';
 import { q, toFloat } from './math';
 import { answerText, grade, readAnswer, sameAnswer, type Instance } from './problem';
 import { computedMath, dmath, exprTex, ident, markedTerms, math, plain, setOf, t, texToPlain, type Rich, type Span } from './rich';
 import { TOPIC_CONTENT } from './topics';
-import type { Block, TopicContent } from './topic';
+import { GATE_DOCS, formalNumbers, gateCandidates, lessonSections, proofOrderAnswer, proofOrderSpec, quickCheck, type Block, type TopicContent } from './topic';
 import { CITED_DOCS, citationText, type Citation } from './cambridge';
 import { contentFor } from './all';
-import { CONTENT_IDS, TOPIC_LOADERS, catalogProblem, hasContent, loadTopicContent } from './index';
+import { CONTENT_IDS, TOPIC_LOADERS, catalogProblem, gateOf, hasContent, loadTopicContent } from './index';
 import { BOOK_ORDER } from './book/book';
 
 const SEEDS = 1000;
@@ -53,8 +53,17 @@ function checkTex(r: Rich, where: string): void {
 
 function blockRich(b: Block): Rich[] {
   switch (b.kind) {
+    case 'hook':
+    case 'narrative':
+    case 'takeaway': return [b.text];
+    case 'section': return [b.title];
     case 'p':
-    case 'rule': return [b.text];
+    case 'rule': return b.why === undefined ? [b.text] : [b.text, b.why.q, b.why.a];
+    case 'steps': return b.steps.flatMap((st) => [st.label, st.text, ...[st.eq, st.plain, st.why?.q, st.why?.a].filter((r): r is Rich => r !== undefined)]);
+    case 'definition': return [b.name, b.formal, b.plain];
+    case 'theorem': return b.name === undefined ? [b.statement] : [b.name, b.statement];
+    case 'check': return [b.problem.prompt, ...b.problem.solution, b.why, ...(b.problem.answer.kind === 'choice' ? b.problem.answer.options.map((o) => o.label) : [])];
+    case 'pitfall': return [b.claim, b.counterexample];
     case 'list': return [...b.items];
     case 'table': return [b.caption, ...b.head, ...b.rows.flat()];
     case 'venn': return [b.caption, b.onlyA, b.both, b.onlyB, b.neither, [{ kind: 'text', text: `${b.a} ${b.b}`, typed: [b.a, b.b] }]];
@@ -73,8 +82,11 @@ function instanceRich(inst: Instance): Rich[] {
 function topicRich(c: TopicContent): Rich[] {
   return [
     c.goal,
+    ...[c.objective, c.why].filter((r): r is Rich => r !== undefined),
     ...c.lesson.flatMap(blockRich),
-    ...c.examples.flatMap((e) => [e.title, e.prompt, ...e.steps, e.answer]),
+    ...c.examples.flatMap((e) => [e.title, e.prompt, ...e.steps, e.answer, ...(e.examiner === undefined ? [] : [e.examiner])]),
+    ...(c.recall ?? []).flatMap((r) => [r.front, r.back]),
+    ...(c.proofOrder ?? []).flatMap((o) => [o.title, ...o.steps]),
   ];
 }
 
@@ -112,7 +124,7 @@ const UNWRITTEN = 'prob.simpsons-paradox';
 /** Source ids of the batch, from the committed batch file; the manifest too when the local source cache exists. */
 const readBatch = (n: number) => (JSON.parse(readFileSync(new URL(`../../scripts/sources/batch-${n}.json`, import.meta.url), 'utf8')) as { sources: { id: string }[] }).sources.map((x) => x.id);
 const batchIds = new Set(readBatch(1));
-const citableIds = new Set([...readBatch(1), ...readBatch(2)]);
+const citableIds = new Set([...readBatch(1), ...readBatch(2), ...readBatch(6)]);
 const manifestUrl = new URL('../../sources/manifest.json', import.meta.url);
 const manifest: Map<string, string> | null = existsSync(manifestUrl)
   ? new Map((JSON.parse(readFileSync(manifestUrl, 'utf8')) as { sources: { id: string; status: string }[] }).sources.map((x) => [x.id, x.status]))
@@ -125,6 +137,80 @@ function checkCitation(cit: Citation, where: string): void {
   expect(cit.at.trim().length, where).toBeGreaterThan(0);
   expect(DASH.test(citationText(cit)), `${where}: dash in "${citationText(cit)}"`).toBe(false);
   expect(CITED_DOCS[cit.doc], where).toBeDefined();
+}
+
+/**
+ * The fields of the teaching style (mastery/TEACHING-STYLE.md, "Content fields"): quick
+ * checks are graded like problems, the shape blocks are where they belong and complete,
+ * gate ids name real Cambridge problems, and gym content is sound. Their text is checked
+ * with the rest of the topic's (`topicRich`).
+ */
+function checkTeachingFields(c: TopicContent): void {
+  c.lesson.forEach((b, i) => {
+    const where = `${c.topicId} block ${i}`;
+    if (b.kind === 'check') {
+      expect(b.problem.answer.kind, `${where}: a quick check cannot be a table`).not.toBe('table');
+      const r = grade(b.problem, b.reference);
+      expect(r.correct, `${where}: check reference ${JSON.stringify(b.reference)}: ${r.feedback}`).toBe(true);
+      expect(plain(b.why).trim().length, `${where}: a check says why`).toBeGreaterThan(0);
+      checkTex(answerText(b.problem.answer), `${where} check answer`);
+    }
+    // The hook opens the lesson: the first block, or the first in the opening section.
+    if (b.kind === 'hook') expect(i === 0 || (i === 1 && c.lesson[0]?.kind === 'section'), `${where}: a hook opens the lesson`).toBe(true);
+    if (b.kind === 'takeaway') expect(i, `${where}: a takeaway is the last block`).toBe(c.lesson.length - 1);
+    if (b.kind === 'pitfall') {
+      expect(plain(b.claim).trim().length, `${where}: pitfall claim`).toBeGreaterThan(0);
+      expect(plain(b.counterexample).trim().length, `${where}: pitfall counterexample`).toBeGreaterThan(0);
+    }
+    if (b.kind === 'steps') {
+      expect(b.steps.length, `${where}: a steps block has at least two steps`).toBeGreaterThanOrEqual(2);
+      for (const st of b.steps) {
+        expect(plain(st.label).trim().length, `${where}: step label`).toBeGreaterThan(0);
+        if (st.plain !== undefined) expect(plain(st.plain).trim().length, `${where}: a step's plain words`).toBeGreaterThan(0);
+      }
+    }
+    if (b.kind === 'definition') {
+      for (const [part, r] of [['name', b.name], ['formal statement', b.formal], ['plain words', b.plain]] as const) {
+        expect(plain(r).trim().length, `${where}: a definition needs its ${part}`).toBeGreaterThan(0);
+      }
+    }
+    if (b.kind === 'theorem') {
+      expect(plain(b.statement).trim().length, `${where}: a theorem needs its statement`).toBeGreaterThan(0);
+      if (b.name !== undefined) expect(plain(b.name).trim().length, `${where}: a theorem's name`).toBeGreaterThan(0);
+    }
+    if (b.kind === 'section') {
+      expect(plain(b.title).trim().length, `${where}: a section needs its title`).toBeGreaterThan(0);
+      expect(c.lesson[i + 1] === undefined || c.lesson[i + 1]?.kind === 'section', `${where}: an empty section`).toBe(false);
+    }
+    if (b.kind === 'narrative') expect(plain(b.text).trim().length, `${where}: an empty narrative`).toBeGreaterThan(0);
+    const whys = b.kind === 'p' || b.kind === 'rule' ? [b.why] : b.kind === 'steps' ? b.steps.map((st) => st.why) : [];
+    for (const w of whys) {
+      if (w === undefined) continue;
+      expect(plain(w.q).trim().length, `${where}: "why?" question`).toBeGreaterThan(0);
+      expect(plain(w.a).trim().length, `${where}: "why?" answer`).toBeGreaterThan(0);
+    }
+  });
+  // A lesson with sections starts with one, so every block is in a named section and every formal number has its section.
+  if (c.lesson.some((b) => b.kind === 'section')) expect(c.lesson[0]?.kind, `${c.topicId}: a lesson with sections starts with a section`).toBe('section');
+  for (const [what, r] of [['objective', c.objective], ['why', c.why]] as const) {
+    if (r !== undefined) expect(plain(r).trim().length, `${c.topicId}: an empty ${what}`).toBeGreaterThan(0);
+  }
+  if (c.minutes !== undefined) expect(Number.isInteger(c.minutes) && c.minutes > 0 && c.minutes <= 120, `${c.topicId}: minutes ${c.minutes}`).toBe(true);
+  const ids = new Set(c.cambridge.map((p) => p.id));
+  for (const id of c.gate) expect(ids.has(id), `${c.topicId}: gate problem ${id} is not in its Cambridge problems`).toBe(true);
+  expect(new Set(c.gate).size, `${c.topicId}: a gate id is listed twice`).toBe(c.gate.length);
+  for (const r of c.recall ?? []) {
+    expect(plain(r.front).trim().length, `${c.topicId}: recall front`).toBeGreaterThan(0);
+    expect(plain(r.back).trim().length, `${c.topicId}: recall back`).toBeGreaterThan(0);
+  }
+  for (const o of c.proofOrder ?? []) {
+    const where = `${c.topicId} proof order ${plain(o.title)}`;
+    expect(o.steps.length, `${where}: at least three steps`).toBeGreaterThanOrEqual(3);
+    expect(new Set(o.steps.map(plain)).size, `${where}: two steps read alike, so the order is ambiguous`).toBe(o.steps.length);
+    const right = o.steps.map((_, i) => i);
+    expect(gradeProof(proofOrderAnswer(right), proofOrderSpec(o)).correct, where).toBe(true);
+    expect(gradeProof(proofOrderAnswer([...right].reverse()), proofOrderSpec(o)).correct, where).toBe(false);
+  }
 }
 
 describe('content topics', () => {
@@ -181,7 +267,9 @@ describe('content topics', () => {
 
   it('batch 5 follows the book order', () => {
     for (const id of BATCH_5) expect(BOOK_ORDER.includes(id), id).toBe(true);
-    expect([...BATCH_5].sort((a, b) => BOOK_ORDER.indexOf(a) - BOOK_ORDER.indexOf(b))).toEqual(BATCH_5);
+    // The Preparation map moved quadratic equations to Block 1 Assignment 1, ahead of the rest of the batch.
+    const bookOrder = ['pre.quadratic-equations', ...BATCH_5.filter((id) => id !== 'pre.quadratic-equations')];
+    expect([...BATCH_5].sort((a, b) => BOOK_ORDER.indexOf(a) - BOOK_ORDER.indexOf(b))).toEqual(bookOrder);
   });
 
   for (const c of TOPIC_CONTENT) {
@@ -226,6 +314,10 @@ describe('content topics', () => {
         // A problem worked as an example is not also set as practice.
         for (const e of cited) expect(ids.map((id) => `cambridge.${id}`)).not.toContain(e.instance?.generatorId);
         for (const e of cited) checkCitation(e.source as Citation, `${c.topicId} example ${plain(e.title)}`);
+      });
+
+      it('teaching-style fields: quick checks graded, shape blocks well formed, gate ids real, gym content sound', () => {
+        checkTeachingFields(c);
       });
 
       it('worked Cambridge problems: answers verified by code and compared with the official ones', () => {
@@ -333,6 +425,8 @@ function catalogSource(): string {
     '  readonly id: string;',
     '  readonly title: string;',
     "  readonly mode: 'auto' | 'supervision';",
+    '  /** One of the topic\'s gate problems (`TopicContent.gate`). */',
+    '  readonly gate: boolean;',
     '}',
     '',
     '/** Every topic with content, in the order of TOPIC_CONTENT, with its Cambridge problems. */',
@@ -340,12 +434,171 @@ function catalogSource(): string {
   ];
   for (const c of TOPIC_CONTENT) {
     lines.push(`  ${JSON.stringify(c.topicId)}: [`);
-    for (const p of c.cambridge) lines.push(`    { id: ${JSON.stringify(p.id)}, title: ${JSON.stringify(plain(p.title))}, mode: ${JSON.stringify(p.mode)} },`);
+    for (const p of c.cambridge) lines.push(`    { id: ${JSON.stringify(p.id)}, title: ${JSON.stringify(plain(p.title))}, mode: ${JSON.stringify(p.mode)}, gate: ${c.gate.includes(p.id)} },`);
     lines.push('  ],');
   }
   lines.push('};', '');
   return lines.join('\n');
 }
+
+describe('numbering formal objects', () => {
+  const d = (n: string): Block => ({ kind: 'definition', name: t`${n}`, formal: t`F.`, plain: t`P.` });
+  const th: Block = { kind: 'theorem', statement: t`S.` };
+  const sec = (s: string): Block => ({ kind: 'section', title: t`${s}` });
+  const p: Block = { kind: 'p', text: t`x` };
+
+  it('numbers definitions and theorems together, section.n in a lesson with sections, restarting at each section', () => {
+    expect(formalNumbers([sec('A'), p, d('a'), d('b'), th, sec('B'), th, d('c')])).toEqual([null, null, '1.1', '1.2', '1.3', null, '2.1', '2.2']);
+  });
+
+  it('numbers them n in a lesson without sections', () => {
+    expect(formalNumbers([d('a'), p, th, d('b')])).toEqual(['1', null, '2', '3']);
+  });
+
+  it('groups a lesson into its named sections, each with the index of its first block', () => {
+    const lesson = [sec('The idea'), p, d('a'), sec('Is it a fraction?'), th];
+    expect(lessonSections(lesson).map((s) => ({ title: s.title === null ? null : plain(s.title), start: s.start, n: s.blocks.length }))).toEqual([
+      { title: 'The idea', start: 1, n: 2 }, { title: 'Is it a fraction?', start: 4, n: 1 },
+    ]);
+    expect(lessonSections([p, d('a')]).map((s) => [s.title, s.start, s.blocks.length])).toEqual([[null, 0, 2]]);
+    expect(lessonSections([])).toEqual([{ title: null, start: 0, blocks: [] }]);
+  });
+});
+
+/** Longer than this, an objective or why is no longer one short sentence. */
+const HEADER_SENTENCE_MAX = 110;
+
+/**
+ * The lesson header's objective and why (decisions of 2026-10-05) are wanted for every
+ * topic, each one short sentence. For now these are warnings, not failures: a topic
+ * without an objective shows its goal, and one without a why shows no why.
+ */
+describe('lesson header sentences', () => {
+  /** Topics lacking a header sentence, and sentences over the length, as warning lines. */
+  function headerWarnings(cs: readonly TopicContent[]): string[] {
+    const out: string[] = [];
+    const lacking = (f: 'objective' | 'why'): string[] => cs.filter((c) => c[f] === undefined).map((c) => c.topicId);
+    for (const f of ['objective', 'why'] as const) if (lacking(f).length > 0) out.push(`${lacking(f).length} of ${cs.length} topics have no ${f}`);
+    for (const c of cs) {
+      for (const f of ['objective', 'why'] as const) {
+        const r = c[f];
+        if (r !== undefined && plain(r).length > HEADER_SENTENCE_MAX) out.push(`${c.topicId}: ${f} is ${plain(r).length} characters, over ${HEADER_SENTENCE_MAX}`);
+      }
+    }
+    return out;
+  }
+
+  it('lists topics with no objective or why, and sentences over the length (a warning for now)', () => {
+    const w = headerWarnings(TOPIC_CONTENT);
+    if (w.length > 0) console.warn(`Lesson header sentences:\n${w.join('\n')}`);
+    expect(Array.isArray(w)).toBe(true);
+  });
+
+  it('the warning names a sentence over the length', () => {
+    const long = { ...styled(), why: t`${'A very long reason that goes on and on '.repeat(4)}` };
+    expect(headerWarnings([styled()])).toEqual([]);
+    expect(headerWarnings([long]).join('\n')).toMatch(/why is \d+ characters, over 110/);
+  });
+});
+
+describe('the Cambridge gate', () => {
+  /**
+   * Mastery needs one gate problem per topic (decision of 2026-10-05). For now a topic
+   * without one is a warning, not a failure, so existing content passes; such a topic
+   * cannot be mastered until a Cambridge-standard problem is written for it.
+   */
+  it('lists the topics with no gate problem (a warning for now)', () => {
+    const lacking = TOPIC_CONTENT.filter((c) => c.gate.length === 0).map((c) => c.topicId);
+    if (lacking.length > 0) console.warn(`Topics with no Cambridge gate problem (${lacking.length}): ${lacking.join(', ')}`);
+    expect(lacking.length).toBeLessThan(TOPIC_CONTENT.length);
+  });
+
+  it('the default gate is the problems from a Cambridge-standard document', () => {
+    expect(GATE_DOCS.has('bop')).toBe(false);
+    expect(GATE_DOCS.has('tmua-logic-proof')).toBe(false);
+    for (const d of GATE_DOCS) expect(Object.hasOwn(CITED_DOCS, d), d).toBe(true);
+    const c = contentFor('proof.contradiction') as TopicContent;
+    expect(gateCandidates(c.cambridge).every((id) => GATE_DOCS.has(c.cambridge.find((p) => p.id === id)?.source.doc ?? ''))).toBe(true);
+  });
+});
+
+/** A topic with every teaching-style field, so the checks above are tested on real use, and on broken content. */
+function styled(): TopicContent {
+  const base = contentFor('proof.contradiction') as TopicContent;
+  const [a, b] = [3, 4];
+  return {
+    ...base,
+    objective: t`Prove a statement by showing its opposite is impossible.`,
+    why: t`The standard way to show something cannot exist; next, it proves there are infinitely many primes.`,
+    minutes: 20,
+    lesson: [
+      { kind: 'section', title: t`The idea` },
+      { kind: 'hook', text: t`Here is a strange kind of claim: a number that is not a fraction.` },
+      { kind: 'section', title: t`Is root two a fraction?` },
+      { kind: 'narrative', text: t`First, pin down exactly what a fraction is.` },
+      { kind: 'p', text: t`Suppose it is one, and see what breaks.`, why: { q: t`Why may we suppose it?`, a: t`We are not claiming it; we are testing it.` } },
+      ...base.lesson,
+      { kind: 'definition', name: t`Rational number`, formal: t`${math`x`} is rational if ${math`x = a/b`} for some integers ${math`a, b`} with ${math`b \neq ${0}`}.`, plain: t`A fraction of two whole numbers.` },
+      { kind: 'theorem', name: t`Irrationality of root two`, statement: t`There are no integers ${math`a, b`} with ${math`a^{${2}} = ${2} b^{${2}}`} and ${math`b \neq ${0}`}.` },
+      {
+        kind: 'steps',
+        proof: true,
+        steps: [
+          { label: t`Square both sides`, text: [dmath`a^{${2}} = ${2} b^{${2}}`], plain: t`Squaring both sides keeps them equal.` },
+          { label: t`Read off the parity`, text: t`So the left side is even.`, eq: [dmath`a^{${2}} \equiv ${0} \pmod{${2}}`], why: { q: t`Why is that even?`, a: t`It is twice a whole number.` } },
+        ],
+      },
+      quickCheck({ prompt: t`What is ${math`${a} + ${b}`}?`, answer: { kind: 'exact', expected: String(a + b) }, reference: String(a + b), why: t`Adding ${a} and ${b} gives ${a + b}.` }),
+      { kind: 'pitfall', claim: t`Every odd number is prime.`, counterexample: t`The number ${a * a} is odd and equals ${a} times ${a}.` },
+      { kind: 'takeaway', text: t`To prove a claim false, assume it and find something impossible.` },
+    ],
+    examples: base.examples.map((e, i) => (i === 0 ? { ...e, examiner: t`The examiner wants the assumption stated before it is used.` } : e)),
+    recall: [{ front: t`State proof by contradiction.`, back: t`Assume the statement false and derive something impossible.` }],
+    proofOrder: [{ title: t`Root two is irrational`, steps: [t`Suppose it is a fraction in lowest terms.`, t`Then both top and bottom are even.`, t`That contradicts lowest terms.`] }],
+  };
+}
+
+describe('teaching-style fields', () => {
+  it('a topic using every field passes every check', () => {
+    const c = styled();
+    checkTeachingFields(c);
+    topicRich(c).forEach((r, i) => checkRich(r, `styled text ${i}`));
+    // The new text is in what the checks read.
+    const all = topicRich(c).map(plain).join(' ');
+    for (const s of ['opposite is impossible', 'infinitely many primes', 'The idea', 'Is root two a fraction', 'pin down exactly', 'strange kind of claim', 'Why may we suppose', 'Read off the parity', 'twice a whole number', 'keeps them equal', 'Rational number', 'A fraction of two', 'Irrationality of root two', 'There are no integers', 'What is', 'odd and equals', 'find something impossible', 'examiner wants', 'State proof by', 'lowest terms.']) expect(all, s).toContain(s);
+  });
+
+  const broken: [string, (c: TopicContent) => TopicContent, RegExp][] = [
+    ['a check whose reference is wrong', (c) => ({ ...c, lesson: c.lesson.map((b) => (b.kind === 'check' ? { ...b, reference: '8' } : b)) }), /check reference/],
+    ['a hook that is not first', (c) => ({ ...c, lesson: [...c.lesson.slice(1), c.lesson[0] as Block] }), /hook is the first block|takeaway is the last block/],
+    ['a pitfall with no counterexample', (c) => ({ ...c, lesson: c.lesson.map((b) => (b.kind === 'pitfall' ? { ...b, counterexample: t`` } : b)) }), /pitfall counterexample/],
+    ['a steps block of one step', (c) => ({ ...c, lesson: c.lesson.map((b) => (b.kind === 'steps' ? { ...b, steps: b.steps.slice(0, 1) } : b)) }), /at least two steps/],
+    ['a definition with no plain words', (c) => ({ ...c, lesson: c.lesson.map((b) => (b.kind === 'definition' ? { ...b, plain: t`` } : b)) }), /definition needs its plain words/],
+    ['a section with no title', (c) => ({ ...c, lesson: c.lesson.map((b) => (b.kind === 'section' ? { ...b, title: t`` } : b)) }), /section needs its title/],
+    ['a block before the first section', (c) => ({ ...c, lesson: [c.lesson.find((b) => b.kind === 'definition') as Block, ...c.lesson.map((b): Block => (b.kind === 'hook' ? { kind: 'narrative', text: b.text } : b))] }), /starts with a section/],
+    ['an empty section', (c) => ({ ...c, lesson: [c.lesson[0] as Block, ...c.lesson] }), /an empty section/],
+    ['minutes that are not a whole number', (c) => ({ ...c, minutes: 2.5 }), /minutes/],
+    ['a theorem with no statement', (c) => ({ ...c, lesson: c.lesson.map((b) => (b.kind === 'theorem' ? { ...b, statement: t` ` } : b)) }), /theorem needs its statement/],
+    ['a quick check with a table answer', (c) => ({ ...c, lesson: c.lesson.map((b) => (b.kind === 'check' ? { ...b, problem: { ...b.problem, answer: { kind: 'table', columns: [], rows: [], expected: [], cell: 'truth' } } } : b)) }), /cannot be a table/],
+    ['a "why?" with no answer', (c) => ({ ...c, lesson: c.lesson.map((b) => (b.kind === 'p' && b.why !== undefined ? { ...b, why: { ...b.why, a: t`` } } : b)) }), /"why\?" answer/],
+    ['a gate id that is not a Cambridge problem', (c) => ({ ...c, gate: ['nope'] }), /gate problem nope/],
+    ['a gate id twice', (c) => ({ ...c, gate: [c.gate[0] as string, c.gate[0] as string] }), /listed twice/],
+    ['a proof order of two steps', (c) => ({ ...c, proofOrder: [{ title: t`Short`, steps: [t`One.`, t`Two.`] }] }), /at least three steps/],
+    ['a proof order with two steps alike', (c) => ({ ...c, proofOrder: [{ title: t`Alike`, steps: [t`One.`, t`One.`, t`Two.`] }] }), /read alike/],
+  ];
+  for (const [name, f, re] of broken) it(`rejects ${name}`, () => expect(() => checkTeachingFields(f(styled()))).toThrow(re));
+
+  it('rejects a dash or a typed digit in the new text', () => {
+    // Built from code points, so this file holds no dash itself.
+    const [EM_DASH, EN_DASH] = [String.fromCodePoint(0x2014), String.fromCodePoint(0x2013)];
+    const dash = { ...styled(), recall: [{ front: [{ kind: 'text' as const, text: `A front ${EM_DASH} with a dash`, typed: [] }], back: t`Back.` }] };
+    expect(() => topicRich(dash).forEach((r, i) => checkRich(r, `dash ${i}`))).toThrow(/dash/);
+    const digit = { ...styled(), lesson: [...styled().lesson.slice(0, -1), { kind: 'takeaway' as const, text: [{ kind: 'text' as const, text: 'Remember 7.', typed: ['Remember 7.'] }] }] };
+    expect(() => topicRich(digit).forEach((r, i) => checkRich(r, `digit ${i}`))).toThrow(/typed digit/);
+    const examiner = { ...styled(), examples: styled().examples.map((e) => ({ ...e, examiner: [{ kind: 'text' as const, text: `Marks lost ${EN_DASH} here.`, typed: [] }] })) };
+    expect(() => topicRich(examiner).forEach((r, i) => checkRich(r, `examiner ${i}`))).toThrow(/dash/);
+  });
+});
 
 describe('loading on demand', () => {
   it('the catalog matches the content', async () => {
@@ -353,12 +606,15 @@ describe('loading on demand', () => {
     expect(CONTENT_IDS).toEqual(TOPIC_CONTENT.map((c) => c.topicId));
     for (const c of TOPIC_CONTENT) {
       expect(hasContent(c.topicId)).toBe(true);
-      for (const p of c.cambridge) expect(catalogProblem(c.topicId, p.id)).toEqual({ id: p.id, title: plain(p.title), mode: p.mode });
+      for (const p of c.cambridge) expect(catalogProblem(c.topicId, p.id)).toEqual({ id: p.id, title: plain(p.title), mode: p.mode, gate: c.gate.includes(p.id) });
+      expect(gateOf(c.topicId)).toEqual(c.cambridge.filter((p) => c.gate.includes(p.id)).map((p) => p.id));
     }
     expect(hasContent(UNWRITTEN)).toBe(false);
     expect(hasContent('toString')).toBe(false);
     expect(catalogProblem('pre.fractions', 'nope')).toBeUndefined();
     expect(catalogProblem('constructor', 'x')).toBeUndefined();
+    expect(gateOf(UNWRITTEN)).toEqual([]);
+    expect(gateOf('constructor')).toEqual([]);
   });
 
   it('every topic has a loader, in order, and it loads the same content as the static list', async () => {

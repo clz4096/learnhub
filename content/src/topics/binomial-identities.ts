@@ -328,4 +328,5 @@ export const binomialIdentities: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['pascals-triangle', 'pascals-rule'],
   cambridge: [bop1024, bop1040, bop1041, bop1035, bop1038, notesHomework2],
+  gate: ['notes-280-homework-2'],
 };

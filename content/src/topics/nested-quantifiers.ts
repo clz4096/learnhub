@@ -302,4 +302,5 @@ export const nestedQuantifiers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['dependent-witness'],
   cambridge: [tmuaN, bop27_9, bop27_10, bop29_7, bop29_5, s1s2, bop29_13],
+  gate: [],
 };

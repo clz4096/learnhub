@@ -351,4 +351,5 @@ export const cdfMethod: TopicContent = {
   terms: ['cdf-method'],
   claims,
   cambridge: [q4cdf, q4t, q4tProof, squareRule],
+  gate: ['s2-q4-cdf', 's3-q4-density-t', 's3-q4-tail', 's3-notes-square'],
 };

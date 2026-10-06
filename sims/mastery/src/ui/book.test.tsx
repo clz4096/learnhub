@@ -39,7 +39,7 @@ describe('the Course tab: the degree as a book', () => {
     expect(text()).toContain('You are in Preparation, Stage A: STEP Foundation and CS-0.');
     const here = document.querySelector('.book-ch.here');
     expect(here?.querySelector('.t')?.textContent).toBe('STEP Foundation, Block 1: Algebra and graphs');
-    expect(here?.querySelector('.r')?.textContent).toBe('here · 0 of 10');
+    expect(here?.querySelector('.r')?.textContent).toBe('here · 0 of 21');
     expect(screen.getAllByText('Mathematics', { selector: '.book-track-h' }).length).toBeGreaterThan(3);
     expect(screen.getAllByText('Computer Science', { selector: '.book-track-h' }).length).toBeGreaterThan(3);
     expect(text()).not.toMatch(/[–—]/);
@@ -79,19 +79,20 @@ describe('the Course tab: the degree as a book', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Discrete Mathematics');
     expect(text()).toContain('Part IA · Michaelmas · Computer Science');
     expect(text()).toContain('Opens after the Preparation campaign. You can read ahead; nothing is locked.');
-    expect(text()).toMatch(/0 of 37 steps learned/);
+    // Proof is recall since CS-0 Proof teaches it (graph/reviews/cambridge-prep.md); Numbers keeps 13 steps.
+    expect(text()).toMatch(/0 of 13 steps learned/);
     const secs = [...document.querySelectorAll('.book-sec')].map((s) => s.querySelector('.t')?.textContent);
     expect(secs).toEqual(['Proof', 'Numbers', 'Sets', 'Formal languages and automata']);
-    expect(document.querySelectorAll('.book-sec details[open]')).toHaveLength(2);
-    expect(screen.getByText('Direct proof').getAttribute('href')).toBe('#/learn/proof.direct/book');
+    expect(document.querySelectorAll('.book-sec details[open]')).toHaveLength(1);
+    expect(screen.getByText('The greatest common divisor').getAttribute('href')).toBe('#/learn/num.gcd/book');
     expect(document.querySelector('.book-pn .next')?.textContent).toBe('Next: Foundations of Computer Science');
   });
 
   it('a lesson opened from a chapter goes back to the chapter', async () => {
     go({ view: 'chapter', chapterId: 'ia-discrete-mathematics' });
     render(<App />);
-    fireEvent.click(screen.getByText('Direct proof'));
-    expect(location.hash).toBe('#/learn/proof.direct/book');
+    fireEvent.click(screen.getByText('The greatest common divisor'));
+    expect(location.hash).toBe('#/learn/num.gcd/book');
     fireEvent.click(await screen.findByRole('button', { name: 'Back to the chapter' }));
     expect(location.hash).toBe('#/book/ia-discrete-mathematics');
   });
@@ -99,8 +100,9 @@ describe('the Course tab: the degree as a book', () => {
   it('flags a step whose prerequisite comes later in the book', () => {
     go({ view: 'book' });
     render(<App />);
-    const pigeonhole = [...document.querySelectorAll('.book-steps li')].find((li) => li.textContent?.startsWith('The pigeonhole principle'));
-    expect(pigeonhole?.querySelector('.book-flag')?.textContent).toBe('Builds on Proof by cases, later in the book.');
+    // STEP 2 Statistics approximates the Poisson distribution, which IA Probability teaches.
+    const approx = [...document.querySelectorAll('.book-steps li')].find((li) => li.textContent?.startsWith('Approximating binomial and Poisson by a normal'));
+    expect(approx?.querySelector('.book-flag')?.textContent).toBe('Builds on The Poisson distribution, later in the book.');
   });
 
   it("Today shows where to continue reading", async () => {

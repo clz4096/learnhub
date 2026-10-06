@@ -2,7 +2,8 @@
  * Topic content on demand. Each topic module is its own dynamic import, so a bundler puts
  * every lesson in a chunk of its own and the app downloads a lesson only when it opens
  * it. What the app needs about all topics at once (which have content, the titles of
- * their Cambridge problems) is in the generated catalog, which loads no lesson.
+ * their Cambridge problems, which of them are gate problems) is in the generated catalog,
+ * which loads no lesson.
  *
  * The app imports only this module's exports from `@learnhub/content`; the static list of
  * every topic (`@learnhub/content/all`) is for the content checks and tests.
@@ -152,6 +153,15 @@ export function loadTopicContent(topicId: string): Promise<TopicContent | undefi
 export function catalogProblem(topicId: string, problemId: string): CatalogProblem | undefined {
   if (!Object.hasOwn(CATALOG, topicId)) return undefined;
   return CATALOG[topicId]?.find((p) => p.id === problemId);
+}
+
+/**
+ * A topic's gate problem ids (`TopicContent.gate`), in the order of its Cambridge problems,
+ * without loading the topic; empty for a topic without content or without a gate problem.
+ */
+export function gateOf(topicId: string): readonly string[] {
+  if (!Object.hasOwn(CATALOG, topicId)) return [];
+  return (CATALOG[topicId] ?? []).filter((p) => p.gate).map((p) => p.id);
 }
 
 export type { CatalogProblem };

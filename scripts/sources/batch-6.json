@@ -1,0 +1,422 @@
+{
+  "batch": "prep-batch-6",
+  "note": "Sixth batch: sources for Preparation, Stage A (mastery/DESIGN-BOOK.md revision; content/src/book/curriculum.json), mapped in graph/reviews/cambridge-prep.md. URLs come from the Meridian handoff: handoff/meridian-cambridge/links/step-links.md (STEP Support Foundation assignment pages and hints for the assignments batch 1 fetched only as scans; the assignment PDFs themselves are batch 1's step-f01 to step-f25 and are not fetched again) and links/cst-prep-links.md (TMUA content specification and Notes on Mathematics, the NST Maths Workbook, the CS3110 OCaml Programming textbook and its chapter 2 to 5, 8 and 9 exercise pages, the FoCS 2025-26 notes). The FoCS 2026-27 course page gives the syllabus headings the functional programming topics cite. The CS3110 textbook is fetched as the PDF edition it links from its front page, so one file covers chapters 2 to 9. Book of Proof and the TMUA Notes on Logic and Proof are batch 1's bop and tmua-logic-proof.",
+  "hosts": [
+    "step.maths.org",
+    "esat-tmua.ac.uk",
+    "uat-wp.s3.eu-west-2.amazonaws.com",
+    "www.maths.cam.ac.uk",
+    "cs3110.github.io",
+    "www.cl.cam.ac.uk"
+  ],
+  "sources": [
+    {
+      "id": "step-f01-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 1: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-1"
+    },
+    {
+      "id": "step-f01-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 1: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-06/Feedback_A1_7.pdf"
+    },
+    {
+      "id": "step-f02-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 2: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-2"
+    },
+    {
+      "id": "step-f02-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 2: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A2_6.pdf"
+    },
+    {
+      "id": "step-f03-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 3: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-3"
+    },
+    {
+      "id": "step-f03-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 3: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A3_5.pdf"
+    },
+    {
+      "id": "step-f04-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 4: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-4"
+    },
+    {
+      "id": "step-f04-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 4: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A4_2.pdf"
+    },
+    {
+      "id": "step-f09-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 9: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-9"
+    },
+    {
+      "id": "step-f09-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 9: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A9_4.pdf"
+    },
+    {
+      "id": "step-f10-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 10: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-10"
+    },
+    {
+      "id": "step-f10-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 10: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A10_3.pdf"
+    },
+    {
+      "id": "step-f11-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 11: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-11"
+    },
+    {
+      "id": "step-f11-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 11: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A11_1.pdf"
+    },
+    {
+      "id": "step-f13-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 13: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-13"
+    },
+    {
+      "id": "step-f13-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 13: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A13_3.pdf"
+    },
+    {
+      "id": "step-f14-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 14: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-14"
+    },
+    {
+      "id": "step-f14-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 14: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A14_1.pdf"
+    },
+    {
+      "id": "step-f15-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 15: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-15"
+    },
+    {
+      "id": "step-f15-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 15: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A15_2.pdf"
+    },
+    {
+      "id": "step-f16-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 16: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-16"
+    },
+    {
+      "id": "step-f16-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 16: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A16_5.pdf"
+    },
+    {
+      "id": "step-f17-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 17: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-17"
+    },
+    {
+      "id": "step-f17-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 17: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A17_3.pdf"
+    },
+    {
+      "id": "step-f18-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 18: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-18"
+    },
+    {
+      "id": "step-f18-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 18: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A18_3.pdf"
+    },
+    {
+      "id": "step-f20-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 20: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-20"
+    },
+    {
+      "id": "step-f20-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 20: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A20_3.pdf"
+    },
+    {
+      "id": "step-f21-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 21: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-21"
+    },
+    {
+      "id": "step-f21-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 21: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A21_2.pdf"
+    },
+    {
+      "id": "step-f22-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 22: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-22"
+    },
+    {
+      "id": "step-f22-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 22: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A22_2.pdf"
+    },
+    {
+      "id": "step-f23-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 23: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-23"
+    },
+    {
+      "id": "step-f23-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 23: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A23_1.pdf"
+    },
+    {
+      "id": "step-f24-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 24: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-24"
+    },
+    {
+      "id": "step-f24-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 24: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A24_2.pdf"
+    },
+    {
+      "id": "step-f25-page",
+      "course": "probability",
+      "kind": "html",
+      "role": "page",
+      "title": "STEP Support Foundation Assignment 25: page",
+      "url": "https://step.maths.org/assignments/step-support-assignment-25"
+    },
+    {
+      "id": "step-f25-hints",
+      "course": "probability",
+      "kind": "pdf",
+      "role": "hints",
+      "title": "STEP Support Foundation Assignment 25: hints and partial solutions",
+      "url": "https://step.maths.org/sites/default/files/2023-07/Feedback_A25_3.pdf"
+    },
+    {
+      "id": "tmua-about-page",
+      "course": "tmua",
+      "kind": "html",
+      "role": "index",
+      "title": "UAT-UK: About the TMUA (index of the content specification)",
+      "url": "https://esat-tmua.ac.uk/about-the-tests/tmua-test/"
+    },
+    {
+      "id": "tmua-spec",
+      "course": "tmua",
+      "kind": "pdf",
+      "role": "syllabus",
+      "title": "UAT-UK: TMUA content specification",
+      "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2024/05/03165619/TMUA_Content_Specification.pdf"
+    },
+    {
+      "id": "tmua-maths-notes",
+      "course": "tmua",
+      "kind": "pdf",
+      "role": "notes",
+      "title": "UAT-UK: Notes on Mathematics, for TMUA and ESAT M2",
+      "url": "https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2026/06/30103537/Notes_on_Mathematics_-for_TMUA_and_ESAT_M2.pdf"
+    },
+    {
+      "id": "nst-workbook",
+      "course": "nst",
+      "kind": "pdf",
+      "role": "problems",
+      "title": "Mathematics for the Natural Sciences Workbook (Cambridge, NST Part IA preparation)",
+      "url": "https://www.maths.cam.ac.uk/undergradnst/files/misc/nstworkbook.pdf"
+    },
+    {
+      "id": "cs3110-book",
+      "course": "ocaml",
+      "kind": "pdf",
+      "role": "notes",
+      "title": "Clarkson et al., OCaml Programming: Correct + Efficient + Beautiful (CS3110 textbook, PDF edition)",
+      "url": "https://cs3110.github.io/textbook/ocaml_programming.pdf"
+    },
+    {
+      "id": "cs3110-ex2",
+      "course": "ocaml",
+      "kind": "html",
+      "role": "problems",
+      "title": "OCaml Programming, chapter 2 exercises",
+      "url": "https://cs3110.github.io/textbook/chapters/basics/exercises.html"
+    },
+    {
+      "id": "cs3110-ex3",
+      "course": "ocaml",
+      "kind": "html",
+      "role": "problems",
+      "title": "OCaml Programming, chapter 3 exercises",
+      "url": "https://cs3110.github.io/textbook/chapters/data/exercises.html"
+    },
+    {
+      "id": "cs3110-ex4",
+      "course": "ocaml",
+      "kind": "html",
+      "role": "problems",
+      "title": "OCaml Programming, chapter 4 exercises",
+      "url": "https://cs3110.github.io/textbook/chapters/hop/exercises.html"
+    },
+    {
+      "id": "cs3110-ex5",
+      "course": "ocaml",
+      "kind": "html",
+      "role": "problems",
+      "title": "OCaml Programming, chapter 5 exercises",
+      "url": "https://cs3110.github.io/textbook/chapters/modules/exercises.html"
+    },
+    {
+      "id": "cs3110-ex8",
+      "course": "ocaml",
+      "kind": "html",
+      "role": "problems",
+      "title": "OCaml Programming, chapter 8 exercises",
+      "url": "https://cs3110.github.io/textbook/chapters/correctness/exercises.html"
+    },
+    {
+      "id": "cs3110-ex9",
+      "course": "ocaml",
+      "kind": "html",
+      "role": "problems",
+      "title": "OCaml Programming, chapter 9 exercises",
+      "url": "https://cs3110.github.io/textbook/chapters/ds/exercises.html"
+    },
+    {
+      "id": "focs-syllabus-2627",
+      "course": "focs",
+      "kind": "html",
+      "role": "syllabus",
+      "title": "CST Part IA Foundations of Computer Science, course page 2026-27 (syllabus)",
+      "url": "https://www.cl.cam.ac.uk/teaching/2627/FoundsCS/"
+    },
+    {
+      "id": "focs-notes",
+      "course": "focs",
+      "kind": "pdf",
+      "role": "notes",
+      "title": "Foundations of Computer Science lecture notes v1.7, Part IA CST 2025-26",
+      "url": "https://www.cl.cam.ac.uk/teaching/2526/FoundsCS/focs-202526-v1.7.pdf"
+    }
+  ]
+}

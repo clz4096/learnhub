@@ -239,4 +239,5 @@ export const fundamentalTheorem: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fundamental-theorem-arithmetic'],
   cambridge: [notes98, notes68, homework302, bop101],
+  gate: ['notes-304-example-98', 'notes-208-example-68', 'notes-302-homework'],
 };

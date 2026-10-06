@@ -46,7 +46,7 @@ describe('a table answer', () => {
     expect(screen.getByRole('heading', { name: 'Correct' })).toBeTruthy();
     expect(document.querySelectorAll('.cell-right')).toHaveLength(3);
     fireEvent.click(screen.getByRole('button', { name: 'Try it again' }));
-    expect(done).toHaveBeenCalledWith({ outcome: 'correct', correct: true, response: ['18/100', '0.62', '3/10'] });
+    expect(done).toHaveBeenCalledWith({ outcome: 'correct', correct: true, response: ['18/100', '0.62', '3/10'], ms: expect.any(Number) });
   });
 
   it('marks the wrong cells by text as well as colour, and shows the filled table', () => {
@@ -136,11 +136,11 @@ describe('a formula answer', () => {
   });
 });
 
-describe('the Cambridge problems stage', () => {
+describe('the Cambridge stage', () => {
   const open = async (topicId: string): Promise<void> => {
     render(<LessonRunner topicId={topicId} salt="test" onEnd={() => undefined} onSkip={() => undefined} />);
     // The lesson downloads its content first.
-    fireEvent.click(await screen.findByRole('button', { name: /Cambridge problems/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Cambridge problem/ }));
   };
 
   it('lists every Cambridge problem with its source, auto-checked or for supervision', async () => {
@@ -184,7 +184,7 @@ describe('the Cambridge problems stage', () => {
 
   it('worked examples from Cambridge say where they come from', () => {
     render(<LessonRunner topicId="comb.pigeonhole" salt="test" onEnd={() => undefined} onSkip={() => undefined} />);
-    fireEvent.click(screen.getByRole('button', { name: /Examples/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Worked examples/ }));
     expect(screen.getByText('From STEP Support Assignment 5, Q4(i)')).toBeTruthy();
   });
 });

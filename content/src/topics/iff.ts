@@ -435,4 +435,5 @@ export const iff: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['biconditional', 'sufficient-condition', 'necessary-condition'],
   cambridge: [bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, sw113, sw122, sw127, tmuaI3],
+  gate: ['sw-1-1-3-verdict', 'sw-1-1-3', 'sw-1-2-2', 'sw-1-2-7'],
 };

@@ -374,4 +374,5 @@ export const rvIndependence: TopicContent = {
   terms: ['independent-random-variables', 'iid'],
   claims,
   cambridge: [q12, q12proof, q5cProof, q7order],
+  gate: ['ia-s2-q12-two-records', 'ia-s2-q12-independent', 'ia-s2-q5-c-why', 'ia-s3-q7'],
 };

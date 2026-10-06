@@ -213,4 +213,5 @@ export const continuity: TopicContent = {
   terms: ['continuity-of-probability'],
   claims,
   cambridge: [q6alt, q6cont, decreasingProof],
+  gate: ['ia-q6-alternating', 'ia-q6-continuity', 'ia-q4-f-decreasing'],
 };

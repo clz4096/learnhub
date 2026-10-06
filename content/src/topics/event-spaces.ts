@@ -235,4 +235,5 @@ export const eventSpaces: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sigma-algebra', 'partition'],
   cambridge: [q4def, q4aSecond, q6b],
+  gate: ['q4-definitions', 'q4-a-finite', 'q6-b-event'],
 };

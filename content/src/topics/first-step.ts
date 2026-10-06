@@ -448,4 +448,5 @@ export const firstStep: TopicContent = {
   terms: ['first-step-analysis'],
   claims,
   cambridge: [q12i, q12ii, q13i, q13ii, s2q3i, darts, s2q3proof, evenSuccesses],
+  gate: ['mixed-q12-i', 'mixed-q12-ii', 'mixed-q13-i', 'mixed-q13-ii', 's2-q3-i-w', 'sheet2-q4-darts', 's2-q3-i-compare', 'sheet2-q3'],
 };

@@ -295,4 +295,5 @@ export const transformations: TopicContent = {
   terms: ['change-of-variables', 'jacobian'],
   claims,
   cambridge: [q8ratio, q7dist, q7proof, q8proof, q9a],
+  gate: ['ia4-q8-ratio', 'ia4-q7-distribution', 'ia4-q7', 'ia4-q8', 'ia4-q9-a'],
 };

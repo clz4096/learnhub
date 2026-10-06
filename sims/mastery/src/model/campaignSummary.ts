@@ -3,7 +3,7 @@
  * the progress document, and the day planner's log. Also the planner's inputs from the
  * campaign (`campaignPlanInputs`).
  */
-import type { Progress } from '@learnhub/mastery';
+import { isStudyEntry, type Progress } from '@learnhub/mastery';
 import {
   activeEffects, acts, choiceLocks, currentAct, lettersDue, paperName, stats,
   type Act, type ActInputs, type Admissions, type Campaign, type EffectRule, type LetterId, type Locks, type Stat, type StatInputs,
@@ -30,7 +30,8 @@ export function courseInputs(p: Progress): CourseInputs {
     lessons: { mastered: ts.filter((t) => done(t.id)).length, total: ts.length },
     topics: ts.map((t) => ({ area: t.area, mastered: done(t.id) })),
     lessonMinutesLeft: ts.filter((t) => !done(t.id)).reduce((a, t) => a + t.estMinutes, 0),
-    historyDates: p.history.filter((h) => h.kind !== 'placement').map((h) => planDate(h.at)),
+    // Gym work earns its own, lower REP (GYM_REP), so a gym-only day is not a study day.
+    historyDates: p.history.filter(isStudyEntry).map((h) => planDate(h.at)),
   };
 }
 

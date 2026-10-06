@@ -378,4 +378,5 @@ export const twoWayTables: TopicContent = {
   terms: ['two-way-table', 'conditional-probability'],
   claims,
   cambridge: [a6regions, a6eWoman, a6diagram],
+  gate: ['a6-q4-i-regions', 'a6-q4-i-e-woman', 'a6-q4-i-diagram'],
 };

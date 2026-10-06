@@ -1,6 +1,6 @@
 /** Area `proof`. Proof techniques from GCSE algebraic arguments to strong induction, for CST Discrete Mathematics "Proof" and "Numbers". */
 import type { Topic } from '@learnhub/mastery';
-import { CST, CST_DM, CST_NUMBERS, CST_PROOF, GCSE, GCSE_ALGEBRA, M1_PROOF, STEP } from '../sources';
+import { CAMBRIDGE_COURSE, CST, CST_DM, CST_NUMBERS, CST_PROOF, GCSE, GCSE_ALGEBRA, M1_PROOF, STEP } from '../sources';
 
 export const proof: Topic[] = [
   {
@@ -152,5 +152,39 @@ export const proof: Topic[] = [
       verified: true,
     }],
     estMinutes: 20,
+  },
+  // Preparation, Stage A (graph/reviews/cambridge-prep.md).
+  {
+    id: 'proof.set-proofs',
+    title: 'Proofs about sets',
+    summary: 'Prove $a \\in A$, $A \\subseteq B$, and $A = B$ by chasing an arbitrary element through the definitions.',
+    level: 'step',
+    area: 'proof',
+    prereqs: ['proof.direct', 'sets.subsets'],
+    encompasses: { 'proof.direct': 0.5, 'sets.subsets': 0.5 },
+    sources: [{ doc: 'bop', course: CAMBRIDGE_COURSE.bop, section: 'Chapter 8, Sections 8.1 to 8.3', note: 'How to prove a in A, A subset of B, and A = B.', verified: true }],
+    estMinutes: 20,
+  },
+  {
+    id: 'proof.disproof',
+    title: 'Disproving existence statements',
+    summary: 'Disprove $\\exists x\\, P(x)$ by proving $\\forall x\\, \\lnot P(x)$, and disprove a statement by contradiction.',
+    level: 'tripos-ia',
+    area: 'proof',
+    prereqs: ['proof.counterexample', 'logic.negating-quantifiers'],
+    encompasses: { 'proof.counterexample': 0.5, 'logic.negating-quantifiers': 0.5 },
+    sources: [{ doc: 'bop', course: CAMBRIDGE_COURSE.bop, section: 'Chapter 9, Sections 9.2 and 9.3', note: 'Disproving existence statements; disproof by contradiction.', verified: true }],
+    estMinutes: 15,
+  },
+  {
+    id: 'proof.smallest-counterexample',
+    title: 'Proof by smallest counterexample',
+    summary: 'Prove $P(n)$ for all $n$ by assuming a smallest $n$ with $P(n)$ false and contradicting its minimality.',
+    level: 'tripos-ia',
+    area: 'proof',
+    prereqs: ['proof.strong-induction', 'proof.contradiction'],
+    encompasses: { 'proof.strong-induction': 0.5, 'proof.contradiction': 0.5 },
+    sources: [{ doc: 'bop', course: CAMBRIDGE_COURSE.bop, section: 'Section 10.3', note: 'Proof by smallest counterexample.', verified: true }],
+    estMinutes: 15,
   },
 ];

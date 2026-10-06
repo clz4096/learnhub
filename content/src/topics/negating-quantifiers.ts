@@ -452,4 +452,5 @@ export const negatingQuantifiers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['negation-of-quantifier'],
   cambridge: [bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12],
+  gate: ['sw-1-1-5-negation', 'sw-1-1-5-witness', 'sw-1-1-5'],
 };

@@ -397,4 +397,5 @@ export const randomSums: TopicContent = {
   terms: ['random-sum'],
   claims,
   cambridge: [q10a, q10b, q8a, q10c],
+  gate: ['ia-s3-q10-a', 'ia-s3-q10-b', 'ia-s3-q8-a', 'ia-s3-q10-c'],
 };

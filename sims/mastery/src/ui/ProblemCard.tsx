@@ -42,6 +42,8 @@ export interface CardResult {
   outcome: CardOutcome | 'problem-error';
   correct: boolean;
   response: Response | null;
+  /** ms from the problem being shown to the answer (Check, or Show the solution). */
+  ms: number;
 }
 
 /** What a result does to progress, from the runner's own rules, and the label of the button that moves on. */
@@ -80,7 +82,7 @@ function reveal(block: HTMLElement): void {
 
 type Shown = 'right' | 'wrong' | 'gave-up' | 'broken';
 
-export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, consequence, afterWrong }: {
+export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, onAnswer, consequence, afterWrong }: {
   /** With the generator id and seed (data attributes), enough to reproduce the problem in a bug report. */
   topicId: string;
   instance: Instance;
@@ -94,6 +96,11 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, co
    */
   idBase?: string;
   onDone: (r: CardResult) => void;
+  /**
+   * Called once when the result is shown, before the learner moves on: for a record that must
+   * not depend on the learner pressing on (a Cambridge gate attempt, whose solution is now seen).
+   */
+  onAnswer?: (r: CardResult) => void;
   /** The effect of an outcome on progress, shown as one line in the result. */
   consequence?: (o: CardOutcome) => Consequence;
   /** Shown in the result of a wrong answer, given the answer as read: a Cambridge problem offers supervision here. */
@@ -120,6 +127,9 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, co
   const editRef = useRef<HTMLButtonElement>(null);
   const blockRef = useRef<HTMLDivElement>(null);
   const shownAt = useRef(0);
+  /** When this problem appeared, and when it was answered, for the time taken. */
+  const startedAt = useRef(Date.now());
+  const answeredAt = useRef<number | null>(null);
   const id = idBase ?? `p${index}`;
 
   useEffect(() => {
@@ -132,6 +142,8 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, co
     setUnread(null);
     setConfirm(null);
     setSaid({ n: 0, text: '' });
+    startedAt.current = Date.now();
+    answeredAt.current = null;
     inputRef.current?.focus({ preventScroll: true });
   }, [index]);
 
@@ -144,6 +156,8 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, co
   useEffect(() => {
     if (shown === null) return;
     shownAt.current = Date.now();
+    answeredAt.current ??= shownAt.current;
+    onAnswer?.(resultOf(shown));
     if (blockRef.current !== null) reveal(blockRef.current);
     if (shown === 'right') nextRef.current?.focus({ preventScroll: true });
     else headRef.current?.focus({ preventScroll: true });
@@ -165,6 +179,14 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, co
     ? picks.map((p) => { const o = optionOf(p); return o === undefined ? p : plain(o.label); }).join(', ')
     : a.kind === 'table' ? filled.map((c) => c.trim()).join(', ')
       : reading === null ? text.trim() : texToPlain(reading.tex);
+
+  // Read inside effects and handlers, after every value above is set.
+  const resultOf = (sh: Shown): CardResult => ({
+    outcome: sh === 'right' ? 'correct' : sh === 'broken' ? 'problem-error' : sh === 'gave-up' ? 'gave-up' : 'wrong',
+    correct: sh === 'right',
+    response: gaveUp ? null : response,
+    ms: Math.max(0, (answeredAt.current ?? Date.now()) - startedAt.current),
+  });
 
   const check = (anyway = false): void => {
     if (checked || empty) return;
@@ -203,8 +225,7 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, co
   };
   const finish = (): void => {
     if (shown === null) return;
-    const outcome = shown === 'right' ? 'correct' : shown === 'broken' ? 'problem-error' : shown === 'gave-up' ? 'gave-up' : 'wrong';
-    onDone({ outcome, correct: shown === 'right', response: gaveUp ? null : response });
+    onDone(resultOf(shown));
   };
   const edit = (): void => {
     setConfirm(null);

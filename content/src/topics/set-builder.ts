@@ -343,4 +343,5 @@ export const setBuilder: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['set-builder', 'membership'],
   cambridge: [sheet311, interval, zeroDivisors, equalProof],
+  gate: ['sw-3-1-1', 'notes-202-interval', 'notes-205-d0', 'notes-205-equality'],
 };

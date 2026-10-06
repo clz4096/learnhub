@@ -365,4 +365,16 @@ export const restrictedArrangements: TopicContent = {
   terms: ['block-method', 'gap-method'],
   claims,
   cambridge: [q3iiid, q3iv, q3v, q3vii, q4i, q5i, q5ii, q4ii, q5iii, q3why],
+  gate: [
+    'mixed-q3-iii-d',
+    'mixed-q3-iv',
+    'mixed-q3-v',
+    'mixed-q3-vii',
+    'mixed-q4-i',
+    'mixed-q5-i',
+    'mixed-q5-ii',
+    'mixed-q4-ii',
+    'mixed-q5-iii',
+    'mixed-q3-v-why',
+  ],
 };

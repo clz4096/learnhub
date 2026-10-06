@@ -252,4 +252,5 @@ export const samplingModels: TopicContent = {
   terms: ['sampling-model', 'stars-and-bars'],
   claims,
   cambridge: [q12four, q13auto, q13why, q12why],
+  gate: ['ia-q12-four', 'ia-q13', 'ia-q13-bijection', 'ia-q12-model'],
 };

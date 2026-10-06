@@ -417,4 +417,5 @@ export const proofByInduction: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['induction', 'base-case', 'induction-hypothesis'],
   cambridge: [fibII, fibIII, bop9, tromino, polygon, polyaQ, bop13, sw412, sw422, sw411, polyaProof],
+  gate: ['sw-4-2-3-g-ii', 'sw-4-2-3-g-iii', 'sw-4-1-2-count', 'sw-4-1-1-step', 'ia-q10', 'sw-4-1-2', 'sw-4-2-2', 'sw-4-1-1', 'ia-q10-proof'],
 };

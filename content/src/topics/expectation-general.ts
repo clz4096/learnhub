@@ -378,4 +378,5 @@ export const expectationGeneral: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expectation-general', 'expectation-of-function'],
   cambridge: [q8, q10, q10proof, scheduleExpectation],
+  gate: ['ia-s2-q8', 'ia-s2-q10', 'ia-s2-q10-general'],
 };

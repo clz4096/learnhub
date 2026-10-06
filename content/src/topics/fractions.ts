@@ -382,6 +382,7 @@ export const fractions: TopicContent = {
   ],
   generators: [addFractions, multiplyDivide, simplify, ratioShare, telescope],
   cambridge: [a6General, a6Show],
+  gate: ['a6-q1-i-general', 'a6-q1-i-show'],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fraction', 'numerator', 'denominator', 'lowest-terms', 'common-denominator', 'reciprocal', 'ratio'],
 };

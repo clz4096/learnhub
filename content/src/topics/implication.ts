@@ -592,4 +592,5 @@ export const implication: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['implication', 'converse', 'modus-ponens'],
   cambridge: [bop25_1, bop25_7, bop25_10, bop25_11, bop23_3, bop23_5, bop23_7, bop23_11, tmuaE4, tmua29, prop10, thm11, tmuaE1, tmuaJ],
+  gate: ['notes-50-prop10', 'notes-54-thm11'],
 };

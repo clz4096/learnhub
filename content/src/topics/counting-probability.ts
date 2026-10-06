@@ -313,4 +313,5 @@ export const countingProbability: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['favourable-outcome'],
   cambridge: [q3ii, q3iii, twoMints, q3iiShow, q3general],
+  gate: ['a12-q3-ii', 'a12-q3-iii', 'a12-q2-ii-mints', 'a12-q3-ii-show', 'a12-q3-discussion'],
 };

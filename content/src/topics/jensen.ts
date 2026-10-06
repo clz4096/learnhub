@@ -230,4 +230,5 @@ export const jensen: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['convex-function', 'jensen-inequality', 'am-gm'],
   cambridge: [q1b, q1bProof, scheduleJensen],
+  gate: ['ia-s3-q1-b-largest', 'ia-s3-q1-b'],
 };

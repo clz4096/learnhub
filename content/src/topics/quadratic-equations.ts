@@ -285,4 +285,5 @@ export const quadraticEquations: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quadratic-formula', 'discriminant'],
   cambridge: [mildredWait, twoRates, showQuadratic],
+  gate: ['s2-q5-first-text', 's2-q5-two-values', 's2-q5-show'],
 };

@@ -1,6 +1,6 @@
 /** Area `number-theory`. Divisibility, congruences, gcd, and their uses, for CST Discrete Mathematics "Proof" and "Numbers". */
 import type { Topic } from '@learnhub/mastery';
-import { CST, CST_DM, CST_NUMBERS, CST_PROOF, STEP_SUPPORT } from '../sources';
+import { CST, CST_DM, CST_NUMBERS, CST_PROOF, M1_PROOF, STEP, STEP_SUPPORT } from '../sources';
 
 export const numberTheory: Topic[] = [
   {
@@ -210,6 +210,18 @@ export const numberTheory: Topic[] = [
     prereqs: ['num.modular-exponentiation', 'num.modular-integers'],
     encompasses: { 'num.modular-exponentiation': 0.7, 'num.modular-integers': 0.4 },
     sources: [{ doc: CST, course: CST_DM, section: CST_NUMBERS, note: 'Syllabus: "The Diffie-Hellman cryptographic method."', verified: true }],
+    estMinutes: 20,
+  },
+  // Preparation, Stage A (graph/reviews/cambridge-prep.md).
+  {
+    id: 'num.linear-diophantine',
+    title: 'Integer solutions of linear equations',
+    summary: 'Find one integer solution of $ax + by = c$ by trial or reduction, then every solution by adding multiples, as in $8N = 81m + 65$.',
+    level: 'step',
+    area: 'number-theory',
+    prereqs: ['pre.algebraic-argument', 'pre.remainders'],
+    encompasses: { 'pre.algebraic-argument': 0.5, 'pre.remainders': 0.5 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_PROOF, note: 'Spec: "Understand and use the structure of mathematical proof". STEP Support Assignments 3 and 13 set linear Diophantine equations; the STEP specification has no heading for them.', verified: true }],
     estMinutes: 20,
   },
 ];

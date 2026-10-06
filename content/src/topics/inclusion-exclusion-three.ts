@@ -274,4 +274,5 @@ export const inclusionExclusionThree: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inclusion-exclusion'],
   cambridge: [iaQ5bAny, iaQ5aNum, iaQ5a, derive],
+  gate: ['ia-q5-b-any', 'ia-q5-a-numbers', 'ia-q5-a', 'ia-q5-three'],
 };

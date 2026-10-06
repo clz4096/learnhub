@@ -281,4 +281,5 @@ export const axiomConsequences: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['monotonicity'],
   cambridge: [q4e, q4b, q4eproof, boundsProof],
+  gate: ['ia-q4-e-numbers', 'ia-q4-b', 'ia-q4-e', 'ia-q4-bounds'],
 };

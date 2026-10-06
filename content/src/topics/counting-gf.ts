@@ -345,4 +345,5 @@ export const countingGf: TopicContent = {
   terms: ['ordinary-generating-function'],
   claims,
   cambridge: [q3even, euler, eulerProof, q3proof],
+  gate: ['ia-s2-q3-even', 'ia-s2-q3'],
 };

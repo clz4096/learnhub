@@ -682,4 +682,5 @@ export const connectives: TopicContent = {
     tmuaA1, tmuaB1, bop21_1, bop21_3, bop21_9, bop21_11, bop21_13, bop22_8, bop22_9, bop22_10,
     bop25_5, bop25_8, bop26_4, bop26_9, bop26_13, tmuaC4, tmuaA2, tmuaB2, bop22_12,
   ],
+  gate: [],
 };

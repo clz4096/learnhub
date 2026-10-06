@@ -295,4 +295,5 @@ export const conditionalProbability: TopicContent = {
   terms: ['conditional-measure'],
   claims,
   cambridge: [q10third, exchange, measure],
+  gate: ['ia-q10-third-white', 'ia-q10-exchangeable'],
 };

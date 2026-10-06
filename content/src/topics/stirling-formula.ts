@@ -193,4 +193,5 @@ export const stirlingFormula: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['stirlings-formula', 'asymptotic'],
   cambridge: [q14, q3proof, q14a, q14b],
+  gate: ['ia-q14-a-numbers', 'ia-q3-stirling-derivation', 'ia-q14-a', 'ia-q14-b'],
 };

@@ -262,4 +262,5 @@ export const geometricSeries: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['geometric-series', 'common-ratio'],
   cambridge: [sw421b, bop105, sw421aProof, sw421bProof],
+  gate: ['sw-4-2-1-b', 'sw-4-2-1-a-proof', 'sw-4-2-1-b-proof'],
 };

@@ -315,4 +315,5 @@ export const arithmeticoGeometric: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arithmetico-geometric-series'],
   cambridge: [arthur, beta, contestMean, geomSecond, q2proofS, q2proofE],
+  gate: ['s3-q2-arthur', 's3-q2-beta', 's3-q2-contest-shots', 's3-notes-geometric-second-moment', 's3-q2-prove-series', 's3-q2-prove-contest'],
 };

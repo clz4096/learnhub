@@ -252,4 +252,5 @@ export const divisionTheorem: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quotient-remainder', 'loop-invariant'],
   cambridge: [sheet213, cor59, bop728, theorem57, sheet213all],
+  gate: ['sheet-2-1-3-a', 'notes-186-cor-59', 'notes-181-theorem-57', 'sheet-2-1-3'],
 };

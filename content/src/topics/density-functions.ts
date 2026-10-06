@@ -306,4 +306,5 @@ export const densityFunctions: TopicContent = {
   terms: ['continuous-random-variable', 'density-function', 'cumulative-distribution-function', 'uniform-distribution'],
   claims,
   cambridge: [q2a, q2b, q2bk, q2sketch, q6stem],
+  gate: ['s2-q2-ii-a', 's2-q2-ii-b', 's2-q2-ii-b-in-k', 's2-q2-i', 's2-q6-stem'],
 };

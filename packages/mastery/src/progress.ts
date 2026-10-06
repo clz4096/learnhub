@@ -11,7 +11,7 @@ import { withDefaults } from './options';
 import type { PlacementAnswer } from './placement';
 
 /** Bump when the shape changes, and add the migration from the previous version. */
-export const PROGRESS_VERSION = 4;
+export const PROGRESS_VERSION = 5;
 
 export interface Settings {
   budgetMinutes: number;
@@ -35,9 +35,47 @@ export type ChoiceStamps = Record<ChoiceField, number>;
 /** Course weights above this are a typo, not a preference: 100 to 1 is already all of the time. */
 export const MAX_COURSE_WEIGHT = 100;
 
-/** `supervision`: an imported supervision result; `correct` is the mark's pass or fail (`SUPERVISION_PASS_MARK`). */
-export const HISTORY_KINDS = ['placement', 'lesson', 'review', 'quiz', 'supervision'] as const;
+/**
+ * `supervision`: an imported supervision result; `correct` is the mark's pass or fail (`SUPERVISION_PASS_MARK`).
+ * Since version 5, one entry per answered item as well:
+ * - `drill`: one generated problem in lesson practice or in a review (the lesson or review
+ *   keeps its own entry for the run's result);
+ * - `cambridge`: one answer to an auto-checked Cambridge problem, the evidence the mastery
+ *   gate reads (gate.ts);
+ * - `gym`: one gym item (gym.ts). Gym work feeds spaced review but never the gate.
+ */
+export const HISTORY_KINDS = ['placement', 'lesson', 'review', 'quiz', 'supervision', 'drill', 'cambridge', 'gym'] as const;
 export type HistoryKind = (typeof HISTORY_KINDS)[number];
+
+/** Upper bounds on item data: anything larger is a corrupt file, not a learner. */
+export const MAX_ITEM_ID = 200;
+export const MAX_ITEM_MS = 86_400_000;
+export const MAX_ITEM_HINTS = 100;
+export const MAX_ITEM_ATTEMPT = 10_000;
+
+/**
+ * What was answered, for per-item analysis (difficulty, time on task) and for the gate's
+ * "unaided" rule. Recorded on `drill`, `cambridge`, `gym`, and `quiz` entries.
+ */
+export interface ItemData {
+  /**
+   * The item: a generator as "topic id/generator id", a Cambridge problem by its key
+   * ("topic id/problem id", `PROBLEM_KEY_RE`), or a gym item id (`GymCandidate.id`).
+   */
+  id: string;
+  /** The generator seed, when the item was generated. Unsigned 32 bit. */
+  seed?: number;
+  /** ms from the item being shown to the answer; absent when not measured. */
+  ms?: number;
+  /** Hints used before answering. 0 where none are offered. */
+  hints: number;
+  /**
+   * 1 for the first answer to this item, 2 for the next, and so on. For a Cambridge problem
+   * it counts every answer the document holds (`nextAttempt`); for a generated problem, the
+   * answers to that seed.
+   */
+  attempt: number;
+}
 
 export interface HistoryEntry {
   /** ms since the epoch. */
@@ -45,6 +83,20 @@ export interface HistoryEntry {
   kind: HistoryKind;
   topicId: string;
   correct: boolean;
+  item?: ItemData;
+}
+
+/** The attempt number the next answer to `itemId` gets: one more than the entries of `kind` on it. */
+export function nextAttempt(history: readonly HistoryEntry[], kind: HistoryKind, itemId: string): number {
+  return history.filter((h) => h.kind === kind && h.item?.id === itemId).length + 1;
+}
+
+/**
+ * Entries that make a day count as studied for story REP's "days studied": everything but
+ * placement and gym work, which earns REP at its own lower rate (`GYM_REP`).
+ */
+export function isStudyEntry(h: Readonly<HistoryEntry>): boolean {
+  return h.kind !== 'placement' && h.kind !== 'gym';
 }
 
 export const SESSION_TASK_KINDS = ['review', 'lesson', 'quiz'] as const;
@@ -182,6 +234,14 @@ export type Migration = (doc: Record<string, unknown>) => Record<string, unknown
  * of each choice and of the last reset. A version 3 document cannot know when its choices
  * were made, so a choice that differs from the default is dated to the document's
  * `updatedAt` (an upper bound) and a default to 0: a device that chose beats a fresh one.
+ * 4 to 5: the Cambridge gate and item data (mastery/TEACHING-STYLE.md, decisions of
+ * 2026-10-05) added the `drill`, `cambridge`, and `gym` history kinds and the optional
+ * `item` on an entry. Nothing in a version 4 document changes: its memory and review
+ * schedule are kept, and its learned topics are re-gated because mastery is now read from
+ * evidence (`gateStatus`), and a version 4 document holds no `cambridge` entry. Imported
+ * supervision results it holds are evidence already, so one of 14 or more on a gate problem
+ * still meets the gate. The bump is what keeps a version 4 build from loading a document
+ * with the new kinds, which it would reject entry by entry.
  */
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: (d) => {
@@ -201,6 +261,7 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
     };
     return { ...d, version: 4, changedAt, resetAt: 0 };
   },
+  4: (d) => ({ ...d, version: 5 }),
 };
 
 export interface ImportOptions {
@@ -413,6 +474,27 @@ function checkResult(c: Checker, x: unknown, path: string): SupervisionResult | 
   return { mark: o.mark as number, weakPoints: [...(weak as string[])], redo: [...(redo as string[])], summary: o.summary as string };
 }
 
+const ITEM_KEYS = ['id', 'seed', 'ms', 'hints', 'attempt'] as const;
+
+/** An entry's item data, or null (with errors) when it does not validate. */
+function checkItem(c: Checker, x: unknown, path: string): ItemData | null {
+  if (!c.need(isObj(x), path, 'an object', x)) return null;
+  const o = x as Obj;
+  c.extraKeys(o, ITEM_KEYS, path);
+  const ok = [
+    c.need(oneLine(o.id, MAX_ITEM_ID), `${path}.id`, `one line of at most ${MAX_ITEM_ID} characters`, o.id),
+    o.seed === undefined || c.need(isNat(o.seed) && (o.seed as number) <= 0xffffffff, `${path}.seed`, 'an unsigned 32-bit integer', o.seed),
+    o.ms === undefined || c.need(isNum(o.ms) && o.ms >= 0 && o.ms <= MAX_ITEM_MS, `${path}.ms`, `ms in [0, ${MAX_ITEM_MS}]`, o.ms),
+    c.need(isNat(o.hints) && (o.hints as number) <= MAX_ITEM_HINTS, `${path}.hints`, `a whole number from 0 to ${MAX_ITEM_HINTS}`, o.hints),
+    c.need(Number.isInteger(o.attempt) && (o.attempt as number) >= 1 && (o.attempt as number) <= MAX_ITEM_ATTEMPT, `${path}.attempt`, `a whole number from 1 to ${MAX_ITEM_ATTEMPT}`, o.attempt),
+  ].every(Boolean);
+  if (!ok) return null;
+  const item: ItemData = { id: o.id as string, hints: o.hints as number, attempt: o.attempt as number };
+  if (o.seed !== undefined) item.seed = o.seed as number;
+  if (o.ms !== undefined) item.ms = o.ms as number;
+  return item;
+}
+
 function checkSupervision(c: Checker, x: unknown): SupervisionAttempt[] {
   const out: SupervisionAttempt[] = [];
   if (!c.need(Array.isArray(x), '$.supervision', 'an array', x)) return out;
@@ -465,7 +547,7 @@ function checkRedos(c: Checker, x: unknown): Redo[] {
   return out;
 }
 
-function checkV4(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
+function checkV5(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
   const TOP = [
     'version', 'courseId', 'createdAt', 'updatedAt', 'settings', 'courses', 'placement', 'memory', 'learnedSinceQuiz', 'history',
     'courseMinutes', 'session', 'supervision', 'redos', 'changedAt', 'resetAt',
@@ -549,15 +631,20 @@ function checkV4(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progres
       const path = `$.history[${i}]`;
       if (!c.need(isObj(h), path, 'an object', h)) return;
       const o = h as Obj;
-      c.extraKeys(o, ['at', 'kind', 'topicId', 'correct'], path);
+      c.extraKeys(o, ['at', 'kind', 'topicId', 'correct', 'item'], path);
+      const item = o.item === undefined ? undefined : checkItem(c, o.item, `${path}.item`);
       const ok = [
         c.need(isNum(o.at), `${path}.at`, 'a time in ms', o.at),
         c.need((HISTORY_KINDS as readonly unknown[]).includes(o.kind), `${path}.kind`, HISTORY_KINDS.join(', '), o.kind),
         // History is a log: entries for removed topics stay, they are still what happened.
         checkId(c, o.topicId, `${path}.topicId`),
         c.need(typeof o.correct === 'boolean', `${path}.correct`, 'true or false', o.correct),
+        item !== null,
       ].every(Boolean);
-      if (ok) history.push({ at: o.at as number, kind: o.kind as HistoryKind, topicId: o.topicId as string, correct: o.correct as boolean });
+      if (!ok) return;
+      const entry: HistoryEntry = { at: o.at as number, kind: o.kind as HistoryKind, topicId: o.topicId as string, correct: o.correct as boolean };
+      if (item !== undefined && item !== null) entry.item = item;
+      history.push(entry);
     });
   }
 
@@ -623,7 +710,7 @@ export function importProgress(input: unknown, options: ImportOptions = {}): Res
 
     const c = new Checker();
     const known = options.knownTopicIds === undefined ? null : new Set(options.knownTopicIds);
-    const p = checkV4(c, d, known);
+    const p = checkV5(c, d, known);
     return p === null ? { ok: false, errors: c.errors } : { ok: true, value: p, warnings: c.warnings };
   } catch (e) {
     // Validation is written not to throw; this is the backstop the contract promises.

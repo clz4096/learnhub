@@ -1,0 +1,600 @@
+<title>Design System v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --paper: #fafaf8; --ink: #141615; --ink2: #3d423f; --mute: #737a76; --faint: #b8bdb9; --rule: #e4e6e2; --wash: #f2f3f0;
+  --cam: #2e6a57; --cam-l: #85b09a; --cam-wash: rgba(46,106,87,.08); --scarlet: #a8201c; --gold: #b68a2e;
+  --outer: #e6e8e4;
+  --read: "STIX Two Text", "Times New Roman", serif;
+  --ui: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark;
+  --paper: #0e1110; --ink: #e8ebe8; --ink2: #c3c8c4; --mute: #8b928e; --faint: #4b524e; --rule: #222826; --wash: #151a18; --cam: #8fc0a8; --cam-l: #5f8f7b; --cam-wash: rgba(143,192,168,.08); --scarlet: #e2727f; --gold: #d9b56a; --outer: #060807; } }
+:root[data-theme="dark"] { color-scheme: dark;
+  --paper: #0e1110; --ink: #e8ebe8; --ink2: #c3c8c4; --mute: #8b928e; --faint: #4b524e; --rule: #222826; --wash: #151a18; --cam: #8fc0a8; --cam-l: #5f8f7b; --cam-wash: rgba(143,192,168,.08); --scarlet: #e2727f; --gold: #d9b56a; --outer: #060807; }
+* { box-sizing: border-box; }
+html, body { background: var(--outer); }
+body { margin: 0; color: var(--ink); font: 15px/1.5 var(--ui); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cam); outline-offset: 2px; }
+
+/* page chrome */
+.chrome { max-width: 1320px; margin: 0 auto; padding: 22px 16px 60px; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin-bottom: 18px; }
+.ctl h1 { font: 400 22px var(--read); margin: 0 12px 0 0; }
+.sw { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--paper); }
+.sw button { border: 0; background: none; padding: 6px 12px; font-size: 13px; color: var(--mute); }
+.sw button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.screens { display: flex; flex-wrap: wrap; gap: 4px; }
+.screens button { border: 1px solid var(--rule); background: var(--paper); border-radius: 999px; padding: 4px 11px; font-size: 12.5px; color: var(--ink2); }
+.screens button[aria-pressed="true"] { border-color: var(--cam); color: var(--cam); }
+.stagewrap { display: grid; grid-template-columns: auto minmax(0, 320px); gap: 28px; align-items: start; justify-content: center; }
+.notes { font-size: 13.5px; color: var(--ink2); }
+.notes h3 { font: 600 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--mute); margin: 0 0 6px; }
+.notes p { margin: 0 0 14px; }
+.swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+.swatches div { border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; font: 10.5px var(--mono); color: var(--mute); background: var(--paper); }
+.swatches i { display: block; height: 26px; }
+.types div { margin-bottom: 6px; }
+
+/* device */
+.device { background: var(--paper); position: relative; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.18); transition: width .3s, height .3s, border-radius .3s; }
+.device.phone { width: 390px; height: 820px; border-radius: 40px; border: 10px solid #101211; }
+.device.desk { width: min(1100px, 92vw); height: 720px; border-radius: 10px; border: 1px solid var(--rule); }
+.app { position: absolute; inset: 0; display: grid; }
+.phone .app { grid-template-rows: 1fr 72px; }
+.desk .app { grid-template-columns: 220px minmax(0, 1fr); }
+
+/* nav */
+.nav { display: flex; }
+.phone .nav { order: 2; border-top: 1px solid var(--rule); justify-content: space-around; padding: 6px 4px 20px; background: var(--paper); }
+.desk .nav { order: 0; flex-direction: column; border-right: 1px solid var(--rule); padding: 18px 12px; gap: 2px; background: var(--wash); }
+.nav .brand { display: none; }
+.desk .nav .brand { display: flex; gap: 10px; align-items: flex-start; padding: 2px 8px 14px; margin-bottom: 8px; border-bottom: 1px solid var(--rule); }
+.brand svg { width: 30px; height: 37px; flex: none; margin-top: 1px; }
+.brand b { font: 500 13px/1.25 var(--read); display: block; }
+.brand span { display: block; font: 11.5px/1.35 var(--ui); color: var(--mute); margin-top: 3px; }
+.nav .tab { border: 0; background: none; display: grid; justify-items: center; gap: 3px; font-size: 11px; color: var(--mute); padding: 4px 6px; min-width: 56px; min-height: 44px; }
+.desk .nav .tab { display: flex; align-items: center; gap: 10px; font-size: 14px; padding: 8px 10px; border-radius: 6px; justify-content: flex-start; }
+.nav .tab svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+.nav .tab[aria-current="true"] { color: var(--cam); }
+.desk .nav .tab[aria-current="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 0 0 1px var(--rule); }
+.desk .nav .tab kbd { margin-left: auto; }
+.nav .kbtn { display: none; }
+.desk .nav .kbtn { display: flex; margin-top: auto; align-items: center; gap: 8px; border: 1px solid var(--rule); background: var(--paper); border-radius: 6px; padding: 8px 10px; color: var(--mute); font-size: 13px; }
+.phone .nav .tab kbd, .phone .btn kbd { display: none; }
+kbd { font: 10.5px var(--mono); color: var(--mute); border: 1px solid var(--rule); border-radius: 4px; padding: 0 5px; background: var(--paper); }
+
+/* views */
+.view { overflow-y: auto; display: none; }
+.view.on { display: block; }
+.inner { padding: 22px 18px 30px; }
+.phone .inner { padding-top: 40px; }
+.desk .inner { max-width: 640px; margin: 0 auto; padding: 34px 28px 40px; }
+.desk .split { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 32px; max-width: 980px; }
+.side2 { display: none; }
+.desk .side2 { display: block; padding-top: 6px; }
+.eyebrow { font: 500 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.h1 { font: 400 30px/1.12 var(--read); margin: 4px 0 2px; letter-spacing: -.005em; }
+.meta { font: 12px var(--mono); color: var(--mute); }
+.sect { margin-top: 24px; }
+.sect > .eyebrow { margin-bottom: 8px; display: flex; justify-content: space-between; }
+
+/* components */
+.now { border: 1px solid var(--rule); border-radius: 10px; padding: 16px; margin-top: 16px; background: var(--paper); }
+.now .tag { font: 500 11px var(--mono); letter-spacing: .1em; color: var(--cam); }
+.now .ttl { font: 400 22px/1.2 var(--read); margin: 6px 0 2px; }
+.now .row { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+.btn { border: 0; background: var(--ink); color: var(--paper); border-radius: 7px; padding: 10px 16px; font-weight: 500; font-size: 14px; display: inline-flex; gap: 10px; align-items: center; min-height: 44px; }
+.btn kbd { background: transparent; color: var(--faint); border-color: rgba(255,255,255,.25); }
+.btn.ghost { background: none; color: var(--ink); border: 1px solid var(--rule); }
+.btn.wide { width: 100%; justify-content: center; }
+.track { height: 3px; background: var(--rule); border-radius: 2px; position: relative; overflow: hidden; }
+.track i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--cam); border-radius: 2px; }
+.kv { display: flex; justify-content: space-between; font: 12px var(--mono); color: var(--mute); margin: 8px 0 6px; }
+.chip { font: 500 11px var(--mono); color: var(--cam); background: var(--cam-wash); border-radius: 999px; padding: 3px 9px; white-space: nowrap; border: 0; }
+.chip.red { color: var(--scarlet); background: rgba(168,32,28,.07); }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; padding: 11px 0; border-top: 1px solid var(--rule); cursor: pointer; }
+.list li:first-child { border-top: 0; }
+.list .t { font: 12px var(--mono); color: var(--mute); }
+.list .x { font-size: 14.5px; }
+.list .x small { display: block; font: 12px var(--mono); color: var(--mute); margin-top: 1px; }
+.list .r { font: 12px var(--mono); color: var(--mute); }
+.list.plain li { grid-template-columns: minmax(0, 1fr) auto; }
+.stage { border-top: 1px solid var(--rule); padding: 14px 0; }
+.stage .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.stage .num { font: 500 11px var(--mono); color: var(--mute); margin-right: 8px; }
+.stage .name { font: 400 19px var(--read); }
+.stage .what { font-size: 13.5px; color: var(--mute); margin-top: 2px; }
+.stage .chs { margin: 10px 0 0 22px; border-left: 1px solid var(--rule); padding-left: 12px; }
+.stage .chs div { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; font-size: 14px; }
+.stage .chs div span:last-child { font: 12px var(--mono); color: var(--mute); }
+.stage .chs .here span:first-child { color: var(--cam); font-weight: 500; }
+.def { border-top: 1px solid var(--rule); padding: 12px 0; }
+.def .h { font: 500 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--mute); margin-bottom: 5px; }
+.read { font: 16.5px/1.6 var(--read); }
+.plain { font-size: 13.5px; color: var(--mute); margin-top: 5px; }
+.thm { border-left: 2px solid var(--cam); padding: 4px 0 4px 12px; margin: 16px 0; }
+ol.pf { margin: 8px 0 0; padding: 0; list-style: none; counter-reset: s; }
+ol.pf li { counter-increment: s; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 4px; padding: 10px 0; border-top: 1px solid var(--rule); }
+ol.pf li::before { content: counter(s); font: 12px/1.9 var(--mono); color: var(--mute); }
+ol.pf b { font: 600 14px var(--ui); display: block; margin-bottom: 2px; }
+.eq { text-align: center; margin: 8px 0; font-size: 18px; }
+details { margin-top: 6px; font-size: 13.5px; color: var(--ink2); }
+summary { color: var(--cam); cursor: pointer; font-size: 13px; }
+.rail { list-style: none; margin: 0; padding: 0; position: relative; }
+.rail::before { content: ""; position: absolute; left: 13px; top: 10px; bottom: 10px; width: 1px; background: var(--rule); }
+.rail li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 0; position: relative; }
+.rail .n { width: 27px; height: 27px; border-radius: 50%; border: 1px solid var(--rule); background: var(--paper); display: grid; place-items: center; font: 500 11px var(--read); color: var(--mute); z-index: 1; }
+.rail li.cur .n { border-color: var(--cam); color: var(--cam); }
+.rail li.done .n { background: var(--cam); border-color: var(--cam); color: var(--paper); }
+.rail .x { font-size: 14.5px; }
+.rail .r { font: 12px var(--mono); color: var(--mute); }
+.subtabs { display: flex; gap: 18px; border-bottom: 1px solid var(--rule); margin: 16px 0 6px; overflow-x: auto; }
+.subtabs button { border: 0; background: none; padding: 0 0 9px; font-size: 13.5px; color: var(--mute); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.subtabs button[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+.stat { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--rule); }
+.stat div { padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.stat div:nth-child(odd) { border-right: 1px solid var(--rule); padding-right: 12px; }
+.stat div:nth-child(even) { padding-left: 12px; }
+.stat b { display: block; font: 400 22px var(--read); }
+.stat span { font: 11.5px var(--mono); color: var(--mute); }
+.range { position: relative; height: 18px; margin-top: 6px; }
+.range::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 1px; background: var(--rule); }
+.range .band { position: absolute; top: 5px; height: 7px; background: var(--cam-wash); border: 1px solid var(--cam-l); border-radius: 3px; }
+.range .pt { position: absolute; top: 3px; width: 2px; height: 11px; background: var(--cam); }
+.scenecard { border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; margin-top: 14px; cursor: pointer; }
+.scenecard .art { height: 140px; background: linear-gradient(180deg, #0a1428, #24375c 65%, #6b5466); position: relative; }
+.scenecard .art::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 60px; background: #0b0f18; clip-path: polygon(0 50%, 10% 50%, 10% 20%, 18% 20%, 18% 60%, 32% 60%, 32% 30%, 44% 30%, 44% 70%, 58% 70%, 58% 0, 66% 0, 66% 50%, 82% 50%, 82% 35%, 92% 35%, 92% 55%, 100% 55%, 100% 100%, 0 100%); }
+.scenecard .cap { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+.scenecard .cap b { font: 400 17px var(--read); display: block; }
+.big { font: 400 56px var(--mono); text-align: center; letter-spacing: -.02em; margin: 26px 0 0; }
+.flash { border: 1px solid var(--rule); border-radius: 12px; min-height: 260px; display: grid; place-items: center; text-align: center; padding: 22px; margin-top: 14px; cursor: pointer; }
+.flash .q { font: 400 21px/1.35 var(--read); }
+.flash .lbl { font: 500 11px var(--mono); letter-spacing: .12em; color: var(--mute); margin-bottom: 12px; text-transform: uppercase; }
+.grade3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.grade3 button { border: 1px solid var(--rule); background: none; border-radius: 7px; padding: 10px 0; font-size: 13.5px; min-height: 44px; }
+.fbar { display: flex; justify-content: space-between; align-items: center; font: 12px var(--mono); color: var(--mute); margin-bottom: 10px; }
+.fbar button { border: 0; background: none; color: var(--mute); padding: 6px 0; font: 12px var(--mono); }
+.cmd { position: absolute; inset: 0; background: rgba(10,12,11,.35); display: none; align-items: flex-start; justify-content: center; padding-top: 12%; z-index: 20; }
+.cmd.on { display: flex; }
+.cmd .box { width: min(560px, 92%); background: var(--paper); border-radius: 12px; border: 1px solid var(--rule); box-shadow: 0 20px 60px rgba(0,0,0,.3); overflow: hidden; }
+.cmd input { width: 100%; border: 0; border-bottom: 1px solid var(--rule); padding: 14px 16px; font: 16px var(--ui); background: var(--paper); color: var(--ink); outline: none; }
+.cmd .res div { padding: 10px 16px; display: flex; justify-content: space-between; font-size: 14px; }
+.cmd .res div:first-child { background: var(--cam-wash); }
+.cmd .res span { font: 11.5px var(--mono); color: var(--mute); }
+.scene { position: absolute; inset: 0; background: #06080a; color: #eef0ec; z-index: 25; display: none; }
+.scene.on { display: block; }
+.scene .lb { position: absolute; left: 0; right: 0; height: 9%; background: #000; z-index: 2; } .scene .lb.t { top: 0; } .scene .lb.b { bottom: 0; }
+.scene .art { position: absolute; inset: 9% 0 9% 0; background: linear-gradient(180deg, #0a1428, #1b2a48 58%, #6b5466); }
+.scene .dlg { position: absolute; left: 6%; right: 6%; bottom: 13%; background: rgba(8,10,14,.72); border-top: 1px solid rgba(255,255,255,.14); padding: 14px 16px; z-index: 3; font: 17px/1.5 var(--read); }
+.scene .dlg i { display: block; font: 500 11px var(--mono); letter-spacing: .16em; color: #8fc0a8; font-style: normal; margin-bottom: 4px; }
+.scene .skip { position: absolute; top: 2.5%; right: 4%; z-index: 4; border: 1px solid rgba(255,255,255,.22); background: none; color: #aab2ae; border-radius: 5px; padding: 4px 10px; font: 11.5px var(--mono); }
+.lhead { padding-bottom: 16px; margin-bottom: 14px; border-bottom: 1px solid var(--rule); }
+.blurb { font: 16px/1.5 var(--read); color: var(--ink2); margin: 6px 0 8px; max-width: 34em; }
+.part { font: 500 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--mute); margin: 4px 0 4px; }
+.part span { display: block; font: 400 20px/1.3 var(--read); letter-spacing: 0; text-transform: none; color: var(--ink); margin-top: 3px; }
+.narr { font: 16.5px/1.6 var(--read); margin: 10px 0 12px; }
+.amsdef { font: 16px/1.6 var(--read); background: var(--wash); border-left: 2px solid var(--gold); padding: 10px 12px; margin: 12px 0; }
+.amsdef .lab, .amsthm .lab { font-weight: 600; }
+.amsdef .nm { font-weight: 400; }
+.amsdef em { font-style: italic; font-weight: 500; }
+.amsdef .plain { font-family: var(--ui); }
+.amsthm { font: 16px/1.6 var(--read); border-left: 2px solid var(--cam); padding: 4px 0 4px 12px; margin: 14px 0 8px; }
+.amspf { font: 16px var(--read); margin: 6px 0 0; }
+.journey { font: 11.5px var(--mono); color: var(--mute); letter-spacing: .04em; }
+.journey span { color: var(--faint); margin: 0 4px; }
+dl.obj { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 4px 12px; margin: 10px 0 8px; }
+dl.obj dt { font: 500 10.5px/1.9 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
+dl.obj dd { margin: 0; font: 15px/1.5 var(--read); color: var(--ink2); }
+.segs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 18px; }
+.segs i { height: 3px; background: var(--rule); border-radius: 2px; }
+.segs i.done { background: var(--cam); }
+.segs i.cur { background: linear-gradient(90deg, var(--cam) 50%, var(--rule) 50%); }
+ol.outline { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 2px; font: 13px var(--ui); color: var(--mute); counter-reset: o; }
+ol.outline li { counter-increment: o; display: flex; gap: 8px; }
+ol.outline li::before { content: counter(o); font: 11.5px/1.7 var(--mono); width: 12px; }
+ol.outline li.done { text-decoration: line-through; text-decoration-color: var(--faint); }
+ol.outline li.cur { color: var(--ink); font-weight: 500; }
+ol.outline li.cur::after { content: "you are here"; font: 10.5px/1.9 var(--mono); color: var(--cam); margin-left: 6px; }
+.clockrow { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.clock { font: 500 15px var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.ticks { display: flex; justify-content: space-between; font: 10px var(--mono); color: var(--mute); margin: 1px 0 4px; }
+.rail .x .why { display: block; font: 12.5px/1.4 var(--ui); color: var(--mute); margin-top: 2px; }
+.sceneline { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; border-bottom: 1px solid var(--rule); background: none; padding: 12px 0; font-size: 13.5px; color: var(--ink2); text-align: left; margin-top: 6px; }
+.sceneline b { font-weight: 500; color: var(--ink); }
+.sceneline .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--scarlet); flex: none; }
+.sceneline .go { margin-left: auto; font: 12px var(--mono); color: var(--cam); }
+.lessfoot { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; gap: 10px; }
+.link { border: 0; background: none; color: var(--mute); font: 12.5px var(--mono); padding: 8px 0; }
+.rest { border: 1px solid var(--rule); background: none; border-radius: 999px; padding: 3px 10px; font: 12px var(--mono); color: var(--cam); }
+.flags { margin-top: 22px; }
+.flags div { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.ghostchip { background: none; border: 1px dashed var(--rule); color: var(--mute); }
+.cmd .res .rh { font: 500 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--mute); background: none !important; padding-bottom: 4px; }
+.cmd .res div:first-child { background: none; }
+.cmd .res div:nth-child(2) { background: var(--cam-wash); }
+.peek { font: 12px var(--mono); color: var(--mute); margin-top: 4px; }
+details.how { margin-top: 8px; font-size: 13px; }
+.actsnote { font-size: 13.5px; color: var(--ink2); margin: 8px 0 0; }
+.art2 { height: 150px; position: relative; overflow: hidden; background: #000; }
+.art3 { position: absolute; inset: 9% 0 9% 0; overflow: hidden; }
+svg.kart { position: absolute; inset: 0; width: 100%; height: 100%; }
+@media (max-width: 980px) { .stagewrap { grid-template-columns: 1fr; } .notes { max-width: 520px; margin: 0 auto; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="arms" viewBox="0 0 120 150"><clipPath id="cs"><path d="M12 8 H108 V66 C106 100 84 124 60 140 C36 124 14 100 12 66 Z"/></clipPath><g clip-path="url(#cs)"><rect width="60" height="150" fill="#c8102e"/><rect x="60" width="60" height="150" fill="#0b2a52"/><rect x="12" y="8" width="96" height="32" fill="#f2c230"/></g><circle cx="30" cy="24" r="7" fill="#c8102e"/><circle cx="60" cy="24" r="7" fill="#c8102e"/><circle cx="90" cy="24" r="7" fill="#c8102e"/><path d="M36 54 C46 50 54 51 60 55 C66 51 74 50 84 54 V76 C74 72 66 73 60 77 C54 73 46 72 36 76 Z" fill="#fff" stroke="#f2c230" stroke-width="2.5"/><path d="M47 98 H73 V105 H59 L68 114 L59 124 H73 V131 H47 V125 L57 114 L47 103 Z" fill="#f2c230" stroke="#141414" stroke-width="1"/><path d="M12 8 H108 V66 C106 100 84 124 60 140 C36 124 14 100 12 66 Z" fill="none" stroke="#141414" stroke-width="3"/></symbol></defs></svg>
+
+<div class="chrome">
+  <div class="ctl">
+    <h1>Design v4</h1>
+    <div class="sw" role="group" aria-label="Device"><button aria-pressed="true" data-dev="phone">Phone</button><button aria-pressed="false" data-dev="desk">Desktop</button></div>
+    <div class="sw" role="group" aria-label="Theme"><button aria-pressed="true" data-th="system">System</button><button aria-pressed="false" data-th="light">Light</button><button aria-pressed="false" data-th="dark">Dark</button></div>
+    <div class="screens" id="screens"></div>
+  </div>
+  <div class="stagewrap">
+    <div class="device phone" id="dev">
+      <div class="app">
+        <nav class="nav" id="nav">
+          <div class="brand"><svg viewBox="0 0 120 150"><use href="#arms"/></svg><div><b>Computational Mathematics</b><span>University of Cambridge</span></div></div>
+          <button class="tab" data-v="today"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M9 3v4M15 3v4"/></svg>Today<kbd>1</kbd></button>
+          <button class="tab" data-v="course"><svg viewBox="0 0 24 24"><path d="M4 5c3-1 6-1 8 1v14c-2-2-5-2-8-1zM20 5c-3-1-6-1-8 1v14c2-2 5-2 8-1z"/></svg>Course<kbd>2</kbd></button>
+          <button class="tab" data-v="camp"><svg viewBox="0 0 24 24"><path d="M6 20V4M6 4h11l-2 3.5 2 3.5H6"/></svg>Admission<kbd>3</kbd></button>
+          <button class="tab" data-v="story"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M10 9.5l5 2.5-5 2.5z"/></svg>Story<kbd>4</kbd></button>
+          <button class="tab" data-v="you"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c1.5-4 4-5.5 7-5.5s5.5 1.5 7 5.5"/></svg>You<kbd>5</kbd></button>
+          <button class="kbtn" data-cmd>Search or jump to… <kbd>⌘K</kbd></button>
+        </nav>
+
+        <!-- TODAY -->
+        <section class="view" id="v-today"><div class="inner split">
+          <div>
+            <div class="clockrow"><span class="eyebrow" id="dateNow">Monday 6 October</span><span class="clock" id="clockNow" aria-live="off">11:42:07 am</span></div>
+            <div class="h1">Good morning, Albert.</div>
+            <div class="meta">woke 9:00 am · 2.5 of 6 h studied · Getting in, week 3</div>
+            <div class="now">
+              <div class="tag">NOW · 11:30 AM to 1:00 PM</div>
+              <div class="ttl">Proof by contradiction</div>
+              <div class="meta">Lesson · Writing proofs § 4</div>
+              <div class="row" style="justify-content:flex-end"><button class="btn" data-v="lesson">Start <kbd>⏎</kbd></button></div>
+            </div>
+            <button class="sceneline" data-v="scene"><span class="dot"></span>A scene is ready: <b>First Light</b><span class="go">play ›</span></button>
+            <div class="sect"><div class="eyebrow"><span>Later today</span><span>4</span></div>
+              <ul class="list">
+                <li data-v="gym"><span class="t">2:00 pm</span><span class="x">Gym<small>gym mode · 90 min</small></span><span class="r">›</span></li>
+                <li data-v="paper"><span class="t">4:00 pm</span><span class="x">One timed problem<small>STEP 2005 I · Q1 · 45 min</small></span><span class="r">›</span></li>
+                <li><span class="t">5:45 pm</span><span class="x">Review<small>mixed · 5 items</small></span><span class="r">›</span></li>
+                <li><span class="t">8:00 pm</span><span class="x" style="color:var(--mute)">Dinner</span><span class="r"></span></li>
+              </ul></div>
+          </div>
+          <aside class="side2">
+            <div class="eyebrow">This week</div>
+            <div class="kv"><span>29.5 / 36 h</span><span>82%</span></div><div class="track"><i style="width:82%"></i></div>
+            <div class="sect"><div class="eyebrow">Shabbat</div><div class="meta">Fri 6:25 pm to Sat 6:24 pm</div></div>
+            <div class="sect"><div class="eyebrow">Streak</div><div class="h1" style="font-size:26px">13 days</div></div>
+          </aside>
+        </div></section>
+
+        <!-- COURSE -->
+        <section class="view" id="v-course"><div class="inner">
+          <div class="eyebrow">Course</div>
+          <div class="h1">Four stages</div>
+          <div class="meta">the order Cambridge students take them</div>
+          <div class="now" style="padding:12px 14px" data-v="lesson"><div class="tag">CONTINUE</div><div class="ttl" style="font-size:18px">Proof by contradiction</div><div class="meta">Writing proofs § 4</div></div>
+          <div class="sect">
+            <div class="stage"><div class="top"><span><span class="num">01</span><span class="name">Getting in</span></span><span class="chip">31%</span></div>
+              <div class="what">The maths and computing to win a place.</div>
+              <div class="chs">
+                <div class="here"><span>Writing proofs</span><span>6 of 11 lessons</span></div>
+                <div><span>Problem solving <span title="STEP: Cambridge's training problems for applicants" class="meta">STEP</span></span><span>12 of 86</span></div>
+                <div><span>School exams <span class="meta">A level</span></span><span>0 of 64</span></div>
+                <div><span>Entrance test <span class="meta">TMUA</span></span><span>0 of 9</span></div>
+                <div><span>First programming <span class="meta">OCaml</span></span><span>0 of 25</span></div>
+              </div></div>
+            <div class="stage"><div class="top"><span><span class="num">02</span><span class="name">First year</span></span><span class="meta">locked until 01</span></div><div class="what">Probability, analysis, algebra, first CS courses.</div><div class="peek">Analysis I · Probability · Groups · Foundations of CS · Algorithms</div></div>
+            <div class="stage"><div class="top"><span><span class="num">03</span><span class="name">Second year</span></span><span class="meta"></span></div><div class="what">Deeper maths, systems, theory of computation.</div><div class="peek">Linear Algebra · Markov Chains · Statistics · Compilers · Networking</div></div>
+            <div class="stage"><div class="top"><span><span class="num">04</span><span class="name">Third year</span></span><span class="meta"></span></div><div class="what">Statistics, machine learning, architecture.</div><div class="peek">Probability and Measure · Machine Learning · Computer Architecture · Project</div></div>
+          </div>
+        </div></section>
+
+        <!-- LESSON -->
+        <section class="view" id="v-lesson"><div class="inner">
+          <div class="fbar"><button data-v="today">← Today</button><span></span><button data-cmd>⌘K</button></div>
+          <div class="segs" aria-label="This lesson's sections"><i class="done" title="The idea"></i><i class="cur" title="Is √2 a fraction?"></i><i title="Try one yourself"></i><i title="The Cambridge problem"></i></div>
+          <header class="lhead">
+            <div class="journey">Getting in <span>›</span> Writing proofs</div>
+            <div class="h1" style="font-size:30px">Proof by contradiction</div>
+            <dl class="obj">
+              <dt>Goal</dt><dd>Prove a statement by showing its opposite is impossible.</dd>
+              <dt>Why</dt><dd>The standard way to show something can't exist. Next, it proves there are infinitely many primes.</dd>
+            </dl>
+            <div class="meta">about 20 min</div>
+            <ol class="outline"><li class="done">The idea</li><li class="cur">Is √2 a fraction?</li><li>Try one yourself</li><li>The Cambridge problem</li></ol>
+          </header>
+          <div class="part"><span>Is √2 a fraction?</span></div>
+          <p class="narr">Here's a strange kind of claim: √2 is not a fraction. It doesn't tell you what √2 <i>is</i>; it tells you what it can never be. You can't check every fraction one by one. So how could you ever prove it? First, let's pin down exactly what we mean.</p>
+          <div class="amsdef"><span class="lab">Definition 2.1</span> <span class="nm">(Rational number)</span>. A real number <i>x</i> is <em>rational</em> if <i>x</i> = <i>a</i>/<i>b</i> for some <i>a</i>, <i>b</i> ∈ ℤ with <i>b</i> ≠ 0. Otherwise <i>x</i> is <em>irrational</em>.
+            <div class="plain">In plain words: one whole number divided by another, like 7/5.</div></div>
+          <div class="amsdef"><span class="lab">Definition 2.2</span> <span class="nm">(Even, odd)</span>. An integer <i>n</i> is <em>even</em> if <i>n</i> = 2<i>k</i> for some <i>k</i> ∈ ℤ, and <em>odd</em> if <i>n</i> = 2<i>k</i> + 1 for some <i>k</i> ∈ ℤ.
+            <div class="plain">10 = 2 · 5 is even; 7 = 2 · 3 + 1 is odd.</div></div>
+          <p class="narr">Now the idea. Suppose, just for a moment, that √2 <i>is</i> a fraction. We aren't claiming it; we're taking it for a walk to see where it goes.</p>
+          <div class="amsthm"><span class="lab">Theorem 2.3.</span> <i>√2 is irrational.</i></div>
+          <div class="amspf"><i>Proof.</i></div>
+          <ol class="pf">
+            <li><div><b>Pretend</b><span class="read">Suppose √2 = <i>a</i>/<i>b</i>, gcd(<i>a</i>, <i>b</i>) = 1.</span><div class="plain">A fraction already simplified as far as it goes.</div></div></li>
+            <li><div><b>Square</b><div class="eq read">2 = <i>a</i>²/<i>b</i>² ⟹ <i>a</i>² = 2<i>b</i>²</div><div class="plain">Square both sides, then multiply by <i>b</i>².</div></div></li>
+            <li><div><b>a is even</b><span class="read"><i>a</i>² is even, so <i>a</i> is even.</span><details><summary>why?</summary>If <i>a</i> = 2<i>m</i> + 1, then <i>a</i>² = 2(2<i>m</i>² + 2<i>m</i>) + 1 is odd.</details></div></li>
+            <li><div><b>…</b><span class="plain">two more steps</span></div></li>
+          </ol>
+          <div class="lessfoot"><button class="link" onclick="this.closest('.view').scrollTo({top:0,behavior:'smooth'})">↑ Top of section</button><button class="btn">Continue <kbd>⏎</kbd></button></div>
+        </div></section>
+
+        <!-- ADMISSION -->
+        <section class="view" id="v-camp"><div class="inner">
+          <div class="eyebrow">Admission</div>
+          <div class="h1">October 2028</div>
+          <div class="meta">Mathematics · Euclid College · on course</div>
+          <p class="actsnote">Five acts: the real steps to a Cambridge place, each finished by doing the work.</p>
+          <div class="subtabs"><button aria-pressed="true">Acts</button><button aria-pressed="false">Papers</button><button aria-pressed="false">Results</button><button aria-pressed="false">Letters</button></div>
+          <ul class="rail">
+            <li class="cur"><span class="n">I</span><span class="x">School exams<small class="why">Cambridge needs recent top grades from mature applicants.</small></span><span class="r">31%</span></li>
+            <li><span class="n">II</span><span class="x">Entrance test</span><span class="r">Jan</span></li>
+            <li><span class="n">III</span><span class="x">Application</span><span class="r">13 Jan</span></li>
+            <li><span class="n">IV</span><span class="x">Interview</span><span class="r">Mar</span></li>
+            <li><span class="n">V</span><span class="x">Offer and STEP</span><span class="r">Jun</span></li>
+          </ul>
+          <div class="sect"><div class="eyebrow">Next requirement</div>
+            <ul class="list plain"><li><span class="x">2 timed A level Maths papers<small>Edexcel 9MA0 · June 2025</small></span><span class="r">0 / 2</span></li></ul></div>
+        </div></section>
+
+        <!-- STORY -->
+        <section class="view" id="v-story"><div class="inner">
+          <div class="eyebrow">Story · Book One</div>
+          <div class="h1">The mature student</div>
+          <div class="meta">REP 1,240 · Applicant → Offer Holder · 260 to go</div>
+          <div class="track" style="margin-top:8px"><i style="width:83%"></i></div>
+          <div class="scenecard" data-v="scene"><div class="art2"><svg class="kart" viewBox="0 0 1600 900" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="k-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a1428"/><stop offset=".55" stop-color="#1b2a48"/><stop offset=".85" stop-color="#5a4a5e"/><stop offset="1" stop-color="#c9805a"/></linearGradient>
+        <radialGradient id="k-glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#bfe3ff" stop-opacity=".55"/><stop offset="1" stop-color="#bfe3ff" stop-opacity="0"/></radialGradient>
+        <radialGradient id="k-room" cx="62%" cy="70%" r="80%"><stop offset="0" stop-color="#2a2622"/><stop offset="1" stop-color="#0c0b0a"/></radialGradient>
+        <linearGradient id="k-table" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3626"/><stop offset="1" stop-color="#1e150e"/></linearGradient>
+        <linearGradient id="k-screen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f6f8"/><stop offset="1" stop-color="#d9e2ea"/></linearGradient>
+        <clipPath id="k-win"><rect x="220" y="110" width="560" height="460"/></clipPath>
+      </defs>
+      <g class="layer" id="k-Lroom"><rect width="1600" height="900" fill="url(#k-room)"/></g>
+      <g class="layer" id="k-Lsky" clip-path="url(#k-win)">
+        <rect x="200" y="100" width="600" height="480" fill="url(#k-sky)"/>
+        <g fill="#0b0f18"><rect x="200.0" y="366.6" width="59.4" height="213.4"/><rect x="263.4" y="479.5" width="35.4" height="100.5"/><rect x="302.8" y="431.9" width="56.4" height="148.1"/><rect x="363.2" y="456.0" width="31.5" height="124.0"/><rect x="398.7" y="475.9" width="59.3" height="104.1"/><rect x="462.0" y="407.0" width="56.4" height="173.0"/><rect x="522.3" y="373.9" width="42.0" height="206.1"/><rect x="568.3" y="414.1" width="46.7" height="165.9"/><rect x="619.1" y="278.4" width="72.5" height="301.6"/><rect x="695.6" y="402.5" width="34.0" height="177.5"/><rect x="733.6" y="405.6" width="54.9" height="174.4"/><rect x="792.5" y="295.7" width="48.2" height="284.3"/></g>
+        <g fill="#f2c96b"><rect x="206.0" y="378.6" width="5" height="7" opacity="0.62"/><rect x="242.0" y="378.6" width="5" height="7" opacity="0.94"/><rect x="218.0" y="410.6" width="5" height="7" opacity="0.75"/><rect x="206.0" y="442.6" width="5" height="7" opacity="0.97"/><rect x="206.0" y="522.6" width="5" height="7" opacity="0.96"/><rect x="308.8" y="491.9" width="5" height="7" opacity="0.66"/><rect x="308.8" y="523.9" width="5" height="7" opacity="0.68"/><rect x="344.8" y="523.9" width="5" height="7" opacity="1.00"/><rect x="381.2" y="516.0" width="5" height="7" opacity="0.54"/><rect x="369.2" y="532.0" width="5" height="7" opacity="0.77"/><rect x="381.2" y="564.0" width="5" height="7" opacity="0.64"/><rect x="428.7" y="503.9" width="5" height="7" opacity="0.81"/><rect x="440.7" y="503.9" width="5" height="7" opacity="0.70"/><rect x="404.7" y="519.9" width="5" height="7" opacity="0.74"/><rect x="428.7" y="519.9" width="5" height="7" opacity="0.88"/><rect x="440.7" y="551.9" width="5" height="7" opacity="0.94"/><rect x="404.7" y="567.9" width="5" height="7" opacity="0.53"/><rect x="440.7" y="567.9" width="5" height="7" opacity="0.80"/><rect x="504.0" y="499.0" width="5" height="7" opacity="0.99"/><rect x="480.0" y="547.0" width="5" height="7" opacity="0.68"/><rect x="540.3" y="385.9" width="5" height="7" opacity="0.98"/><rect x="528.3" y="401.9" width="5" height="7" opacity="0.69"/><rect x="528.3" y="481.9" width="5" height="7" opacity="0.58"/><rect x="528.3" y="513.9" width="5" height="7" opacity="0.53"/><rect x="552.3" y="529.9" width="5" height="7" opacity="0.70"/><rect x="552.3" y="545.9" width="5" height="7" opacity="0.56"/><rect x="552.3" y="561.9" width="5" height="7" opacity="0.77"/><rect x="598.3" y="474.1" width="5" height="7" opacity="0.61"/><rect x="637.1" y="322.4" width="5" height="7" opacity="0.57"/><rect x="661.1" y="338.4" width="5" height="7" opacity="0.94"/><rect x="637.1" y="354.4" width="5" height="7" opacity="0.68"/><rect x="637.1" y="370.4" width="5" height="7" opacity="0.73"/><rect x="625.1" y="402.4" width="5" height="7" opacity="0.50"/><rect x="661.1" y="402.4" width="5" height="7" opacity="0.81"/><rect x="673.1" y="402.4" width="5" height="7" opacity="0.54"/><rect x="685.1" y="418.4" width="5" height="7" opacity="0.92"/><rect x="685.1" y="434.4" width="5" height="7" opacity="0.65"/><rect x="637.1" y="450.4" width="5" height="7" opacity="0.82"/><rect x="661.1" y="466.4" width="5" height="7" opacity="0.62"/><rect x="625.1" y="482.4" width="5" height="7" opacity="0.63"/><rect x="685.1" y="482.4" width="5" height="7" opacity="0.68"/><rect x="625.1" y="498.4" width="5" height="7" opacity="0.57"/><rect x="661.1" y="498.4" width="5" height="7" opacity="0.66"/><rect x="673.1" y="498.4" width="5" height="7" opacity="0.71"/><rect x="661.1" y="546.4" width="5" height="7" opacity="0.75"/><rect x="673.1" y="562.4" width="5" height="7" opacity="0.73"/><rect x="713.6" y="414.5" width="5" height="7" opacity="0.73"/><rect x="701.6" y="446.5" width="5" height="7" opacity="0.75"/><rect x="713.6" y="462.5" width="5" height="7" opacity="0.89"/><rect x="713.6" y="494.5" width="5" height="7" opacity="0.98"/><rect x="775.6" y="433.6" width="5" height="7" opacity="0.72"/><rect x="751.6" y="449.6" width="5" height="7" opacity="0.76"/><rect x="775.6" y="449.6" width="5" height="7" opacity="0.99"/><rect x="751.6" y="497.6" width="5" height="7" opacity="0.57"/><rect x="763.6" y="497.6" width="5" height="7" opacity="0.87"/><rect x="751.6" y="513.6" width="5" height="7" opacity="0.51"/><rect x="751.6" y="529.6" width="5" height="7" opacity="0.51"/><rect x="751.6" y="545.6" width="5" height="7" opacity="0.63"/><rect x="775.6" y="545.6" width="5" height="7" opacity="0.75"/><rect x="739.6" y="561.6" width="5" height="7" opacity="0.78"/><rect x="822.5" y="307.7" width="5" height="7" opacity="0.56"/><rect x="810.5" y="387.7" width="5" height="7" opacity="0.66"/><rect x="834.5" y="451.7" width="5" height="7" opacity="0.89"/><rect x="810.5" y="467.7" width="5" height="7" opacity="0.73"/><rect x="822.5" y="515.7" width="5" height="7" opacity="0.84"/><rect x="798.5" y="531.7" width="5" height="7" opacity="0.58"/><rect x="810.5" y="531.7" width="5" height="7" opacity="0.79"/><rect x="798.5" y="547.7" width="5" height="7" opacity="0.80"/></g>
+      </g>
+      <g class="layer" id="k-Lwin">
+        <rect x="214" y="104" width="572" height="472" fill="none" stroke="#1a1714" stroke-width="16"/>
+        <path d="M500 104 V576 M214 340 H786" stroke="#1a1714" stroke-width="10"/>
+        <rect x="196" y="572" width="608" height="18" fill="#22201c"/>
+        <rect x="1040" y="140" width="120" height="160" fill="#16130f" opacity=".7"/>
+        <g class="flick"><circle cx="1290" cy="150" r="70" fill="#f7d79a" opacity=".05"/><path d="M1290 40 V118" stroke="#2a2520" stroke-width="3"/><path d="M1262 118 h56 l-10 22 h-36 z" fill="#2c2722"/><circle cx="1290" cy="146" r="9" fill="#ffe6b0" opacity=".85"/></g>
+      </g>
+      <g class="layer" id="k-Ltable">
+        <path d="M0 640 L1600 610 L1600 900 L0 900 Z" fill="url(#k-table)"/>
+        <path d="M0 640 L1600 610" stroke="#6a4c34" stroke-width="2" opacity=".6"/>
+        <ellipse cx="900" cy="640" rx="420" ry="90" fill="url(#k-glow)" opacity=".55"/>
+        <g transform="translate(700 420)">
+          <path d="M-210 210 L210 210 L240 238 L-240 238 Z" fill="#1c1f24"/>
+          <rect x="-200" y="-10" width="400" height="220" rx="8" fill="#15181d"/>
+          <rect x="-188" y="2" width="376" height="196" rx="3" fill="url(#k-screen)"/>
+          <g font-family="Spectral, serif" fill="#22262b">
+            <text x="-170" y="32" font-size="15" font-weight="500">STEP 2005, Paper I, Question 1</text>
+            <text x="-170" y="62" font-size="12.5">Find the number of positive five-digit integers</text>
+            <text x="-170" y="80" font-size="12.5">whose digits sum to 43.</text>
+            <text x="-170" y="116" font-size="12.5" fill="#3f7a63" font-style="italic" id="k-scratch1" opacity="0">Case 1: four nines and a 7 ...</text>
+            <text x="-170" y="136" font-size="12.5" fill="#3f7a63" font-style="italic" id="k-scratch2" opacity="0">Case 2: three nines, two 8s ...</text>
+          </g>
+        </g>
+        <g transform="translate(1110 600)">
+          <g class="steam" fill="none" stroke="#e9eef2" stroke-width="3" stroke-linecap="round"><path d="M-8 -48 c-10 -14 10 -20 0 -36"/><path d="M6 -46 c-10 -14 10 -20 0 -36"/><path d="M20 -48 c-10 -14 10 -20 0 -36"/></g>
+          <path d="M-30 -40 h64 v52 a14 14 0 0 1 -14 14 h-36 a14 14 0 0 1 -14 -14 z" fill="#d7d2c8"/>
+          <path d="M34 -28 a16 16 0 0 1 0 30" fill="none" stroke="#d7d2c8" stroke-width="7"/>
+          <rect x="-30" y="-40" width="64" height="7" fill="#c8102e"/>
+        </g>
+        <g id="k-phone" transform="translate(360 680) rotate(-8)">
+          <rect x="-34" y="-62" width="68" height="124" rx="10" fill="#101215" stroke="#2c3036" stroke-width="2"/>
+          <rect x="-28" y="-54" width="56" height="108" rx="6" fill="#0d0f12" id="k-phoneScreen"/>
+          <g id="k-phoneMsg" opacity="0"><rect x="-26" y="-36" width="52" height="30" rx="5" fill="#e9c36a"/><rect x="-21" y="-29" width="34" height="3" fill="#2a2416"/><rect x="-21" y="-22" width="42" height="3" fill="#2a2416"/><rect x="-21" y="-15" width="24" height="3" fill="#2a2416"/></g>
+        </g>
+        <g transform="translate(1380 760) rotate(4)" opacity=".9">
+          <rect x="-110" y="-26" width="220" height="70" fill="#2b2119"/>
+          <rect x="-104" y="-20" width="208" height="58" fill="#3a2c20"/>
+          <rect x="-18" y="2" width="36" height="6" rx="3" fill="#8a7155"/>
+          <g id="k-cert" opacity="0"><rect x="-90" y="-64" width="150" height="104" fill="#ede6d6" transform="rotate(-6)"/><text x="-70" y="-30" font-family="Spectral SC, serif" font-size="12" fill="#3a3328" transform="rotate(-6)">General Educational</text><text x="-70" y="-14" font-family="Spectral SC, serif" font-size="12" fill="#3a3328" transform="rotate(-6)">Development · 2007</text></g>
+        </g>
+      </g>
+    </svg></div><div class="cap"><span><b>First Light</b><span class="meta">ready · 4 min</span></span><button class="btn">Play</button></div></div>
+          <div class="sect"><div class="eyebrow"><span>Chapters</span><span>2 / 10</span></div>
+            <ul class="list plain"><li><span class="x">Prologue · The Kitchen Table</span><span class="r">replay</span></li><li><span class="x">First Light</span><span class="r">ready</span></li><li><span class="x" style="color:var(--mute)">Proof</span><span class="r">after Writing proofs</span></li></ul></div>
+        </div></section>
+
+        <!-- YOU -->
+        <section class="view" id="v-you"><div class="inner">
+          <div class="eyebrow">You</div>
+          <div class="h1">Predicted outcomes</div>
+          <div class="meta">from timed work only · ranges show uncertainty</div>
+          <details class="how"><summary>How predictions work</summary>Each prediction uses only papers you sat under time. Your marks are placed on that year's real grade boundaries, and the range narrows as you sit more papers.</details>
+          <div class="stat" style="margin-top:14px">
+            <div><span>STEP 2</span><b>Grade 2</b><div class="range"><span class="band" style="left:30%;width:40%"></span><span class="pt" style="left:50%"></span></div><div class="ticks"><span>U</span><span>3</span><span>2</span><span>1</span><span>S</span></div><span>2 papers</span></div>
+            <div><span>STEP 3</span><b>Grade 2</b><div class="range"><span class="band" style="left:35%;width:30%"></span><span class="pt" style="left:48%"></span></div><div class="ticks"><span>U</span><span>3</span><span>2</span><span>1</span><span>S</span></div><span>1 paper</span></div>
+            <div><span>TMUA</span><b>5.8</b><div class="range"><span class="band" style="left:45%;width:28%"></span><span class="pt" style="left:58%"></span></div><div class="ticks"><span>1</span><span>3</span><span>5</span><span>7</span><span>9</span></div><span>1 sitting</span></div>
+            <div><span>A level Maths</span><b style="color:var(--mute)">n/a</b><div class="range"></div><span>sit 2 papers</span></div>
+          </div>
+          <div class="sect"><div class="eyebrow">Settings</div>
+            <ul class="list plain"><li><span class="x">Your day</span><span class="r">9 am · gym 2 pm · bed 1 am</span></li><li><span class="x">Route</span><span class="r">Mathematics</span></li><li><span class="x">Glossary</span><span class="r">248 terms</span></li><li><span class="x">Sync</span><span class="r">off</span></li></ul></div>
+        </div></section>
+
+        <!-- GYM -->
+        <section class="view" id="v-gym"><div class="inner">
+          <div class="fbar"><button data-v="today">← Today</button><span>gym · REP ×0.5</span><button class="rest" id="restBtn">rest 1:30</button></div>
+          <div class="subtabs" style="margin-top:0"><button aria-pressed="true">Recall</button><button aria-pressed="false">Order</button><button aria-pressed="false">Drill</button><button aria-pressed="false">Listen</button></div>
+          <div class="flash" onclick="var a=this.querySelector('.a'),q=this.querySelector('.q');a.hidden=!a.hidden;q.hidden=!q.hidden"><div><div class="lbl">Definition · tap</div><div class="q">What does it mean for n to be odd?</div><div class="q a" hidden>n = 2k + 1 for some k ∈ ℤ</div></div></div>
+          <div class="grade3"><button>Again</button><button>Good</button><button>Easy</button></div>
+          <div class="meta" style="text-align:center;margin-top:10px">card 4 of 14 · a light buzz on each answer</div>
+        </div></section>
+
+        <!-- PAPER -->
+        <section class="view" id="v-paper"><div class="inner">
+          <div class="fbar"><button data-v="today">← Today</button><span>timed · no hints</span><span></span></div>
+          <div class="eyebrow">STEP 2005 · Paper I · Q1</div>
+          <div class="h1" style="font-size:24px">Digits summing to 43</div>
+          <div class="big">38:12</div><div class="meta" style="text-align:center">remaining of 45:00</div>
+          <div class="flags"><span class="eyebrow">Flagged to come back to</span><div><button class="chip">part (ii)</button><button class="chip ghostchip">+ flag a part</button></div></div>
+          <div style="display:grid;gap:8px;margin-top:18px"><button class="btn wide ghost">Open the paper ↗</button><button class="btn wide">Finish and mark</button></div>
+        </div></section>
+
+        <div class="cmd" id="cmd"><div class="box"><input placeholder="Search lessons, terms, papers, or type a command" aria-label="Command"><div class="res"><div class="rh">Recent</div><div>Proof by contradiction <span>lesson</span></div><div>rational number <span>term</span></div><div>STEP 3 · 2022 <span>paper</span></div><div class="rh">Actions</div><div>Start a timed problem <span>⌘T</span></div><div>Begin the day <span>⌘B</span></div></div></div></div>
+        <div class="scene" id="scene"><div class="lb t"></div><div class="lb b"></div><div class="art3"><svg class="kart" viewBox="0 0 1600 900" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="s-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a1428"/><stop offset=".55" stop-color="#1b2a48"/><stop offset=".85" stop-color="#5a4a5e"/><stop offset="1" stop-color="#c9805a"/></linearGradient>
+        <radialGradient id="s-glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#bfe3ff" stop-opacity=".55"/><stop offset="1" stop-color="#bfe3ff" stop-opacity="0"/></radialGradient>
+        <radialGradient id="s-room" cx="62%" cy="70%" r="80%"><stop offset="0" stop-color="#2a2622"/><stop offset="1" stop-color="#0c0b0a"/></radialGradient>
+        <linearGradient id="s-table" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3626"/><stop offset="1" stop-color="#1e150e"/></linearGradient>
+        <linearGradient id="s-screen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f6f8"/><stop offset="1" stop-color="#d9e2ea"/></linearGradient>
+        <clipPath id="s-win"><rect x="220" y="110" width="560" height="460"/></clipPath>
+      </defs>
+      <g class="layer" id="s-Lroom"><rect width="1600" height="900" fill="url(#s-room)"/></g>
+      <g class="layer" id="s-Lsky" clip-path="url(#s-win)">
+        <rect x="200" y="100" width="600" height="480" fill="url(#s-sky)"/>
+        <g fill="#0b0f18"><rect x="200.0" y="366.6" width="59.4" height="213.4"/><rect x="263.4" y="479.5" width="35.4" height="100.5"/><rect x="302.8" y="431.9" width="56.4" height="148.1"/><rect x="363.2" y="456.0" width="31.5" height="124.0"/><rect x="398.7" y="475.9" width="59.3" height="104.1"/><rect x="462.0" y="407.0" width="56.4" height="173.0"/><rect x="522.3" y="373.9" width="42.0" height="206.1"/><rect x="568.3" y="414.1" width="46.7" height="165.9"/><rect x="619.1" y="278.4" width="72.5" height="301.6"/><rect x="695.6" y="402.5" width="34.0" height="177.5"/><rect x="733.6" y="405.6" width="54.9" height="174.4"/><rect x="792.5" y="295.7" width="48.2" height="284.3"/></g>
+        <g fill="#f2c96b"><rect x="206.0" y="378.6" width="5" height="7" opacity="0.62"/><rect x="242.0" y="378.6" width="5" height="7" opacity="0.94"/><rect x="218.0" y="410.6" width="5" height="7" opacity="0.75"/><rect x="206.0" y="442.6" width="5" height="7" opacity="0.97"/><rect x="206.0" y="522.6" width="5" height="7" opacity="0.96"/><rect x="308.8" y="491.9" width="5" height="7" opacity="0.66"/><rect x="308.8" y="523.9" width="5" height="7" opacity="0.68"/><rect x="344.8" y="523.9" width="5" height="7" opacity="1.00"/><rect x="381.2" y="516.0" width="5" height="7" opacity="0.54"/><rect x="369.2" y="532.0" width="5" height="7" opacity="0.77"/><rect x="381.2" y="564.0" width="5" height="7" opacity="0.64"/><rect x="428.7" y="503.9" width="5" height="7" opacity="0.81"/><rect x="440.7" y="503.9" width="5" height="7" opacity="0.70"/><rect x="404.7" y="519.9" width="5" height="7" opacity="0.74"/><rect x="428.7" y="519.9" width="5" height="7" opacity="0.88"/><rect x="440.7" y="551.9" width="5" height="7" opacity="0.94"/><rect x="404.7" y="567.9" width="5" height="7" opacity="0.53"/><rect x="440.7" y="567.9" width="5" height="7" opacity="0.80"/><rect x="504.0" y="499.0" width="5" height="7" opacity="0.99"/><rect x="480.0" y="547.0" width="5" height="7" opacity="0.68"/><rect x="540.3" y="385.9" width="5" height="7" opacity="0.98"/><rect x="528.3" y="401.9" width="5" height="7" opacity="0.69"/><rect x="528.3" y="481.9" width="5" height="7" opacity="0.58"/><rect x="528.3" y="513.9" width="5" height="7" opacity="0.53"/><rect x="552.3" y="529.9" width="5" height="7" opacity="0.70"/><rect x="552.3" y="545.9" width="5" height="7" opacity="0.56"/><rect x="552.3" y="561.9" width="5" height="7" opacity="0.77"/><rect x="598.3" y="474.1" width="5" height="7" opacity="0.61"/><rect x="637.1" y="322.4" width="5" height="7" opacity="0.57"/><rect x="661.1" y="338.4" width="5" height="7" opacity="0.94"/><rect x="637.1" y="354.4" width="5" height="7" opacity="0.68"/><rect x="637.1" y="370.4" width="5" height="7" opacity="0.73"/><rect x="625.1" y="402.4" width="5" height="7" opacity="0.50"/><rect x="661.1" y="402.4" width="5" height="7" opacity="0.81"/><rect x="673.1" y="402.4" width="5" height="7" opacity="0.54"/><rect x="685.1" y="418.4" width="5" height="7" opacity="0.92"/><rect x="685.1" y="434.4" width="5" height="7" opacity="0.65"/><rect x="637.1" y="450.4" width="5" height="7" opacity="0.82"/><rect x="661.1" y="466.4" width="5" height="7" opacity="0.62"/><rect x="625.1" y="482.4" width="5" height="7" opacity="0.63"/><rect x="685.1" y="482.4" width="5" height="7" opacity="0.68"/><rect x="625.1" y="498.4" width="5" height="7" opacity="0.57"/><rect x="661.1" y="498.4" width="5" height="7" opacity="0.66"/><rect x="673.1" y="498.4" width="5" height="7" opacity="0.71"/><rect x="661.1" y="546.4" width="5" height="7" opacity="0.75"/><rect x="673.1" y="562.4" width="5" height="7" opacity="0.73"/><rect x="713.6" y="414.5" width="5" height="7" opacity="0.73"/><rect x="701.6" y="446.5" width="5" height="7" opacity="0.75"/><rect x="713.6" y="462.5" width="5" height="7" opacity="0.89"/><rect x="713.6" y="494.5" width="5" height="7" opacity="0.98"/><rect x="775.6" y="433.6" width="5" height="7" opacity="0.72"/><rect x="751.6" y="449.6" width="5" height="7" opacity="0.76"/><rect x="775.6" y="449.6" width="5" height="7" opacity="0.99"/><rect x="751.6" y="497.6" width="5" height="7" opacity="0.57"/><rect x="763.6" y="497.6" width="5" height="7" opacity="0.87"/><rect x="751.6" y="513.6" width="5" height="7" opacity="0.51"/><rect x="751.6" y="529.6" width="5" height="7" opacity="0.51"/><rect x="751.6" y="545.6" width="5" height="7" opacity="0.63"/><rect x="775.6" y="545.6" width="5" height="7" opacity="0.75"/><rect x="739.6" y="561.6" width="5" height="7" opacity="0.78"/><rect x="822.5" y="307.7" width="5" height="7" opacity="0.56"/><rect x="810.5" y="387.7" width="5" height="7" opacity="0.66"/><rect x="834.5" y="451.7" width="5" height="7" opacity="0.89"/><rect x="810.5" y="467.7" width="5" height="7" opacity="0.73"/><rect x="822.5" y="515.7" width="5" height="7" opacity="0.84"/><rect x="798.5" y="531.7" width="5" height="7" opacity="0.58"/><rect x="810.5" y="531.7" width="5" height="7" opacity="0.79"/><rect x="798.5" y="547.7" width="5" height="7" opacity="0.80"/></g>
+      </g>
+      <g class="layer" id="s-Lwin">
+        <rect x="214" y="104" width="572" height="472" fill="none" stroke="#1a1714" stroke-width="16"/>
+        <path d="M500 104 V576 M214 340 H786" stroke="#1a1714" stroke-width="10"/>
+        <rect x="196" y="572" width="608" height="18" fill="#22201c"/>
+        <rect x="1040" y="140" width="120" height="160" fill="#16130f" opacity=".7"/>
+        <g class="flick"><circle cx="1290" cy="150" r="70" fill="#f7d79a" opacity=".05"/><path d="M1290 40 V118" stroke="#2a2520" stroke-width="3"/><path d="M1262 118 h56 l-10 22 h-36 z" fill="#2c2722"/><circle cx="1290" cy="146" r="9" fill="#ffe6b0" opacity=".85"/></g>
+      </g>
+      <g class="layer" id="s-Ltable">
+        <path d="M0 640 L1600 610 L1600 900 L0 900 Z" fill="url(#s-table)"/>
+        <path d="M0 640 L1600 610" stroke="#6a4c34" stroke-width="2" opacity=".6"/>
+        <ellipse cx="900" cy="640" rx="420" ry="90" fill="url(#s-glow)" opacity=".55"/>
+        <g transform="translate(700 420)">
+          <path d="M-210 210 L210 210 L240 238 L-240 238 Z" fill="#1c1f24"/>
+          <rect x="-200" y="-10" width="400" height="220" rx="8" fill="#15181d"/>
+          <rect x="-188" y="2" width="376" height="196" rx="3" fill="url(#s-screen)"/>
+          <g font-family="Spectral, serif" fill="#22262b">
+            <text x="-170" y="32" font-size="15" font-weight="500">STEP 2005, Paper I, Question 1</text>
+            <text x="-170" y="62" font-size="12.5">Find the number of positive five-digit integers</text>
+            <text x="-170" y="80" font-size="12.5">whose digits sum to 43.</text>
+            <text x="-170" y="116" font-size="12.5" fill="#3f7a63" font-style="italic" id="s-scratch1" opacity="0">Case 1: four nines and a 7 ...</text>
+            <text x="-170" y="136" font-size="12.5" fill="#3f7a63" font-style="italic" id="s-scratch2" opacity="0">Case 2: three nines, two 8s ...</text>
+          </g>
+        </g>
+        <g transform="translate(1110 600)">
+          <g class="steam" fill="none" stroke="#e9eef2" stroke-width="3" stroke-linecap="round"><path d="M-8 -48 c-10 -14 10 -20 0 -36"/><path d="M6 -46 c-10 -14 10 -20 0 -36"/><path d="M20 -48 c-10 -14 10 -20 0 -36"/></g>
+          <path d="M-30 -40 h64 v52 a14 14 0 0 1 -14 14 h-36 a14 14 0 0 1 -14 -14 z" fill="#d7d2c8"/>
+          <path d="M34 -28 a16 16 0 0 1 0 30" fill="none" stroke="#d7d2c8" stroke-width="7"/>
+          <rect x="-30" y="-40" width="64" height="7" fill="#c8102e"/>
+        </g>
+        <g id="s-phone" transform="translate(360 680) rotate(-8)">
+          <rect x="-34" y="-62" width="68" height="124" rx="10" fill="#101215" stroke="#2c3036" stroke-width="2"/>
+          <rect x="-28" y="-54" width="56" height="108" rx="6" fill="#0d0f12" id="s-phoneScreen"/>
+          <g id="s-phoneMsg" opacity="0"><rect x="-26" y="-36" width="52" height="30" rx="5" fill="#e9c36a"/><rect x="-21" y="-29" width="34" height="3" fill="#2a2416"/><rect x="-21" y="-22" width="42" height="3" fill="#2a2416"/><rect x="-21" y="-15" width="24" height="3" fill="#2a2416"/></g>
+        </g>
+        <g transform="translate(1380 760) rotate(4)" opacity=".9">
+          <rect x="-110" y="-26" width="220" height="70" fill="#2b2119"/>
+          <rect x="-104" y="-20" width="208" height="58" fill="#3a2c20"/>
+          <rect x="-18" y="2" width="36" height="6" rx="3" fill="#8a7155"/>
+          <g id="s-cert" opacity="0"><rect x="-90" y="-64" width="150" height="104" fill="#ede6d6" transform="rotate(-6)"/><text x="-70" y="-30" font-family="Spectral SC, serif" font-size="12" fill="#3a3328" transform="rotate(-6)">General Educational</text><text x="-70" y="-14" font-family="Spectral SC, serif" font-size="12" fill="#3a3328" transform="rotate(-6)">Development · 2007</text></g>
+        </g>
+      </g>
+    </svg></div><button class="skip" data-v="today">SKIP ⎋</button><div class="dlg"><i>PRIYA</i>"You finished Block 1? At six in the morning? Send me question four."</div></div>
+      </div>
+    </div>
+
+    <aside class="notes">
+      <h3>The idea</h3>
+      <p>A tool built by the Cambridge maths and computing community: typeset like a Tripos paper, operated like a good piece of software. Quiet surfaces, precise type, numbers in monospace, every action reachable by keyboard.</p>
+      <h3>Palette</h3>
+      <div class="swatches">
+        <div><i style="background:#fafaf8"></i>paper</div><div><i style="background:#141615"></i>ink</div><div><i style="background:#2e6a57"></i>cambridge</div>
+        <div><i style="background:#85b09a"></i>cam light</div><div><i style="background:#a8201c"></i>scarlet</div><div><i style="background:#b68a2e"></i>gold</div>
+      </div>
+      <h3>Type</h3>
+      <div class="types">
+        <div style="font:400 20px var(--read)">STIX Two · reading and maths</div>
+        <div style="font:500 14px var(--ui)">IBM Plex Sans · interface</div>
+        <div style="font:12px var(--mono);color:var(--mute)">IBM PLEX MONO · TIMES, COUNTS, LABELS</div>
+      </div>
+      <h3 style="margin-top:14px">Rules</h3>
+      <p>One primary action per screen, in ink. Cambridge green only for "now" and progress; scarlet only for things that need you. Hairlines, no shadows inside the app. Labels in mono capitals; content in serif. Desktop gets a left rail, number keys for tabs, and ⌘K to jump anywhere.</p>
+      <h3>This screen</h3>
+      <p id="why"></p>
+    </aside>
+  </div>
+</div>
+
+<script>
+var V = ['today', 'course', 'lesson', 'camp', 'story', 'you', 'gym', 'paper', 'scene', 'cmd'];
+var NAMES = { today: 'Today', course: 'Course', lesson: 'Lesson', camp: 'Admission', story: 'Story', you: 'You', gym: 'Gym mode', paper: 'Timed problem', scene: 'Cut scene', cmd: '⌘K search' };
+var WHY = {
+  today: 'The live time to the second (12-hour), a greeting that follows the time of day, one line of status in mono, one Now card with a single Start. Later today is four short rows. On desktop, the week, Shabbat, and streak sit in a quiet side column.',
+  course: 'Four numbered stages in plain words; chapters show progress as counts. Exam names (STEP, TMUA) appear as small mono tags with a hover explanation, never as the main label.',
+  lesson: 'Focus mode. The header says what you are learning: chapter, topic name, a one-sentence blurb, and the time it takes. Below a single rule, the current part. Definitions formal first, plain words under each, a numbered proof with labelled steps and why expanders.',
+  camp: 'Admission as a five-step rail with Roman numerals and dates, and just the next requirement below it. Papers, Results, and Letters are one tap away.',
+  story: 'The next scene as a card with its art, REP as a progress line to the next level, chapters as a short list.',
+  you: 'Predicted outcomes as a 2 by 2 grid, each with a range band and how much evidence it rests on. Settings as plain rows.',
+  gym: 'One large card at a time, three big buttons, built for one thumb between sets. Tap rest for a 90-second timer that buzzes when the set is due.',
+  paper: 'A large mono timer, the source in mono, two actions. Flag a part to come back to it before you finish.',
+  scene: 'Letterboxed, full screen, Skip always visible, dialogue in serif.',
+  cmd: 'Press ⌘K (or the search button) anywhere. Empty, it shows your recent items and common actions with their shortcuts; type to search lessons, terms, and papers.'
+};
+var dev = document.getElementById('dev');
+function show(v) {
+  document.querySelectorAll('.view').forEach(function (x) { x.classList.toggle('on', x.id === 'v-' + v); });
+  document.getElementById('scene').classList.toggle('on', v === 'scene');
+  document.getElementById('cmd').classList.toggle('on', v === 'cmd');
+  if (v === 'cmd' && !document.querySelector('.view.on')) document.getElementById('v-today').classList.add('on');
+  var focus = { lesson: 1, gym: 1, paper: 1, scene: 1 }[v];
+  document.getElementById('nav').style.display = focus ? 'none' : '';
+  document.querySelector('.app').style.gridTemplateColumns = (focus && dev.classList.contains('desk')) ? '1fr' : '';
+  document.querySelector('.app').style.gridTemplateRows = (focus && dev.classList.contains('phone')) ? '1fr' : '';
+  var tab = { today: 'today', course: 'course', camp: 'camp', story: 'story', you: 'you' }[v];
+  document.querySelectorAll('.tab').forEach(function (b) { b.setAttribute('aria-current', String(b.dataset.v === tab)); });
+  document.querySelectorAll('#screens button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.s === v)); });
+  document.getElementById('why').textContent = WHY[v] || '';
+}
+V.forEach(function (v) { var b = document.createElement('button'); b.type = 'button'; b.textContent = NAMES[v]; b.dataset.s = v; b.addEventListener('click', function () { show(v); }); document.getElementById('screens').appendChild(b); });
+document.addEventListener('click', function (e) {
+  var t = e.target.closest('[data-v]'); if (t) { show(t.dataset.v); return; }
+  if (e.target.closest('[data-cmd]')) { show('cmd'); return; }
+  if (e.target.id === 'cmd') { show('today'); return; }
+  var d = e.target.closest('[data-dev]');
+  if (d) { dev.className = 'device ' + d.dataset.dev; d.parentNode.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b === d)); }); show(document.querySelector('#screens [aria-pressed="true"]').dataset.s); }
+  var th = e.target.closest('[data-th]');
+  if (th) { var m = th.dataset.th; if (m === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', m); th.parentNode.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b === th)); }); }
+  var st = e.target.closest('.subtabs button'); if (st) st.parentNode.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b === st)); });
+});
+document.addEventListener('keydown', function (e) {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); show('cmd'); }
+  if (e.key === 'Escape') show('today');
+  var n = { '1': 'today', '2': 'course', '3': 'camp', '4': 'story', '5': 'you' }[e.key];
+  if (n && !e.target.closest('input')) show(n);
+});
+function tick() {
+  var d = new Date(), h = d.getHours(), m = d.getMinutes(), sec = d.getSeconds();
+  var t = (h % 12 || 12) + ':' + (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec + ' ' + (h >= 12 ? 'pm' : 'am');
+  var c = document.getElementById('clockNow'); if (c) c.textContent = t;
+  var dn = document.getElementById('dateNow'); if (dn) dn.textContent = d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+  var hello = document.querySelector('#v-today .h1'); if (hello) hello.textContent = (h < 5 ? 'Good evening' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ', Albert.';
+}
+tick(); setInterval(tick, 1000);
+show('today');
+</script>
+<script>
+(function(){var b=document.getElementById('restBtn');if(!b)return;var t=null;
+b.addEventListener('click',function(){if(t){clearInterval(t);t=null;b.textContent='rest 1:30';return;}
+var n=90;t=setInterval(function(){n--;b.textContent='rest '+Math.floor(n/60)+':'+String(n%60).padStart(2,'0');
+if(n<=0){clearInterval(t);t=null;b.textContent='go';try{navigator.vibrate&&navigator.vibrate(200)}catch(e){}}},1000);});})();
+</script>

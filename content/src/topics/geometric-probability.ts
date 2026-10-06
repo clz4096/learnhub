@@ -313,4 +313,5 @@ export const geometricProbability: TopicContent = {
   terms: ['buffons-needle', 'bertrands-paradox'],
   claims,
   cambridge: [q1unequal, buffonAuto, q10a, q10b, bertrand, buffonProof],
+  gate: ['ia4-q1-unequal', 'ia4-q10-a', 'ia4-q10-b'],
 };

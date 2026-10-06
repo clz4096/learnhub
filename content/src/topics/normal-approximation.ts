@@ -276,4 +276,5 @@ export const normalApproximation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['continuity-correction'],
   cambridge: [q1adapted, q1why],
+  gate: ['s2-q1-normal-25', 's2-q1-why'],
 };

@@ -374,4 +374,5 @@ export const sigmaNotation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sigma-notation', 'index-variable', 'telescoping'],
   cambridge: [bop10_1, bop10_4, bop10_6, bop10_7, bop10_15, bop10_3, sw432d, bop10_20],
+  gate: ['sw-4-3-2-d'],
 };

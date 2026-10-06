@@ -243,4 +243,5 @@ export const arithmeticSeries: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arithmetic-series'],
   cambridge: [e25, e81, f, eProof, fProof],
+  gate: ['sw-1-3-1-e-25', 'sw-1-3-1-e-81', 'sw-1-3-1-f', 'sw-1-3-1-e', 'sw-1-3-1-f-proof'],
 };

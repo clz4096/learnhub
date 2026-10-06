@@ -390,4 +390,5 @@ export const treeDiagrams: TopicContent = {
   terms: ['tree-diagram', 'without-replacement'],
   claims,
   cambridge: [a12iiib, a12iva, a12ivc, a12methods, smokers],
+  gate: ['a12-q2-iii-b', 'a12-q2-iv-a', 'a12-q2-iv-c', 'a12-q2-ii-methods', 'a6-q4-i-tree'],
 };

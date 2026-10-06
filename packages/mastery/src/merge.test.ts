@@ -12,7 +12,7 @@ const TOPICS = ['pre.fractions', 'pre.indices', 'pre.sequences', 'prob.bayes-for
 const PROBLEMS = ['pre.fractions/q1', 'pre.indices/q2', 'prob.bayes-formula/q3', 'prob.event-spaces/q4-definitions'];
 const NONCES = ['ABCDEFGH', 'JKMNPQRS', 'TVWXYZ23', '456789AB', 'CDEFGHJK', 'MNPQRSTV'];
 const COURSES = ['ia-probability', 'cst-discrete-maths'];
-const KINDS = ['lesson', 'review', 'quiz', 'supervision'] as const;
+const KINDS = ['lesson', 'review', 'quiz', 'supervision', 'drill', 'cambridge', 'gym'] as const;
 
 const pick = <T>(rng: Rng, xs: readonly T[]): T => xs[randInt(rng, 0, xs.length - 1)] as T;
 /** Times from a small set, so independent devices collide on them often. */
@@ -35,6 +35,8 @@ function step(rng: Rng, p: Progress): Progress {
   switch (randInt(rng, 0, 11)) {
     case 0: {
       const h: HistoryEntry = { at: time(rng), kind: pick(rng, KINDS), topicId: pick(rng, TOPICS), correct: rng() < 0.7 };
+      // Item data, as version 5 records it, from a small set so copies collide on it.
+      if (rng() < 0.5) h.item = { id: pick(rng, PROBLEMS), hints: randInt(rng, 0, 1), attempt: randInt(rng, 1, 2), ...(rng() < 0.5 ? { seed: randInt(rng, 0, 3) } : {}), ...(rng() < 0.5 ? { ms: randInt(rng, 0, 2) * 1000 } : {}) };
       q.history.push(h);
       if (h.kind === 'lesson' && h.correct) q.learnedSinceQuiz = [...q.learnedSinceQuiz.filter((x) => x !== h.topicId), h.topicId];
       break;

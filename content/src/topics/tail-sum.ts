@@ -272,4 +272,5 @@ export const tailSum: TopicContent = {
   terms: ['tail-sum-formula'],
   claims,
   cambridge: [q2tail, q2min, q2proof],
+  gate: ['mixed-q2-tail', 'mixed-q2-least', 'mixed-q2-proof'],
 };

@@ -252,4 +252,5 @@ export const euclidTheorem: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['coprime', 'euclids-lemma'],
   cambridge: [bop1155, bop1156, sheet316, sheet322, sheet331, bop729],
+  gate: ['sheet-3-1-6', 'sheet-3-2-2', 'sheet-3-3-1'],
 };

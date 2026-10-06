@@ -438,4 +438,5 @@ export const setNotation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['set', 'element', 'universal-set', 'union', 'intersection', 'set-difference', 'complement', 'empty-set', 'venn-diagram'],
   cambridge: [bop15a, bop15c, bop15g, bop15i, bop16a, bop16g, bop16b2f, bop17_5, bop17_8, bop17_3, bop17_10],
+  gate: [],
 };

@@ -465,5 +465,6 @@ export const algebraicManipulation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expression', 'coefficient', 'like-terms', 'identity', 'expand', 'factorise'],
   cambridge: [a7Three, a7Quart, a12FracA, a12FracB, tmuaQ, a7Show, a7ShowCubic, a7ShowGeneral],
+  gate: ['a7-q2-v', 'a7-q3', 'a12-q2-i-a', 'a12-q2-i-b', 'a7-q2-i-ii', 'a7-q2-iv', 'a7-q3-show'],
 };
 

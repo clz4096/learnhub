@@ -438,4 +438,5 @@ export const directProof: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['direct-proof', 'scratch-work', 'lemma'],
   cambridge: [bop47, bop419, bop46, bop410, tmuaR3, tmua72, bop49, bop413, bop424, scratch],
+  gate: ['notes-35-scratch'],
 };

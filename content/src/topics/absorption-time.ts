@@ -285,4 +285,5 @@ export const absorptionTime: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expected-duration'],
   cambridge: [u2, u4, symmetric, wald, schedule],
+  gate: ['s3-q1-ii-u2', 's3-q1-u4', 'sheet3-q8c-symmetric', 'sheet3-q8c-wald'],
 };

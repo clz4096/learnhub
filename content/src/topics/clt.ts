@@ -306,4 +306,5 @@ export const clt: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['central-limit-theorem'],
   cambridge: [q5, q13value, q13proof, q6b, sketch],
+  gate: ['ia-s4-q5', 'ia-s4-q13-value', 'ia-s4-q13', 'ia-s4-q6-b'],
 };

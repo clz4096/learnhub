@@ -7,5 +7,7 @@ export * from './scheduler';
 export * from './simulate';
 export * from './progress';
 export * from './merge';
+export * from './gate';
+export * from './gym';
 export * from './idb';
 export * from './grade';

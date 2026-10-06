@@ -1,0 +1,363 @@
+<title>App Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root { --bg: #fbfbf9; --fg: #1b1d1c; --mute: #737875; --faint: #b9bdb9; --line: #e3e5e1; --cam: #3f7a63; --cam-soft: rgba(63,122,99,.09); --scarlet: #a8201c; --panel: #f3f4f1; --outer: #e9ebe8;
+  --serif: "STIX Two Text", "Times New Roman", serif; --mono: ui-monospace, "SF Mono", Menlo, monospace; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; --bg: #0f1211; --fg: #e6e9e6; --mute: #8d948f; --faint: #4a504c; --line: #232826; --cam: #9cc5b2; --cam-soft: rgba(156,197,178,.09); --scarlet: #e2727f; --panel: #161a19; --outer: #080a09; } }
+:root[data-theme="dark"] { color-scheme: dark; --bg: #0f1211; --fg: #e6e9e6; --mute: #8d948f; --faint: #4a504c; --line: #232826; --cam: #9cc5b2; --cam-soft: rgba(156,197,178,.09); --scarlet: #e2727f; --panel: #161a19; --outer: #080a09; }
+* { box-sizing: border-box; }
+html, body { background: var(--outer); }
+body { margin: 0; color: var(--fg); font: 16px/1.5 var(--serif); }
+.wrap { display: grid; grid-template-columns: 260px auto; gap: 34px; justify-content: center; padding: 28px 16px 60px; }
+.side { position: sticky; top: 20px; align-self: start; font-size: 14.5px; }
+.side h1 { font-weight: 400; font-size: 24px; margin: 0 0 4px; }
+.side p { color: var(--mute); margin: 0 0 14px; }
+.side .grp { margin-top: 14px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
+.side button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 5px 8px; font: inherit; color: var(--fg); cursor: pointer; border-radius: 3px; }
+.side button[aria-current="true"] { background: var(--cam-soft); color: var(--cam); }
+.side .why { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--mute); font-size: 14px; min-height: 120px; }
+.phone { width: 390px; height: 800px; background: var(--bg); border-radius: 38px; border: 10px solid #111; position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+.scr { position: absolute; inset: 0; overflow-y: auto; padding: 46px 18px 90px; display: none; }
+.scr.on { display: block; }
+.scr.focus { padding-bottom: 30px; }
+.top { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--mute); margin-bottom: 14px; }
+.top .arms { width: 20px; height: 25px; }
+.crumb { font-size: 12.5px; color: var(--mute); margin-bottom: 6px; }
+.crumb a { color: var(--mute); text-decoration: underline; text-decoration-color: var(--faint); cursor: pointer; }
+h2 { font-weight: 400; font-size: 27px; line-height: 1.15; margin: 0 0 4px; }
+h3 { font-weight: 500; font-size: 17px; margin: 18px 0 6px; }
+.sub { color: var(--mute); font-size: 14px; margin-bottom: 14px; }
+.lbl { font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); margin: 18px 0 6px; }
+.tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 74px; border-top: 1px solid var(--line); background: var(--bg); display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 4px 22px; }
+.tabbar button { background: none; border: 0; font: 12px var(--serif); color: var(--mute); display: grid; justify-items: center; gap: 2px; cursor: pointer; }
+.tabbar svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+.tabbar button[aria-current="true"] { color: var(--cam); }
+.focusbar { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--mute); margin-bottom: 10px; }
+.focusbar button { background: none; border: 0; font: inherit; color: var(--mute); cursor: pointer; padding: 6px 0; }
+.prog { height: 2px; background: var(--line); margin-bottom: 18px; position: relative; }
+.prog i { position: absolute; left: 0; top: -1px; height: 4px; background: var(--cam); }
+.btn { display: block; width: 100%; text-align: center; padding: 12px; font: 500 16px var(--serif); color: var(--bg); background: var(--fg); border: 0; border-radius: 3px; cursor: pointer; margin-top: 18px; }
+.btn.ghost { background: none; color: var(--fg); border: 1px solid var(--line); }
+ol.tl { list-style: none; margin: 0; padding: 0; position: relative; }
+ol.tl::before { content: ""; position: absolute; left: 63px; top: 8px; bottom: 8px; width: 1px; background: var(--line); }
+ol.tl li { display: grid; grid-template-columns: 54px 20px 1fr; padding: 6px 0; cursor: pointer; }
+.t { font: 11.5px/1.9 var(--mono); color: var(--mute); text-align: right; padding-right: 8px; }
+.n { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--faint); background: var(--bg); margin: 8px 0 0 6px; position: relative; z-index: 1; }
+li.now .n { width: 11px; height: 11px; margin: 6px 0 0 4px; background: var(--cam); border-color: var(--cam); box-shadow: 0 0 0 4px var(--cam-soft); }
+li.past { opacity: .45; }
+li.past .n { background: var(--faint); border-color: var(--faint); }
+li.gym .n { border-color: var(--scarlet); }
+.it { font-size: 15.5px; line-height: 1.3; }
+.it a { border-bottom: 1px solid var(--faint); }
+li.now .tag, .tag { font: 11.5px var(--mono); color: var(--cam); display: block; }
+li.gym .tag { color: var(--scarlet); }
+.s { font-size: 13px; color: var(--mute); }
+.waiting { border: 1px solid var(--line); padding: 10px 12px; margin: 12px 0; font-size: 14.5px; display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; }
+.waiting b { font-weight: 500; }
+.rule { border-left: 2px solid var(--cam); padding: 4px 0 4px 12px; margin: 14px 0; }
+.rule .lbl { margin: 0 0 4px; }
+.pit { border-left: 2px solid var(--scarlet); padding: 4px 0 4px 12px; margin: 14px 0; }
+.hook { font-size: 18px; line-height: 1.5; }
+.check { background: var(--panel); padding: 12px; margin: 14px 0; font-size: 15px; }
+.check input { font: 15px var(--mono); width: 6em; padding: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); margin: 8px 6px 0 0; }
+.check button { font: 14px var(--serif); padding: 6px 12px; border: 1px solid var(--fg); background: none; color: var(--fg); cursor: pointer; }
+.fb { font-size: 13.5px; color: var(--cam); margin-top: 6px; min-height: 1em; }
+.exam { font-size: 13.5px; color: var(--mute); border-top: 1px dashed var(--line); margin-top: 10px; padding-top: 8px; font-style: italic; }
+.take { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 10px; font-style: italic; }
+ul.rows { list-style: none; margin: 0; padding: 0; }
+ul.rows li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; cursor: pointer; }
+ul.rows li .r { color: var(--mute); font-size: 13.5px; white-space: nowrap; }
+ul.rows li.here .r { color: var(--cam); }
+.seg { display: flex; gap: 16px; border-bottom: 1px solid var(--line); margin: 8px 0 12px; font-size: 14.5px; }
+.seg button { background: none; border: 0; padding: 0 0 8px; font: inherit; color: var(--mute); cursor: pointer; border-bottom: 1px solid transparent; margin-bottom: -1px; }
+.seg button[aria-current="true"] { color: var(--fg); border-bottom-color: var(--fg); }
+.card { border: 1px solid var(--line); padding: 26px 16px; text-align: center; min-height: 210px; display: grid; place-items: center; font-size: 18px; cursor: pointer; margin: 10px 0; }
+.card small { display: block; color: var(--mute); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+.order li { border: 1px solid var(--line); padding: 8px 10px; margin-bottom: 6px; list-style: none; font-size: 14.5px; display: flex; gap: 8px; align-items: baseline; }
+.order { padding: 0; }
+.order li b { font: 12px var(--mono); color: var(--mute); }
+.big { font-size: 34px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.dash { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dash div { border-top: 1px solid var(--line); padding-top: 8px; }
+.dash span { font-size: 12.5px; color: var(--mute); display: block; }
+.scale { position: relative; height: 1px; background: var(--line); margin: 20px 0 22px; }
+.scale .m { position: absolute; top: -5px; width: 11px; height: 11px; border-radius: 50%; background: var(--cam); transform: translateX(-50%); }
+.scale .b { position: absolute; top: -4px; width: 1px; height: 9px; background: var(--faint); }
+.scale .b span { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); font: 10.5px var(--mono); color: var(--mute); white-space: nowrap; }
+.scene { position: absolute; inset: 0; background: #07090c; color: #eef0ec; display: none; }
+.scene.on { display: block; }
+.scene .art { position: absolute; left: 0; right: 0; top: 70px; height: 300px; background: linear-gradient(180deg, #0a1428, #1b2a48 60%, #5a4a5e); }
+.scene .art::after { content: ""; position: absolute; left: 30px; right: 30px; bottom: 0; height: 120px; background: repeating-linear-gradient(90deg, #0b0f18 0 34px, transparent 34px 40px); clip-path: polygon(0 40%, 8% 40%, 8% 10%, 16% 10%, 16% 55%, 30% 55%, 30% 25%, 40% 25%, 40% 60%, 55% 60%, 55% 0, 64% 0, 64% 45%, 80% 45%, 80% 30%, 92% 30%, 92% 50%, 100% 50%, 100% 100%, 0 100%); }
+.scene .card2 { position: absolute; left: 18px; right: 18px; top: 400px; font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: #9aa3a0; }
+.scene .dlg { position: absolute; left: 14px; right: 14px; bottom: 60px; background: rgba(255,255,255,.04); border-top: 1px solid rgba(255,255,255,.12); padding: 14px; }
+.scene .dlg .w { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #9cc5b2; }
+.scene .skip { position: absolute; top: 40px; right: 16px; font-size: 12px; letter-spacing: .2em; color: #9aa3a0; background: none; border: 1px solid rgba(255,255,255,.2); padding: 5px 10px; cursor: pointer; }
+.bars::before, .bars::after { content: ""; position: absolute; left: 0; right: 0; height: 40px; background: #000; z-index: 2; }
+.bars::before { top: 0; } .bars::after { bottom: 0; }
+.nowcard { border: 1px solid var(--line); padding: 18px 16px 4px; margin: 6px 0 14px; cursor: pointer; }
+.nowcard .nt { font-size: 23px; line-height: 1.2; margin: 4px 0 2px; }
+.dayline { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; color: var(--mute); margin: 0 0 6px; }
+.pill { color: var(--cam); cursor: pointer; }
+ul.rows.compact li { justify-content: flex-start; gap: 14px; }
+ul.rows.compact li span:first-child { font: 12px/1.9 var(--mono); color: var(--mute); width: 62px; flex: none; }
+ul.stages { list-style: none; padding: 0; margin: 10px 0 0; }
+ul.stages > li { border-top: 1px solid var(--line); padding: 12px 0; }
+.sh { display: flex; justify-content: space-between; gap: 10px; }
+.sh b { font-weight: 500; font-size: 17px; }
+.sh span { font-size: 13px; color: var(--mute); }
+.sd { font-size: 14px; color: var(--mute); margin-top: 2px; }
+ul.ch { list-style: none; padding: 0 0 0 12px; margin: 10px 0 0; border-left: 1px solid var(--line); }
+ul.ch li { padding: 7px 0 7px 4px; }
+ul.ch li b { display: block; font-weight: 500; font-size: 15.5px; }
+ul.ch li span { font-size: 13.5px; color: var(--mute); }
+ul.ch li.here b { color: var(--cam); }
+ol.steps { padding-left: 1.2em; margin: 12px 0; display: grid; gap: 12px; }
+ol.steps li { font-size: 15.5px; }
+ol.steps li b { font-weight: 600; }
+.eq { text-align: center; font-size: 19px; font-style: italic; margin: 8px 0 2px; }
+.eq-i { font-style: italic; white-space: nowrap; }
+details { margin-top: 6px; font-size: 14px; }
+details summary { color: var(--cam); cursor: pointer; }
+details[open] summary { margin-bottom: 4px; }
+.def { border-top: 1px solid var(--line); padding: 10px 0; }
+.def .lbl { margin: 0 0 4px; }
+.fm { font-size: 15.5px; }
+.pl { font-size: 14px; color: var(--mute); margin-top: 4px; }
+math { font-size: 1.05em; }
+@media (max-width: 760px) { .wrap { grid-template-columns: 1fr; } .side { position: static; } .phone { width: 100%; max-width: 390px; margin: 0 auto; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="arms" viewBox="0 0 120 150"><path d="M12 8 H108 V66 C106 100 84 124 60 140 C36 124 14 100 12 66 Z" fill="#0b2a52"/><path d="M12 8 H60 V140 C36 124 14 100 12 66 Z" fill="#c8102e"/><rect x="12" y="8" width="96" height="32" fill="#f2c230"/><circle cx="30" cy="24" r="7" fill="#c8102e"/><circle cx="60" cy="24" r="7" fill="#c8102e"/><circle cx="90" cy="24" r="7" fill="#c8102e"/><rect x="36" y="50" width="48" height="28" fill="#fff" stroke="#f2c230" stroke-width="3"/><path d="M47 98 H73 V105 H59 L68 114 L59 124 H73 V131 H47 V125 L57 114 L47 103 Z" fill="#f2c230"/><path d="M12 8 H108 V66 C106 100 84 124 60 140 C36 124 14 100 12 66 Z" fill="none" stroke="#141414" stroke-width="3"/></symbol>
+</defs></svg>
+
+<div class="wrap">
+  <aside class="side">
+    <h1>The redesigned app</h1>
+    <p>Clickable mockup. Pick a screen, or use the tab bar and links inside the phone.</p>
+    <div class="grp">The five tabs</div>
+    <button data-go="today">Today</button>
+    <button data-go="book">Book</button>
+    <button data-go="camp">Campaign</button>
+    <button data-go="story">Story</button>
+    <button data-go="you">You</button>
+    <div class="grp">Focus mode</div>
+    <button data-go="lesson">A lesson, new style</button>
+    <button data-go="gate">The Cambridge gate</button>
+    <button data-go="gym">Gym mode</button>
+    <button data-go="paper">A timed paper</button>
+    <button data-go="scene">A cut scene</button>
+    <div class="why" id="why"></div>
+  </aside>
+
+  <div class="phone" id="phone">
+    <!-- TODAY -->
+    <section class="scr" id="s-today">
+      <div class="top"><svg class="arms" viewBox="0 0 120 150"><use href="#arms"/></svg>Monday, October 6</div>
+      <div class="nowcard" data-go="lesson">
+        <div class="tag">now · 34 min left</div>
+        <div class="nt">Proof by contradiction</div>
+        <div class="s">A new lesson</div>
+        <button class="btn" data-go="lesson">Start</button>
+      </div>
+      <div class="dayline"><span>2.5 of 6 hours</span><span class="pill" data-go="scene">A scene is waiting ›</span></div>
+      <div class="lbl">Later today</div>
+      <ul class="rows compact">
+        <li data-go="gym"><span>2:00 pm</span><span>Gym <span class="s">· gym mode</span></span></li>
+        <li data-go="paper"><span>4:00 pm</span><span>One timed problem</span></li>
+        <li><span>5:45 pm</span><span>Review</span></li>
+        <li><span>8:00 pm</span><span class="s">Dinner</span></li>
+      </ul>
+      <button class="btn ghost" style="margin-top:14px">See the whole day</button>
+    </section>
+
+    <!-- BOOK -->
+    <section class="scr" id="s-book">
+      <h2>Your course</h2>
+      <div class="sub">Four stages, in the order Cambridge students take them.</div>
+      <div class="waiting" data-go="lesson"><span><b>Pick up where you left off</b><br><span class="s">Proof by contradiction</span></span><span class="s">›</span></div>
+      <ul class="stages">
+        <li class="open"><div class="sh"><b>1 · Getting in</b><span>31%</span></div>
+          <div class="sd">The maths and computing you need to win a place.</div>
+          <ul class="ch">
+            <li class="here"><b>Writing proofs</b><span>How to write an argument that convinces anyone. Start here.</span></li>
+            <li><b>Problem-solving practice</b><span>Cambridge's own training problems for applicants (called STEP).</span></li>
+            <li><b>School exams</b><span>A level Maths, Further Maths, and Computer Science: the grades Cambridge asks for.</span></li>
+            <li><b>The entrance test</b><span>The TMUA: a 2.5-hour multiple-choice maths test you sit to apply.</span></li>
+            <li><b>First programming</b><span>Your first functional language, OCaml, used in the first year.</span></li>
+          </ul></li>
+        <li><div class="sh"><b>2 · First year</b><span>opens after stage 1</span></div><div class="sd">Probability, analysis, algebra, and the first computer science courses.</div></li>
+        <li><div class="sh"><b>3 · Second year</b><span></span></div><div class="sd">Deeper maths, systems, and theory of computation.</div></li>
+        <li><div class="sh"><b>4 · Third year</b><span></span></div><div class="sd">Advanced options: statistics, machine learning, architecture.</div></li>
+      </ul>
+    </section>
+
+    <!-- LESSON -->
+    <section class="scr focus" id="s-lesson">
+      <div class="focusbar"><button data-go="today">‹ Today</button><span>step 2 of 4</span></div>
+      <div class="prog"><i style="width:50%"></i></div>
+      <h2 style="font-size:22px">Is √2 a fraction?</h2>
+      <p class="s">First the precise definitions, then what they mean in plain words.</p>
+
+      <div class="def"><div class="lbl">Definition · rational number</div>
+        <div class="fm">A real number <math><mi>x</mi></math> is <b>rational</b> if <math><mi>x</mi><mo>=</mo><mfrac><mi>a</mi><mi>b</mi></mfrac></math> for some <math><mi>a</mi><mo>,</mo><mi>b</mi><mo>∈</mo><mi mathvariant="double-struck">Z</mi></math> with <math><mi>b</mi><mo>≠</mo><mn>0</mn></math>. Otherwise <math><mi>x</mi></math> is <b>irrational</b>.</div>
+        <div class="pl">In plain words: a fraction, one whole number divided by another, like 7/5. (<math><mi mathvariant="double-struck">Z</mi></math> means the whole numbers, negatives included.)</div></div>
+
+      <div class="def"><div class="lbl">Definition · even and odd</div>
+        <div class="fm">An integer <math><mi>n</mi></math> is <b>even</b> if <math><mi>n</mi><mo>=</mo><mn>2</mn><mi>k</mi></math> for some <math><mi>k</mi><mo>∈</mo><mi mathvariant="double-struck">Z</mi></math>, and <b>odd</b> if <math><mi>n</mi><mo>=</mo><mn>2</mn><mi>k</mi><mo>+</mo><mn>1</mn></math> for some <math><mi>k</mi><mo>∈</mo><mi mathvariant="double-struck">Z</mi></math>.</div>
+        <div class="pl">In plain words: even means "2 times a whole number"; odd means "one more than that". 10 = 2 × 5 is even; 7 = 2 × 3 + 1 is odd.</div></div>
+
+      <div class="def"><div class="lbl">Definition · lowest terms</div>
+        <div class="fm"><math><mfrac><mi>a</mi><mi>b</mi></mfrac></math> is in <b>lowest terms</b> if <math><mo>gcd</mo><mo>(</mo><mi>a</mi><mo>,</mo><mi>b</mi><mo>)</mo><mo>=</mo><mn>1</mn></math>.</div>
+        <div class="pl">In plain words: a and b share no common factor bigger than 1, so the fraction can't be simplified. 6/4 isn't; 3/2 is.</div></div>
+
+      <div class="rule"><div class="lbl">Theorem</div><math><msqrt><mn>2</mn></msqrt></math> is irrational.</div>
+
+      <div class="lbl">Proof</div>
+      <ol class="steps">
+        <li><b>Pretend.</b> Suppose not: <math><msqrt><mn>2</mn></msqrt><mo>=</mo><mfrac><mi>a</mi><mi>b</mi></mfrac></math> with <math><mi>a</mi><mo>,</mo><mi>b</mi><mo>∈</mo><mi mathvariant="double-struck">Z</mi></math>, <math><mi>b</mi><mo>≠</mo><mn>0</mn></math>, <math><mo>gcd</mo><mo>(</mo><mi>a</mi><mo>,</mo><mi>b</mi><mo>)</mo><mo>=</mo><mn>1</mn></math>.
+          <div class="pl">We pretend √2 is a fraction already simplified as far as it goes, and watch what breaks.</div></li>
+        <li><b>Remove the square root.</b>
+          <div class="eq"><math><mn>2</mn><mo>=</mo><mfrac><msup><mi>a</mi><mn>2</mn></msup><msup><mi>b</mi><mn>2</mn></msup></mfrac><mspace width="0.6em"/><mo>⟹</mo><mspace width="0.6em"/><msup><mi>a</mi><mn>2</mn></msup><mo>=</mo><mn>2</mn><msup><mi>b</mi><mn>2</mn></msup></math></div>
+          <div class="pl">Square both sides: √2 squared is 2, and a/b squared is a²/b². Then multiply both sides by b².</div></li>
+        <li><b>So a is even.</b> <math><msup><mi>a</mi><mn>2</mn></msup><mo>=</mo><mn>2</mn><mo>(</mo><msup><mi>b</mi><mn>2</mn></msup><mo>)</mo></math> is even, hence <math><mi>a</mi></math> is even.
+          <details><summary>Why does a² even force a even?</summary>If <math><mi>a</mi><mo>=</mo><mn>2</mn><mi>m</mi><mo>+</mo><mn>1</mn></math> were odd, then <math><msup><mi>a</mi><mn>2</mn></msup><mo>=</mo><mn>2</mn><mo>(</mo><mn>2</mn><msup><mi>m</mi><mn>2</mn></msup><mo>+</mo><mn>2</mn><mi>m</mi><mo>)</mo><mo>+</mo><mn>1</mn></math>, which is odd. In plain words: odd × odd is odd (3 × 3 = 9).</details></li>
+        <li><b>Name the half.</b> Write <math><mi>a</mi><mo>=</mo><mn>2</mn><mi>k</mi></math> with <math><mi>k</mi><mo>∈</mo><mi mathvariant="double-struck">Z</mi></math>.
+          <div class="pl">That's just the definition of even. If a were 10, k would be 5.</div></li>
+        <li><b>Put it back.</b>
+          <div class="eq"><math><mo>(</mo><mn>2</mn><mi>k</mi><msup><mo>)</mo><mn>2</mn></msup><mo>=</mo><mn>2</mn><msup><mi>b</mi><mn>2</mn></msup><mspace width="0.6em"/><mo>⟹</mo><mspace width="0.6em"/><msup><mi>b</mi><mn>2</mn></msup><mo>=</mo><mn>2</mn><msup><mi>k</mi><mn>2</mn></msup></math></div>
+          <div class="pl">4k² = 2b², then halve both sides. By the same reasoning as step 3, b is even too.</div></li>
+        <li><b>Contradiction.</b> <math><mn>2</mn><mo>∣</mo><mi>a</mi></math> and <math><mn>2</mn><mo>∣</mo><mi>b</mi></math>, so <math><mo>gcd</mo><mo>(</mo><mi>a</mi><mo>,</mo><mi>b</mi><mo>)</mo><mo>≥</mo><mn>2</mn></math>, contradicting <math><mo>gcd</mo><mo>(</mo><mi>a</mi><mo>,</mo><mi>b</mi><mo>)</mo><mo>=</mo><mn>1</mn></math>. <span style="float:right">∎</span>
+          <div class="pl">a and b both divide by 2, but step 1 said they share no common factor. Both can't be true, so the pretence was false.</div></li>
+      </ol>
+      <div class="rule"><div class="lbl">The method</div>This is <b>proof by contradiction</b>: to prove a statement, assume it is false and derive something impossible.</div>
+      <button class="btn" data-go="gate">Next: try one yourself ›</button>
+    </section>
+
+    <!-- GATE -->
+    <section class="scr focus" id="s-gate">
+      <div class="focusbar"><button data-go="lesson">‹ Lesson</button><span>Mastery: 2 of 3 steps done</span></div>
+      <div class="prog"><i style="width:66%"></i></div>
+      <div class="lbl">Step 1 · Drills</div><div class="s">3 right in a row · done</div>
+      <div class="lbl">Step 2 · Mixed check</div><div class="s">2 of 2 · done</div>
+      <div class="lbl">Step 3 · The Cambridge problem, unaided</div>
+      <p><b>CST Discrete Mathematics, Exercises 2, 2.3.2.</b> Show that no repunit 11…1 with at least two digits is a perfect square.</p>
+      <p class="s">A proof. Write it on paper or in the box, then send it to supervision. It counts when marked 14/20 or more.</p>
+      <div class="check" style="min-height:90px;color:var(--mute)">Your write-up…</div>
+      <button class="btn">Copy for supervision</button>
+      <button class="btn ghost">Paste the result</button>
+      <div class="exam">The examiner looks for: the remainder of a square on division by 4, the remainder of a repunit, and a clear final contradiction.</div>
+    </section>
+
+    <!-- GYM -->
+    <section class="scr focus" id="s-gym">
+      <div class="focusbar"><button data-go="today">‹ Today</button><span>Gym mode · 90 min · REP at half rate</span></div>
+      <div class="seg"><button aria-current="true" data-gyv="cards">Recall</button><button data-gyv="order">Proof order</button><button data-gyv="drill">Quick drills</button><button data-gyv="listen">Listen</button></div>
+      <div id="gy-cards"><div class="card" onclick="this.querySelector('.b').hidden=!this.querySelector('.b').hidden;this.querySelector('.f').hidden=!this.querySelector('.f').hidden"><div><small>Theorem · tap to flip</small><div class="f">Euclid: why are there infinitely many primes?</div><div class="b" hidden>From any finite list, the product plus one has a prime factor not in the list.</div></div></div><div class="s" style="text-align:center">Card 4 of 14 · Easy · Good · Again</div></div>
+      <div id="gy-order" hidden><p class="s">Tap the steps of the proof that √2 is irrational into order.</p><ol class="order"><li><b>?</b>So b is even too.</li><li><b>?</b>Suppose √2 = a/b in lowest terms.</li><li><b>?</b>Then a² = 2b², so a is even.</li><li><b>?</b>Both even: a contradiction.</li></ol></div>
+      <div id="gy-drill" hidden><div class="card"><div><small>Quick drill · 20 seconds</small>Remainder of 2 × 3 × 7 + 1 on division by 7?</div></div></div>
+      <div id="gy-listen" hidden><div class="card"><div><small>Listen mode</small>Proof by contradiction<br><span class="s">read aloud · 4 min · ▶ play</span></div></div></div>
+      <p class="s" style="margin-top:14px">Gym mode keeps topics fresh and earns REP. It never counts as the Cambridge problem; that stays desk work.</p>
+    </section>
+
+    <!-- PAPER -->
+    <section class="scr focus" id="s-paper">
+      <div class="focusbar"><button data-go="today">‹ Today</button><span>Timed ladder · Block 2</span></div>
+      <h2 style="font-size:22px">One STEP question</h2>
+      <div class="sub">2005 STEP I, Question 1 · 45 minutes · open the paper, answer on paper</div>
+      <div class="big" style="text-align:center;margin:30px 0 6px">38:12</div>
+      <div class="s" style="text-align:center">left · no hints in timed mode</div>
+      <button class="btn">Finish and mark</button>
+      <div class="lbl">The ladder</div>
+      <ul class="rows"><li><span>One question per block</span><span class="r">here</span></li><li><span>Half paper (90 min)</span><span class="r">after Block 4</span></li><li><span>Full paper (3 hours)</span><span class="r">Act V</span></li></ul>
+    </section>
+
+    <!-- CAMPAIGN -->
+    <section class="scr" id="s-camp">
+      <div class="crumb">Campaign</div>
+      <h2>Admission</h2>
+      <div class="sub">On course for October 2028 · Mathematics · Euclid College</div>
+      <div class="seg"><button aria-current="true" data-cv="acts">Acts</button><button data-cv="papers">Papers</button><button data-cv="results">Results</button><button data-cv="letters">Letters</button></div>
+      <div id="cv-acts"><ul class="rows"><li class="here"><span>I · Recent qualifications</span><span class="r">now · 31%</span></li><li><span>II · The admissions test</span><span class="r">TMUA, January</span></li><li><span>III · The application</span><span class="r">by Jan 13</span></li><li><span>IV · The interview</span><span class="r">March to April</span></li><li><span>V · The offer and STEP</span><span class="r">June</span></li></ul></div>
+      <div id="cv-papers" hidden><ul class="rows"><li><span>STEP 2 · 2019</span><span class="r">sit ›</span></li><li><span>STEP 3 · 2022</span><span class="r">61 / 120 · grade 2</span></li><li><span>TMUA · 2019</span><span class="r">27 / 40</span></li><li><span>A level Maths · June 2025 P1</span><span class="r">sit ›</span></li></ul></div>
+      <div id="cv-results" hidden><div class="lbl">STEP 3 · 2022 paper</div><div style="font-size:20px">61 / 120 · grade 2</div><div class="scale"><span class="b" style="left:24%"><span>3</span></span><span class="b" style="left:42%"><span>2</span></span><span class="b" style="left:52%"><span>1</span></span><span class="b" style="left:68%"><span>S</span></span><span class="m" style="left:51%"></span></div><div class="s">36% of real 2022 candidates scored 61 or more. Grade 1 needed 63.</div></div>
+      <div id="cv-letters" hidden><ul class="rows"><li><span>Offer letter</span><span class="r">after Act IV</span></li><li><span>Degree certificate</span><span class="r">after Part II</span></li></ul></div>
+    </section>
+
+    <!-- STORY -->
+    <section class="scr" id="s-story">
+      <div class="crumb">Story</div>
+      <h2>Book One</h2>
+      <div class="sub">REP 1,240 · Offer Holder in 260</div>
+      <div class="waiting" data-go="scene"><span><b>Next: First Light</b><br><span class="s">ready to play</span></span><span class="s">Play ›</span></div>
+      <ul class="rows"><li><span>Prologue · The Kitchen Table</span><span class="r">replay</span></li><li><span>First Light</span><span class="r">ready</span></li><li><span>Proof</span><span class="r">finish CS-0 Proof</span></li><li><span>The Long Winter</span><span class="r">halfway through Stage A</span></li><li><span>Act I · Recent Qualifications</span><span class="r">sit the A level papers</span></li></ul>
+      <div class="lbl">People</div>
+      <ul class="rows"><li><span>Priya Raman</span><span class="r">closer</span></li><li><span>Dr Ada Lambda</span><span class="r">not yet met</span></li></ul>
+    </section>
+
+    <!-- YOU -->
+    <section class="scr" id="s-you">
+      <div class="crumb">You</div>
+      <h2>Albert</h2>
+      <div class="sub">Mature applicant · Mathematics route</div>
+      <div class="lbl">Predicted outcomes, from timed work</div>
+      <div class="dash"><div><span>STEP 2</span>grade 2 <span>range 3 to 1 · 2 papers</span></div><div><span>STEP 3</span>grade 2 <span>range 3 to 2 · 1 paper</span></div><div><span>TMUA</span>about 5.8 <span>raw 27/40 · 1 sitting</span></div><div><span>A level Maths</span>not enough data <span>sit 2 papers</span></div></div>
+      <div class="lbl">Coverage</div>
+      <ul class="rows"><li><span>Preparation mastered (with the gate)</span><span class="r">18%</span></li><li><span>Lessons mastered</span><span class="r">41 of 389</span></li></ul>
+      <div class="lbl">More</div>
+      <ul class="rows"><li><span>Glossary and search</span><span class="r">›</span></li><li><span>Your day: wake, gym, dinner, bed</span><span class="r">›</span></li><li><span>Route, college, sync</span><span class="r">›</span></li><li><span>Theme</span><span class="r">system</span></li><li><span>Help</span><span class="r">›</span></li></ul>
+    </section>
+
+    <!-- SCENE -->
+    <div class="scene bars" id="s-scene">
+      <button class="skip" data-go="today">Skip</button>
+      <div class="art"></div>
+      <div class="card2">Book One · First Light · Brooklyn, 6:10 am</div>
+      <div class="dlg"><div class="w">Priya</div>"You finished Block 1? At six in the morning? I'm making coffee. Send me question four."</div>
+    </div>
+
+    <nav class="tabbar" id="tabbar">
+      <button data-go="today"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M9 3v4M15 3v4"/></svg>Today</button>
+      <button data-go="book"><svg viewBox="0 0 24 24"><path d="M4 5c3-1 6-1 8 1v14c-2-2-5-2-8-1zM20 5c-3-1-6-1-8 1v14c2-2 5-2 8-1z"/></svg>Book</button>
+      <button data-go="camp"><svg viewBox="0 0 24 24"><path d="M6 20V4M6 4h11l-2 3.5 2 3.5H6"/></svg>Campaign</button>
+      <button data-go="story"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M10 9.5l5 2.5-5 2.5z"/></svg>Story</button>
+      <button data-go="you"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c1.5-4 4-5.5 7-5.5s5.5 1.5 7 5.5"/></svg>You</button>
+    </nav>
+  </div>
+</div>
+
+<script>
+var WHY = {
+  today: 'Streamlined: one card for what to do now with a single Start button, one line for progress and a waiting scene, then the rest of the day as short rows. The full timeline is one tap away.',
+  book: 'Plain English: four stages (getting in, then three years), each chapter with one line saying what it is and why. Jargon like STEP and TMUA is explained where it first appears.',
+  lesson: 'Rigor first, then plain words: each definition and the theorem stated formally (as the Cambridge notes would), each followed by what it means. The proof is written formally, step by step, with a plain-words line under each step and a why expander where a fact is used.',
+  gate: 'The new mastery gate: drills, a mixed check, then one Cambridge problem unaided. Proofs go to supervision and count at 14/20 or more. The examiner note says what earns marks.',
+  gym: 'Gym mode, sized for between sets: recall cards, tap-to-order proofs, 20-second drills, and listen mode. It feeds spaced review and earns REP at half rate, but never the gate.',
+  paper: 'The timed ladder: one STEP question per block, half papers later, full papers in Act V. No hints while timed.',
+  camp: 'Campaign holds everything about admission: Acts, Papers (exam mode), Results (the report, with real percentiles), and Letters.',
+  story: 'The next scene and what triggers it, every chapter, replays, REP, and the people you know.',
+  you: 'You: predicted outcomes from timed work with ranges and the evidence count, coverage with the gate, then glossary, your day, route, theme, and help.',
+  scene: 'Cut scenes play immediately when a milestone fires (except during a timed paper or on Shabbat). Skip is always visible.'
+};
+var FOCUS = { lesson: 1, gate: 1, gym: 1, paper: 1, scene: 1 };
+var TABOF = { today: 'today', book: 'book', camp: 'camp', story: 'story', you: 'you' };
+function go(v) {
+  document.querySelectorAll('.scr').forEach(function (s) { s.classList.toggle('on', s.id === 's-' + v); });
+  document.getElementById('s-scene').classList.toggle('on', v === 'scene');
+  document.getElementById('tabbar').style.display = FOCUS[v] ? 'none' : 'grid';
+  document.querySelectorAll('#tabbar button').forEach(function (b) { b.setAttribute('aria-current', String(b.dataset.go === v)); });
+  document.querySelectorAll('.side button').forEach(function (b) { b.setAttribute('aria-current', String(b.dataset.go === v)); });
+  document.getElementById('why').textContent = WHY[v] || '';
+  var s = document.getElementById('s-' + v); if (s) s.scrollTop = 0;
+}
+document.addEventListener('click', function (e) {
+  var t = e.target.closest('[data-go]'); if (t) { go(t.dataset.go); return; }
+  var c = e.target.closest('[data-cv]');
+  if (c) { var k = c.dataset.cv; c.parentNode.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-current', String(b === c)); }); ['acts', 'papers', 'results', 'letters'].forEach(function (x) { document.getElementById('cv-' + x).hidden = x !== k; }); }
+  var g = e.target.closest('[data-gyv]');
+  if (g) { var k2 = g.dataset.gyv; g.parentNode.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-current', String(b === g)); }); ['cards', 'order', 'drill', 'listen'].forEach(function (x) { document.getElementById('gy-' + x).hidden = x !== k2; }); }
+});
+go('today');
+</script>

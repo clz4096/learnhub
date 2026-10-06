@@ -293,4 +293,5 @@ export const jointDensities: TopicContent = {
   terms: ['joint-density', 'marginal-density'],
   claims,
   cambridge: [q4race, q1general, triangle],
+  gate: ['ia4-q4-race', 'ia4-q1-general'],
 };

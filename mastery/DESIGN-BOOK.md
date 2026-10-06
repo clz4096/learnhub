@@ -49,7 +49,7 @@ Rules:
 2. **The book order is a valid prerequisite order.** Every section's prerequisites come earlier in the book. A test enforces this.
 3. **Bridge sections:** when a source assumes something it never teaches, the chapter gets a bridge section, marked as such and written from first principles. Its citations are to Book of Proof or the TMUA notes, or it has no source.
 4. **Problems-only chapters:** when every topic of a source unit is already taught (STEP Assignments 7 and 8), the chapter is a short introduction plus that unit's problems.
-5. **Out-of-course problems are left out** (trigonometry, coordinate geometry, curve sketching), as in the batch 1 map.
+5. **Preparation problems are kept** (reversed 2026-10-05; it read "out-of-course problems are left out: trigonometry, coordinate geometry, curve sketching"). Those subjects are most of STEP pure, A level, and TMUA Paper 1, so they are graph topics placed in Preparation (`graph/reviews/cambridge-prep.md`).
 
 ## Part order
 

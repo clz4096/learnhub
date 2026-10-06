@@ -345,4 +345,5 @@ export const geometricDistribution: TopicContent = {
   terms: ['geometric-distribution', 'geometric-memoryless'],
   claims,
   cambridge: [firstSix, varianceNotes, coupon, negBin],
+  gate: ['s3-notes-first-six', 's3-notes-variance', 'ia-s2-q11-coupons', 'ia-s3-q5-sum-of-geometrics'],
 };

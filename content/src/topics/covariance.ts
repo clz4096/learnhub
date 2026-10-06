@@ -312,4 +312,5 @@ export const covariance: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['covariance', 'correlation-coefficient'],
   cambridge: [q9, q12a, q12aProof, q9proof, scheduleCorrelation],
+  gate: ['ia-s2-q9', 'ia-s4-q12-a', 'ia-s4-q12-a-proof', 'ia-s2-q9-general'],
 };

@@ -268,4 +268,5 @@ export const markovChebyshev: TopicContent = {
   terms: ['markov-inequality', 'chebyshev-inequality'],
   claims,
   cambridge: [q3a, q2proof, q3proof, scheduleProof],
+  gate: ['ia-s3-q3-a-value', 'ia-s3-q2', 'ia-s3-q3-a'],
 };

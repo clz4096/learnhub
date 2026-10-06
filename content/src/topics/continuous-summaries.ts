@@ -408,4 +408,15 @@ export const continuousSummaries: TopicContent = {
   terms: ['median-of-density', 'mode-of-density'],
   claims,
   cambridge: [q6median, q4mean, s3mean, s3time, q9median, q9mean, q4var, q6proofs, s3medians],
+  gate: [
+    's2-q6-ii',
+    's2-q4-mean',
+    's3-q4-mean-speed',
+    's3-q4-mean-time',
+    'ia4-q9-b-median',
+    'ia4-q9-b-mean',
+    's2-q4-variance',
+    's2-q6-i-iii',
+    's3-q4-medians',
+  ],
 };

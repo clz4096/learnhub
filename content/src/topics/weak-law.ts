@@ -277,4 +277,5 @@ export const weakLaw: TopicContent = {
   terms: ['weak-law', 'convergence-in-probability'],
   claims,
   cambridge: [q4, q13b, uncorrelated],
+  gate: ['ia-s3-q4', 'ia-s3-q13-variance'],
 };

@@ -299,4 +299,5 @@ export const sequences: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sequence', 'term', 'term-to-term', 'position-to-term', 'arithmetic-sequence', 'common-difference', 'triangular-number'],
   cambridge: [sw131b, sw131c, sw131d],
+  gate: ['sw-1-3-1-b', 'sw-1-3-1-c', 'sw-1-3-1-d'],
 };

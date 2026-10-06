@@ -267,4 +267,5 @@ export const euclidAlgorithm: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['euclids-algorithm'],
   cambridge: [notes75, sheet423d, sheet333, theorem79, sheet423dproof],
+  gate: ['notes-218-example-75', 'sheet-4-2-3-d', 'sheet-3-3-3', 'notes-224-theorem-79-bound', 'sheet-4-2-3-d-proof'],
 };

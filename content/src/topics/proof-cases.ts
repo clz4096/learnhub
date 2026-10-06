@@ -370,4 +370,5 @@ export const proofCases: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exhaustive-cases', 'without-loss-of-generality'],
   cambridge: [a6ii, lemma26, odd8, bop14, bop15, bop44, sw223, sw128, sw231, sw327, bop16],
+  gate: ['a6-q3-ii', 'sw-2-2-3-cases', 'sw-3-2-7-b', 'sw-2-2-3', 'sw-1-2-8', 'sw-2-3-1', 'sw-3-2-7'],
 };

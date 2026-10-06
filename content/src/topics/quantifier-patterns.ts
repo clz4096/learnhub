@@ -317,4 +317,5 @@ export const quantifierPatterns: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arbitrary-element', 'unique-existence'],
   cambridge: [sw117, bop717, bop712, bop720, bop426, sw117proof, sw114proof, bop426proof],
+  gate: ['sw-1-1-7', 'sw-1-1-7-proof', 'sw-1-1-4-proof'],
 };

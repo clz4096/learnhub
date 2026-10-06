@@ -112,11 +112,66 @@ progress.bar::-moz-progress-bar { background: var(--accent); }
 /* lesson */
 .lesson-head h1 { margin-bottom: var(--space-1); }
 .goal { color: var(--text-muted); }
-.stages { display: flex; gap: var(--space-1); margin: var(--space-3) 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
-.stage { background: none; border: 0; border-bottom: 3px solid transparent; padding: var(--space-2) var(--space-2); cursor: pointer; white-space: nowrap; min-height: var(--touch); color: var(--text-muted); }
-.stage.on { border-bottom-color: var(--accent); color: var(--text); font-weight: 600; }
+/* the lesson as named sections: a segmented bar on top, the outline in the header, one section at a time */
+.segs { display: grid; gap: 4px; margin: 0 0 18px; }
+.segs i { height: 3px; background: var(--line); border-radius: 2px; }
+.segs i.done { background: var(--cam); }
+.segs i.cur { background: linear-gradient(90deg, var(--cam) 50%, var(--line) 50%); }
+ol.outline { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 2px; font: 13px var(--sans); color: var(--mute); }
+ol.outline li { display: flex; align-items: baseline; gap: 6px; }
+ol.outline button { color: inherit; font: inherit; text-align: left; min-height: 32px; text-decoration: none; }
+ol.outline li.done button { text-decoration: line-through; text-decoration-color: var(--faint); }
+ol.outline li.cur button { color: var(--text); font-weight: 500; }
+ol.outline .here { font: 10.5px/1.9 var(--mono); color: var(--cam); }
+.section-title { font: 400 20px/1.3 var(--serif); margin: var(--space-4) 0 var(--space-2); }
 .lesson-body > .btn { margin-top: var(--space-3); }
 .rule { background: var(--accent-soft); border-left: 4px solid var(--accent); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); margin: 0 0 var(--space-3); }
+/* the teaching style's blocks (mastery/TEACHING-STYLE.md): plain type and hairlines, no boxes */
+.narr { font: 16.5px/1.6 var(--serif); margin: 10px 0 12px; }
+.hook { margin-bottom: var(--space-4); }
+.journey { font: 11.5px var(--mono); color: var(--mute); letter-spacing: 0.04em; margin: 0 0 var(--space-1); }
+.journey span { color: var(--faint); }
+dl.objective { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 4px 12px; margin: 10px 0 8px; }
+dl.objective dt { font: 500 10.5px/1.9 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--mute); }
+dl.objective dd { margin: 0; font: 15px/1.5 var(--serif); color: var(--text); }
+.lesson-meta { font: 12px var(--mono); color: var(--mute); margin: 0; }
+.lesson-head { padding-bottom: var(--space-4); border-bottom: 1px solid var(--border); }
+.takeaway { border-top: 1px solid var(--border); padding-top: var(--space-3); margin: var(--space-4) 0 var(--space-3); font-weight: 600; }
+.pitfall { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: var(--space-2) 0; margin: 0 0 var(--space-3); }
+.pitfall p { margin: 0 0 var(--space-1); }
+.pitfall-label, .qc-label { margin: 0 0 var(--space-1); text-transform: uppercase; letter-spacing: 0.06em; font-size: 12px; }
+.pitfall-counter { color: var(--text-muted); }
+.why { margin: calc(-1 * var(--space-2)) 0 var(--space-3); font-size: var(--text-sm); }
+.why summary { cursor: pointer; color: var(--text-muted); min-height: var(--touch); display: list-item; }
+.why[open] summary { color: var(--text); }
+.why p { margin: var(--space-1) 0 0; padding-left: var(--space-3); border-left: 2px solid var(--border); }
+.with-why > .rule, .with-why > p { margin-bottom: var(--space-2); }
+.steps { margin: 0 0 var(--space-3); padding-left: 1.5em; }
+.steps > li { margin: 0 0 var(--space-3); }
+.steps > li > p { margin: 0 0 var(--space-1); }
+.steps .why { margin-top: 0; }
+.step-eq { text-align: center; margin: var(--space-2) 0; }
+.step-plain { margin: 0 0 var(--space-1); }
+.qed { text-align: right; margin: calc(-1 * var(--space-2)) 0 var(--space-3); }
+/* formal objects, LaTeX amsthm style: "Definition 2.1 (Name). body"; "Theorem 2.3. statement"; "Proof." ... ∎ */
+.amsdef { font: 16px/1.6 var(--serif); background: var(--wash); border-left: 2px solid var(--gold); padding: 10px 12px; margin: 12px 0; }
+.amsthm { font: 16px/1.6 var(--serif); border-left: 2px solid var(--cam); padding: 4px 0 4px 12px; margin: 14px 0 8px; }
+.ams-body { margin: 0; }
+.amsdef .lab, .amsthm .lab { font-weight: 600; }
+.amsdef .nm, .amsthm .nm { font-weight: 400; }
+/* the defined terms (glossary marks) of a definition, in italics as the notes set them */
+.amsdef .ams-body .term { font-style: italic; font-weight: 500; }
+.amsthm .stmt { font-style: italic; }
+.amsdef .plain, .amsthm .plain { font: 13.5px/1.5 var(--sans); color: var(--mute); margin: 5px 0 0; }
+.amspf { font: 16px var(--serif); margin: 6px 0 var(--space-1); }
+.step-plain { font-family: var(--sans); }
+.quick-check { border-left: 2px solid var(--border-strong); padding: var(--space-1) 0 var(--space-1) var(--space-3); margin: 0 0 var(--space-3); }
+.quick-check .qc-prompt { margin: 0 0 var(--space-2); }
+.qc-result p { margin: var(--space-1) 0 0; }
+.qc-result.good strong { color: var(--good); }
+.qc-result.bad strong { color: var(--warning); }
+.examiner { border-left: 2px solid var(--border-strong); padding-left: var(--space-2); color: var(--text-muted); }
+.gate-met { color: var(--good); font-weight: 600; }
 .table-wrap { overflow-x: auto; margin: 0 0 var(--space-3); }
 table { border-collapse: collapse; font-size: var(--text-sm); }
 caption { text-align: left; color: var(--text-muted); padding-bottom: var(--space-1); }
@@ -238,6 +293,7 @@ input[aria-invalid='true'] { border: 2px solid var(--error); }
 .legend { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin: var(--space-2) 0; }
 .status-chip { display: inline-block; padding: 0 var(--space-2); border-radius: 999px; border: 1px solid; font-size: var(--text-sm); }
 .status-chip.st-mastered { background: var(--st-mastered); border-color: var(--st-mastered-line); }
+.status-chip.st-gate { background: var(--st-mastered); border-color: var(--st-mastered-line); border-style: dashed; }
 .status-chip.st-due { background: var(--st-due); border-color: var(--st-due-line); }
 .status-chip.st-ready { background: var(--st-ready); border-color: var(--st-ready-line); }
 .status-chip.st-unwritten { background: var(--st-locked); border-color: var(--st-ready-line); border-style: dashed; }
@@ -257,6 +313,7 @@ input[aria-invalid='true'] { border: 2px solid var(--error); }
 .node rect { stroke-width: 1.5; }
 .node text { font-size: 15px; fill: var(--text); pointer-events: none; }
 .node.st-mastered rect { fill: var(--st-mastered); stroke: var(--st-mastered-line); }
+.node.st-gate rect { fill: var(--st-mastered); stroke: var(--st-mastered-line); stroke-dasharray: 5 3; }
 .node.st-due rect { fill: var(--st-due); stroke: var(--st-due-line); stroke-width: 2.5; }
 .node.st-ready rect { fill: var(--st-ready); stroke: var(--st-ready-line); stroke-width: 2.5; }
 .node.st-unwritten rect { fill: var(--st-locked); stroke: var(--st-ready-line); stroke-dasharray: 5 3; }
@@ -278,6 +335,7 @@ input[aria-invalid='true'] { border: 2px solid var(--error); }
 .list-topic:hover, .list-topic.selected { background: var(--surface-2); }
 .status-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; flex: none; }
 .status-dot.st-mastered { background: var(--st-mastered-line); border-color: var(--st-mastered-line); }
+.status-dot.st-gate { background: var(--st-mastered); border-color: var(--st-mastered-line); border-style: dashed; }
 .status-dot.st-due { background: var(--st-due-line); border-color: var(--st-due-line); }
 .status-dot.st-ready { background: var(--st-ready); border-color: var(--st-ready-line); }
 .status-dot.st-unwritten { background: var(--st-locked); border-color: var(--st-ready-line); border-style: dashed; }
@@ -783,6 +841,7 @@ ol.book-steps { margin: 0 0 8px; }
 .book-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--faint); justify-self: center; align-self: center; }
 .book-steps .st-mastered .book-dot, .book-steps .st-due .book-dot { background: var(--cam); border-color: var(--cam); }
 .book-steps .st-due .book-dot { background: var(--bg); }
+.book-steps .st-gate .book-dot { border-color: var(--cam); border-style: dashed; }
 .book-steps .st-ready .book-dot { border-color: var(--fg); }
 .book-steps .st-towrite, .book-steps .st-unwritten { color: var(--mute); }
 .book-steps li.here .book-dot { width: 11px; height: 11px; background: var(--cam); border-color: var(--cam); box-shadow: 0 0 0 4px var(--cam-soft); }

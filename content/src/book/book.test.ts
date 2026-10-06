@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { topics } from '@learnhub/graph';
 import { CONTENT_IDS } from '../load';
-import { BOOK, BOOK_ORDER, BOOK_STEPS, CHAPTERS, PLACEMENT, PREREQ_FLAGS, chapterById, placeOf, prerequisiteGaps } from './book';
+import { BOOK, BOOK_ORDER, BOOK_STEPS, CHAPTERS, PLACEMENT, PREREQ_FLAGS, chapterById, isFlagged, placeOf, prerequisiteGaps } from './book';
 
 const GRAPH_IDS = new Set(topics.map((t) => t.id));
 
@@ -48,11 +48,14 @@ describe('the book', () => {
 
   it('puts every prerequisite earlier in the book, or flags it (rule 2)', () => {
     const gaps = prerequisiteGaps(topics);
-    const unflagged = gaps.filter((g) => PREREQ_FLAGS[g.topicId]?.prereq !== g.prereq);
+    const unflagged = gaps.filter((g) => !isFlagged(g.topicId, g.prereq));
     expect(unflagged).toEqual([]);
     // A flag whose gap has closed is stale.
     const open = new Set(gaps.map((g) => `${g.topicId}<${g.prereq}`));
-    for (const [id, f] of Object.entries(PREREQ_FLAGS)) expect(open.has(`${id}<${f.prereq}`)).toBe(true);
+    for (const [id, flags] of Object.entries(PREREQ_FLAGS)) {
+      expect(flags.length, id).toBeGreaterThan(0);
+      for (const f of flags) expect(open.has(`${id}<${f.prereq}`), `${id}<${f.prereq}`).toBe(true);
+    }
   });
 
   it('follows the revision: Preparation, then Discrete Mathematics, Analysis I, Probability', () => {
@@ -62,7 +65,16 @@ describe('the book', () => {
     };
     expect(where('pre.fractions')).toMatch(/^prep\/STEP Foundation, Block 1/);
     expect(where('comb.pigeonhole')).toMatch(/^prep\/STEP Foundation, Block 2: .*\/Assignment 5:/);
-    expect(where('logic.connectives')).toBe('IA/Discrete Mathematics/Proof');
+    // Logic and proof are taught in CS-0 Proof, which follows Block 1 (graph/reviews/cambridge-prep.md).
+    expect(where('logic.connectives')).toBe('prep/CS-0 Proof/TMUA Notes on Logic and Proof');
+    expect(where('proof.cases')).toMatch(/^prep\/CS-0 Proof\/Book of Proof 4 to 7/);
+    expect((placeOf('proof.cases')?.order ?? Infinity) < (placeOf('comb.pigeonhole')?.order ?? -1)).toBe(true);
+    expect(CHAPTERS.find((c) => c.yearId === 'IA' && c.title === 'Discrete Mathematics')?.sections.find((s) => s.title === 'Proof')?.steps).toEqual([]);
+    // School calculus is taught where STEP Foundation teaches or first needs it.
+    expect(where('calc.derivatives')).toMatch(/^prep\/STEP Foundation, Block 2: .*\/Assignment 7:/);
+    expect(where('calc.convexity')).toMatch(/^prep\/STEP Foundation, Block 4: .*\/Assignment 13:/);
+    expect(where('calc.substitution')).toMatch(/^prep\/STEP Foundation, Block 6: .*\/Assignment 25:/);
+    expect(where('calc.improper-integrals')).toBe('prep/STEP 2 modules/Calculus');
     expect(where('num.diffie-hellman')).toBe('IA/Discrete Mathematics/Numbers');
     expect(where('an.nonnegative-series')).toBe('IA/Analysis I/Limits and convergence');
     expect(where('prob.classical-probability')).toBe('IA/Probability/Basic concepts');

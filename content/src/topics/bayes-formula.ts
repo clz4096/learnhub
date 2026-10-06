@@ -281,4 +281,5 @@ export const bayesFormula: TopicContent = {
   terms: ['bayes-formula', 'prior-posterior'],
   claims,
   cambridge: [q9, q9why, bayesProof],
+  gate: ['ia-q9', 'ia-q9-explain'],
 };

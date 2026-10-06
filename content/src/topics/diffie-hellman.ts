@@ -235,4 +235,5 @@ export const diffieHellman: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['diffie-hellman', 'discrete-logarithm'],
   cambridge: [lemma94, threePass, lemma94proof, safety, rsa],
+  gate: ['notes-263-lemma-94', 'notes-265-key-exchange', 'notes-264-lemma-94-proof', 'notes-261-safety', 'notes-266-rsa'],
 };

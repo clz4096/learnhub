@@ -338,4 +338,5 @@ export const contradiction: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['proof-by-contradiction', 'contradiction'],
   cambridge: [sw232a, sw232base, bop11, bop10, sw232b, tmuaO1, tmuaO2, bop5, bop7],
+  gate: ['sw-2-3-2-a', 'sw-2-3-2-base', 'sw-2-3-2-b'],
 };

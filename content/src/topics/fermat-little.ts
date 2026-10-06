@@ -219,4 +219,5 @@ export const fermatLittle: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fermats-little-theorem', 'freshmans-dream'],
   cambridge: [totdCubes, sheet227, sheet229, sheet328, dropout],
+  gate: ['notes-132-totd-cubes', 'sheet-2-2-7', 'sheet-2-2-9', 'sheet-3-2-8', 'notes-127-dropout'],
 };

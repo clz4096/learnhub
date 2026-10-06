@@ -320,4 +320,5 @@ export const countableUnions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['countable', 'infinitely-often'],
   cambridge: [q6divB, q6parity, q6fixed, deMorgan, ioWords],
+  gate: ['q6-divides-b', 'q6-parity-b', 'q6-fixed-a', 'q4-de-morgan', 'q6-words'],
 };

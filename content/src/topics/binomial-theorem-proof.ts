@@ -255,4 +255,5 @@ export const binomialTheoremProof: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['index-shift'],
   cambridge: [pascalCount, unfold, bop1023, semiring],
+  gate: ['notes-275-pascal-by-counting', 'notes-274-unfold', 'notes-278-semiring'],
 };

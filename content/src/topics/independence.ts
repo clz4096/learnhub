@@ -267,4 +267,5 @@ export const independence: TopicContent = {
   terms: ['mutual-independence', 'pairwise-independence'],
   claims,
   cambridge: [q11proof, bernstein],
+  gate: ['ia-q11-by-independence'],
 };

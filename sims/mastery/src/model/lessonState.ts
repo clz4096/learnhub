@@ -8,15 +8,21 @@
  */
 import type { PracticeState } from './practice';
 
-export type LessonStage = 'learn' | 'examples' | 'cambridge' | 'practice';
+/** In order on the main path: the Cambridge stage comes after practice, as the gate does. */
+export type LessonStage = 'learn' | 'examples' | 'practice' | 'cambridge';
 
 export interface LessonPlace {
   stage: LessonStage;
+  /** A passed run (its outcome is `mastered`) means the lesson waits at its Cambridge stage. */
   practice: PracticeState;
+  /** At the `learn` stage, which of the lesson's sections (`lessonSections`). */
+  section?: number;
+  /** The furthest outline entry reached (`lessonOutline`), so the outline strikes through what is done. */
+  furthest?: number;
 }
 
 const PREFIX = 'mastery.lesson.';
-const STAGES: readonly string[] = ['learn', 'examples', 'cambridge', 'practice'];
+const STAGES: readonly string[] = ['learn', 'examples', 'practice', 'cambridge'];
 
 function session(): Storage | null {
   try {
@@ -43,7 +49,11 @@ export function loadPlace(lessonKey: string): LessonPlace | null {
     if (raw === null || raw === undefined) return null;
     const v = JSON.parse(raw) as Record<string, unknown>;
     if (typeof v.stage !== 'string' || !STAGES.includes(v.stage) || !isPractice(v.practice)) return null;
-    return { stage: v.stage as LessonStage, practice: v.practice };
+    const place: LessonPlace = { stage: v.stage as LessonStage, practice: v.practice };
+    const small = (n: unknown): n is number => Number.isInteger(n) && (n as number) >= 0 && (n as number) < 1000;
+    if (small(v.section)) place.section = v.section;
+    if (small(v.furthest)) place.furthest = v.furthest;
+    return place;
   } catch {
     return null;
   }

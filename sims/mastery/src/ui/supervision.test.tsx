@@ -47,7 +47,7 @@ await Promise.all(CONTENT_IDS.map((id) => contentStore.load(id)));
 
 function openCambridge(topicId: string): void {
   render(<LessonRunner topicId={topicId} salt="test" onEnd={() => undefined} onSkip={() => undefined} />);
-  fireEvent.click(screen.getByRole('button', { name: /Cambridge problems/ }));
+  fireEvent.click(screen.getByRole('button', { name: /Cambridge problem/ }));
 }
 const item = (id: string): HTMLElement => document.querySelector(`[data-problem="${id}"]`) as HTMLElement;
 

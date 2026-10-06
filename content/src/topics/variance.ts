@@ -330,4 +330,5 @@ export const varianceTopic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['variance', 'standard-deviation'],
   cambridge: [q1A, q1var, tenDice, q1bounds, shortcutProof],
+  gate: ['s2-q1-a', 's2-q1-var', 's2-notes-binomial-variance', 's2-q1-bounds', 's2-notes-shortcut'],
 };

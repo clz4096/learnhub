@@ -404,4 +404,15 @@ export const indicators: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['indicator-variable', 'record'],
   cambridge: [q3xk, q3iib, sheetQ9, sheetQ10, sheetQ12mean, sheetQ12var, q9proof, q10proof, q12proof],
+  gate: [
+    's3-q3-i-xk',
+    's3-q3-ii-b',
+    'sheet2-q9-variance',
+    'sheet2-q10-hoops',
+    'sheet2-q12-mean',
+    'sheet2-q12-variance',
+    'sheet2-q9',
+    'sheet2-q10',
+    'sheet2-q12',
+  ],
 };

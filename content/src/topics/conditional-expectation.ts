@@ -344,4 +344,5 @@ export const conditionalExpectation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['conditional-distribution', 'conditional-expectation', 'tower-law'],
   cambridge: [q6sum, q8b, q6proof, q8proof, scheduleTower],
+  gate: ['ia-s2-q6-sum', 'ia-s3-q8-b', 'ia-s2-q6', 'ia-s3-q8-ab'],
 };

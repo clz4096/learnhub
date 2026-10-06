@@ -264,4 +264,5 @@ export const indices: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['power', 'base', 'index', 'zero-index', 'negative-index', 'fractional-index'],
   cambridge: [sw123verdict, sw123witness, a12Q1iii],
+  gate: ['sw-1-2-3-verdict', 'sw-1-2-3-witness', 'a12-q1-iii'],
 };

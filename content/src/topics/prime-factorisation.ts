@@ -368,4 +368,5 @@ export const primeFactorisation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['prime-number', 'prime-factorisation', 'index-form'],
   cambridge: [a12sets, a12imam, a12rabbi, a12explain],
+  gate: ['a12-q4-sets', 'a12-q4-imam', 'a12-q4-rabbi', 'a12-q4-explain'],
 };

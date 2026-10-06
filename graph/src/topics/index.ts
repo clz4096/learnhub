@@ -12,21 +12,28 @@
  * areas come first, in the order the probstats slice was reviewed in, so filtering the
  * graph to IA Probability gives exactly the reviewed array (and SIMULATION.md does not move).
  *
- * Each topic's Cambridge batch 1 and batch 2 citations (`cambridge-batch-1.ts`,
- * `cambridge-batch-2.ts`) follow its own sources, in that order. The Part V areas
- * (random variables to limit theorems) come last and batch 2's topics in older areas end
- * their files, so the relative order of the earlier topics is unchanged.
+ * Each topic's Cambridge batch 1, batch 2, and Preparation citations (`cambridge-batch-1.ts`,
+ * `cambridge-batch-2.ts`, `cambridge-prep.ts`) follow its own sources, in that order. The Part V
+ * areas (random variables to limit theorems) come after the older areas and batch 2's topics in
+ * older areas end their files; the Preparation areas (functions and graphs to functional
+ * programming) come last and its topics in older areas end their files, so the relative order
+ * of the earlier topics is unchanged.
  */
 import type { Topic } from '@learnhub/mastery';
 import { analysis } from './analysis';
 import { CAMBRIDGE_BATCH_1 } from './cambridge-batch-1';
 import { CAMBRIDGE_BATCH_2 } from './cambridge-batch-2';
+import { CAMBRIDGE_PREP } from './cambridge-prep';
 import { calculus } from './calculus';
 import { conditioning } from './conditioning';
 import { continuous } from './continuous';
+import { coordinateGeometry } from './coordinate-geometry';
 import { counting } from './counting';
 import { distributions } from './distributions';
 import { elementaryProbability } from './elementary-probability';
+import { functionalProgramming } from './functional-programming';
+import { functionsAndGraphs } from './functions-and-graphs';
+import { furtherAlgebra } from './further-algebra';
 import { generatingFunctions } from './generating-functions';
 import { iaAxiomatic } from './ia-axiomatic';
 import { iaBasicConcepts } from './ia-basic-concepts';
@@ -39,6 +46,7 @@ import { randomProcesses } from './random-processes';
 import { randomVariables } from './random-variables';
 import { sequencesAndSeries } from './sequences-and-series';
 import { sets } from './sets';
+import { trigonometry } from './trigonometry';
 
 /** Area name to its topics, in graph order. */
 const AREA_TOPICS: Readonly<Record<string, readonly Topic[]>> = {
@@ -61,10 +69,15 @@ const AREA_TOPICS: Readonly<Record<string, readonly Topic[]>> = {
   'generating-functions': generatingFunctions,
   'random-processes': randomProcesses,
   'limit-theorems': limitTheorems,
+  'functions-and-graphs': functionsAndGraphs,
+  'coordinate-geometry': coordinateGeometry,
+  trigonometry,
+  'further-algebra': furtherAlgebra,
+  'functional-programming': functionalProgramming,
 };
 
 const withCambridge = (t: Topic): Topic => {
-  const more = [...(CAMBRIDGE_BATCH_1[t.id] ?? []), ...(CAMBRIDGE_BATCH_2[t.id] ?? [])];
+  const more = [...(CAMBRIDGE_BATCH_1[t.id] ?? []), ...(CAMBRIDGE_BATCH_2[t.id] ?? []), ...(CAMBRIDGE_PREP[t.id] ?? [])];
   return more.length === 0 ? t : { ...t, sources: [...t.sources, ...more] };
 };
 

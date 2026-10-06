@@ -50,7 +50,31 @@ describe('ProblemCard', () => {
     const next = screen.getByRole('button', { name: 'Next problem' });
     expect(document.activeElement).toBe(next);
     fireEvent.click(next);
-    expect(done).toHaveBeenCalledWith({ outcome: 'correct', correct: true, response: inst.reference });
+    expect(done).toHaveBeenCalledWith({ outcome: 'correct', correct: true, response: inst.reference, ms: expect.any(Number) });
+  });
+
+  it('reports the answer once, when the result shows and before moving on, with the time taken', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(1_000);
+    try {
+      const inst = need(add).instance(11);
+      const done = vi.fn();
+      const answered = vi.fn();
+      render(<ProblemCard topicId="pre.fractions" instance={inst} mode="cambridge" index={0} onDone={done} onAnswer={answered} />);
+      clock.mockReturnValue(8_500);
+      type(inst.reference as string);
+      fireEvent.click(screen.getByRole('button', { name: 'Check' }));
+      expect(await screen.findByText('Correct')).toBeTruthy();
+      expect(answered).toHaveBeenCalledTimes(1);
+      expect(answered).toHaveBeenCalledWith({ outcome: 'correct', correct: true, response: inst.reference, ms: 7_500 });
+      expect(done).not.toHaveBeenCalled();
+      clock.mockReturnValue(20_000);
+      fireEvent.click(screen.getByRole('button', { name: /Next|Continue|Done|Try/ }));
+      // Moving on later does not change the time taken.
+      expect(done).toHaveBeenCalledWith({ outcome: 'correct', correct: true, response: inst.reference, ms: 7_500 });
+      expect(answered).toHaveBeenCalledTimes(1);
+    } finally {
+      clock.mockRestore();
+    }
   });
 
   it('a wrong answer says Incorrect, shows both answers, the slip, the full solution, above the buttons, and focuses the heading', async () => {
@@ -73,7 +97,7 @@ describe('ProblemCard', () => {
     expect(document.querySelector('.answer-box.result-wrong')).not.toBeNull();
     expect(screen.queryByText(/Enter checks it/)).toBeNull();
     fireEvent.click(next);
-    expect(done).toHaveBeenCalledWith({ outcome: 'wrong', correct: false, response: slip.response });
+    expect(done).toHaveBeenCalledWith({ outcome: 'wrong', correct: false, response: slip.response, ms: expect.any(Number) });
   });
 
   it('announces one short line: "Incorrect. Your answer 10. Correct answer 5."', () => {
@@ -139,7 +163,7 @@ describe('ProblemCard', () => {
     expect(block()).not.toBeNull();
     expect(screen.getByRole('heading', { name: 'Incorrect' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Next problem' }));
-    expect(done).toHaveBeenCalledWith({ outcome: 'wrong', correct: false, response: '21*1' });
+    expect(done).toHaveBeenCalledWith({ outcome: 'wrong', correct: false, response: '21*1', ms: expect.any(Number) });
   });
 
   it('ignores Enter for a moment after a result, so a double press cannot skip it', () => {
@@ -195,7 +219,7 @@ describe('ProblemCard', () => {
     expect(screen.getByRole('heading', { name: 'Solution' })).toBeTruthy();
     expect(document.querySelector('.result-solution')).not.toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Next problem' }));
-    expect(done).toHaveBeenCalledWith({ outcome: 'gave-up', correct: false, response: null });
+    expect(done).toHaveBeenCalledWith({ outcome: 'gave-up', correct: false, response: null, ms: expect.any(Number) });
   });
 
   it('a broken problem is not the learner\'s miss: it says so and asks the runner for a fresh one', () => {
@@ -213,7 +237,7 @@ describe('ProblemCard', () => {
     expect(screen.getByRole('heading', { name: /This problem is broken, not your answer/ })).toBeTruthy();
     expect(screen.queryByText('Incorrect')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Get a fresh problem' }));
-    expect(done).toHaveBeenCalledWith({ outcome: 'problem-error', correct: false, response: '1' });
+    expect(done).toHaveBeenCalledWith({ outcome: 'problem-error', correct: false, response: '1', ms: expect.any(Number) });
   });
 });
 

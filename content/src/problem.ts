@@ -85,6 +85,8 @@ export interface GeneratorSpec<P> {
   id: string;
   /** The skill it practices, one line. */
   skill: string;
+  /** Answered in about a minute on a phone, so gym mode may use it as a quick drill. */
+  quick?: boolean;
   params(rng: Rng): P;
   sane(p: P): string | null;
   problem(p: P): Problem;
@@ -98,6 +100,8 @@ export interface GeneratorSpec<P> {
 export interface Generator<P = unknown> {
   id: string;
   skill: string;
+  /** See `GeneratorSpec.quick`. */
+  quick?: boolean;
   /** The problem for a seed. Deterministic. */
   instance(seed: number): Instance;
   /** The problem for given parameters, for worked examples. */
@@ -118,7 +122,9 @@ export function generator<P>(g: GeneratorSpec<P>): Generator<P> {
     if (g.trial) inst.trial = (rng) => (g.trial as (p: P, rng: Rng) => boolean)(p, rng);
     return inst;
   };
-  return { id: g.id, skill: g.skill, at, instance: (seed) => ({ ...at(g.params(mulberry32(seed))), seed }) };
+  const out: Generator<P> = { id: g.id, skill: g.skill, at, instance: (seed) => ({ ...at(g.params(mulberry32(seed))), seed }) };
+  if (g.quick === true) out.quick = true;
+  return out;
 }
 
 // ---------------------------------------------------------------- grading

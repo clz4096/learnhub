@@ -6,6 +6,10 @@ import { courseById, courseTargets, coursesClosure } from './courses';
 import { CST_DISCRETE_MATHS_SLICE } from './schedules';
 import { topics } from './topics';
 import { BATCH_2_NEW_TOPICS } from './topics/cambridge-batch-2';
+import { PREP_NEW_TOPICS } from './topics/cambridge-prep';
+
+/** Topics outside both courses: batch 2's Part V and toolkit, and the Preparation map's new topics. */
+const NOT_TARGETS: readonly string[] = [...BATCH_2_NEW_TOPICS, ...PREP_NEW_TOPICS];
 
 const byId = new Map(topics.map((t) => [t.id, t]));
 const ia = courseById('ia-probability');
@@ -64,8 +68,9 @@ describe('CST Discrete Mathematics, Proof and Numbers', () => {
     expect(cites(byId.get('alg.proof-by-induction') as Topic, dm.doc, dm.course, 'Numbers')).toBe(true);
     expect(cites(byId.get('comb.binomial-identities') as Topic, dm.doc, dm.course, 'Numbers')).toBe(true);
     expect(coursesClosure(topics, [dm]).has('pre.set-notation')).toBe(true);
+    // fp.structural-induction (CS-0) builds on alg.proof-by-induction rather than redefining it.
     expect(topics.filter((t) => /induction/i.test(t.title)).map((t) => t.id).sort())
-      .toEqual(['alg.proof-by-induction', 'comb.binomial-theorem-proof', 'proof.strong-induction']);
+      .toEqual(['alg.proof-by-induction', 'comb.binomial-theorem-proof', 'fp.structural-induction', 'proof.strong-induction']);
   });
 });
 
@@ -83,11 +88,12 @@ describe('the two courses share foundations', () => {
     for (const id of shared) expect(LEVELS.indexOf(byId.get(id)?.level as Topic['level'])).toBeLessThanOrEqual(LEVELS.indexOf('step'));
   });
 
-  it('together cover the whole graph but batch 2, each topic once', () => {
-    // Batch 2's topics are not course targets yet (IA_PROB_PART_V in sources.ts).
+  it('together cover the whole graph but batch 2 and the Preparation topics, each topic once', () => {
+    // Batch 2's topics are not course targets yet (IA_PROB_PART_V in sources.ts); the
+    // Preparation topics belong to no course (graph/reviews/cambridge-prep.md).
     const union = new Set([...A, ...D]);
-    expect(topics.map((t) => t.id).filter((id) => !union.has(id)).sort()).toEqual([...BATCH_2_NEW_TOPICS].sort());
-    expect(union.size).toBe(topics.length - BATCH_2_NEW_TOPICS.length);
+    expect(topics.map((t) => t.id).filter((id) => !union.has(id)).sort()).toEqual([...NOT_TARGETS].sort());
+    expect(union.size).toBe(topics.length - NOT_TARGETS.length);
     expect(A.size + D.size - union.size).toBe(13);
   });
 });
@@ -113,8 +119,8 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
     expect(pg.entries).toHaveLength(9);
   });
 
-  it('works on the union of the two closures, the whole graph but batch 2', () => {
-    expect(g.order.length).toBe(topics.length - BATCH_2_NEW_TOPICS.length);
+  it('works on the union of the two closures, the whole graph but batch 2 and the Preparation topics', () => {
+    expect(g.order.length).toBe(topics.length - NOT_TARGETS.length);
   });
 
   // Measured on the 101-topic graph of batch 1: split needs at most 41 questions for these learners, entry-points at most 42.

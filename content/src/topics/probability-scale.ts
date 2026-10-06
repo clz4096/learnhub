@@ -326,5 +326,6 @@ export const probabilityScale: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['probability', 'event', 'equally-likely', 'complement-event'],
   cambridge: [a12Mint, a12Goggles],
+  gate: ['a12-q2-ii-first', 'a12-q2-iv-b'],
   claims,
 };

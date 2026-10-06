@@ -365,4 +365,5 @@ export const combinations: TopicContent = {
   terms: ['combination', 'binomial-coefficient'],
   claims,
   cambridge: [q7a, q12, bop422, bop423, bop425],
+  gate: ['q7-a', 'q12-check'],
 };

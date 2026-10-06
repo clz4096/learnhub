@@ -262,4 +262,13 @@ export const modularInverse: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['modular-inverse', 'field'],
   cambridge: [sheet3210a, sheet3210b, sheet3210c, sheet3212, sheet226, sheet3212proof, cor86],
+  gate: [
+    'sheet-3-2-10-a',
+    'sheet-3-2-10-b',
+    'sheet-3-2-10-c',
+    'sheet-3-2-12-inverse',
+    'sheet-2-2-6-z7-inverses',
+    'sheet-3-2-12',
+    'notes-244-corollary-86',
+  ],
 };

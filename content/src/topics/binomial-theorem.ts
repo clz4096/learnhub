@@ -266,4 +266,5 @@ export const binomialTheorem: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binomial-theorem', 'binomial-expansion'],
   cambridge: [dream5, rowAndSum, cor32, proveCor31, proveCor32],
+  gate: ['cst-cor-33-p5', 'cst-cor-31-2', 'cst-cor-32', 'cst-cor-31-proof', 'cst-cor-32-proof'],
 };

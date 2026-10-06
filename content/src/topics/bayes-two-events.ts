@@ -336,5 +336,6 @@ export const bayesTwoEvents: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['false-positive', 'sensitivity', 'specificity', 'prosecutors-fallacy'],
   cambridge: [a6abc, a6e, a6ii, a6discussion],
+  gate: ['a6-q4-i-abc', 'a6-q4-i-e', 'a6-q4-ii', 'a6-discussion'],
   claims,
 };

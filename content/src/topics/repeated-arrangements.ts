@@ -296,4 +296,5 @@ export const repeatedArrangements: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['repeated-letter'],
   cambridge: [a6q2ii, a6q2iii, a6q2v, a6q5iii, lillian, general],
+  gate: ['a6-q2-ii', 'a6-q2-iii', 'a6-q2-v', 'a6-q5-iii', 'a6-q2-iv'],
 };

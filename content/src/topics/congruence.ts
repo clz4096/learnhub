@@ -231,4 +231,5 @@ export const congruence: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['congruent-mod'],
   cambridge: [bop51, sheet324, sheet211, sheet324proof, bop521, bop532],
+  gate: ['sheet-3-2-10-b-reduce', 'sheet-2-1-1', 'sheet-3-2-4'],
 };
