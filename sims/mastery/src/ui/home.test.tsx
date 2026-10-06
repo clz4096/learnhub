@@ -108,18 +108,19 @@ describe('every route has a header with a way home', () => {
     }
   }
 
-  it('the tabs before a course is chosen are Home and Glossary; after, Today, Course, Campaign, Report, and Letters, with Progress and Glossary in the footer', async () => {
+  it('the tabs before a course is chosen are Home and Glossary; after, Today, Course, Campaign, Report, Letters, and Story, with Progress and Glossary in the footer', async () => {
     render(<App />);
     expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Glossary']);
     expect(document.querySelector('nav.foot-nav')).toBeNull();
     cleanup();
     await STATES['a learner with a course']();
     render(<App />);
-    expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Today', 'Course', 'Campaign', 'Report', 'Letters']);
+    expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Today', 'Course', 'Campaign', 'Report', 'Letters', 'Story']);
     expect([...document.querySelectorAll('nav.foot-nav a')].map((a) => a.textContent)).toEqual(['Progress', 'Glossary']);
     expect(homeItem().getAttribute('aria-current')).toBe('page');
     expect(document.querySelector('nav.nav a[data-nav="map"]')?.getAttribute('href')).toBe('#/book');
     expect(document.querySelector('nav.nav a[data-nav="letters"]')?.getAttribute('href')).toBe('#/letters');
+    expect(document.querySelector('nav.nav a[data-nav="story"]')?.getAttribute('href')).toBe('#/story');
   });
 
   it('a modified click on Home is left to the browser (open in a new tab)', async () => {

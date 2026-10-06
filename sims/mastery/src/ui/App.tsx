@@ -1,6 +1,6 @@
 /**
  * The app shell, in the minimalist look: the course title, a row of text tabs (Today,
- * Course, Campaign, Report, Letters), the current view in a reading column, and a footer
+ * Course, Campaign, Report, Letters, Story), the current view in a reading column, and a footer
  * with Progress, the glossary, Help, and the theme. A new learner (no course yet) sees the
  * Start step on every route but the glossary; a learner with a course goes to Today, and
  * #/start is no longer a step for them (decision 20).
@@ -11,6 +11,9 @@
  *
  * Dialogs (help, a glossary term, the tour) close whenever the route changes, so the
  * browser's Back never leaves one open over a view it does not belong to.
+ *
+ * Story mode's scenes play over everything (StoryPlayer), started by the story director
+ * when real progress triggers one; the tour waits until no scene is playing or due.
  */
 import type { ComponentChildren } from 'preact';
 import { useEffect } from 'preact/hooks';
@@ -34,9 +37,13 @@ import { CampaignView } from '@/ui/views/Campaign';
 import { PaperView } from '@/ui/views/Paper';
 import { ReportView } from '@/ui/views/Report';
 import { LettersView } from '@/ui/views/Letters';
+import { StoryView } from '@/ui/views/Story';
+import { StoryPlayer } from '@/ui/story/Player';
+import { useStoryDirector } from '@/ui/story/director';
+import { playing } from '@/model/storyStore';
 import { Arms, SealDefs } from '@/ui/Seal';
 
-type NavId = 'home' | 'map' | 'progress' | 'glossary' | 'campaign' | 'report' | 'letters';
+type NavId = 'home' | 'map' | 'progress' | 'glossary' | 'campaign' | 'report' | 'letters' | 'story';
 
 /** The displayed name; ids, routes, and storage keys keep "mastery". */
 export const APP_TITLE = 'Computational Mathematics at the University of Cambridge';
@@ -60,6 +67,7 @@ function navItems(setUp: boolean): NavItem[] {
     { id: 'campaign', label: 'Campaign', to: { view: 'campaign' } },
     { id: 'report', label: 'Report', to: { view: 'report' } },
     { id: 'letters', label: 'Letters', to: { view: 'letters' } },
+    { id: 'story', label: 'Story', to: { view: 'story' } },
   ];
 }
 
@@ -104,6 +112,7 @@ function View({ r }: { r: Route }) {
     case 'paper': return <PaperView key={r.paperId} paperId={r.paperId} />;
     case 'report': return progress.value === null ? <Today /> : <ReportView p={progress.value} />;
     case 'letters': return progress.value === null ? <Today /> : <LettersView p={progress.value} />;
+    case 'story': return progress.value === null ? <Today /> : <StoryView p={progress.value} />;
   }
 }
 
@@ -122,9 +131,13 @@ export function App() {
     if (tour.value.open) closeTour();
   }, [href]);
 
+  // Declared before the tour's auto start, so a scene that starts now holds the tour back.
+  useStoryDirector(ready, r, href);
+  const scene = playing.value !== null;
+
   useEffect(() => {
-    if (ready && setUp && r.view === 'today') autoStartTour();
-  }, [ready, setUp, r.view]);
+    if (ready && setUp && r.view === 'today' && playing.peek() === null) autoStartTour();
+  }, [ready, setUp, r.view, scene]);
 
   // Name the view shown in the URL (replacing, not adding, the entry): Start for a new
   // learner on any URL but the glossary, Today for a learner with a course at #/start.
@@ -168,33 +181,36 @@ export function App() {
   );
   const t = theme.value;
   return (
-    <div class="app">
-      <a class="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to content</a>
-      <SealDefs />
-      <header class="top">
-        <div class="brand">
-          <Arms class="brand-arms" />
-          <NavLink to={home} class="app-title">{APP_TITLE}</NavLink>
-        </div>
-        <nav class="nav" aria-label="Main">{navItems(setUp).map(link)}</nav>
-      </header>
-      {volatile.value && <p class="banner warning small">This browser does not offer storage here, so progress will be lost when the tab closes. Export a file in Progress to keep it.</p>}
-      {saveError.value !== null && <p class="banner error small" role="alert">Saving failed: {saveError.value}. Export a progress file to keep your work.</p>}
-      {loadWarnings.value.length > 0 && <p class="banner warning small">Some saved data was out of date and was dropped: {loadWarnings.value.slice(0, 3).join('; ')}.</p>}
-      <main id="main" tabIndex={-1}>{body}</main>
-      <footer class="app-foot">
-        {setUp && <nav class="foot-nav" aria-label="More">{FOOT_ITEMS.map(link)}</nav>}
-        <button type="button" class="foot-btn help-button" onClick={() => { helpOpen.value = true; }}>Help</button>
-        <button
-          type="button" class="foot-btn theme-button"
-          onClick={() => setTheme(THEMES[(THEMES.indexOf(t) + 1) % THEMES.length] as Theme)}
-        >
-          Theme: {t}
-        </button>
-      </footer>
-      <TermDialog />
-      <HelpDialog />
-      <Tour />
-    </div>
+    <>
+      <div class="app" inert={scene}>
+        <a class="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to content</a>
+        <SealDefs />
+        <header class="top">
+          <div class="brand">
+            <Arms class="brand-arms" />
+            <NavLink to={home} class="app-title">{APP_TITLE}</NavLink>
+          </div>
+          <nav class="nav" aria-label="Main">{navItems(setUp).map(link)}</nav>
+        </header>
+        {volatile.value && <p class="banner warning small">This browser does not offer storage here, so progress will be lost when the tab closes. Export a file in Progress to keep it.</p>}
+        {saveError.value !== null && <p class="banner error small" role="alert">Saving failed: {saveError.value}. Export a progress file to keep your work.</p>}
+        {loadWarnings.value.length > 0 && <p class="banner warning small">Some saved data was out of date and was dropped: {loadWarnings.value.slice(0, 3).join('; ')}.</p>}
+        <main id="main" tabIndex={-1}>{body}</main>
+        <footer class="app-foot">
+          {setUp && <nav class="foot-nav" aria-label="More">{FOOT_ITEMS.map(link)}</nav>}
+          <button type="button" class="foot-btn help-button" onClick={() => { helpOpen.value = true; }}>Help</button>
+          <button
+            type="button" class="foot-btn theme-button"
+            onClick={() => setTheme(THEMES[(THEMES.indexOf(t) + 1) % THEMES.length] as Theme)}
+          >
+            Theme: {t}
+          </button>
+        </footer>
+        <TermDialog />
+        <HelpDialog />
+        <Tour />
+      </div>
+      <StoryPlayer />
+    </>
   );
 }

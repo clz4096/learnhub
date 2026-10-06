@@ -1,0 +1,122 @@
+/*
+ * Story mode: the cut scene player (ported from book-mockup/prologue.html) and the Story
+ * tab. The player is always dark, whatever the theme: it is a cinema, not a page. Every
+ * class is prefixed "sp-", so nothing here reaches the rest of the app.
+ *
+ * Sizing: the 16:9 frame is the largest that fits the viewport inside the safe areas.
+ * On a wide screen the lines sit inside the frame, as in the prototype; on a portrait or
+ * narrow screen they hang below it, in the letterbox, so they never cover the art.
+ */
+.sp-stage {
+  --sp-bg: #07090c; --sp-ink: #eef0ec; --sp-mute: #9aa3a0; --sp-cam: #9cc5b2; --sp-scarlet: #c8102e; --sp-gold: #e9c36a;
+  --sp-sl: env(safe-area-inset-left, 0px); --sp-sr: env(safe-area-inset-right, 0px);
+  --sp-st: env(safe-area-inset-top, 0px); --sp-sb: env(safe-area-inset-bottom, 0px);
+  --sp-vw: calc(100vw - var(--sp-sl) - var(--sp-sr));
+  --sp-vh: calc(100vh - var(--sp-st) - var(--sp-sb));
+  position: fixed; inset: 0; z-index: 60; display: grid; place-items: center;
+  background: var(--sp-bg); color: var(--sp-ink); color-scheme: dark;
+  font: 18px/1.5 'Spectral', Georgia, serif; -webkit-font-smoothing: antialiased;
+  overflow: hidden; overscroll-behavior: contain; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+@supports (height: 100dvh) {
+  .sp-stage { --sp-vh: calc(100dvh - var(--sp-st) - var(--sp-sb)); }
+}
+.sp-stage:focus { outline: none; }
+.sp-stage button:focus-visible { outline: 1px solid var(--sp-cam); outline-offset: 2px; }
+.sp-box { position: relative; width: min(var(--sp-vw), calc(var(--sp-vh) * 16 / 9)); }
+.sp-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: #000; }
+.sp-bar { position: absolute; left: 0; right: 0; height: 11%; background: #000; z-index: 6; transition: height 1.2s ease; }
+.sp-bar-top { top: 0; }
+.sp-bar-bot { bottom: 0; }
+.sp-frame.sp-open .sp-bar { height: 7%; }
+svg.sp-art { position: absolute; inset: -3%; width: 106%; height: 106%; }
+.sp-layer { transition: transform 1.6s ease-out; }
+
+.sp-title { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; z-index: 7; background: #000; transition: opacity 1.4s ease; padding: 0 16px; }
+.sp-title.sp-hide { opacity: 0; pointer-events: none; }
+.sp-k { font: 500 clamp(11px, 1.4vw, 15px) 'Spectral SC', serif; letter-spacing: 0.32em; color: var(--sp-mute); text-transform: none; }
+.sp-title h1 { font-weight: 300; font-size: clamp(30px, 5.4vw, 64px); line-height: 1.15; margin: 0.35em 0 0.2em; letter-spacing: 0.01em; }
+.sp-p { font-style: italic; font-weight: 300; color: var(--sp-mute); font-size: clamp(14px, 1.8vw, 20px); }
+
+.sp-dlg {
+  position: absolute; left: 6%; right: 6%; bottom: 10%; z-index: 8;
+  background: linear-gradient(180deg, rgba(8, 10, 14, 0.72), rgba(8, 10, 14, 0.88));
+  border-top: 1px solid rgba(255, 255, 255, 0.12); padding: 1.1em 1.4em 1.2em; min-height: 6.8em;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.sp-who { font: 500 clamp(11px, 1.25vw, 14px) 'Spectral SC', serif; letter-spacing: 0.2em; color: var(--sp-cam); margin-bottom: 0.35em; min-height: 1.2em; }
+.sp-who.sp-narr { color: var(--sp-mute); }
+.sp-who.sp-msg { color: var(--sp-gold); }
+.sp-txt { font-size: clamp(15px, 1.9vw, 22px); line-height: 1.5; min-height: 3em; }
+.sp-txt.sp-inner { font-style: italic; font-weight: 300; }
+.sp-hint { position: absolute; right: 1.2em; bottom: 0.7em; font: 500 12px 'Spectral SC', serif; letter-spacing: 0.18em; color: var(--sp-mute); opacity: 0.7; }
+.sp-choices { display: grid; gap: 0.5em; margin-top: 0.6em; }
+.sp-choices button {
+  text-align: left; font: inherit; font-size: clamp(14px, 1.7vw, 19px); line-height: 1.35; color: var(--sp-ink);
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.18); padding: 0.55em 0.9em;
+  cursor: pointer; border-radius: 2px; min-height: 44px;
+}
+.sp-choices button:hover, .sp-choices button:focus-visible { border-color: var(--sp-cam); background: rgba(156, 197, 178, 0.1); outline: none; }
+.sp-choices button small { color: var(--sp-mute); font-size: 0.78em; margin-left: 0.4em; }
+
+.sp-skip {
+  position: absolute; top: calc(var(--sp-st) + 10px); right: calc(var(--sp-sr) + 10px); z-index: 9;
+  font: 500 12px 'Spectral SC', serif; letter-spacing: 0.2em; color: var(--sp-mute);
+  background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.2); padding: 0 1em; cursor: pointer; min-height: 44px; min-width: 64px;
+}
+
+.sp-end {
+  position: absolute; inset: 0; z-index: 10; background: rgba(4, 6, 8, 0.92); display: grid; place-items: center; text-align: center;
+  padding: calc(var(--sp-st) + 16px) calc(var(--sp-sr) + 16px) calc(var(--sp-sb) + 16px) calc(var(--sp-sl) + 16px);
+  overflow-y: auto; animation: sp-fade 1.2s ease both;
+}
+@keyframes sp-fade { from { opacity: 0; } to { opacity: 1; } }
+.sp-end .sp-k { font-size: 13px; }
+.sp-end h2 { font-weight: 300; font-size: clamp(26px, 4vw, 46px); line-height: 1.15; margin: 0.3em 0 0.6em; }
+.sp-end ul { list-style: none; padding: 0; margin: 0 auto; display: grid; gap: 0.5em; font-size: clamp(14px, 1.7vw, 19px); min-width: min(80vw, 420px); max-width: 520px; }
+.sp-end li { display: flex; justify-content: space-between; gap: 2em; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 0.5em; text-align: left; }
+.sp-end li span:last-child { color: var(--sp-cam); text-align: right; }
+.sp-next { margin: 1.4em auto 0; font-style: italic; font-weight: 300; color: var(--sp-mute); font-size: clamp(13px, 1.5vw, 17px); max-width: 520px; }
+.sp-next b { font-weight: 400; color: var(--sp-ink); }
+.sp-end-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 1.6em; }
+.sp-end-actions button {
+  font: 500 14px 'Spectral SC', serif; letter-spacing: 0.2em; color: var(--sp-ink); background: none;
+  border: 1px solid var(--sp-cam); padding: 0 1.6em; cursor: pointer; min-height: 44px;
+}
+.sp-end-actions button + button { border-color: rgba(255, 255, 255, 0.25); color: var(--sp-mute); }
+
+.sp-buzz { animation: sp-buzz 0.12s linear 6; }
+@keyframes sp-buzz { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1.2px); } 75% { transform: translateX(1.2px); } }
+.sp-steam path { animation: sp-rise 5s ease-in-out infinite; opacity: 0; }
+.sp-steam path:nth-child(2) { animation-delay: 1.6s; }
+.sp-steam path:nth-child(3) { animation-delay: 3.2s; }
+@keyframes sp-rise { 0% { transform: translateY(6px); opacity: 0; } 30% { opacity: 0.5; } 100% { transform: translateY(-26px); opacity: 0; } }
+.sp-flick { animation: sp-flick 7s steps(1) infinite; }
+@keyframes sp-flick { 0%, 62%, 100% { opacity: 1; } 63%, 66% { opacity: 0.2; } }
+
+/* Portrait and narrow screens: the frame spans the width and the lines hang below it. */
+@media (max-aspect-ratio: 4 / 3) {
+  .sp-stage { place-items: start center; }
+  .sp-box { width: var(--sp-vw); margin-top: calc(var(--sp-st) + 64px + 8vh); }
+  .sp-dlg { top: calc(100% + 14px); bottom: auto; left: calc(12px + var(--sp-sl)); right: calc(12px + var(--sp-sr)); min-height: 0; padding: 0.9em 1em 2em; }
+  .sp-txt { font-size: 17px; }
+  .sp-choices button { font-size: 16px; }
+  .sp-who { font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-layer, .sp-bar, .sp-title { transition: none !important; }
+  .sp-end { animation: none !important; }
+  .sp-steam path, .sp-flick, .sp-buzz { animation: none !important; }
+  .sp-steam path { opacity: 0.35; }
+}
+.sp-reduce .sp-layer, .sp-reduce .sp-bar, .sp-reduce .sp-title { transition: none; }
+.sp-reduce .sp-end, .sp-reduce .sp-steam path, .sp-reduce .sp-flick, .sp-reduce .sp-buzz { animation: none; }
+.sp-reduce .sp-steam path { opacity: 0.35; }
+
+/* The Story tab: the minimal look of the other tabs. */
+.story-rel .r, .story-scenes .r { white-space: normal; }
+.story-scenes li.story-locked > span:first-child { color: var(--mute); }
+.story-scenes .s { font-size: 14px; }
+.story-play { min-height: var(--touch); background: none; border: 1px solid var(--line); color: var(--fg); font: inherit; font-size: 14.5px; padding: 0 14px; cursor: pointer; border-radius: var(--radius-sm); }
+.story-play:hover { border-color: var(--cam); }

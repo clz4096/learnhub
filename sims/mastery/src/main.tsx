@@ -26,6 +26,7 @@ import '@fontsource/mrs-saint-delafield/latin-400.css';
 import '@fontsource/herr-von-muellerhoff/latin-400.css';
 import '@/styles/tokens.css';
 import '@/styles/app.css';
+import '@/styles/story.css';
 
 loadTheme();
 // Before the first render: a sign-in redirect's tokens leave the URL before anything reads it.

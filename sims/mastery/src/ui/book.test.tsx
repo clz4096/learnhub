@@ -6,6 +6,8 @@ import type { IdbFactoryLike } from '@learnhub/mastery';
 import { DEFAULT_COURSES, ensureSession, startLearner } from '@/model/learner';
 import { go } from '@/model/route';
 import { commit, init, setClock } from '@/model/store';
+import { emptyStory, NO_NUMBERS } from '@/model/story';
+import { saveStory } from '@/model/storyStore';
 import { App } from '@/ui/App';
 
 const T0 = new Date(2026, 9, 4, 9, 0).getTime();
@@ -14,6 +16,8 @@ beforeEach(async () => {
   Element.prototype.scrollTo ??= () => {};
   localStorage.clear();
   location.hash = '';
+  // The Prologue seen, so it does not play over the views under test.
+  saveStory({ ...emptyStory(), seen: { prologue: { first: T0, last: T0, plays: 1, n: { ...NO_NUMBERS } } } });
   setClock(() => T0);
   await init(new IDBFactory() as unknown as IdbFactoryLike);
   await commit(ensureSession(startLearner(T0, DEFAULT_COURSES, 60), T0));
