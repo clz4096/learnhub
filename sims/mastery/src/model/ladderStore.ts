@@ -28,6 +28,29 @@ export function loadLadder(adm: Admissions): void {
   }
 }
 
+/** Whether this browser holds any ladder attempts, without the registry. */
+export function hasStoredLadder(): boolean {
+  try {
+    const raw = store()?.getItem(LADDER_KEY) ?? null;
+    return raw !== null && raw !== '[]';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The attempts as stored, for a reader that must not set the signal (story ratings read
+ * them on every change of data): the signal when loaded, else storage, parsed.
+ */
+export function peekLadder(adm: Admissions): LadderAttempt[] {
+  if (ladder.peek().length > 0) return ladder.peek();
+  try {
+    return parseLadder(adm, store()?.getItem(LADDER_KEY) ?? null);
+  } catch {
+    return [];
+  }
+}
+
 /** Replaces the attempts and saves them; false when the browser would not keep them. */
 export function saveLadder(next: LadderAttempt[]): boolean {
   ladder.value = next;

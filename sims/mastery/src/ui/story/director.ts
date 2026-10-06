@@ -9,10 +9,14 @@
  * on demand, as the Report and Paper screens load it: only with a campaign and a campaign
  * scene not yet seen. Letters due are filed here too, as every campaign screen files them,
  * so a letter's scene never waits for a visit to the Letters tab.
+ *
+ * Exam Temperament reads timed papers, which also need the registry to mark: it loads too
+ * while a temperament beat is unseen and this browser holds timed work.
  */
 import { useEffect } from 'preact/hooks';
 import { activeSitting, acts, deliverLetters, lettersDue } from '@/model/campaign';
 import { campaign, saveCampaign } from '@/model/campaignStore';
+import { hasStoredLadder, peekLadder } from '@/model/ladderStore';
 import { courseInputs } from '@/model/campaignSummary';
 import { loadDays } from '@/model/dayLog';
 import type { Route } from '@/model/route';
@@ -30,13 +34,20 @@ export function campaignScenesLeft(st: StoryState): boolean {
   return SCENES.some((s) => s.script !== null && CAMPAIGN_TRIGGERS.has(s.trigger.kind) && st.seen[s.id] === undefined);
 }
 
+/** A beat on Exam Temperament that has not played yet: until it has, timed work is worth marking. */
+export function temperamentBeatsLeft(st: StoryState): boolean {
+  return SCENES.some((s) => s.script !== null && s.trigger.kind === 'rating' && s.trigger.rating === 'temperament' && st.seen[s.id] === undefined);
+}
+
 /** Queues what has triggered and starts what may play. Returns the scene started, or null. */
 export function directStory(r: Route): string | null {
   const st = story.peek();
   const p = progress.peek();
   let c = campaign.peek();
   const adm = admissions.peek();
-  if (c !== null && adm === null && campaignScenesLeft(st)) void loadAdmissions();
+  if (adm === null && ((c !== null && campaignScenesLeft(st)) || (temperamentBeatsLeft(st) && ((c?.sittings.length ?? 0) > 0 || hasStoredLadder())))) {
+    void loadAdmissions();
+  }
   if (c !== null && adm !== null && p !== null) {
     const due = lettersDue(c, acts(adm, c, courseInputs(p)));
     if (due.length > 0) {
@@ -44,7 +55,7 @@ export function directStory(r: Route): string | null {
       saveCampaign(c);
     }
   }
-  const f = storyFacts(p, c, loadDays(), now(), adm);
+  const f = storyFacts(p, c, loadDays(), now(), adm, adm === null ? [] : peekLadder(adm));
   const next = enqueue(st, newlyDue(SCENES, st, f), f, now());
   if (next !== st) saveStory(next);
   if (playing.peek() !== null) return null;

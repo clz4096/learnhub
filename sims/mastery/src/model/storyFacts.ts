@@ -4,6 +4,7 @@
  * the time and the registry (it loads on demand, so it may not be there yet).
  */
 import { isStudyEntry, type Progress } from '@learnhub/mastery';
+import { gateOf } from '@learnhub/content';
 import { BOOK } from '@learnhub/content/book';
 import {
   SUBJECT_NAMES, aLevelRows, offerConditions, paperName, stepRows, tmuaRows,
@@ -11,6 +12,10 @@ import {
 } from './campaign';
 import { TARGET_WEEK_HOURS, daysStudied, weekHours } from './campaignCalendar';
 import { summarize } from './campaignSummary';
+import { ALL_TOPICS } from './courses';
+import type { LadderAttempt } from './ladder';
+import { outcomeEvidence } from './outcome';
+import { ratingInputs, ratingValues, ratings, type Rating, type TimedResult } from './ratings';
 import { addDays, planDate, weekOf } from './day';
 import type { DayLog } from './dayLog';
 import type { StoryCampaign, StoryCondition, StoryFacts } from './story';
@@ -82,11 +87,28 @@ export function storyCampaign(adm: Admissions, c: Campaign, entry: number | null
   };
 }
 
+/** The timed papers' results: full sittings and ladder halves kept to time (outcome.ts). Needs the registry. */
+export function timedResults(adm: Admissions | null, c: Campaign | null, attempts: readonly LadderAttempt[]): TimedResult[] {
+  if (adm === null) return [];
+  return outcomeEvidence(adm, c, attempts).filter((e) => e.timed).map((e) => ({ mark: e.mark, max: e.max }));
+}
+
+/**
+ * The player ratings from the progress document and the timed papers. Without the registry
+ * (`adm` null) the timed papers cannot be marked, so Exam Temperament reads none yet: it
+ * can only be low, never high, so no rating beat fires early.
+ */
+export function storyRatings(p: Progress, c: Campaign | null, adm: Admissions | null, attempts: readonly LadderAttempt[]): Rating[] {
+  return ratings(ratingInputs(p, ALL_TOPICS, gateOf, timedResults(adm, c, attempts)));
+}
+
 /**
  * The facts at `now`. With the paper registry (`adm`), a campaign, and a learner, the acts
  * complete and the campaign's results are known; without any of them they are null.
  */
-export function storyFacts(p: Progress | null, c: Campaign | null, log: DayLog, now: number, adm: Admissions | null = null): StoryFacts {
+export function storyFacts(
+  p: Progress | null, c: Campaign | null, log: DayLog, now: number, adm: Admissions | null = null, attempts: readonly LadderAttempt[] = [],
+): StoryFacts {
   const learned = (id: string): boolean => p !== null && p.memory[id] !== undefined;
   let sectionsMastered = 0;
   const chaptersComplete: string[] = [];
@@ -135,5 +157,6 @@ export function storyFacts(p: Progress | null, c: Campaign | null, log: DayLog, 
     actsComplete,
     // A letter's scene reads the results behind it, so letters count once the results are known.
     letters: campaign === null || c === null ? [] : c.letters.map((l) => l.id),
+    ratings: p === null ? null : ratingValues(storyRatings(p, c, adm, attempts)),
   };
 }

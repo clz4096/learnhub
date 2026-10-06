@@ -512,6 +512,21 @@ export const ACT_TWO: Scene = {
       { kind: 'narration', text: 'Lower Manhattan, 8:40 am. An exam hall of identical screens, and a proctor reading the rules in a voice that has read them ten thousand times.', fx: 'hall' },
       { kind: 'inner', speaker: 'Albert', text: 'Question 7 is a trap he has seen before. Question 14 is one he has not.' },
       { kind: 'narration', text: 'Out on Broadway at 11:50 am, the cold is a relief.', fx: 'out' },
+      {
+        kind: 'choice',
+        id: 'out',
+        options: [
+          {
+            id: 'honest', text: '"Out. Question 14 got me. Your turn: go and get them."', note: 'Priya will remember this', effects: { priya: 1 },
+            reply: { kind: 'message', speaker: 'Priya', text: '"One question. Fine. Going in."' },
+          },
+          {
+            id: 'fine', text: '"Out. Fine."', note: 'Keep it short',
+            reply: { kind: 'message', speaker: 'Priya', text: '"Fine is not a number. Tell me tonight."' },
+          },
+          { id: 'forget', text: 'Forget to text. Walk toward the coffee cart.', note: 'Keep your cards close', effects: { priya: -1 } },
+        ],
+      },
       { kind: 'inner', only: STRONG, speaker: 'Albert', text: ({ n }) => `The marks, when he checks them against the key: best ${tmuaBest(n)}. Most of what he trained for showed up.` },
       { kind: 'inner', only: FAIR, speaker: 'Albert', text: ({ n }) => `The marks, against the key: best ${tmuaBest(n)}. Respectable. Not yet the number he wants.` },
       { kind: 'inner', only: ROUGH, speaker: 'Albert', text: ({ n }) => `The marks, against the key: best ${tmuaBest(n)}. The clock beat him more than the questions did.` },
@@ -645,6 +660,25 @@ export const ACT_FOUR: Scene = {
       { kind: 'spoken', only: I_SHAKY, speaker: 'Dr Lambda', text: '"And so?"' },
       { kind: 'spoken', only: I_SHAKY, speaker: 'Albert', text: '"So f of pi is less than f of e, and e to the pi is larger."', fx: 'done' },
       { kind: 'narration', only: I_SHAKY, text: 'It is right. It is also late, and both of them know it.' },
+      { kind: 'spoken', speaker: 'Dr Lambda', text: '"Before we stop: is there anything you would like to ask me?"' },
+      {
+        kind: 'choice',
+        id: 'ask',
+        options: [
+          {
+            id: 'quicker', text: '"Is there a quicker way to do the comparison?"', note: 'Dr Lambda will remember this', effects: { lambda: 1 },
+            reply: { kind: 'spoken', speaker: 'Dr Lambda', text: '"A neater one. E to the x is at least one plus x. Put x equal to pi over e, minus one, and see what falls out."' },
+          },
+          {
+            id: 'supervision', text: '"What does a supervision with you look like?"', note: 'Dr Lambda will remember this', effects: { lambda: 1 },
+            reply: { kind: 'spoken', speaker: 'Dr Lambda', text: '"Much like this. Less polite, and longer."' },
+          },
+          {
+            id: 'none', text: '"No, thank you. You have been very clear."', note: 'Play it safe',
+            reply: { kind: 'spoken', speaker: 'Dr Lambda', text: '"Very well."' },
+          },
+        ],
+      },
       { kind: 'spoken', speaker: 'Dr Lambda', text: '"Thank you, Mr Burt. You will hear from the College."' },
       { kind: 'narration', text: 'The window closes. The kitchen is very quiet.', fx: 'end' },
       { kind: 'inner', only: I_STRONG, speaker: 'Albert', text: 'He thinks it went well, and does not trust the thought.' },
@@ -860,9 +894,193 @@ export const MATRICULATION: Scene = {
   },
 };
 
-/** Every scene, in story order. */
+// ---------------------------------------------------------------- side scenes, unlocked by choices
+
+/** Unlocked by First Light's "Want to do Block 2 together? Thursday night?". */
+export const THURSDAY_NIGHT: Scene = {
+  id: 'thursday-night',
+  strand: 'side',
+  book: 1,
+  chapter: 1,
+  kicker: 'Side scene',
+  title: 'Thursday Night',
+  place: 'Brooklyn, 7:30 pm, a Thursday',
+  art: 'kitchen-night',
+  cast: ['priya'],
+  trigger: {
+    kind: 'side', after: 'first-light', need: { kind: 'choice', scene: 'first-light', point: 'reply', option: 'together' },
+    name: 'after First Light, if you asked Priya to study together',
+  },
+  script: {
+    lines: [
+      { kind: 'narration', text: 'Thursday, 7:30 pm. Priya arrives with two coffees, a stack of problem sheets, and the posture of someone used to twelve-hour shifts.' },
+      { kind: 'spoken', speaker: 'Priya', text: '"Block 2. Three fair coins: what is the chance of at least one head? I keep getting three halves, which I am told is not allowed."' },
+      { kind: 'inner', speaker: 'Albert', text: 'Three halves. She added the three chances, as if two heads could never land together.' },
+      {
+        kind: 'choice',
+        id: 'explain',
+        options: [
+          {
+            id: 'ask', text: '"Before any formula: how many ways can three coins land?"', note: 'Let her find it', effects: { priya: 2 },
+            reply: { kind: 'spoken', speaker: 'Priya', text: '"Eight. And only one of them has no heads at all. Oh. Seven eighths."' },
+          },
+          {
+            id: 'complement', text: 'Show her the complement: one minus the chance of no heads.', note: 'Priya will remember this', effects: { priya: 1 },
+            reply: { kind: 'spoken', speaker: 'Albert', text: '"No heads means three tails: a half, cubed, is an eighth. So at least one head is one minus an eighth. Seven eighths."' },
+          },
+          {
+            id: 'answer', text: '"Seven eighths. Next question?"', note: 'Keep it moving', effects: { priya: -1 },
+            reply: { kind: 'spoken', speaker: 'Priya', text: '"I did not ask for the answer. I asked why."' },
+          },
+        ],
+      },
+      { kind: 'narration', text: 'By ten they have done the whole sheet. She is faster at the counting; he is faster at the algebra. Neither says so.' },
+      { kind: 'spoken', speaker: 'Priya', text: '"Same time next week?"' },
+      { kind: 'inner', speaker: 'Albert', text: ({ n }) => `${plural(n.sectionsMastered, 'section', 'sections')} of the book mastered, and for once somebody else at the table.` },
+      { kind: 'narration', text: 'He washes two mugs instead of one.' },
+    ],
+    endCard: [
+      { label: 'Sections mastered', value: (c) => String(c.n.sectionsMastered) },
+      REP_ITEM,
+      relItem('priya', 'Priya'),
+      triggered('First Light, and the study night you asked for'),
+    ],
+  },
+};
+
+/** Unlocked after The Offer when Dr Lambda thinks well of him: two or more from his choices with her. */
+export const A_REPLY: Scene = {
+  id: 'a-reply',
+  strand: 'side',
+  book: 1,
+  chapter: 8,
+  kicker: 'Side scene',
+  title: 'A Reply',
+  place: 'Brooklyn, 9:15 pm, a Monday in May',
+  art: 'desk-night',
+  cast: ['lambda', 'priya'],
+  trigger: {
+    kind: 'side', after: 'the-offer', need: { kind: 'rel', who: 'lambda', atLeast: 2 },
+    name: 'after The Offer, if Dr Lambda thinks well of you',
+  },
+  script: {
+    lines: [
+      { kind: 'narration', text: 'An email from the College, sent at 2:15 am in New Cambridge, an hour when nobody there should be awake.' },
+      { kind: 'message', speaker: 'Dr Lambda', text: '"Mr Burt. Thank you for your note. Something for the summer, before October."' },
+      { kind: 'message', speaker: 'Dr Lambda', text: '"Show that between any two different rational numbers there is an irrational one."', fx: 'q' },
+      { kind: 'inner', speaker: 'Albert', text: 'He has proved exactly one number irrational in his life. One is enough, if he uses it well.' },
+      { kind: 'inner', speaker: 'Albert', text: 'Take rationals a less than b. The gap, b minus a, is rational and positive. Divide it by root 2. If that were rational, root 2 would be the gap over a rational, so rational. It is not. So the step is irrational.' },
+      { kind: 'inner', speaker: 'Albert', text: 'Then a plus the step is irrational too: subtract a from a rational and you get a rational. And root 2 is bigger than 1, so the step is smaller than the gap. It lands strictly between a and b.', fx: 'qed' },
+      {
+        kind: 'choice',
+        id: 'send',
+        options: [
+          {
+            id: 'clean', text: 'Sleep on it. Write it out clean in the morning, every step justified.', note: 'Dr Lambda will remember this', effects: { lambda: 1 },
+            reply: { kind: 'narration', text: 'Her answer comes before lunch: "Correct, and properly written. See you in October."' },
+          },
+          {
+            id: 'now', text: 'Send it tonight, as it stands.', note: 'Ship it',
+            reply: { kind: 'narration', text: 'Her answer is waiting at 6:00 am: "Correct. Next time, write the reasons as sentences, not arrows."' },
+          },
+          {
+            id: 'priya', text: 'Send it to Priya first, to read cold.', note: 'Priya will remember this', effects: { priya: 1 },
+            reply: { kind: 'message', speaker: 'Priya', text: '"I understood every line. Either it is very good or I am getting smarter."' },
+          },
+        ],
+      },
+      { kind: 'narration', text: 'He prints the email and puts it in the drawer, on top of the GED certificate.' },
+    ],
+    endCard: [
+      REP_ITEM,
+      relItem('lambda', 'Dr Lambda'),
+      relItem('priya', 'Priya'),
+      triggered('The Offer, and Dr Lambda\'s regard'),
+    ],
+  },
+};
+
+// ---------------------------------------------------------------- beats, when a rating rises past a threshold
+
+/** A beat's end card: the rating it marks, REP, and what triggered it. */
+const beatCard = (label: string, at: number): readonly EndItem[] => [
+  { label, value: () => `${at} reached` },
+  REP_ITEM,
+  triggered(`${label} reaching ${at}`),
+];
+
+export const BEAT_PROOF: Scene = {
+  id: 'beat-proof-70',
+  strand: 'beat',
+  book: 1,
+  chapter: 0,
+  kicker: 'Beat',
+  title: 'The Margin',
+  place: 'Brooklyn, 11:20 pm, a Tuesday',
+  art: 'desk-night',
+  cast: [],
+  trigger: { kind: 'rating', rating: 'proof', at: 70 },
+  script: {
+    lines: [
+      { kind: 'narration', text: 'Filing old notes, he finds the page from the night he proved root 2 irrational.', fx: 'q' },
+      { kind: 'narration', text: 'The "why?" is still in the margin, in red.', fx: 'why' },
+      { kind: 'inner', speaker: 'Albert', text: 'He reads it as a stranger would. Two steps asserted, not shown. He would not let himself write them that way now.' },
+      { kind: 'narration', text: 'He fills the gaps in pencil, in a neater hand than the original.', fx: 'qed' },
+      { kind: 'inner', speaker: 'Albert', text: 'Proof, 70. It means one thing: he can see what is missing.' },
+    ],
+    endCard: beatCard('Proof rating', 70),
+  },
+};
+
+export const BEAT_TEMPERAMENT: Scene = {
+  id: 'beat-temperament-70',
+  strand: 'beat',
+  book: 1,
+  chapter: 0,
+  kicker: 'Beat',
+  title: 'The Clock',
+  place: 'Brooklyn, 8:05 am, a Sunday',
+  art: 'kitchen-dawn',
+  cast: [],
+  trigger: { kind: 'rating', rating: 'temperament', at: 70 },
+  script: {
+    lines: [
+      { kind: 'narration', text: 'Three hours on the timer. A past paper face down. The phone in the other room.' },
+      { kind: 'inner', speaker: 'Albert', text: 'In the first months he looked at the clock after every question. Then after every page.' },
+      { kind: 'narration', text: 'Today he looks up once, at the halfway mark, and he is where he planned to be.' },
+      { kind: 'inner', speaker: 'Albert', text: 'Exam Temperament, 70. The clock is just a clock now.' },
+    ],
+    endCard: beatCard('Exam Temperament', 70),
+  },
+};
+
+export const BEAT_OVERALL: Scene = {
+  id: 'beat-overall-60',
+  strand: 'beat',
+  book: 1,
+  chapter: 0,
+  kicker: 'Beat',
+  title: 'Sixty',
+  place: 'Brooklyn, 6:15 am, a Wednesday',
+  art: 'kitchen-night',
+  cast: [],
+  trigger: { kind: 'rating', rating: 'overall', at: 60 },
+  script: {
+    lines: [
+      { kind: 'narration', text: 'On the Story tab, under six thin bars, one number: 60.' },
+      { kind: 'inner', speaker: 'Albert', text: 'In the basketball video games he played at nineteen, a 60 was a bench player. Somebody who gets minutes because he earned them.' },
+      { kind: 'inner', speaker: 'Albert', text: 'Nobody is drafted at 60. Nobody stays there either, unless they stop.' },
+      { kind: 'narration', text: 'He opens the next lesson.' },
+    ],
+    endCard: beatCard('Overall rating', 60),
+  },
+};
+
+/** Every scene: the main storyline in story order, then the side scenes and the beats. */
 export const SCENES: readonly Scene[] = [
   PROLOGUE, FIRST_LIGHT, PROOF, LONG_WINTER, ACT_ONE, ACT_TWO, ACT_THREE, ACT_FOUR, THE_OFFER, RESULTS_DAY, MATRICULATION,
+  THURSDAY_NIGHT, A_REPLY,
+  BEAT_PROOF, BEAT_TEMPERAMENT, BEAT_OVERALL,
 ];
 
 export const BOOKS: readonly { n: number; title: string }[] = [

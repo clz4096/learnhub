@@ -18,7 +18,7 @@ import { DEFAULT_COURSES, ensureSession, startLearner } from '@/model/learner';
 import { go, parseRoute, route } from '@/model/route';
 import { commit, flush, init, setClock } from '@/model/store';
 import { NO_NUMBERS, emptyStory, type Seen } from '@/model/story';
-import { STEP_BLOCK_1 } from '@/model/storyScenes';
+import { SCENES, STEP_BLOCK_1 } from '@/model/storyScenes';
 import { STORY_KEY, playing, reloadStory, saveStory, story } from '@/model/storyStore';
 import { App } from '@/ui/App';
 
@@ -280,9 +280,12 @@ function campaignThrough(acts: 4 | 5, step2 = 80, step3 = 50): Campaign {
   return c;
 }
 
-/** Marks these scenes seen, so the next one in the queue is the one under test. */
+/** The rating beats: the campaign fixtures' timed papers raise Exam Temperament, and the beats have tests of their own. */
+const BEATS = SCENES.filter((s) => s.strand === 'beat').map((s) => s.id);
+
+/** Marks these scenes (and the beats) seen, so the next one in the queue is the one under test. */
 function seenUpTo(...ids: string[]): void {
-  const seen: Record<string, Seen> = Object.fromEntries(ids.map((id) => [id, { first: T0, last: T0, plays: 1, n: { ...NO_NUMBERS } }]));
+  const seen: Record<string, Seen> = Object.fromEntries([...ids, ...BEATS].map((id) => [id, { first: T0, last: T0, plays: 1, n: { ...NO_NUMBERS } }]));
   saveStory({ ...emptyStory(), seen });
 }
 
@@ -407,5 +410,52 @@ describe('Book One, from a real campaign', () => {
     click('Replay The Long Winter');
     await waitFor(() => expect(dialog()?.getAttribute('aria-label')).toBe('Chapter 3: The Long Winter'));
     expect(document.querySelector('.sp-title h1')?.textContent).toBe('The Long Winter');
+  });
+});
+
+// ---------------------------------------------------------------- ratings, side scenes, beats
+
+describe('ratings and side scenes', () => {
+  it('the Story tab shows the ratings card, the overall, and the side scenes with their triggers', async () => {
+    prologueSeen();
+    await withCourse();
+    go({ view: 'story' });
+    render(<App />);
+    await flush();
+    const card = document.querySelector('.story-ratings');
+    expect(card).not.toBeNull();
+    expect(card?.querySelector('.rt-ovr')?.textContent).toBe('40');
+    expect([...(card?.querySelectorAll('.rt-l') ?? [])].map((x) => x.textContent)).toEqual([
+      'Analysis', 'Algebra', 'Probability', 'Proof', 'Programming', 'Exam Temperament',
+    ]);
+    expect([...(card?.querySelectorAll('.rt-v') ?? [])].map((x) => x.textContent)).toEqual(['40', '40', '40', '40', '40', '40']);
+    expect(card?.textContent).toContain('drills and gym alone stop at 55');
+    const main = document.querySelector('main')?.textContent ?? '';
+    expect(main).toContain('Thursday NightlockedPlays after First Light, if you asked Priya to study together.');
+    expect(main).toContain('The MarginlockedPlays when your Proof rating reaches 70.');
+    expect(main).not.toMatch(/[–—]/);
+  });
+
+  it('a choice in First Light unlocks Thursday Night, which plays by itself and moves Priya', async () => {
+    saveStory({
+      ...emptyStory(),
+      seen: Object.fromEntries(['prologue', 'first-light'].map((id) => [id, { first: T0, last: T0, plays: 1, n: { ...NO_NUMBERS } }])),
+      choices: { 'first-light': { reply: 'together' } },
+      relationships: { lambda: 0, priya: 2, tomasz: 0, okafor: 0 },
+    });
+    await withCourse();
+    render(<App />);
+    await flush();
+    await waitFor(() => expect(dialog()?.getAttribute('aria-label')).toBe('Side scene: Thursday Night'), { timeout: 5000 });
+    await waitFor(() => expect(document.querySelector('.sp-txt')).not.toBeNull());
+    for (let i = 0; i < 20 && document.querySelector('.sp-choices') === null; i++) fireEvent.click(document.querySelector('.sp-frame') as Element);
+    await waitFor(() => expect(document.querySelector('.sp-choices')).not.toBeNull());
+    click(/how many ways can three coins land/);
+    click('Skip');
+    await waitFor(() => expect(document.querySelector('.sp-end')).not.toBeNull());
+    expect(endCard().Priya).toBe('closer (close)');
+    // A side scene names no "Next".
+    expect(document.querySelector('.sp-next')).toBeNull();
+    expect(story.value.relationships.priya).toBe(4);
   });
 });

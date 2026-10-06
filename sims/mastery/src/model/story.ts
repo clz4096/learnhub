@@ -6,12 +6,14 @@
  *
  * Real data drives everything: a trigger reads the learner's real progress, a scene's
  * variant and end card read real numbers, and REP is computed from real work only (one
- * table, REP_TABLE). Scenes never grant REP. Choices change relationships only, and only
- * the latest choice in a scene counts, so a replay with a different choice replaces the
- * old one instead of adding to it.
+ * table, REP_TABLE). Scenes never grant REP. Choices change relationships and can unlock
+ * side scenes, never study; only the latest choice in a scene counts, so a replay with a
+ * different choice replaces the old one instead of adding to it. A rating rising past a
+ * threshold (ratings.ts) can play a short beat.
  */
 import type { Route } from './route';
 import { nyParts, sunsetMinutes, weekdayOf } from './day';
+import { RATING_LABELS, type RatingId, type RatingValues } from './ratings';
 
 // ---------------------------------------------------------------- the cast
 
@@ -132,6 +134,8 @@ export interface StoryFacts extends StoryNumbers {
   actsComplete: number | null;
   /** Campaign letters delivered; empty until the campaign's results are known (`campaign` not null), since letter scenes read them. */
   letters: readonly string[];
+  /** The player ratings now (ratings.ts); absent or null while unknown, and then no rating beat fires. */
+  ratings?: RatingValues | null;
 }
 
 // ---------------------------------------------------------------- REP
@@ -250,15 +254,32 @@ export type Trigger =
   | { kind: 'act'; n: 1 | 2 | 3 | 4 | 5; name: string }
   | { kind: 'letter'; id: string; name: string }
   /** Act V complete and the offer met or narrowly missed: the place is confirmed. */
-  | { kind: 'confirmed' };
+  | { kind: 'confirmed' }
+  /**
+   * A side scene: `after` seen, and the choices made so far meet `need`. `name` finishes the
+   * clause "plays after ...": "after First Light, if you asked Priya to study together".
+   */
+  | { kind: 'side'; after: string; need: SideNeed; name: string }
+  /** A rating beat: the rating (or the overall) at `at` or above. */
+  | { kind: 'rating'; rating: RatingId | 'overall'; at: number };
+
+/** What unlocks a side scene: one option taken at a choice point, or a relationship at a level. */
+export type SideNeed =
+  | { kind: 'choice'; scene: string; point: string; option: string }
+  | { kind: 'rel'; who: RelId; atLeast: number };
 
 /** The art a scene is drawn with; the player maps each to a component. */
 export type ArtId =
   | 'kitchen-night' | 'kitchen-dawn' | 'desk-night' | 'window-winter' | 'kitchen-results' | 'train-hall' | 'kitchen-apply'
   | 'video-call' | 'kitchen-offer' | 'senate-board' | 'college-gate';
 
+/** The main storyline, a side scene unlocked by choices, or a short beat when a rating rises past a threshold. */
+export type Strand = 'main' | 'side' | 'beat';
+
 export interface Scene {
   id: string;
+  /** Absent for the main storyline. Side scenes and beats are never "Next" on an end card. */
+  strand?: Strand;
   /** 0 for the Prologue, 1 for Book One: Preparation, and so on. */
   book: number;
   /** The scene's number within its book; 0 for the Prologue. */
@@ -287,10 +308,20 @@ export function triggerText(t: Trigger): string {
     case 'act': return `plays when ${t.name} is complete`;
     case 'letter': return `plays when ${t.name} arrives`;
     case 'confirmed': return 'plays when your place is confirmed';
+    case 'side': return `plays ${t.name}`;
+    case 'rating': return `plays when your ${t.rating === 'overall' ? 'overall' : RATING_LABELS[t.rating]} rating reaches ${t.at}`;
   }
 }
 
-export function triggered(t: Trigger, f: StoryFacts): boolean {
+export const strandOf = (s: Scene): Strand => s.strand ?? 'main';
+
+/** Whether the choices recorded so far meet a side scene's need. */
+export function sideNeedMet(need: SideNeed, st: Pick<StoryState, 'choices' | 'relationships'>): boolean {
+  return need.kind === 'choice' ? st.choices[need.scene]?.[need.point] === need.option : st.relationships[need.who] >= need.atLeast;
+}
+
+/** Whether a trigger holds. Side scenes also read the story so far (`st`); without it they never fire. */
+export function triggered(t: Trigger, f: StoryFacts, st?: Pick<StoryState, 'seen' | 'choices' | 'relationships'>): boolean {
   switch (t.kind) {
     case 'firstLaunch': return true;
     case 'chapter': return f.chaptersComplete.includes(t.chapterId);
@@ -298,6 +329,8 @@ export function triggered(t: Trigger, f: StoryFacts): boolean {
     case 'act': return f.actsComplete !== null && f.actsComplete >= t.n;
     case 'letter': return f.letters.includes(t.id);
     case 'confirmed': return f.actsComplete !== null && f.actsComplete >= 5 && f.campaign !== null && offerOutcome(f.campaign) !== 'missed';
+    case 'side': return st !== undefined && st.seen[t.after] !== undefined && sideNeedMet(t.need, st);
+    case 'rating': return f.ratings != null && f.ratings[t.rating] >= t.at;
   }
 }
 
@@ -424,7 +457,7 @@ export function emptyStory(): StoryState {
 
 /** Written scenes, not seen and not queued, whose trigger holds, in story order. */
 export function newlyDue(scenes: readonly Scene[], st: StoryState, f: StoryFacts): Scene[] {
-  return scenes.filter((s) => s.script !== null && st.seen[s.id] === undefined && !st.queued.some((q) => q.id === s.id) && triggered(s.trigger, f));
+  return scenes.filter((s) => s.script !== null && st.seen[s.id] === undefined && !st.queued.some((q) => q.id === s.id) && triggered(s.trigger, f, st));
 }
 
 /** Queues scenes that have just triggered, with the numbers at that moment. Returns `st` itself when nothing is new. */
@@ -487,10 +520,11 @@ export function autoPlay(st: StoryState, now: number, r: Route, timedRunning = f
   return st.queued[0]?.id ?? null;
 }
 
-/** The scene after this one in story order, for the end card's "Next". */
+/** The main-storyline scene after this one, for the end card's "Next"; none after a side scene or a beat. */
 export function nextScene(scenes: readonly Scene[], id: string): Scene | undefined {
   const i = scenes.findIndex((s) => s.id === id);
-  return i < 0 ? undefined : scenes[i + 1];
+  if (i < 0 || strandOf(scenes[i] as Scene) !== 'main') return undefined;
+  return scenes.slice(i + 1).find((s) => strandOf(s) === 'main');
 }
 
 // ---------------------------------------------------------------- parsing

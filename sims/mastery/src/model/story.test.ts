@@ -5,7 +5,7 @@ import { DEFAULT_COURSES, startLearner } from './learner';
 import { newCampaign, type Campaign } from './campaign';
 import {
   NO_NUMBERS, REP_LEVELS, REP_TABLE, advance, autoPlay, calmView, choose, completeScene, emptyStory, enqueue, expand, firedFx,
-  isChoice, isShabbat, metOf, newlyDue, nextScene, parseStory, relationWord, relationshipsOf, repLevel, repOf, skip, startPlayer,
+  isChoice, isShabbat, metOf, newlyDue, nextScene, parseStory, relationWord, relationshipsOf, repLevel, repOf, skip, startPlayer, strandOf,
   triggerText, triggered, type PlayerState, type StoryFacts, type StoryNumbers,
 } from './story';
 import { CS0_PROOF, FIRST_LIGHT, PROLOGUE, SCENES, STAGE_A, STEP_BLOCK_1, firstLightVariant, fmtHours } from './storyScenes';
@@ -73,12 +73,15 @@ describe('triggers', () => {
 
 describe('the scenes', () => {
   it('are the Prologue, First Light, then the rest of Book One in the design order, all written', () => {
-    expect(SCENES.map((s) => s.title)).toEqual([
+    expect(SCENES.filter((s) => strandOf(s) === 'main').map((s) => s.title)).toEqual([
       'The Kitchen Table', 'First Light', 'Proof', 'The Long Winter (or Momentum)', 'Act I: Recent Qualifications',
       'Act II: The Admissions Test', 'Act III: The Application', 'Act IV: The Interview', 'The Offer', 'Results Day', 'Matriculation',
     ]);
     expect(SCENES.filter((s) => s.script === null)).toEqual([]);
-    expect(SCENES.filter((s) => s.book === 1).map((s) => s.chapter)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(SCENES.filter((s) => s.book === 1 && strandOf(s) === 'main').map((s) => s.chapter)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    // The side scenes and beats follow the main storyline.
+    const firstExtra = SCENES.findIndex((s) => strandOf(s) !== 'main');
+    expect(SCENES.slice(firstExtra).every((s) => strandOf(s) !== 'main')).toBe(true);
     expect(new Set(SCENES.map((s) => s.id)).size).toBe(SCENES.length);
   });
 

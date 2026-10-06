@@ -1,19 +1,24 @@
 /**
  * The Story tab (mastery/DESIGN-STORY.md): the learner's REP and level with what it is
- * made of, the four relationships, and the chapters. Seen scenes can be replayed, a
- * queued scene can be played now, and the rest are listed locked with their real triggers.
+ * made of, the player ratings, the four relationships, and the chapters, side scenes, and
+ * beats. Seen scenes can be replayed, a queued scene can be played now, and the rest are
+ * listed locked with their real triggers.
  */
+import { useEffect } from 'preact/hooks';
 import type { Progress } from '@learnhub/mastery';
 import { campaign } from '@/model/campaignStore';
 import { loadDays } from '@/model/dayLog';
+import { hasStoredLadder, peekLadder } from '@/model/ladderStore';
+import { DRILL_CAP, RATING_MAX, RATING_MIN, overall, type Rating } from '@/model/ratings';
 import { now } from '@/model/store';
 import {
-  CHARACTERS, REL_IDS, REP_TABLE, isShabbat, metOf, relationWord, repLevel, repOf, titleOf, triggerText, type Scene, type StoryNumbers, type StoryState,
+  CHARACTERS, REL_IDS, REP_TABLE, isShabbat, metOf, relationWord, repLevel, repOf, strandOf, titleOf, triggerText,
+  type Scene, type StoryNumbers, type StoryState,
 } from '@/model/story';
 import { BOOKS, LATER_BOOKS, SCENES } from '@/model/storyScenes';
-import { storyFacts } from '@/model/storyFacts';
+import { storyFacts, storyRatings } from '@/model/storyFacts';
 import { playing, story } from '@/model/storyStore';
-import { shortStamp } from '@/ui/campaignShared';
+import { admissions, loadAdmissions, shortStamp } from '@/ui/campaignShared';
 import { ART } from '@/ui/story/art';
 
 const sentence = (s: string): string => `${s.charAt(0).toUpperCase()}${s.slice(1)}.`;
@@ -23,7 +28,7 @@ function SceneRow({ s, st, shabbat }: { s: Scene; st: StoryState; shabbat: boole
   const queued = st.queued.some((q) => q.id === s.id);
   // A seen scene goes by the title it played under ("The Long Winter" or "Momentum").
   const title = seen === undefined ? s.title : titleOf(s, { n: seen.n, rel: st.relationships });
-  const name = s.book === 0 ? title : `${s.chapter}. ${title}`;
+  const name = s.book === 0 || strandOf(s) !== 'main' ? title : `${s.chapter}. ${title}`;
   const open = (): void => { playing.value = { id: s.id, auto: false }; };
   if (s.script !== null && seen !== undefined) {
     return (
@@ -57,7 +62,7 @@ function featured(st: StoryState): { s: Scene; state: 'ready' | 'locked' | 'seen
   const written = SCENES.filter((x) => x.script !== null);
   const q = st.queued.map((x) => written.find((y) => y.id === x.id)).find((x) => x !== undefined);
   if (q !== undefined) return { s: q, state: 'ready' };
-  const next = written.find((x) => st.seen[x.id] === undefined);
+  const next = written.find((x) => strandOf(x) === 'main' && st.seen[x.id] === undefined);
   if (next !== undefined) return { s: next, state: 'locked' };
   const last = [...written].reverse().find((x) => st.seen[x.id] !== undefined);
   return last === undefined ? null : { s: last, state: 'seen' };
@@ -86,8 +91,41 @@ function SceneCard({ st, numbers }: { st: StoryState; numbers: StoryNumbers }) {
   );
 }
 
+/** The six ratings and the overall, 2K style: mono numbers on hairline bars. */
+function RatingsCard({ rs }: { rs: readonly Rating[] }) {
+  const ovr = overall(rs);
+  const share = (v: number): number => Math.round((100 * (v - RATING_MIN)) / (RATING_MAX - RATING_MIN));
+  return (
+    <section class="ds-sect story-ratings" aria-labelledby="story-ratings">
+      <div class="ds-eyebrow ds-sect-h"><h2 id="story-ratings">Ratings</h2><span>Overall</span></div>
+      <div class="rt-card">
+        <div class="rt-ovr" aria-label={`Overall rating ${ovr}`}>{ovr}</div>
+        <ul class="rt-list">
+          {rs.map((r) => (
+            <li key={r.id}>
+              <span class="rt-l">{r.label}</span>
+              <span class="rt-v">{r.value}</span>
+              <span class="rt-bar" aria-hidden="true"><i style={{ width: `${share(r.value)}%` }} /></span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p class="ds-meta rt-note">
+        From 40 to 99. Only gated mastery, passed supervisions, and timed papers raise a rating; drills and gym alone stop at {DRILL_CAP}.
+      </p>
+    </section>
+  );
+}
+
 export function StoryView({ p }: { p: Progress }) {
   const st = story.value;
+  const adm = admissions.value;
+  const c = campaign.value;
+  // Exam Temperament marks timed papers, which needs the registry; it loads only when there are some.
+  useEffect(() => {
+    if (adm === null && ((c?.sittings.length ?? 0) > 0 || hasStoredLadder())) void loadAdmissions();
+  }, [adm, c]);
+  const rs = storyRatings(p, c, adm, adm === null ? [] : peekLadder(adm));
   const f = storyFacts(p, campaign.value, loadDays(), now());
   const rep = repOf(f);
   const level = repLevel(rep);
@@ -95,8 +133,9 @@ export function StoryView({ p }: { p: Progress }) {
   const shabbat = isShabbat(now());
   const span = level.next === null ? 1 : level.next.at - level.at;
   const pct = level.next === null ? 100 : Math.min(100, Math.round((100 * (rep - level.at)) / span));
-  const written = SCENES.filter((x) => x.script !== null);
+  const written = SCENES.filter((x) => x.script !== null && strandOf(x) === 'main');
   const seen = written.filter((x) => st.seen[x.id] !== undefined).length;
+  const extras = SCENES.filter((x) => x.script !== null && strandOf(x) !== 'main');
   return (
     <section class="camp ds-story" aria-labelledby="story-title">
       <div class="ds-eyebrow">Story · Book One</div>
@@ -110,6 +149,7 @@ export function StoryView({ p }: { p: Progress }) {
       </div>
       <p class="lead">A story you play through by studying. Your real progress triggers every scene, and REP comes only from real work.</p>
       <SceneCard st={st} numbers={f} />
+      <RatingsCard rs={rs} />
 
       <section class="ds-sect story-scenes" aria-labelledby="story-chapters">
         <div class="ds-eyebrow ds-sect-h"><h2 id="story-chapters">Chapters</h2><span>{seen} / {written.length}</span></div>
@@ -117,10 +157,16 @@ export function StoryView({ p }: { p: Progress }) {
           <section key={b.n} class="sec story-book" aria-labelledby={`story-book-${b.n}`}>
             <div class="sec-h"><h3 id={`story-book-${b.n}`}>{b.title}</h3></div>
             <ul class="ruled">
-              {SCENES.filter((x) => x.book === b.n).map((x) => <SceneRow key={x.id} s={x} st={st} shabbat={shabbat} />)}
+              {SCENES.filter((x) => x.book === b.n && strandOf(x) === 'main').map((x) => <SceneRow key={x.id} s={x} st={st} shabbat={shabbat} />)}
             </ul>
           </section>
         ))}
+        <section class="sec story-book" aria-labelledby="story-side">
+          <div class="sec-h"><h3 id="story-side">Side scenes and beats</h3></div>
+          <ul class="ruled">
+            {extras.map((x) => <SceneRow key={x.id} s={x} st={st} shabbat={shabbat} />)}
+          </ul>
+        </section>
         <section class="sec story-book" aria-labelledby="story-later">
           <div class="sec-h"><h3 id="story-later">Later books</h3></div>
           <ul class="ruled">

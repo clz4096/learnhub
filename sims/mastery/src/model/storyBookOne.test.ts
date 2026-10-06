@@ -15,7 +15,7 @@ import { closureTopics } from './courses';
 import { DEFAULT_COURSES, startLearner } from './learner';
 import {
   NO_NUMBERS, NO_RELATIONSHIPS, autoPlay, completeScene, emptyStory, enqueue, expand, isChoice, newlyDue, numbersOf, offerOutcome, parseStory,
-  relationshipsOf, titleOf, triggerText, triggered,
+  relationshipsOf, strandOf, titleOf, triggerText, triggered,
   type EndContext, type Scene, type StoryFacts, type StoryNumbers,
 } from './story';
 import {
@@ -105,7 +105,7 @@ const BOOK_ONE_LATER = [PROOF, LONG_WINTER, ACT_ONE, ACT_TWO, ACT_THREE, ACT_FOU
 
 describe('Book One, chapters 2 to 10', () => {
   it('are all written, in the design order, with art, a place card, a choice that moves someone, and an end card', () => {
-    expect(SCENES.filter((s) => s.book === 1).map((s) => s.id)).toEqual([
+    expect(SCENES.filter((s) => s.book === 1 && strandOf(s) === 'main').map((s) => s.id)).toEqual([
       'first-light', 'proof', 'long-winter', 'act-1', 'act-2', 'act-3', 'act-4', 'the-offer', 'results-day', 'matriculation',
     ]);
     for (const s of BOOK_ONE_LATER) {
@@ -220,7 +220,8 @@ describe('triggers, from fixture data', () => {
   it('a full campaign queues every campaign scene at once, in story order', () => {
     const seen = Object.fromEntries(['prologue', 'first-light', 'proof', 'long-winter'].map((id) => [id, { first: 0, last: 0, plays: 1, n: NO_NUMBERS }]));
     const due = newlyDue(SCENES, { ...emptyStory(), seen }, factsOf(fullCampaign(80, 70)));
-    expect(due.map((s) => s.id)).toEqual(['act-1', 'act-2', 'act-3', 'act-4', 'the-offer', 'results-day', 'matriculation']);
+    // The fixture's timed papers also raise Exam Temperament past its beat.
+    expect(due.filter((s) => strandOf(s) === 'main').map((s) => s.id)).toEqual(['act-1', 'act-2', 'act-3', 'act-4', 'the-offer', 'results-day', 'matriculation']);
   });
 });
 
