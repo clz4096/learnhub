@@ -15,11 +15,11 @@ import { ladderPacket } from '@/model/campaignPackets';
 import { campaign } from '@/model/campaignStore';
 import {
   EXAMS, RUNGS, RUNG_NAMES, activeAttempt, attemptScore, countedOf, finishAttempt, ladderResults, ladderStatus, nextLadderItem,
-  recordAttemptMarks, removeAttempt, rungMinutes, startAttempt,
+  recordAttemptMarks, rungMinutes, startAttempt,
   type Exam, type LadderAttempt, type PartRung, type Rung, type RungStatus,
 } from '@/model/ladder';
 import { examOf, partName, unmarkedAttempts } from '@/model/ladderNext';
-import { ladder, loadLadder, saveLadder } from '@/model/ladderStore';
+import { discardAttempt, ladder, loadLadder, saveLadder } from '@/model/ladderStore';
 import { readiness, withReadiness } from '@/model/readiness';
 import { go } from '@/model/route';
 import { now, progress } from '@/model/store';
@@ -218,7 +218,7 @@ function MarkAttempt({ adm, a }: { adm: Admissions; a: LadderAttempt }) {
           </>
         )}
       {error !== null && <p class="c-error" role="alert">{error}</p>}
-      <button type="button" class="linklike" onClick={() => saveLadder(removeAttempt(ladder.peek(), a.id))}>Discard this attempt</button>
+      <button type="button" class="linklike" onClick={() => discardAttempt(a.id)}>Discard this attempt</button>
     </div>
   );
 }

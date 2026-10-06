@@ -1,9 +1,10 @@
 /**
  * Story mode's state (scenes seen, choices, relationships, REP at the last scene, the
- * queue) in a signal, kept in localStorage in this browser only, like the campaign. Not
- * part of the progress document, so its schema and sync are unchanged.
+ * queue) in a signal, kept in localStorage, like the campaign. Not part of the progress
+ * document; sync carries it in the learner envelope (sync/learner).
  */
 import { signal } from '@preact/signals';
+import { learnerChanged } from './learnerChange';
 import { emptyStory, parseStory, type StoryState } from './story';
 import { SCENES } from './storyScenes';
 
@@ -39,6 +40,7 @@ export function saveStory(next: StoryState): boolean {
     const s = store();
     if (s === null) return false;
     s.setItem(STORY_KEY, JSON.stringify(next));
+    learnerChanged('story');
     return true;
   } catch {
     return false;

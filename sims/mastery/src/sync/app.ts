@@ -5,10 +5,12 @@
  */
 import { signal } from '@preact/signals';
 import { finishOpenPlacement, withoutSelfReport } from '@/model/learner';
+import { onLearnerChange } from '@/model/learnerChange';
 import { go } from '@/model/route';
 import { KNOWN_IDS, applySynced, keyValueStorage, loadState, now, onLocalChange, progress } from '@/model/store';
 import { bundledSyncConfig, type ConfigResult } from './config';
 import { SyncEngine, type SyncStatus } from './engine';
+import { applyLearner, collectLearner, startTracking } from './local';
 import { readAuthFragment, type FragmentResult } from './supabase';
 
 /** The config the build carries; tests replace it. */
@@ -50,6 +52,7 @@ export async function startSync(loaded: Promise<void>, fragment: FragmentResult 
   await loaded;
   if (loadState.value !== 'ready') return;
   stopSync();
+  startTracking();
   const e = new SyncEngine({
     config,
     fetch: deps.fetch ?? ((url, init) => fetch(url, init)),
@@ -63,9 +66,13 @@ export async function startSync(loaded: Promise<void>, fragment: FragmentResult 
     redirectTo: typeof location === 'undefined' ? '' : pageUrl(),
     onStatus: (s) => { syncStatus.value = s; },
     isOnline: () => typeof navigator === 'undefined' || navigator.onLine !== false,
+    learner: { get: collectLearner, apply: applyLearner },
   });
   engine = e;
-  const offChange = onLocalChange(() => e.localChanged());
+  const offProgress = onLocalChange(() => e.localChanged());
+  // Registered after tracking's listener, so the change is recorded before the round reads it.
+  const offLearner = onLearnerChange(() => e.localChanged());
+  const offChange = (): void => { offProgress(); offLearner(); };
   const onOnline = (): void => e.online();
   if (typeof window !== 'undefined') window.addEventListener('online', onOnline);
   unlisten = () => {

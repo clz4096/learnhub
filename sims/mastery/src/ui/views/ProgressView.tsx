@@ -4,12 +4,15 @@
  * over that needs the exact phrase typed, as in the cache simulator.
  */
 import { useState } from 'preact/hooks';
-import { MAX_COURSE_WEIGHT, exportProgress, importProgress, withChoices, type Progress } from '@learnhub/mastery';
+import { MAX_COURSE_WEIGHT, withChoices, type Progress } from '@learnhub/mastery';
 import { ALL_COURSES, closureOf, courseOf, shortName } from '@/model/courses';
 import { MAX_MINUTES, MIN_MINUTES, courseStats, finishOpenPlacement, localDay, withoutSelfReport } from '@/model/learner';
 import { go } from '@/model/route';
 import { KNOWN_IDS, commit, erase, now, progress, selfReportWarning } from '@/model/store';
 import { setTheme, theme, type Theme } from '@/model/theme';
+import { backupText, readBackup } from '@/sync/backup';
+import type { LearnerState } from '@/sync/learner/envelope';
+import { applyLearner, collectLearner } from '@/sync/local';
 import { SyncCard, SyncOffNote, syncSignedIn } from '@/ui/Sync';
 
 export const CONFIRM_PHRASE = 'start over';
@@ -117,11 +120,16 @@ function Settings({ p }: { p: Progress }) {
   );
 }
 
-/** Import a progress file: shows what it holds, and replaces the current progress only when confirmed. */
+/**
+ * Import a progress file: shows what it holds, and replaces the current progress only when
+ * confirmed. A file from this build also holds the campaign, story, day log, and timed work
+ * (the learner envelope), which replace this browser's too; a file from an older build holds
+ * progress only, and leaves them as they are.
+ */
 export function ImportFile({ onDone }: { onDone?: () => void }) {
   const [status, setStatus] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
-  const [pending, setPending] = useState<{ doc: Progress; warnings: string[] } | null>(null);
+  const [pending, setPending] = useState<{ doc: Progress; warnings: string[]; learner: LearnerState | null } | null>(null);
 
   const read = async (file: File | undefined): Promise<void> => {
     setErrors([]);
@@ -129,18 +137,19 @@ export function ImportFile({ onDone }: { onDone?: () => void }) {
     setStatus('');
     if (file === undefined) return;
     const text = await file.text();
-    const r = importProgress(text, { knownTopicIds: KNOWN_IDS });
+    const r = readBackup(text, KNOWN_IDS);
     if (!r.ok) {
       setErrors(r.errors);
       return;
     }
     // A file exported by an earlier build is migrated like a stored document.
-    const m = withoutSelfReport(finishOpenPlacement(r.value, now()));
-    setPending({ doc: m.progress, warnings: m.dropped.length > 0 ? [...r.warnings, selfReportWarning(m.dropped)] : r.warnings });
+    const m = withoutSelfReport(finishOpenPlacement(r.progress, now()));
+    setPending({ doc: m.progress, warnings: m.dropped.length > 0 ? [...r.warnings, selfReportWarning(m.dropped)] : r.warnings, learner: r.learner });
   };
 
   const replace = (): void => {
     if (pending === null) return;
+    if (pending.learner !== null) applyLearner(pending.learner);
     void commit(pending.doc).then(() => {
       setStatus(`Imported: ${Object.keys(pending.doc.memory).length} topics learned, ${pending.doc.history.length} answers in the history.`);
       setPending(null);
@@ -165,7 +174,8 @@ export function ImportFile({ onDone }: { onDone?: () => void }) {
         <div class="warning" role="alert">
           <p>
             This file has {Object.keys(pending.doc.memory).length} topics learned and {pending.doc.history.length} answers, saved{' '}
-            {new Date(pending.doc.updatedAt).toLocaleString('en-GB')}. Importing replaces your progress in this browser.
+            {new Date(pending.doc.updatedAt).toLocaleString('en-GB')}. Importing replaces your progress in this browser
+            {pending.learner === null ? '.' : ', along with your campaign, story, day plans, and timed work.'}
           </p>
           {pending.warnings.length > 0 && <ul class="small">{pending.warnings.slice(0, 8).map((w, i) => <li key={i}>{w}</li>)}</ul>}
           <div class="actions">
@@ -183,7 +193,7 @@ function Backup({ p }: { p: Progress }) {
   const [status, setStatus] = useState('');
 
   const download = (): void => {
-    const blob = new Blob([exportProgress(p)], { type: 'application/json' });
+    const blob = new Blob([backupText(p, collectLearner())], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

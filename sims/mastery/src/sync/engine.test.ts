@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  MemoryStorage, PROGRESS_VERSION, exportProgress, mergeProgress, sameProgress, withChoices,
+  MemoryStorage, PROGRESS_VERSION, exportProgress, importProgress, mergeProgress, sameProgress, withChoices,
   type HistoryEntry, type Progress, type SupervisionResult,
 } from '@learnhub/mastery';
+import { newCampaign } from '@/model/campaign';
 import { DEFAULT_COURSES, finishOpenPlacement, startLearner, withoutSelfReport } from '@/model/learner';
 import { KNOWN_IDS } from '@/model/store';
 import { parseSyncConfig } from './config';
@@ -11,6 +12,8 @@ import {
 } from './engine';
 import { ANON_KEY, FakeSupabase, URL_BASE } from './fakeSupabase';
 import { readAuthFragment } from './supabase';
+import { LEARNER_VERSION, emptyLearner, learnerValues, observeLearner, type LearnerState, type LearnerValues } from './learner/envelope';
+import { plain } from './learner/join';
 
 const T0 = new Date(2026, 9, 5, 9, 0).getTime();
 const EMAIL = 'albert@example.com';
@@ -526,5 +529,128 @@ describe('merge as the engine uses it', () => {
     const a = lesson('pre.fractions', T0 + 1)(started());
     const b = lesson('pre.indices', T0 + 2)(started());
     expect(sameProgress(normalize(mergeProgress(a, b)), normalize(mergeProgress(b, a)))).toBe(true);
+  });
+});
+
+describe('the learner envelope (campaign, story, day log, ladder, mixed review, flags)', () => {
+  /** A device whose learner envelope syncs: `learner` stands in for the stores and sync/local.ts. */
+  class LearnerDevice extends Device {
+    learner: LearnerState = emptyLearner();
+    learnerApplied = 0;
+
+    constructor(server: FakeSupabase, clock: Clock, doc: Progress | null) {
+      super(server, clock, doc);
+      this.engine = this.makeEngine({
+        learner: {
+          get: () => this.learner,
+          apply: (l) => { this.learner = l; this.learnerApplied++; },
+        },
+      });
+    }
+
+    /** The learner changes a store here, as a save reports it. */
+    act(f: (v: LearnerValues) => void): void {
+      const v = plain(learnerValues(this.learner));
+      f(v);
+      this.learner = observeLearner(this.learner, v, this.clock.now());
+      this.engine.localChanged();
+    }
+
+    get values(): LearnerValues {
+      return learnerValues(this.learner);
+    }
+  }
+
+  const rowDoc = (server: FakeSupabase): Record<string, unknown> => server.rows.get(server.userId(EMAIL))?.doc as Record<string, unknown>;
+
+  it('a campaign begun on the Mac and a day ticked on the phone reach both, in the same row as progress', async () => {
+    const { clock, server } = setup();
+    const mac = new LearnerDevice(server, clock, started());
+    mac.act((v) => { v.campaign = newCampaign('maths', T0); });
+    await mac.signInByLink();
+    expect((rowDoc(server).learner as LearnerState).campaign.value?.route).toBe('maths');
+    expect(importProgress(rowDoc(server), { knownTopicIds: KNOWN_IDS }).ok).toBe(true);
+
+    const phone = new LearnerDevice(server, clock, started());
+    phone.act((v) => { v.day = { '2026-10-05': { wake: '07:00', ticks: [480] } }; });
+    await phone.signInByLink();
+    expect(phone.values.campaign?.route).toBe('maths');
+
+    await mac.engine.syncNow();
+    expect(mac.values.day['2026-10-05']?.ticks).toEqual([480]);
+    expect(mac.learner).toEqual(phone.learner);
+  });
+
+  it('a change to the envelope alone is pushed, a moment after it', async () => {
+    const { clock, server } = setup();
+    const mac = new LearnerDevice(server, clock, started());
+    await mac.signInByLink();
+    const before = pushes(server);
+    mac.act((v) => { v.flags = { 'p@1': ['Q2'] }; });
+    await clock.advance(DEBOUNCE_MS);
+    expect(pushes(server)).toBe(before + 1);
+    expect((rowDoc(server).learner as LearnerState).flags.id).toBe('p@1');
+  });
+
+  it('an old row without an envelope is merged as progress, and the envelope is added on the next push', async () => {
+    const { clock, server } = setup();
+    const uid = server.userId(EMAIL);
+    server.rows.set(uid, { user_id: uid, doc: JSON.parse(exportProgress(lesson('pre.indices', T0 - 10)(started(T0 - 20)))), version: PROGRESS_VERSION, updated_at: '' });
+    const mac = new LearnerDevice(server, clock, started());
+    mac.act((v) => { v.campaign = newCampaign('cs', T0); });
+    await mac.signInByLink();
+    expect(mac.status.phase).toBe('idle');
+    expect(mac.doc?.history.map((h) => h.topicId)).toEqual(['pre.indices']);
+    expect((rowDoc(server).learner as LearnerState).campaign.value?.route).toBe('cs');
+  });
+
+  it('an old build\'s push drops the envelope from the row; the next round of a new build puts it back', async () => {
+    const { clock, server } = setup();
+    const mac = new LearnerDevice(server, clock, started());
+    mac.act((v) => { v.campaign = newCampaign('maths', T0); });
+    await mac.signInByLink();
+    // An old build replaces the row with progress only.
+    const uid = server.userId(EMAIL);
+    server.rows.set(uid, { user_id: uid, doc: JSON.parse(exportProgress(lesson('pre.sequences', T0 + 5)(started()))), version: PROGRESS_VERSION, updated_at: '' });
+    await mac.engine.syncNow();
+    expect((rowDoc(server).learner as LearnerState).campaign.value?.route).toBe('maths');
+    expect(mac.values.campaign?.route).toBe('maths');
+  });
+
+  it('a build without the envelope wired carries the row\'s envelope through its push untouched', async () => {
+    const { clock, server } = setup();
+    const mac = new LearnerDevice(server, clock, started());
+    mac.act((v) => { v.campaign = newCampaign('maths', T0); });
+    await mac.signInByLink();
+    const env = rowDoc(server).learner;
+    const plainDevice = new Device(server, clock, lesson('pre.fractions', T0 + 3)(started()));
+    await plainDevice.signInByLink();
+    expect(pushes(server)).toBeGreaterThan(1);
+    expect(rowDoc(server).learner).toEqual(env);
+  });
+
+  it('an envelope from a newer build is refused: nothing merged, nothing pushed', async () => {
+    const { clock, server } = setup();
+    const uid = server.userId(EMAIL);
+    const doc = { ...JSON.parse(exportProgress(started())), learner: { ...emptyLearner(), version: LEARNER_VERSION + 1 } };
+    server.rows.set(uid, { user_id: uid, doc, version: PROGRESS_VERSION, updated_at: '' });
+    const mac = new LearnerDevice(server, clock, lesson('pre.fractions', T0 + 1)(started()));
+    mac.act((v) => { v.campaign = newCampaign('cs', T0); });
+    await mac.signInByLink();
+    expect(mac.status.phase).toBe('error');
+    expect(mac.status.remoteErrors.join('\n')).toMatch(/learner\.version: .*newer build/);
+    expect(mac.learnerApplied).toBe(0);
+    expect(mac.applied).toBe(0);
+    expect(pushes(server)).toBe(0);
+  });
+
+  it('an old build reading a row with an envelope sees progress, with the envelope only a warning', () => {
+    const doc = { ...JSON.parse(exportProgress(lesson('pre.fractions', T0)(started()))), learner: emptyLearner() };
+    const r = importProgress(doc, { knownTopicIds: KNOWN_IDS });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.warnings).toEqual(['$.learner: unknown field, ignored']);
+      expect(r.value.history).toHaveLength(1);
+    }
   });
 });

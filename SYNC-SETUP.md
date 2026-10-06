@@ -1,6 +1,7 @@
 # Switching on progress sync between devices
 
-*Written 2026-10-05.*
+*Written 2026-10-05. Updated 2026-10-06: sync carries the campaign, story, day log, timed
+ladder, mixed review, and timed-paper flags as well as progress; the table is unchanged.*
 
 Progress sync is built and tested but ships **off**: no config file is committed, so the live
 site behaves as before and the Progress page shows only "Sync between devices: not set up".
@@ -124,14 +125,69 @@ leave this on.
 
 ## How it behaves
 
-- **Merging**: studying on both devices offline loses no work. Per topic, the newer review
-  wins; history and supervision results are combined; a done redo stays done; settings and
-  chosen courses take the most recent choice, field by field.
+### What syncs
+
+One row per learner holds the progress document and, beside its fields under the key
+`learner`, a versioned envelope with everything else a learner does in the app:
+
+| Part | Stored on the device as | What it holds |
+| --- | --- | --- |
+| Progress | IndexedDB | Topics, reviews, history, supervision, redos, settings, courses. |
+| Campaign | `mastery.campaign.v1` | Route, college, A level order, TMUA sitting, sittings and their marks, interviews, letters. |
+| Story | `mastery.story.v1` | Scenes seen (beats and side scenes included), choices, REP, the queue. |
+| Day log | `mastery.day.v1` | Each day's wake time, ticked blocks, and replans (last 21 days). |
+| Timed ladder | `mastery.ladder.v1` | Attempts and their marks. |
+| Mixed review | `mastery.mixed.v1` | The day's blind mixed review: its plan and place. |
+| Timed-paper flags | `mastery.flags.v1` | Parts flagged during the running sitting or attempt. |
+
+The device keeps its copy of the envelope in `mastery.learner.v1`, updated on each save so
+every change is dated when it was made.
+
+These stay on each device on purpose, as conveniences of one screen: the theme
+(`mastery.theme.v1`), the fold of the whole day on Today (`mastery.wholeday.v1`), the map's
+"all edges" switch, the palette's recent items (`mastery.recent.v1`), whether the tour has
+played (`mastery.tour.v1`), a lesson's place within a tab (sessionStorage), and the catalog
+summary (`learnhub.progress.mastery`), which is rebuilt from progress.
+
+### Merging
+
+Studying on both devices offline loses no work. Every rule below gives the same result
+whatever order the copies meet in.
+
+- **Progress**: per topic, the newer review wins; history and supervision results are
+  combined; a done redo stays done; settings and chosen courses take the most recent choice,
+  field by field.
+- **Campaign choices** (route, college, A level order, TMUA sitting, application filed): the
+  most recent choice, field by field.
+- **Sittings, interviews, ladder attempts**: combined by id. A finished copy beats a running
+  one; the most recently entered marks win. An interview removed or an attempt discarded on
+  one device is removed on every device.
+- **Story**: scenes seen on either device count as seen; at each choice point the most
+  recent choice wins, and relationships follow from the choices.
+- **Day log**: each day's most recent wake time wins. Blocks ticked on either device stay
+  ticked, and an untick wins over an earlier tick. Changing the wake time clears that day's
+  ticks, as it does on one device.
+- **Mixed review**: the later day wins; on the same day, the later plan, then the copy
+  further through it. A day finished on either device stays finished.
+- **Flags**: the later-started sitting's flags; for the same sitting, flags from both devices.
+- **Running clocks**: one paper or rung runs at a time on a device, and the Paper and Ladder
+  screens refuse to start one while another runs. If both devices start one offline, both are
+  kept after the merge, both running; the earlier shows first, and the other's clock has run
+  on meanwhile, so it reads as over time.
+
+### Other behaviour
+
 - **Start over** on a signed-in device erases the progress on every device at its next sync.
-- **A damaged or newer-version copy on the server** is reported on the Progress page and not
-  merged; nothing is sent over it. Progress on the device is unchanged.
+  It does not erase the campaign, story, day log, or timed work, on this device or others.
+- **Older builds** (a phone still running a cached copy) read the row's progress and ignore
+  the envelope. When such a build pushes, the row loses the envelope until a current build
+  syncs again and puts it back; nothing is lost, since each device keeps its own copy.
+- **A damaged or newer-version copy on the server**, progress or envelope, is reported on the
+  Progress page and not merged; nothing is sent over it. Nothing on the device is changed.
 - **Signing out** keeps the device's progress; it just stops syncing.
-- **Export and import** of a progress file still work as a backup.
+- **Export and import** of a progress file still work as a backup. The file carries the
+  envelope too, and importing it replaces both. A file exported by an older build holds
+  progress only; importing it replaces progress and leaves the rest as it is.
 
 ## Switching sync off again
 

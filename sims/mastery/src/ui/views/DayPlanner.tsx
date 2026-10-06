@@ -6,7 +6,8 @@
  * reviews, and quizzes, more of them planned for the day's study minutes, and redos due
  * today). Below the timeline, quietly: Plan my day and Replan from now, Up next, the
  * week's ticked hours, this week's Shabbat times, and another day's plan. Wake times,
- * ticks, and replans stay in this browser (`dayLog`). The progress document changes only
+ * ticks, and replans are kept in the day log (`dayLog`), which sync carries in the learner
+ * envelope. The progress document changes only
  * when the learner acts: opening a forecast item, planning the day, or replanning adds the
  * day's tasks to the session.
  */
@@ -18,6 +19,7 @@ import {
   replanDay, sunsetMinutes, weekdayOf, type FixedBlock, type Slot,
 } from '@/model/day';
 import { loadDays, saveDay, type DayEntry, type DayLog } from '@/model/dayLog';
+import { learnerSynced } from '@/model/learnerChange';
 import { replanDayTasks, withDayTasks, type DayItem } from '@/model/dayQueue';
 import { planMore } from '@/model/learner';
 import { go, hrefOf, type Route } from '@/model/route';
@@ -129,6 +131,9 @@ export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog, ladder = n
     return () => clearInterval(id);
   }, []);
   const [own, setOwn] = useState<DayLog>(loadDays);
+  // Sync may bring days planned or ticked on another device: read them again when it writes.
+  const synced = learnerSynced.value;
+  useEffect(() => { if (synced > 0 && shared === undefined) setOwn(loadDays()); }, [synced]);
   const log = shared ?? own;
   const setLog = onLog ?? setOwn;
   const [showAll, setShowAll] = useState(false);

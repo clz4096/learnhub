@@ -14,6 +14,11 @@ import {
 import { paperPacket } from '@/model/campaignPackets';
 import { campaign, saveCampaign } from '@/model/campaignStore';
 import { courseInputs } from '@/model/campaignSummary';
+import { loadFlags, saveFlags } from '@/model/flagsStore';
+import { RUNG_NAMES, activeAttempt } from '@/model/ladder';
+import { examOf } from '@/model/ladderNext';
+import { ensureLadder, ladder } from '@/model/ladderStore';
+import { learnerSynced } from '@/model/learnerChange';
 import { progress, now } from '@/model/store';
 import { AppLink, CopyBlock, WithAdmissions, shortStamp } from '@/ui/campaignShared';
 import { BackLink } from '@/ui/BackLink';
@@ -47,6 +52,8 @@ export function clock(ms: number): string {
 }
 
 function PaperBody({ adm, c, paperId }: { adm: Admissions; c: Campaign; paperId: string }) {
+  // The stored ladder attempts, read before the first render, so a running rung blocks a start at once.
+  useState(() => ensureLadder(adm));
   const paper = adm.registryPaper(paperId);
   if (paper === undefined) {
     return (
@@ -64,6 +71,9 @@ function PaperBody({ adm, c, paperId }: { adm: Admissions; c: Campaign; paperId:
   const p = progress.value;
   const act = p === null ? 1 : currentAct(acts(adm, c, courseInputs(p)));
   if (running !== undefined && running.paperId === paperId) return <TimedPaper paper={paper} s={running} />;
+  // One clock at a time: a ladder rung running blocks a campaign paper, as a running paper blocks the ladder.
+  const rung = activeAttempt(ladder.value);
+  const rungExam = rung === undefined ? null : examOf(adm, rung) ?? null;
 
   return (
     <section class="camp" aria-labelledby="paper-title">
@@ -96,13 +106,20 @@ function PaperBody({ adm, c, paperId }: { adm: Admissions; c: Campaign; paperId:
             <div class="c-card c-pad">
               <p class="c-body">Another paper is running: <AppLink to={{ view: 'paper', paperId: running.paperId }}>{adm.registryPaper(running.paperId) === undefined ? running.paperId : paperName(adm.registryPaper(running.paperId) as RegistryPaper)}</AppLink>. Finish it first.</p>
             </div>
+          ) : rung !== undefined && unmarked === undefined ? (
+            <div class="c-card c-pad">
+              <p class="c-body">
+                A {RUNG_NAMES[rung.rung].toLowerCase()} on the {rungExam ?? ''} ladder is running:{' '}
+                {rungExam === null ? 'the timed ladder' : <AppLink to={{ view: 'ladder', exam: rungExam }}>the timed ladder</AppLink>}. Finish it first.
+              </p>
+            </div>
           ) : unmarked !== undefined ? (
             <Marks adm={adm} paper={paper} s={unmarked} />
           ) : (
             <div class="c-card c-pad">
               <h2>Sit it timed</h2>
               <p class="c-body">The clock runs from Start to Finish with no pause, as in the exam hall. Nothing is marked until you finish.</p>
-              <button type="button" class="c-btn" disabled={link === null} onClick={() => update((x) => startSitting(x, paperId, act, now()))}>Start the clock</button>
+              <button type="button" class="c-btn" disabled={link === null} onClick={() => { if (activeAttempt(ladder.peek()) === undefined) update((x) => startSitting(x, paperId, act, now())); }}>Start the clock</button>
               {link === null && <p class="c-tiny">This paper is not published yet.</p>}
             </div>
           )}
@@ -113,28 +130,6 @@ function PaperBody({ adm, c, paperId }: { adm: Admissions; c: Campaign; paperId:
       </div>
     </section>
   );
-}
-
-const FLAG_KEY = 'mastery.flags.v1';
-
-/** The parts flagged to come back to, per sitting, in this browser only. */
-function loadFlags(sittingId: string): string[] {
-  try {
-    const v: unknown = JSON.parse(localStorage.getItem(FLAG_KEY) ?? '{}');
-    const xs = typeof v === 'object' && v !== null ? (v as Record<string, unknown>)[sittingId] : undefined;
-    return Array.isArray(xs) ? xs.filter((x): x is string => typeof x === 'string') : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveFlags(sittingId: string, flags: readonly string[]): void {
-  try {
-    // One sitting runs at a time, so only its flags are kept.
-    localStorage.setItem(FLAG_KEY, JSON.stringify({ [sittingId]: flags }));
-  } catch {
-    // Not kept; the flags last for this page.
-  }
 }
 
 /**
@@ -171,6 +166,9 @@ export function TimedScreen({ paper, title, eyebrow, flagsId, startedAt, totalMs
     return () => clearInterval(id);
   }, []);
   const [flags, setFlags] = useState(() => loadFlags(flagsId));
+  // Sync may bring flags set on another device: read them again when it writes.
+  const synced = learnerSynced.value;
+  useEffect(() => { if (synced > 0) setFlags(loadFlags(flagsId)); }, [synced, flagsId]);
   const [adding, setAdding] = useState(false);
   const [part, setPart] = useState('');
   const left = startedAt + totalMs - now();

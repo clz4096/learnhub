@@ -15,9 +15,12 @@ create table if not exists public.learnhub_progress (
   -- why no delete policy is needed: the browser never deletes, the cascade cleans up.
   user_id uuid primary key references auth.users (id) on delete cascade,
   -- The progress document (packages/mastery, Progress), validated by the app's importer
-  -- on every pull. The server stores it opaquely; merging happens in the browser.
+  -- on every pull, with the learner envelope (campaign, story, day log, timed ladder,
+  -- mixed review, flags: sims/mastery/src/sync/learner) beside its fields under the key
+  -- `learner`. The server stores it opaquely; merging happens in the browser.
   doc jsonb not null,
-  -- The document's schema version, so a newer build's row can be spotted without parsing.
+  -- The progress document's schema version, so a newer build's row can be spotted without
+  -- parsing. The envelope carries its own version inside `doc`.
   version int not null,
   -- Set by the trigger below on every write, from the server clock, not the device's.
   updated_at timestamptz not null default now(),

@@ -19,6 +19,7 @@ import { prefetchContent } from '@/model/content';
 import { shortName, titleOf } from '@/model/courses';
 import { CORE, fmtLong, planDate, type Slot } from '@/model/day';
 import { loadDays, type DayLog } from '@/model/dayLog';
+import { learnerSynced } from '@/model/learnerChange';
 import { withDayTasks, type DayItem } from '@/model/dayQueue';
 import { ensureSession, localDay, planMore, replanToday, sessionTime } from '@/model/learner';
 import { go, hrefOf, type Route } from '@/model/route';
@@ -269,6 +270,9 @@ export function Today() {
   const redoTopics = p?.redos.filter((d) => d.doneAt === null).map((d) => d.problem.slice(0, d.problem.indexOf('/'))) ?? [];
   useEffect(() => prefetchContent([...planned, ...redoTopics]), [[...planned, ...redoTopics].join()]);
   const [log, setLog] = useState<DayLog>(loadDays);
+  // Sync may bring days planned or ticked on another device: read them again when it writes.
+  const synced = learnerSynced.value;
+  useEffect(() => { if (synced > 0) setLog(loadDays()); }, [synced]);
   const [open, setOpen] = useState(openStored);
   // The timed ladder's next step for Up next needs the paper registry and the stored attempts.
   const adm = admissions.value;

@@ -1,10 +1,11 @@
 /**
- * The campaign's state in a signal, kept in localStorage in this browser only. Not part of
- * the progress document, so its schema and sync are unchanged; syncing the campaign across
- * devices is a follow-up.
+ * The campaign's state in a signal, kept in localStorage. Not part of the progress
+ * document; sync carries it in the learner envelope (sync/learner), and each save is
+ * reported to it (`learnerChanged`).
  */
 import { signal } from '@preact/signals';
-import { parseCampaign, type Campaign } from './campaign';
+import { parseCampaign, removeInterview, removeSitting, type Campaign } from './campaign';
+import { learnerChanged } from './learnerChange';
 
 export const CAMPAIGN_KEY = 'mastery.campaign.v1';
 
@@ -39,8 +40,20 @@ export function saveCampaign(next: Campaign | null): boolean {
     if (s === null) return false;
     if (next === null) s.removeItem(CAMPAIGN_KEY);
     else s.setItem(CAMPAIGN_KEY, JSON.stringify(next));
+    learnerChanged('campaign');
     return true;
   } catch {
     return false;
   }
+}
+
+/**
+ * Removes a sitting or an interview on purpose, so the removal reaches every device. Only
+ * this removes an item for sync: one merely missing from a copy comes back on merge.
+ */
+export function discardFromCampaign(kind: 'sitting' | 'interview', id: string): boolean {
+  const c = campaign.peek();
+  if (c === null) return false;
+  learnerChanged('campaign', { kind, id });
+  return saveCampaign(kind === 'sitting' ? removeSitting(c, id) : removeInterview(c, id));
 }

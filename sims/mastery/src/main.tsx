@@ -2,6 +2,7 @@ import { render } from 'preact';
 import { init } from '@/model/store';
 import { loadTheme } from '@/model/theme';
 import { startSync, takeAuthFragment } from '@/sync/app';
+import { startTracking } from '@/sync/local';
 import { App } from '@/ui/App';
 // KaTeX's styles and fonts, bundled from the npm package: no CDN.
 import 'katex/dist/katex.min.css';
@@ -36,6 +37,8 @@ import '@/styles/story.css';
 import '@/styles/v4.css';
 
 loadTheme();
+// Before anything saves: the learner envelope is built from what is stored, then each save is stamped.
+startTracking();
 // Before the first render: a sign-in redirect's tokens leave the URL before anything reads it.
 const fragment = takeAuthFragment();
 void startSync(init(), fragment);

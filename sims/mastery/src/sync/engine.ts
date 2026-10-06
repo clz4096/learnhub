@@ -25,12 +25,20 @@
  * One limit of the server write: the upsert replaces the row, so two devices pushing at
  * the same moment can overwrite each other's push. Neither loses work: each keeps its
  * merged copy locally and pushes it again on its next round, which merges the other's.
+ *
+ * The learner envelope (campaign, story, day log, timed ladder, mixed review, flags:
+ * sync/learner) rides in the same row, beside the progress document's fields, and is
+ * merged the same way (`mergeLearner`). An older build reads the row's progress and
+ * ignores the envelope; when it pushes, its row has no envelope, and the next round of a
+ * newer build puts the merged envelope back, since every device keeps its own copy.
  */
 import {
   PROGRESS_VERSION, importProgress, mergeProgress, sameProgress,
   type Progress, type ProgressStorage,
 } from '@learnhub/mastery';
+import { joinDoc, splitDoc } from './backup';
 import type { SyncConfig } from './config';
+import { isEmptyLearner, mergeLearner, parseLearner, sameLearner, type LearnerState } from './learner/envelope';
 import {
   SyncHttpError, logout, pullRow, pushRow, refreshSession, requestLink,
   type FetchLike, type FragmentResult, type Session,
@@ -86,6 +94,15 @@ export interface SyncDeps {
   redirectTo: string;
   onStatus: (s: SyncStatus) => void;
   isOnline?: () => boolean;
+  /**
+   * The learner envelope: `get` returns this device's, with its latest saves taken in;
+   * `apply` saves a merged one without reporting it as a change of the learner's. Without
+   * it, the synced envelope is carried through each push untouched.
+   */
+  learner?: {
+    get: () => LearnerState;
+    apply: (s: LearnerState) => void;
+  };
 }
 
 interface Persisted {
@@ -303,16 +320,24 @@ export class SyncEngine {
     try {
       const row = await this.authed((s) => pullRow(this.d.config, this.d.fetch, s));
       let remote: Progress | null = null;
+      /** The row's envelope as found, and parsed; both absent when the row has none. */
+      let remoteRaw: unknown = undefined;
+      let remoteLearner: LearnerState | null = null;
       if (row !== null) {
-        const r = importProgress(row.doc, { knownTopicIds: this.d.knownTopicIds });
-        if (!r.ok) {
+        const { progress: doc, learner } = splitDoc(row.doc);
+        const r = importProgress(doc, { knownTopicIds: this.d.knownTopicIds });
+        const l = learner === undefined ? null : parseLearner(learner);
+        const errors = [...(r.ok ? [] : r.errors), ...(l !== null && !l.ok ? [l.error] : [])];
+        if (!r.ok || (l !== null && !l.ok)) {
           this.emit({
-            phase: 'error', remoteErrors: r.errors,
+            phase: 'error', remoteErrors: errors,
             message: 'The synced copy could not be read, so it was not merged and nothing was sent. Progress on this device is safe.',
           });
           return;
         }
         remote = r.value;
+        remoteRaw = learner;
+        remoteLearner = l?.ok === true ? l.value : null;
       }
 
       const local = this.d.getLocal();
@@ -325,8 +350,19 @@ export class SyncEngine {
         if (current === null || !sameProgress(current, merged)) await this.d.apply(merged);
       }
 
-      if (merged !== null && (remote === null || !sameProgress(merged, remote))) {
-        const text = JSON.stringify(merged);
+      // The envelope: merged with the row's and saved here, or carried through untouched.
+      let learnerOut: unknown = remoteRaw;
+      let learnerNews = false;
+      if (this.d.learner !== undefined) {
+        const mine = this.d.learner.get();
+        const mergedL = remoteLearner === null ? mine : mergeLearner(mine, remoteLearner);
+        if (!sameLearner(mergedL, mine)) this.d.learner.apply(mergedL);
+        learnerOut = mergedL;
+        learnerNews = remoteLearner === null ? !isEmptyLearner(mergedL) : !sameLearner(mergedL, remoteLearner);
+      }
+
+      if (merged !== null && (remote === null || !sameProgress(merged, remote) || learnerNews)) {
+        const text = JSON.stringify(joinDoc(merged, learnerOut));
         if (text.length > MAX_SYNC_CHARS) {
           this.emit({ phase: 'error', message: `Progress is too large to sync (${text.length} characters). Export a file instead.`, remoteErrors: [] });
           return;

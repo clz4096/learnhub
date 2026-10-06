@@ -9,13 +9,13 @@ import { useState } from 'preact/hooks';
 import type { Progress } from '@learnhub/mastery';
 import {
   COLLEGE_COMMON, COLLEGES, EFFECT_RULES, INTERVIEW_MAX, INTERVIEW_PASS, ROUTE_NAMES, SHAPE_NAMES, SUBJECT_NAMES,
-  addInterview, collegeOf, letterText, moveSubject, newCampaign, paperName, recordInterview, removeInterview,
+  addInterview, collegeOf, letterText, moveSubject, newCampaign, paperName, recordInterview,
   type Act, type Admissions, type Campaign as CampaignState, type CampaignRoute, type CollegeId, type InterviewRecord, type InterviewShape,
   type Subject,
 } from '@/model/campaign';
 import { ESTIMATE_HOURS, TARGET_WEEK_HOURS, actDeadlines } from '@/model/campaignCalendar';
 import { interviewPacket } from '@/model/campaignPackets';
-import { campaign, saveCampaign } from '@/model/campaignStore';
+import { campaign, discardFromCampaign, saveCampaign } from '@/model/campaignStore';
 import { summarize, type Summary } from '@/model/campaignSummary';
 import { loadDays } from '@/model/dayLog';
 import { go, route, type Route } from '@/model/route';
@@ -512,7 +512,7 @@ function InterviewRow({ i }: { i: InterviewRecord }) {
         {error !== null && <p class="c-error" role="alert">{error}</p>}
         <div class="c-acts">
           <button type="button" class="c-btn" onClick={save}>Save</button>
-          <button type="button" class="c-btn quiet" onClick={() => update((x) => removeInterview(x, i.id))}>Remove</button>
+          <button type="button" class="c-btn quiet" onClick={() => discardFromCampaign('interview', i.id)}>Remove</button>
         </div>
       </div>
     </li>

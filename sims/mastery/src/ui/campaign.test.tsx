@@ -12,6 +12,7 @@ import type { IdbFactoryLike } from '@learnhub/mastery';
 import * as adm from '@learnhub/content/admissions';
 import { newCampaign, type Campaign } from '@/model/campaign';
 import { CAMPAIGN_KEY, campaign, reloadCampaign, saveCampaign } from '@/model/campaignStore';
+import { saveLadder } from '@/model/ladderStore';
 import { DEFAULT_COURSES, ensureSession, startLearner } from '@/model/learner';
 import { go, hrefOf, parseRoute, route, type Route } from '@/model/route';
 import { commit, flush, init, setClock } from '@/model/store';
@@ -191,6 +192,18 @@ describe('exam mode', () => {
     render(<App />);
     await screen.findByText(/Another paper is running/);
     expect(screen.queryByRole('button', { name: 'Start the clock' })).toBeNull();
+  });
+
+  it('refuses to start a campaign paper while a ladder rung is running, as the ladder refuses the reverse', async () => {
+    saveCampaign(newCampaign('cs', T0));
+    saveLadder([{ id: `tmua-2016-p1/question/1@${T0}`, paperId: 'tmua-2016-p1', rung: 'question', questions: [1], startedAt: T0, finishedAt: null }]);
+    go({ view: 'paper', paperId: 'tmua-2017-p2' });
+    render(<App />);
+    await screen.findByText(/on the TMUA ladder is running/);
+    expect(screen.queryByRole('button', { name: 'Start the clock' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'the timed ladder' }).getAttribute('href')).toBe(hrefOf({ view: 'ladder', exam: 'TMUA' }));
+    expect(campaign.value?.sittings).toEqual([]);
+    saveLadder([]);
   });
 
   it('formats the clock', () => {
