@@ -10,8 +10,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q, toFloat } from '../math';
 import { chooseBig } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { dmath, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const mn = math`n`;
 const round = (x: number, d: number): number => Number(x.toFixed(d));
@@ -174,15 +174,65 @@ const q14b = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const digitsOf100 = String(Array.from({ length: 100 }, (_, i) => BigInt(i + 1)).reduce((p, x) => p * x, 1n)).length;
+const mk = math`k`;
+const TRI = { m: 10 };
+const triExact = Number(chooseBig(3 * TRI.m, TRI.m));
+const triApprox = (Math.sqrt(3) / (2 * Math.sqrt(Math.PI * TRI.m))) * (27 / 4) ** TRI.m;
+const DIFF_N = 20;
+
 export const stirlingFormula: TopicContent = {
   topicId: 'prob.stirling-formula',
   goal: t`Use Stirling's formula ${math`n! \sim \sqrt{${2}\pi n}\,(n/e)^{n}`} to estimate factorials, central binomial coefficients, and the probabilities built from them.`,
+  objective: t`Estimate factorials and binomial probabilities with Stirling's formula, and say what its "approximately" means.`,
+  why: t`Counting probabilities with huge factorials become simple formulas; it is the first glimpse of the normal curve.`,
+  minutes: 30,
   lesson: [
-    { kind: 'rule', text: t`[[stirlings-formula|Stirling's formula]]: ${math`n! \sim \sqrt{${2}\pi n}\,\left(\frac{n}{e}\right)^{n}`}, where ${math`a_{n} \sim b_{n}`} means ${math`a_{n} / b_{n} \to ${1}`} as ${math`n \to \infty`} ([[asymptotic|asymptotically equal]]).` },
-    { kind: 'p', text: t`It is good long before ${mn} is large: for ${math`n = ${10}`}, ${math`${10}! = ${fact(10)}`} and the formula gives about ${Math.round(stirling(10))}, a ratio of ${round(fact(10) / stirling(10), 4)}. The ratio behaves like ${math`${1} + \frac{${1}}{${12}n}`}. The Faculty schedule proves the cruder ${math`\ln n! \sim n \ln n`}; the full formula is stated and used.` },
-    { kind: 'p', text: t`Its main use is in ratios of factorials, where the powers of ${math`e`} cancel. The central binomial coefficient: ${math`\binom{${2}m}{m} = \frac{(${2}m)!}{(m!)^{${2}}} \sim \frac{${4}^{m}}{\sqrt{\pi m}}`}. So in ${2 * 50} fair tosses, exactly ${50} heads has probability about ${math`${1} / \sqrt{${50}\pi} \approx ${Number((1 / Math.sqrt(50 * Math.PI)).toPrecision(4))}`}, against the exact ${Number(centralProb(50).toPrecision(4))}.` },
-    { kind: 'p', text: t`Sheet ${1} Q${3}: halving a deck, each half has ${13} red cards with probability ${math`\binom{${26}}{${13}}^{${2}} / \binom{${52}}{${26}} \approx ${round(deckExact, 4)}`}. Stirling's formula turns the expression into ${math`${2} / \sqrt{${26}\pi} \approx ${round(deckStirling, 4)}`}: within ${Math.round((deckStirling / deckExact - 1) * 1000) / 10}%, with no large numbers at all.` },
-    { kind: 'p', text: t`The same estimate is the local limit of a random walk (Q${14}): after an even number ${mn} of fair ${math`\pm ${1}`} steps, ${math`P(X_{n} = ${0}) = \binom{n}{n/${2}} ${2}^{-n} \sim \sqrt{${2} / (\pi n)}`}, the first glimpse of the normal curve.` },
+    { kind: 'section', title: t`How big is a factorial?` },
+    { kind: 'hook', text: t`${math`${100}!`} has ${digitsOf100} digits. Probabilities in counting problems are ratios of numbers like that: the chance that a shuffled deck splits evenly into red and black is ${math`\binom{${26}}{${13}}^{${2}} / \binom{${52}}{${26}}`}. Is there a simple formula that tells you, roughly, how big ${math`n!`} is?` },
+    { kind: 'narrative', text: t`There is, and it is one of the most surprising formulas in mathematics: ${math`n!`}, a product of whole numbers, is closely approximated by an expression involving ${math`\pi`} and ${math`e`}. Before stating it we need to say exactly what "closely approximated" will mean, because it is not what you might guess.` },
+    { kind: 'section', title: t`Asymptotic equality` },
+    {
+      kind: 'definition',
+      name: t`Asymptotic equality`,
+      formal: t`For positive sequences, ${math`a_{n} \sim b_{n}`} means ${math`\frac{a_{n}}{b_{n}} \to ${1}`} as ${math`n \to \infty`}.`,
+      plain: t`In plain words: ${math`a_{n}`} and ${math`b_{n}`} are [[asymptotic|asymptotically equal]], equal in ratio in the long run. The percentage error shrinks to ${0}; the difference need not. For example ${math`n^{${2}} + n \sim n^{${2}}`}, though they differ by ${mn}.`,
+    },
+    {
+      kind: 'theorem',
+      name: t`Stirling's formula`,
+      statement: t`${math`n! \sim \sqrt{${2}\pi n}\,\left(\frac{n}{e}\right)^{n}`} as ${math`n \to \infty`}.`,
+    },
+    { kind: 'p', text: t`This is [[stirlings-formula|Stirling's formula]]. The Cambridge schedule states it and uses it, and proves the weaker statement below. It is good long before ${mn} is large: ${math`${10}! = ${fact(10)}`}, and the formula gives about ${Math.round(stirling(10))}, a ratio of ${round(fact(10) / stirling(10), 4)}. In fact the ratio behaves like ${math`${1} + \frac{${1}}{${12}n}`}.` },
+    checkFrom(stirlingRatio, { n: 5 }, t`${math`${5}! = ${120}`} and ${math`\sqrt{${10}\pi}\,(${5}/e)^{${5}} \approx ${Number(stirling(5).toPrecision(6))}`}, a ratio of about ${round(fact(5) / stirling(5), 4)}.`),
+    { kind: 'pitfall', claim: t`Since ${math`n! \sim \sqrt{${2}\pi n}\,(n/e)^{n}`}, the difference between them tends to ${0}.`, counterexample: t`Only the ratio tends to ${1}. At ${math`n = ${DIFF_N}`} the difference is about ${Number((fact(DIFF_N) - stirling(DIFF_N)).toPrecision(3))}, and it grows without bound, even though it is under half a percent of ${math`${DIFF_N}!`}.` },
+    { kind: 'section', title: t`What the schedule proves` },
+    { kind: 'theorem', statement: t`${math`\ln n! \sim n \ln n`} as ${math`n \to \infty`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Turn the product into a sum`, text: t`${math`\ln n! = \ln ${2} + \ln ${3} + \cdots + \ln n = \sum_{k = ${2}}^{n} \ln k`}.` },
+        { label: t`Trap it between integrals`, text: t`${math`\ln x`} is increasing, so on ${math`[k - ${1}, k]`} it is at most ${math`\ln k`}, and on ${math`[k, k + ${1}]`} at least ${math`\ln k`}. Adding these over ${mk}:`, eq: [dmath`\int_{${1}}^{n} \ln x\,dx \le \ln n! \le \int_{${1}}^{n + ${1}} \ln x\,dx.`], why: { q: t`Can you picture that?`, a: t`Draw bars of width ${1} and height ${math`\ln k`}. They stick out above the curve ${math`\ln x`} to their left and sit under it to their right, so their total area lies between the two integrals.` } },
+        { label: t`Integrate`, text: t`${math`\int \ln x\,dx = x\ln x - x`}, so ${math`n\ln n - n + ${1} \le \ln n! \le (n + ${1})\ln(n + ${1}) - n`}.` },
+        { label: t`Divide by n ln n`, text: t`Both bounds divided by ${math`n \ln n`} tend to ${1}, so ${math`\frac{\ln n!}{n \ln n} \to ${1}`}.`, plain: t`The ${math`-n`} terms are small next to ${math`n \ln n`}, because ${math`\ln n \to \infty`}.` },
+      ],
+    },
+    { kind: 'section', title: t`Ratios of factorials` },
+    { kind: 'narrative', text: t`The formula earns its keep in ratios, where the powers of ${math`e`} cancel and the giant numbers vanish. Take ${math`\binom{${3}m}{m} = \frac{(${3}m)!}{m!\,(${2}m)!}`}.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Replace each factorial`, text: t`By Stirling,`, eq: [dmath`\binom{${3}m}{m} \sim \frac{\sqrt{${6}\pi m}\,(${3}m/e)^{${3}m}}{\sqrt{${2}\pi m}\,(m/e)^{m}\,\sqrt{${4}\pi m}\,(${2}m/e)^{${2}m}}.`], why: { q: t`Why may we replace each factorial separately?`, a: t`Ratios of sequences that are asymptotically equal are asymptotically equal: if ${math`a_{n}/b_{n} \to ${1}`} and ${math`c_{n}/d_{n} \to ${1}`} then ${math`\frac{a_{n}/c_{n}}{b_{n}/d_{n}} \to ${1}`}.` } },
+        { label: t`Cancel the e's and the m's`, text: t`The powers of ${math`e`} are ${math`e^{-${3}m}`} on top and ${math`e^{-m}e^{-${2}m}`} below: they cancel. So do the powers ${math`m^{${3}m}`}, leaving ${math`\frac{${3}^{${3}m}}{${2}^{${2}m}} = \left(\frac{${27}}{${4}}\right)^{m}`}.` },
+        { label: t`Tidy the roots`, text: t`${math`\frac{\sqrt{${6}\pi m}}{\sqrt{${2}\pi m}\sqrt{${4}\pi m}} = \frac{\sqrt{${3}}}{${2}\sqrt{\pi m}}`}, so`, eq: [dmath`\binom{${3}m}{m} \sim \frac{\sqrt{${3}}}{${2}\sqrt{\pi m}}\left(\frac{${27}}{${4}}\right)^{m}.`] },
+      ],
+    },
+    { kind: 'p', text: t`Check with ${math`m = ${TRI.m}`}: exactly ${math`\binom{${3 * TRI.m}}{${TRI.m}} = ${triExact}`}, and the estimate gives about ${Math.round(triApprox)}, a ratio of ${round(triExact / triApprox, 4)}.` },
+    { kind: 'p', text: t`The same steps with ${math`\binom{${2}m}{m}`} give an estimate for the chance of exactly ${math`m`} heads in ${math`${2}m`} fair tosses. IA Probability Sheet ${1} uses it twice: question ${3}, halving a deck of cards, and question ${14}, a random walk returning to ${0}, where the normal curve first appears.` },
+    checkFrom(halfHeads, { m: 8 }, t`${math`\binom{${16}}{${8}} / ${2}^{${16}} \approx \frac{${1}}{\sqrt{${8}\pi}} \approx ${Number((1 / Math.sqrt(8 * Math.PI)).toPrecision(4))}`}; the exact value is ${Number(centralProb(8).toPrecision(4))}.`),
+    { kind: 'pitfall', claim: t`${math`\ln n! \approx n \ln n - n`} is a good estimate of ${math`\ln n!`}.`, counterexample: t`It is good in ratio, but it misses by about ${math`\tfrac{${1}}{${2}}\ln(${2}\pi n)`}, which grows. At ${math`n = ${1000}`} that is ${round(lnFact(1000) - (1000 * Math.log(1000) - 1000), 2)}, so the estimate of ${math`${1000}!`} itself is off by a factor of about ${Math.round(Math.exp(lnFact(1000) - (1000 * Math.log(1000) - 1000)))}.` },
+    { kind: 'takeaway', text: t`${math`n! \sim \sqrt{${2}\pi n}\,(n/e)^{n}`}: equal in ratio, not in difference; in ratios of factorials the powers of ${math`e`} cancel and leave a simple formula.` },
   ],
   examples: [
     workedCambridge(q3),
@@ -193,5 +243,24 @@ export const stirlingFormula: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['stirlings-formula', 'asymptotic'],
   cambridge: [q14, q3proof, q14a, q14b],
-  gate: ['ia-q14-a-numbers', 'ia-q3-stirling-derivation', 'ia-q14-a', 'ia-q14-b'],
+  // Best first: deriving the central binomial estimate and the deck answer, then the random
+  // walk's local limit at 0 and everywhere. Putting n = 100 into the given formula is too
+  // slight to gate.
+  gate: ['ia-q3-stirling-derivation', 'ia-q14-a', 'ia-q14-b'],
+  recall: [
+    { front: t`State Stirling's formula.`, back: t`${math`n! \sim \sqrt{${2}\pi n}\,(n/e)^{n}`}.` },
+    { front: t`What does ${math`a_{n} \sim b_{n}`} mean?`, back: t`${math`a_{n}/b_{n} \to ${1}`}: equal in ratio, not necessarily in difference.` },
+    { front: t`Asymptotic form of ${math`\binom{${2}m}{m}`}?`, back: t`${math`\frac{${4}^{m}}{\sqrt{\pi m}}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${math`\ln n! \sim n \ln n`}`,
+      steps: [
+        t`Write ${math`\ln n!`} as ${math`\sum_{k = ${2}}^{n} \ln k`}.`,
+        t`Trap the sum between ${math`\int_{${1}}^{n} \ln x\,dx`} and ${math`\int_{${1}}^{n + ${1}} \ln x\,dx`}.`,
+        t`Integrate: ${math`n\ln n - n + ${1} \le \ln n! \le (n + ${1})\ln(n + ${1}) - n`}.`,
+        t`Divide by ${math`n \ln n`}: both bounds tend to ${1}.`,
+      ],
+    },
+  ],
 };

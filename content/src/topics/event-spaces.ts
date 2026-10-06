@@ -9,7 +9,7 @@ import { cite, supervision } from '../cambridge';
 import { int, sample, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, setOf, t, type Span } from '../rich';
-import { worked, workedProof, type TopicContent } from '../topic';
+import { quickCheck, worked, workedProof, type TopicContent } from '../topic';
 
 const [mO, mF] = [math`\Omega`, math`\mathcal{F}`];
 
@@ -215,19 +215,69 @@ const q6b = supervision({
 const D = 6;
 const parity = [[1, 3, 5], [2, 4, 6]] as const;
 
+const [mA, mk] = [math`A`, math`k`];
+const evenSet = setOf([...parity[1]]);
+const oddSet = setOf([...parity[0]]);
+
 export const eventSpaces: TopicContent = {
   topicId: 'prob.event-spaces',
   goal: t`State the definition of a sigma-algebra of events, and deduce from it that the empty set, finite unions, and countable intersections of events are events.`,
+  objective: t`State the definition of a sigma-algebra, check it on examples, and deduce new events from it.`,
+  why: t`Events are where probabilities live; next come the axioms of a probability measure.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`A probability space has three parts: the sample space ${mO} of outcomes, a collection ${mF} of subsets of ${mO} called events, and the probability ${math`\mathbb{P}`}, which gives each event a number. IA Probability Example Sheet ${1} begins by asking what ${mF} must satisfy.` },
-    { kind: 'rule', text: t`A collection ${mF} of subsets of ${mO} is a [[sigma-algebra|sigma-algebra]] when ${dmath`\Omega \in \mathcal{F}, \qquad A \in \mathcal{F} \implies A^{c} \in \mathcal{F}, \qquad A_{${1}}, A_{${2}}, \ldots \in \mathcal{F} \implies \bigcup_{n} A_n \in \mathcal{F}.`} Its members are the events.` },
-    { kind: 'p', text: t`The third rule is about a whole sequence of events, countably many, not just two. That is what makes limits of events, such as "${math`A_n`} happens infinitely often" in the sheet's sixth question, into events whose probability can be asked for.` },
-    { kind: 'p', text: t`For a countable ${mO}, the schedule's "countable case", ${mF} is usually every subset of ${mO}: everything is an event. For ${math`\Omega = [${0}, ${1}]`} not every subset can be given a length, which is why the definition asks only for these closure rules.` },
-    { kind: 'p', text: t`Small examples on a die, ${math`\Omega = ${setOf(upTo(D))}`}: the smallest sigma-algebra is ${math`\{\varnothing, \Omega\}`}; one event ${math`A = ${setOf([...parity[1]])}`} brings in its complement, giving ${math`\{\varnothing, A, A^{c}, \Omega\}`}. A [[partition|partition]] of ${mO} into ${math`k`} blocks gives the ${math`${2}^{k}`} unions of blocks, and every finite sigma-algebra has this form.` },
-    { kind: 'p', text: t`Three facts follow from the definition (part (a) of the sheet's fourth question): ${math`\varnothing = \Omega^{c}`} is an event; ${math`A_{${1}} \cup A_{${2}}`} is the union of the sequence ${math`A_{${1}}, A_{${2}}, \varnothing, \varnothing, \ldots`}; and ${math`\bigcap_n A_n = \left(\bigcup_n A_n^{c}\right)^{c}`}, by De Morgan's law.` },
+    { kind: 'section', title: t`Which sets are events?` },
+    { kind: 'hook', text: t`Roll a die. "The roll is even" is an event, and so is "the roll is not even". What about "the roll is even, or it is a ${6}, or it is a ${4}, or ..." with infinitely many clauses? Probability needs to know, in advance, exactly which sets it may assign a number to.` },
+    { kind: 'narrative', text: t`A probability space has three parts: the sample space ${mO} of outcomes, a collection ${mF} of subsets of ${mO} called events, and the probability ${math`\mathbb{P}`}, which gives each event a number. IA Probability Example Sheet ${1} begins by asking what ${mF} must satisfy. The answer is three closure rules.` },
+    {
+      kind: 'definition',
+      name: t`Sigma-algebra`,
+      formal: t`A collection ${mF} of subsets of ${mO} is a [[sigma-algebra|sigma-algebra]] on ${mO} if (i) ${math`\Omega \in \mathcal{F}`}; (ii) if ${math`A \in \mathcal{F}`} then ${math`A^{c} \in \mathcal{F}`}; and (iii) if ${math`A_{${1}}, A_{${2}}, \ldots \in \mathcal{F}`} then ${math`\bigcup_{n = ${1}}^{\infty} A_n \in \mathcal{F}`}. Its members are called events.`,
+      plain: t`"something happens" is an event; "not ${mA}" is an event whenever ${mA} is; and "at least one of a sequence of events happens" is an event. ${math`A^{c}`}, the complement, is everything in ${mO} not in ${mA}.`,
+    },
+    {
+      kind: 'p',
+      text: t`Rule (iii) is about a whole sequence of events, countably many, not just two. That is what makes limits of events, such as "${math`A_n`} happens infinitely often", into events whose probability can be asked for.`,
+      why: { q: t`Why not simply make every subset an event?`, a: t`For a countable ${mO}, the schedule's "countable case", that is exactly what is usually done. For ${math`\Omega = [${0}, ${1}]`}, not every subset can be given a length consistently, so the definition asks only for these closure rules.` },
+    },
+    { kind: 'section', title: t`Small sigma-algebras` },
+    { kind: 'narrative', text: t`On a die, ${math`\Omega = ${setOf(upTo(D))}`}. The smallest sigma-algebra is ${math`\{\varnothing, \Omega\}`}: you can only say whether something happened. Add the single event ${math`A = ${evenSet}`}, "even". Rule (ii) forces ${math`A^{c} = ${oddSet}`} in too. Is that enough?` },
+    { kind: 'theorem', statement: t`For any ${math`A \subseteq \Omega`}, the collection ${math`\mathcal{F} = \{\varnothing, A, A^{c}, \Omega\}`} is a sigma-algebra on ${mO}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Rule (i)`, text: t`${math`\Omega \in \mathcal{F}`} by construction.`, plain: t`It is one of the four sets listed.` },
+        { label: t`Rule (ii)`, text: t`The complements are ${math`\varnothing^{c} = \Omega`}, ${math`A^{c}`}, ${math`(A^{c})^{c} = A`}, and ${math`\Omega^{c} = \varnothing`}, all in ${mF}.`, plain: t`Complementing swaps ${math`\varnothing`} with ${mO} and ${mA} with ${math`A^{c}`}.` },
+        {
+          label: t`Rule (iii)`, text: t`Let ${math`A_{${1}}, A_{${2}}, \ldots \in \mathcal{F}`} and ${math`U = \bigcup_{n} A_n`}. If some ${math`A_n = \Omega`}, or both ${mA} and ${math`A^{c}`} occur among them, then ${math`U = \Omega`}. Otherwise every ${math`A_n`} is ${math`\varnothing`} or ${mA} (so ${math`U`} is ${math`\varnothing`} or ${mA}), or every ${math`A_n`} is ${math`\varnothing`} or ${math`A^{c}`} (so ${math`U`} is ${math`\varnothing`} or ${math`A^{c}`}).`,
+          plain: t`A union of sets from the list can only be one of the four, however many sets are in it.`,
+          why: { q: t`Why do ${mA} and ${math`A^{c}`} together give ${mO}?`, a: t`Every outcome is either in ${mA} or not in ${mA}, that is, in ${math`A^{c}`}. So ${math`A \cup A^{c} = \Omega`}.` },
+        },
+        { label: t`Conclude`, text: t`All three rules hold, so ${mF} is a sigma-algebra.`, plain: t`On the die: ${math`\{\varnothing, ${evenSet}, ${oddSet}, \Omega\}`}.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`The same idea scales up. Split ${mO} into ${mk} non-overlapping blocks that cover it, a [[partition|partition]]. All the unions of blocks form a sigma-algebra with ${math`${2}^{k}`} events, one for each choice of blocks to include. Every finite sigma-algebra has this form.`,
+    },
+    quickCheck({
+      prompt: t`The die's outcomes are split into the blocks ${setOf([1, 2])}, ${setOf([3, 4])}, ${setOf([5, 6])}. How many events are in the sigma-algebra of all unions of blocks?`,
+      answer: { kind: 'exact', expected: String(2 ** 3) },
+      reference: String(2 ** 3),
+      why: t`Each of the ${3} blocks is in or out of a union: ${math`${2}^{${3}} = ${2 ** 3}`}, counting the empty union ${math`\varnothing`} and the full union ${mO}.`,
+    }),
+    {
+      kind: 'pitfall',
+      claim: t`${math`\{\varnothing, ${setOf([1])}, ${setOf([2])}, \Omega\}`} is a sigma-algebra on the die.`,
+      counterexample: t`The complement of ${setOf([1])} is ${setOf([2, 3, 4, 5, 6])}, which is missing, and so is the union ${setOf([1, 2])}. Rules (ii) and (iii) both fail.`,
+    },
+    { kind: 'section', title: t`New events from old` },
+    { kind: 'narrative', text: t`The definition lists only three rules, but many more sets follow. Part (a) of the sheet's fourth question asks for three: ${math`\varnothing = \Omega^{c}`} is an event by rules (i) and (ii); ${math`A_{${1}} \cup A_{${2}}`} is the union of the sequence ${math`A_{${1}}, A_{${2}}, \varnothing, \varnothing, \ldots`}; and countable intersections follow from De Morgan's law, ${math`\bigcap_n A_n = \left(\bigcup_n A_n^{c}\right)^{c}`}. The first example below writes these out in full.` },
+    { kind: 'takeaway', text: t`A sigma-algebra contains ${mO} and is closed under complements and countable unions; everything else, the empty set, finite unions, and intersections, follows from those three rules.` },
   ],
   examples: [
-    q4a,
+    { ...q4a, examiner: t`Each new set written explicitly as a complement or a countable union of known events, with the rule used named at every step.` },
     worked(partitionCount, { n: 6, blocks: [[1, 2], [3, 4], [5, 6]] }, t`Events from a partition`),
     worked(generated, { n: 5, a: maskOf([1, 2, 3]), b: maskOf([3, 4]) }, t`The events two events generate`),
   ],
@@ -235,5 +285,24 @@ export const eventSpaces: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sigma-algebra', 'partition'],
   cambridge: [q4def, q4aSecond, q6b],
-  gate: ['q4-definitions', 'q4-a-finite', 'q6-b-event'],
+  // Q6(b) first: it needs the limit events built from countable unions and intersections. Then Q4(a)'s
+  // finite case and Q4's definitions, a proof and a statement from the same sheet.
+  gate: ['q6-b-event', 'q4-a-finite', 'q4-definitions'],
+  recall: [
+    { front: t`Define a sigma-algebra on ${mO}.`, back: t`A collection ${mF} of subsets with ${math`\Omega \in \mathcal{F}`}, closed under complements and under countable unions.` },
+    { front: t`Why is ${math`\varnothing`} an event?`, back: t`${math`\varnothing = \Omega^{c}`}, and complements of events are events.` },
+    { front: t`Why is a countable intersection of events an event?`, back: t`${math`\bigcap_n A_n = \left(\bigcup_n A_n^{c}\right)^{c}`}, by De Morgan.` },
+    { front: t`How many events in the sigma-algebra from a partition into ${mk} blocks?`, back: t`${math`${2}^{k}`}, one per choice of blocks.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Intersections of events are events`,
+      steps: [
+        t`Each ${math`A_n^{c}`} is an event, by closure under complements.`,
+        t`So ${math`\bigcup_n A_n^{c}`} is an event, by closure under countable unions.`,
+        t`So its complement is an event.`,
+        t`By De Morgan, that complement is ${math`\bigcap_n A_n`}.`,
+      ],
+    },
+  ],
 };

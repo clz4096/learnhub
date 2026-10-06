@@ -11,7 +11,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { div, int, pick, q, str, sub, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, math, paren, t, type Rich, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [N, Z, Q, R] = [math`\mathbb{N}`, math`\mathbb{Z}`, math`\mathbb{Q}`, math`\mathbb{R}`];
 
@@ -415,22 +415,51 @@ const sw325 = supervision({
 export const numberSystems: TopicContent = {
   topicId: 'num.number-systems',
   goal: t`Name the number systems ${N}, ${Z}, and ${Q}, say which operations each is closed under, and say which numbers have inverses in each.`,
+  objective: t`Name the natural numbers, integers and rationals, and say what each is closed under and what has inverses.`,
+  why: t`Every proof about numbers starts by saying which numbers are allowed; next, divisibility in the integers.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`The CST notes begin with the [[natural-number|natural numbers]], generated from zero by adding one again and again: ${math`\mathbb{N} = \{${0}, ${1}, ${2}, \ldots\}`}. In this course ${0} is natural. Book of Proof starts ${N} at ${1}; when it matters, say which you mean. It matters for supervision exercise ${math`${1}.${2}.${3}`}: "${math`${2}`} divides ${math`${2}^{n}`} for every natural ${math`n`}" is false only because ${math`${2}^{${0}} = ${1}`}.` },
-    { kind: 'p', text: t`Adding or multiplying two natural numbers gives a natural number: ${N} is [[closed|closed]] under addition and multiplication. It is not closed under subtraction (${math`${2} - ${3} = ${-1}`}) or division (${math`${1} \div ${2} = ${q(1, 2)}`}).` },
-    { kind: 'p', text: t`The notes put this in terms of inverses. A number ${math`x`} has an [[additive-inverse|additive inverse]] if ${math`x + y = ${0}`} for some ${math`y`}, and a multiplicative inverse if ${math`x \cdot y = ${1}`}. In ${N}, only ${0} has an additive inverse and only ${1} has a multiplicative inverse, each being its own.` },
+    { kind: 'section', title: t`Equations with no answer` },
+    { kind: 'hook', text: t`If the only numbers you have are ${math`${0}, ${1}, ${2}, \ldots`}, the equation ${math`x + ${3} = ${1}`} has no solution. If you also have the negatives, ${math`${2}x = ${1}`} still has none. Each time an equation has no answer, mathematicians build a bigger number system in which it does. This lesson follows that story, as the Cambridge CST notes tell it.` },
+
+    { kind: 'section', title: t`Three number systems` },
+    { kind: 'definition', name: t`Natural numbers`, formal: t`The [[natural-number|natural numbers]] are ${math`\mathbb{N} = \{${0}, ${1}, ${2}, \ldots\}`}: zero, and everything reached from zero by adding one again and again.`, plain: t`The counting numbers, starting at ${0}. Book of Proof starts ${N} at ${1}; in this course ${0} is natural. It matters: "${2} divides ${math`${2}^{n}`} for every natural ${math`n`}" is false only because ${math`${2}^{${0}} = ${1}`}.` },
+    { kind: 'definition', name: t`Integers`, formal: t`The [[integer|integers]] are ${math`\mathbb{Z} = \{\ldots, -${2}, -${1}, ${0}, ${1}, ${2}, \ldots\}`}: the natural numbers together with their negatives.`, plain: t`Whole numbers, positive, negative, or zero.` },
+    { kind: 'definition', name: t`Rational numbers`, formal: t`A real number is a [[rational-number|rational number]] if it equals ${math`\frac{m}{n}`} for some ${math`m, n \in \mathbb{Z}`} with ${math`n \ne ${0}`}. The set of rationals is ${Q}.`, plain: t`Fractions of whole numbers: ${math`\frac{${3}}{${4}}`}, ${math`-\frac{${7}}{${2}}`}, and ${5}, which is ${math`\frac{${5}}{${1}}`}.` },
+    { kind: 'p', text: t`Each contains the one before: ${math`\mathbb{N} \subseteq \mathbb{Z} \subseteq \mathbb{Q} \subseteq \mathbb{R}`}, where ${R} is the real numbers. ${math`x + ${3} = ${1}`} needs ${Z} (the answer is ${math`-${2}`}), and ${math`${2}x = ${1}`} needs ${Q} (the answer is ${q(1, 2)}).` },
+    checkFrom(smallest, { a: 3, b: 1, c: -5 }, t`${math`${3}x + ${1} = -${5}`} gives ${math`x = -${2}`}: a negative integer.`),
+
+    { kind: 'section', title: t`Closure` },
+    { kind: 'definition', name: t`Closed`, formal: t`A set ${math`S`} of numbers is [[closed|closed]] under an operation ${math`\ast`} if ${math`a \ast b \in S`} for all ${math`a, b \in S`}.`, plain: t`Combining any two members always gives a member. ${N} is closed under addition, but not under subtraction: ${math`${2} - ${3} = -${1}`} is not natural.` },
+    { kind: 'narrative', text: t`Closure is a claim about every pair, so one bad pair disproves it: the odd integers are not closed under addition, since ${math`${1} + ${3} = ${4}`}. Proving closure needs an argument for a general pair. Here is one.` },
+    { kind: 'theorem', statement: t`${Q} is closed under multiplication, and under division by a non-zero rational.` },
     {
-      kind: 'list', items: [
-        t`Admitting every additive inverse gives the [[integer|integers]] ${math`\mathbb{Z} = \{\ldots, ${-2}, ${-1}, ${0}, ${1}, ${2}, \ldots\}`}, closed under addition, subtraction, and multiplication.`,
-        t`Admitting a multiplicative inverse for every nonzero number gives the [[rational-number|rationals]] ${Q}: numbers ${math`\frac{m}{n}`} with ${math`m, n`} integers and ${math`n \ne ${0}`}. ${Q} is closed under all four operations, dividing only by nonzero numbers.`,
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Name the two rationals`, text: t`Let ${math`x = \frac{a}{b}`} and ${math`y = \frac{c}{d}`} with ${math`a, b, c, d \in \mathbb{Z}`} and ${math`b, d \ne ${0}`}.`, plain: t`Use different letters for the two fractions: they need not share a denominator.` },
+        { label: t`Multiply`, text: t`${math`xy = \frac{ac}{bd}`}. Here ${math`ac`} and ${math`bd`} are integers, since ${Z} is closed under multiplication, and ${math`bd \ne ${0}`} because neither factor is ${0}. So ${math`xy \in \mathbb{Q}`}.` },
+        { label: t`Divide`, text: t`If ${math`y \ne ${0}`} then ${math`c \ne ${0}`}, and ${math`\frac{x}{y} = \frac{a}{b} \cdot \frac{d}{c} = \frac{ad}{bc}`}, with ${math`bc \ne ${0}`}. So ${math`x/y \in \mathbb{Q}`}.` },
       ],
     },
-    { kind: 'rule', text: t`${math`\mathbb{N} \subseteq \mathbb{Z} \subseteq \mathbb{Q} \subseteq \mathbb{R}`}. Each system solves equations the one before cannot: ${math`x + ${3} = ${1}`} needs ${Z}, and ${math`${2}x = ${1}`} needs ${Q}.` },
-    { kind: 'p', text: t`Closure is a claim about every pair, so one counterexample disproves it: the odd integers are not closed under addition, since ${math`${1} + ${3} = ${4}`}. Proving closure needs an argument for a general pair, as in supervision exercise ${math`${1}.${1}.${6}`}: write the two rationals as ${math`\frac{a}{b}`} and ${math`\frac{c}{d}`}, and show their sum is a ratio of integers too.` },
-    { kind: 'p', text: t`The notes also record the cancellation laws: ${math`k + m = k + n`} implies ${math`m = n`}, and, if ${math`k \ne ${0}`}, ${math`k \cdot m = k \cdot n`} implies ${math`m = n`}. Book of Proof accepts all such ground rules of ${Z}, ${Q}, and ${R} without proof.` },
+    { kind: 'p', text: t`Addition works the same way, with a common denominator; proving it is supervision exercise ${math`${1}.${1}.${6}`}, a Cambridge problem for this lesson.` },
+    checkFrom(closure, { i: 4 }, t`Sums, differences, and products of even integers are even; but ${math`${2} \div ${4} = ${q(1, 2)}`} is not an integer.`),
+
+    { kind: 'section', title: t`Inverses` },
+    { kind: 'definition', name: t`Inverses`, formal: t`In a number system, ${math`y`} is an [[additive-inverse|additive inverse]] of ${math`x`} if ${math`x + y = ${0}`}, and a multiplicative inverse of ${math`x`} if ${math`x \cdot y = ${1}`}.`, plain: t`In ${Z}, the additive inverse of ${5} is ${math`-${5}`}. In ${Q}, the multiplicative inverse of ${math`\frac{${2}}{${3}}`} is ${math`\frac{${3}}{${2}}`}.` },
+    { kind: 'theorem', name: t`Inverses in ${N}`, statement: t`In ${N}, only ${0} has an additive inverse and only ${1} has a multiplicative inverse.` },
+    { kind: 'p', text: t`Proof: if ${math`x + y = ${0}`} with ${math`x, y \ge ${0}`}, then ${math`x \le x + y = ${0}`}, so ${math`x = ${0}`}. If ${math`xy = ${1}`} with ${math`x, y \in \mathbb{N}`}, neither is ${0}, so both are at least ${1}; if ${math`x \ge ${2}`} then ${math`xy \ge ${2}`}, so ${math`x = ${1}`}. ∎ The notes read the story of ${Z} and ${Q} this way: ${Z} adds every additive inverse, and ${Q} adds a multiplicative inverse for every non-zero number.` },
+    checkFrom(inverse, { kind: 'multiplicative', n: -3, d: 4 }, t`${math`-\frac{${3}}{${4}} \times \left(-\frac{${4}}{${3}}\right) = ${1}`}.`),
+    { kind: 'p', text: t`The notes also record the cancellation laws: ${math`k + m = k + n`} implies ${math`m = n`}, and, if ${math`k \ne ${0}`}, ${math`k \cdot m = k \cdot n`} implies ${math`m = n`}. The condition matters: ${math`${0} \cdot ${2} = ${0} \cdot ${3}`}, yet ${math`${2} \ne ${3}`}.` },
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${0} is not a natural number.`, counterexample: t`In the CST notes, and in this course, ${math`\mathbb{N} = \{${0}, ${1}, ${2}, \ldots\}`}. Book of Proof differs, so always say which convention you use.` },
+    { kind: 'pitfall', claim: t`${Q} is closed under division.`, counterexample: t`${math`${1} \div ${0}`} is not defined. ${Q} is closed under division by non-zero rationals only.` },
+    { kind: 'pitfall', claim: t`Checking a few pairs proves closure.`, counterexample: t`Under division, ${math`${6} \div ${3}`}, ${math`${8} \div ${2}`}, and ${math`${10} \div ${5}`} are all integers, yet ${math`${1} \div ${2}`} is not. A few pairs can only disprove closure; proving it needs an argument for a general pair.` },
+    { kind: 'takeaway', text: t`${math`\mathbb{N} \subseteq \mathbb{Z} \subseteq \mathbb{Q}`}: each adds the inverses the one before lacks, so more equations have solutions and more operations stay inside the system.` },
   ],
   examples: [
-    workedCambridge(notes173),
+    { ...workedCambridge(notes173), examiner: t`The examiner looks for the inverse equations written down and solved in ${N}, with the reason no other number works.` },
     worked(closure, { i: 0 }, t`What ${N} is closed under`),
     worked(which, { kind: 'zero', a: 1, b: 2 }, t`Is ${0} a natural number?`),
   ],
@@ -438,5 +467,20 @@ export const numberSystems: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['natural-number', 'integer', 'rational-number', 'closed', 'additive-inverse'],
   cambridge: [notes174z, notes174q, notes167, sw116, sw325],
-  gate: ['notes-174-z', 'notes-174-q', 'notes-167-cancel', 'sw-1-1-6', 'sw-3-2-5'],
+  // The two CST proofs. The three-way choices from the notes are guessable, and the cancellation witness is a single step.
+  gate: ['sw-3-2-5', 'sw-1-1-6'],
+  recall: [
+    { front: t`Define a rational number.`, back: t`A real number equal to ${math`\frac{m}{n}`} for some integers ${math`m, n`} with ${math`n \ne ${0}`}.` },
+    { front: t`What does "closed under an operation" mean?`, back: t`Combining any two members of the set always gives a member.` },
+    { front: t`Which elements of ${N} have inverses?`, back: t`Only ${0} has an additive inverse, and only ${1} a multiplicative one.` },
+  ],
+  proofOrder: [{
+    title: t`${Q} is closed under multiplication`,
+    steps: [
+      t`Write ${math`x = \frac{a}{b}`} and ${math`y = \frac{c}{d}`} with integers and ${math`b, d \ne ${0}`}.`,
+      t`Then ${math`xy = \frac{ac}{bd}`}.`,
+      t`${math`ac`} and ${math`bd`} are integers, and ${math`bd \ne ${0}`}.`,
+      t`So ${math`xy`} is rational.`,
+    ],
+  }],
 };

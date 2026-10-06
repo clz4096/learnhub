@@ -8,10 +8,10 @@
  * exercise 26 and Chapter 7, exercises 12, 17, and 20.
  */
 import { auto, cite, same, supervision } from '../cambridge';
-import { int, pick, upTo } from '../math';
+import { int, pick, q, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
-import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { dmath, listOf, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mx, my, mn] = [math`x`, math`y`, math`n`];
 const isPrime = (n: number): boolean => { if (n < 2) return false; for (let d = 2; d * d <= n; d++) if (n % d === 0) return false; return true; };
@@ -296,17 +296,80 @@ const bop426proof = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const TRIPLE = [3, 5, 7];
+const UQ = { p: 3, x: 1 };
+const [mS, mk, mP] = [math`S`, math`k`, math`P`];
+
 export const quantifierPatterns: TopicContent = {
   topicId: 'proof.quantifier-patterns',
   goal: t`Prove a "for all" statement with an arbitrary element and a "there exists" statement with a witness, and use each kind of statement as an assumption.`,
+  objective: t`Prove "for all" with an arbitrary element, "there exists" with a witness, and use each as an assumption.`,
+  why: t`Almost every definition in the course hides a quantifier, so these four moves start almost every proof.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`Quantified statements have their own proof strategies in the CST notes, two for goals and two for assumptions.` },
-    { kind: 'rule', text: t`To prove ${math`\forall x \in S.\ P(x)`}: write "let ${mx} be an arbitrary element of ${math`S`}" and prove ${math`P(x)`} using nothing about ${mx} except that it is in ${math`S`}. Because ${mx} was an [[arbitrary-element|arbitrary element]], the proof works for every one.` },
-    { kind: 'rule', text: t`To prove ${math`\exists x \in S.\ P(x)`}: give a [[witness|witness]], a particular element ${math`w \in S`}, and prove ${math`P(w)`}. Find it in scratch work; in the written proof, state it first and then check it.` },
-    { kind: 'p', text: t`Example (supervision exercise ${1}.${1}.${4}): for all reals ${mx} and ${my} there is a real ${math`z`} with ${math`x + z = y - z`}. Let ${mx} and ${my} be arbitrary. The witness may depend on them: solving gives ${math`z = \frac{y - x}{${2}}`}, and checking it finishes the proof. The official solution notes that the finished proof looks backwards, since the witness found last is written first.` },
-    { kind: 'p', text: t`Using them: a "for all" assumption can be applied to any value you like (if every element of ${math`A`} is in ${math`B`}, and ${math`a \in A`}, then ${math`a \in B`}). A "there exists" assumption hands you a value you do not get to choose: name it, "let ${math`k`} be an integer with ${math`b = ka`}", and use only its property.` },
-    { kind: 'p', text: t`[[unique-existence|Unique existence]], ${math`\exists!\, x.\ P(x)`}, needs two arguments: existence (a witness) and uniqueness (if ${math`P(y)`} and ${math`P(z)`} then ${math`y = z`}). Solving an equation by steps that can all be reversed often gives both at once.` },
-    { kind: 'p', text: t`A single example never proves a "for all" statement, and a counterexample is what disproves one: it is a witness for the negation, ${math`\exists x.\ \lnot P(x)`}.` },
+    { kind: 'section', title: t`Two kinds of claim` },
+    { kind: 'hook', text: t`Compare two claims. "The square of every odd integer is odd." "There is a prime ${math`p`} such that ${math`p + ${2}`} and ${math`p + ${4}`} are prime too." The first is about infinitely many numbers; the second asks for just one. They cannot be proved the same way. So how is each proved?` },
+    { kind: 'narrative', text: t`For the second, you need to find the number and show it works: ${math`p = ${TRIPLE[0] as number}`} gives ${listOf(TRIPLE)}, all prime. Done. One good example is a complete proof of a "there is" claim.` },
+    { kind: 'narrative', text: t`For the first, no list of examples will do: there are infinitely many odd integers. Instead you argue about one odd integer that you know nothing about except that it is odd. If the argument works for that one, it works for any of them. The Cambridge Discrete Mathematics notes give the four moves that make this precise: two for goals and two for assumptions.` },
+    { kind: 'section', title: t`Proving "for all"` },
+    {
+      kind: 'definition',
+      name: t`Arbitrary element`,
+      formal: t`To prove ${math`\forall x \in S.\ P(x)`}, let ${mx} be an [[arbitrary-element|arbitrary element]] of ${mS}: a variable about which nothing is assumed except ${math`x \in S`}. A proof of ${math`P(x)`} for such an ${mx} proves ${math`\forall x \in S.\ P(x)`}.`,
+      plain: t`In plain words: pick a stand-in for "any element", and use only the fact that it is in ${mS}. Because you used nothing special about it, the same argument works for ${math`x = ${7}`}, ${math`x = ${101}`}, or any other element.`,
+    },
+    { kind: 'narrative', text: t`The proof below uses this move first. Then it meets an assumption with a hidden "there is" inside it, and later a goal of the same kind. Watch for all three.` },
+    { kind: 'theorem', statement: t`For every integer ${mn}, if ${mn} is odd then ${math`n^{${2}}`} is odd.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Take an arbitrary element`, text: t`Let ${mn} be an arbitrary integer, and assume ${mn} is odd.`, plain: t`A "for all" goal: a stand-in for every integer. The "if" part becomes an assumption.` },
+        { label: t`Use the assumption`, text: t`${mn} odd means ${math`\exists k \in \mathbb{Z}.\ n = ${2}k + ${1}`}. Let ${mk} be such an integer.`, plain: t`A "there is" assumption hands us a number; we do not choose it, we just name it. If ${mn} were ${9}, ${mk} would be ${4}.` },
+        { label: t`Compute`, text: t`Square both sides:`, eq: [dmath`n^{${2}} = (${2}k + ${1})^{${2}} = ${4}k^{${2}} + ${4}k + ${1} = ${2}(${2}k^{${2}} + ${2}k) + ${1}.`] },
+        { label: t`Give a witness`, text: t`The goal "${math`n^{${2}}`} is odd" means ${math`\exists m \in \mathbb{Z}.\ n^{${2}} = ${2}m + ${1}`}. Take ${math`m = ${2}k^{${2}} + ${2}k`}, an integer, and the last step shows ${math`n^{${2}} = ${2}m + ${1}`}.`, plain: t`A "there is" goal: we produce the number. It depends on ${mk}, which is allowed: ${mk} was already fixed.` },
+        { label: t`Conclude`, text: t`${mn} was arbitrary, so the statement holds for every integer ${mn}.` },
+      ],
+    },
+    { kind: 'section', title: t`Proving "there exists"` },
+    {
+      kind: 'definition',
+      name: t`Witness`,
+      formal: t`To prove ${math`\exists x \in S.\ P(x)`}, give a [[witness|witness]]: a particular ${math`w \in S`}, and prove ${math`P(w)`}.`,
+      plain: t`In plain words: show me one. For "there is a prime ${math`p`} with ${math`p + ${2}`} and ${math`p + ${4}`} prime", the witness is ${TRIPLE[0] as number}.`,
+    },
+    { kind: 'p', text: t`Finding the witness is scratch work, often by solving for it. Supervision exercise ${1}.${1}.${4} wants a real ${math`z`} with ${math`x + z = y - z`}, for arbitrary reals ${mx} and ${my}: solving gives ${math`z = \frac{y - x}{${2}}`}. The witness may depend on ${mx} and ${my}, because they were fixed first. The official solution notes that the finished proof looks backwards: the witness found last is written first, and then checked.` },
+    { kind: 'section', title: t`Using quantified assumptions` },
+    {
+      kind: 'list',
+      items: [
+        t`A "for all" assumption can be applied to any value you like. If every element of ${math`A`} is in ${math`B`}, and ${math`a \in A`}, then ${math`a \in B`}.`,
+        t`A "there exists" assumption hands you a value you do not choose. Name it with a new letter and use only its property: "let ${mk} be an integer with ${math`b = ka`}".`,
+      ],
+    },
+    checkFrom(firstMove, { i: 8 }, t`"${mx} is rational" is a "there exists" assumption: it promises integers ${math`p, q`}, which you name and use.`),
+    { kind: 'pitfall', claim: t`If ${math`a \mid b`} and ${math`a \mid c`}, write ${math`b = ka`} and ${math`c = ka`}.`, counterexample: t`That forces ${math`b = c`}. With ${math`a = ${2}`}, ${math`b = ${4}`}, ${math`c = ${6}`}, the multipliers are ${2} and ${3}. Each "there exists" assumption gets its own new letter: ${math`b = ka`}, ${math`c = la`}.` },
+    { kind: 'section', title: t`Exactly one` },
+    {
+      kind: 'definition',
+      name: t`Unique existence`,
+      formal: t`${math`\exists!\, x \in S.\ P(x)`} means ${math`\exists x \in S.\ \big(P(x) \land \forall y \in S.\ (P(y) \Rightarrow y = x)\big)`}.`,
+      plain: t`In plain words: there is one, and any other with the property is the same one. This is [[unique-existence|unique existence]]. Proving it takes two parts: existence (a witness) and uniqueness (any two such are equal).`,
+    },
+    { kind: 'theorem', statement: t`For every real ${math`x \ne ${UQ.p}`} there is a unique real ${my} with ${math`\frac{${UQ.p}y}{y + ${1}} = x`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Arbitrary x`, text: t`Let ${mx} be an arbitrary real number with ${math`x \ne ${UQ.p}`}.` },
+        { label: t`Find the candidate`, text: t`For ${math`y \ne -${1}`}, multiply by ${math`y + ${1}`}: ${math`${UQ.p}y = xy + x`}, so ${math`(${UQ.p} - x)y = x`}. Since ${math`x \ne ${UQ.p}`}, divide:`, eq: [dmath`y = \frac{x}{${UQ.p} - x}.`], why: { q: t`Why may we assume ${math`y \ne -${1}`}?`, a: t`At ${math`y = -${1}`} the fraction has denominator ${0}, so it cannot equal ${mx}. Any ${my} that works is not ${math`-${1}`}.` } },
+        { label: t`Existence`, text: t`This ${my} is not ${math`-${1}`}, since ${math`\frac{x}{${UQ.p} - x} = -${1}`} would give ${math`x = x - ${UQ.p}`}. So every step above reverses, and ${math`\frac{${UQ.p}y}{y + ${1}} = x`}.`, plain: t`For example, ${math`x = ${UQ.x}`} gives ${math`y = ${q(UQ.x, UQ.p - UQ.x)}`}, and ${math`\frac{${UQ.p} \times ${q(UQ.x, UQ.p - UQ.x)}}{${q(UQ.x, UQ.p - UQ.x)} + ${1}} = ${1}`}.` },
+        { label: t`Uniqueness`, text: t`If ${math`z`} also satisfies ${math`\frac{${UQ.p}z}{z + ${1}} = x`}, the same steps give ${math`(${UQ.p} - x)z = x`}, so ${math`z = \frac{x}{${UQ.p} - x} = y`}.` },
+      ],
+    },
+    checkFrom(unique, { p: 1, d: 2 }, t`${math`y = x(y + ${2})`} gives ${math`(${1} - x)y = ${2}x`}, so ${math`y = \frac{${2}x}{${1} - x}`}.`),
+    { kind: 'pitfall', claim: t`"Every integer ${mn} has ${math`n^{${2}} \ge n`}" is proved by ${math`n = ${3}`}: ${math`${9} \ge ${3}`}.`, counterexample: t`One example proves a "there exists" claim, never a "for all" claim. (This one happens to be true, but needs an arbitrary ${mn}.) And one counterexample disproves a "for all" claim: it is a witness for ${math`\exists x.\ \lnot ${mP}(x)`}.` },
+    { kind: 'takeaway', text: t`For all: an arbitrary element. There exists: a witness. Use a "for all" at any value, and name what a "there exists" gives you.` },
   ],
   examples: [
     workedCambridge(sw114),
@@ -317,5 +380,24 @@ export const quantifierPatterns: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arbitrary-element', 'unique-existence'],
   cambridge: [sw117, bop717, bop712, bop720, bop426, sw117proof, sw114proof, bop426proof],
-  gate: ['sw-1-1-7', 'sw-1-1-7-proof', 'sw-1-1-4-proof'],
+  // Best first: the existence and uniqueness proof, then the existence write-up, then the
+  // auto-checked unique y (solving gives the witness).
+  gate: ['sw-1-1-7-proof', 'sw-1-1-4-proof', 'sw-1-1-7'],
+  recall: [
+    { front: t`How do you prove ${math`\forall x \in S.\ P(x)`}?`, back: t`Let ${mx} be an arbitrary element of ${mS} and prove ${math`P(x)`} using only ${math`x \in S`}.` },
+    { front: t`How do you prove ${math`\exists x \in S.\ P(x)`}?`, back: t`Give a witness ${math`w \in S`} and prove ${math`P(w)`}.` },
+    { front: t`How do you use a "there exists" assumption?`, back: t`Name the value it provides with a new letter, and use only its property.` },
+    { front: t`What does ${math`\exists!\, x.\ P(x)`} need?`, back: t`Existence (a witness) and uniqueness (if ${math`P(y)`} and ${math`P(z)`} then ${math`y = z`}).` },
+  ],
+  proofOrder: [
+    {
+      title: t`The square of an odd integer is odd`,
+      steps: [
+        t`Let ${mn} be an arbitrary odd integer.`,
+        t`Name ${mk} with ${math`n = ${2}k + ${1}`}.`,
+        t`Then ${math`n^{${2}} = ${2}(${2}k^{${2}} + ${2}k) + ${1}`}.`,
+        t`So ${math`m = ${2}k^{${2}} + ${2}k`} is a witness that ${math`n^{${2}}`} is odd.`,
+      ],
+    },
+  ],
 };

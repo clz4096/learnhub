@@ -7,8 +7,8 @@ import type { Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
 import { factorial, int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computed, computedMath as cm, listOf, math, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computed, computedMath as cm, dmath, listOf, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 /** Every tuple with entry i in 0 .. sizes[i] - 1, counted one by one like an odometer. */
 function countTuples(sizes: readonly number[], keep: (tuple: readonly number[]) => boolean = () => true): number {
@@ -380,24 +380,74 @@ const a7Bound3 = supervision({
 
 const shirts = ['red', 'blue', 'green'];
 const trousers = ['jeans', 'shorts'];
+const [mAB, mA, mB] = [math`A \times B`, math`A`, math`B`];
 
 export const productRule: TopicContent = {
   topicId: 'pre.product-rule',
   goal: t`Count the outcomes of a sequence of choices by multiplying the number of options at each step.`,
+  objective: t`Count a sequence of choices by multiplying the number of options at each step.`,
+  why: t`Almost every count in combinatorics and probability is built from this rule, starting with arrangements.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`You have ${shirts.length} shirts and ${trousers.length} pairs of trousers. An outfit is one shirt and one pair of trousers. List them systematically: each shirt with each pair of trousers.` },
+    { kind: 'section', title: t`How many outfits?` },
+    { kind: 'hook', text: t`You own ${shirts.length} shirts and ${trousers.length} pairs of trousers. How many different outfits can you wear? You could list them. But what if you owned ${30} shirts and ${20} pairs of trousers? There must be a way to count without listing.` },
+    { kind: 'narrative', text: t`Start small and list them anyway, in an organised way: one row for each shirt, and in each row, that shirt with every pair of trousers.` },
     {
       kind: 'table', caption: t`Every outfit: ${shirts.length} rows of ${trousers.length}.`,
       head: [t`shirt`, ...trousers.map((x) => t`${x}`)],
       rows: shirts.map((s) => [t`${s}`, ...trousers.map((x) => t`${s} and ${x}`)]),
     },
-    { kind: 'p', text: t`The table has ${shirts.length} rows of ${trousers.length}, so ${math`${shirts.length} \times ${trousers.length} = ${shirts.length * trousers.length}`} outfits. Each choice is an [[outcome|outcome]] of the first step paired with an outcome of the second.` },
-    { kind: 'rule', text: t`The [[product-rule|product rule]]: if a first step can be done in ${math`m`} ways, and then, whatever happened first, a second step can be done in ${math`n`} ways, the two steps together can be done in ${math`m \times n`} ways. The same holds for three or more steps.` },
-    { kind: 'p', text: t`Codes are a common case. A ${3}-letter code from the ${26} letters, with repeats allowed, has ${26} choices in each position: ${math`${26}^{${3}} = ${26 ** 3}`} codes.` },
-    { kind: 'p', text: t`Watch for steps whose choices are limited. A ${3}-digit whole number cannot start with ${0}: ${9} choices first, then ${10} and ${10}, so ${math`${9} \times ${10} \times ${10} = ${9 * 10 * 10}`} numbers, the numbers from ${10 ** 2} to ${10 ** 3 - 1}.` },
-    { kind: 'p', text: t`Arranging is a sequence of choices too. Claire, in STEP Support Assignment ${6}, places the ${6} different letters of her name one at a time: ${6} places for the first letter, then ${5} for the second, and so on, ${math`${6} \times ${5} \times ${4} \times ${3} \times ${2} \times ${1} = ${factorial(6)}`} arrangements.` },
-    { kind: 'p', text: t`A step can be a yes or no question. With ${3} weights for a one-pan balance, each weight is in the pan or not: ${2} choices, three times, so ${math`${2}^{${3}} = ${2 ** 3}`} selections, from the empty pan to all three. That bounds how many different loads the weights can show, whatever they weigh.` },
-    { kind: 'p', text: t`Multiply when you make one choice and then another (this and that). Add when you make one choice or the other: picking one meal from ${4} soups or ${3} salads gives ${4 + 3} options, not ${4 * 3}.` },
+    { kind: 'narrative', text: t`The table is a rectangle: ${shirts.length} rows, each with ${trousers.length} entries, so ${math`${shirts.length} \times ${trousers.length} = ${shirts.length * trousers.length}`} outfits. Nothing in that argument cared that there were ${shirts.length} shirts. With ${30} shirts and ${20} pairs of trousers it would be ${30} rows of ${20}, so ${30 * 20} outfits.` },
+    { kind: 'section', title: t`The rule, stated precisely` },
+    { kind: 'narrative', text: t`An outfit is a pair: first a shirt, then a pair of trousers. Order matters in the sense that the first entry is always the shirt. Mathematicians call such a thing an ordered pair, and the set of all of them has a name.` },
+    {
+      kind: 'definition',
+      name: t`Cartesian product`,
+      formal: t`For sets ${mA} and ${mB}, the Cartesian product is ${dmath`A \times B = \{(a, b) : a \in A,\ b \in B\},`} the set of ordered pairs whose first entry is in ${mA} and whose second is in ${mB}.`,
+      plain: t`In plain words: every way of choosing one thing from ${mA} and then one thing from ${mB}. With ${mA} the shirts and ${mB} the trousers, ${mAB} is the set of outfits, and (red, jeans) is one of them.`,
+    },
+    { kind: 'theorem', statement: t`If ${mA} and ${mB} are finite sets, then ${math`\lvert A \times B \rvert = \lvert A \rvert \times \lvert B \rvert`}, where ${math`\lvert A \rvert`} is the number of elements of ${mA}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Group by the first entry`, text: t`For each ${math`a \in A`}, let ${math`R_{a} = \{(a, b) : b \in B\}`}, the row of pairs that start with ${math`a`}.`, plain: t`One row of the table for each shirt.` },
+        { label: t`Each row has the same size`, text: t`The map ${math`b \mapsto (a, b)`} matches the elements of ${mB} one to one with the pairs in ${math`R_{a}`}, so ${math`\lvert R_{a} \rvert = \lvert B \rvert`}.`, plain: t`Each shirt goes with every pair of trousers exactly once.` },
+        { label: t`The rows split the product`, text: t`Every pair ${math`(a, b) \in A \times B`} lies in exactly one row, namely ${math`R_{a}`}.`, plain: t`No outfit is in two rows, and none is missed.` },
+        { label: t`Add up the rows`, text: t`So ${mAB} is ${math`\lvert A \rvert`} rows of ${math`\lvert B \rvert`} elements each:`, eq: [dmath`\lvert A \times B \rvert = \underbrace{\lvert B \rvert + \cdots + \lvert B \rvert}_{\lvert A \rvert \text{ times}} = \lvert A \rvert \times \lvert B \rvert.`] },
+      ],
+    },
+    { kind: 'narrative', text: t`Real counting problems rarely hand you two fixed sets. Often the second choice depends on the first: once Claire has placed one letter of her name, that place is gone. What survives is the number of options. That gives the form of the rule you will use most.` },
+    {
+      kind: 'theorem',
+      name: t`The product rule`,
+      statement: t`Suppose a choice is made in ${math`k`} steps, and, whatever happened at the earlier steps, step ${math`i`} can be done in exactly ${math`n_{i}`} ways. Then the whole choice can be made in ${math`n_{${1}} \times n_{${2}} \times \cdots \times n_{k}`} ways.`,
+    },
+    {
+      kind: 'p',
+      text: t`This is the [[product-rule|product rule]]. Each finished sequence of choices is one [[outcome|outcome]]. It follows from the theorem above by grouping the outcomes by their first step: there are ${math`n_{${1}}`} groups, each holding the same number of ways to finish, and you repeat the argument for the steps that remain.`,
+      why: { q: t`Why must the number of options not depend on earlier steps?`, a: t`Because the proof needs every row to have the same length. If the second step had ${2} options after one first choice and ${5} after another, the rows would differ and you would have to add them, ${math`${2} + ${5}`}, rather than multiply.` },
+    },
+    { kind: 'section', title: t`Codes and restricted digits` },
+    { kind: 'narrative', text: t`Codes are the cleanest case. A code of ${3} letters from the ${26} letters of the alphabet, repeats allowed, is a choice in ${3} steps with ${26} options each time.` },
+    { kind: 'rule', text: t`${dmath`${26} \times ${26} \times ${26} = ${26}^{${3}} = ${26 ** 3}.`}` },
+    checkFrom(codes, { n: 10, k: 4, what: 'pin' }, t`Each of the ${4} positions has ${10} choices whatever the others show: ${math`${10}^{${4}} = ${10 ** 4}`}.`),
+    { kind: 'narrative', text: t`Restrictions change the number of options at a step, not the rule. A ${3}-digit whole number cannot start with ${0}, because then it would really be a ${2}-digit number.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`First digit`, text: t`Any of ${1} to ${9}: ${9} options.` },
+        { label: t`Second and third digits`, text: t`Any of ${0} to ${9}: ${10} options each, whatever came before.` },
+        { label: t`Multiply`, text: t`By the product rule,`, eq: [dmath`${9} \times ${10} \times ${10} = ${9 * 10 * 10}.`], plain: t`A check: these are the numbers from ${10 ** 2} to ${10 ** 3 - 1}, and there are ${10 ** 3 - 1 - 10 ** 2 + 1} of those.` },
+      ],
+    },
+    { kind: 'section', title: t`Arrangements and yes or no choices` },
+    { kind: 'narrative', text: t`In STEP Support Assignment ${6}, Claire arranges the ${6} different letters of her name. Think of it as filling ${6} places one letter at a time. The first letter has ${6} places to go; whichever it took, the second has ${5} left; then ${4}, and so on. The options shrink, but at each step their number is the same whatever happened before, so the product rule applies.` },
+    { kind: 'rule', text: t`${dmath`${6} \times ${5} \times ${4} \times ${3} \times ${2} \times ${1} = ${factorial(6)}.`}` },
+    { kind: 'narrative', text: t`A step can also be a yes or no question. With ${3} weights for a one-pan balance, each weight is either in the pan or not: ${2} options, three times, so ${math`${2}^{${3}} = ${2 ** 3}`} selections, from the empty pan to all three. Whatever the weights are, they can show at most ${2 ** 3} different loads. That one count is the heart of Bachet's weights in STEP Support Assignment ${7}.` },
+    { kind: 'pitfall', claim: t`A meal is one dish from ${4} soups or ${3} salads, so there are ${math`${4} \times ${3} = ${4 * 3}`} meals.`, counterexample: t`You choose one dish, either a soup or a salad, not one of each. That is ${math`${4} + ${3} = ${4 + 3}`} meals. Multiply when you choose this and then that; add when you choose this or that.` },
+    { kind: 'pitfall', claim: t`A PIN of ${4} digits has ${math`${10} \times ${4} = ${40}`} possibilities.`, counterexample: t`That adds ${10} options four times over. Each choice of the first digit goes with every choice of the others, so it is ${math`${10}^{${4}} = ${10 ** 4}`}.` },
+    { kind: 'takeaway', text: t`If each step has a fixed number of options whatever came before, the number of outcomes is the product of those numbers.` },
   ],
   examples: [
     worked(menu, { s: 3, m: 4, d: 2 }, t`Meals from a menu`),
@@ -407,7 +457,26 @@ export const productRule: TopicContent = {
   ],
   generators: [menu, codes, wholeNumbers, weighings, bachet],
   cambridge: [a7Five, a7TwoPans, a7Forty, a7ThreeWays, a7Unique, a7Bound, a7Bound3],
-  gate: ['a7-q4-i-b', 'a7-q4-ii-a', 'a7-q4-ii-c', 'a7-q4-ii-b-count', 'a7-q4-i-a', 'a7-q4-i-c-show', 'a7-q4-ii-b-show'],
+  // Best first: the two counting bounds (proofs), the three-way count, then the constructions
+  // whose check is a subset count. Q4(ii)(a) (the weights 1 and 3) is too slight to gate.
+  gate: ['a7-q4-ii-b-show', 'a7-q4-i-c-show', 'a7-q4-ii-b-count', 'a7-q4-i-a', 'a7-q4-ii-c', 'a7-q4-i-b'],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['product-rule', 'outcome'],
+  recall: [
+    { front: t`State the product rule.`, back: t`If step ${math`i`} of a ${math`k`}-step choice can always be done in ${math`n_{i}`} ways, whatever came before, there are ${math`n_{${1}} \times \cdots \times n_{k}`} outcomes.` },
+    { front: t`What is ${math`\lvert A \times B \rvert`} for finite sets?`, back: t`${math`\lvert A \rvert \times \lvert B \rvert`}.` },
+    { front: t`How many selections can be made from ${math`n`} objects, each in or out?`, back: t`${math`${2}^{n}`}, two options for each object.` },
+    { front: t`When do you add counts instead of multiplying?`, back: t`When you make one choice or another (one dish, a soup or a salad), not one and then another.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Why ${math`\lvert A \times B \rvert = \lvert A \rvert \times \lvert B \rvert`}`,
+      steps: [
+        t`Group the pairs into rows by their first entry ${math`a`}.`,
+        t`Each row matches ${mB} one to one, so it has ${math`\lvert B \rvert`} pairs.`,
+        t`Every pair lies in exactly one row.`,
+        t`So there are ${math`\lvert A \rvert`} rows of ${math`\lvert B \rvert`}: ${math`\lvert A \rvert \times \lvert B \rvert`} pairs.`,
+      ],
+    },
+  ],
 };

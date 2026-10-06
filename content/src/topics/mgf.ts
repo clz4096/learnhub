@@ -12,8 +12,8 @@ import { auto, cite, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { farApart, poissonCdf, sig } from '../partv-d';
 import { generator, type Misconception } from '../problem';
-import { computedMath, computedTex, math, t, type Rich, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedMath, computedTex, dmath, listOf, math, t, type Rich, type Span } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mX, mth] = [math`X`, math`\theta`];
 const SH3 = 'ia-prob-sheet-3' as const;
@@ -349,25 +349,71 @@ const continuity = supervision({
 
 const LT = 2;
 const XT = 6;
+const facts = [1, 2, 3, 4].map((k) => Array.from({ length: k }, (_, i) => i + 1).reduce((a, b) => a * b, 1));
+const mY = math`Y`;
 
 export const mgf: TopicContent = {
   topicId: 'gf.mgf',
   goal: t`Use ${math`M_{X}(\theta) = E(e^{\theta X})`} for moments and sums, bound tails with it, and state the continuity theorem.`,
+  objective: t`Use the moment generating function to find moments, handle sums, and bound tails.`,
+  why: t`It works for any random variable, not just counts, and it is the tool behind the central limit theorem.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`A pgf needs values ${math`${0}, ${1}, ${2}, \ldots`}. For any real ${mX}, put ${math`t = e^{\theta}`}: the [[mgf|moment generating function]] is ${math`M_{X}(\theta) = E(e^{\theta X})`}, which may be infinite for some ${mth}; the useful case is when it is finite on an interval around ${0}.` },
-    { kind: 'rule', text: t`If ${math`M_{X}`} is finite on ${math`(-\delta, \delta)`}: ${math`M_{X}^{(k)}(${0}) = E(X^{k})`}; ${math`M_{X}`} determines the distribution; ${math`M_{X + Y} = M_{X}M_{Y}`} for independent ${mX} and ${math`Y`}; and ${math`M_{aX + b}(\theta) = e^{b\theta}M_{X}(a\theta)`}.` },
-    { kind: 'table', caption: t`Moment generating functions`, head: [t`distribution`, t`${math`M(\theta)`}`], rows: [
-      [t`${math`\text{Po}(\lambda)`}`, t`${math`e^{\lambda(e^{\theta} - ${1})}`}`],
-      [t`${math`B(n, p)`}`, t`${math`(${1} - p + pe^{\theta})^{n}`}`],
-      [t`exponential, rate ${math`\lambda`}`, t`${math`\frac{\lambda}{\lambda - \theta}`} for ${math`\theta < \lambda`}`],
-      [t`${math`N(\mu, \sigma^{${2}})`}`, t`${math`e^{\mu\theta + \sigma^{${2}}\theta^{${2}}/${2}}`}`],
-    ] },
-    { kind: 'p', text: t`The normal one comes from completing the square: ${math`\int e^{\theta z}\frac{e^{-z^{${2}}/${2}}}{\sqrt{${2}\pi}}\,dz = e^{\theta^{${2}}/${2}}\int \frac{e^{-(z - \theta)^{${2}}/${2}}}{\sqrt{${2}\pi}}\,dz = e^{\theta^{${2}}/${2}}`}, then ${math`X = \mu + \sigma Z`}. Sheet ${4} Q${6}(a) uses it at once: if ${math`\log X \sim N(\mu, \sigma^{${2}})`} then ${math`E(X) = M_{\log X}(${1}) = e^{\mu + \sigma^{${2}}/${2}}`}.` },
-    { kind: 'p', text: t`The [[continuity-theorem|continuity theorem]], stated without proof in the course: if ${math`M_{X_{n}}(\theta) \to M_{X}(\theta)`} on an interval around ${0}, then ${math`P(X_{n} \le x) \to P(X \le x)`} wherever the limit is continuous in ${math`x`}. It is how the central limit theorem is proved.` },
-    { kind: 'p', text: t`Tails: Markov's inequality applied to ${math`e^{\theta X}`} gives the [[chernoff-bound|Chernoff bound]] ${math`P(X \ge x) \le e^{-\theta x}M_{X}(\theta)`} for every ${math`\theta \ge ${0}`} (Sheet ${3} Q${2}(b)). For ${math`\text{Po}(${LT})`} and ${math`x = ${XT}`}, the best ${mth} is ${math`\ln ${XT / LT}`}, and the bound is ${sig(chernoff({ lambda: LT, x: XT }), 3)}, against Markov's ${sig(LT / XT, 3)} and the true ${sig(1 - poissonCdf(LT, XT - 1), 3)}.` },
+    { kind: 'section', title: t`Every moment in one function` },
+    { kind: 'hook', text: t`Let ${mX} be exponential with rate ${1}. Its moments ${math`E(X), E(X^{${2}}), E(X^{${3}}), \ldots`} are ${listOf(facts)}, and so on: each needs its own integration by parts. Now look at the single function ${math`\frac{${1}}{${1} - \theta} = ${1} + \theta + \theta^{${2}} + \cdots`}. Write its ${math`k`}th term as ${math`k! \cdot \frac{\theta^{k}}{k!}`}, and the moments appear as the coefficients. One function, every moment. Why?` },
+    { kind: 'narrative', text: t`You have met the probability generating function ${math`E(t^{X})`}, which works for variables taking values ${math`${0}, ${1}, ${2}, \ldots`}. Substitute ${math`t = e^{\theta}`} and it becomes ${math`E(e^{\theta X})`}, which makes sense for any real random variable, continuous or not.` },
+    { kind: 'definition', name: t`Moment generating function`, formal: t`The [[mgf|moment generating function]] of a random variable ${mX} is ${dmath`M_{X}(\theta) = E\left(e^{\theta X}\right), \qquad \theta \in \mathbb{R},`} wherever this expectation is finite.`, plain: t`Average ${math`e^{\theta X}`}. It is always finite at ${math`\theta = ${0}`}, where it equals ${1}. The useful case is when it is finite on a whole interval ${math`(-\delta, \delta)`} around ${0}.` },
+
+    { kind: 'section', title: t`Moments from derivatives` },
+    { kind: 'theorem', name: t`Moments`, statement: t`If ${math`M_{X}`} is finite on ${math`(-\delta, \delta)`} for some ${math`\delta > ${0}`}, then every moment of ${mX} is finite, ${dmath`M_{X}(\theta) = \sum_{k = ${0}}^{\infty} \frac{E(X^{k})}{k!}\theta^{k} \quad (|\theta| < \delta), \qquad M_{X}^{(k)}(${0}) = E(X^{k}).`}` },
+    { kind: 'p', text: t`The idea: expand ${math`e^{\theta X} = \sum_{k} \frac{\theta^{k}X^{k}}{k!}`} and take expectations term by term. The finiteness near ${0} is what makes swapping the sum and the expectation legitimate (that step is proved in the Tripos course). Then the ${math`k`}th derivative at ${0} picks out ${math`k!`} times the coefficient of ${math`\theta^{k}`}.`, why: { q: t`Why does the exponential example work?`, a: t`For rate ${1}, ${math`M(\theta) = \int_{${0}}^{\infty} e^{\theta x}e^{-x}\,dx = \frac{${1}}{${1} - \theta}`} for ${math`\theta < ${1}`}. Its series is ${math`\sum_{k} \theta^{k} = \sum_{k} k! \frac{\theta^{k}}{k!}`}, so ${math`E(X^{k}) = k!`}.` } },
+    { kind: 'theorem', name: t`Uniqueness`, statement: t`If ${math`M_{X}`} and ${math`M_{Y}`} are finite and equal on some interval ${math`(-\delta, \delta)`}, then ${mX} and ${mY} have the same distribution.` },
+    { kind: 'p', text: t`This is stated without proof in the course. It is what lets you recognise a distribution from its mgf.` },
+    checkFrom(moments, { fam: 'poisson', a: q(3), b: q(1), n: 2, ask: 'second' }, t`${math`M'(\theta) = ${3}e^{\theta}M(\theta)`} gives ${math`E(X) = ${3}`}; differentiating again, ${math`M''(${0}) = ${3} + ${9} = ${12}`}.`),
+
+    { kind: 'section', title: t`Sums and linear changes` },
+    { kind: 'theorem', name: t`Sums and scalings`, statement: t`If ${mX} and ${mY} are independent, ${math`M_{X + Y}(\theta) = M_{X}(\theta)M_{Y}(\theta)`}. For constants ${math`a, b`}, ${math`M_{aX + b}(\theta) = e^{b\theta}M_{X}(a\theta)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split the exponential`, text: t`${math`e^{\theta(X + Y)} = e^{\theta X}e^{\theta Y}`}.` },
+        { label: t`Use independence`, text: t`${math`e^{\theta X}`} and ${math`e^{\theta Y}`} are functions of independent variables, so they are independent, and the mean of their product is the product of their means:`, eq: [dmath`M_{X + Y}(\theta) = E(e^{\theta X})\,E(e^{\theta Y}) = M_{X}(\theta)M_{Y}(\theta).`] },
+        { label: t`Linear change`, text: t`${math`e^{\theta(aX + b)} = e^{b\theta}e^{(a\theta)X}`}, and ${math`e^{b\theta}`} is a constant, so ${math`M_{aX + b}(\theta) = e^{b\theta}M_{X}(a\theta)`}.` },
+      ],
+    },
+    { kind: 'narrative', text: t`The normal distribution shows the power of this. For ${math`Z \sim N(${0}, ${1})`}, complete the square: ${math`\theta z - \frac{z^{${2}}}{${2}} = \frac{\theta^{${2}}}{${2}} - \frac{(z - \theta)^{${2}}}{${2}}`}.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Standard normal`, text: t`${math`M_{Z}(\theta) = \int_{-\infty}^{\infty} e^{\theta z}\frac{e^{-z^{${2}}/${2}}}{\sqrt{${2}\pi}}\,dz = e^{\theta^{${2}}/${2}}\int_{-\infty}^{\infty} \frac{e^{-(z - \theta)^{${2}}/${2}}}{\sqrt{${2}\pi}}\,dz = e^{\theta^{${2}}/${2}}`}.`, plain: t`The last integral is the total probability of an ${math`N(\theta, ${1})`} density, which is ${1}.` },
+        { label: t`Any normal`, text: t`${math`X = \mu + \sigma Z`} is ${math`N(\mu, \sigma^{${2}})`}, so ${math`M_{X}(\theta) = e^{\mu\theta}M_{Z}(\sigma\theta) = e^{\mu\theta + \sigma^{${2}}\theta^{${2}}/${2}}`}.` },
+        { label: t`Sums of normals`, text: t`For independent ${math`N(\mu_{${1}}, \sigma_{${1}}^{${2}})`} and ${math`N(\mu_{${2}}, \sigma_{${2}}^{${2}})`}, the product of the mgfs is ${math`e^{(\mu_{${1}} + \mu_{${2}})\theta + (\sigma_{${1}}^{${2}} + \sigma_{${2}}^{${2}})\theta^{${2}}/${2}}`}: by uniqueness, the sum is normal with mean ${math`\mu_{${1}} + \mu_{${2}}`} and variance ${math`\sigma_{${1}}^{${2}} + \sigma_{${2}}^{${2}}`}.` },
+      ],
+    },
+    {
+      kind: 'table', caption: t`Moment generating functions to know`, head: [t`distribution`, t`${math`M(\theta)`}`], rows: [
+        [t`${math`\text{Po}(\lambda)`}`, t`${math`e^{\lambda(e^{\theta} - ${1})}`}`],
+        [t`${math`B(n, p)`}`, t`${math`(${1} - p + pe^{\theta})^{n}`}`],
+        [t`exponential, rate ${math`\lambda`}`, t`${math`\frac{\lambda}{\lambda - \theta}`} for ${math`\theta < \lambda`}`],
+        [t`${math`N(\mu, \sigma^{${2}})`}`, t`${math`e^{\mu\theta + \sigma^{${2}}\theta^{${2}}/${2}}`}`],
+      ],
+    },
+    checkFrom(linear, { kind: 'sum-poisson', a: 2, b: 1, m1: 2, s1: 1, m2: 3, s2: 1 }, t`Multiply the mgfs: the exponents add, ${math`${2}(e^{\theta} - ${1}) + ${3}(e^{\theta} - ${1}) = ${5}(e^{\theta} - ${1})`}.`),
+
+    { kind: 'section', title: t`Limits and tails` },
+    { kind: 'theorem', name: t`Continuity theorem`, statement: t`If ${math`M_{X_{n}}(\theta) \to M_{X}(\theta)`} for every ${mth} in some interval ${math`(-\delta, \delta)`}, where all these are finite, then ${math`P(X_{n} \le x) \to P(X \le x)`} at every ${math`x`} where ${math`P(X \le x)`} is continuous in ${math`x`}.` },
+    { kind: 'p', text: t`This is the [[continuity-theorem|continuity theorem]], stated without proof in the course. Convergence of mgfs gives convergence of distributions: it is how the central limit theorem is proved.` },
+    { kind: 'p', text: t`For tails, apply Markov's inequality to the positive variable ${math`e^{\theta X}`}: for ${math`\theta \ge ${0}`}, ${math`X \ge x`} implies ${math`e^{\theta X} \ge e^{\theta x}`}, so ${dmath`P(X \ge x) \le e^{-\theta x}M_{X}(\theta).`} This is the [[chernoff-bound|Chernoff bound]]. It holds for every ${math`\theta \ge ${0}`}, so you may choose the ${mth} that makes it smallest. For ${math`\text{Po}(${LT})`} and ${math`x = ${XT}`}, the best choice gives about ${sig(chernoff({ lambda: LT, x: XT }), 3)}, where Markov alone gives ${sig(LT / XT, 3)}; the true tail is ${sig(1 - poissonCdf(LT, XT - 1), 3)}.` },
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`Every random variable has an mgf near ${0}.`, counterexample: t`If ${mX} has density ${math`${1}/x^{${2}}`} on ${math`x \ge ${1}`}, then ${math`E(e^{\theta X}) = \infty`} for every ${math`\theta > ${0}`}: the exponential beats ${math`x^{${2}}`}. Its mean is infinite too.` },
+    { kind: 'pitfall', claim: t`${math`M_{X + Y} = M_{X}M_{Y}`} for any ${mX} and ${mY}.`, counterexample: t`Take ${math`Y = X`}, with ${mX} equal to ${0} or ${1}, each with probability ${q(1, 2)}. Then ${math`M_{${2}X}(\theta) = \frac{${1} + e^{${2}\theta}}{${2}}`}, but ${math`M_{X}(\theta)^{${2}} = \frac{(${1} + e^{\theta})^{${2}}}{${4}}`}; at ${math`\theta = \ln ${2}`} these are ${q(5, 2)} and ${q(9, 4)}. Independence is needed.` },
+    { kind: 'pitfall', claim: t`${math`E(e^{X}) = e^{E(X)}`}.`, counterexample: t`For ${math`X \sim N(${0}, ${1})`}, ${math`E(e^{X}) = M_{X}(${1}) = e^{${1}/${2}}`}, not ${math`e^{${0}} = ${1}`}. The exponential is convex, so Jensen makes the left side larger.` },
+    { kind: 'takeaway', text: t`${math`M_{X}(\theta) = E(e^{\theta X})`} stores every moment as a derivative at ${0}, turns independent sums into products, and pins down the distribution.` },
   ],
   examples: [
-    workedCambridge(q6mean),
+    { ...workedCambridge(q6mean), examiner: t`The examiner looks for ${math`E(X)`} recognised as the mgf of ${math`\log X`} at ${math`\theta = ${1}`}, and the normal mgf quoted correctly.` },
     worked(moments, { fam: 'normal', a: q(3), b: q(2), n: 2, ask: 'variance' }, t`A variance from a normal mgf`),
     worked(linear, { kind: 'lin-normal', a: 2, b: 1, m1: 1, s1: 3, m2: 1, s2: 1 }, t`The mgf of ${math`${2}X + ${1}`}`),
   ],
@@ -375,5 +421,22 @@ export const mgf: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['mgf', 'continuity-theorem', 'chernoff-bound'],
   cambridge: [q6var, q3beta, q2b, q3, continuity],
-  gate: ['ia-s4-q6-a-variance', 'ia-s3-q3-a-beta', 'ia-s3-q2-b', 'ia-s3-q3'],
+  // The full sheet question first. The best beta is dropped: the Chernoff drill walks through that same optimisation.
+  gate: ['ia-s3-q3', 'ia-s4-q6-a-variance', 'ia-s3-q2-b'],
+  recall: [
+    { front: t`Define the moment generating function.`, back: t`${math`M_{X}(\theta) = E(e^{\theta X})`}, where finite.` },
+    { front: t`Moments from the mgf.`, back: t`If ${math`M_{X}`} is finite near ${0}, ${math`E(X^{k}) = M_{X}^{(k)}(${0})`}.` },
+    { front: t`The mgf of ${math`N(\mu, \sigma^{${2}})`}.`, back: t`${math`e^{\mu\theta + \sigma^{${2}}\theta^{${2}}/${2}}`}.` },
+    { front: t`The mgf of an independent sum, and of ${math`aX + b`}.`, back: t`${math`M_{X}M_{Y}`}; and ${math`e^{b\theta}M_{X}(a\theta)`}.` },
+    { front: t`State the continuity theorem.`, back: t`If ${math`M_{X_{n}} \to M_{X}`} near ${0}, then ${math`P(X_{n} \le x) \to P(X \le x)`} wherever the limit is continuous.` },
+  ],
+  proofOrder: [{
+    title: t`The mgf of an independent sum`,
+    steps: [
+      t`Write ${math`e^{\theta(X + Y)} = e^{\theta X}e^{\theta Y}`}.`,
+      t`${math`e^{\theta X}`} and ${math`e^{\theta Y}`} are independent, as functions of independent variables.`,
+      t`The mean of a product of independent variables is the product of the means.`,
+      t`So ${math`M_{X + Y}(\theta) = M_{X}(\theta)M_{Y}(\theta)`}.`,
+    ],
+  }],
 };

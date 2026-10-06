@@ -12,7 +12,7 @@ import { int, pick, upTo } from '../math';
 import { bigOmega, factorise } from '../numbers';
 import { generator, type Misconception } from '../problem';
 import { computedTex, listOf, math, t, type Span } from '../rich';
-import { worked, workedProof, type TopicContent } from '../topic';
+import { checkFrom, worked, workedProof, type TopicContent } from '../topic';
 
 const [mn, mk] = [math`n`, math`k`];
 const fib = (n: number): number => { let [a, b] = [0, 1]; for (let i = 0; i < n; i++) [a, b] = [b, a + b]; return a; };
@@ -281,15 +281,63 @@ const bop1042proof = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const STAMP = { a: 3, b: 5, from: 8 };
+const make = (n: number): [number, number] | null => {
+  for (let x = 0; 3 * x <= n; x++) if ((n - 3 * x) % 5 === 0) return [x, (n - 3 * x) / 5];
+  return null;
+};
+const showMake = (n: number): Span => { const [x, y] = make(n) as [number, number]; return math`${n} = ${STAMP.a} \times ${x} + ${STAMP.b} \times ${y}`; };
+const POST_CHECK = { a: 3, b: 7 };
+const postBad = unmakeable(POST_CHECK.a, POST_CHECK.b, POST_CHECK.a * POST_CHECK.b);
+const [mPn1, mell] = [math`P(n + ${1})`, math`\ell`];
+
 export const strongInduction: TopicContent = {
   topicId: 'proof.strong-induction',
   goal: t`Prove a statement for every ${mn} from a basis by strong induction, assuming every earlier case in the inductive step, with as many base cases as the step reaches back.`,
+  objective: t`Prove a statement by strong induction, assuming all earlier cases, with enough base cases.`,
+  why: t`Factorisation into primes, recursive algorithms and recurrences all lean on earlier cases, not just the last.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`Ordinary induction proves ${math`P(n + ${1})`} from ${math`P(n)`} alone. Sometimes the case just before is the wrong one to lean on: to factorise ${math`n + ${1} = p \cdot q`} we need the cases ${math`p`} and ${math`q`}, which can be anywhere below ${mn}.` },
-    { kind: 'rule', text: t`[[strong-induction|Strong induction]] from basis ${math`\ell`}: if ${math`P(\ell)`} holds, and for every ${math`n \ge \ell`}, ${math`P(k)`} for all ${math`\ell \le k \le n`} implies ${math`P(n + ${1})`}, then ${math`P(m)`} holds for every ${math`m \ge \ell`}.` },
-    { kind: 'p', text: t`It is no stronger than ordinary induction. The CST notes derive it by applying ordinary induction to ${math`P^{\#}(m)`}, "${math`P(k)`} for every ${mk} from ${math`\ell`} to ${math`m`}": the hypothesis ${math`P^{\#}(n)`} is exactly the list of earlier cases.` },
-    { kind: 'p', text: t`The model proof is Proposition ${96}: every number from ${2} on is a prime or a product of primes. If ${math`n + ${1}`} is not prime it is ${math`p \cdot q`} with both factors between ${2} and ${mn}, and the hypothesis factorises each. For ${360}: ${math`${360} = ${2} \times ${180}`}, and so on, down to ${math`${factTex(360)}`}.` },
-    { kind: 'p', text: t`When the step reaches back a fixed distance, the base cases must cover that distance. Book of Proof's postage example makes ${math`k + ${1}`} cents from ${math`k - ${2}`} cents and one ${3}-cent stamp, so it checks three base cases, ${8}, ${9}, and ${10} cents. A Fibonacci-style recurrence ${math`a_{n} = a_{n - ${1}} + a_{n - ${2}}`} needs two.` },
+    { kind: 'section', title: t`Leaning on an earlier case` },
+    { kind: 'hook', text: t`With ${STAMP.a}-cent and ${STAMP.b}-cent stamps, which postages can you pay exactly? ${showMake(8)}, ${showMake(9)}, ${showMake(10)}, ${showMake(11)}. It looks as though every amount from ${STAMP.from} cents on works. How would you prove it?` },
+    { kind: 'narrative', text: t`Try ordinary induction: assume ${mn} cents can be made, and make ${math`n + ${1}`}. That is awkward: there is no stamp worth ${1} cent. But one extra ${STAMP.a}-cent stamp turns ${math`n - ${2}`} cents into ${math`n + ${1}`}. So the natural step leans on the case three back, not the case just before.` },
+    { kind: 'narrative', text: t`The fix is to let the inductive step assume every earlier case, not only the last one. That sounds like cheating. It is not, and the proof that it is not is short.` },
+    { kind: 'section', title: t`The principle` },
+    {
+      kind: 'theorem',
+      name: t`Strong induction`,
+      statement: t`Let ${math`\ell \in \mathbb{N}`}. Suppose ${math`P(\ell)`} holds, and for every ${math`n \ge \ell`}, if ${math`P(k)`} holds for all ${mk} with ${math`\ell \le k \le n`}, then ${mPn1} holds. Then ${math`P(m)`} holds for every ${math`m \ge \ell`}.`,
+    },
+    { kind: 'p', text: t`This is [[strong-induction|strong induction]]. The hypothesis in the step, "${math`P(k)`} for every ${mk} from ${mell} to ${mn}", is the strong induction hypothesis. Some arguments need more than one base case; we come back to that below.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Bundle the earlier cases`, text: t`Let ${math`Q(m)`} be the statement "${math`P(k)`} holds for every ${mk} with ${math`\ell \le k \le m`}". The Cambridge notes call it ${math`P^{\#}(m)`}.`, plain: t`${math`Q(m)`} says all the cases up to ${math`m`} are true at once.` },
+        { label: t`Base case`, text: t`${math`Q(\ell)`} is just ${math`P(\ell)`}, which holds.` },
+        { label: t`Ordinary step`, text: t`Let ${math`n \ge \ell`} and assume ${math`Q(n)`}. By the hypothesis of the theorem, ${mPn1} holds. Together with ${math`Q(n)`}, that is ${math`Q(n + ${1})`}.` },
+        { label: t`Conclude`, text: t`By ordinary induction from basis ${mell}, ${math`Q(m)`} holds for every ${math`m \ge \ell`}, and ${math`Q(m)`} includes ${math`P(m)`}.` },
+      ],
+    },
+    { kind: 'p', text: t`So strong induction is ordinary induction applied to a bigger statement. It proves nothing new; it only makes some proofs easier to write. The model proof in the Cambridge notes is Proposition ${96}, worked below: every number from ${2} on is a prime or a product of primes. A composite ${math`n + ${1}`} splits as ${math`p \cdot q`} with both factors between ${2} and ${mn}, anywhere below, and the hypothesis factorises each. For ${360} the splitting ends at ${factTex(360)}.` },
+    { kind: 'section', title: t`Postage, with three base cases` },
+    { kind: 'theorem', statement: t`Every whole number ${math`n \ge ${STAMP.from}`} is ${math`${STAMP.a}x + ${STAMP.b}y`} for some ${math`x, y \in \mathbb{N}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Base cases`, text: t`${showMake(8)}, ${showMake(9)}, ${showMake(10)}.`, plain: t`Three base cases, because the step reaches back three.` },
+        { label: t`Hypothesis`, text: t`Let ${math`n \ge ${10}`}, and assume every amount from ${STAMP.from} to ${mn} can be made.` },
+        { label: t`Reach back`, text: t`Since ${math`n \ge ${10}`}, ${math`n - ${2} \ge ${STAMP.from}`}, so by the hypothesis ${math`n - ${2} = ${STAMP.a}x + ${STAMP.b}y`} for some natural ${math`x, y`}.`, why: { q: t`Why does the step start at ${10}, not ${STAMP.from}?`, a: t`The step uses the case ${math`n - ${2}`}, which must be ${STAMP.from} or more to be covered. That needs ${math`n \ge ${10}`}. The amounts ${9} and ${10} are not reached by the step, which is why they are base cases.` } },
+        { label: t`Add a stamp`, text: t`Then ${math`n + ${1} = ${STAMP.a}(x + ${1}) + ${STAMP.b}y`}.` },
+        { label: t`Conclude`, text: t`By strong induction from basis ${STAMP.from}, with base cases ${8}, ${9} and ${10}, every amount from ${STAMP.from} cents on can be made.` },
+      ],
+    },
+    { kind: 'p', text: t`The rule: if the step reaches back ${math`r`} places, check ${math`r`} base cases in a row. A Fibonacci-style recurrence ${math`a_{n} = a_{n - ${1}} + a_{n - ${2}}`} reaches back two, so it needs two.` },
+    checkFrom(postageThreshold, POST_CHECK, t`With ${POST_CHECK.a} and ${POST_CHECK.b} cents, the amounts that cannot be made are ${listOf(postBad)}. From ${(postBad[postBad.length - 1] as number) + 1} on, three in a row can be made, and adding ${POST_CHECK.a}-cent stamps reaches everything after.`),
+    { kind: 'pitfall', claim: t`Every amount from ${STAMP.b} cents on can be made with ${STAMP.a}-cent and ${STAMP.b}-cent stamps: the base case ${showMake(5)} holds, and ${math`n - ${2}`} gives ${math`n + ${1}`} by adding a ${STAMP.a}-cent stamp.`, counterexample: t`${7} cents cannot be made. The step for ${math`n + ${1} = ${7}`} needs the case ${4}, which no base case covers. One base case is not enough when the step reaches back three.` },
+    checkFrom(tilings, { kind: 'tiles13', n: 6 }, t`The last tile is a ${1} (leaving length ${5}: ${4} tilings) or a ${3} (leaving length ${3}: ${2} tilings), so ${math`${4} + ${2} = ${6}`}. The step reaches back three, so three base cases start it.`),
+    { kind: 'takeaway', text: t`Strong induction assumes every earlier case in the step; it is ordinary induction in disguise, and it needs as many base cases as the step reaches back.` },
   ],
   examples: [
     prop96,
@@ -300,5 +348,23 @@ export const strongInduction: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['strong-induction'],
   cambridge: [stamps47, bop1032, bop1025, bop1042, sheet431, treeProof, bop1042proof],
+  // The gcd correctness proof by induction from basis 2 is the one Cambridge-standard problem;
+  // the rest are Book of Proof.
   gate: ['sheet-4-3-1'],
+  recall: [
+    { front: t`State strong induction from basis ${mell}.`, back: t`If ${math`P(\ell)`} holds and, for every ${math`n \ge \ell`}, ${math`P(\ell), \ldots, P(n)`} together imply ${mPn1}, then ${math`P(m)`} holds for every ${math`m \ge \ell`}.` },
+    { front: t`Why is strong induction valid?`, back: t`It is ordinary induction on ${math`Q(m)`}: "${math`P(k)`} for every ${mk} from ${mell} to ${math`m`}".` },
+    { front: t`How many base cases does a step need?`, back: t`As many as it reaches back: a step from ${math`n - ${2}`} to ${math`n + ${1}`} needs three in a row.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Postage from ${STAMP.from} cents`,
+      steps: [
+        t`Base cases: ${8}, ${9} and ${10} cents can be made.`,
+        t`Assume every amount from ${STAMP.from} to ${mn} can be made, with ${math`n \ge ${10}`}.`,
+        t`Then ${math`n - ${2}`} can be made.`,
+        t`Add one ${STAMP.a}-cent stamp to make ${math`n + ${1}`}.`,
+      ],
+    },
+  ],
 };

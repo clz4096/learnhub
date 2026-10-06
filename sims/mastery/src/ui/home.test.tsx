@@ -166,6 +166,8 @@ describe('Home and the browser history', () => {
     go({ view: 'today' });
     go({ view: 'task', index: 0 });
     render(<App />);
+    // Read the lesson's named sections through to the worked examples.
+    for (let i = 0; i < 20 && screen.queryByRole('button', { name: 'Next: worked examples' }) === null; i++) fireEvent.click(screen.getByRole('button', { name: /^Next: / }));
     fireEvent.click(screen.getByRole('button', { name: 'Next: worked examples' }));
     fireEvent.click(screen.getByRole('button', { name: 'Next: practice' }));
     fireEvent.click(screen.getByRole('button', { name: /^Show me how/ }));

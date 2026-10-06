@@ -8,8 +8,8 @@ import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computedTex, join, math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { computedTex, dmath, join, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 import { average, far, rpow, rsum, throwsOf } from '../partv-a';
 
 const MIX = 'step-mixed-stats1' as const;
@@ -237,30 +237,60 @@ const q2proof = supervision({
 
 // ---------------------------------------------------------------- lesson
 
-/** One run of the penguin boxes, true when at least n boxes are needed. */
-const atLeastBoxes = (p: Rational, n: number, rng: Rng): boolean => {
-  const first = rng() < toFloat(p);
-  let boxes = 1;
-  while ((rng() < toFloat(p)) === first) boxes++;
-  return boxes + 1 >= n;
-};
+const MIN2: DiceP = { m: 6, k: 2, which: 'min' };
+const minTails = Array.from({ length: 6 }, (_, i) => tail(MIN2, i + 1));
 const claims: ProbabilityClaim[] = [
-  { what: 'penguins with p = 1/3: at least four boxes', exact: add(rpow(q(1, 3), 3), rpow(q(2, 3), 3)), trial: (rng) => atLeastBoxes(q(1, 3), 4, rng) },
+  { what: 'two dice: the smaller is at least 3', exact: tail(MIN2, 3), trial: (rng: Rng) => Math.min(1 + Math.floor(rng() * 6), 1 + Math.floor(rng() * 6)) >= 3 },
 ];
+const mX = math`X`;
 
 export const tailSum: TopicContent = {
   topicId: 'rv.tail-sum',
   goal: t`For ${math`X`} taking values ${0}, ${1}, ${2}, and so on, compute ${math`E(X)`} as ${math`\sum_{n \ge ${1}} P(X \ge n)`}, and use it when the tails are easier than the distribution.`,
+  objective: t`Find the mean of a whole-number random variable by adding its tail probabilities.`,
+  why: t`For minima, maxima and waiting times the tails are easy when the distribution is not; STEP uses this often.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The tail probabilities of ${math`X`} are ${math`P(X \ge ${1}), P(X \ge ${2}), \ldots`}. For a random variable with values ${0}, ${1}, ${2}, and so on, they add up to the mean.` },
-    { kind: 'rule', text: t`The [[tail-sum-formula|tail-sum formula]]: ${math`E(X) = \sum_{n = ${1}}^{\infty} P(X \ge n)`}.` },
-    { kind: 'p', text: t`Why: write ${math`n \, P(X = n)`} as ${math`n`} copies of ${math`P(X = n)`}, one in each of the first ${math`n`} rows. Row ${math`k`} then holds ${math`P(X = k) + P(X = k + ${1}) + \cdots = P(X \ge k)`}, and adding the rows gives ${math`E(X)`}. The terms are all at least ${0}, so rearranging them does not change the sum.` },
+    { kind: 'section', title: t`An easier question` },
+    { kind: 'hook', text: t`Throw two dice and keep the smaller number. What is its average? Working out ${math`P(X = n)`} for each ${math`n`} takes care. But ${math`P(X \ge n)`} is easy: the smaller is at least ${math`n`} exactly when both dice are. Could the easy numbers give the mean directly?` },
+    { kind: 'narrative', text: t`They can. For two dice, ${math`P(X \ge n) = \left(\frac{${7} - n}{${6}}\right)^{${2}}`}, for ${math`n`} from ${1} to ${6}. The claim of this lesson is that simply adding these six numbers gives ${math`E(X)`}. Before believing it, let us see why it should be true.` },
+    { kind: 'section', title: t`The tail-sum formula` },
+    {
+      kind: 'definition',
+      name: t`Tail probabilities`,
+      formal: t`For a random variable ${mX} with values in ${math`\{${0}, ${1}, ${2}, \ldots\}`}, the tail probabilities are ${math`P(X \ge n)`} for ${math`n = ${1}, ${2}, \ldots`}. Its expectation is ${math`E(X) = \sum_{k = ${0}}^{\infty} k\,P(X = k)`}.`,
+      plain: t`In plain words: the chance that ${mX} is at least ${math`n`}, for each ${math`n`}. They start at ${math`P(X \ge ${1})`} and can only go down as ${math`n`} grows.`,
+    },
+    { kind: 'theorem', name: t`Tail-sum formula`, statement: t`If ${mX} takes values in ${math`\{${0}, ${1}, ${2}, \ldots\}`}, then ${math`E(X) = \sum_{n = ${1}}^{\infty} P(X \ge n)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split each term`, text: t`Write ${math`k\,P(X = k)`} as ${math`k`} copies of ${math`P(X = k)`}, and put one copy in each of rows ${1} to ${math`k`}.`, plain: t`So ${math`${3}\,P(X = ${3})`} becomes ${math`P(X = ${3}) + P(X = ${3}) + P(X = ${3})`}, one in each of rows ${1}, ${2}, ${3}. The term for ${math`k = ${0}`} contributes nothing.` },
+        { label: t`Read the rows`, text: t`Row ${math`n`} holds ${math`P(X = k)`} for every ${math`k \ge n`}, so it adds up to ${math`P(X \ge n)`}.` },
+        { label: t`Add the rows`, text: t`The rows hold exactly the same terms as ${math`\sum_{k} k\,P(X = k)`}, so`, eq: [dmath`E(X) = \sum_{n = ${1}}^{\infty} P(X \ge n).`], why: { q: t`Is it safe to rearrange an infinite sum?`, a: t`Here yes: every term is at least ${0}, and a series of non-negative terms has the same sum (possibly infinite) in any order. Mixed STEP ${1} Statistics, question ${2}, asks you to say why.` } },
+      ],
+    },
     { kind: 'list', items: [
       t`${math`P(X = ${1}) + P(X = ${2}) + P(X = ${3}) + \cdots = P(X \ge ${1})`}`,
       t`${math`\phantom{P(X = ${1}) + {}} P(X = ${2}) + P(X = ${3}) + \cdots = P(X \ge ${2})`}`,
       t`${math`\phantom{P(X = ${1}) + P(X = ${2}) + {}} P(X = ${3}) + \cdots = P(X \ge ${3})`}`,
     ] },
-    { kind: 'p', text: t`Use it when "at least ${math`n`}" is easy. In Mixed STEP ${1} Statistics Q${2}, at least ${math`n`} boxes are needed to collect both kinds of penguin exactly when the first ${math`n - ${1}`} boxes match, so ${math`P(X \ge n) = p^{n - ${1}} + q^{n - ${1}}`} for ${math`n \ge ${2}`}. Take care with ${math`n = ${1}`}: ${math`P(X \ge ${1}) = ${1}`}, not ${2}. For ${math`p = ${q(1, 3)}`}, ${math`P(X \ge ${4}) = ${add(rpow(q(1, 3), 3), rpow(q(2, 3), 3))}`}, and ${math`E(X) = \frac{${1}}{pq} - ${1} = ${pengMean(q(1, 3))}`}.` },
+    { kind: 'p', text: t`That triangle is the whole [[tail-sum-formula|tail-sum formula]]: read it by columns and you get the definition of ${math`E(X)`}; read it by rows and you get the sum of the tails.` },
+    { kind: 'section', title: t`Using it` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The tails`, text: t`For the smaller of two dice, ${math`P(X \ge n) = \left(\frac{${7} - n}{${6}}\right)^{${2}}`}, which is ${computedTex(minTails.map((x) => `\\frac{${(x.num * 36n) / x.den}}{${36}}`).join(', '))} for ${math`n = ${1}, \ldots, ${6}`}.`, plain: t`Both dice must show at least ${math`n`}; each does so with probability ${math`\frac{${7} - n}{${6}}`}, independently.` },
+        { label: t`Add them`, text: t`${math`E(X) = ${diceMean(MIN2)}`}, about ${Number(toFloat(diceMean(MIN2)).toFixed(2))}.`, plain: t`Below ${q(7, 2)}, the mean of one die, as it should be: the smaller of two is pulled down.` },
+      ],
+    },
+    checkFrom(extremeOfDice, { m: 4, k: 2, which: 'max' }, t`${math`P(X \ge n) = ${1} - \left(\frac{n - ${1}}{${4}}\right)^{${2}}`}: ${math`${1} + \frac{${15}}{${16}} + \frac{${12}}{${16}} + \frac{${7}}{${16}} = ${q(25, 8)}`}.`),
+    { kind: 'narrative', text: t`Waiting times are the other natural use. If each trial succeeds with probability ${math`p`}, independently, and ${mX} is the number of trials up to and including the first success, then ${math`X \ge n`} means the first ${math`n - ${1}`} trials failed: ${math`P(X \ge n) = (${1} - p)^{n - ${1}}`}. The tail sum is a geometric series, ${math`E(X) = \sum_{n \ge ${1}} (${1} - p)^{n - ${1}} = \frac{${1}}{p}`}.` },
+    checkFrom(tailsGiven, { den: 8, nums: [7, 4, 1] }, t`Just add the tails: ${math`\frac{${7}}{${8}} + \frac{${4}}{${8}} + \frac{${1}}{${8}} = ${q(12, 8)}`}.`),
+    { kind: 'pitfall', claim: t`${math`E(X) = \sum_{n \ge ${1}} P(X > n)`}.`, counterexample: t`That drops a whole row of the triangle. For ${mX} always equal to ${1}, ${math`P(X > n) = ${0}`} for every ${math`n \ge ${1}`}, so the sum is ${0}, but ${math`E(X) = ${1}`}. Use "at least ${math`n`}", starting at ${math`n = ${1}`}.` },
+    { kind: 'pitfall', claim: t`A formula for ${math`P(X \ge n)`} found for large ${math`n`} also holds at ${math`n = ${1}`}.`, counterexample: t`Always check the first term separately. If ${mX} only takes values from ${1} on, then ${math`P(X \ge ${1}) = ${1}`}, whatever the general formula gives. Mixed STEP ${1} Statistics, question ${2}, sets exactly this trap.` },
+    { kind: 'takeaway', text: t`For whole-number ${mX}, ${math`E(X) = \sum_{n \ge ${1}} P(X \ge n)`}: count the triangle by rows instead of columns, and use it when "at least ${math`n`}" is the easy event.` },
   ],
   examples: [
     workedCambridge(q2mean),
@@ -272,5 +302,22 @@ export const tailSum: TopicContent = {
   terms: ['tail-sum-formula'],
   claims,
   cambridge: [q2tail, q2min, q2proof],
-  gate: ['mixed-q2-tail', 'mixed-q2-least', 'mixed-q2-proof'],
+  // Best first: defining E(X) and proving the formula, then the least mean, then the tail.
+  gate: ['mixed-q2-proof', 'mixed-q2-least', 'mixed-q2-tail'],
+  recall: [
+    { front: t`State the tail-sum formula.`, back: t`For ${mX} with values ${0}, ${1}, ${2}, and so on, ${math`E(X) = \sum_{n \ge ${1}} P(X \ge n)`}.` },
+    { front: t`Why is the tail-sum formula true?`, back: t`Write ${math`k\,P(X = k)`} as ${math`k`} copies in rows ${1} to ${math`k`}; row ${math`n`} adds up to ${math`P(X \ge n)`}.` },
+    { front: t`Mean number of trials to the first success, by tails?`, back: t`${math`\sum_{n \ge ${1}} (${1} - p)^{n - ${1}} = \frac{${1}}{p}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The tail-sum formula`,
+      steps: [
+        t`Write ${math`k\,P(X = k)`} as ${math`k`} copies of ${math`P(X = k)`}.`,
+        t`Put one copy in each of rows ${1} to ${math`k`}.`,
+        t`Row ${math`n`} adds up to ${math`P(X \ge n)`}.`,
+        t`The terms are non-negative, so adding by rows gives ${math`E(X)`}.`,
+      ],
+    },
+  ],
 };

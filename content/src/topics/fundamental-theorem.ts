@@ -15,7 +15,7 @@ import { int, pick } from '../math';
 import { divisors, factorise, gcd } from '../numbers';
 import { generator, type Misconception } from '../problem';
 import { computedTex, listOf, math, t, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const mn = math`n`;
 const PR = [2, 3, 5, 7, 11];
@@ -220,18 +220,75 @@ const bop101 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [mm, md] = [math`m`, math`d`];
+const DV = 360;
+const expCounts = (n: number): number[] => factorise(n).map(([, e]) => e + 1);
+const [GA, GB] = [72, 120];
+
 export const fundamentalTheorem: TopicContent = {
   topicId: 'num.fundamental-theorem',
   goal: t`Prove that every integer ${math`n \ge ${2}`} is a product of primes in exactly one way up to order, and use unique factorisation to compute gcds, lcms, and numbers of divisors.`,
+  objective: t`Prove that prime factorisation exists and is unique, and use it for gcds, lcms, and divisor counts.`,
+  why: t`Unique factorisation underlies nearly every argument about integers, from irrationality proofs to RSA.`,
+  minutes: 25,
   lesson: [
-    { kind: 'rule', text: t`The [[fundamental-theorem-arithmetic|fundamental theorem of arithmetic]] (Theorem ${97}): every positive integer is the product of a unique finite ordered sequence of primes ${math`p_{${1}} \le \cdots \le p_{\ell}`}. For ${1} the sequence is empty.` },
-    { kind: 'p', text: t`Existence is Proposition ${96}, by strong induction: a composite number splits into two smaller factors, each a product of primes. Uniqueness needs Euclid's theorem: if ${math`p_{${1}} \cdots p_{\ell} = q_{${1}} \cdots q_{k}`}, then ${math`p_{${1}}`} divides the right side, so it divides, and equals, some ${math`q_{i}`}; so ${math`q_{${1}} \le p_{${1}}`}, and by symmetry ${math`p_{${1}} = q_{${1}}`}. Cancel and repeat.` },
-    { kind: 'p', text: t`Uniqueness is not automatic. In ${math`\{${1}, ${5}, ${9}, ${13}, \ldots\}`}, closed under multiplication, ${9}, ${21}, and ${49} cannot be split further there, yet ${math`${441} = ${9} \times ${49} = ${21} \times ${21}`}. What fails is Euclid's theorem.` },
-    { kind: 'p', text: t`The notes' restatement: ${math`n = \prod_{p} p^{n_{p}}`}, the product over all primes, with only finitely many ${math`n_{p} \ne ${0}`}. Then ${math`\gcd`} takes minimum exponents and ${math`\operatorname{lcm}`} maximum ones: ${math`${1224} = ${factTex(1224)}`} and ${math`${660} = ${factTex(660)}`} give ${math`\gcd = ${2}^{${2}} \cdot ${3} = ${12}`} (Example ${99}).` },
-    { kind: 'p', text: t`Divisors of ${mn} are exactly the products of its primes with exponents no larger, so ${mn} has ${math`\prod (n_{p} + ${1})`} of them: ${1224} has ${math`${4} \times ${3} \times ${2} = ${24}`}, matching the notes' list ${math`D(${1224})`}, which begins ${listOf(divisors(1224).slice(0, 6))}.` },
+    { kind: 'section', title: t`Atoms of multiplication` },
+    { kind: 'hook', text: t`${math`${DV} = ${factTex(DV)}`}. However you start, splitting ${DV} as ${math`${10} \times ${36}`} or ${math`${8} \times ${45}`}, you end with the same primes. That feels obvious. It is not: there are number systems where it fails, and the proof needs a real idea.` },
+    {
+      kind: 'theorem',
+      name: t`Fundamental theorem of arithmetic`,
+      statement: t`Every integer ${math`n \ge ${2}`} can be written as a product of primes ${math`n = p_{${1}} p_{${2}} \cdots p_{\ell}`} with ${math`p_{${1}} \le p_{${2}} \le \cdots \le p_{\ell}`}, and this sequence of primes is unique.`,
+    },
+    { kind: 'p', text: t`This is the [[fundamental-theorem-arithmetic|fundamental theorem of arithmetic]], the notes' Theorem ${97}. Sorting the primes is how "up to order" is made precise: ${math`${2} \cdot ${3} \cdot ${2}`} and ${math`${2} \cdot ${2} \cdot ${3}`} are the same factorisation, and sorting turns both into the second. A prime is its own factorisation, with ${math`\ell = ${1}`}.` },
+    { kind: 'section', title: t`Existence` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Strong induction`, text: t`Let ${math`n \ge ${2}`}, and assume every integer from ${2} to ${math`n - ${1}`} is a product of primes.`, plain: t`Strong induction lets us use the claim for every smaller number, not just ${math`n - ${1}`}.` },
+        { label: t`If ${mn} is prime`, text: t`Then ${mn} is a product of one prime, itself.`, plain: t`Nothing to do.` },
+        { label: t`If ${mn} is composite`, text: t`Then ${math`n = ab`} with ${math`${2} \le a, b < n`}.`, plain: t`Composite means it has a divisor strictly between ${1} and ${mn}. ${math`${DV} = ${10} \times ${36}`}.` },
+        { label: t`Combine`, text: t`By the hypothesis, ${math`a`} and ${math`b`} are products of primes, so ${math`n = ab`} is too. Sort the primes.`, plain: t`Put the two lists together.` },
+      ],
+    },
+    { kind: 'section', title: t`Uniqueness` },
+    { kind: 'narrative', text: t`For uniqueness, take two factorisations of the same ${mn} and show they agree, prime by prime. The key is Euclid's lemma: a prime dividing a product divides one of the factors.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Set up`, text: t`By strong induction on ${mn}: suppose every integer from ${2} to ${math`n - ${1}`} has a unique factorisation, and ${math`n = p_{${1}} \cdots p_{\ell} = q_{${1}} \cdots q_{k}`}, both sorted.`, plain: t`Two lists of primes with the same product.` },
+        {
+          label: t`The smallest primes agree`, text: t`${math`p_{${1}} \mid q_{${1}} \cdots q_{k}`}, so by Euclid's lemma ${math`p_{${1}} \mid q_{i}`} for some ${math`i`}, and as ${math`q_{i}`} is prime, ${math`p_{${1}} = q_{i} \ge q_{${1}}`}. In the same way ${math`q_{${1}} \ge p_{${1}}`}. So ${math`p_{${1}} = q_{${1}}`}.`,
+          plain: t`The prime ${math`p_{${1}}`} must appear on the right, so it is at least the smallest prime there; and the other way round.`,
+          why: { q: t`Why does ${math`p_{${1}} \mid q_{i}`} force ${math`p_{${1}} = q_{i}`}?`, a: t`A prime ${math`q_{i}`} has only the divisors ${1} and ${math`q_{i}`}, and ${math`p_{${1}}`} is not ${1}.` },
+        },
+        { label: t`Cancel`, text: t`Let ${math`m = n / p_{${1}}`}. If ${math`m = ${1}`}, both lists are just ${math`p_{${1}}`}. Otherwise ${math`m = p_{${2}} \cdots p_{\ell} = q_{${2}} \cdots q_{k}`} with ${math`${2} \le m < n`}.`, plain: t`Divide both sides by the common smallest prime.` },
+        { label: t`Use the hypothesis`, text: t`${mm} has a unique factorisation, so the remaining lists agree: ${math`\ell = k`} and ${math`p_{i} = q_{i}`} for every ${math`i`}.`, plain: t`So the two original lists were the same list.` },
+      ],
+    },
+    {
+      kind: 'pitfall',
+      claim: t`Unique factorisation is automatic in any set of numbers closed under multiplication.`,
+      counterexample: t`In ${math`\{${1}, ${5}, ${9}, ${13}, \ldots\}`}, the numbers ${math`\equiv ${1} \pmod{${4}}`}, the numbers ${9}, ${21}, and ${49} cannot be split further inside the set, yet ${math`${441} = ${9} \times ${49} = ${21} \times ${21}`}. Euclid's lemma fails there: ${21} divides ${math`${9} \times ${49}`} but neither factor.`,
+    },
+    { kind: 'section', title: t`Using it` },
+    {
+      kind: 'p',
+      text: t`The notes restate the theorem as ${math`n = \prod_{p} p^{n_{p}}`}, over all primes, with only finitely many exponents ${math`n_{p}`} nonzero. Then a divisor of ${mn} is exactly a product of the same primes with exponents no larger, so ${mn} has ${math`\prod_{p} (n_{p} + ${1})`} divisors. ${math`${DV} = ${factTex(DV)}`} has ${math`${computedTex(expCounts(DV).join(' \\times '))} = ${divisors(DV).length}`}.`,
+      why: { q: t`Why is every divisor of that form?`, a: t`If ${math`d \mid n`}, then ${math`n = de`}, and the factorisation of ${mn} is the factorisations of ${md} and ${math`e`} put together, by uniqueness. So each prime appears in ${md} at most as often as in ${mn}.` },
+    },
+    { kind: 'p', text: t`The gcd takes the smaller exponent of each prime, and the lcm the larger: ${math`${GA} = ${factTex(GA)}`} and ${math`${GB} = ${factTex(GB)}`} give ${math`\gcd = ${gcd(GA, GB)}`} and ${math`\operatorname{lcm} = ${GA * GB / gcd(GA, GB)}`}.` },
+    quickCheck({
+      prompt: t`How many positive divisors has ${math`${2}^{${4}} \cdot ${3}^{${2}} = ${16 * 9}`}?`,
+      answer: { kind: 'exact', expected: String(divisors(16 * 9).length) },
+      reference: String(divisors(16 * 9).length),
+      why: t`Choose the power of ${2} from ${0} to ${4} (${5} ways) and of ${3} from ${0} to ${2} (${3} ways): ${math`${5} \times ${3} = ${divisors(16 * 9).length}`}.`,
+    }),
+    { kind: 'takeaway', text: t`Every integer from ${2} up is a product of primes in exactly one sorted way; existence is strong induction, uniqueness is Euclid's lemma, and exponents then give gcds, lcms, and divisor counts.` },
   ],
   examples: [
-    workedCambridge(notes99),
+    { ...workedCambridge(notes99), examiner: t`Both numbers fully factorised first, then the minimum exponent taken prime by prime, including primes missing from one number.` },
     worked(countDivisors, { es: [3, 2, 0, 0, 1] }, t`The divisors of ${build([3, 2, 0, 0, 1])}`),
     worked(makeSquare, { es: [3, 2, 1, 0, 0] }, t`Making ${build([3, 2, 1, 0, 0])} a square`),
   ],
@@ -239,5 +296,23 @@ export const fundamentalTheorem: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fundamental-theorem-arithmetic'],
   cambridge: [notes98, notes68, homework302, bop101],
-  gate: ['notes-304-example-98', 'notes-208-example-68', 'notes-302-homework'],
+  // The uniqueness proof by induction. Examples 98 and 68 are single computations, left out.
+  gate: ['notes-302-homework'],
+  recall: [
+    { front: t`State the fundamental theorem of arithmetic.`, back: t`Every integer ${math`n \ge ${2}`} is a product of primes, and the sorted list of primes is unique.` },
+    { front: t`Which lemma gives uniqueness?`, back: t`Euclid's lemma: if a prime divides a product, it divides one of the factors.` },
+    { front: t`How many divisors has ${math`\prod_{p} p^{n_{p}}`}?`, back: t`${math`\prod_{p} (n_{p} + ${1})`}.` },
+    { front: t`The gcd and lcm in terms of exponents?`, back: t`The gcd takes the minimum exponent of each prime, the lcm the maximum.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Uniqueness of prime factorisation`,
+      steps: [
+        t`Suppose ${math`p_{${1}} \cdots p_{\ell} = q_{${1}} \cdots q_{k}`}, both sorted.`,
+        t`${math`p_{${1}}`} divides the right side, so it equals some ${math`q_{i}`}, and ${math`p_{${1}} \ge q_{${1}}`}.`,
+        t`By symmetry ${math`q_{${1}} \ge p_{${1}}`}, so ${math`p_{${1}} = q_{${1}}`}.`,
+        t`Cancel it; the smaller number has a unique factorisation, so the rest agree.`,
+      ],
+    },
+  ],
 };

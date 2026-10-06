@@ -9,7 +9,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, sample, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, listOf, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const PRIMES = [2, 3, 5, 7, 11, 13] as const;
 
@@ -346,21 +346,57 @@ const a12explain = supervision({
 // ---------------------------------------------------------------- lesson
 
 const L = 360;
+const mn = math`n`;
+const T30 = triples(30);
 
 export const primeFactorisation: TopicContent = {
   topicId: 'pre.prime-factorisation',
   goal: t`Write a whole number as a product of primes in index form, and use the factorisation to list or count its divisors.`,
+  objective: t`Write a whole number as a product of primes, and use it to count divisors and list factorisations.`,
+  why: t`Primes are the atoms of the whole numbers; STEP puzzles and every divisibility proof start here.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`A [[prime-number|prime number]] is a whole number greater than ${1} whose only positive divisors are ${1} and itself: ${listOf([2, 3, 5, 7, 11, 13])}, and so on. ${1} is not prime.` },
-    { kind: 'p', text: t`Every whole number greater than ${1} is a product of primes, its [[prime-factorisation|prime factorisation]]. To find it, divide by the smallest prime that goes in, and repeat on what is left until you reach ${1}. For ${L}:` },
+    { kind: 'section', title: t`Three ages, one product` },
+    { kind: 'hook', text: t`Three bell ringers' ages multiply to ${AGES}. What could the ages be? Trying numbers at random is hopeless. But break ${AGES} into its smallest building blocks, the primes, and every possible set of ages can be listed, with none missed. That is the STEP Support puzzle this lesson builds up to.` },
+
+    { kind: 'section', title: t`Primes and factorisations` },
+    { kind: 'definition', name: t`Prime number`, formal: t`An integer ${math`p > ${1}`} is a [[prime-number|prime number]] if its only positive divisors are ${1} and ${math`p`}.`, plain: t`${listOf([2, 3, 5, 7, 11, 13])}, and so on. ${1} is not prime, and ${15} is not, since ${math`${15} = ${3} \times ${5}`}.` },
+    { kind: 'theorem', name: t`Factorisations exist`, statement: t`Every integer ${math`n > ${1}`} is a product of primes (a prime itself counts as a product of one prime).` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Suppose not`, text: t`Suppose some integer greater than ${1} is not a product of primes, and let ${mn} be the smallest such integer.` },
+        { label: t`It is not prime`, text: t`${mn} is not prime, since a prime is a product of one prime. So ${math`n = ab`} with ${math`${1} < a, b < n`}.` },
+        { label: t`The smaller factors are products of primes`, text: t`${math`a`} and ${math`b`} are greater than ${1} and smaller than ${mn}, so, as ${mn} was the smallest exception, each is a product of primes.` },
+        { label: t`Contradiction`, text: t`Then ${math`n = ab`} is a product of primes too, which contradicts the choice of ${mn}.` },
+      ],
+    },
+    { kind: 'p', text: t`This is the [[prime-factorisation|prime factorisation]]. The proof also gives a method: divide by the smallest prime that goes in, and repeat on what is left until you reach ${1}. For ${L}:` },
     { kind: 'list', items: divisionSteps(L) },
-    { kind: 'rule', text: t`So ${math`${L} = ${computedTex(primeFactors(L).join(' \\times '))}`}, or in [[index-form|index form]], ${dmath`${L} = ${computedTex(indexTex(L))}.`}` },
-    { kind: 'p', text: t`The order of the division does not matter: every route gives the same primes with the same powers. That is the Fundamental Theorem of Arithmetic, proved later in the course; for now, it means one factorisation answers every question about the number.` },
-    { kind: 'p', text: t`A factorisation lists the divisors too. A divisor of ${L} uses the same primes with powers no bigger: ${powers(L).map(([p, e]) => t`the power of ${p} is one of ${listOf(Array.from({ length: e + 1 }, (_, i) => i))}`).reduce<Rich>((acc, r, i) => (i === 0 ? r : [...acc, ...t`; `, ...r]), [])}. By the product rule there are ${math`${computedTex(powers(L).map(([, e]) => `${e + 1}`).join(' \\times '))} = ${divisorCount(L)}`} divisors.` },
-    { kind: 'p', text: t`The STEP Support hints use this for the bell ringers puzzle: "write ${AGES} as a product of prime factors, and then carefully and logically write down all possible sets of three ages". Being systematic, listing in increasing order by the smallest number, is what makes sure no case is missed.` },
+    { kind: 'definition', name: t`Index form`, formal: t`A factorisation is in [[index-form|index form]] when each prime appears once, with a power: ${math`n = p_{${1}}^{e_{${1}}} p_{${2}}^{e_{${2}}} \cdots p_{r}^{e_{r}}`} with primes ${math`p_{${1}} < p_{${2}} < \cdots < p_{r}`} and powers ${math`e_{i} \ge ${1}`}.`, plain: t`${math`${L} = ${computedTex(primeFactors(L).join(' \\times '))} = ${computedTex(indexTex(L))}`}.` },
+    { kind: 'p', text: t`Every route of division gives the same primes with the same powers. That uniqueness is the Fundamental Theorem of Arithmetic, proved later in the course; for now it means one factorisation answers every question about the number.` },
+    checkFrom(factorise, { fs: [2, 3, 3, 7] }, t`Divide by ${2}, then ${3} twice, leaving the prime ${7}.`),
+    checkFrom(exponent, { fs: [2, 2, 2, 3, 5], p: 2 }, t`${2} divides ${120} three times: ${math`${120} = ${2}^{${3}} \times ${3} \times ${5}`}.`),
+
+    { kind: 'section', title: t`Counting divisors` },
+    { kind: 'theorem', name: t`Number of divisors`, statement: t`If ${math`n = p_{${1}}^{e_{${1}}} \cdots p_{r}^{e_{r}}`} in index form, then ${mn} has exactly ${math`(e_{${1}} + ${1})(e_{${2}} + ${1})\cdots(e_{r} + ${1})`} positive divisors.` },
+    { kind: 'p', text: t`Why: a divisor of ${mn} uses only the primes of ${mn}, each with a power from ${0} up to its power in ${mn} (this uses uniqueness). That is ${math`e_{i} + ${1}`} choices for each prime, made independently, so the product rule multiplies them. For ${L}: ${powers(L).map(([p, e]) => t`the power of ${p} is one of ${listOf(Array.from({ length: e + 1 }, (_, i) => i))}`).reduce<Rich>((acc, r, i) => (i === 0 ? r : [...acc, ...t`; `, ...r]), [])}, so ${math`${computedTex(powers(L).map(([, e]) => `${e + 1}`).join(' \\times '))} = ${divisorCount(L)}`} divisors.`, why: { q: t`Why may the power of ${0} be chosen?`, a: t`A power of ${0} means that prime is left out: ${math`p^{${0}} = ${1}`}. Choosing ${0} for every prime gives the divisor ${1}; choosing every full power gives ${mn} itself.` } },
+    checkFrom(divisors, { fs: [2, 2, 3, 3, 5] }, t`${math`${180} = ${2}^{${2}} \times ${3}^{${2}} \times ${5}`}, so ${math`(${2} + ${1})(${2} + ${1})(${1} + ${1}) = ${18}`}.`),
+
+    { kind: 'section', title: t`Listing systematically` },
+    { kind: 'narrative', text: t`The STEP hints to the bell ringers puzzle say: write ${AGES} as a product of prime factors, then carefully and logically write down all possible sets of three ages. "Logically" means in an order that cannot miss a case: by the smallest age, in increasing order, and for each smallest age by the middle one.` },
+    { kind: 'p', text: t`For a product of ${30}: the smallest age is at most ${math`\sqrt[${3}]{${30}}`}, about ${Math.round(Math.cbrt(30) * 10) / 10}, so it is at most ${3}. Listing in order gives ${T30.length} sets: ${computedTex(T30.map((x) => `(${x.join(', ')})`).join(',\\ '))}.`, why: { q: t`Why is the smallest at most the cube root?`, a: t`If all three were bigger than ${math`\sqrt[${3}]{${30}}`}, their product would be bigger than ${30}.` } },
+    checkFrom(tripleCount, { fs: [2, 3, 7] }, t`List by the smallest number, ${1} or ${2}: ${computedTex(triples(42).map((x) => `(${x.join(', ')})`).join(',\\ '))}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${1} is a prime number.`, counterexample: t`A prime must be greater than ${1}. If ${1} were prime, factorisations would not be unique: ${math`${6} = ${2} \times ${3} = ${1} \times ${2} \times ${3}`}.` },
+    { kind: 'pitfall', claim: t`${math`${AGES} = ${2} \times ${25} \times ${49}`} is its prime factorisation.`, counterexample: t`${25} and ${49} are not prime: ${math`${25} = ${5}^{${2}}`} and ${math`${49} = ${7}^{${2}}`}. Keep dividing until every factor is prime.` },
+    { kind: 'pitfall', claim: t`The number of divisors of ${math`p^{a}q^{b}`} is ${math`ab`}.`, counterexample: t`${math`${12} = ${2}^{${2}} \times ${3}`} has divisors ${listOf(upTo(12).filter((d) => 12 % d === 0))}: ${divisorCount(12)}, which is ${math`(${2} + ${1})(${1} + ${1})`}, not ${math`${2} \times ${1}`}. The power ${0} is a choice too.` },
+    { kind: 'takeaway', text: t`Divide by the smallest prime until you reach ${1}: the primes found, in index form, determine every divisor of the number.` },
   ],
   examples: [
-    workedCambridge(a12factor),
+    { ...workedCambridge(a12factor), examiner: t`The examiner looks for each division shown and the result in index form, the starting point the hints insist on.` },
     worked(divisors, { fs: [2, 2, 3, 5, 5] }, t`The divisors of ${2 * 2 * 3 * 5 * 5}`),
     worked(tripleCount, { fs: [2, 2, 3, 5] }, t`Three ages with product ${2 * 2 * 3 * 5}`),
   ],
@@ -368,5 +404,20 @@ export const primeFactorisation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['prime-number', 'prime-factorisation', 'index-form'],
   cambridge: [a12sets, a12imam, a12rabbi, a12explain],
-  gate: ['a12-q4-sets', 'a12-q4-imam', 'a12-q4-rabbi', 'a12-q4-explain'],
+  // The puzzle's final answer first; it needs every earlier step.
+  gate: ['a12-q4-rabbi', 'a12-q4-imam', 'a12-q4-explain', 'a12-q4-sets'],
+  recall: [
+    { front: t`Define a prime number.`, back: t`An integer greater than ${1} whose only positive divisors are ${1} and itself.` },
+    { front: t`Why does every integer above ${1} have a prime factorisation?`, back: t`A smallest exception would not be prime, so it splits into two smaller factors, each a product of primes: a contradiction.` },
+    { front: t`The number of divisors of ${math`p_{${1}}^{e_{${1}}} \cdots p_{r}^{e_{r}}`}.`, back: t`${math`(e_{${1}} + ${1})\cdots(e_{r} + ${1})`}.` },
+  ],
+  proofOrder: [{
+    title: t`Every integer above ${1} is a product of primes`,
+    steps: [
+      t`Suppose not, and let ${mn} be the smallest exception.`,
+      t`${mn} is not prime, so ${math`n = ab`} with ${math`${1} < a, b < n`}.`,
+      t`${math`a`} and ${math`b`} are smaller, so each is a product of primes.`,
+      t`So ${mn} is a product of primes: a contradiction.`,
+    ],
+  }],
 };

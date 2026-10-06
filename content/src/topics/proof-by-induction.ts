@@ -10,8 +10,8 @@
 import { auto, cite, same, supervision } from '../cambridge';
 import { factorial, int, pick, q, str, upTo, add, mul, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computedMath, dmath, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedMath, dmath, listOf, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mn, mk] = [math`n`, math`k`];
 
@@ -395,18 +395,94 @@ const polyaProof = supervision({
 // ---------------------------------------------------------------- lesson
 
 const ODD = 5;
+const oddSums = upTo(ODD).map((n) => upTo(n).reduce((s, i) => s + 2 * i - 1, 0));
+const EULER = 41;
+const [mPk, mPk1] = [math`P(k)`, math`P(k + ${1})`];
 
 export const proofByInduction: TopicContent = {
   topicId: 'alg.proof-by-induction',
   goal: t`Prove a statement for every natural number by [[induction|induction]]: a base case, then an inductive step from ${mk} to ${math`k + ${1}`}, from basis ${0} or from a later basis.`,
+  objective: t`Prove a statement for every natural number with a base case and an inductive step.`,
+  why: t`Induction proves sums, divisibility and inequalities for all n at once; strong induction and recursion build on it.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`The natural numbers are made from ${0} by adding ${1} again and again. So a statement ${math`P(m)`} that holds at ${0}, and that always passes from each number to the next, holds for all of them. That is [[induction|proof by induction]]: like a row of dominoes where the first falls and each knocks over the next.` },
-    { kind: 'rule', text: t`The Principle of Induction (CST notes): if ${math`P(${0})`} holds, and ${math`\forall n \in \mathbb{N}.\ P(n) \Rightarrow P(n + ${1})`} holds, then ${math`\forall m \in \mathbb{N}.\ P(m)`} holds.` },
-    { kind: 'p', text: t`The notes' template: say that the proof uses induction; define the property ${math`P(m)`}; prove ${math`P(${0})`}, the [[base-case|base case]]; prove ${math`P(n) \Rightarrow P(n + ${1})`} for every ${mn}, the inductive step, assuming ${math`P(n)`} (the [[induction-hypothesis|induction hypothesis]]) and deducing ${math`P(n + ${1})`}; and conclude by the Principle of Induction. Label each part.` },
-    { kind: 'p', text: t`Example: ${math`${1} + ${3} + \cdots + (${2}n - ${1}) = n^{${2}}`} for ${math`n \ge ${1}`}. Base case: ${math`${1} = ${1}^{${2}}`}. Step: if the first ${mk} odd numbers add up to ${math`k^{${2}}`}, the first ${math`k + ${1}`} add up to ${math`k^{${2}} + (${2}k + ${1}) = (k + ${1})^{${2}}`}. Check: the first ${ODD} odd numbers add up to ${upTo(ODD).reduce((s, i) => s + 2 * i - 1, 0)}, which is ${math`${ODD}^{${2}}`}.` },
-    { kind: 'p', text: t`Both parts are needed. "${math`n^{${2}} + n`} is odd" has a working inductive step, since ${math`(k + ${1})^{${2}} + (k + ${1}) = (k^{${2}} + k) + ${2}(k + ${1})`}, but no base case: it is false for every ${mn}. And a base case alone proves only one value.` },
-    { kind: 'p', text: t`Induction from a basis (the notes' Technique ${1}): to prove ${math`P(m)`} for every ${math`m \ge \ell`}, prove ${math`P(\ell)`} and ${math`P(n) \Rightarrow P(n + ${1})`} for every ${math`n \ge \ell`}. For example ${math`${2}^{n} > n^{${2}}`} fails at ${math`n = ${2}, ${3}, ${4}`} but holds for every ${math`n \ge ${5}`}: base case ${math`${2 ** 5} > ${5 ** 2}`}, and the step uses ${math`${2}k^{${2}} > (k + ${1})^{${2}}`} for ${math`k \ge ${5}`}.` },
-    { kind: 'rule', text: t`In the inductive step for a sum, split off the last term: ${dmath`\sum_{i=${1}}^{k + ${1}} f(i) = \left(\sum_{i=${1}}^{k} f(i)\right) + f(k + ${1}),`} use the hypothesis on the bracket, and simplify to the formula with ${math`k + ${1}`} in place of ${mn}.` },
+    { kind: 'section', title: t`A pattern that will not stop` },
+    { kind: 'hook', text: t`Add up odd numbers, starting from ${1}: ${listOf(oddSums)}. Those are the squares ${math`${1}^{${2}}, ${2}^{${2}}, ${3}^{${2}}, ${4}^{${2}}, ${5}^{${2}}`}. Does the pattern go on for ever? You could check a million cases and still not know about the next one.` },
+    { kind: 'narrative', text: t`Here is a different idea. Instead of checking cases one at a time, check a link between cases: show that whenever the pattern holds for some number ${mk}, it is forced to hold for ${math`k + ${1}`} as well.` },
+    { kind: 'narrative', text: t`Suppose the first ${mk} odd numbers add up to ${math`k^{${2}}`}. The next odd number is ${math`${2}k + ${1}`}. Adding it gives ${math`k^{${2}} + ${2}k + ${1}`}, and that is exactly ${math`(k + ${1})^{${2}}`}. So the pattern can never be the first to fail: each case hands the truth on to the next.` },
+    { kind: 'narrative', text: t`Now picture a row of dominoes. The link says each domino, if it falls, knocks over the next. Knock over the first, and every one falls. That is the whole idea of proof by [[induction|induction]].` },
+    { kind: 'section', title: t`The principle` },
+    {
+      kind: 'definition',
+      name: t`Natural numbers`,
+      formal: t`The natural numbers are ${math`\mathbb{N} = \{${0}, ${1}, ${2}, \ldots\}`}. A property ${math`P(n)`} of natural numbers is a statement about ${mn} that is true or false for each ${math`n \in \mathbb{N}`}.`,
+      plain: t`In plain words: the counting numbers, starting at ${0} as in the Cambridge Discrete Mathematics notes. "${math`n^{${2}} \ge n`}" is a property: ${math`P(${3})`} says ${math`${9} \ge ${3}`}.`,
+    },
+    {
+      kind: 'theorem',
+      name: t`Principle of Induction`,
+      statement: t`Let ${math`P(n)`} be a property of natural numbers. If ${math`P(${0})`} holds, and for every ${math`k \in \mathbb{N}`}, ${mPk} implies ${mPk1}, then ${math`P(n)`} holds for every ${math`n \in \mathbb{N}`}.`,
+    },
+    {
+      kind: 'p',
+      text: t`The two hypotheses have names. Proving ${math`P(${0})`} is the [[base-case|base case]]. Proving "${mPk} implies ${mPk1}" is the inductive step, and inside it the assumption ${mPk} is the [[induction-hypothesis|induction hypothesis]].`,
+      why: { q: t`Why is the principle true?`, a: t`Every natural number is reached from ${0} by adding ${1} some number of times. ${math`P(${0})`} holds; the step turns it into ${math`P(${1})`}, then ${math`P(${2})`}, and so on, reaching any ${mn} after ${mn} uses. In a formal treatment this is taken as a basic property (an axiom) of ${math`\mathbb{N}`}.` },
+    },
+    { kind: 'narrative', text: t`The inductive step proves an implication. You do not know ${mPk} is true; you assume it, for an arbitrary ${mk}, and show ${mPk1} would follow. That is why it is called a hypothesis.` },
+    {
+      kind: 'list',
+      items: [
+        t`Say that the proof is by induction, and state the property ${math`P(n)`} exactly.`,
+        t`Base case: prove ${math`P(${0})`}, or ${math`P(${1})`} if the claim starts there.`,
+        t`Inductive step: let ${mk} be arbitrary, assume ${mPk}, and deduce ${mPk1}. Point out where the hypothesis is used.`,
+        t`Conclude: by the Principle of Induction, ${math`P(n)`} holds for every ${mn}.`,
+      ],
+    },
+    { kind: 'section', title: t`A first proof` },
+    { kind: 'theorem', statement: t`For every integer ${math`n \ge ${1}`}, ${math`${1} + ${3} + \cdots + (${2}n - ${1}) = n^{${2}}`}, that is, ${math`\sum_{i=${1}}^{n} (${2}i - ${1}) = n^{${2}}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The property`, text: t`Let ${math`P(n)`} be the statement ${math`\sum_{i=${1}}^{n} (${2}i - ${1}) = n^{${2}}`}. We prove it for all ${math`n \ge ${1}`} by induction on ${mn}.` },
+        { label: t`Base case`, text: t`For ${math`n = ${1}`} the sum has one term, ${math`${2} \times ${1} - ${1} = ${1}`}, and ${math`${1}^{${2}} = ${1}`}. So ${math`P(${1})`} holds.` },
+        { label: t`Induction hypothesis`, text: t`Let ${math`k \ge ${1}`} and assume ${mPk}: ${math`\sum_{i=${1}}^{k} (${2}i - ${1}) = k^{${2}}`}.`, plain: t`Assume the first ${mk} odd numbers add up to ${math`k^{${2}}`}. (If ${mk} were ${4}, that says ${math`${1} + ${3} + ${5} + ${7} = ${16}`}.)` },
+        { label: t`Split off the last term`, text: t`The sum to ${math`k + ${1}`} is the sum to ${mk} plus the term with ${math`i = k + ${1}`}:`, eq: [dmath`\sum_{i=${1}}^{k + ${1}} (${2}i - ${1}) = \sum_{i=${1}}^{k} (${2}i - ${1}) + (${2}(k + ${1}) - ${1}).`] },
+        { label: t`Use the hypothesis`, text: t`Replace the first sum by ${math`k^{${2}}`}, and simplify ${math`${2}(k + ${1}) - ${1} = ${2}k + ${1}`}:`, eq: [dmath`\sum_{i=${1}}^{k + ${1}} (${2}i - ${1}) = k^{${2}} + ${2}k + ${1}.`] },
+        { label: t`Recognise the square`, text: t`${math`k^{${2}} + ${2}k + ${1} = (k + ${1})^{${2}}`}, so ${mPk1} holds.`, why: { q: t`Why is that a square?`, a: t`Expand ${math`(k + ${1})^{${2}} = (k + ${1})(k + ${1}) = k^{${2}} + k + k + ${1}`}, which is ${math`k^{${2}} + ${2}k + ${1}`}.` } },
+        { label: t`Conclude`, text: t`${math`P(${1})`} holds, and ${mPk} implies ${mPk1} for every ${math`k \ge ${1}`}, so by induction ${math`P(n)`} holds for every ${math`n \ge ${1}`}.` },
+      ],
+    },
+    {
+      kind: 'rule',
+      text: t`The move in the middle works for every sum: split off the last term, ${dmath`\sum_{i=${1}}^{k + ${1}} f(i) = \left(\sum_{i=${1}}^{k} f(i)\right) + f(k + ${1}),`} use the hypothesis on the bracket, and simplify until you reach the formula with ${math`k + ${1}`} in place of ${mn}.`,
+    },
+    checkFrom(sumStep, { s: 0 }, t`The hypothesis gives ${math`\frac{k(k + ${1})}{${2}}`} for the sum to ${mk}; adding ${math`k + ${1}`} gives ${math`\frac{(k + ${1})(k + ${2})}{${2}}`}.`),
+    { kind: 'section', title: t`Both halves are needed` },
+    { kind: 'narrative', text: t`It is tempting to think the inductive step is the real proof and the base case a formality. It is not, and neither is the other way round.` },
+    { kind: 'pitfall', claim: t`${math`n^{${2}} + n`} is odd for every ${mn}: if ${math`k^{${2}} + k`} is odd, then so is ${math`(k + ${1})^{${2}} + (k + ${1}) = (k^{${2}} + k) + ${2}(k + ${1})`}.`, counterexample: t`The step is valid, since odd plus even is odd, but there is no base case: ${math`${0}^{${2}} + ${0} = ${0}`} is even. In fact ${math`n^{${2}} + n = n(n + ${1})`} is always even. Without a first domino, nothing falls.` },
+    { kind: 'pitfall', claim: t`${math`n^{${2}} - n + ${EULER}`} is prime for every ${mn}: it is prime for every ${mn} from ${0} to ${EULER - 1}.`, counterexample: t`At ${math`n = ${EULER}`} it equals ${math`${EULER}^{${2}} = ${EULER * EULER}`}, which is not prime. Checking many cases, with no inductive step, proves nothing about the next one.` },
+    { kind: 'section', title: t`Starting later` },
+    { kind: 'narrative', text: t`Some statements are false for small numbers and true from some point on. Take ${math`${2}^{n} > n^{${2}}`}: it fails at ${math`n = ${2}, ${3}, ${4}`} (for instance ${math`${2}^{${3}} = ${8}`} and ${math`${3}^{${2}} = ${9}`}), then holds from ${5} on. The dominoes can start anywhere.` },
+    {
+      kind: 'theorem',
+      name: t`Induction from a basis`,
+      statement: t`Let ${math`\ell \in \mathbb{N}`}. If ${math`P(\ell)`} holds, and for every ${math`k \ge \ell`}, ${mPk} implies ${mPk1}, then ${math`P(n)`} holds for every ${math`n \ge \ell`}.`,
+    },
+    { kind: 'p', text: t`It follows from the Principle of Induction applied to ${math`Q(m) = P(\ell + m)`}: then ${math`Q(${0})`} is ${math`P(\ell)`}, and ${math`Q(m) \Rightarrow Q(m + ${1})`} is the step for ${math`k = \ell + m`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Base case`, text: t`At ${math`n = ${5}`}: ${math`${2}^{${5}} = ${2 ** 5} > ${25} = ${5}^{${2}}`}.` },
+        { label: t`Hypothesis`, text: t`Let ${math`k \ge ${5}`} and assume ${math`${2}^{k} > k^{${2}}`}.` },
+        { label: t`Double both sides`, text: t`Multiply by ${2}:`, eq: [dmath`${2}^{k + ${1}} = ${2} \times ${2}^{k} > ${2}k^{${2}}.`] },
+        { label: t`Compare with the target`, text: t`It remains to show ${math`${2}k^{${2}} \ge (k + ${1})^{${2}}`}. Their difference is ${math`${2}k^{${2}} - (k^{${2}} + ${2}k + ${1}) = (k - ${1})^{${2}} - ${2}`}, and ${math`k \ge ${5}`} gives ${math`(k - ${1})^{${2}} \ge ${16} > ${2}`}.`, why: { q: t`Where does ${math`(k - ${1})^{${2}} - ${2}`} come from?`, a: t`${math`${2}k^{${2}} - k^{${2}} - ${2}k - ${1} = k^{${2}} - ${2}k - ${1}`}, and ${math`k^{${2}} - ${2}k + ${1} = (k - ${1})^{${2}}`}, so ${math`k^{${2}} - ${2}k - ${1} = (k - ${1})^{${2}} - ${2}`}.` } },
+        { label: t`Conclude`, text: t`So ${math`${2}^{k + ${1}} > ${2}k^{${2}} \ge (k + ${1})^{${2}}`}, which is the statement for ${math`k + ${1}`}. By induction from basis ${5}, ${math`${2}^{n} > n^{${2}}`} for every ${math`n \ge ${5}`}.` },
+      ],
+    },
+    checkFrom(basis, { j: 3 }, t`It fails at ${math`n = ${2}`}, since ${math`${2}^{${2}} = ${4}`} is not more than ${5}, and holds from ${3} on.`),
+    { kind: 'takeaway', text: t`Prove the first case, prove that each case forces the next, and the statement holds for every number from the first case on.` },
   ],
   examples: [
     workedCambridge(fibI),
@@ -417,5 +493,26 @@ export const proofByInduction: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['induction', 'base-case', 'induction-hypothesis'],
   cambridge: [fibII, fibIII, bop9, tromino, polygon, polyaQ, bop13, sw412, sw422, sw411, polyaProof],
-  gate: ['sw-4-2-3-g-ii', 'sw-4-2-3-g-iii', 'sw-4-1-2-count', 'sw-4-1-1-step', 'ia-q10', 'sw-4-1-2', 'sw-4-2-2', 'sw-4-1-1', 'ia-q10-proof'],
+  // Best first: the full induction proofs (tiling, Bernoulli, the Polya urn, polygons), then
+  // the Polya answer and the Fibonacci conjectures. The tile count and the polygon's 180
+  // degrees are arithmetic, not induction, so they do not gate.
+  gate: ['sw-4-1-2', 'sw-4-2-2', 'ia-q10-proof', 'sw-4-1-1', 'ia-q10', 'sw-4-2-3-g-iii', 'sw-4-2-3-g-ii'],
+  recall: [
+    { front: t`State the Principle of Induction.`, back: t`If ${math`P(${0})`} holds and ${mPk} implies ${mPk1} for every ${math`k \in \mathbb{N}`}, then ${math`P(n)`} holds for every ${math`n \in \mathbb{N}`}.` },
+    { front: t`What are the base case, the inductive step and the induction hypothesis?`, back: t`Base case: prove ${math`P(${0})`}. Step: for arbitrary ${mk}, assume ${mPk} (the hypothesis) and deduce ${mPk1}.` },
+    { front: t`State induction from a basis ${math`\ell`}.`, back: t`If ${math`P(\ell)`} holds and ${mPk} implies ${mPk1} for every ${math`k \ge \ell`}, then ${math`P(n)`} holds for every ${math`n \ge \ell`}.` },
+    { front: t`In the step for a sum formula, what is the first move?`, back: t`Split off the last term: the sum to ${math`k + ${1}`} is the sum to ${mk} plus ${math`f(k + ${1})`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The sum of the first ${mn} odd numbers is ${math`n^{${2}}`}`,
+      steps: [
+        t`Base case: ${math`${1} = ${1}^{${2}}`}.`,
+        t`Assume the first ${mk} odd numbers add up to ${math`k^{${2}}`}.`,
+        t`The sum of the first ${math`k + ${1}`} is ${math`k^{${2}} + (${2}k + ${1})`}.`,
+        t`That equals ${math`(k + ${1})^{${2}}`}, the statement for ${math`k + ${1}`}.`,
+        t`By induction it holds for every ${math`n \ge ${1}`}.`,
+      ],
+    },
+  ],
 };

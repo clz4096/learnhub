@@ -9,7 +9,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, frac, ident, math, t } from '../rich';
-import { worked, workedProof, type TopicContent } from '../topic';
+import { checkFrom, worked, workedProof, type TopicContent } from '../topic';
 
 const POS = { kind: 'real', min: 0.5, max: 3 } as const;
 const INT = { kind: 'integer', min: -4, max: 4 } as const;
@@ -237,34 +237,83 @@ const a12Q1iii = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [mm, mn] = [math`m`, math`n`];
+
 export const indices: TopicContent = {
   topicId: 'pre.indices',
   goal: t`Multiply, divide, and raise powers, including zero, negative, and fractional indices.`,
+  objective: t`Multiply, divide, and raise powers, and say what zero, negative, and fractional indices mean.`,
+  why: t`Every later topic writes numbers as powers; STEP questions turn on rewriting one power as another.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`A [[power|power]] is repeated multiplication: ${math`${2}^{${5}} = ${2} \times ${2} \times ${2} \times ${2} \times ${2} = ${2 ** 5}`}. The ${2} is the [[base|base]] and the ${5} is the [[index|index]] (also called the exponent): how many copies of the base are multiplied.` },
-    { kind: 'p', text: t`Multiplying powers of the same base puts the copies together: ${math`${2}^{${3}} \times ${2}^{${4}} = ${2 ** 3} \times ${2 ** 4} = ${2 ** 7} = ${2}^{${7}}`}. Dividing takes copies away: ${math`\frac{${2}^{${6}}}{${2}^{${2}}} = ${2 ** 6 / 2 ** 2} = ${2}^{${4}}`}.` },
+    { kind: 'section', title: t`Copies of a number` },
+    { kind: 'hook', text: t`${math`${2}^{${3}}`} means three ${2}s multiplied together. So what could ${math`${2}^{${0}}`} mean, zero ${2}s multiplied together? Or ${math`${2}^{-${1}}`}, minus one of them? Or ${math`${8}^{${2}/${3}}`}? None of these makes sense as counting copies. Yet each has exactly one sensible value, and the way to find it is to insist that the rules keep working.` },
+
+    { kind: 'section', title: t`Powers and the three laws` },
+    { kind: 'definition', name: t`Power`, formal: t`For a real number ${mx} and a positive integer ${mn}, ${dmath`x^{n} = \underbrace{x \times x \times \cdots \times x}_{n \text{ copies}}.`} ${mx} is the [[base|base]] and ${mn} is the [[index|index]] (or exponent).`, plain: t`A [[power|power]] is repeated multiplication: ${math`${2}^{${5}} = ${2} \times ${2} \times ${2} \times ${2} \times ${2} = ${2 ** 5}`}, five copies of the base ${2}.` },
+    { kind: 'theorem', name: t`Laws of indices`, statement: t`For a real number ${mx} and positive integers ${mm}, ${mn}: (i) ${ident('x^m * x^n', 'x^(m + n)', ['x', 'm', 'n'], D)}; (ii) ${ident('(x^m)^n', 'x^(m n)', ['x', 'm', 'n'], D)}; (iii) if ${math`x \ne ${0}`} and ${math`m > n`}, ${ident('x^m / x^n', 'x^(m - n)', ['x', 'm', 'n'], D)}.` },
+    { kind: 'narrative', text: t`Each law is just counting copies. Try it with numbers first: ${math`${2}^{${3}} \times ${2}^{${4}} = ${2 ** 3} \times ${2 ** 4} = ${2 ** 7}`}, and ${math`${2}^{${7}} = ${2 ** 7}`} too.` },
     {
-      kind: 'list',
-      items: [
-        t`Multiply: ${ident('x^m * x^n', 'x^(m + n)', ['x', 'm', 'n'], D)}.`,
-        t`Divide: ${ident('x^m / x^n', 'x^(m - n)', ['x', 'm', 'n'], D)}.`,
-        t`Power of a power: ${ident('(x^m)^n', 'x^(m n)', ['x', 'm', 'n'], D)}.`,
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Multiply`, text: t`${math`x^{m} \times x^{n}`} is ${mm} copies of ${mx} followed by ${mn} more copies: ${math`m + n`} copies in all, which is ${math`x^{m + n}`}.`, plain: t`${math`${2}^{${3}} \times ${2}^{${4}}`} is ${math`(${2} \times ${2} \times ${2}) \times (${2} \times ${2} \times ${2} \times ${2})`}: seven ${2}s.` },
+        { label: t`Power of a power`, text: t`${math`(x^{m})^{n}`} is ${mn} blocks, each of ${mm} copies: ${math`mn`} copies in all, which is ${math`x^{mn}`}.`, plain: t`${math`(${2}^{${3}})^{${2}} = (${2} \times ${2} \times ${2}) \times (${2} \times ${2} \times ${2}) = ${2}^{${6}}`}.` },
+        { label: t`Divide`, text: t`In ${math`x^{m}/x^{n}`}, each of the ${mn} copies on the bottom cancels one of the ${mm} copies on top (allowed, since ${math`x \ne ${0}`}), leaving ${math`m - n`} copies: ${math`x^{m - n}`}.`, plain: t`${math`\frac{${2}^{${6}}}{${2}^{${2}}} = \frac{${2 ** 6}}{${2 ** 2}} = ${2 ** 4} = ${2}^{${4}}`}.` },
       ],
     },
-    { kind: 'p', text: t`The division rule explains the [[zero-index|zero index]]: ${math`\frac{${2}^{${3}}}{${2}^{${3}}}`} is ${1}, and the rule gives ${math`${2}^{${0}}`}. So ${ident('x^0', '1', ['x'], D)} for every nonzero ${mx}.` },
-    { kind: 'p', text: t`Zero indices matter in proofs. The CST supervision exercises ask whether ${2} divides ${math`${2}^{n}`} for every natural number ${math`n`}. In that course ${math`\mathbb{N}`} starts at ${0}, and ${math`${2}^{${0}} = ${1}`}, so the claim fails at ${math`n = ${0}`}.` },
-    { kind: 'p', text: t`It also explains [[negative-index|negative indices]]: ${math`\frac{${2}^{${2}}}{${2}^{${5}}} = ${frac(2 ** 2, 2 ** 5)} = ${q(2 ** 2, 2 ** 5)}`}, and the rule gives ${math`${2}^{${-3}}`}. So ${ident('x^(-n)', '1/x^n', ['x', 'n'], D)}. A negative index never makes the number negative.` },
-    { kind: 'p', text: t`A [[fractional-index|fractional index]] is a root. Since ${math`\left(${9}^{${1}/${2}}\right)^{${2}} = ${9}^{${1}} = ${9}`}, the number ${math`${9}^{${1}/${2}}`} is the square root of ${9}: ${math`\sqrt{${9}} = ${Math.sqrt(9)}`}. In general ${math`x^{m/n}`} is the ${math`n`}th root of ${mx}, raised to the power ${math`m`}: ${dmath`x^{m/n} = \left(\sqrt[n]{x}\right)^{m}, \qquad ${8}^{${2}/${3}} = ${Math.cbrt(8)}^{${2}} = ${Math.cbrt(8) ** 2}.`}` },
+    checkFrom(combine, { a: 6, b: 3, c: 4 }, t`Add the indices on top, ${math`${6} + ${3} = ${9}`}, then subtract the bottom one: ${math`${9} - ${4} = ${5}`}.`),
+
+    { kind: 'section', title: t`Zero and negative indices` },
+    { kind: 'narrative', text: t`Law (iii) needed ${math`m > n`}. What if we want it to hold for ${math`m = n`} too? Then ${math`x^{n}/x^{n} = x^{${0}}`}. But anything nonzero divided by itself is ${1}. So if the law is to survive, there is only one choice.` },
+    { kind: 'definition', name: t`Zero and negative indices`, formal: t`For ${math`x \ne ${0}`} and a positive integer ${mn}, ${math`x^{${0}} = ${1}`} and ${math`x^{-n} = \frac{${1}}{x^{n}}`}.`, plain: t`The [[zero-index|zero index]] gives ${1}; a [[negative-index|negative index]] means one over the power. So ${math`${2}^{-${3}} = \frac{${1}}{${2 ** 3}}`}: a small positive number, not a negative one.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Why ${math`x^{${0}} = ${1}`}`, text: t`Law (i) with ${math`m = ${0}`} would say ${math`x^{${0}} \times x^{n} = x^{n}`}. Divide both sides by ${math`x^{n}`}, which is not ${0}: ${math`x^{${0}} = ${1}`}.` },
+        { label: t`Why ${math`x^{-n} = ${1}/x^{n}`}`, text: t`Law (i) with ${math`m = -n`} would say ${math`x^{-n} \times x^{n} = x^{${0}} = ${1}`}. Divide by ${math`x^{n}`}: ${math`x^{-n} = \frac{${1}}{x^{n}}`}.`, plain: t`Check with numbers: ${math`\frac{${2}^{${2}}}{${2}^{${5}}} = \frac{${4}}{${32}} = ${q(1, 8)}`}, and the division law says ${math`${2}^{${2} - ${5}} = ${2}^{-${3}}`}.` },
+        { label: t`The laws still hold`, text: t`With these definitions, laws (i) to (iii) hold for all integers ${mm}, ${mn} and every ${math`x \ne ${0}`}, with no condition ${math`m > n`}.`, why: { q: t`Do we need to check that?`, a: t`Yes, and it is a case check: for example, if ${math`m > ${0} > -n`}, write ${math`x^{m} \times x^{-n} = x^{m}/x^{n}`} and use law (iii) or its mirror image. The definitions were chosen so that every case works.` } },
+      ],
+    },
+    { kind: 'p', text: t`The zero index matters in proofs. A CST supervision exercise asks whether ${2} divides ${math`${2}^{n}`} for every natural number ${mn}. In that course ${math`\mathbb{N}`} starts at ${0}, and ${math`${2}^{${0}} = ${1}`}, which ${2} does not divide.` },
+
+    { kind: 'section', title: t`Fractional indices` },
+    { kind: 'narrative', text: t`Now push law (ii) further. What should ${math`${9}^{${1}/${2}}`} be? If law (ii) is to hold, ${math`\left(${9}^{${1}/${2}}\right)^{${2}} = ${9}^{${1}} = ${9}`}. So ${math`${9}^{${1}/${2}}`} is a number whose square is ${9}: we take the positive one, ${Math.sqrt(9)}.` },
+    { kind: 'definition', name: t`Fractional index`, formal: t`For ${math`x > ${0}`}, integers ${mm} and ${math`n \ge ${1}`}, ${math`x^{${1}/n}`} is the positive ${mn}th root ${math`\sqrt[n]{x}`}, and ${dmath`x^{m/n} = \left(\sqrt[n]{x}\right)^{m}.`}`, plain: t`A [[fractional-index|fractional index]] is a root, then a power: the bottom of the fraction says which root, the top says which power. ${math`${8}^{${2}/${3}} = (\sqrt[${3}]{${8}})^{${2}} = ${Math.cbrt(8)}^{${2}} = ${Math.cbrt(8) ** 2}`}.` },
+    { kind: 'p', text: t`Take the root first when you can: the numbers stay small. ${math`${8}^{${2}/${3}}`} the other way round is ${math`\sqrt[${3}]{${8}^{${2}}} = \sqrt[${3}]{${64}} = ${4}`}: the same, with a harder root.`, why: { q: t`Why does the definition need ${math`x > ${0}`}?`, a: t`Even roots of negative numbers are not real: there is no real ${math`(-${4})^{${1}/${2}}`}. Restricting to ${math`x > ${0}`} keeps every law true.` } },
+    checkFrom(evaluate, { r: 4, qq: 2, p: -3 }, t`The ${2} in the denominator means a square root: ${math`\sqrt{${16}} = ${4}`}. Then the power ${math`-${3}`}: ${math`${4}^{-${3}} = \frac{${1}}{${64}}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`x^{m} + x^{n} = x^{m + n}`}.`, counterexample: t`${math`${2}^{${2}} + ${2}^{${3}} = ${4} + ${8} = ${4 + 8}`}, while ${math`${2}^{${5}} = ${32}`}. The laws are about multiplying powers, not adding them.` },
+    { kind: 'pitfall', claim: t`A negative index makes the number negative.`, counterexample: t`${math`${2}^{-${1}} = ${q(1, 2)}`}, which is positive. A negative index means a reciprocal.` },
+    { kind: 'pitfall', claim: t`${math`(a + b)^{n} = a^{n} + b^{n}`}.`, counterexample: t`${math`(${1} + ${1})^{${2}} = ${4}`}, but ${math`${1}^{${2}} + ${1}^{${2}} = ${2}`}. Powers spread over products, ${math`(ab)^{n} = a^{n}b^{n}`}, never over sums.` },
+    { kind: 'narrative', text: t`The Cambridge worked example below, from STEP Support Assignment ${12}, uses law (ii) in both directions: ${math`${2}^{${2}n}`} is ${math`${4}^{n}`}, and it is also ${math`(${2}^{n})^{${2}}`}, and the second view unlocks the proof.` },
+    { kind: 'takeaway', text: t`Indices add when you multiply powers, multiply when you raise a power, and zero, negative, and fractional indices mean whatever keeps those laws true.` },
   ],
   examples: [
     worked(combine, { a: 5, b: 4, c: 7 }, t`Multiplying and dividing powers`),
     worked(evaluate, { r: 3, qq: 3, p: -2 }, t`A negative fractional index`),
     worked(powerOfPower, { a: 3, b: 4, c: 2 }, t`A power of a power`),
-    a12Proof,
+    { ...a12Proof, examiner: t`The examiner looks for the rewrite as a difference of two squares, and a reason why one of three consecutive integers is a multiple of ${3}.` },
   ],
   generators: [combine, powerOfPower, evaluate, newBase],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['power', 'base', 'index', 'zero-index', 'negative-index', 'fractional-index'],
   cambridge: [sw123verdict, sw123witness, a12Q1iii],
-  gate: ['sw-1-2-3-verdict', 'sw-1-2-3-witness', 'a12-q1-iii'],
+  // The STEP proof first; the true or false verdict is dropped, since a guess passes it half the time.
+  gate: ['a12-q1-iii', 'sw-1-2-3-witness'],
+  recall: [
+    { front: t`The three laws of indices.`, back: t`${math`x^{m}x^{n} = x^{m + n}`}, ${math`(x^{m})^{n} = x^{mn}`}, ${math`x^{m}/x^{n} = x^{m - n}`}.` },
+    { front: t`What are ${math`x^{${0}}`} and ${math`x^{-n}`}, for ${math`x \ne ${0}`}?`, back: t`${math`x^{${0}} = ${1}`} and ${math`x^{-n} = ${1}/x^{n}`}: the only values that keep the laws true.` },
+    { front: t`What is ${math`x^{m/n}`}, for ${math`x > ${0}`}?`, back: t`${math`(\sqrt[n]{x})^{m}`}: the ${mn}th root, raised to the power ${mm}.` },
+  ],
+  proofOrder: [{
+    title: t`Why ${math`x^{-n} = ${1}/x^{n}`}`,
+    steps: [
+      t`Ask that the law ${math`x^{a}x^{b} = x^{a + b}`} hold for all integers.`,
+      t`With ${math`a = ${0}`}: ${math`x^{${0}}x^{n} = x^{n}`}, so ${math`x^{${0}} = ${1}`}.`,
+      t`With ${math`a = -n`}: ${math`x^{-n}x^{n} = x^{${0}} = ${1}`}.`,
+      t`Divide by ${math`x^{n}`}, which is not zero: ${math`x^{-n} = ${1}/x^{n}`}.`,
+    ],
+  }],
 };

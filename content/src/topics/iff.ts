@@ -11,7 +11,7 @@ import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
 import { int, upTo } from '../math';
 import { generator, type AnswerSpec, type ChoiceOption, type Misconception } from '../problem';
 import { math, t, type Rich, type Span } from '../rich';
-import { worked, workedProof, type TopicContent } from '../topic';
+import { quickCheck, worked, workedProof, type TopicContent } from '../topic';
 
 const [mP, mQ, mn] = [math`P`, math`Q`, math`n`];
 const IFF = math`P \Leftrightarrow Q`;
@@ -413,21 +413,77 @@ const tmuaI3 = supervision({
 export const iff: TopicContent = {
   topicId: 'logic.iff',
   goal: t`Say whether a condition is necessary, sufficient, or both, and prove an "if and only if" in both directions.`,
+  objective: t`Tell necessary from sufficient conditions, and prove an "if and only if" in both directions.`,
+  why: t`Definitions and characterisations are stated as "if and only if"; next you rewrite statements by equivalences.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Some theorems say two statements are equivalent: "${mP} if, and only if, ${mQ}", written ${IFF} and often shortened to "${mP} iff ${mQ}". It is a [[biconditional|biconditional]]: ${math`P \Rightarrow Q`} and ${math`Q \Rightarrow P`} together.` },
+    { kind: 'section', title: t`Two arrows at once` },
+    { kind: 'hook', text: t`A library sign says: "Members may enter." So being a member is enough to get in. But is it the only way in? Could a visitor with a day pass enter too? Sometimes a condition is enough, sometimes it is needed, and sometimes it is exactly both. Mathematics keeps these three apart.` },
+    { kind: 'narrative', text: t`You know ${math`P \Rightarrow Q`}: whenever ${mP} holds, ${mQ} holds. Often a theorem says more: the arrow goes both ways. Then ${mP} and ${mQ} stand or fall together.` },
+    {
+      kind: 'definition',
+      name: t`Biconditional`,
+      formal: t`For statements ${mP} and ${mQ}, the [[biconditional|biconditional]] ${IFF}, read "${mP} if and only if ${mQ}" and written "${mP} iff ${mQ}", is the statement ${math`(P \Rightarrow Q) \land (Q \Rightarrow P)`}.`,
+      plain: t`each of ${mP} and ${mQ} implies the other. "${mn} is even iff ${mn} ends in ${0}, ${2}, ${4}, ${6}, or ${8}" is a true example.`,
+    },
     {
       kind: 'table', caption: t`${IFF} is true exactly when ${mP} and ${mQ} have the same truth value.`,
       head: [[mP], [mQ], [IFF]],
       rows: assignments(['P', 'Q']).map((env) => [t`${TF(env.P === true)}`, t`${TF(env.Q === true)}`, t`${TF(env.P === env.Q)}`]),
     },
-    { kind: 'rule', text: t`To prove ${IFF}, the CST notes' pattern: write (${math`\Rightarrow`}) and prove ${math`P \Rightarrow Q`}; then write (${math`\Leftarrow`}) and prove ${math`Q \Rightarrow P`}. To use ${IFF} as an assumption, use it as the two implications.` },
-    { kind: 'p', text: t`The words: "${mP} if ${mQ}" is ${math`Q \Rightarrow P`}, and "${mP} only if ${mQ}" is ${math`P \Rightarrow Q`}; so "${mP} if and only if ${mQ}" is both. Book of Proof lists the other ways of saying it: "${mP} is equivalent to ${mQ}", "if ${mP}, then ${mQ}, and conversely".` },
-    { kind: 'p', text: t`The TMUA notes put it in terms of conditions. ${math`A`} is a [[sufficient-condition|sufficient condition]] for ${math`B`} if ${math`A \Rightarrow B`}: ${math`A`} guarantees ${math`B`}. ${math`A`} is a [[necessary-condition|necessary condition]] for ${math`B`} if ${math`B \Rightarrow A`}: ${math`B`} cannot hold without ${math`A`}. Necessary and sufficient is ${math`A \Leftrightarrow B`}.` },
-    { kind: 'p', text: t`For example, "${mn} is divisible by ${4}" is sufficient for "${mn} is even" but not necessary (${math`n = ${2}`}); "${mn} is even" is necessary for "${mn} is divisible by ${4}" but not sufficient. Picture the multiples of ${4} as a circle inside the circle of even numbers: being inside the small circle is enough to be inside the big one, and being inside the big one is needed to be inside the small one.` },
-    { kind: 'p', text: t`One number with one side true and the other false disproves an "if and only if". Proving one needs both directions; a common slip is to prove one and stop.` },
+    {
+      kind: 'p',
+      text: t`The words split cleanly. "${mP} if ${mQ}" is ${math`Q \Rightarrow P`}. "${mP} only if ${mQ}" is ${math`P \Rightarrow Q`}. Put them together and you get "${mP} if and only if ${mQ}".`,
+      why: { q: t`Why is "${mP} if ${mQ}" the arrow from ${mQ} to ${mP}?`, a: t`The condition comes after the word "if": "${mP} if ${mQ}" is "if ${mQ}, then ${mP}". So ${mQ} is the hypothesis. "Only if" reverses it, as in the implication lesson.` },
+    },
+    { kind: 'section', title: t`Necessary and sufficient` },
+    { kind: 'narrative', text: t`The TMUA notes say the same thing in terms of conditions. Picture the multiples of ${4} as a small circle drawn inside a bigger circle, the even numbers. Being in the small circle is enough to be in the big one. Being in the big one is needed to be in the small one.` },
+    {
+      kind: 'definition',
+      name: t`Sufficient and necessary conditions`,
+      formal: t`${math`A`} is a [[sufficient-condition|sufficient condition]] for ${math`B`} if ${math`A \Rightarrow B`}. ${math`A`} is a [[necessary-condition|necessary condition]] for ${math`B`} if ${math`B \Rightarrow A`}. ${math`A`} is necessary and sufficient for ${math`B`} if ${math`A \Leftrightarrow B`}.`,
+      plain: t`sufficient means "enough on its own"; necessary means "can't do without". "${mn} is divisible by ${4}" is sufficient for "${mn} is even", and "${mn} is even" is necessary for "${mn} is divisible by ${4}".`,
+    },
+    {
+      kind: 'p',
+      text: t`Divisible by ${4} is sufficient for even, but not necessary: ${2} is even and not divisible by ${4}. Even is necessary for divisible by ${4}, but not sufficient, for the same reason. One number settles each "not".`,
+      why: { q: t`Why does a single number show a condition is not necessary?`, a: t`"Divisible by ${4} is necessary for even" would mean: every even number is divisible by ${4}. That is a claim about every even number, so one even number that fails it, ${2}, is enough to make it false.` },
+    },
+    quickCheck({
+      prompt: t`For a whole number ${mn}, is "${mn} is divisible by ${6}" necessary, sufficient, or both, for "${mn} is divisible by ${3}"?`,
+      answer: { kind: 'choice', options: [{ id: 'nec', label: t`Necessary only` }, { id: 'suf', label: t`Sufficient only` }, { id: 'both', label: t`Both` }], correct: 'suf' },
+      reference: 'suf',
+      why: t`If ${math`n = ${6}k`} then ${math`n = ${3}(${2}k)`}, so divisible by ${6} is enough. It is not needed: ${3} is divisible by ${3} but not by ${6}.`,
+    }),
+    { kind: 'section', title: t`Proving both directions` },
+    { kind: 'narrative', text: t`Since ${IFF} is two implications, a proof of it is two proofs. The CST notes give the layout: write (${math`\Rightarrow`}) and prove ${math`P \Rightarrow Q`}; then write (${math`\Leftarrow`}) and prove ${math`Q \Rightarrow P`}. Each direction starts by assuming its own hypothesis.` },
+    { kind: 'narrative', text: t`Here is one where the second direction needs a small idea. Recall that ${mn} is even if ${math`n = ${2}k`} for some integer ${math`k`}.` },
+    { kind: 'theorem', statement: t`For every integer ${mn}: ${mn} is even if and only if ${math`${3}n`} is even.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`(${math`\Rightarrow`}) Assume ${mn} is even`, text: t`Then ${math`n = ${2}k`} for some integer ${math`k`}, so ${math`${3}n = ${3} \cdot ${2}k = ${2}(${3}k)`}.`, plain: t`Multiply ${math`n = ${2}k`} by ${3}, and regroup so the factor ${2} is at the front. With ${math`n = ${4}`}: ${math`k = ${2}`} and ${math`${12} = ${2} \times ${6}`}.` },
+        { label: t`Conclude the first direction`, text: t`${math`${3}k`} is an integer, so ${math`${3}n`} is even.`, plain: t`${math`${3}n`} is ${2} times a whole number, which is what even means.` },
+        { label: t`(${math`\Leftarrow`}) Assume ${math`${3}n`} is even`, text: t`Then ${math`${3}n = ${2}j`} for some integer ${math`j`}.`, plain: t`A fresh letter, because this is a new assumption. If ${mn} were ${4}, ${math`${3}n`} would be ${12} and ${math`j`} would be ${6}.` },
+        {
+          label: t`Peel off ${math`${2}n`}`, text: t`Then`, eq: [math`n = ${3}n - ${2}n = ${2}j - ${2}n = ${2}(j - n)`],
+          plain: t`${math`${3}n`} minus ${math`${2}n`} is just ${mn}. Replace ${math`${3}n`} by ${math`${2}j`}, then take out the common factor ${2}.`,
+          why: { q: t`Where did the idea of subtracting ${math`${2}n`} come from?`, a: t`We want ${mn} as ${2} times something, and we know ${math`${3}n`} is. The gap between ${math`${3}n`} and ${mn} is ${math`${2}n`}, which is already a multiple of ${2}, so removing it keeps the factor ${2}.` },
+        },
+        { label: t`Conclude the second direction`, text: t`${math`j - n`} is an integer, so ${mn} is even. Both directions hold, so ${mn} is even iff ${math`${3}n`} is even.`, plain: t`The difference of two integers is an integer. With both arrows proved, the "if and only if" is proved.` },
+      ],
+    },
+    {
+      kind: 'pitfall',
+      claim: t`"To prove ${IFF}, prove ${math`P \Rightarrow Q`}." (and stop)`,
+      counterexample: t`That proves only one arrow. "${mn} divisible by ${4} ${math`\Rightarrow`} ${mn} even" is true, yet "divisible by ${4} iff even" is false: ${math`n = ${2}`} makes one side true and the other false.`,
+    },
+    { kind: 'p', text: t`So to disprove an "if and only if", one number with one side true and the other false is enough. Book of Proof lists other ways to say it: "${mP} is equivalent to ${mQ}", and "if ${mP}, then ${mQ}, and conversely".` },
+    { kind: 'takeaway', text: t`${IFF} is two implications: sufficient is ${math`P \Rightarrow Q`}, necessary is ${math`Q \Rightarrow P`}, and a proof needs both directions.` },
   ],
   examples: [
-    prop16,
+    { ...prop16, examiner: t`The two directions labelled, each opening with its own assumption, and the definitions of even and of congruence written out rather than quoted.` },
     worked(necSuff, { i: 0 }, t`Divisible by ${4}, and even`),
     worked(iffWitness, { i: 4 }, t`Divisible by ${4} if and only if divisible by ${6}?`),
   ],
@@ -435,5 +491,24 @@ export const iff: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['biconditional', 'sufficient-condition', 'necessary-condition'],
   cambridge: [bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, sw113, sw122, sw127, tmuaI3],
-  gate: ['sw-1-1-3-verdict', 'sw-1-1-3', 'sw-1-2-2', 'sw-1-2-7'],
+  // The two-way proofs of the supervision sheet. 1.2.7 first: its backward direction needs a real idea.
+  // The true-or-false version of 1.1.3 is left out: a two-option guess does not test the topic.
+  gate: ['sw-1-2-7', 'sw-1-2-2', 'sw-1-1-3'],
+  recall: [
+    { front: t`What does ${IFF} mean?`, back: t`${math`(P \Rightarrow Q) \land (Q \Rightarrow P)`}: true exactly when ${mP} and ${mQ} have the same truth value.` },
+    { front: t`${math`A`} is sufficient for ${math`B`}: which arrow?`, back: t`${math`A \Rightarrow B`}. ${math`A`} on its own guarantees ${math`B`}.` },
+    { front: t`${math`A`} is necessary for ${math`B`}: which arrow?`, back: t`${math`B \Rightarrow A`}. ${math`B`} cannot hold without ${math`A`}.` },
+    { front: t`How do you prove ${IFF}?`, back: t`Two proofs: (${math`\Rightarrow`}) assume ${mP}, deduce ${mQ}; (${math`\Leftarrow`}) assume ${mQ}, deduce ${mP}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${mn} is even iff ${math`${3}n`} is even`,
+      steps: [
+        t`(${math`\Rightarrow`}) Assume ${math`n = ${2}k`}; then ${math`${3}n = ${2}(${3}k)`} is even.`,
+        t`(${math`\Leftarrow`}) Assume ${math`${3}n = ${2}j`} for an integer ${math`j`}.`,
+        t`Then ${math`n = ${3}n - ${2}n = ${2}(j - n)`}.`,
+        t`So ${mn} is even, and both directions hold.`,
+      ],
+    },
+  ],
 };

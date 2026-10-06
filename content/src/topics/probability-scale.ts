@@ -7,8 +7,8 @@
 import { auto, cite, same } from '../cambridge';
 import { int, pick, q, str, sub, toFloat, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
-import { dmath, ident, listOf, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, ident, listOf, math, setOf, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 import type { Rng } from '@learnhub/mastery';
 
 /** P(event) with the event in words: P(\text{not red}). */
@@ -303,19 +303,76 @@ const claims: ProbabilityClaim[] = [
   { what: 'P(not a six) on a fair six-sided die', exact: sub(q(1), pSix), trial: (rng: Rng) => 1 + Math.floor(rng() * 6) !== 6 },
 ];
 
+const [mOmega, mAc] = [math`\Omega`, math`A^{c}`];
+
 export const probabilityScale: TopicContent = {
   topicId: 'pre.probability-scale',
   goal: t`Give a probability on the scale from ${0} to ${1} as favourable outcomes over all outcomes, and use the complement.`,
+  objective: t`Find a probability by counting equally likely outcomes, and use the complement when it is quicker.`,
+  why: t`Every probability in the course starts here; next come sample spaces, trees and conditional probability.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`A [[probability|probability]] measures how likely an [[event|event]] is, on a scale from ${0} to ${1}. ${0} means impossible, ${1} means certain, and ${q(1, 2)} means as likely as not. It can be written as a fraction, a decimal, or a percentage: ${q(1, 4)} is ${0.25}, or ${25}%.` },
-    { kind: 'rule', text: t`When all outcomes are [[equally-likely|equally likely]], ${dmath`P(A) = \frac{\text{number of outcomes in } A}{\text{total number of outcomes}}.`}` },
-    { kind: 'p', text: t`"At random" has a precise meaning. STEP Support Assignment ${6} puts it in a footnote: random means that any person has the same probability of being picked as any other person. So "taken at random" is what makes the outcomes equally likely, and the rule above applies.` },
-    { kind: 'p', text: t`A bag holds ${L.red} red and ${L.blue} blue counters, and one is taken at random. Each of the ${nBag} counters is equally likely, and ${L.red} are red, so ${math`${P('red')} = ${pRed}`}.` },
-    { kind: 'p', text: t`A fair die has ${6} equally likely faces. The even faces are ${listOf(evens)}, so ${math`${P('even')} = \frac{${evens.length}}{${6}} = ${pEven}`}.` },
-    { kind: 'p', text: t`Counting colours instead of counters is a common slip. There are ${2} colours, but red is not ${q(1, 2)} likely, because there are fewer red counters than blue ones.` },
-    { kind: 'rule', text: t`The [[complement-event|complement]] "not ${mA}" happens exactly when ${mA} does not, so ${dmath`P(\text{not } A) = ${1} - P(A).`}` },
-    { kind: 'p', text: t`So ${math`${P('not a six')} = ${1} - ${pSix} = ${sub(q(1), pSix)}`}. The complement is often the quicker route: one event to count instead of five.` },
-    { kind: 'p', text: t`A check on the rule: when one outcome in ${math`n`} is ${mA}, ${ident('1 - 1/n', '(n - 1)/n', ['n'], { n: { kind: 'integer', min: 1, max: 50 } })}, which is exactly the share of outcomes that are not ${mA}.` },
+    { kind: 'section', title: t`Two colours, but not a fair coin` },
+    { kind: 'hook', text: t`A bag holds ${L.red} red counters and ${L.blue} blue ones. You reach in without looking and take one. There are two colours, so is red a fifty-fifty chance? Something feels off, and the aim of this lesson is to say exactly what.` },
+    { kind: 'narrative', text: t`Picture the ${nBag} counters laid out on a table. Your hand is equally likely to close on any one of them: no counter is special. So the fair thing to count is counters, not colours. ${L.red} of the ${nBag} counters are red, so red should come up ${L.red} times in every ${nBag}, in the long run.` },
+    { kind: 'narrative', text: t`That number, a share between ${0} and ${1}, is what we call a [[probability|probability]]. ${0} means it never happens, ${1} means it always does, and ${q(1, 2)} means as likely as not. The same number can be written as a fraction, a decimal or a percentage: ${q(1, 4)} is ${0.25}, which is ${25} percent.` },
+    { kind: 'section', title: t`The definition` },
+    { kind: 'narrative', text: t`To say this precisely, we need names for the things we are counting. Call the set of all possible outcomes ${mOmega} (the Greek capital omega). For one roll of a die, ${math`\Omega = ${setOf(upTo(6))}`}.` },
+    {
+      kind: 'definition',
+      name: t`Probability with equally likely outcomes`,
+      formal: t`Let ${mOmega} be a finite non-empty set of outcomes, each [[equally-likely|equally likely]]. An [[event|event]] is a subset ${math`A \subseteq \Omega`}. The probability of ${mA} is ${dmath`P(A) = \frac{\lvert A \rvert}{\lvert \Omega \rvert},`} where ${math`\lvert A \rvert`} is the number of outcomes in ${mA}.`,
+      plain: t`In plain words: count the outcomes you want, and divide by the number of outcomes there are. For a die and ${math`A = ${setOf(evens)}`} (an even score), ${math`P(A) = \frac{${evens.length}}{${6}} = ${pEven}`}.`,
+    },
+    {
+      kind: 'p',
+      text: t`The words "at random" are what make the outcomes equally likely. STEP Support Assignment ${6} says it in a footnote: random means that any person has the same probability of being picked as any other person. So "a counter is taken at random" means every counter, not every colour, has the same chance.`,
+      why: { q: t`Why can't I count colours?`, a: t`Because the colours are not equally likely: there are more blue counters than red. The definition only works when every outcome you count has the same chance, and the counters do.` },
+    },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Name the outcomes`, text: t`The outcomes are the ${nBag} counters, each equally likely, so ${math`\lvert \Omega \rvert = ${nBag}`}.` },
+        { label: t`Count the event`, text: t`Let ${mA} be "the counter is red". ${L.red} counters are red, so ${math`\lvert A \rvert = ${L.red}`}.` },
+        { label: t`Divide`, text: t`By the definition,`, eq: [dmath`P(\text{red}) = \frac{${L.red}}{${nBag}}.`], plain: t`Less than a half, as it should be: there are fewer red counters than blue ones.` },
+      ],
+    },
+    checkFrom(bag, { r: 2, b: 3, g: 5, not: false }, t`Each of the ${10} counters is equally likely, and ${2} of them are red: ${math`\frac{${2}}{${10}} = ${q(2, 10)}`}.`),
+    { kind: 'pitfall', claim: t`There are two colours, so the probability of red is ${q(1, 2)}.`, counterexample: t`With ${L.red} red and ${L.blue} blue counters, red comes up ${pRed} of the time, not ${q(1, 2)}. Two colours are two kinds of outcome, but they are not equally likely.` },
+    { kind: 'section', title: t`Why the scale runs from nought to one` },
+    { kind: 'narrative', text: t`You may have been told that every probability lies between ${0} and ${1}. With the definition in hand, you can prove it rather than take it on trust.` },
+    { kind: 'theorem', statement: t`For every event ${math`A \subseteq \Omega`}, ${math`${0} \le P(A) \le ${1}`}. Moreover ${math`P(\varnothing) = ${0}`} and ${math`P(\Omega) = ${1}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Compare the counts`, text: t`Since ${math`A \subseteq \Omega`}, every outcome in ${mA} is in ${mOmega}, so ${math`${0} \le \lvert A \rvert \le \lvert \Omega \rvert`}.`, plain: t`You cannot have fewer than no outcomes, or more outcomes in ${mA} than there are altogether.` },
+        { label: t`Divide by the total`, text: t`${mOmega} is non-empty, so ${math`\lvert \Omega \rvert > ${0}`}, and dividing an inequality by a positive number keeps its direction:`, eq: [dmath`${0} \le \frac{\lvert A \rvert}{\lvert \Omega \rvert} \le ${1}.`], why: { q: t`Why does dividing keep the direction?`, a: t`Dividing by a positive number scales every term by the same positive amount, so their order is unchanged. For example ${math`${2} < ${6}`} and ${math`\frac{${2}}{${2}} < \frac{${6}}{${2}}`}.` } },
+        { label: t`The two ends`, text: t`The empty event has ${math`\lvert \varnothing \rvert = ${0}`}, so ${math`P(\varnothing) = ${0}`}; and ${math`P(\Omega) = \frac{\lvert \Omega \rvert}{\lvert \Omega \rvert} = ${1}`}.`, plain: t`Something impossible has probability ${0}; something certain, ${1}.` },
+      ],
+    },
+    { kind: 'section', title: t`The complement` },
+    { kind: 'narrative', text: t`What is the chance that a die does not show a six? You could count five faces. But there is a quicker way to see it: every roll is either a six or not a six, never both, so the two probabilities must share the whole ${1} between them.` },
+    {
+      kind: 'definition',
+      name: t`Complement`,
+      formal: t`The [[complement-event|complement]] of an event ${mA} is ${math`A^{c} = \Omega \setminus A`}, the set of outcomes not in ${mA}.`,
+      plain: t`In plain words: "not ${mA}". For a die and ${math`A = ${setOf([6])}`}, the complement is ${math`${setOf([1, 2, 3, 4, 5])}`}.`,
+    },
+    { kind: 'theorem', name: t`Complement rule`, statement: t`For every event ${mA}, ${math`P(A^{c}) = ${1} - P(A)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split the outcomes`, text: t`Every outcome is in exactly one of ${mA} and ${mAc}, so ${math`\lvert A \rvert + \lvert A^{c} \rvert = \lvert \Omega \rvert`}.`, plain: t`Each outcome is counted once: in ${mA} or outside it.` },
+        { label: t`Divide by the total`, text: t`Divide both sides by ${math`\lvert \Omega \rvert`}:`, eq: [dmath`\frac{\lvert A \rvert}{\lvert \Omega \rvert} + \frac{\lvert A^{c} \rvert}{\lvert \Omega \rvert} = ${1}, \quad\text{that is}\quad P(A) + P(A^{c}) = ${1}.`] },
+        { label: t`Rearrange`, text: t`Subtract ${math`P(A)`} from both sides: ${math`P(A^{c}) = ${1} - P(A)`}.` },
+      ],
+    },
+    { kind: 'p', text: t`So ${math`P(\text{not a six}) = ${1} - ${pSix} = ${sub(q(1), pSix)}`}: one face to count instead of five. A quick sanity check with letters: if one outcome in ${math`n`} is in ${mA}, then ${ident('1 - 1/n', '(n - 1)/n', ['n'], { n: { kind: 'integer', min: 1, max: 50 } })}, exactly the share of outcomes that are not.` },
+    checkFrom(complement, { a: 3, b: 10 }, t`Late and not late share the whole ${1}: ${math`${1} - ${q(3, 10)} = ${q(7, 10)}`}.`),
+    { kind: 'pitfall', claim: t`The complement of ${q(3, 10)} is ${q(10, 3)}: turn the fraction over.`, counterexample: t`${q(10, 3)} is more than ${1}, and no probability is more than ${1}, by the theorem above. The complement is ${math`${1} - ${q(3, 10)} = ${q(7, 10)}`}.` },
+    { kind: 'takeaway', text: t`With equally likely outcomes, a probability is favourable over total, and "not ${mA}" is ${1} minus ${math`P(A)`}.` },
   ],
   examples: [
     worked(bag, { r: 4, b: 2, g: 6, not: true }, t`A counter that is not red`),
@@ -326,6 +383,25 @@ export const probabilityScale: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['probability', 'event', 'equally-likely', 'complement-event'],
   cambridge: [a12Mint, a12Goggles],
-  gate: ['a12-q2-ii-first', 'a12-q2-iv-b'],
+  // The goggles question is the better test: it asks about one child among three and the
+  // learner must see the other two do not matter. The mints are a direct count.
+  gate: ['a12-q2-iv-b', 'a12-q2-ii-first'],
+  recall: [
+    { front: t`With equally likely outcomes, what is ${math`P(A)`}?`, back: t`${math`P(A) = \frac{\lvert A \rvert}{\lvert \Omega \rvert}`}: the number of outcomes in ${mA} over the number of outcomes there are.` },
+    { front: t`What does "at random" mean?`, back: t`Every item has the same probability of being picked as any other.` },
+    { front: t`State the complement rule.`, back: t`${math`P(A^{c}) = ${1} - P(A)`}.` },
+    { front: t`Between what values does every probability lie, and why?`, back: t`${math`${0} \le P(A) \le ${1}`}, because ${math`${0} \le \lvert A \rvert \le \lvert \Omega \rvert`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The complement rule`,
+      steps: [
+        t`Every outcome is in exactly one of ${mA} and ${mAc}.`,
+        t`So ${math`\lvert A \rvert + \lvert A^{c} \rvert = \lvert \Omega \rvert`}.`,
+        t`Divide by ${math`\lvert \Omega \rvert`}: ${math`P(A) + P(A^{c}) = ${1}`}.`,
+        t`Rearrange: ${math`P(A^{c}) = ${1} - P(A)`}.`,
+      ],
+    },
+  ],
   claims,
 };

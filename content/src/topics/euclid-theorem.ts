@@ -12,7 +12,7 @@ import { int, pick, upTo } from '../math';
 import { factorise, gcd, isPrime, mod, phi, primesTo } from '../numbers';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { math, setOf, t } from '../rich';
-import { worked, workedCambridge, workedProof, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, workedProof, type TopicContent } from '../topic';
 
 const [mk, mm, mn] = [math`k`, math`m`, math`n`];
 const big = (v: { num: bigint; den: bigint } | undefined): number | null => (v === undefined || v.den !== 1n ? null : Number(v.num));
@@ -233,18 +233,73 @@ const bop729 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [ms, mt, mp] = [math`s`, math`t`, math`p`];
+
 export const euclidTheorem: TopicContent = {
   topicId: 'num.euclid-theorem',
   goal: t`Prove and use Euclid's theorem: if ${math`k \mid mn`} and ${math`\gcd(k, m) = ${1}`} then ${math`k \mid n`}; so a prime that divides a product divides one of the factors.`,
+  objective: t`Prove that a prime dividing a product divides a factor, and use it to cancel safely.`,
+  why: t`It is the lemma behind unique prime factorisation and Fermat's little theorem, both next.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Numbers are [[coprime|coprime]] when their gcd is ${1} (Definition ${82}). Coprimality is what makes cancelling safe: ${math`${4} \mid ${6} \times ${2}`} but ${math`${4} \nmid ${6}`} and ${math`${4} \nmid ${2}`}, because ${4} shares a factor with ${6}.` },
-    { kind: 'rule', text: t`[[euclids-lemma|Euclid's theorem]] (Theorem ${83}): if ${math`k \mid mn`} and ${math`\gcd(k, m) = ${1}`}, then ${math`k \mid n`}. For a prime ${math`p`} (Corollary ${84}): if ${math`p \mid mn`} then ${math`p \mid m`} or ${math`p \mid n`}.` },
-    { kind: 'p', text: t`The notes' proof is three equalities, all from the linearity of gcd: if ${math`kl = mn`}, then ${math`n = \gcd(k, m)\,n = \gcd(kn, mn) = \gcd(kn, kl) = k \gcd(n, l)`}. Book of Proof instead writes ${math`${1} = ax + by`} and multiplies by ${math`c`}.` },
-    { kind: 'p', text: t`It is the key to much of the course. In ${math`\mathbb{Z}_{p}`} a product of nonzero elements is nonzero, unlike ${math`[${2}][${3}] = [${0}]`} in ${math`\mathbb{Z}_{${6}}`}. ${math`x^{${2}} \equiv ${1} \pmod{p}`} has only ${math`x \equiv \pm ${1}`}, while modulo ${8} all of ${setOf(roots(8))} work. It finishes Fermat's little theorem (from ${math`p \mid i(i^{p - ${1}} - ${1})`} and ${math`p \nmid i`}) and the uniqueness of prime factorisation.` },
-    { kind: 'p', text: t`Its general form also cancels with care: ${math`${12} \mid ${18}x`} means ${math`${2} \mid ${3}x`}, so ${math`${2} \mid x`}, after dividing by ${math`\gcd(${12}, ${18}) = ${6}`}.` },
+    { kind: 'section', title: t`When can you cancel?` },
+    { kind: 'hook', text: t`${4} divides ${math`${6} \times ${2} = ${12}`}, yet ${4} divides neither ${6} nor ${2}. But try it with a prime: ${7} divides ${math`${14} \times ${3}`}, and sure enough ${7} divides ${14}. Is that always so for primes? Why should a prime be unable to split itself between two factors?` },
+    { kind: 'narrative', text: t`The ${4} could split: one factor ${2} came from the ${6} and one from the ${2}. A prime has nothing to split. The precise version of "nothing to split" is a gcd of ${1}.` },
+    {
+      kind: 'definition',
+      name: t`Coprime`,
+      formal: t`Integers ${mm} and ${mn} are [[coprime|coprime]] if ${math`\gcd(m, n) = ${1}`}.`,
+      plain: t`they share no factor bigger than ${1}. ${8} and ${15} are coprime; ${8} and ${12} are not, since both are multiples of ${4}.`,
+    },
+    {
+      kind: 'theorem',
+      name: t`Euclid's theorem`,
+      statement: t`Let ${mk}, ${mm}, ${mn} be positive integers. If ${math`k \mid mn`} and ${math`\gcd(k, m) = ${1}`}, then ${math`k \mid n`}.`,
+    },
+    { kind: 'narrative', text: t`The CST notes call this Theorem ${83}, and it is often called [[euclids-lemma|Euclid's lemma]]. The proof below uses the last lesson's tool: the gcd is a combination of the two numbers.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Write ${1} as a combination`, text: t`Since ${math`\gcd(k, m) = ${1}`}, there are integers ${ms}, ${mt} with ${math`sk + tm = ${1}`}.`, plain: t`The extended Euclidean algorithm gives the pair. For ${math`k = ${4}`}, ${math`m = ${9}`}: ${math`(${-2}) \times ${4} + ${1} \times ${9} = ${1}`}.` },
+        { label: t`Multiply by ${mn}`, text: t`Then`, eq: [math`n = skn + tmn`], plain: t`Multiply both sides of ${math`sk + tm = ${1}`} by ${mn}.` },
+        { label: t`Each term is a multiple of ${mk}`, text: t`${math`k \mid skn`}, since ${mk} is a factor, and ${math`k \mid tmn`} because ${math`k \mid mn`}.`, plain: t`${math`skn = k \cdot (sn)`}. And ${math`mn = kj`} for some integer ${math`j`}, so ${math`tmn = k \cdot (tj)`}.` },
+        { label: t`So ${mk} divides the sum`, text: t`${math`n = k(sn + tj)`}, so ${math`k \mid n`}.`, plain: t`A sum of multiples of ${mk} is a multiple of ${mk}.` },
+      ],
+    },
+    {
+      kind: 'pitfall',
+      claim: t`If ${math`k \mid mn`} and ${math`k \nmid m`}, then ${math`k \mid n`}.`,
+      counterexample: t`${math`${4} \mid ${6} \times ${2}`} and ${math`${4} \nmid ${6}`}, but ${math`${4} \nmid ${2}`}. Not dividing ${mm} is weaker than being coprime to ${mm}: ${math`\gcd(${4}, ${6}) = ${gcd(4, 6)}`}.`,
+    },
+    { kind: 'section', title: t`Primes` },
+    { kind: 'theorem', name: t`Euclid's lemma for primes`, statement: t`Let ${mp} be a prime and ${mm}, ${mn} positive integers. If ${math`p \mid mn`}, then ${math`p \mid m`} or ${math`p \mid n`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Two cases`, text: t`If ${math`p \mid m`} we are done. Otherwise ${math`p \nmid m`}.`, plain: t`We only need one of the two to hold.` },
+        { label: t`The gcd is ${1}`, text: t`${math`\gcd(p, m)`} divides ${mp}, so it is ${1} or ${mp}; it is not ${mp} because ${math`p \nmid m`}. So ${math`\gcd(p, m) = ${1}`}.`, plain: t`A prime's only positive divisors are ${1} and itself.` },
+        { label: t`Apply the theorem`, text: t`With ${math`k = p`}: ${math`p \mid mn`} and ${math`\gcd(p, m) = ${1}`} give ${math`p \mid n`}.`, plain: t`This is exactly where being prime matters: not dividing ${mm} forces coprime to ${mm}.` },
+      ],
+    },
+    quickCheck({
+      prompt: t`${math`${13} \mid ${21}x`} for a positive integer ${math`x`}. What is the smallest such ${math`x`}?`,
+      answer: { kind: 'exact', expected: String(upTo(30).find((x) => (21 * x) % 13 === 0) as number) },
+      reference: String(upTo(30).find((x) => (21 * x) % 13 === 0) as number),
+      why: t`${math`\gcd(${13}, ${21}) = ${gcd(13, 21)}`}, so Euclid's theorem gives ${math`${13} \mid x`}. The smallest positive multiple of ${13} is ${13}.`,
+    }),
+    { kind: 'section', title: t`What it unlocks` },
+    {
+      kind: 'p',
+      text: t`Modulo a prime, there are no zero divisors: if ${math`ab \equiv ${0} \pmod{p}`}, then ${math`a \equiv ${0}`} or ${math`b \equiv ${0}`}. Modulo ${6} that fails: ${math`${2} \times ${3} \equiv ${0} \pmod{${6}}`}. In the same way ${math`x^{${2}} \equiv ${1} \pmod{p}`} has only the solutions ${math`x \equiv \pm ${1}`}, while modulo ${8} all of ${setOf(roots(8))} work.`,
+      why: { q: t`Why does ${math`x^{${2}} \equiv ${1} \pmod{p}`} force ${math`x \equiv \pm ${1}`}?`, a: t`It says ${math`p \mid x^{${2}} - ${1} = (x - ${1})(x + ${1})`}. By the prime form, ${math`p \mid x - ${1}`} or ${math`p \mid x + ${1}`}. Proving this carefully is one of the supervision problems.` },
+    },
+    { kind: 'p', text: t`Cancelling in a congruence uses the general form: ${math`${12} \mid ${18}x`} becomes, after dividing by ${math`\gcd(${12}, ${18}) = ${gcd(12, 18)}`}, ${math`${2} \mid ${3}x`}, and since ${math`\gcd(${2}, ${3}) = ${1}`}, ${math`${2} \mid x`}. The same lemma finishes Fermat's little theorem and gives the uniqueness of prime factorisation.` },
+    { kind: 'takeaway', text: t`If ${math`k \mid mn`} and ${mk} is coprime to ${mm}, then ${math`k \mid n`}; for a prime, dividing a product means dividing a factor.` },
   ],
   examples: [
-    theorem83,
+    { ...theorem83, examiner: t`The hypotheses ${math`k \mid mn`} and ${math`\gcd(k, m) = ${1}`} each used visibly, and every equality justified by a named law of the gcd.` },
     workedCambridge(sheet327c),
     worked(cancelCoprime, { k: 12, m: 18 }, t`When does ${12} divide ${math`${18}x`}?`),
   ],
@@ -252,5 +307,23 @@ export const euclidTheorem: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['coprime', 'euclids-lemma'],
   cambridge: [bop1155, bop1156, sheet316, sheet322, sheet331, bop729],
-  gate: ['sheet-3-1-6', 'sheet-3-2-2', 'sheet-3-3-1'],
+  // 3.3.1 first: it needs the theorem used with a reduction to the coprime case, not just quoted.
+  gate: ['sheet-3-3-1', 'sheet-3-1-6', 'sheet-3-2-2'],
+  recall: [
+    { front: t`State Euclid's theorem.`, back: t`If ${math`k \mid mn`} and ${math`\gcd(k, m) = ${1}`}, then ${math`k \mid n`}.` },
+    { front: t`State Euclid's lemma for a prime ${mp}.`, back: t`If ${math`p \mid mn`}, then ${math`p \mid m`} or ${math`p \mid n`}.` },
+    { front: t`Define coprime.`, back: t`${mm} and ${mn} are coprime if ${math`\gcd(m, n) = ${1}`}.` },
+    { front: t`Why does a prime not dividing ${mm} make it coprime to ${mm}?`, back: t`${math`\gcd(p, m)`} divides ${mp}, so it is ${1} or ${mp}, and it is not ${mp}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Euclid's theorem by Bezout`,
+      steps: [
+        t`Since ${math`\gcd(k, m) = ${1}`}, write ${math`sk + tm = ${1}`}.`,
+        t`Multiply by ${mn}: ${math`n = skn + tmn`}.`,
+        t`${mk} divides ${math`skn`}, and ${mk} divides ${math`tmn`} because ${math`k \mid mn`}.`,
+        t`So ${mk} divides their sum, ${mn}.`,
+      ],
+    },
+  ],
 };

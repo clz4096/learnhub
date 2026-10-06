@@ -10,8 +10,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { egcd, factorise, gcd, inverseBySearch, mod, phi, powMod, primesTo } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { computedTex, listOf, math, paren, t, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedTex, dmath, listOf, math, paren, t, type Span } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const mm = math`m`;
 const Z = (m: number | Span): Span => math`\mathbb{Z}_{${m}}`;
@@ -244,17 +244,63 @@ const cor86 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const mn = math`n`;
+const INV7 = inverseBySearch(7, 40) as number;
+
 export const modularInverse: TopicContent = {
   topicId: 'num.modular-inverse',
   goal: t`Decide when ${math`n`} has an inverse modulo ${mm} (exactly when ${math`\gcd(m, n) = ${1}`}), compute it with the extended Euclidean algorithm, and use it to solve linear congruences.`,
+  objective: t`Decide when a number has an inverse modulo m, compute it, and use it to solve linear congruences.`,
+  why: t`Cryptography and the Chinese remainder theorem rest on division modulo m; next, Fermat's little theorem.`,
+  minutes: 30,
   lesson: [
-    { kind: 'rule', text: t`A [[modular-inverse|multiplicative inverse]] of ${math`n`} in ${Z(mm)} is an ${math`x`} with ${math`n x \equiv ${1} \pmod{m}`}. It exists exactly when ${math`\gcd(m, n) = ${1}`}, and then the extended algorithm finds it: from ${math`s m + t n = ${1}`}, ${math`n t \equiv ${1}`}, so ${math`n^{-${1}} = [t]_{m}`} (Corollary ${93}).` },
-    { kind: 'p', text: t`Why exactly then: if ${math`n x = ${1} + k m`}, then ${math`${1} = n x - k m`} is a combination of ${mm} and ${math`n`}, so their gcd divides ${1}. And conversely the algorithm builds such a combination. Example: ${math`${3} \times ${40} - ${17} \times ${7} = ${1}`}, so ${math`${7}^{-${1}} = [-${17}]_{${40}} = ${23}`}.` },
-    { kind: 'p', text: t`For a prime ${math`p`}, every nonzero element is coprime to ${math`p`}, so every nonzero element of ${Z(math`p`)} has an inverse: ${Z(math`p`)} is a [[field|field]], where you can divide. Fermat's little theorem even gives a formula, ${math`i^{-${1}} = [i^{p - ${2}}]_{p}`} (Corollary ${86}).` },
-    { kind: 'p', text: t`Inverses solve congruences. ${math`${77}x \equiv ${11} \pmod{${40}}`} becomes ${math`${7}x \equiv ${1}`} after cancelling ${11} (coprime to ${40}), so ${math`x \equiv ${23}`}. When ${math`g = \gcd(a, m) > ${1}`}, ${math`ax \equiv b`} has no solution unless ${math`g \mid b`}, and then ${math`g`} solutions in ${Z(mm)}: ${math`${12}y \equiv ${30} \pmod{${54}}`} has ${6}.` },
+    { kind: 'section', title: t`Dividing without fractions` },
+    { kind: 'hook', text: t`Modulo ${40}, can you divide by ${7}? There are no fractions in ${Z(40)}. But ${math`${7} \times ${INV7} = ${7 * INV7} = ${4} \times ${40} + ${1}`}, so multiplying by ${INV7} undoes multiplying by ${7}: ${INV7} behaves exactly like ${math`\tfrac{${1}}{${7}}`}. Modulo ${4}, though, nothing times ${2} is ${1}. What decides it?` },
+
+    { kind: 'section', title: t`When an inverse exists` },
+    { kind: 'definition', name: t`Multiplicative inverse`, formal: t`An integer ${math`x`} is a [[modular-inverse|multiplicative inverse]] of ${mn} modulo ${mm} if ${math`nx \equiv ${1} \pmod{m}`}. In ${Z(mm)} it is written ${math`n^{-${1}}`}.`, plain: t`A number that multiplies ${mn} to ${1}, after reducing. ${math`${7}^{-${1}} = ${INV7}`} in ${Z(40)}.` },
+    { kind: 'theorem', name: t`Existence`, statement: t`${mn} has a multiplicative inverse modulo ${mm} if and only if ${math`\gcd(m, n) = ${1}`}. The inverse is then unique in ${Z(mm)}.` },
+    { kind: 'narrative', text: t`The idea in one line: ${math`nx \equiv ${1}`} says ${math`nx - km = ${1}`} for some integer ${math`k`}, and a combination of ${mm} and ${mn} equal to ${1} exists exactly when their gcd is ${1}. That last fact is Bézout's identity, from the extended Euclidean algorithm.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`If an inverse exists, the gcd is ${1}`, text: t`Suppose ${math`nx \equiv ${1} \pmod{m}`}, so ${math`nx = ${1} + km`} for an integer ${math`k`}. Let ${math`d = \gcd(m, n)`}. Then ${math`d \mid n`} and ${math`d \mid m`}, so ${math`d`} divides ${math`nx - km = ${1}`}, and ${math`d = ${1}`}.` },
+        { label: t`If the gcd is ${1}, an inverse exists`, text: t`By the extended Euclidean algorithm there are integers ${math`s, t`} with ${math`sm + tn = ${1}`}. Reduce modulo ${mm}: ${math`sm \equiv ${0}`}, so ${math`tn \equiv ${1}`}, and ${math`t`} is an inverse.`, why: { q: t`Where do ${math`s`} and ${math`t`} come from?`, a: t`Run Euclid's algorithm on ${mm} and ${mn}, then substitute back up the chain of remainders, as in the next section. It always ends with ${math`\gcd(m, n)`} written as a combination of ${mm} and ${mn}.` } },
+        { label: t`Uniqueness`, text: t`If ${math`nx \equiv ${1}`} and ${math`ny \equiv ${1}`}, then ${math`x \equiv x(ny) = (xn)y \equiv y \pmod{m}`}.`, plain: t`Two inverses are congruent, so ${Z(mm)} holds exactly one.` },
+      ],
+    },
+
+    { kind: 'section', title: t`Computing an inverse` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Run Euclid`, text: t`${math`${40} = ${5} \times ${7} + ${5}`}, ${math`${7} = ${1} \times ${5} + ${2}`}, ${math`${5} = ${2} \times ${2} + ${1}`}. The last non-zero remainder is ${1}: ${math`\gcd(${40}, ${7}) = ${1}`}.` },
+        { label: t`Work back up`, text: t`${math`${1} = ${5} - ${2} \times ${2}`}. Replace ${2} by ${math`${7} - ${5}`}: ${math`${1} = ${3} \times ${5} - ${2} \times ${7}`}. Replace ${5} by ${math`${40} - ${5} \times ${7}`}:`, eq: [dmath`${1} = ${3} \times ${40} - ${17} \times ${7}.`], plain: t`Each line is still equal to ${1}; we only rename a remainder in terms of the two numbers above it.` },
+        { label: t`Read off the inverse`, text: t`Modulo ${40}, ${math`-${17} \times ${7} \equiv ${1}`}, so ${math`${7}^{-${1}} = [-${17}]_{${40}} = ${INV7}`}.` },
+      ],
+    },
+    checkFrom(inverseMod, { a: 5, m: 37 }, t`${math`${37} = ${7} \times ${5} + ${2}`}, ${math`${5} = ${2} \times ${2} + ${1}`}, so ${math`${1} = ${5} - ${2}(${37} - ${7} \times ${5}) = ${15} \times ${5} - ${2} \times ${37}`}: the inverse is ${15}.`),
+
+    { kind: 'section', title: t`Primes give a field` },
+    { kind: 'definition', name: t`Field`, formal: t`A commutative ring in which ${math`${0} \ne ${1}`} and every non-zero element has a multiplicative inverse is a [[field|field]].`, plain: t`A number system where you can add, subtract, multiply, and divide by anything except ${0}: the rationals, the reals, and, as we now see, ${Z(math`p`)}.` },
+    { kind: 'theorem', name: t`${Z(math`p`)} is a field`, statement: t`If ${math`p`} is prime, every non-zero element of ${Z(math`p`)} has a multiplicative inverse. If ${mm} is composite, ${Z(mm)} is not a field.` },
+    { kind: 'p', text: t`Proof: a non-zero ${math`k < p`} shares no factor with the prime ${math`p`}, so ${math`\gcd(p, k) = ${1}`}. If ${math`m = ab`} with ${math`${1} < a < m`}, then ${math`\gcd(m, a) = a > ${1}`}, so ${math`a`} has no inverse. ∎ In ${Z(7)}: ${math`${2} \times ${4} \equiv ${1}`}, ${math`${3} \times ${5} \equiv ${1}`}, ${math`${6} \times ${6} \equiv ${1}`}.` },
+
+    { kind: 'section', title: t`Solving linear congruences` },
+    { kind: 'narrative', text: t`To solve ${math`ax \equiv b \pmod{m}`} with ${math`\gcd(a, m) = ${1}`}, multiply both sides by ${math`a^{-${1}}`}: ${math`x \equiv a^{-${1}}b`}, one solution in ${Z(mm)}. For ${math`${7}x \equiv ${3} \pmod{${40}}`}: ${math`x \equiv ${INV7} \times ${3} = ${INV7 * 3} \equiv ${mod(INV7 * 3, 40)}`}.` },
+    { kind: 'theorem', name: t`Linear congruences`, statement: t`Let ${math`g = \gcd(a, m)`}. Then ${math`ax \equiv b \pmod{m}`} has a solution if and only if ${math`g \mid b`}, and then it has exactly ${math`g`} solutions in ${Z(mm)}.` },
+    { kind: 'p', text: t`The recipe when ${math`g > ${1}`}: divide ${math`a`}, ${math`b`}, and ${mm} by ${math`g`}, solve the smaller congruence by an inverse, and list its ${math`g`} lifts modulo ${mm}. For ${math`${12}y \equiv ${30} \pmod{${54}}`}: ${math`g = ${6}`}, so ${math`${2}y \equiv ${5} \pmod{${9}}`}, ${math`y \equiv ${7} \pmod{${9}}`}, and modulo ${54} the solutions are ${listOf([7, 16, 25, 34, 43, 52])}.`, why: { q: t`Why no solution when ${math`g \nmid b`}?`, a: t`${math`ax - km = b`} for some ${math`k`}, and ${math`g`} divides the left side, so it must divide ${math`b`}. For example ${math`${2}x \equiv ${1} \pmod{${4}}`} is impossible: ${math`${2}x`} is even, and so is every multiple of ${4} added to it.` } },
+    checkFrom(solveCongruence, { a: 3, b: 7, m: 20 }, t`${math`${3}^{-${1}} = ${7}`} in ${Z(20)}, since ${math`${21} \equiv ${1}`}; so ${math`x \equiv ${7} \times ${7} = ${49} \equiv ${9}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`Every non-zero element of ${Z(mm)} has an inverse.`, counterexample: t`In ${Z(4)}, ${math`${2} \times ${0}, ${2} \times ${1}, ${2} \times ${2}, ${2} \times ${3}`} reduce to ${listOf([0, 2, 0, 2])}: never ${1}, because ${math`\gcd(${4}, ${2}) = ${2}`}.` },
+    { kind: 'pitfall', claim: t`You may divide a congruence by a common factor and keep the modulus.`, counterexample: t`${math`${12}y \equiv ${30} \pmod{${54}}`} is not ${math`${2}y \equiv ${5} \pmod{${54}}`}: ${math`y = ${7}`} solves the first (${math`${84} - ${30} = ${54}`}) but not the second (${math`${14} - ${5} = ${9}`}). Divide the modulus by ${6} too.` },
+    { kind: 'pitfall', claim: t`The inverse of ${7} modulo ${40} is ${math`-${17}`}, the coefficient from the algorithm.`, counterexample: t`${math`-${17}`} is right as a congruence, but the element of ${Z(40)} is ${math`-${17} + ${40} = ${INV7}`}. Reduce the coefficient.` },
+    { kind: 'takeaway', text: t`${mn} is invertible modulo ${mm} exactly when ${math`\gcd(m, n) = ${1}`}; the extended Euclidean algorithm writes ${math`${1} = sm + tn`}, and ${math`t`} is the inverse.` },
   ],
   examples: [
-    workedCambridge(sheet3211),
+    { ...workedCambridge(sheet3211), examiner: t`The examiner looks for ${1} written as a combination for each pair, and every coefficient reduced into ${Z(mm)}.` },
     worked(inverseMod, { a: 17, m: 43 }, t`The inverse of ${17} modulo ${43}`),
     worked(solveCongruence, { a: 5, b: 3, m: 26 }, t`Solving ${math`${5}x \equiv ${3} \pmod{${26}}`}`),
   ],
@@ -262,13 +308,21 @@ export const modularInverse: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['modular-inverse', 'field'],
   cambridge: [sheet3210a, sheet3210b, sheet3210c, sheet3212, sheet226, sheet3212proof, cor86],
-  gate: [
-    'sheet-3-2-10-a',
-    'sheet-3-2-10-b',
-    'sheet-3-2-10-c',
-    'sheet-3-2-12-inverse',
-    'sheet-2-2-6-z7-inverses',
-    'sheet-3-2-12',
-    'notes-244-corollary-86',
+  // The CST proof and the multi-step congruences. Dropped: the one-step 3.2.10(a), the inverse table (drill), and Corollary 86, which needs Fermat's little theorem from a later lesson.
+  gate: ['sheet-3-2-12', 'sheet-3-2-10-c', 'sheet-3-2-10-b', 'sheet-3-2-12-inverse'],
+  recall: [
+    { front: t`When does ${mn} have an inverse modulo ${mm}?`, back: t`Exactly when ${math`\gcd(m, n) = ${1}`}.` },
+    { front: t`How do you compute ${math`n^{-${1}}`} in ${Z(mm)}?`, back: t`Extended Euclid gives ${math`sm + tn = ${1}`}; then ${math`n^{-${1}} = [t]_{m}`}.` },
+    { front: t`How many solutions has ${math`ax \equiv b \pmod{m}`}?`, back: t`With ${math`g = \gcd(a, m)`}: none unless ${math`g \mid b`}, and then ${math`g`} in ${Z(mm)}.` },
+    { front: t`When is ${Z(mm)} a field?`, back: t`Exactly when ${mm} is prime.` },
   ],
+  proofOrder: [{
+    title: t`An inverse exists when ${math`\gcd(m, n) = ${1}`}`,
+    steps: [
+      t`Suppose ${math`\gcd(m, n) = ${1}`}.`,
+      t`Extended Euclid gives integers with ${math`sm + tn = ${1}`}.`,
+      t`Modulo ${mm}, the term ${math`sm`} vanishes.`,
+      t`So ${math`tn \equiv ${1}`}, and ${math`t`} is an inverse.`,
+    ],
+  }],
 };

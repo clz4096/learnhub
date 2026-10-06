@@ -12,8 +12,8 @@ import { auto, cite, supervision } from '../cambridge';
 import { int, pick, q, str } from '../math';
 import { expSample, near, normalSample, PhiSeries, round, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
-import { computedMath, math, paren, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { computedMath, dmath, math, paren, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mX, mY, mU, mV] = [math`X`, math`Y`, math`U`, math`V`];
 const SH4 = 'ia-prob-sheet-4' as const;
@@ -272,18 +272,67 @@ const q9a = supervision({
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
-  { what: 'P(X/(X + Y) ≤ 1/3) for independent X, Y ~ Exp(1)', exact: q(1, 3), trial: (rng) => { const [x, y] = [expSample(rng, 1), expSample(rng, 1)]; return x / (x + y) <= 1 / 3; } },
+  { what: 'X uniform on [0, 1]: 2X is at most 1', exact: q(1, 2), trial: (rng) => 2 * rng() <= 1 },
 ];
+const HALF = 0.5;
+const prodCdf = (u: number): number => u - u * Math.log(u);
+const [mJ, mT] = [math`J`, math`T`];
 
 export const transformations: TopicContent = {
   topicId: 'rv.transformations',
   goal: t`Find the joint density of ${math`(U, V) = T(X, Y)`} by the change of variables formula with the Jacobian, and read off independence and the marginals.`,
+  objective: t`Find the joint density of new random variables with the Jacobian, and read off marginals and independence.`,
+  why: t`Sums, ratios and polar coordinates of random variables all follow from it; it also proves Box-Muller.`,
+  minutes: 35,
   lesson: [
-    { kind: 'rule', text: t`The [[change-of-variables|change of variables formula]]: if ${math`T`} maps the region where ${math`f_{X,Y} > ${0}`} one to one onto a region ${math`R`}, with smooth inverse ${math`x = x(u, v)`}, ${math`y = y(u, v)`}, then ${math`f_{U,V}(u, v) = f_{X,Y}(x(u, v), y(u, v))\,|J|`} on ${math`R`}, where ${math`J = \frac{\partial(x, y)}{\partial(u, v)} = \det\begin{pmatrix} \partial x/\partial u & \partial x/\partial v \\ \partial y/\partial u & \partial y/\partial v \end{pmatrix}`}.` },
-    { kind: 'p', text: t`It is the one variable rule ${math`f_{Y}(y) = f_{X}(h(y))\,|h'(y)|`} in two dimensions. The [[jacobian|Jacobian]] ${math`|J|`} measures how the inverse map stretches area: a small rectangle of area ${math`du\,dv`} comes from a region of area about ${math`|J|\,du\,dv`}, and probability is conserved. For ${math`U = X + Y`}, ${math`V = X - Y`}: ${math`x = (u + v)/${2}`}, ${math`y = (u - v)/${2}`}, and ${math`J = -\tfrac{${1}}{${2}}`}.` },
-    { kind: 'p', text: t`Three steps every time: check the map is one to one and find the region ${math`R`}; invert and compute ${math`J`}; substitute and multiply by ${math`|J|`}. If the result factorises as ${math`g(u)h(v)`} on a rectangle, ${mU} and ${mV} are independent.` },
-    { kind: 'p', text: t`Sheet ${4} Q${8}: for independent ${math`\mathrm{Exp}(\lambda)`} variables, ${math`U = X + Y`} and ${math`V = X/(X + Y)`} have ${math`x = uv`}, ${math`y = u(${1} - v)`}, and ${math`|J| = u`}, so ${math`f_{U,V} = \lambda^{${2}}u\,e^{-\lambda u}`} on ${math`(${0}, \infty) \times (${0}, ${1})`}. The sum has density ${math`\lambda^{${2}}u\,e^{-\lambda u}`}, the share is uniform, and they are independent: ${math`P(X/(X + Y) \le \tfrac{${1}}{${3}}) = ${q(1, 3)}`}.` },
-    { kind: 'p', text: t`Polar coordinates, ${math`x = r\cos\theta`}, ${math`y = r\sin\theta`}, have ${math`J = r`}. For independent standard normals the joint density ${math`\frac{${1}}{${2}\pi}e^{-(x^{${2}} + y^{${2}})/${2}}`} becomes ${math`\frac{${1}}{${2}\pi}\,r e^{-r^{${2}}/${2}}`}: the angle is uniform on ${math`[${0}, ${2}\pi)`}, independent of the distance ${math`R`}, which has density ${math`r e^{-r^{${2}}/${2}}`} (Q${9}). A rotation has ${math`J = ${1}`} and keeps ${math`x^{${2}} + y^{${2}}`}, so rotated standard normals are again independent standard normals (Q${7}).` },
+    { kind: 'section', title: t`Multiplying two random numbers` },
+    { kind: 'hook', text: t`Pick two numbers uniformly from ${math`[${0}, ${1}]`}, independently, and multiply them. Is the product uniform too? A moment's thought says no: the product is never bigger than either factor, so small values should be more common. How much more common, exactly?` },
+    { kind: 'narrative', text: t`For one variable you already have a tool: if ${math`Y = g(X)`} with ${math`g`} smooth and one to one, then ${math`f_{Y}(y) = f_{X}(h(y))\,\lvert h'(y) \rvert`}, where ${math`h = g^{-${1}}`}. The factor ${math`\lvert h'(y) \rvert`} says how much ${math`h`} stretches lengths: probability is conserved, so density must shrink where the map stretches. With two variables, lengths become areas, and the stretch factor becomes a determinant.` },
+    { kind: 'section', title: t`The change of variables formula` },
+    {
+      kind: 'definition',
+      name: t`Jacobian`,
+      formal: t`For a smooth map ${math`(u, v) \mapsto (x(u, v), y(u, v))`}, the [[jacobian|Jacobian]] is ${dmath`J = \frac{\partial(x, y)}{\partial(u, v)} = \det\begin{pmatrix} \partial x/\partial u & \partial x/\partial v \\ \partial y/\partial u & \partial y/\partial v \end{pmatrix}.`}`,
+      plain: t`In plain words: the factor by which the map scales small areas, with a sign for orientation. For ${math`x = u + v`}, ${math`y = u - v`}, ${math`J = (${1})(-${1}) - (${1})(${1}) = -${2}`}: areas double.`,
+    },
+    {
+      kind: 'theorem',
+      name: t`Change of variables`,
+      statement: t`Let ${math`(X, Y)`} have joint density ${math`f_{X,Y}`}, and let ${mT} map the region where ${math`f_{X,Y} > ${0}`} one to one onto a region ${math`R`}, with smooth inverse ${math`x = x(u, v)`}, ${math`y = y(u, v)`}. Then ${math`(U, V) = T(X, Y)`} has density ${dmath`f_{U,V}(u, v) = f_{X,Y}\big(x(u, v), y(u, v)\big)\,\lvert J \rvert \quad \text{on } R,`} and ${0} outside ${math`R`}.`,
+    },
+    {
+      kind: 'p',
+      text: t`This is the [[change-of-variables|change of variables formula]]. It is the substitution rule for double integrals read as a statement about probability: a small rectangle of area ${math`du\,dv`} near ${math`(u, v)`} comes from a region of area about ${math`\lvert J \rvert\,du\,dv`} near ${math`(x, y)`}, and both must carry the same probability.`,
+      why: { q: t`Why the inverse map's Jacobian, not the forward one's?`, a: t`The density of ${math`(U, V)`} is a probability per unit area in the ${math`(u, v)`} plane. The probability comes from the ${math`(x, y)`} plane, so we need the area there per unit area here: that is the stretch of the map from ${math`(u, v)`} back to ${math`(x, y)`}.` },
+    },
+    {
+      kind: 'list',
+      items: [
+        t`Check the map is one to one, and find the region ${math`R`} of possible ${math`(u, v)`}.`,
+        t`Invert: write ${math`x`} and ${math`y`} in terms of ${math`u`} and ${math`v`}, and compute ${mJ}.`,
+        t`Substitute into ${math`f_{X,Y}`} and multiply by ${math`\lvert J \rvert`}. Integrate out a variable for a marginal.`,
+      ],
+    },
+    { kind: 'section', title: t`The product, worked` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Add a partner variable`, text: t`To use the formula we need two new variables. Keep ${math`V = X`} alongside ${math`U = XY`}. The point ${math`(X, Y)`} is uniform on the unit square, ${math`f_{X,Y} = ${1}`} there.`, plain: t`The partner is a free choice; pick one that makes the inverse easy.` },
+        { label: t`Find the region`, text: t`For ${math`${0} < x, y < ${1}`}: ${math`v = x \in (${0}, ${1})`} and ${math`u = xy \in (${0}, v)`}. So ${math`R = \{(u, v) : ${0} < u < v < ${1}\}`}, and the map is one to one there.` },
+        { label: t`Invert and compute J`, text: t`${math`x = v`} and ${math`y = u/v`}, so`, eq: [dmath`J = \det\begin{pmatrix} ${0} & ${1} \\ ${1}/v & -u/v^{${2}} \end{pmatrix} = -\frac{${1}}{v}.`] },
+        { label: t`The joint density`, text: t`${math`f_{U,V}(u, v) = ${1} \cdot \lvert J \rvert = \frac{${1}}{v}`} for ${math`${0} < u < v < ${1}`}.` },
+        { label: t`The marginal`, text: t`Integrate out ${math`v`} over ${math`u < v < ${1}`}:`, eq: [dmath`f_{U}(u) = \int_{u}^{${1}} \frac{dv}{v} = -\ln u, \quad ${0} < u < ${1}.`], plain: t`Large near ${0}, as the hook suggested, and ${0} at ${math`u = ${1}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`So ${math`P(XY \le \tfrac{${1}}{${2}}) = \int_{${0}}^{${1}/${2}} (-\ln u)\,du = \tfrac{${1}}{${2}} + \tfrac{${1}}{${2}}\ln ${2} \approx ${r4(prodCdf(HALF))}`}, well above a half.` },
+    checkFrom(linearJacobian, { a: 2, b: 1, c: 1, d: -1 }, t`Here ${math`ad - bc = -${2} - ${1} = -${3}`}. The inverse map scales area by ${math`\frac{${1}}{${3}}`}, so the density is ${math`${1} \times \frac{${1}}{${3}}`} on the image.`),
+    { kind: 'pitfall', claim: t`If ${mX} is uniform on ${math`[${0}, ${1}]`}, then ${math`U = ${2}X`} has density ${2} on ${math`[${0}, ${2}]`}: the map doubles.`, counterexample: t`A density of ${2} on an interval of length ${2} has total probability ${4}. The inverse ${math`x = u/${2}`} has ${math`\lvert J \rvert = \tfrac{${1}}{${2}}`}, so the density is ${q(1, 2)}: stretching spreads the probability thinner.` },
+    { kind: 'section', title: t`Independence, polar coordinates, rotations` },
+    { kind: 'narrative', text: t`If the joint density of ${math`(U, V)`} factorises as ${math`g(u)h(v)`} on a rectangle, then ${mU} and ${mV} are independent. Both conditions matter. In the product example, ${math`\frac{${1}}{v}`} looks like a function of ${math`v`} alone, but the region ${math`${0} < u < v < ${1}`} is a triangle, so ${mU} and ${mV} are not independent: knowing ${math`V = v`} forces ${math`U < v`}.` },
+    { kind: 'p', text: t`Two maps come up again and again. Polar coordinates, ${math`x = r\cos\theta`} and ${math`y = r\sin\theta`}, have ${math`J = r`}: a thin ring far from the centre has more area. A rotation has ${math`J = ${1}`} and keeps ${math`x^{${2}} + y^{${2}}`} unchanged. IA Probability Sheet ${4} uses both, in questions ${7} and ${9}, and question ${8} splits two exponential times into their sum and the first one's share, the worked example below.` },
+    checkFrom(polarNormal, { sigma: 2, r: 2 }, t`In polar coordinates the distance has ${math`P(R \le r) = ${1} - e^{-r^{${2}}/(${2}\sigma^{${2}})}`}; with ${math`r = \sigma = ${2}`}, that is ${math`${1} - e^{-${1}/${2}} \approx ${r4(1 - Math.exp(-0.5))}`}.`),
+    { kind: 'pitfall', claim: t`A joint density of the form ${math`g(u)h(v)`} always means ${mU} and ${mV} are independent.`, counterexample: t`Only on a product region. ${math`f_{U,V} = \frac{${1}}{v}`} on ${math`${0} < u < v < ${1}`} has that form, yet ${math`P(U > \tfrac{${1}}{${2}}, V < \tfrac{${1}}{${2}}) = ${0}`} while both events have positive probability.` },
+    { kind: 'takeaway', text: t`Invert the map, multiply the old density by ${math`\lvert J \rvert`} on the new region, and integrate out what you do not need.` },
   ],
   examples: [
     workedCambridge(q8sum),
@@ -295,5 +344,23 @@ export const transformations: TopicContent = {
   terms: ['change-of-variables', 'jacobian'],
   claims,
   cambridge: [q8ratio, q7dist, q7proof, q8proof, q9a],
-  gate: ['ia4-q8-ratio', 'ia4-q7-distribution', 'ia4-q7', 'ia4-q8', 'ia4-q9-a'],
+  // Best first: the three Sheet 4 write-ups. The two choice questions (the distribution of
+  // X/(X + Y), and of a rotated normal) can be guessed, so they do not gate.
+  gate: ['ia4-q8', 'ia4-q7', 'ia4-q9-a'],
+  recall: [
+    { front: t`State the change of variables formula.`, back: t`${math`f_{U,V}(u, v) = f_{X,Y}(x(u, v), y(u, v))\,\lvert J \rvert`} on the image, with ${mJ} the Jacobian of the inverse map.` },
+    { front: t`Jacobian of polar coordinates?`, back: t`${math`J = r`}.` },
+    { front: t`When does a joint density show independence?`, back: t`When it factorises as ${math`g(u)h(v)`} on a product region.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The density of the product of two uniforms`,
+      steps: [
+        t`Pair ${math`U = XY`} with ${math`V = X`}; the region is ${math`${0} < u < v < ${1}`}.`,
+        t`Invert: ${math`x = v`}, ${math`y = u/v`}, so ${math`\lvert J \rvert = \frac{${1}}{v}`}.`,
+        t`Joint density: ${math`f_{U,V}(u, v) = \frac{${1}}{v}`} on the region.`,
+        t`Integrate out ${math`v`}: ${math`f_{U}(u) = -\ln u`}.`,
+      ],
+    },
+  ],
 };

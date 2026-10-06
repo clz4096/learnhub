@@ -10,8 +10,8 @@ import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, sample, str, sub, toFloat, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
-import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S1 = 'ia-prob-sheet-1' as const;
 const distinctFrom = (right: string, xs: readonly string[]): number => new Set(xs.filter((x) => x !== right)).size;
@@ -246,19 +246,68 @@ const bernstein = supervision({
 
 const claims: ProbabilityClaim[] = [
   { what: 'Mary with three coins against John with two: more heads', exact: MORE, trial: (rng) => { let m = 0; let j = 0; for (let i = 0; i < 3; i++) if (rng() < 0.5) m++; for (let i = 0; i < 2; i++) if (rng() < 0.5) j++; return m > j; } },
+  { what: 'two coins: first a head, second a head, and they agree, all at once', exact: q(1, 4), trial: (rng) => { const a = rng() < 0.5; const b = rng() < 0.5; return a && b && a === b; } },
 ];
+
+const [mA, mB, mC, mn] = [math`A`, math`B`, math`C`, math`n`];
+const half = q(1, 2);
+const conditions = (n: number): number => 2 ** n - n - 1;
 
 export const independence: TopicContent = {
   topicId: 'prob.independence',
   goal: t`Define mutual independence of several events, tell it apart from pairwise independence, and compute with independent events and their complements.`,
+  objective: t`Define independence for several events, and tell it apart from independence of each pair.`,
+  why: t`Almost every model assumes independent trials; next, independent random variables and their sums.`,
+  minutes: 20,
   lesson: [
-    { kind: 'rule', text: t`Events ${math`A_{${1}}, \ldots, A_{n}`} are [[mutual-independence|mutually independent]] when for every subfamily ${math`A_{i_{${1}}}, \ldots, A_{i_{k}}`}, ${math`\mathbb{P}(A_{i_{${1}}} \cap \cdots \cap A_{i_{k}}) = \mathbb{P}(A_{i_{${1}}}) \cdots \mathbb{P}(A_{i_{k}})`}. For three events that is the three pairs and the triple.` },
-    { kind: 'p', text: t`Checking the pairs is not enough. Toss two fair coins: "the first is a head", "the second is a head", and "they agree" each have probability ${q(1, 2)}, and each pair meets with probability ${q(1, 4)}, so they are [[pairwise-independence|pairwise independent]]. But all three happen with probability ${q(1, 4)}, not ${q(1, 8)}: any two decide the third.` },
-    { kind: 'p', text: t`Mutual independence survives complements: if ${math`A`}, ${math`B`}, ${math`C`} are independent, so are ${math`A`}, ${math`B^{c}`}, ${math`C`}, since ${math`\mathbb{P}(A \cap B^{c} \cap C) = \mathbb{P}(A \cap C) - \mathbb{P}(A \cap B \cap C) = \mathbb{P}(A)(${1} - \mathbb{P}(B))\mathbb{P}(C)`}. So "none happens" has probability ${math`\prod (${1} - \mathbb{P}(A_{i}))`}.` },
-    { kind: 'p', text: t`Independence is usually a modelling assumption: separate coins, separate dice. Example Sheet ${1} Q${11}: Mary tosses three coins and John two. Mary's third coin is independent of the other four, so Mary wins when her first two beat John's (probability ${BEAT}) or tie them (probability ${TIE}) and her third is a head: ${math`${BEAT} + ${TIE} \cdot ${q(1, 2)} = ${MORE}`}.` },
+    { kind: 'section', title: t`Two coins, three events` },
+    { kind: 'hook', text: t`Toss two fair coins. Let ${mA} be "the first is a head", ${mB} "the second is a head", and ${mC} "the two coins agree". Knowing whether ${mA} happened tells you nothing about ${mC}, and the same goes for any other pair. Yet if you know ${mA} and ${mB}, you know ${mC} for certain. Are these three events independent or not?` },
+    { kind: 'narrative', text: t`For two events you already have a definition: ${mA} and ${mB} are independent when ${math`\mathbb{P}(A \cap B) = \mathbb{P}(A)\,\mathbb{P}(B)`}, the chance of both is the product of the chances. The puzzle shows that for three or more events there are two different things "independent" could mean, and they are not the same.` },
+
+    { kind: 'section', title: t`The definitions` },
+    { kind: 'definition', name: t`Mutual independence`, formal: t`Events ${math`A_{${1}}, \ldots, A_{n}`} are [[mutual-independence|mutually independent]] if for every choice of distinct indices ${math`i_{${1}} < \cdots < i_{k}`} with ${math`k \ge ${2}`}, ${dmath`\mathbb{P}(A_{i_{${1}}} \cap \cdots \cap A_{i_{k}}) = \mathbb{P}(A_{i_{${1}}}) \cdots \mathbb{P}(A_{i_{k}}).`}`, plain: t`Every subfamily multiplies: every pair, every triple, and so on up to all ${mn} together. For three events that is ${conditions(3)} equations: the three pairs and the triple.` },
+    { kind: 'definition', name: t`Pairwise independence`, formal: t`Events ${math`A_{${1}}, \ldots, A_{n}`} are [[pairwise-independence|pairwise independent]] if ${math`\mathbb{P}(A_{i} \cap A_{j}) = \mathbb{P}(A_{i})\,\mathbb{P}(A_{j})`} for all ${math`i \ne j`}.`, plain: t`Only the pairs are required to multiply. For three events that is ${3} equations instead of ${conditions(3)}.` },
+    { kind: 'p', text: t`Mutual independence includes the pair conditions, so mutually independent events are always pairwise independent. When people say "independent events" without qualification, they mean mutually independent.`, why: { q: t`How many equations does mutual independence need for ${mn} events?`, a: t`One for each subfamily of size at least ${2}: all ${math`${2}^{n}`} subsets, minus the ${mn} single events, minus the empty set, so ${math`${2}^{n} - n - ${1}`}. For ${math`n = ${4}`} that is ${conditions(4)}.` } },
+
+    { kind: 'section', title: t`Pairwise is not enough` },
+    { kind: 'narrative', text: t`Now settle the opening puzzle by listing outcomes. There are four equally likely outcomes, ${math`\Omega = \{HH, HT, TH, TT\}`}, each with probability ${q(1, 4)}.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The single events`, text: t`${math`A = \{HH, HT\}`}, ${math`B = \{HH, TH\}`}, ${math`C = \{HH, TT\}`}. Each has two outcomes, so each has probability ${half}.` },
+        { label: t`The pairs`, text: t`${math`A \cap B`}, ${math`A \cap C`}, and ${math`B \cap C`} are each ${math`\{HH\}`}, with probability ${q(1, 4)}.`, eq: [dmath`\mathbb{P}(A \cap B) = ${q(1, 4)} = ${half} \times ${half} = \mathbb{P}(A)\,\mathbb{P}(B),`], plain: t`and the same for the other two pairs. So the three events are pairwise independent.`, why: { q: t`Why is ${math`A \cap C = \{HH\}`}?`, a: t`${mA} needs the first coin to be a head; ${mC} needs the coins to agree. Both together force the second coin to be a head too, so the only outcome is ${math`HH`}.` } },
+        { label: t`The triple`, text: t`${math`A \cap B \cap C = \{HH\}`} too, so`, eq: [dmath`\mathbb{P}(A \cap B \cap C) = ${q(1, 4)} \ne ${q(1, 8)} = \mathbb{P}(A)\,\mathbb{P}(B)\,\mathbb{P}(C).`], plain: t`The triple condition fails, so they are not mutually independent.` },
+      ],
+    },
+    { kind: 'p', text: t`The picture to hold on to: any two of the events are unrelated, but the three together are tied by a rule (${mC} happens exactly when ${mA} and ${mB} agree). Pairwise checks cannot see a rule that involves three events at once.` },
+    checkFrom(classifyThree, { ix: [0, 1, 3] }, t`Each pair multiplies (for example ${math`\mathbb{P}(A \cap C) = ${q(3, 36)} = ${half} \times ${q(1, 6)}`}), but two even dice cannot total ${7}, so ${math`\mathbb{P}(A \cap B \cap C) = ${0} \ne ${q(1, 24)}`}.`),
+
+    { kind: 'section', title: t`Complements stay independent` },
+    { kind: 'narrative', text: t`A question you will need constantly: if ${math`A_{${1}}, \ldots, A_{n}`} are independent, what is the chance that none of them happens? You would like to multiply ${math`${1} - \mathbb{P}(A_{i})`} over all ${math`i`}. That is legitimate, because of the following result.` },
+    { kind: 'theorem', name: t`Complements`, statement: t`If ${math`A_{${1}}, A_{${2}}, \ldots, A_{n}`} are mutually independent, then so are ${math`A_{${1}}^{c}, A_{${2}}, \ldots, A_{n}`}.` },
+    { kind: 'narrative', text: t`The idea in one line: the part of a set outside ${math`A_{${1}}`} is the whole set minus the part inside ${math`A_{${1}}`}, and both of those multiply.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`What must be checked`, text: t`Subfamilies not containing ${math`A_{${1}}^{c}`} are subfamilies of the original events, so they multiply. Take a subfamily containing ${math`A_{${1}}^{c}`}, and let ${math`I`} be the intersection of its other members (${math`I = \Omega`} if there are none).`, plain: t`For example, with the subfamily ${math`A_{${1}}^{c}, A_{${3}}, A_{${4}}`}, ${math`I = A_{${3}} \cap A_{${4}}`}.` },
+        { label: t`Split ${math`I`} in two`, text: t`${math`I`} is the disjoint union of ${math`I \cap A_{${1}}`} and ${math`I \cap A_{${1}}^{c}`}, so`, eq: [dmath`\mathbb{P}(I \cap A_{${1}}^{c}) = \mathbb{P}(I) - \mathbb{P}(I \cap A_{${1}}).`], why: { q: t`Why may we subtract?`, a: t`Each outcome of ${math`I`} is either in ${math`A_{${1}}`} or not, never both, so the two pieces are disjoint and their probabilities add to ${math`\mathbb{P}(I)`}.` } },
+        { label: t`Both terms multiply`, text: t`By mutual independence of the original events, ${math`\mathbb{P}(I)`} is the product of the probabilities of the members of ${math`I`}; call that product ${math`p`}. And ${math`\mathbb{P}(I \cap A_{${1}}) = p\,\mathbb{P}(A_{${1}})`}.`, plain: t`If ${math`I = \Omega`}, then ${math`p = ${1}`} and both statements still hold.` },
+        { label: t`Factor`, text: t`Substitute and take out the common factor ${math`p`}:`, eq: [dmath`\mathbb{P}(I \cap A_{${1}}^{c}) = p - p\,\mathbb{P}(A_{${1}}) = p\,(${1} - \mathbb{P}(A_{${1}})) = p\,\mathbb{P}(A_{${1}}^{c}).`], plain: t`That is exactly the product condition for this subfamily, so every subfamily multiplies.` },
+      ],
+    },
+    { kind: 'p', text: t`Apply the theorem once for each event, and you may complement any of them. In particular ${dmath`\mathbb{P}(\text{none of } A_{${1}}, \ldots, A_{n}) = \prod_{i = ${1}}^{n} (${1} - \mathbb{P}(A_{i})).`}` },
+    checkFrom(independentSystem, { ps: [q(1, 2), q(2, 3), q(1, 4)], kind: 'none' }, t`The complements are independent too, so ${math`\left(${1} - ${half}\right)\left(${1} - ${q(2, 3)}\right)\left(${1} - ${q(1, 4)}\right) = ${q(1, 8)}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`If every pair of events is independent, the events are independent.`, counterexample: t`The two coins: "first a head", "second a head", "they agree" are pairwise independent, but all three happen with probability ${q(1, 4)}, not ${q(1, 8)}.` },
+    { kind: 'pitfall', claim: t`For three events it is enough to check ${math`\mathbb{P}(A \cap B \cap C) = \mathbb{P}(A)\,\mathbb{P}(B)\,\mathbb{P}(C)`}.`, counterexample: t`Let ${math`A = B`} be "a fair coin shows heads" and ${math`C = \varnothing`}. Both sides of the triple condition are ${0}, but ${math`\mathbb{P}(A \cap B) = ${half} \ne ${q(1, 4)}`}.` },
+    { kind: 'pitfall', claim: t`Disjoint events are independent, since they have nothing to do with each other.`, counterexample: t`"Heads" and "tails" on one coin are disjoint, so ${math`\mathbb{P}(\text{both}) = ${0}`}, but the product is ${q(1, 4)}. Disjoint events with positive probability are as dependent as can be: one rules out the other.` },
+    { kind: 'narrative', text: t`The Cambridge question, Example Sheet ${1} question ${11}, is a lovely use of independence. Mary tosses one more coin than John. Split off Mary's last coin: it is independent of all the others, and that is what makes the answer exactly ${half}.` },
+    { kind: 'takeaway', text: t`Mutual independence means every subfamily multiplies, not just the pairs, and it survives replacing events by their complements.` },
   ],
   examples: [
-    workedCambridge(q11ind),
+    { ...workedCambridge(q11ind), examiner: t`The examiner looks for the events named precisely, and a sentence saying which coins make ${math`H`} independent of ${math`T`}.` },
     worked(classifyThree, { ix: [0, 1, 2] }, t`Two coins' worth of events on dice`),
     worked(independentSystem, { ps: [q(1, 2), q(1, 3), q(1, 4)], kind: 'exactly-one' }, t`Exactly one of three`),
   ],
@@ -267,5 +316,22 @@ export const independence: TopicContent = {
   terms: ['mutual-independence', 'pairwise-independence'],
   claims,
   cambridge: [q11proof, bernstein],
+  // The sheet's question for general n: the only Cambridge-standard problem here, and a good one.
   gate: ['ia-q11-by-independence'],
+  recall: [
+    { front: t`Define mutual independence of ${math`A_{${1}}, \ldots, A_{n}`}.`, back: t`For every subfamily of at least two of them, the probability of the intersection is the product of their probabilities.` },
+    { front: t`Define pairwise independence.`, back: t`${math`\mathbb{P}(A_{i} \cap A_{j}) = \mathbb{P}(A_{i})\,\mathbb{P}(A_{j})`} for every pair ${math`i \ne j`}. It is weaker than mutual independence.` },
+    { front: t`Give three events that are pairwise but not mutually independent.`, back: t`Two fair coins: first a head, second a head, the coins agree.` },
+    { front: t`Complements of independent events.`, back: t`If ${math`A_{${1}}, \ldots, A_{n}`} are mutually independent, so are the events with any of them replaced by its complement.` },
+  ],
+  proofOrder: [{
+    title: t`Complementing one of several independent events`,
+    steps: [
+      t`Take a subfamily containing ${math`A_{${1}}^{c}`}, and let ${math`I`} be the intersection of its other members.`,
+      t`${math`I`} splits into the disjoint pieces ${math`I \cap A_{${1}}`} and ${math`I \cap A_{${1}}^{c}`}.`,
+      t`So ${math`\mathbb{P}(I \cap A_{${1}}^{c}) = \mathbb{P}(I) - \mathbb{P}(I \cap A_{${1}})`}.`,
+      t`By independence this is ${math`p - p\,\mathbb{P}(A_{${1}})`}, with ${math`p`} the product for ${math`I`}.`,
+      t`Factor: ${math`p\,(${1} - \mathbb{P}(A_{${1}}))`}, the product the definition requires.`,
+    ],
+  }],
 };

@@ -8,11 +8,11 @@
  */
 import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
-import { add, factorial, int, mul, pick, q, str, sub, type Rational } from '../math';
+import { add, factorial, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { computedTex, listOf, math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { computedTex, dmath, listOf, math, t } from '../rich';
+import { checkFrom, quickCheck, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S1 = 'ia-prob-sheet-1' as const;
 const mn = math`n`;
@@ -218,19 +218,77 @@ const ieProof = supervision({
 
 const claims: ProbabilityClaim[] = [
   { what: 'four letters, none in its own envelope', exact: derange(4), trial: (rng) => shuffle(4, rng).every((v, i) => v !== i) },
+  { what: 'two letters, none in its own envelope', exact: derange(2), trial: (rng) => shuffle(2, rng).every((v, i) => v !== i) },
 ];
+
+const D4 = Array.from({ length: 5 }, (_, k) => k);
+const bonf4 = add(sub(q(1), q(1)), q(1, 2));
 
 export const inclusionExclusion: TopicContent = {
   topicId: 'prob.inclusion-exclusion',
   goal: t`State, prove, and apply the inclusion-exclusion formula for ${mn} events, with alternating sums over all intersections.`,
+  objective: t`State and prove inclusion-exclusion for ${mn} events, and use it when all overlaps of a size look alike.`,
+  why: t`It turns any "at least one" question into sums over overlaps: the key to matching and derangement problems.`,
+  minutes: 25,
   lesson: [
-    { kind: 'rule', text: t`[[inclusion-exclusion-formula|Inclusion-exclusion]] for ${mn} events: ${math`\mathbb{P}\left(\bigcup_{i = ${1}}^{n} A_{i}\right) = \sum_{i} \mathbb{P}(A_{i}) - \sum_{i < j} \mathbb{P}(A_{i} \cap A_{j}) + \sum_{i < j < k} \mathbb{P}(A_{i} \cap A_{j} \cap A_{k}) - \cdots + (-${1})^{n + ${1}}\mathbb{P}(A_{${1}} \cap \cdots \cap A_{n})`}.` },
-    { kind: 'p', text: t`It is proved by induction from the two-event rule, applied to ${math`(A_{${1}} \cup \cdots \cup A_{n}) \cup A_{n + ${1}}`}. On a finite equally likely space there is a counting proof: an outcome in exactly ${math`t`} of the events is counted ${math`\binom{t}{${1}} - \binom{t}{${2}} + \cdots = ${1} - (${1} - ${1})^{t} = ${1}`} time, by the binomial theorem.` },
-    { kind: 'p', text: t`It is most useful when every intersection of ${math`k`} events has the same probability: then the ${math`k`}th sum is ${math`\binom{n}{k}`} times one term. ${mn} letters in random envelopes with [[derangement|none in its own]]: each set of ${math`k`} letters is all in place with probability ${math`(n - k)!/n!`}, so the answer is ${math`\sum_{k = ${0}}^{n} (-${1})^{k}/k!`}, which for ${4} letters is ${derange(4)} and tends to ${math`e^{-${1}}`}.` },
-    { kind: 'p', text: t`Example Sheet ${1} Q${7} computes one probability two ways. The chance that ${math`m`} given people are on a random committee of ${math`r`} from ${mn} is ${math`\binom{n - m}{r - m}/\binom{n}{r}`} directly, and an alternating sum by inclusion-exclusion over "person ${math`i`} is absent"; equating them gives a binomial identity for free.` },
+    { kind: 'section', title: t`Letters in the wrong envelopes` },
+    { kind: 'hook', text: t`A secretary puts ${mn} letters into their ${mn} addressed envelopes completely at random. What is the chance that not one letter reaches the right person? With ${4} letters it is ${derange(4)}; with ${10} letters it is about ${Number(toFloat(derange(10)).toFixed(4))}; with a thousand letters it is still about ${Number(Math.exp(-1).toFixed(4))}. Why does the answer settle down instead of going to ${0} or ${1}?` },
+    { kind: 'narrative', text: t`The natural events here overlap in complicated ways. Let ${math`A_{i}`} be the event "letter ${math`i`} is in its own envelope". We want the chance that none of them happens, which is ${math`${1} - \mathbb{P}(A_{${1}} \cup \cdots \cup A_{n})`}. For two or three events you already know how to handle a union: add the singles, subtract the pairs, add back the triple. We need the same idea for any number of events.` },
+
+    { kind: 'section', title: t`The formula` },
+    { kind: 'narrative', text: t`First, a compact way to write "add up over all groups of ${math`k`} events". Write ${math`i_{${1}} < i_{${2}} < \cdots < i_{k}`} for a choice of ${math`k`} different indices listed in increasing order, so each group is counted once. (With ${math`n = ${4}`} and ${math`k = ${2}`}, the choices are ${math`\{${1},${2}\}, \{${1},${3}\}, \{${1},${4}\}, \{${2},${3}\}, \{${2},${4}\}, \{${3},${4}\}`}: ${choose(4, 2)} of them.)` },
+    { kind: 'definition', name: t`The ${math`k`}th intersection sum`, formal: t`For events ${math`A_{${1}}, \ldots, A_{n}`} and ${math`${1} \le k \le n`}, let ${dmath`S_{k} = \sum_{i_{${1}} < \cdots < i_{k}} \mathbb{P}(A_{i_{${1}}} \cap \cdots \cap A_{i_{k}}),`} the sum over all ${math`\binom{n}{k}`} choices of ${math`k`} of the events.`, plain: t`${math`S_{${1}}`} adds the probabilities of the single events, ${math`S_{${2}}`} adds the probabilities of every pair happening together, and so on, up to ${math`S_{n}`}, the chance that all of them happen.` },
+    { kind: 'theorem', name: t`Inclusion-exclusion`, statement: t`For any events ${math`A_{${1}}, \ldots, A_{n}`} in a probability space, ${dmath`\mathbb{P}\left(\bigcup_{i = ${1}}^{n} A_{i}\right) = \sum_{k = ${1}}^{n} (-${1})^{k + ${1}} S_{k} = S_{${1}} - S_{${2}} + S_{${3}} - \cdots + (-${1})^{n + ${1}} S_{n}.`}` },
+    { kind: 'p', text: t`In plain words: this is the [[inclusion-exclusion-formula|inclusion-exclusion formula]]. Add the singles, subtract the pairs, add the triples, subtract the quadruples, and keep alternating. The factor ${math`(-${1})^{k + ${1}}`} is just a compact way to say "plus when ${math`k`} is odd, minus when ${math`k`} is even".` },
+
+    { kind: 'section', title: t`Why it is true` },
+    { kind: 'narrative', text: t`Here is the idea in one line: every outcome in the union gets counted exactly once, and the binomial theorem is what makes the count come to ${1}. We prove it when the sample space ${math`\Omega`} is finite or countable, so that the probability of an event is the sum of the probabilities of the outcomes in it: ${math`\mathbb{P}(E) = \sum_{\omega \in E} \mathbb{P}(\{\omega\})`}. (A proof by induction on ${mn}, from the two-event rule, covers every probability space; it is set as a problem below.)` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Pick one outcome`, text: t`Fix an outcome ${math`\omega`} that lies in exactly ${math`t`} of the events, where ${math`${1} \le t \le n`}.`, plain: t`Say ${math`\omega`} is in ${math`A_{${2}}`}, ${math`A_{${5}}`}, and ${math`A_{${7}}`} and no others: then ${math`t = ${3}`}.` },
+        { label: t`Count its appearances in ${math`S_{k}`}`, text: t`${math`\omega`} lies in ${math`A_{i_{${1}}} \cap \cdots \cap A_{i_{k}}`} exactly when all ${math`k`} chosen events are among its ${math`t`} events. There are ${math`\binom{t}{k}`} such choices, so ${math`\omega`} contributes ${math`\binom{t}{k}\mathbb{P}(\{\omega\})`} to ${math`S_{k}`}.`, plain: t`In the example, ${math`\omega`} appears in ${choose(3, 2)} of the pair intersections and in ${choose(3, 3)} triple. For ${math`k > t`} there are no such choices, and ${math`\binom{t}{k} = ${0}`}.` },
+        { label: t`Add up the signs`, text: t`So the right-hand side counts ${math`\omega`} with total weight`, eq: [dmath`\mathbb{P}(\{\omega\}) \sum_{k = ${1}}^{t} (-${1})^{k + ${1}} \binom{t}{k}.`] },
+        {
+          label: t`Use the binomial theorem`,
+          text: t`Expand ${math`(${1} - ${1})^{t}`}:`,
+          eq: [dmath`${0} = (${1} - ${1})^{t} = \sum_{k = ${0}}^{t} \binom{t}{k} (-${1})^{k} = ${1} - \sum_{k = ${1}}^{t} (-${1})^{k + ${1}} \binom{t}{k}.`],
+          plain: t`So the alternating sum is exactly ${1}, and ${math`\omega`} is counted with weight ${math`\mathbb{P}(\{\omega\})`}, once.`,
+          why: { q: t`Why does ${math`t \ge ${1}`} matter here?`, a: t`For ${math`t = ${0}`}, ${math`(${1} - ${1})^{${0}}`} is ${1}, not ${0}. That case is an outcome in none of the events, handled in the next step. The middle step pulls out the ${math`k = ${0}`} term, which is ${math`\binom{t}{${0}} = ${1}`}, and writes ${math`(-${1})^{k} = -(-${1})^{k + ${1}}`}.` },
+        },
+        { label: t`Add over all outcomes`, text: t`An outcome in none of the events appears in no ${math`S_{k}`}, and is not in the union. Summing over all ${math`\omega`}, the right-hand side is ${math`\sum_{\omega \in \bigcup A_{i}} \mathbb{P}(\{\omega\}) = \mathbb{P}(\bigcup A_{i})`}.`, plain: t`Every outcome in the union is counted once, every other outcome not at all: that is exactly the probability of the union.` },
+      ],
+    },
+    quickCheck({
+      prompt: t`An outcome lies in exactly ${4} of the events. How many times is it added in ${math`S_{${1}}`} and ${math`S_{${3}}`} together, and how many times subtracted in ${math`S_{${2}}`} and ${math`S_{${4}}`} together? Give the net count.`,
+      answer: { kind: 'exact', expected: String(choose(4, 1) - choose(4, 2) + choose(4, 3) - choose(4, 4)) },
+      reference: String(choose(4, 1) - choose(4, 2) + choose(4, 3) - choose(4, 4)),
+      why: t`Added ${math`\binom{${4}}{${1}} + \binom{${4}}{${3}} = ${choose(4, 1) + choose(4, 3)}`} times, subtracted ${math`\binom{${4}}{${2}} + \binom{${4}}{${4}} = ${choose(4, 2) + choose(4, 4)}`} times: net ${choose(4, 1) - choose(4, 2) + choose(4, 3) - choose(4, 4)}.`,
+    }),
+
+    { kind: 'section', title: t`When every overlap looks alike` },
+    { kind: 'narrative', text: t`The formula has ${math`${2}^{n} - ${1}`} terms, which sounds hopeless. It becomes easy when every intersection of ${math`k`} events has the same probability, say ${math`p_{k}`}. Then ${math`S_{k}`} is ${math`\binom{n}{k}`} copies of one number: ${math`S_{k} = \binom{n}{k} p_{k}`}. The letters are exactly like this.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`One group of ${math`k`} letters`, text: t`Letters ${math`i_{${1}}, \ldots, i_{k}`} all go to their own envelopes when the other ${math`n - k`} letters fill the other ${math`n - k`} envelopes in any order. Of the ${math`n!`} equally likely arrangements, ${math`(n - k)!`} do this, so`, eq: [dmath`\mathbb{P}(A_{i_{${1}}} \cap \cdots \cap A_{i_{k}}) = \frac{(n - k)!}{n!}.`], why: { q: t`What is ${math`n!`}?`, a: t`${mn} factorial, ${math`n \times (n - ${1}) \times \cdots \times ${1}`}: the number of ways to put ${mn} letters into ${mn} envelopes, one each. With ${4} letters it is ${factorial(4)}.` } },
+        { label: t`The ${math`k`}th sum`, text: t`There are ${math`\binom{n}{k} = \frac{n!}{k!\,(n - k)!}`} groups, so`, eq: [dmath`S_{k} = \frac{n!}{k!\,(n - k)!} \cdot \frac{(n - k)!}{n!} = \frac{${1}}{k!}.`], plain: t`The ${math`n!`} cancels and the ${math`(n - k)!`} cancels, leaving ${math`${1}/k!`}.` },
+        { label: t`Inclusion-exclusion`, text: t`${math`\mathbb{P}(\text{some letter in place}) = \sum_{k = ${1}}^{n} (-${1})^{k + ${1}}/k!`}, so`, eq: [dmath`\mathbb{P}(\text{no letter in place}) = ${1} - \sum_{k = ${1}}^{n} \frac{(-${1})^{k + ${1}}}{k!} = \sum_{k = ${0}}^{n} \frac{(-${1})^{k}}{k!}.`], why: { q: t`Where did the ${1} go?`, a: t`It became the ${math`k = ${0}`} term of the last sum: ${math`(-${1})^{${0}}/${0}! = ${1}`}, since ${math`${0}! = ${1}`}. Moving the minus sign inside turns ${math`(-${1})^{k + ${1}}`} into ${math`(-${1})^{k}`}.` } },
+        { label: t`Four letters`, text: t`With ${math`n = ${4}`}:`, eq: [computedTex(`${D4.map((k) => (k === 0 ? String(factorial(0)) : `${k % 2 === 1 ? '-' : '+'} \\frac{${1}}{${factorial(k)}}`)).join(' ')} = \\frac{${derange(4).num}}{${derange(4).den}}`)] },
+      ],
+    },
+    { kind: 'p', text: t`Such an arrangement, with nothing in its own place, is called a [[derangement|derangement]]. The sum ${math`\sum_{k = ${0}}^{n} (-${1})^{k}/k!`} is the start of the series ${math`e^{-${1}} = \sum_{k = ${0}}^{\infty} (-${1})^{k}/k!`}, so the chance tends to ${math`e^{-${1}}`}, about ${Number(Math.exp(-1).toFixed(4))}. That answers the opening puzzle. Once ${mn} is ${10} or more, the terms still to come change the sum by less than ${math`${1}/${11}!`}, far too little to see.` },
+    checkFrom(derangements, { n: 5, ctx: 'hats' }, t`${math`${1} - ${1} + \frac{${1}}{${2}} - \frac{${1}}{${6}} + \frac{${1}}{${24}} - \frac{${1}}{${120}} = ${derange(5)}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`Each letter misses its envelope with probability ${math`(n - ${1})/n`}, so the chance that all miss is ${math`((n - ${1})/n)^{n}`}.`, counterexample: t`That treats the events as independent, and they are not. With ${2} letters, either both are right or both are wrong, each with chance ${q(1, 2)}; the formula would give ${math`(${1}/${2})^{${2}} = ${q(1, 4)}`}.` },
+    { kind: 'pitfall', claim: t`Stopping after the pairs is close enough to be the answer.`, counterexample: t`For ${4} letters, ${math`${1} - S_{${1}} + S_{${2}} = ${1} - ${1} + \frac{${1}}{${2}} = ${bonf4}`}, but the true chance is ${derange(4)}. A truncated sum is only a bound: in the sum for the chance of none, stopping after an added term gives too much, and stopping after a subtracted term too little.` },
+    { kind: 'narrative', text: t`The Cambridge question below, Example Sheet ${1} question ${7}, finds one probability in two ways: once by a direct count, once by inclusion-exclusion over "person ${math`i`} is not on the committee". Setting the two answers equal proves a binomial identity for free.` },
+    { kind: 'takeaway', text: t`Inclusion-exclusion alternates over overlaps of every size, and when all ${math`k`}-fold overlaps look alike, the ${math`k`}th sum is ${math`\binom{n}{k}`} times one of them.` },
   ],
   examples: [
-    workedCambridge(q7b),
+    { ...workedCambridge(q7b), examiner: t`The examiner looks for the events defined, both intersection probabilities computed, and the result checked against the direct count.` },
     worked(derangements, { n: 4, ctx: 'letters' }, t`Four letters, no match`),
     worked(divisibleByNone, { N: 500, ps: [2, 3, 5] }, t`Numbers up to ${500} coprime to ${30}`),
   ],
@@ -239,5 +297,21 @@ export const inclusionExclusion: TopicContent = {
   terms: ['inclusion-exclusion-formula', 'derangement'],
   claims,
   cambridge: [q7id, q7proof, ieProof],
-  gate: ['ia-q7-identity', 'ia-q7'],
+  // The sheet's question itself; evaluating the identity with numbers is arithmetic, not a test of the method.
+  gate: ['ia-q7'],
+  recall: [
+    { front: t`State inclusion-exclusion for ${mn} events.`, back: t`${math`\mathbb{P}(\bigcup_{i} A_{i}) = \sum_{k = ${1}}^{n} (-${1})^{k + ${1}} S_{k}`}, where ${math`S_{k}`} sums ${math`\mathbb{P}`} of every intersection of ${math`k`} of the events.` },
+    { front: t`Why is an outcome in exactly ${math`t \ge ${1}`} of the events counted once?`, back: t`It is counted ${math`\sum_{k \ge ${1}} (-${1})^{k + ${1}}\binom{t}{k}`} times, and ${math`(${1} - ${1})^{t} = ${0}`} makes that ${1}.` },
+    { front: t`The chance that a random arrangement of ${mn} items is a derangement.`, back: t`${math`\sum_{k = ${0}}^{n} (-${1})^{k}/k!`}, which tends to ${math`e^{-${1}}`}.` },
+  ],
+  proofOrder: [{
+    title: t`Inclusion-exclusion by counting each outcome`,
+    steps: [
+      t`Fix an outcome in exactly ${math`t \ge ${1}`} of the events.`,
+      t`It lies in ${math`\binom{t}{k}`} of the ${math`k`}-fold intersections.`,
+      t`So the right-hand side counts it ${math`\sum_{k = ${1}}^{t} (-${1})^{k + ${1}} \binom{t}{k}`} times.`,
+      t`By the binomial theorem, ${math`(${1} - ${1})^{t} = ${0}`} makes that count ${1}.`,
+      t`Outcomes in no event count ${0} times, so the sum is the probability of the union.`,
+    ],
+  }],
 };

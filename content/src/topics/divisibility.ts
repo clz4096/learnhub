@@ -11,7 +11,7 @@ import { int, pick, sample, upTo } from '../math';
 import { gcd } from '../numbers';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { join, math, paren, t, type Rich, type Span } from '../rich';
-import { worked, workedCambridge, workedProof, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, workedProof, type TopicContent } from '../topic';
 
 const [mn, md, mk] = [math`n`, math`d`, math`k`];
 const divTex = (a: number, b: number): Span => math`${paren(a)} \mid ${paren(b)}`;
@@ -365,18 +365,73 @@ const a12q1iv = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [ma, mb] = [math`a`, math`b`];
+const cube3 = (n: number): number => n ** 3 - n;
+
 export const divisibility: TopicContent = {
   topicId: 'num.divisibility',
   goal: t`Use the definition ${math`d \mid n \iff n = kd`} for an integer ${mk} to prove divisibility facts, by computing the witness ${mk}.`,
+  objective: t`Prove divisibility facts from the definition by finding the integer witness.`,
+  why: t`Divisibility is the language of number theory; next come congruences and the greatest common divisor.`,
+  minutes: 20,
   lesson: [
-    { kind: 'rule', text: t`[[divides|Divides]]: for integers ${md} and ${mn}, ${math`d \mid n`} when there is an integer ${mk} with ${math`n = k \cdot d`}. It is a statement about the pair, true or false, not an operation: ${math`${2} \mid ${4}`} is true and ${math`${4} \mid ${2}`} is false.` },
-    { kind: 'p', text: t`The definition uses only multiplication, so zero needs no special rules: ${math`d \mid ${0}`} for every ${md}, since ${math`${0} = ${0} \cdot d`}; and ${math`${0} \mid n`} only when ${math`n = ${0}`}. Signs do not matter either, because ${mk} may be negative: ${math`-${3} \mid ${12}`}.` },
-    { kind: 'p', text: t`A proof that ${math`d \mid n`} is a search for ${mk}. Using an assumption ${math`d \mid m`} means writing ${math`m = a d`} with a new name for the witness, as the notes do in Theorem ${23}: from ${math`m = i_{${0}} l`} and ${math`n = j_{${0}} m`}, the witness for ${math`l \mid n`} is ${math`j_{${0}} i_{${0}}`}.` },
-    { kind: 'p', text: t`The same pattern gives the rules for combinations: if ${math`d \mid m`} and ${math`d \mid n`}, then ${math`km + ln = (ka + lb) d`}, so ${math`d \mid km + ln`}. And Theorem ${19}: if ${math`n = ${2}i = ${3}j`}, then ${math`n = ${6}(i - j)`}, so ${math`${6} \mid n`}.` },
-    { kind: 'p', text: t`To show a whole family of numbers is divisible by something, factorise. STEP Support Assignment ${12}: ${math`n^{${3}} - n = (n - ${1})n(n + ${1})`} is three consecutive integers, so one is a multiple of ${3} and one is even, and ${math`${6} \mid n^{${3}} - n`}. Values for small ${mn} show nothing larger works: ${math`${2}^{${3}} - ${2} = ${6}`}.` },
+    { kind: 'section', title: t`A statement, not a sum` },
+    { kind: 'hook', text: t`Does ${0} divide ${0}? Your calculator says ${math`${0} \div ${0}`} is an error. Yet the official Cambridge solutions to the first supervision sheet say yes, ${0} divides ${0}, and they are right. The difference is all in how "divides" is defined.` },
+    { kind: 'narrative', text: t`The calculator thinks of division as an operation that produces a number. Number theory asks a different question: is one number a whole multiple of another? That question uses only multiplication, and multiplication never breaks.` },
+    {
+      kind: 'definition',
+      name: t`Divides`,
+      formal: t`For integers ${md} and ${mn}, ${md} [[divides|divides]] ${mn}, written ${math`d \mid n`}, if there is an integer ${mk} with ${math`n = k \cdot d`}. Such a ${mk} is a witness for ${math`d \mid n`}.`,
+      plain: t`${mn} is a whole-number multiple of ${md}. ${math`${3} \mid ${12}`} with witness ${math`k = ${4}`}, because ${math`${12} = ${4} \times ${3}`}.`,
+    },
+    { kind: 'p', text: t`${math`d \mid n`} is a statement, true or false, not a number. ${math`${2} \mid ${4}`} is true and ${math`${4} \mid ${2}`} is false. Do not confuse it with ${math`d / n`}, which is a number.` },
+    {
+      kind: 'p',
+      text: t`Zero and signs need no special rules. ${math`d \mid ${0}`} for every integer ${md}, including ${0}, because ${math`${0} = ${0} \cdot d`}. Witnesses may be negative, so ${math`${-3} \mid ${12}`}, with witness ${math`${-4}`}.`,
+      why: { q: t`So which numbers does ${0} divide?`, a: t`${math`${0} \mid n`} needs ${math`n = k \cdot ${0} = ${0}`}. So ${0} divides ${0} and nothing else. That settles the hook: ${math`${0} = ${1} \cdot ${0}`}, so ${math`${0} \mid ${0}`}.` },
+    },
+    quickCheck({
+      prompt: t`${math`${-4} \mid ${12}`}. What is the witness ${mk}, the integer with ${math`${12} = k \cdot (${-4})`}?`,
+      answer: { kind: 'exact', expected: String(12 / -4) },
+      reference: String(12 / -4),
+      why: t`${math`(${12 / -4}) \times (${-4}) = ${12}`}. Witnesses may be negative.`,
+    }),
+    { kind: 'section', title: t`Proofs find the witness` },
+    { kind: 'narrative', text: t`Every proof that ${math`d \mid n`} comes down to one task: produce an integer ${mk} with ${math`n = k \cdot d`}. Every assumption ${math`d \mid m`} hands you a witness to use: write ${math`m = a \cdot d`}, giving it a fresh name. The CST notes do exactly this in Theorem ${23}: from ${math`m = i_{${0}} l`} and ${math`n = j_{${0}} m`}, they get ${math`n = (j_{${0}} i_{${0}}) l`}, so the witness for ${math`l \mid n`} is ${math`j_{${0}} i_{${0}}`}.` },
+    { kind: 'narrative', text: t`Here is a theorem where the witnesses do something surprising: they pin themselves down completely.` },
+    { kind: 'theorem', statement: t`Let ${ma} and ${mb} be positive integers. If ${math`a \mid b`} and ${math`b \mid a`}, then ${math`a = b`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Unpack both assumptions`, text: t`There are integers ${mk} and ${math`l`} with ${math`b = k a`} and ${math`a = l b`}.`, plain: t`Two assumptions, two witnesses, two different letters. If ${ma} and ${mb} were both ${5}, both witnesses would be ${1}.` },
+        { label: t`Substitute one into the other`, text: t`Then ${math`a = l b = l (k a) = (l k) a`}.`, plain: t`Replace ${mb} in ${math`a = lb`} by ${math`ka`}.` },
+        {
+          label: t`Cancel ${ma}`, text: t`Since ${math`a > ${0}`}, ${math`a \neq ${0}`}, so dividing by ${ma} gives ${math`${1} = l k`}.`,
+          plain: t`Cancelling is dividing, and dividing is allowed because ${ma} is not zero.`,
+          why: { q: t`Why does it matter that ${ma} is not zero?`, a: t`With ${math`a = ${0}`}, the line ${math`${0} = (lk) \cdot ${0}`} holds for every ${mk} and ${math`l`}, so it tells us nothing about them. That is why the theorem asks for positive integers.` },
+        },
+        { label: t`Both witnesses are positive`, text: t`${math`b = ka`} with ${ma} and ${mb} positive, so ${mk} is positive: ${math`k \geq ${1}`}. Likewise ${math`l \geq ${1}`}.`, plain: t`A positive number times ${mk} is positive only if ${mk} is positive, and a positive integer is at least ${1}.` },
+        { label: t`Conclude`, text: t`If either were ${2} or more, ${math`lk \geq ${2}`}; so ${math`k = l = ${1}`}, and ${math`b = ${1} \cdot a = a`}.`, plain: t`Two whole numbers, each at least ${1}, with product ${1}, must both be ${1}.` },
+      ],
+    },
+    {
+      kind: 'pitfall',
+      claim: t`For any integers, if ${math`a \mid b`} and ${math`b \mid a`}, then ${math`a = b`}.`,
+      counterexample: t`${math`a = ${3}`}, ${math`b = ${-3}`}: each divides the other, with witness ${math`${-1}`}, yet ${math`${3} \neq ${-3}`}. Without positivity, the conclusion is only ${math`a = \pm b`}.`,
+    },
+    { kind: 'section', title: t`Whole families at once` },
+    { kind: 'narrative', text: t`STEP Support Assignment ${12} asks a different kind of question: is ${math`n^{${3}} - n`} divisible by ${6} for every integer ${mn}? Try a few: ${cube3(2)}, ${cube3(3)}, ${cube3(4)}, ${cube3(5)}. All multiples of ${6}. To prove it for every ${mn}, factorise.` },
+    {
+      kind: 'p',
+      text: t`${math`n^{${3}} - n = n(n^{${2}} - ${1}) = (n - ${1}) n (n + ${1})`}: three integers in a row. Among any three in a row, one is a multiple of ${3}, and at least one is even. So the product is divisible by ${2} and by ${3}, and so by ${6}.`,
+      why: { q: t`Why does divisible by ${2} and by ${3} give divisible by ${6}?`, a: t`That is the notes' Theorem ${19}, worked in full in the examples: if ${math`n = ${2}i`} and ${math`n = ${3}j`}, then ${math`n = ${6}(i - j)`}. It works because ${2} and ${3} share no factor; divisible by ${2} and by ${4} does not give divisible by ${8}, as ${4} shows.` },
+    },
+    { kind: 'p', text: t`And ${6} is the largest number that always works: at ${math`n = ${2}`} the value is ${math`${2}^{${3}} - ${2} = ${cube3(2)}`}, and nothing bigger than ${6} divides ${6}. One small case caps the answer.` },
+    { kind: 'takeaway', text: t`${math`d \mid n`} means ${math`n = kd`} for an integer ${mk}; a divisibility proof unpacks each assumption into a named witness and builds the witness for the conclusion.` },
   ],
   examples: [
-    theorem19,
+    { ...theorem19, examiner: t`An arbitrary ${mn} fixed first, both directions labelled, and the backward witness ${math`i - j`} checked by the one-line computation, not just asserted.` },
     workedCambridge(a12q1iii),
     worked(quotientWitness, { kind: 'transitive', a: 3, b: 4, c: 5, d: 2 }, t`The witness for transitivity`),
     worked(largestDivisor, { i: 2 }, t`The largest divisor of ${math`n^{${3}} - n`}`),
@@ -385,5 +440,24 @@ export const divisibility: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['divides'],
   cambridge: [sheet121a, sheet121b, bop619, bop420, sheet124, sheet126, bop411, a12q1iv],
-  gate: ['sheet-1-2-1-a', 'sheet-1-2-1-b', 'sheet-1-2-4', 'sheet-1-2-6', 'a12-q1-iv'],
+  // STEP Support Q1(iv) first: it needs a correct proof and a counterexample to a tempting one.
+  // Then the supervision proofs. The two parts of 1.2.1 are left out: a one-word answer can be guessed.
+  gate: ['a12-q1-iv', 'sheet-1-2-6', 'sheet-1-2-4'],
+  recall: [
+    { front: t`Define ${math`d \mid n`}.`, back: t`There is an integer ${mk} with ${math`n = k \cdot d`}.` },
+    { front: t`Which integers divide ${0}? Which does ${0} divide?`, back: t`Every integer divides ${0}. ${0} divides only ${0}.` },
+    { front: t`How do you prove ${math`d \mid n`}?`, back: t`Find an integer ${mk} with ${math`n = k \cdot d`}, built from the witnesses of the assumptions.` },
+    { front: t`If ${math`a \mid b`} and ${math`b \mid a`} for positive ${ma}, ${mb}, then?`, back: t`${math`a = b`}. For any integers, ${math`a = \pm b`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Positive integers that divide each other are equal`,
+      steps: [
+        t`Write ${math`b = ka`} and ${math`a = lb`} for integers ${mk} and ${math`l`}.`,
+        t`Substitute: ${math`a = (lk) a`}.`,
+        t`${ma} is not zero, so ${math`lk = ${1}`}.`,
+        t`${mk} and ${math`l`} are positive integers, so both are ${1}, and ${math`a = b`}.`,
+      ],
+    },
+  ],
 };

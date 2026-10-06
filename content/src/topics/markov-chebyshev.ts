@@ -11,8 +11,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, expect, type Dist } from '../partv-c';
-import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S3 = 'ia-prob-sheet-3' as const;
 
@@ -246,20 +246,64 @@ const DIE_MEAN = expect(DIE);
 const claims: ProbabilityClaim[] = [
   { what: 'a fair die shows at least 5 (Markov bound 7/10)', exact: q(1, 3), trial: (rng) => 1 + Math.floor(rng() * 6) >= 5 },
 ];
+const [mX, mmu] = [math`X`, math`\mu`];
+const INCOME = 30;
+const RICH = 150;
 
 export const markovChebyshev: TopicContent = {
   topicId: 'ineq.markov-chebyshev',
   goal: t`Bound tail probabilities from a mean or a variance alone, with Markov's and Chebyshev's inequalities, and use them for sample sizes.`,
+  objective: t`Bound the chance of large values from a mean alone (Markov) or a variance (Chebyshev).`,
+  why: t`They hold for every distribution, so they prove limit theorems; next, the weak law of large numbers.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`Often only the mean or the variance of a random variable is known. That is still enough to say that large values are unlikely, and by how much at most.` },
-    { kind: 'rule', text: t`[[markov-inequality|Markov's inequality]]: if ${math`X \ge ${0}`} and ${math`a > ${0}`}, then ${math`\mathbb{P}(X \ge a) \le \frac{\mathbb{E}(X)}{a}`}. Proof: ${math`a\,\mathbf{${1}}_{\{X \ge a\}} \le X`} at every outcome; take means.` },
-    { kind: 'rule', text: t`[[chebyshev-inequality|Chebyshev's inequality]]: if ${math`X`} has mean ${math`\mu`} and variance ${math`\sigma^{${2}}`}, then ${math`\mathbb{P}(|X - \mu| \ge c) \le \frac{\sigma^{${2}}}{c^{${2}}}`} for ${math`c > ${0}`}. Proof: Markov's inequality for ${math`(X - \mu)^{${2}}`} and the threshold ${math`c^{${2}}`}.` },
-    { kind: 'p', text: t`The bounds hold for every distribution, so they are often crude. For a fair die, ${math`\mathbb{P}(X \ge ${5}) = ${q(1, 3)}`}, while Markov gives ${math`${DIE_MEAN}/${5} = ${mul(DIE_MEAN, q(1, 5))}`}. Yet neither can be improved in general: ${math`X = a`} with probability ${math`m/a`}, else ${0}, has mean ${math`m`} and meets Markov's bound exactly.` },
-    { kind: 'p', text: t`The same trick works with any increasing function (Sheet ${3} Q${2}): ${math`\mathbb{P}(|X| \ge x) \le \mathbb{E}(|X|^{p})x^{-p}`}, and ${math`\mathbb{P}(X \ge x) \le \mathbb{E}(e^{\beta X})e^{-\beta x}`} for every ${math`\beta \ge ${0}`}. Choosing the best ${math`\beta`} gives very sharp tail bounds: for a Poisson variable with ${math`\lambda = ${LAMBDA}`}, ${math`\mathbb{P}(X \ge ${XQ}) \le ${chernoff}`}, against ${q(LAMBDA, XQ)} from Markov.` },
-    { kind: 'p', text: t`For the mean of a sample of ${math`n`}, ${math`\operatorname{var}(\bar{X}) = \sigma^{${2}}/n`}, so ${math`\mathbb{P}(|\bar{X} - \mu| \ge c) \le \frac{\sigma^{${2}}}{nc^{${2}}} \to ${0}`}: the sample mean settles near ${math`\mu`}. Sheet ${3} Q${4}: within ${2} standard deviations with probability ${q(99, 100)} needs ${math`\frac{${1}}{${4}n} \le ${q(1, 100)}`}, so ${math`n = ${needed(q(2), q(1, 100))}`} suffices for every distribution.` },
+    { kind: 'section', title: t`How much can the mean hide?` },
+    { kind: 'hook', text: t`The mean income in a town is ${INCOME} thousand pounds. You know nothing else. Could half the town earn at least ${RICH} thousand? No: if they did, those people alone would push the mean to at least ${RICH / 2} thousand. So a mean by itself limits how likely large values can be. How tight is that limit?` },
+    { kind: 'narrative', text: t`The hook's reasoning, made general: if a share ${math`s`} of the town earns at least ${RICH}, and nobody earns less than ${0}, the mean is at least ${math`${RICH}s`}. So ${math`${RICH}s \le ${INCOME}`}, and ${math`s \le ${q(INCOME, RICH)}`}. At most a fifth of the town can earn that much.` },
+
+    { kind: 'section', title: t`Markov's inequality` },
+    { kind: 'theorem', name: t`Markov's inequality`, statement: t`If ${math`X \ge ${0}`} and ${math`a > ${0}`}, then ${dmath`\mathbb{P}(X \ge a) \le \frac{\mathbb{E}(X)}{a}.`}` },
+    { kind: 'p', text: t`This is [[markov-inequality|Markov's inequality]]. The proof uses an indicator: ${math`\mathbf{${1}}_{\{X \ge a\}}`} is ${1} when ${math`X \ge a`} and ${0} otherwise.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Compare at each outcome`, text: t`At every outcome, ${math`a\,\mathbf{${1}}_{\{X \ge a\}} \le X`}.`, why: { q: t`Why is that true?`, a: t`If ${math`X \ge a`}, the left side is ${math`a`}, which is at most ${mX}. If ${math`X < a`}, the left side is ${0}, which is at most ${mX} because ${math`X \ge ${0}`}. This is where nonnegativity is used.` } },
+        { label: t`Take means`, text: t`Expectation keeps inequalities, and the mean of an indicator is the probability of its event:`, eq: [dmath`a\,\mathbb{P}(X \ge a) \le \mathbb{E}(X).`] },
+        { label: t`Divide`, text: t`Divide by ${math`a > ${0}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`The bound is often crude. For a fair die, ${math`\mathbb{P}(X \ge ${5}) = ${q(1, 3)}`}, while Markov gives ${math`${DIE_MEAN}/${5} = ${mul(DIE_MEAN, q(1, 5))}`}. Yet it cannot be improved in general: if ${math`X = a`} with probability ${math`m/a`} and ${0} otherwise, its mean is ${math`m`} and ${math`\mathbb{P}(X \ge a) = m/a`} exactly.` },
+    checkFrom(markovBound, { m: q(2), a: 10, what: 1 }, t`${math`\mathbb{E}(X)/a = ${2}/${10} = ${q(1, 5)}`}.`),
+
+    { kind: 'section', title: t`Chebyshev's inequality` },
+    { kind: 'narrative', text: t`Markov only sees the mean, and only works for nonnegative variables. Knowing the variance tells us about spread in both directions. The trick is to apply Markov to a nonnegative variable built from ${mX}: the squared distance from the mean.` },
+    { kind: 'theorem', name: t`Chebyshev's inequality`, statement: t`If ${mX} has mean ${mmu} and finite variance ${math`\sigma^{${2}}`}, then for every ${math`c > ${0}`}, ${dmath`\mathbb{P}(|X - \mu| \ge c) \le \frac{\sigma^{${2}}}{c^{${2}}}.`}` },
+    { kind: 'p', text: t`This is [[chebyshev-inequality|Chebyshev's inequality]]. In plain words: the chance of landing ${math`k`} standard deviations or more from the mean is at most ${math`${1}/k^{${2}}`}. Two standard deviations: at most ${q(1, 4)}. Three: at most ${q(1, 9)}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Square the distance`, text: t`Let ${math`Y = (X - \mu)^{${2}}`}. Then ${math`Y \ge ${0}`} and ${math`\mathbb{E}(Y) = \sigma^{${2}}`}, by the definition of variance.` },
+        { label: t`Same event`, text: t`Since both sides are nonnegative, ${math`|X - \mu| \ge c`} exactly when ${math`(X - \mu)^{${2}} \ge c^{${2}}`}, so the events ${math`\{|X - \mu| \ge c\}`} and ${math`\{Y \ge c^{${2}}\}`} are the same.` },
+        { label: t`Apply Markov`, text: t`With threshold ${math`c^{${2}} > ${0}`}:`, eq: [dmath`\mathbb{P}(|X - \mu| \ge c) = \mathbb{P}(Y \ge c^{${2}}) \le \frac{\mathbb{E}(Y)}{c^{${2}}} = \frac{\sigma^{${2}}}{c^{${2}}}.`] },
+      ],
+    },
+    { kind: 'p', text: t`The same trick works with any increasing function of ${math`|X|`} in place of the square, and Example Sheet ${3} questions ${2} and ${3} explore it: higher powers, and exponentials, which can give much sharper bounds.` },
+    checkFrom(chebyshevBound, { mu: 40, sigma: 3, c: 9, inside: true }, t`${math`\mathbb{P}(|X - ${40}| \ge ${9}) \le \frac{${9}}{${81}} = ${q(1, 9)}`}, so the interval has probability at least ${math`${1} - ${q(1, 9)} = ${q(8, 9)}`}.`),
+
+    { kind: 'section', title: t`How large a sample?` },
+    { kind: 'narrative', text: t`Chebyshev's most important use is for averages. If ${math`X_{${1}}, \ldots, X_{n}`} are independent with mean ${mmu} and variance ${math`\sigma^{${2}}`}, their mean ${math`\bar{X}`} has mean ${mmu} and variance ${math`\sigma^{${2}}/n`}. So ${dmath`\mathbb{P}(|\bar{X} - \mu| \ge c) \le \frac{\sigma^{${2}}}{nc^{${2}}},`} which tends to ${0} as ${math`n`} grows: the sample mean settles near ${mmu}. That is the weak law of large numbers, a lesson of its own.`, },
+    checkFrom(sampleSize, { k: q(1), alpha: q(1, 20) }, t`We need ${math`\frac{\sigma^{${2}}/n}{\sigma^{${2}}} = \frac{${1}}{n} \le ${q(1, 20)}`}, so ${math`n \ge ${20}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`Markov's inequality holds for any random variable.`, counterexample: t`Let ${math`X = -${10}`} or ${math`${2}`}, each with probability ${q(1, 2)}. Then ${math`\mathbb{E}(X) = -${4}`}, and the bound would say ${math`\mathbb{P}(X \ge ${2}) \le -${2}`}, which is impossible. ${mX} must be nonnegative.` },
+    { kind: 'pitfall', claim: t`Chebyshev's bound ${math`\sigma^{${2}}/c^{${2}}`} is the probability.`, counterexample: t`For a fair die, ${math`\sigma^{${2}} = ${q(35, 12)}`} and ${math`\mathbb{P}(|X - ${q(7, 2)}| \ge ${q(5, 2)}) = ${q(1, 3)}`}, against a bound of ${math`${q(35, 12)} \div ${q(25, 4)} = ${q(7, 15)}`}. It is only an upper bound.` },
+    { kind: 'pitfall', claim: t`For ${math`c < \sigma`}, Chebyshev says something useful.`, counterexample: t`Then ${math`\sigma^{${2}}/c^{${2}} > ${1}`}, and every probability is at most ${1} anyway. Chebyshev only bites for ${math`c > \sigma`}.` },
+    { kind: 'takeaway', text: t`A mean alone limits large values by ${math`\mathbb{E}(X)/a`}, a variance limits deviations by ${math`\sigma^{${2}}/c^{${2}}`}, and both follow from comparing an indicator with the variable.` },
   ],
   examples: [
-    workedCambridge(q4),
+    { ...workedCambridge(q4), examiner: t`The examiner looks for the variance of the sample mean, ${math`\sigma^{${2}}/n`}, justified by independence, and the inequality solved for ${math`n`}.` },
     worked(markovBound, { m: q(3), a: 12, what: 0 }, t`A bound from the mean alone`),
     worked(chebyshevBound, { mu: 50, sigma: 5, c: 15, inside: true }, t`At least this much near the mean`),
   ],
@@ -268,5 +312,20 @@ export const markovChebyshev: TopicContent = {
   terms: ['markov-inequality', 'chebyshev-inequality'],
   claims,
   cambridge: [q3a, q2proof, q3proof, scheduleProof],
-  gate: ['ia-s3-q3-a-value', 'ia-s3-q2', 'ia-s3-q3-a'],
+  // The two write-ups first, then the Chernoff bound with numbers, which still needs the optimisation over the exponent.
+  gate: ['ia-s3-q3-a', 'ia-s3-q2', 'ia-s3-q3-a-value'],
+  recall: [
+    { front: t`State Markov's inequality.`, back: t`If ${math`X \ge ${0}`} and ${math`a > ${0}`}, ${math`\mathbb{P}(X \ge a) \le \mathbb{E}(X)/a`}.` },
+    { front: t`State Chebyshev's inequality.`, back: t`${math`\mathbb{P}(|X - \mu| \ge c) \le \sigma^{${2}}/c^{${2}}`} for ${math`c > ${0}`}.` },
+    { front: t`The one-line proof of Markov's inequality.`, back: t`${math`a\,\mathbf{${1}}_{\{X \ge a\}} \le X`} at every outcome; take means.` },
+  ],
+  proofOrder: [{
+    title: t`Chebyshev from Markov`,
+    steps: [
+      t`Let ${math`Y = (X - \mu)^{${2}}`}, which is nonnegative with mean ${math`\sigma^{${2}}`}.`,
+      t`The event ${math`|X - \mu| \ge c`} is the event ${math`Y \ge c^{${2}}`}.`,
+      t`Markov: ${math`\mathbb{P}(Y \ge c^{${2}}) \le \mathbb{E}(Y)/c^{${2}}`}.`,
+      t`So ${math`\mathbb{P}(|X - \mu| \ge c) \le \sigma^{${2}}/c^{${2}}`}.`,
+    ],
+  }],
 };

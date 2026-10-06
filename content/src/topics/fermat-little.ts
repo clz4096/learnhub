@@ -10,8 +10,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { mod, powMod, powModSlow } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
-import { worked, workedCambridge, workedProof, type TopicContent } from '../topic';
+import { computedTex, math, t } from '../rich';
+import { quickCheck, worked, workedCambridge, workedProof, type TopicContent } from '../topic';
 
 const [mp, mi] = [math`p`, math`i`];
 const big = (v: { num: bigint; den: bigint } | undefined): number | null => (v === undefined || v.den !== 1n ? null : Number(v.num));
@@ -201,18 +201,76 @@ const dropout = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [mm, mn, mk] = [math`m`, math`n`, math`k`];
+const binom = (n: number, k: number): number => (k === 0 ? 1 : (binom(n, k - 1) * (n - k + 1)) / k);
+const fourth5 = upTo(9).map((n) => [n, powMod(n, 4, 5)] as const);
+
 export const fermatLittle: TopicContent = {
   topicId: 'num.fermat-little',
   goal: t`Prove Fermat's little theorem, ${math`i^{p} \equiv i \pmod{p}`} and ${math`i^{p - ${1}} \equiv ${1}`} when ${math`p \nmid i`}, and use it to reduce large powers and to test primality.`,
+  objective: t`Prove Fermat's little theorem, and use it to reduce huge powers modulo a prime.`,
+  why: t`It is the engine of primality tests and RSA, and the first glimpse of group theory.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The CST notes open with a puzzle: ${5} pirates share ${math`n^{${4}}`} dice, five at a time, and the leftover ${math`r`} dice go to chair ${math`r`}. Whatever ${math`n`} is, the leftover is ${0} or ${1}. Why is the theorem of this topic.` },
-    { kind: 'rule', text: t`[[fermats-little-theorem|Fermat's little theorem]] (Theorem ${36}): for every natural number ${mi} and prime ${mp}, ${math`i^{p} \equiv i \pmod{p}`}; and ${math`i^{p - ${1}} \equiv ${1} \pmod{p}`} whenever ${mi} is not a multiple of ${mp}.` },
-    { kind: 'p', text: t`Proof of the first part: every inner binomial coefficient ${math`\binom{p}{k}`} is a multiple of ${mp}, so ${math`(m + n)^{p} \equiv m^{p} + n^{p}`}, the [[freshmans-dream|Freshman's Dream]]. Adding ${1} at a time from ${0}: ${math`(${0} + ${1} + \cdots + ${1})^{p} \equiv ${0} + ${1} + \cdots + ${1}`}, that is, ${math`i^{p} \equiv i`}. The second part follows by Euclid's theorem: ${math`p \mid i(i^{p - ${1}} - ${1})`} and ${math`p \nmid i`}.` },
-    { kind: 'p', text: t`Exponents of a number not divisible by ${mp} can be reduced modulo ${math`p - ${1}`}: ${math`${3}^{${100}} = (${3}^{${6}})^{${16}} \cdot ${3}^{${4}} \equiv ${3}^{${4}} = ${81} \equiv ${powMod(3, 100, 7)} \pmod{${7}}`}. The pirates: ${math`n^{${4}} = n^{${5} - ${1}} \equiv ${1}`} unless ${5} divides ${math`n`}.` },
-    { kind: 'p', text: t`The theorem tests primality without factorising: if ${math`i^{m} \not\equiv i \pmod{m}`} for some ${mi}, then ${math`m`} is not prime. ${math`${2}^{${15}} = ${32768} \equiv ${powMod(2, 15, 15)} \pmod{${15}}`}, not ${2}, so ${15} is composite. The converse fails: ${math`${2}^{${340}} \equiv ${1} \pmod{${341}}`} with ${math`${341} = ${11} \times ${31}`}.` },
+    { kind: 'section', title: t`The pirates' dice` },
+    { kind: 'hook', text: t`The CST notes open with a puzzle. ${5} pirates share ${math`n^{${4}}`} dice, taking them five at a time; the ${math`r`} left over go to the pirate on chair ${math`r`}. Which chair should a greedy pirate pick, when nobody knows ${mn}?` },
+    { kind: 'narrative', text: t`Try some values. The leftover is the remainder of ${math`n^{${4}}`} on division by ${5}: ${computedTex(fourth5.map(([n, r]) => `n = ${n}: ${r}`).join(',\\ '))}. Only ${0} and ${1} ever appear. So sit on chair ${1}. But why?` },
+    {
+      kind: 'theorem',
+      name: t`Fermat's little theorem`,
+      statement: t`Let ${mp} be a prime. For every natural number ${mi}, ${math`i^{p} \equiv i \pmod{p}`}. If moreover ${math`p \nmid i`}, then ${math`i^{p - ${1}} \equiv ${1} \pmod{p}`}.`,
+    },
+    { kind: 'p', text: t`This is [[fermats-little-theorem|Fermat's little theorem]], the notes' Theorem ${36}. With ${math`p = ${5}`}: ${math`n^{${4}} \equiv ${1} \pmod{${5}}`} unless ${5} divides ${mn}, when it is ${0}. That is the pirates' answer.` },
+    { kind: 'section', title: t`The Freshman's Dream` },
+    { kind: 'narrative', text: t`Students sometimes write ${math`(m + n)^{${2}} = m^{${2}} + n^{${2}}`}. It is wrong in ordinary arithmetic. But modulo a prime ${mp}, with the exponent ${mp}, it is right.` },
+    {
+      kind: 'theorem',
+      name: t`Freshman's Dream`,
+      statement: t`For a prime ${mp} and natural numbers ${mm}, ${mn}: ${math`(m + n)^{p} \equiv m^{p} + n^{p} \pmod{p}`}.`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Expand`, text: t`By the binomial theorem,`, eq: [math`(m + n)^{p} = m^{p} + \sum_{k = ${1}}^{p - ${1}} \binom{p}{k} m^{k} n^{p - k} + n^{p}`], plain: t`The first and last terms have coefficient ${math`\binom{p}{${0}} = \binom{p}{p} = ${1}`}.` },
+        { label: t`The middle terms vanish`, text: t`For ${math`${1} \le k \le p - ${1}`}, ${math`p \mid \binom{p}{k}`}, so each middle term is ${math`\equiv ${0} \pmod{p}`}.`, plain: t`From the previous lesson. For ${math`p = ${5}`} the middle coefficients are ${computedTex([1, 2, 3, 4].map((k) => String(binom(5, k))).join(', '))}, all multiples of ${5}.`, why: { q: t`Why does ${mp} divide ${math`\binom{p}{k}`}?`, a: t`${math`k \binom{p}{k} = p \binom{p - ${1}}{k - ${1}}`}, so ${mp} divides ${math`k \binom{p}{k}`}. As ${math`${0} < k < p`}, ${mp} does not divide ${mk}, so by Euclid's lemma ${mp} divides ${math`\binom{p}{k}`}.` } },
+        { label: t`Conclude`, text: t`So ${math`(m + n)^{p} \equiv m^{p} + n^{p} \pmod{p}`}.`, plain: t`Only the two end terms survive.` },
+      ],
+    },
+    { kind: 'p', text: t`The notes call it the [[freshmans-dream|Freshman's Dream]]. It fails for composite exponents: ${math`(${1} + ${1})^{${4}} = ${16}`}, while ${math`${1}^{${4}} + ${1}^{${4}} = ${2}`}, and ${math`${16} \not\equiv ${2} \pmod{${4}}`}.` },
+    { kind: 'section', title: t`The proof` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Induction on ${mi}`, text: t`Base case: ${math`${0}^{p} = ${0}`}, so ${math`${0}^{p} \equiv ${0} \pmod{p}`}.`, plain: t`We prove the first part for ${math`i = ${0}, ${1}, ${2}, \ldots`} in turn.` },
+        { label: t`Inductive step`, text: t`Assume ${math`i^{p} \equiv i \pmod{p}`}. By the Freshman's Dream with ${math`m = i`}, ${math`n = ${1}`}:`, eq: [math`(i + ${1})^{p} \equiv i^{p} + ${1}^{p} \equiv i + ${1} \pmod{p}`], plain: t`${math`${1}^{p} = ${1}`}, and the hypothesis replaces ${math`i^{p}`} by ${mi}.` },
+        { label: t`First part`, text: t`So ${math`i^{p} \equiv i \pmod{p}`} for every natural number ${mi}.`, plain: t`By induction.` },
+        { label: t`Second part`, text: t`${math`i^{p} - i = i(i^{p - ${1}} - ${1})`} is divisible by ${mp}. If ${math`p \nmid i`}, Euclid's lemma gives ${math`p \mid i^{p - ${1}} - ${1}`}, that is, ${math`i^{p - ${1}} \equiv ${1} \pmod{p}`}.`, plain: t`A prime dividing a product divides one of the factors, and it is not the first.` },
+      ],
+    },
+    {
+      kind: 'pitfall',
+      claim: t`${math`i^{p - ${1}} \equiv ${1} \pmod{p}`} for every integer ${mi}.`,
+      counterexample: t`Not when ${mp} divides ${mi}: ${math`${5}^{${4}} = ${625} \equiv ${0} \pmod{${5}}`}. The second part needs ${math`p \nmid i`}; the first part, ${math`i^{p} \equiv i`}, holds for all ${mi}.`,
+    },
+    { kind: 'section', title: t`Using it` },
+    {
+      kind: 'p',
+      text: t`If ${math`p \nmid a`}, exponents of ${math`a`} can be reduced modulo ${math`p - ${1}`}. For example, modulo ${7}: ${math`${100} = ${16} \times ${6} + ${4}`}, so ${math`${3}^{${100}} = (${3}^{${6}})^{${16}} \cdot ${3}^{${4}} \equiv ${1}^{${16}} \cdot ${81} \equiv ${powMod(3, 100, 7)} \pmod{${7}}`}.`,
+      why: { q: t`Why may we replace ${math`${3}^{${6}}`} by ${1}?`, a: t`Fermat with ${math`p = ${7}`}, ${math`i = ${3}`}: ${math`${3}^{${6}} \equiv ${1} \pmod{${7}}`}, and congruences can be raised to powers and multiplied.` },
+    },
+    quickCheck({
+      prompt: t`What is the remainder of ${math`${2}^{${50}}`} on division by ${11}?`,
+      answer: { kind: 'exact', expected: String(powMod(2, 50, 11)) },
+      reference: String(powMod(2, 50, 11)),
+      why: t`${math`${2}^{${10}} \equiv ${1} \pmod{${11}}`}, and ${math`${50} = ${5} \times ${10}`}, so ${math`${2}^{${50}} \equiv ${1}`}.`,
+    }),
+    { kind: 'p', text: t`The theorem also tests primality without factorising: if ${math`a^{m} \not\equiv a \pmod{m}`} for some ${math`a`}, then ${mm} is not prime. ${math`${2}^{${15}} = ${2 ** 15} \equiv ${powMod(2, 15, 15)} \pmod{${15}}`}, not ${2}, so ${15} is composite. The converse fails: ${math`${2}^{${341}} \equiv ${powMod(2, 341, 341)} \pmod{${341}}`} though ${math`${341} = ${11} \times ${31}`}.` },
+    { kind: 'takeaway', text: t`For a prime ${mp}, ${math`i^{p} \equiv i`}, and ${math`i^{p - ${1}} \equiv ${1}`} when ${math`p \nmid i`}; it follows from the Freshman's Dream by induction, and it lets you cut exponents down modulo ${math`p - ${1}`}.` },
   ],
   examples: [
-    workedCambridge(piratesNotes),
+    { ...workedCambridge(piratesNotes), examiner: t`The leftover identified as ${math`n^{${4}} \bmod ${5}`}, Fermat's theorem quoted with its hypothesis ${math`${5} \nmid n`}, and the case ${math`${5} \mid n`} handled separately.` },
     byInduction,
     worked(reduceExponent, { a: 3, k: 100, p: 7 }, t`${math`${3}^{${100}}`} modulo ${7}`),
   ],
@@ -220,5 +278,24 @@ export const fermatLittle: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fermats-little-theorem', 'freshmans-dream'],
   cambridge: [totdCubes, sheet227, sheet229, sheet328, dropout],
-  gate: ['notes-132-totd-cubes', 'sheet-2-2-7', 'sheet-2-2-9', 'sheet-3-2-8', 'notes-127-dropout'],
+  // 2.2.9 first: Fermat three times and a combining lemma. The Theorem of the Day sheet is four
+  // remainders, left out.
+  gate: ['sheet-2-2-9', 'sheet-3-2-8', 'sheet-2-2-7', 'notes-127-dropout'],
+  recall: [
+    { front: t`State Fermat's little theorem.`, back: t`For a prime ${mp}: ${math`i^{p} \equiv i \pmod{p}`} for all ${mi}, and ${math`i^{p - ${1}} \equiv ${1} \pmod{p}`} when ${math`p \nmid i`}.` },
+    { front: t`State the Freshman's Dream.`, back: t`${math`(m + n)^{p} \equiv m^{p} + n^{p} \pmod{p}`} for a prime ${mp}.` },
+    { front: t`Why do the middle binomial terms vanish mod ${mp}?`, back: t`${mp} divides ${math`\binom{p}{k}`} for ${math`${0} < k < p`}.` },
+    { front: t`How do you reduce ${math`a^{N} \bmod p`} when ${math`p \nmid a`}?`, back: t`Replace ${math`N`} by its remainder on division by ${math`p - ${1}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Fermat's little theorem by induction`,
+      steps: [
+        t`Base case: ${math`${0}^{p} \equiv ${0}`}.`,
+        t`Assume ${math`i^{p} \equiv i \pmod{p}`}.`,
+        t`By the Freshman's Dream, ${math`(i + ${1})^{p} \equiv i^{p} + ${1}`}.`,
+        t`So ${math`(i + ${1})^{p} \equiv i + ${1}`}, completing the induction.`,
+      ],
+    },
+  ],
 };

@@ -9,7 +9,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { gcd, int, pick, q, str, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { dmath, listOf, math, setOf, t, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const ids = (xs: readonly number[]): string[] => xs.map((x) => `e${x}`);
 const options = (xs: readonly number[]): ChoiceOption[] => xs.map((x) => ({ id: `e${x}`, label: t`${x}` }));
@@ -318,20 +318,69 @@ const equalProof = supervision({
 
 const evens = upTo(10).filter((x) => x % 2 === 0);
 const sq = range(1, 4).map((k) => k * k);
+const ROOTS = [1, 2];
+const MEMBERS_CHECK: MembersP = { n: 12, c1: { kind: 'odd' }, c2: { kind: 'lt', m: 6 }, join: 'or' };
+const [mA, mB, mP] = [math`A`, math`B`, math`P(x)`];
 
 export const setBuilder: TopicContent = {
   topicId: 'sets.comprehension',
   goal: t`Read and write sets as ${math`\{x \in A \mid P(x)\}`}, decide membership from the defining property, and tell when two sets are equal.`,
+  objective: t`Read and write sets in set-builder notation, decide membership, and prove two sets equal.`,
+  why: t`Every set in the course is defined this way, from the primes to events in probability.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The CST notes call sets "the mathematicians' data structures": a well-defined, unordered collection of objects, its elements. The statement ${math`x \in A`} is true when ${mx} is an element of ${math`A`}: ${math`\pi \in \mathbb{R}`} is true, ${math`\sqrt{-${1}} \in \mathbb{R}`} is not. This yes or no question is [[membership|membership]].` },
-    { kind: 'p', text: t`A small finite set can be listed: the even primes are ${setOf([2])}, the booleans are ${math`\{\text{true}, \text{false}\}`}, and ${math`[-${2}..${3}] = ${setOf([-2, -1, 0, 1, 2, 3])}`}. A huge or infinite set, such as the primes, cannot be listed. It is defined by a property instead: [[set-builder|set-builder notation]], which the notes call set comprehension.` },
-    { kind: 'rule', text: t`${dmath`\{x \in A \mid P(x)\}`} is the set of elements ${mx} of ${math`A`} for which the property ${math`P(x)`} is true. Read the bar as "such that"; some books write a colon, ${math`\{x \in A : P(x)\}`}. By definition, ${math`a \in \{x \in A \mid P(x)\}`} exactly when ${math`a \in A`} and ${math`P(a)`}.` },
-    { kind: 'p', text: t`The notes' first examples: ${math`\mathbb{N} = \{n \in \mathbb{Z} \mid n \ge ${0}\}`} (so ${math`\mathbb{N}`} starts at ${0} in this course), and the positive integers ${math`\mathbb{N}^{+} = \{n \in \mathbb{N} \mid n \ge ${1}\}`}.` },
-    { kind: 'p', text: t`For example ${math`\{x \in ${domainText(10)} \mid x \text{ is even}\} = ${setOf(evens)}`}. The set ${math`A`} in front says where ${mx} comes from; the property after the bar filters it.` },
-    { kind: 'p', text: t`[[membership|Membership]] is a yes or no question: is a given thing an element? To decide whether ${math`${7} \in \{x \in ${domainText(10)} \mid x \text{ is even}\}`}, check both parts: ${math`${7} \in ${domainText(10)}`}, but ${7} is not even, so ${7} is not in the set.` },
-    { kind: 'p', text: t`A second form builds elements from a formula: ${math`\{k^{${2}} \mid k \in ${setOf(range(1, 4))}\} = ${setOf(sq)}`}. Here ${mk} is a counter, and the elements are the values of the formula.` },
-    { kind: 'p', text: t`Two sets are equal precisely when they have the same elements, however they are described. ${math`\{x \in \mathbb{N} \mid ${2} \text{ divides } x \text{ and } x \text{ is prime}\} = \{${2}\}`}, and ${math`\{d \in \mathbb{N} \mid d \text{ divides } ${0}\} = \mathbb{N}`}. Equivalent properties give equal sets.` },
-    { kind: 'p', text: t`Conditions combine with "and" and "or" as in logic: ${math`\{x \in ${domainText(10)} \mid x \text{ is even and } x > ${5}\}`} is ${setOf(evens.filter((x) => x > 5))}, while with "or" it is ${setOf(upTo(10).filter((x) => x % 2 === 0 || x > 5))}.` },
+    { kind: 'section', title: t`A set you cannot list` },
+    { kind: 'hook', text: t`Write down the set of all prime numbers. You cannot: there are infinitely many, so no list ever finishes. Yet "the primes" is a perfectly clear collection. Every number either belongs to it or not. So how do you write down a set without listing it?` },
+    { kind: 'narrative', text: t`The answer is to describe the test instead of the members. "The natural numbers that are prime" says exactly which numbers are in: take each natural number and ask whether it passes. That is the whole idea of this lesson, made precise.` },
+    { kind: 'section', title: t`Sets and membership` },
+    {
+      kind: 'definition',
+      name: t`Set and membership`,
+      formal: t`A set is a well-defined, unordered collection of objects, its elements. For an object ${mx} and a set ${mA}, the statement ${math`x \in A`} ([[membership|membership]]) is true when ${mx} is an element of ${mA}, and ${math`x \notin A`} means it is not.`,
+      plain: t`In plain words: the Cambridge Discrete Mathematics notes call sets the mathematicians' data structures. Membership is a yes or no question: ${math`\pi \in \mathbb{R}`} is true, ${math`${7} \in \{${2}, ${4}, ${6}\}`} is false.`,
+    },
+    { kind: 'p', text: t`A small set can be listed: ${math`[-${2}..${3}] = ${setOf([-2, -1, 0, 1, 2, 3])}`} in the notes' notation for a range of integers. Order and repeats do not matter in a list: ${math`\{${1}, ${2}\}`}, ${math`\{${2}, ${1}\}`} and ${math`\{${1}, ${1}, ${2}\}`} are the same set.` },
+    { kind: 'section', title: t`Set-builder notation` },
+    {
+      kind: 'definition',
+      name: t`Set comprehension`,
+      formal: t`For a set ${mA} and a property ${mP}, ${dmath`\{x \in A \mid P(x)\}`} is the set whose elements are the ${math`x \in A`} for which ${mP} is true. So ${math`a \in \{x \in A \mid P(x)\}`} if and only if ${math`a \in A`} and ${math`P(a)`}.`,
+      plain: t`In plain words: [[set-builder|set-builder notation]], which the notes call set comprehension. Read the bar as "such that". ${mA} says where ${mx} comes from; the property after the bar filters it. ${math`\{x \in ${domainText(10)} \mid x \text{ is even}\} = ${setOf(evens)}`}.`,
+    },
+    { kind: 'p', text: t`The notes use it at once to build the number systems: ${math`\mathbb{N} = \{n \in \mathbb{Z} \mid n \ge ${0}\}`}, so ${math`\mathbb{N}`} starts at ${0} in this course, and ${math`\mathbb{N}^{+} = \{n \in \mathbb{N} \mid n \ge ${1}\}`}. Some books write a colon for the bar: ${math`\{x \in A : P(x)\}`}.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Check the source set`, text: t`Is ${math`${7} \in \{x \in ${domainText(10)} \mid x \text{ is even}\}`}? First, ${math`${7} \in ${domainText(10)}`}: yes.` },
+        { label: t`Check the property`, text: t`Is ${7} even? No.`, plain: t`Both tests must pass, so ${math`${7} \notin \{x \in ${domainText(10)} \mid x \text{ is even}\}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`Properties combine with "and" and "or" as in logic: ${math`\{x \in ${domainText(10)} \mid x \text{ is even and } x > ${5}\} = ${setOf(evens.filter((x) => x > 5))}`}, while with "or" it is ${setOf(upTo(10).filter((x) => x % 2 === 0 || x > 5))}.` },
+    checkFrom(members, MEMBERS_CHECK, t`"Or" lets in every odd number and every number below ${6}: ${listOf(memberList(MEMBERS_CHECK))}.`),
+    { kind: 'p', text: t`A second form builds elements from a formula: ${math`\{k^{${2}} \mid k \in ${setOf(range(1, 4))}\} = ${setOf(sq)}`}. Here ${mk} is a counter, and the elements are the values of the formula, not the values of ${mk}.` },
+    checkFrom(countMultiples, { n: 50, k: 7 }, t`The multiples of ${7} up to ${50} are ${math`${7}, ${14}, \ldots, ${49}`}, that is ${math`${7} \times ${1}`} up to ${math`${7} \times ${7}`}: ${7} of them.`),
+    { kind: 'pitfall', claim: t`${math`\{x \mid x^{${2}} = ${4}\} = \{${2}\}`}.`, counterexample: t`It depends on the source set, which the claim leaves out. ${math`\{x \in \mathbb{N} \mid x^{${2}} = ${4}\} = \{${2}\}`}, but ${math`\{x \in \mathbb{Z} \mid x^{${2}} = ${4}\} = \{-${2}, ${2}\}`}. Always say where ${mx} comes from.` },
+    { kind: 'section', title: t`When are two sets equal?` },
+    {
+      kind: 'definition',
+      name: t`Set equality`,
+      formal: t`Sets ${mA} and ${mB} are equal, ${math`A = B`}, if they have the same elements: for every ${mx}, ${math`x \in A \iff x \in B`}.`,
+      plain: t`In plain words: how a set is described does not matter, only what is in it. ${math`\{x \in \mathbb{N} \mid ${2} \text{ divides } x \text{ and } x \text{ is prime}\}`} and ${math`\{${2}\}`} are two descriptions of one set.`,
+    },
+    { kind: 'narrative', text: t`So proving two sets equal means proving an "if and only if" about membership. It splits into two directions: everything in the first is in the second, and everything in the second is in the first.` },
+    { kind: 'theorem', statement: t`${math`\{x \in \mathbb{R} \mid x^{${2}} - ${3}x + ${2} = ${0}\} = ${setOf(ROOTS)}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Name the left side`, text: t`Let ${math`S = \{x \in \mathbb{R} \mid x^{${2}} - ${3}x + ${2} = ${0}\}`}. We show ${math`x \in S \Rightarrow x \in ${setOf(ROOTS)}`} and the converse.` },
+        { label: t`Left inside right`, text: t`Let ${math`x \in S`}. Then ${math`x^{${2}} - ${3}x + ${2} = (x - ${1})(x - ${2}) = ${0}`}, so ${math`x = ${1}`} or ${math`x = ${2}`}: ${math`x \in ${setOf(ROOTS)}`}.`, why: { q: t`Why does the product being zero give that?`, a: t`If a product of two real numbers is ${0}, one of them is ${0}. So ${math`x - ${1} = ${0}`} or ${math`x - ${2} = ${0}`}.` } },
+        { label: t`Right inside left`, text: t`${1} and ${2} are real, and ${math`${1} - ${3} + ${2} = ${0}`} and ${math`${4} - ${6} + ${2} = ${0}`}, so both are in ${mS}.` },
+        { label: t`Conclude`, text: t`Each set's elements are elements of the other, so by the definition of equality the sets are equal.` },
+      ],
+    },
+    { kind: 'pitfall', claim: t`To show ${math`S = ${setOf(ROOTS)}`}, it is enough to check that ${1} and ${2} satisfy the equation.`, counterexample: t`That shows only that ${setOf(ROOTS)} is inside ${mS}. The set ${math`\{x \in \mathbb{R} \mid x^{${3}} - ${6}x^{${2}} + ${11}x - ${6} = ${0}\}`} also contains ${1} and ${2}, but it is ${setOf([1, 2, 3])}. You must also show nothing else is in ${mS}.` },
+    { kind: 'takeaway', text: t`${math`\{x \in A \mid P(x)\}`} holds the elements of ${mA} that pass the test ${mP}; two sets are equal when each one's elements belong to the other.` },
   ],
   examples: [
     worked(members, { n: 12, c1: { kind: 'mult', k: 3 }, c2: { kind: 'ge', m: 6 }, join: 'and' }, t`Reading a property`),
@@ -343,5 +392,23 @@ export const setBuilder: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['set-builder', 'membership'],
   cambridge: [sheet311, interval, zeroDivisors, equalProof],
-  gate: ['sw-3-1-1', 'notes-202-interval', 'notes-205-d0', 'notes-205-equality'],
+  // Best first: the set equality proved in both directions, then the common divisors of 666
+  // and 330. Listing [-2..3] and the divisors of 0 are too slight to gate.
+  gate: ['notes-205-equality', 'sw-3-1-1'],
+  recall: [
+    { front: t`When is ${math`a \in \{x \in A \mid P(x)\}`}?`, back: t`Exactly when ${math`a \in A`} and ${math`P(a)`} is true.` },
+    { front: t`When are two sets equal?`, back: t`When they have the same elements: ${math`x \in A \iff x \in B`} for every ${mx}.` },
+    { front: t`How do you prove ${math`A = B`}?`, back: t`Show every element of ${mA} is in ${mB}, and every element of ${mB} is in ${mA}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${math`\{x \in \mathbb{R} \mid x^{${2}} - ${3}x + ${2} = ${0}\} = ${setOf(ROOTS)}`}`,
+      steps: [
+        t`Take ${mx} in the left side: ${math`(x - ${1})(x - ${2}) = ${0}`}.`,
+        t`So ${math`x = ${1}`} or ${math`x = ${2}`}, and ${mx} is in the right side.`,
+        t`Conversely ${1} and ${2} satisfy the equation, so they are in the left side.`,
+        t`Each side is inside the other, so they are equal.`,
+      ],
+    },
+  ],
 };

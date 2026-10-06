@@ -8,8 +8,8 @@
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computedTex, listOf, math, t } from '../rich';
-import { workedProof, workedCambridge, worked, type TopicContent } from '../topic';
+import { computedTex, dmath, listOf, math, t } from '../rich';
+import { checkFrom, workedProof, workedCambridge, worked, type TopicContent } from '../topic';
 
 const [mp, mq] = [math`p`, math`q`];
 function isPrime(n: number): boolean {
@@ -241,20 +241,61 @@ const bopVersion = supervision({
 // ---------------------------------------------------------------- lesson
 
 const EX = [2, 3, 5];
+const EX2 = [2, 7];
 
 export const infinitelyManyPrimes: TopicContent = {
   topicId: 'proof.infinitely-many-primes',
   goal: t`Prove Euclid's theorem that there are infinitely many primes, and use its construction: from any finite list of primes, build a number that none of them divides.`,
+  objective: t`Prove that there are infinitely many primes, and run the construction behind the proof.`,
+  why: t`The model proof by contradiction; its trick of building a new number recurs throughout number theory.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`The primes thin out as numbers grow, but they never stop. Euclid's proof, over two thousand years old, is the model proof by contradiction, and the CST notes give it as Theorem ${100}.` },
-    { kind: 'rule', text: t`[[euclids-theorem|Euclid's theorem]]: the set of primes is infinite. Proof idea: given any finite list of primes, the number ${math`N = p_{${1}} p_{${2}} \cdots p_{\ell} + ${1}`} leaves remainder ${1} when divided by each of them, so none divides it; but ${math`N > ${1}`} has a prime factor, which must be a prime missing from the list.` },
-    { kind: 'p', text: t`With the list ${listOf(EX)}: ${math`N = ${prodTex(EX)} + ${1} = ${product(EX) + 1}`}, which ${2}, ${3}, and ${5} each leave remainder ${1}. Its prime factor, here ${product(EX) + 1} itself, is a new prime.` },
-    { kind: 'p', text: t`As a proof by contradiction (the CST notes): suppose ${math`p_{${1}}, \ldots, p_{\ell}`} are all the primes. Then a prime factor of ${math`N`} is some ${math`p_{i}`}, which divides both ${math`N`} and the product, so it divides their difference, ${1}. No prime divides ${1}: contradiction.` },
-    { kind: 'p', text: t`The argument shows that ${math`N`} has a prime factor outside the list, not that ${math`N`} is prime. The notes' Theorem of the Day sheet: ${math`${prodTex(SIX)} + ${1} = ${computedTex(String(N6))} = ${59} \times ${509}`}. Both factors are new primes, which is all the proof needs.` },
-    { kind: 'p', text: t`The proof leans on one fact from prime factorisation: every whole number greater than ${1} has at least one prime factor. Read constructively, it is a procedure: from any finite list of primes it produces a prime not on the list.` },
+    { kind: 'section', title: t`Do the primes run out?` },
+    { kind: 'hook', text: t`Among the first ten numbers, four are prime. Among the first hundred, ${upTo(100).filter(isPrime).length}. Among the first thousand, ${upTo(1000).filter(isPrime).length}. The primes get rarer as you go. Could they stop altogether, with one last, largest prime? Over two thousand years ago Euclid showed that they cannot.` },
+    { kind: 'narrative', text: t`Recall that a [[prime-number|prime]] is a whole number greater than ${1} whose only positive divisors are ${1} and itself: ${listOf(PRIMES.slice(0, 6))}, and so on. The proof needs one fact about primes first.` },
+
+    { kind: 'section', title: t`Every number has a prime factor` },
+    { kind: 'theorem', name: t`Prime factors exist`, statement: t`Every integer ${math`n > ${1}`} is divisible by some prime.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Take the smallest divisor`, text: t`The divisors of ${math`n`} that are greater than ${1} include ${math`n`} itself, so there is a smallest one; call it ${mp}.`, plain: t`For ${math`n = ${91}`}, the divisors bigger than ${1} are ${listOf([7, 13, 91])}, and the smallest is ${math`p = ${7}`}.` },
+        { label: t`Suppose it is not prime`, text: t`Then ${math`p = ab`} with ${math`${1} < a < p`}.` },
+        { label: t`Find a smaller divisor`, text: t`${math`a`} divides ${mp}, and ${mp} divides ${math`n`}, so ${math`a`} divides ${math`n`}. But ${math`${1} < a < p`}, contradicting the choice of ${mp} as the smallest. So ${mp} is prime.`, why: { q: t`Why does ${math`a`} divide ${math`n`}?`, a: t`If ${math`p = ab`} and ${math`n = pc`}, then ${math`n = a(bc)`}, a multiple of ${math`a`}. With numbers: ${7} divides ${91} and ${91} divides ${182}, so ${7} divides ${182}.` } },
+      ],
+    },
+
+    { kind: 'section', title: t`Euclid's theorem` },
+    { kind: 'narrative', text: t`Here is the idea, with a small list first. Take the primes ${listOf(EX)}, multiply them, and add ${1}: ${math`N = ${prodTex(EX)} + ${1} = ${product(EX) + 1}`}. Dividing ${math`N`} by ${2} leaves remainder ${1}, because ${math`${product(EX)}`} is a multiple of ${2}. The same is true for ${3} and for ${5}. So none of the listed primes divides ${math`N`}, yet ${math`N`} has some prime factor. That factor must be a prime that was not on the list.` },
+    { kind: 'theorem', name: t`Euclid`, statement: t`The set of primes is infinite.` },
+    { kind: 'p', text: t`This is [[euclids-theorem|Euclid's theorem]]. We prove it by [[proof-by-contradiction|contradiction]]: suppose the primes do run out, and show that something impossible follows.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Suppose the list is complete`, text: t`Suppose the set of primes is finite, and list all of them: ${math`p_{${1}}, p_{${2}}, \ldots, p_{\ell}`}.`, plain: t`${math`\ell`} is just the length of the list. We are not claiming such a list exists; we are testing the idea.` },
+        { label: t`Build a new number`, text: t`Let ${math`N = p_{${1}} p_{${2}} \cdots p_{\ell} + ${1}`}. Then ${math`N > ${1}`}.` },
+        { label: t`It has a prime factor`, text: t`By the theorem above, some prime divides ${math`N`}. Every prime is on our list, so it is ${math`p_{i}`} for some ${math`i`}.` },
+        { label: t`That prime divides ${1}`, text: t`${math`p_{i}`} divides the product ${math`p_{${1}} \cdots p_{\ell}`}, since it is one of the factors. It divides ${math`N`} too, so it divides the difference:`, eq: [dmath`p_{i} \mid N - p_{${1}} \cdots p_{\ell} = ${1}.`], why: { q: t`Why does it divide the difference?`, a: t`If ${math`N = p_{i}a`} and ${math`p_{${1}} \cdots p_{\ell} = p_{i}b`}, then ${math`N - p_{${1}} \cdots p_{\ell} = p_{i}(a - b)`}, a multiple of ${math`p_{i}`}. The symbol ${math`\mid`} means "divides".` } },
+        { label: t`Contradiction`, text: t`A prime is at least ${2}, so it cannot divide ${1}. The assumption was false: there are infinitely many primes.` },
+      ],
+    },
+    checkFrom(remainder, { ps: [2, 3, 7], i: 2, r: 1 }, t`${7} divides ${math`${2} \times ${3} \times ${7}`} exactly, so adding ${1} leaves remainder ${1}.`),
+
+    { kind: 'section', title: t`What the proof does not say` },
+    { kind: 'narrative', text: t`It is tempting to read the proof as "${math`N`} is always a new prime". It is not. The proof only says ${math`N`} has a prime factor outside the list. Sometimes ${math`N`} itself is prime, as ${product(EX) + 1} was. Sometimes it is not.` },
+    { kind: 'p', text: t`The CST notes' Theorem of the Day sheet gives the first example: ${math`${prodTex(SIX)} + ${1} = ${computedTex(String(N6))} = ${smallestFactor(N6)} \times ${N6 / smallestFactor(N6)}`}. Both factors are primes missing from the list, which is all the proof needs.` },
+    checkFrom(newPrime, { ps: EX2 }, t`${math`N = ${2} \times ${7} + ${1} = ${product(EX2) + 1} = ${3} \times ${5}`}: both ${3} and ${5} are primes off the list, and ${math`N`} itself is not prime.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`The product of the first few primes, plus one, is always prime.`, counterexample: t`${math`${prodTex(SIX)} + ${1} = ${smallestFactor(N6)} \times ${N6 / smallestFactor(N6)}`}.` },
+    { kind: 'pitfall', claim: t`The proof only works for the list of the first ${math`\ell`} primes.`, counterexample: t`Any finite list works. From ${listOf(EX2)}, ${math`N = ${product(EX2) + 1}`}, and its prime factors ${3} and ${5} are missing from the list.` },
+    { kind: 'pitfall', claim: t`${math`N`} is bigger than every prime on the list, so it is a prime not on the list.`, counterexample: t`Being bigger only shows ${math`N`} is not on the list. Whether it is prime is a separate question: ${15} is bigger than ${7} and is ${math`${3} \times ${5}`}.` },
+    { kind: 'takeaway', text: t`From any finite list of primes, the product plus one has a prime factor missing from the list, so the primes never run out.` },
   ],
   examples: [
-    theorem100,
+    { ...theorem100, examiner: t`The examiner looks for the assumption stated as a complete finite list, the fact that ${math`N > ${1}`} has a prime factor, and the contradiction that a prime divides ${1}.` },
     workedCambridge(totd30031),
     worked(newPrime, { ps: [3, 5, 7] }, t`A new prime from ${listOf([3, 5, 7])}`),
   ],
@@ -262,5 +303,21 @@ export const infinitelyManyPrimes: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['euclids-theorem'],
   cambridge: [firstComposite, notPrime, bopVersion],
-  gate: ['cst-totd-first-composite', 'cst-totd-remarks'],
+  // The sheet's remark asks for the proof rewritten correctly: that tests the theorem. The first composite is a factoring exercise, and Book of Proof is not Cambridge standard.
+  gate: ['cst-totd-remarks'],
+  recall: [
+    { front: t`State Euclid's theorem.`, back: t`There are infinitely many primes.` },
+    { front: t`The key number in Euclid's proof.`, back: t`${math`N = p_{${1}} \cdots p_{\ell} + ${1}`}: no prime on the list divides it, yet it has a prime factor.` },
+    { front: t`Is the product of primes plus one always prime?`, back: t`No: ${math`${prodTex(SIX)} + ${1} = ${smallestFactor(N6)} \times ${N6 / smallestFactor(N6)}`}. Only its prime factors are new.` },
+  ],
+  proofOrder: [{
+    title: t`There are infinitely many primes`,
+    steps: [
+      t`Suppose ${math`p_{${1}}, \ldots, p_{\ell}`} are all the primes.`,
+      t`Let ${math`N = p_{${1}} \cdots p_{\ell} + ${1}`}, which is greater than ${1}.`,
+      t`${math`N`} has a prime factor, which must be some ${math`p_{i}`}.`,
+      t`${math`p_{i}`} divides the product too, so it divides ${1}.`,
+      t`No prime divides ${1}: contradiction.`,
+    ],
+  }],
 };

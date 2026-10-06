@@ -11,8 +11,8 @@ import { auto, cite, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { expSample, integrateToInfinity, near, powQ, pw } from '../partv-b';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mX, mY] = [math`X`, math`Y`];
 const SH4 = 'ia-prob-sheet-4' as const;
@@ -276,15 +276,54 @@ const claims: ProbabilityClaim[] = [
 export const jointDensities: TopicContent = {
   topicId: 'rv.joint-densities',
   goal: t`Find probabilities from a joint density by double integrals, find the marginal densities, and test independence by factorising.`,
+  objective: t`Find probabilities from a joint density by double integrals, find marginals, and test independence.`,
+  why: t`Two continuous quantities at once, such as two arrival times, need it; next, transformations of pairs.`,
+  minutes: 30,
   lesson: [
-    { kind: 'rule', text: t`A [[joint-density|joint density]] ${math`f(x, y) \ge ${0}`} has ${math`\iint f(x, y)\,dx\,dy = ${1}`}, and ${math`P((X, Y) \in A) = \iint_{A} f(x, y)\,dx\,dy`}: probability is volume under the surface ${math`z = f(x, y)`}.` },
-    { kind: 'rule', text: t`The [[marginal-density|marginal density]] of ${mX} integrates out ${mY}: ${math`f_{X}(x) = \int_{-\infty}^{\infty} f(x, y)\,dy`}. ${mX} and ${mY} are independent exactly when ${math`f(x, y) = f_{X}(x)\,f_{Y}(y)`}.` },
-    { kind: 'p', text: t`Take ${math`f(x, y) = x + y`} on the unit square. Its marginal is ${math`f_{X}(x) = \int_{${0}}^{${1}} (x + y)\,dy = x + \tfrac{${1}}{${2}}`}, and the same for ${mY}. ${math`P(X \le \tfrac{${1}}{${2}},\ Y \le \tfrac{${1}}{${2}}) = \int_{${0}}^{${1}/${2}}\int_{${0}}^{${1}/${2}} (x + y)\,dy\,dx = ${both}`}, while ${math`P(X \le \tfrac{${1}}{${2}}) = ${margin}`}, and ${math`${margin}^{${2}} = ${mul(margin, margin)}`} is not ${both}: not independent, as ${math`x + y`} does not factorise.` },
-    { kind: 'p', text: t`Watch the region as well as the formula. ${math`f(x, y) = ${2}`} on the triangle ${math`${0} < y < x < ${1}`} is constant, yet ${mX} and ${mY} are not independent: knowing ${mX} limits ${mY} to ${math`(${0}, X)`}. Factorising needs a product formula on a product region (a rectangle). Here ${mX} is the larger of two independent uniforms, and ${math`P(X < \tfrac{${1}}{${2}}) = \left(\tfrac{${1}}{${2}}\right)^{${2}} = ${q(1, 4)}`}.` },
-    { kind: 'p', text: t`Independent variables have the product density, and then a probability is an integral over the region of the event. Two arrival times uniform on ${math`[${0}, ${60}]`} have density ${math`${1}/${3600}`} on the square, so probabilities are areas (Sheet ${4} Q${1}). Two independent exponential waits give ${math`P(X > Y) = \frac{\mu}{\lambda + \mu}`} by integrating ${math`\lambda e^{-\lambda x}\mu e^{-\mu y}`} over ${math`\{x > y\}`} (Q${4}).` },
+    { kind: 'section', title: t`Two random times` },
+    { kind: 'hook', text: t`Alice and Bob each turn up at a café at a random time between noon and ${1} pm, independently, and each waits ${10} minutes for the other. What is the chance they meet? One random time has a density, a curve whose area gives probabilities. Two random times need a density over a plane, whose volume gives probabilities.` },
+    { kind: 'narrative', text: t`For one continuous random variable ${mX} with density ${math`f_{X}`}, you already know ${math`P(a \le X \le b) = \int_{a}^{b} f_{X}(x)\,dx`}: the area under the curve. Now picture a surface ${math`z = f(x, y)`} floating over the ${math`(x, y)`} plane. The chance that the point ${math`(X, Y)`} lands in a region is the volume under the surface above that region.` },
+
+    { kind: 'section', title: t`Joint and marginal densities` },
+    { kind: 'definition', name: t`Joint density`, formal: t`Random variables ${mX}, ${mY} have [[joint-density|joint density]] ${math`f`} if ${math`f(x, y) \ge ${0}`}, ${math`\iint_{\mathbb{R}^{${2}}} f(x, y)\,dx\,dy = ${1}`}, and for every (reasonable) region ${math`A \subseteq \mathbb{R}^{${2}}`}, ${dmath`P((X, Y) \in A) = \iint_{A} f(x, y)\,dx\,dy.`}`, plain: t`Probability is volume under the surface. For example ${math`f(x, y) = x + y`} on the unit square ${math`[${0}, ${1}]^{${2}}`} (and ${0} elsewhere) is a joint density: it is never negative, and its total volume is ${1}.` },
+    { kind: 'p', text: t`Checking that volume: integrate ${math`y`} first, holding ${math`x`} fixed. ${math`\int_{${0}}^{${1}} (x + y)\,dy = x + \tfrac{${1}}{${2}}`}, then ${math`\int_{${0}}^{${1}} (x + \tfrac{${1}}{${2}})\,dx = \tfrac{${1}}{${2}} + \tfrac{${1}}{${2}} = ${1}`}.`, why: { q: t`Why may we integrate one variable at a time?`, a: t`For a nonnegative (or absolutely integrable) function, a double integral equals the repeated integral, in either order. This is Fubini's theorem; at this level you may use it freely for densities.` } },
+    { kind: 'definition', name: t`Marginal density`, formal: t`If ${mX}, ${mY} have joint density ${math`f`}, the [[marginal-density|marginal density]] of ${mX} is ${dmath`f_{X}(x) = \int_{-\infty}^{\infty} f(x, y)\,dy,`} and likewise ${math`f_{Y}(y) = \int_{-\infty}^{\infty} f(x, y)\,dx`}.`, plain: t`Integrate out the variable you do not care about. For ${math`x + y`} on the square, ${math`f_{X}(x) = x + \tfrac{${1}}{${2}}`} for ${math`${0} \le x \le ${1}`}.` },
+    { kind: 'theorem', statement: t`The marginal ${math`f_{X}`} is the density of ${mX} on its own: ${math`P(X \le a) = \int_{-\infty}^{a} f_{X}(x)\,dx`} for every ${math`a`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Write the event as a region`, text: t`${math`\{X \le a\}`} is the event that ${math`(X, Y)`} lies in the half-plane ${math`A = \{(x, y) : x \le a\}`}, since ${mY} may be anything.` },
+        { label: t`Use the joint density`, text: t`${math`P(X \le a) = \iint_{A} f(x, y)\,dx\,dy`}.` },
+        { label: t`Integrate ${math`y`} first`, text: t`Doing the ${math`y`} integral inside,`, eq: [dmath`P(X \le a) = \int_{-\infty}^{a} \left(\int_{-\infty}^{\infty} f(x, y)\,dy\right) dx = \int_{-\infty}^{a} f_{X}(x)\,dx.`], plain: t`That is exactly what it means for ${math`f_{X}`} to be the density of ${mX}.` },
+      ],
+    },
+    checkFrom(jointConstant, { i: 1, j: 0, a: 2, b: 1 }, t`${math`c\int_{${0}}^{${2}} x\,dx \int_{${0}}^{${1}} dy = c \times ${2} \times ${1}`}, and this must be ${1}.`),
+
+    { kind: 'section', title: t`Probabilities as double integrals` },
+    { kind: 'narrative', text: t`To find a probability, draw the region of the event, then integrate the density over it. Take ${math`f(x, y) = x + y`} on the square, and the event ${math`\{X \le \tfrac{${1}}{${2}},\ Y \le \tfrac{${1}}{${2}}\}`}: the bottom-left quarter of the square.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Inner integral`, text: t`Hold ${math`x`} fixed and integrate over ${math`y`} from ${0} to ${math`\tfrac{${1}}{${2}}`}:`, eq: [dmath`\int_{${0}}^{${1}/${2}} (x + y)\,dy = \frac{x}{${2}} + \frac{${1}}{${8}}.`], why: { q: t`Where does ${math`\tfrac{${1}}{${8}}`} come from?`, a: t`${math`\int_{${0}}^{${1}/${2}} y\,dy = \left[\tfrac{y^{${2}}}{${2}}\right]_{${0}}^{${1}/${2}} = \tfrac{${1}}{${2}} \times \tfrac{${1}}{${4}} = \tfrac{${1}}{${8}}`}. And ${math`\int_{${0}}^{${1}/${2}} x\,dy = \tfrac{x}{${2}}`}, since ${math`x`} is a constant here.` } },
+        { label: t`Outer integral`, text: t`Now over ${math`x`} from ${0} to ${math`\tfrac{${1}}{${2}}`}:`, eq: [dmath`\int_{${0}}^{${1}/${2}} \left(\frac{x}{${2}} + \frac{${1}}{${8}}\right) dx = \frac{${1}}{${16}} + \frac{${1}}{${16}} = ${both}.`] },
+      ],
+    },
+    checkFrom(rectangleProbability, { a: q(2, 3), b: q(1, 3) }, t`${math`\frac{ab(a + b)}{${2}}`} with ${math`a = ${q(2, 3)}`}, ${math`b = ${q(1, 3)}`}: ${rectProb({ a: q(2, 3), b: q(1, 3) })}.`),
+
+    { kind: 'section', title: t`Independence` },
+    { kind: 'theorem', name: t`Independence and factorising`, statement: t`Jointly continuous ${mX} and ${mY} are independent if and only if their joint density can be taken to be ${math`f(x, y) = f_{X}(x)\,f_{Y}(y)`}.` },
+    { kind: 'p', text: t`In plain words: independence means the surface is a product of a curve in ${math`x`} and a curve in ${math`y`}. Two arrival times, each uniform on ${math`[${0}, ${60}]`} minutes and independent, have joint density ${math`\tfrac{${1}}{${60}} \cdot \tfrac{${1}}{${60}}`} on the square, so every probability is an area divided by ${3600}. That is how the café question is solved below.`, why: { q: t`Why does a product density give independence?`, a: t`For a rectangle, ${math`P(X \le a, Y \le b) = \int_{-\infty}^{a}\int_{-\infty}^{b} f_{X}(x)f_{Y}(y)\,dy\,dx`}, and the double integral splits into ${math`P(X \le a)\,P(Y \le b)`}. The converse is part of the Tripos course.` } },
+    { kind: 'narrative', text: t`For ${math`x + y`}, the formula does not factorise, so ${mX} and ${mY} are not independent. The numbers agree: ${math`P(X \le \tfrac{${1}}{${2}}) = \int_{${0}}^{${1}/${2}} (x + \tfrac{${1}}{${2}})\,dx = ${margin}`}, and ${math`${margin}^{${2}} = ${mul(margin, margin)}`}, not ${both}.` },
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`A joint density given by a constant formula always factorises, so the variables are independent.`, counterexample: t`${math`f(x, y) = ${2}`} on the triangle ${math`${0} < y < x < ${1}`}. If ${math`X = \tfrac{${1}}{${10}}`}, then ${mY} is trapped in ${math`(${0}, \tfrac{${1}}{${10}})`}: knowing ${mX} changes ${mY}. The factorisation must hold everywhere, including the zero outside the triangle, and ${math`f_{X}(x)f_{Y}(y)`} is positive on the whole square.` },
+    { kind: 'pitfall', claim: t`${math`P(X \le a, Y \le b) = P(X \le a)\,P(Y \le b)`} for any joint density.`, counterexample: t`For ${math`x + y`} with ${math`a = b = \tfrac{${1}}{${2}}`}, the left side is ${both} and the right side is ${mul(margin, margin)}. Only independence allows the product.` },
+    { kind: 'pitfall', claim: t`To find ${math`f_{X}`}, integrate over ${math`x`}.`, counterexample: t`That gives a function of ${math`y`}, the marginal of ${mY}. Integrate out the other variable: ${math`f_{X}(x) = \int f(x, y)\,dy`}.` },
+    { kind: 'takeaway', text: t`A probability for two continuous variables is the volume under the joint density over the event's region, and independence is a joint density that factorises on a rectangle.` },
   ],
   examples: [
-    workedCambridge(q1),
+    { ...workedCambridge(q1), examiner: t`The examiner looks for the joint density stated with the reason (independence), the region drawn, and the area of the two corner triangles subtracted.` },
     worked(rectangleProbability, { a: q(1, 2), b: q(1) }, t`A strip under ${math`x + y`}`),
     worked(exponentialRace, { l: 1, m: 3, c: q(2) }, t`One wait more than twice another`),
   ],
@@ -293,5 +332,20 @@ export const jointDensities: TopicContent = {
   terms: ['joint-density', 'marginal-density'],
   claims,
   cambridge: [q4race, q1general, triangle],
+  // Both are the sheet's own questions: Q4 in general, then the general meeting problem as a write-up.
   gate: ['ia4-q4-race', 'ia4-q1-general'],
+  recall: [
+    { front: t`What makes ${math`f`} a joint density of ${mX}, ${mY}?`, back: t`${math`f \ge ${0}`}, total integral ${1}, and ${math`P((X, Y) \in A) = \iint_{A} f`} for regions ${math`A`}.` },
+    { front: t`The marginal density of ${mX}.`, back: t`${math`f_{X}(x) = \int_{-\infty}^{\infty} f(x, y)\,dy`}.` },
+    { front: t`When are jointly continuous ${mX}, ${mY} independent?`, back: t`Exactly when the joint density factorises as ${math`f_{X}(x)\,f_{Y}(y)`}, on the whole plane.` },
+  ],
+  proofOrder: [{
+    title: t`The marginal is the density of ${mX}`,
+    steps: [
+      t`Write ${math`\{X \le a\}`} as ${math`(X, Y)`} in the half-plane ${math`x \le a`}.`,
+      t`Its probability is the double integral of ${math`f`} over the half-plane.`,
+      t`Integrate over ${math`y`} first, inside.`,
+      t`The inner integral is ${math`f_{X}(x)`}, so ${math`P(X \le a) = \int_{-\infty}^{a} f_{X}`}.`,
+    ],
+  }],
 };

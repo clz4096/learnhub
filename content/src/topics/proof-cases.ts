@@ -11,8 +11,8 @@
 import { auto, cite, same, supervision } from '../cambridge';
 import { factorial, int, pick, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
-import { computed, computedTex, listOf, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computed, computedTex, dmath, listOf, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mn, mk] = [math`n`, math`k`];
 const mod = (a: number, m: number): number => ((a % m) + m) % m;
@@ -349,17 +349,70 @@ const bop16 = supervision({
 // ---------------------------------------------------------------- lesson
 
 const bopTable = upTo(7).map((n) => [n, 1 + (n % 2 === 0 ? 1 : -1) * (2 * n - 1)] as const);
+const NOT_SQUARE = 4003;
+const [mQ, mBop] = [math`Q`, math`${1} + (-${1})^{n}(${2}n - ${1})`];
 
 export const proofCases: TopicContent = {
   topicId: 'proof.cases',
   goal: t`Prove a statement by splitting it into cases that cover every possibility, such as ${mn} even or ${mn} odd, and proving each case.`,
+  objective: t`Prove a statement by splitting into cases that cover every possibility and proving each one.`,
+  why: t`Parity and remainder arguments run on cases, and STEP counting questions reward cases shown to be complete.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`Some statements behave differently in different situations. Book of Proof's example: ${math`${1} + (-${1})^{n}(${2}n - ${1})`} takes the values ${listOf(bopTable.map(([, v]) => v))} for ${math`n = ${1}, \ldots, ${7}`}, all multiples of ${4}. But ${math`(-${1})^{n}`} is ${1} when ${mn} is even and ${math`-${1}`} when ${mn} is odd, so a proof must treat the two separately.` },
-    { kind: 'rule', text: t`[[proof-by-cases|Proof by cases]]: to prove ${math`Q`}, find cases ${math`P_{${1}}, \ldots, P_{k}`} of which at least one must hold (they are [[exhaustive-cases|exhaustive]]), and prove ${math`Q`} assuming each in turn.` },
-    { kind: 'p', text: t`For the example: if ${math`n = ${2}k`}, the expression is ${math`${1} + (${4}k - ${1}) = ${4}k`}; if ${math`n = ${2}k + ${1}`}, it is ${math`${1} - (${4}k + ${1}) = -${4}k`}. Every natural number is even or odd, so it is always a multiple of ${4}.` },
-    { kind: 'p', text: t`The CST notes put this in terms of "or". To use an assumption ${math`P_{${1}} \lor P_{${2}}`}, prove the goal in case (i), assuming ${math`P_{${1}}`}, and in case (ii), assuming ${math`P_{${2}}`}. To prove a goal ${math`P \lor Q`} when neither part holds every time, split into cases and prove one of the parts in each. Their Proposition ${25}: every square is ${math`\equiv ${0}`} or ${math`\equiv ${1} \pmod{${4}}`}. Neither part holds always (${math`${1}^{${2}} \equiv ${1}`}, ${math`${0}^{${2}} \equiv ${0}`}), so take ${mn} even (then ${math`n^{${2}} = ${4}m^{${2}}`}) and ${mn} odd (then ${math`n^{${2}} = ${4}m(m + ${1}) + ${1}`}).` },
-    { kind: 'p', text: t`Common cases: even or odd; the remainder on division by ${3}, ${4}, or another small number, one case per remainder; positive, zero, or negative; ${math`x = y`} or ${math`x \ne y`}. What matters is that they cover everything. The STEP hints to Assignment ${6}, question ${3}, insist on it: when counting the five-digit numbers with digit sum ${43}, "you cannot just stop after getting ${15} possibilities, you do need to explain why there are no more". Taking cases by the number of nines does that.` },
-    { kind: 'p', text: t`When two cases are the same up to swapping names (${math`m`} even and ${mn} odd, or the other way round), a proof may do one and say "[[without-loss-of-generality|without loss of generality]]" for the other. Book of Proof advises writing every case out until you are sure the others really are the same.` },
+    { kind: 'section', title: t`A formula that changes its mind` },
+    { kind: 'hook', text: t`Book of Proof asks about ${mBop}. For ${math`n = ${1}, \ldots, ${7}`} it gives ${listOf(bopTable.map(([, v]) => v))}. Every one is a multiple of ${4}, but the signs keep flipping. How could one argument cover numbers that behave so differently?` },
+    { kind: 'narrative', text: t`The flipping comes from ${math`(-${1})^{n}`}: it is ${1} when ${mn} is even and ${math`-${1}`} when ${mn} is odd. So the expression is really two different formulas wearing one coat. The natural move is to stop fighting that, and deal with the two kinds of ${mn} separately.` },
+    { kind: 'narrative', text: t`That is safe only because every natural number is even or odd: no number slips between the two. Prove the claim for the even ones, prove it for the odd ones, and you have proved it for all of them.` },
+    { kind: 'section', title: t`Proof by cases` },
+    {
+      kind: 'definition',
+      name: t`Exhaustive cases`,
+      formal: t`Statements ${math`P_{${1}}, \ldots, P_{k}`} are [[exhaustive-cases|exhaustive]] if at least one of them is true, that is, if ${math`P_{${1}} \lor P_{${2}} \lor \cdots \lor P_{k}`} holds.`,
+      plain: t`In plain words: the cases cover every possibility. "${mn} is even" and "${mn} is odd" are exhaustive for integers. "${mn} is positive" and "${mn} is negative" are not: they miss ${0}.`,
+    },
+    {
+      kind: 'theorem',
+      name: t`Proof by cases`,
+      statement: t`If ${math`P_{${1}}, \ldots, P_{k}`} are exhaustive and ${math`P_{i} \Rightarrow Q`} for each ${math`i`}, then ${mQ} holds.`,
+    },
+    {
+      kind: 'p',
+      text: t`This is [[proof-by-cases|proof by cases]]. Each case is a separate small proof: you assume ${math`P_{i}`} and use it freely.`,
+      why: { q: t`Why does that prove ${mQ}?`, a: t`At least one case, say ${math`P_{j}`}, is true, because they are exhaustive. You proved ${math`P_{j} \Rightarrow Q`}, and its hypothesis holds, so ${mQ} holds.` },
+    },
+    { kind: 'theorem', statement: t`For every ${math`n \in \mathbb{N}`}, ${mBop} is a multiple of ${4}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Choose the cases`, text: t`Every natural number ${mn} is even or odd, so the cases ${math`n = ${2}k`} and ${math`n = ${2}k + ${1}`}, with ${math`k \in \mathbb{N}`}, are exhaustive.`, why: { q: t`Why is every number even or odd?`, a: t`Dividing ${mn} by ${2} leaves remainder ${0} or ${1}. Remainder ${0} means ${math`n = ${2}k`}; remainder ${1} means ${math`n = ${2}k + ${1}`}. For example ${math`${7} = ${2} \times ${3} + ${1}`}.` } },
+        { label: t`Case one, n even`, text: t`If ${math`n = ${2}k`}, then ${math`(-${1})^{n} = ${1}`}, so`, eq: [dmath`${1} + (-${1})^{n}(${2}n - ${1}) = ${1} + (${4}k - ${1}) = ${4}k.`], plain: t`An even power of ${math`-${1}`} is ${1}, and ${math`${2}n = ${4}k`}.` },
+        { label: t`Case two, n odd`, text: t`If ${math`n = ${2}k + ${1}`}, then ${math`(-${1})^{n} = -${1}`} and ${math`${2}n - ${1} = ${4}k + ${1}`}, so`, eq: [dmath`${1} - (${4}k + ${1}) = -${4}k.`], plain: t`An odd power of ${math`-${1}`} is ${math`-${1}`}, which flips the sign of the bracket.` },
+        { label: t`Conclude`, text: t`In each case the value is ${4} times an integer. The cases are exhaustive, so the value is a multiple of ${4} for every ${math`n \in \mathbb{N}`}.` },
+      ],
+    },
+    checkFrom(parityCases, { a: 1, b: 1, c: 1 }, t`If ${mn} is even, ${math`n^{${2}} + n`} is even, so adding ${1} makes it odd. If ${mn} is odd, ${math`n^{${2}}`} and ${mn} are both odd, their sum is even, and adding ${1} makes it odd. Odd in both cases.`),
+    { kind: 'section', title: t`Squares and remainders` },
+    { kind: 'narrative', text: t`The Cambridge Discrete Mathematics notes use cases to prove a goal of the form "this or that", when neither part is true every time. Their example is about squares. Look at the remainders when squares are divided by ${4}: ${math`${0}, ${1}, ${4}, ${9}, ${16}, ${25}`} leave ${listOf([0, 1, 4, 9, 16, 25].map((x) => x % 4))}. Only ${0} and ${1} ever appear.` },
+    { kind: 'theorem', statement: t`For every integer ${mn}, the remainder when ${math`n^{${2}}`} is divided by ${4} is ${0} or ${1}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The cases`, text: t`Every integer is even or odd: ${math`n = ${2}m`} or ${math`n = ${2}m + ${1}`} for some integer ${math`m`}.` },
+        { label: t`n even`, text: t`${math`n^{${2}} = (${2}m)^{${2}} = ${4}m^{${2}}`}, a multiple of ${4}: remainder ${0}.` },
+        { label: t`n odd`, text: t`Expand and group the multiple of ${4}:`, eq: [dmath`n^{${2}} = ${4}m^{${2}} + ${4}m + ${1} = ${4}(m^{${2}} + m) + ${1},`], plain: t`so the remainder is ${1}.` },
+        { label: t`Conclude`, text: t`The cases are exhaustive, so the remainder is always ${0} or ${1}.` },
+      ],
+    },
+    { kind: 'p', text: t`Notice that neither half of "remainder ${0} or remainder ${1}" is true for every ${mn}: ${math`${1}^{${2}}`} leaves ${1}, ${math`${2}^{${2}}`} leaves ${0}. The cases decide which half to prove. As a payoff, ${NOT_SQUARE} is not a square: it is ${math`${4} \times ${(NOT_SQUARE - NOT_SQUARE % 4) / 4} + ${NOT_SQUARE % 4}`}, and no square leaves remainder ${NOT_SQUARE % 4}.` },
+    { kind: 'section', title: t`Show there are no more` },
+    { kind: 'narrative', text: t`Cases are also how you count without missing anything. The STEP Support hints to Assignment ${6}, question ${3}, about five-digit numbers with digit sum ${43}, put it bluntly: "you cannot just stop after getting ${15} possibilities, you do need to explain why there are no more." Taking cases by the number of nines does that, because every number falls in exactly one case.` },
+    { kind: 'narrative', text: t`Try a smaller one. A ${4}-digit number has digit sum at most ${36}. For digit sum ${34}, the digits fall short of all nines by ${2} in total. The shortfall is either all on one digit (a ${7} and three nines) or split over two digits (two eights and two nines). Those are the only ways to share out ${2}, so those are all the cases.` },
+    checkFrom(digitSums, { k: 4, d: 2 }, t`One ${7} and three nines: ${4} places for the ${7}. Two eights and two nines: ${6} ways to place the eights. ${math`${4} + ${6} = ${10}`}.`),
+    { kind: 'narrative', text: t`One last tool. When two cases are the same up to swapping names, say ${math`m`} even with ${mn} odd, or ${math`m`} odd with ${mn} even, a proof may do one and say [[without-loss-of-generality|without loss of generality]] for the other. Book of Proof advises writing every case out until you are sure the others really are the same.` },
+    { kind: 'pitfall', claim: t`For every integer ${mn}, ${math`n^{${2}} > ${0}`}. Case ${mn} positive: a positive times a positive is positive. Case ${mn} negative: a negative times a negative is positive.`, counterexample: t`The cases are not exhaustive: they miss ${math`n = ${0}`}, where ${math`n^{${2}} = ${0}`}. The claim is false there. Always check that your cases cover everything.` },
+    { kind: 'takeaway', text: t`Split into cases that between them cover every possibility, prove the claim in each, and say why nothing is left out.` },
   ],
   examples: [
     workedCambridge(a6i),
@@ -370,5 +423,24 @@ export const proofCases: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exhaustive-cases', 'without-loss-of-generality'],
   cambridge: [a6ii, lemma26, odd8, bop14, bop15, bop44, sw223, sw128, sw231, sw327, bop16],
-  gate: ['a6-q3-ii', 'sw-2-2-3-cases', 'sw-3-2-7-b', 'sw-2-2-3', 'sw-1-2-8', 'sw-2-3-1', 'sw-3-2-7'],
+  // Best first: the STEP count, then the supervision proofs from hardest to easiest. The
+  // auto-checked remainders (0 or 1; 1 for odd squares mod 8) can be guessed, so they do not gate.
+  gate: ['a6-q3-ii', 'sw-2-3-1', 'sw-3-2-7', 'sw-1-2-8', 'sw-2-2-3'],
+  recall: [
+    { front: t`State proof by cases.`, back: t`If ${math`P_{${1}}, \ldots, P_{k}`} are exhaustive and each ${math`P_{i}`} implies ${mQ}, then ${mQ} holds.` },
+    { front: t`What does it mean for cases to be exhaustive?`, back: t`At least one of them always holds: ${math`P_{${1}} \lor \cdots \lor P_{k}`}.` },
+    { front: t`What remainders can a square leave on division by ${4}?`, back: t`Only ${0} (n even) or ${1} (n odd).` },
+    { front: t`When may you say "without loss of generality"?`, back: t`When the cases you skip are the same as one you prove, up to renaming.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Every square leaves remainder ${0} or ${1} on division by ${4}`,
+      steps: [
+        t`Every integer is ${math`${2}m`} or ${math`${2}m + ${1}`}.`,
+        t`If ${math`n = ${2}m`}, then ${math`n^{${2}} = ${4}m^{${2}}`}: remainder ${0}.`,
+        t`If ${math`n = ${2}m + ${1}`}, then ${math`n^{${2}} = ${4}(m^{${2}} + m) + ${1}`}: remainder ${1}.`,
+        t`The cases cover every integer, so the remainder is ${0} or ${1}.`,
+      ],
+    },
+  ],
 };

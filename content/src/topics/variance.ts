@@ -9,8 +9,8 @@
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { join, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { dmath, join, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 import { far, mean, rpow, secondMoment, variance, type Dist } from '../partv-a';
 import { chooseBig } from '../numbers';
 
@@ -310,16 +310,65 @@ const shortcutProof = supervision({
 // ---------------------------------------------------------------- lesson
 
 const DIE: Dist = [1, 2, 3, 4, 5, 6].map((x) => [q(x), SIX] as const);
+const SPREAD = 10;
+const [mX, mmu] = [math`X`, math`\mu`];
 
 export const varianceTopic: TopicContent = {
   topicId: 'rv.variance',
   goal: t`Compute ${math`\mathrm{Var}(X) = E(X^{${2}}) - E(X)^{${2}}`} and the standard deviation of a discrete random variable.`,
+  objective: t`Measure the spread of a random variable by its variance and standard deviation.`,
+  why: t`Spread matters as much as the average; variance drives Chebyshev's inequality and the law of large numbers.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`Two random variables can have the same mean and different spreads: ${math`X`} always ${0}, and ${math`Y`} equal to ${math`-${10}`} or ${10} with probability ${q(1, 2)} each, both have mean ${0}. The [[variance|variance]] measures the spread as the mean squared distance from the mean.` },
-    { kind: 'rule', text: t`${math`\mathrm{Var}(X) = E\left((X - \mu)^{${2}}\right) = E(X^{${2}}) - \mu^{${2}}`}, where ${math`\mu = E(X)`} and ${math`E(X^{${2}}) = \sum_{x} x^{${2}} P(X = x)`}. The [[standard-deviation|standard deviation]] is ${math`\sigma = \sqrt{\mathrm{Var}(X)}`}, in the same units as ${math`X`}.` },
-    { kind: 'p', text: t`The shortcut follows by expanding: ${math`(X - \mu)^{${2}} = X^{${2}} - ${2}\mu X + \mu^{${2}}`}, whose mean is ${math`E(X^{${2}}) - ${2}\mu^{${2}} + \mu^{${2}}`}. The STEP ${2} notes call it "the mean of the squares minus the square of the mean". A variance is never negative.` },
-    { kind: 'p', text: t`A fair die: ${math`E(X) = ${mean(DIE)}`} and ${math`E(X^{${2}}) = \frac{${1} + ${4} + \cdots + ${36}}{${6}} = ${secondMoment(DIE)}`}, so ${math`\mathrm{Var}(X) = ${secondMoment(DIE)} - ${mul(mean(DIE), mean(DIE))} = ${variance(DIE)}`}.` },
-    { kind: 'p', text: t`Two variances to know, from the notes: ${math`X \sim B(n, p)`} has ${math`\mathrm{Var}(X) = np(${1} - p)`}, and a Poisson variable with mean ${math`\lambda`} has variance ${math`\lambda`} too. Remove the value ${0} from the Poisson distribution, as STEP ${2} Statistics Q${1} does, and both change: ${math`\mu = \frac{\lambda}{${1} - e^{-\lambda}}`} and ${math`\mathrm{Var}(X) = \mu(${1} - \mu + \lambda)`}.` },
+    { kind: 'section', title: t`Same average, different gamble` },
+    { kind: 'hook', text: t`Game one pays nothing, always. Game two pays ${SPREAD} or costs ${SPREAD}, on the toss of a coin. Both have mean ${0}. Yet nobody thinks they are the same game. The mean misses how far the outcomes stray from it. What number captures that?` },
+    { kind: 'narrative', text: t`A natural idea: average the distance from the mean. The signed distance ${math`X - \mu`} is no good, because it averages to ${0} every time: the overs cancel the unders. Squaring fixes the signs and punishes big strays more than small ones. Averaging the squared distance gives the variance.` },
+    { kind: 'section', title: t`The definition` },
+    {
+      kind: 'definition',
+      name: t`Variance and standard deviation`,
+      formal: t`Let ${mX} be a discrete random variable with mean ${math`\mu = E(X)`}. Its [[variance|variance]] is ${dmath`\mathrm{Var}(X) = E\big((X - \mu)^{${2}}\big) = \sum_{x} (x - \mu)^{${2}}\,P(X = x),`} and its [[standard-deviation|standard deviation]] is ${math`\sigma = \sqrt{\mathrm{Var}(X)}`}.`,
+      plain: t`In plain words: the average squared distance from the mean, and its square root, which is back in the units of ${mX}. Game two has every outcome ${SPREAD} from the mean, so its variance is ${math`${SPREAD}^{${2}} = ${SPREAD * SPREAD}`} and its standard deviation is ${SPREAD}. Game one has variance ${0}.`,
+    },
+    { kind: 'p', text: t`A variance is never negative, since it averages squares, and it is ${0} only when ${mX} equals its mean with probability ${1}.` },
+    { kind: 'section', title: t`A quicker formula` },
+    { kind: 'narrative', text: t`Computing every ${math`(x - \mu)^{${2}}`} is tedious when ${mmu} is a fraction. Expanding the square gives a shortcut that the STEP ${2} notes summarise as "the mean of the squares minus the square of the mean".` },
+    { kind: 'theorem', statement: t`${math`\mathrm{Var}(X) = E(X^{${2}}) - \mu^{${2}}`}, where ${math`E(X^{${2}}) = \sum_{x} x^{${2}} P(X = x)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Expand the square`, text: t`${math`(x - \mu)^{${2}} = x^{${2}} - ${2}\mu x + \mu^{${2}}`}, so`, eq: [dmath`\mathrm{Var}(X) = \sum_{x} x^{${2}} P(X = x) - ${2}\mu \sum_{x} x\,P(X = x) + \mu^{${2}} \sum_{x} P(X = x).`], why: { q: t`Why may the sum be split into three?`, a: t`A sum of terms each made of three parts is the sum of three sums, and a constant like ${math`${2}\mu`} can be taken out of a sum. (If the sums are infinite, they converge when ${math`E(X^{${2}})`} is finite, which we assume.)` } },
+        { label: t`Recognise each sum`, text: t`The first is ${math`E(X^{${2}})`}; the second sum is ${math`E(X) = \mu`}; the third is ${1}, since probabilities add to ${1}.` },
+        { label: t`Simplify`, text: t`${math`\mathrm{Var}(X) = E(X^{${2}}) - ${2}\mu^{${2}} + \mu^{${2}} = E(X^{${2}}) - \mu^{${2}}`}.` },
+      ],
+    },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Mean of a fair die`, text: t`${math`E(X) = \frac{${1} + ${2} + \cdots + ${6}}{${6}} = ${mean(DIE)}`}.` },
+        { label: t`Mean of the squares`, text: t`${math`E(X^{${2}}) = \frac{${1} + ${4} + ${9} + ${16} + ${25} + ${36}}{${6}} = ${secondMoment(DIE)}`}.` },
+        { label: t`Subtract`, text: t`${math`\mathrm{Var}(X) = ${secondMoment(DIE)} - \left(${mean(DIE)}\right)^{${2}} = ${secondMoment(DIE)} - ${mul(mean(DIE), mean(DIE))} = ${variance(DIE)}`}.` },
+      ],
+    },
+    checkFrom(fromTable, { xs: [1, 2, 3], ws: [1, 2, 1] }, t`The probabilities are ${q(1, 4)}, ${q(1, 2)}, ${q(1, 4)}. ${math`E(X) = ${2}`} and ${math`E(X^{${2}}) = \frac{${1} + ${8} + ${9}}{${4}} = ${q(9, 2)}`}, so ${math`\mathrm{Var}(X) = ${q(9, 2)} - ${4} = ${q(1, 2)}`}.`),
+    checkFrom(moments, { mu: q(3), v: 4, ask: 'second' }, t`Rearrange the shortcut: ${math`E(X^{${2}}) = \mathrm{Var}(X) + \mu^{${2}} = ${4} + ${9} = ${13}`}.`),
+    { kind: 'pitfall', claim: t`${math`\mathrm{Var}(X) = E(X)^{${2}} - E(X^{${2}})`}.`, counterexample: t`For a fair die that gives ${math`${mul(mean(DIE), mean(DIE))} - ${secondMoment(DIE)} = ${sub(mul(mean(DIE), mean(DIE)), secondMoment(DIE))}`}, a negative variance, which is impossible. The mean of the squares comes first.` },
+    { kind: 'section', title: t`Two variances to know` },
+    { kind: 'narrative', text: t`The simplest random variable is a Bernoulli one: ${1} with probability ${math`p`}, ${0} otherwise.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The mean`, text: t`${math`E(X) = ${1} \cdot p + ${0} \cdot (${1} - p) = p`}.` },
+        { label: t`The mean of the square`, text: t`${math`X^{${2}} = X`}, because ${math`${0}^{${2}} = ${0}`} and ${math`${1}^{${2}} = ${1}`}, so ${math`E(X^{${2}}) = p`}.` },
+        { label: t`The variance`, text: t`${math`\mathrm{Var}(X) = p - p^{${2}} = p(${1} - p)`}.` },
+      ],
+    },
+    { kind: 'p', text: t`A binomial count ${math`X \sim B(n, p)`} adds ${math`n`} independent Bernoulli variables, and variances of independent variables add (a later lesson proves it), so ${math`\mathrm{Var}(X) = np(${1} - p)`}. A Poisson variable with mean ${math`\lambda`} has variance ${math`\lambda`} too. STEP ${2} Statistics, question ${1}, asks what happens to both when the value ${0} is removed from the Poisson distribution.` },
+    checkFrom(binomialSpread, { n: 16, p: q(1, 2), ask: 'sd' }, t`${math`\mathrm{Var} = ${16} \times ${q(1, 2)} \times ${q(1, 2)} = ${4}`}, so the standard deviation is ${2}.`),
+    { kind: 'pitfall', claim: t`For ${math`X \sim B(${16}, ${q(1, 2)})`}, the standard deviation is ${4}.`, counterexample: t`${4} is the variance. The standard deviation is its square root, ${2}, in the same units as ${mX}.` },
+    { kind: 'takeaway', text: t`Variance is the mean squared distance from the mean; compute it as ${math`E(X^{${2}}) - E(X)^{${2}}`}, and take the square root for the standard deviation.` },
   ],
   examples: [
     workedCambridge(q1mean),
@@ -330,5 +379,22 @@ export const varianceTopic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['variance', 'standard-deviation'],
   cambridge: [q1A, q1var, tenDice, q1bounds, shortcutProof],
-  gate: ['s2-q1-a', 's2-q1-var', 's2-notes-binomial-variance', 's2-q1-bounds', 's2-notes-shortcut'],
+  // Best first: the bounds on the mean from the variance (STEP 2, 2003), the variance itself,
+  // the shortcut proved, then the normalising constant. Ten dice is np(1 - p) with numbers in.
+  gate: ['s2-q1-bounds', 's2-q1-var', 's2-notes-shortcut', 's2-q1-a'],
+  recall: [
+    { front: t`Define the variance.`, back: t`${math`\mathrm{Var}(X) = E\big((X - \mu)^{${2}}\big)`}, with ${math`\mu = E(X)`}.` },
+    { front: t`The shortcut for the variance?`, back: t`${math`E(X^{${2}}) - E(X)^{${2}}`}: the mean of the squares minus the square of the mean.` },
+    { front: t`Variance of ${math`B(n, p)`}, and of Bernoulli ${math`(p)`}?`, back: t`${math`np(${1} - p)`}, and ${math`p(${1} - p)`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The shortcut for the variance`,
+      steps: [
+        t`Expand ${math`(x - \mu)^{${2}} = x^{${2}} - ${2}\mu x + \mu^{${2}}`}.`,
+        t`Split the sum: ${math`E(X^{${2}}) - ${2}\mu E(X) + \mu^{${2}}`}.`,
+        t`Use ${math`E(X) = \mu`}: ${math`E(X^{${2}}) - \mu^{${2}}`}.`,
+      ],
+    },
+  ],
 };

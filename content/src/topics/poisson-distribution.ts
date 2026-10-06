@@ -10,8 +10,8 @@ import { auto, cite, supervision } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { fact, farApart, poissonCdf, poissonPmf, poissonPmfRec, sig } from '../partv-d';
 import { generator, type Misconception } from '../problem';
-import { computedTex, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedTex, dmath, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mX, mk, ml] = [math`X`, math`k`, math`\lambda`];
 const S2 = 'step-s2-stats' as const;
@@ -306,16 +306,49 @@ const ROW = [0, 1, 2, 3, 4, 5];
 export const poissonDistribution: TopicContent = {
   topicId: 'prob.poisson-distribution',
   goal: t`Compute Poisson probabilities ${math`\frac{e^{-\lambda}\lambda^{k}}{k!}`}, explain why they add to ${1}, and use the fact that the mean and the variance are both ${ml}.`,
+  objective: t`Compute Poisson probabilities, show they add to one, and prove the mean and variance are both lambda.`,
+  why: t`It is the model for counts of rare independent events; next, Poisson rates and the binomial limit.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`Some counts have no fixed number of trials: texts in an hour, misprints on a page, cars past a checkpoint in a minute. The STEP Support notes give the two conditions for a Poisson model: the occurrences are independent, and the mean number in an interval is proportional to the length of the interval.` },
-    { kind: 'rule', text: t`The [[poisson-distribution|Poisson distribution]] with mean ${ml}: ${math`X \sim \text{Po}(\lambda)`} takes the values ${math`${0}, ${1}, ${2}, \ldots`} with ${math`P(X = k) = \frac{e^{-\lambda}\lambda^{k}}{k!}`}.` },
-    { kind: 'p', text: t`The probabilities add to ${1} because of the exponential series ${math`e^{\lambda} = \sum_{k \ge ${0}} \frac{\lambda^{k}}{k!}`}: ${math`\sum_{k} \frac{e^{-\lambda}\lambda^{k}}{k!} = e^{-\lambda}e^{\lambda} = ${1}`}. Every Poisson calculation leans on that series.` },
-    { kind: 'p', text: t`The mean: in ${math`\sum_{k} k\frac{e^{-\lambda}\lambda^{k}}{k!}`} the ${math`k = ${0}`} term vanishes, and ${math`\frac{k}{k!} = \frac{${1}}{(k - ${1})!}`}, so the sum is ${math`\lambda\sum_{k \ge ${1}} \frac{e^{-\lambda}\lambda^{k - ${1}}}{(k - ${1})!} = \lambda`}. The same shift twice gives ${math`E(X(X - ${1})) = \lambda^{${2}}`}, so ${math`\operatorname{Var}(X) = \lambda^{${2}} + \lambda - \lambda^{${2}} = \lambda`}: for a Poisson distribution the mean equals the variance.` },
-    { kind: 'p', text: t`To compute, use the ratio ${math`\frac{P(X = k)}{P(X = k - ${1})} = \frac{\lambda}{k}`}: the probabilities rise while ${math`k < \lambda`} and fall after. With ${math`\lambda = ${L25}`}, ${math`P(X = k)`} for ${math`k = ${0}, \ldots, ${5}`} is about ${computedTex(ROW.map((k) => String(s4(poissonPmf(L25, k)))).join(',\\ '))}: the most likely value is ${2}.` },
-    { kind: 'p', text: t`For "at least" questions use the complement: ${math`P(X \ge ${1}) = ${1} - e^{-\lambda}`}. STEP ${2} Q${1} removes the value ${0} altogether and rescales the rest, which is the worked example.` },
+    { kind: 'section', title: t`Counts with no fixed number of trials` },
+    { kind: 'hook', text: t`George receives on average ${L25} texts an hour. How likely is a silent hour, or one with five texts? A binomial needs a number of trials, but there is no natural number of "chances to text" in an hour. Counts like this, of events scattered at random in time or space, follow a different distribution, and its formula has an ${math`e`} in it.` },
+    { kind: 'narrative', text: t`The STEP Support notes give the two conditions for such a count: the events happen independently of each other, and the mean number in an interval is proportional to its length. Misprints on a page, cars past a checkpoint in a minute, and meteors in an hour all fit.` },
+
+    { kind: 'section', title: t`The distribution` },
+    { kind: 'definition', name: t`Poisson distribution`, formal: t`For ${math`\lambda > ${0}`}, ${math`X \sim \text{Po}(\lambda)`} has the [[poisson-distribution|Poisson distribution]] with parameter ${ml} if ${dmath`P(X = k) = \frac{e^{-\lambda}\lambda^{k}}{k!}, \qquad k = ${0}, ${1}, ${2}, \ldots`}`, plain: t`For ${math`\lambda = ${L25}`}, a silent hour has probability ${math`e^{-${L25}} \approx ${s4(poissonPmf(L25, 0))}`}, and exactly two texts ${math`e^{-${L25}}\frac{${L25}^{${2}}}{${2}} \approx ${s4(poissonPmf(L25, 2))}`}.` },
+    { kind: 'theorem', statement: t`The Poisson probabilities add to ${1}.` },
+    { kind: 'p', text: t`Proof: the exponential series is ${math`e^{\lambda} = \sum_{k \ge ${0}} \frac{\lambda^{k}}{k!}`}, for every real ${ml}. So ${math`\sum_{k} \frac{e^{-\lambda}\lambda^{k}}{k!} = e^{-\lambda}e^{\lambda} = ${1}`}. ∎ Every Poisson calculation leans on that series.` },
+
+    { kind: 'section', title: t`Mean and variance` },
+    { kind: 'theorem', name: t`Mean and variance`, statement: t`If ${math`X \sim \text{Po}(\lambda)`}, then ${math`E(X) = \lambda`} and ${math`\operatorname{Var}(X) = \lambda`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Write the mean`, text: t`${math`E(X) = \sum_{k \ge ${0}} k\frac{e^{-\lambda}\lambda^{k}}{k!}`}. The ${math`k = ${0}`} term is ${0}, so start at ${math`k = ${1}`}.` },
+        { label: t`Cancel the ${mk}`, text: t`For ${math`k \ge ${1}`}, ${math`\frac{k}{k!} = \frac{${1}}{(k - ${1})!}`}. Take one ${ml} out:`, eq: [dmath`E(X) = \lambda\sum_{k \ge ${1}} \frac{e^{-\lambda}\lambda^{k - ${1}}}{(k - ${1})!}.`], why: { q: t`Why is ${math`\frac{k}{k!} = \frac{${1}}{(k - ${1})!}`}?`, a: t`${math`k! = k \times (k - ${1})!`}, so dividing by ${math`k!`} and multiplying by ${mk} leaves ${math`\frac{${1}}{(k - ${1})!}`}. For ${math`k = ${4}`}: ${math`\frac{${4}}{${24}} = \frac{${1}}{${6}}`}.` } },
+        { label: t`Shift the index`, text: t`Put ${math`j = k - ${1}`}: the sum is ${math`\sum_{j \ge ${0}} \frac{e^{-\lambda}\lambda^{j}}{j!} = ${1}`}, the total probability. So ${math`E(X) = \lambda`}.` },
+        { label: t`The same trick twice`, text: t`${math`E(X(X - ${1})) = \sum_{k \ge ${2}} k(k - ${1})\frac{e^{-\lambda}\lambda^{k}}{k!} = \lambda^{${2}}\sum_{k \ge ${2}} \frac{e^{-\lambda}\lambda^{k - ${2}}}{(k - ${2})!} = \lambda^{${2}}`}.` },
+        { label: t`Assemble`, text: t`${math`E(X^{${2}}) = E(X(X - ${1})) + E(X) = \lambda^{${2}} + \lambda`}, so ${math`\operatorname{Var}(X) = \lambda^{${2}} + \lambda - \lambda^{${2}} = \lambda`}.` },
+      ],
+    },
+    { kind: 'p', text: t`So for a Poisson count the mean equals the variance. That is a quick check on data: counts whose variance is far from their mean are not Poisson.` },
+
+    { kind: 'section', title: t`Computing` },
+    { kind: 'p', text: t`Successive probabilities have a simple ratio: ${math`\frac{P(X = k)}{P(X = k - ${1})} = \frac{\lambda}{k}`}. So the probabilities rise while ${math`k < \lambda`} and fall after. With ${math`\lambda = ${L25}`}, ${math`P(X = k)`} for ${math`k = ${0}, \ldots, ${5}`} is about ${computedTex(ROW.map((k) => String(s4(poissonPmf(L25, k)))).join(',\\ '))}: the most likely value is ${2}.`, why: { q: t`Where does the ratio come from?`, a: t`Divide ${math`\frac{e^{-\lambda}\lambda^{k}}{k!}`} by ${math`\frac{e^{-\lambda}\lambda^{k - ${1}}}{(k - ${1})!}`}: the ${math`e^{-\lambda}`} cancels, one ${ml} is left on top, and ${math`k!/(k - ${1})! = k`} on the bottom.` } },
+    checkFrom(pmf, { c: 2, lambda: 3, k: 4 }, t`${math`e^{-${3}}\frac{${3}^{${4}}}{${4}!} = e^{-${3}} \times \frac{${81}}{${24}}`}.`),
+    { kind: 'p', text: t`For "at least" questions use the complement: ${math`P(X \ge ${1}) = ${1} - P(X = ${0}) = ${1} - e^{-\lambda}`}.` },
+    checkFrom(tail, { c: 3, lambda: 2, k: 1, dir: 'least' }, t`${math`P(X \ge ${1}) = ${1} - e^{-${2}}`}.`),
+    checkFrom(ratio, { lambda: q(4), a: 2, d: 1 }, t`${math`\frac{P(X = ${3})}{P(X = ${2})} = \frac{\lambda}{${3}}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`Every count has its mean equal to its variance.`, counterexample: t`${math`B(${10}, ${q(1, 2)})`} has mean ${5} and variance ${q(5, 2)}. Mean equals variance is special to the Poisson distribution.` },
+    { kind: 'pitfall', claim: t`${math`P(X \ge ${1}) = \lambda e^{-\lambda}`}.`, counterexample: t`That is ${math`P(X = ${1})`}. For ${math`\lambda = ${2}`} it is about ${s4(poissonPmf(2, 1))}, while ${math`P(X \ge ${1}) = ${1} - e^{-${2}} \approx ${s4(1 - Math.exp(-2))}`}.` },
+    { kind: 'pitfall', claim: t`Any count of events in an interval is Poisson.`, counterexample: t`Arrivals of a bus that runs exactly every ${10} minutes are not independent: in each ${10}-minute window there is exactly one, so the variance is ${0}, not the mean ${1}.` },
+    { kind: 'takeaway', text: t`${math`P(X = k) = e^{-\lambda}\lambda^{k}/k!`} adds to ${1} by the exponential series, and shifting the index shows the mean and variance are both ${ml}.` },
   ],
   examples: [
-    workedCambridge(q1A),
+    { ...workedCambridge(q1A), examiner: t`The examiner looks for the exponential series with its ${math`k = ${0}`} term removed, giving ${math`e^{\lambda} - ${1}`}.` },
     worked(pmf, { c: 0, lambda: 2, k: 3 }, t`Three texts in an hour`),
     worked(tail, { c: 1, lambda: 1.5, k: 2, dir: 'least' }, t`At least two misprints`),
   ],
@@ -323,5 +356,20 @@ export const poissonDistribution: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['poisson-distribution'],
   cambridge: [q1Mu, q1Var, q1Show, q1Normal, notesMean],
-  gate: ['s2-q1-mean', 's2-q1-variance', 's2-q1-show', 's2-q1-normal', 's2-notes-mean'],
+  // STEP 2 Q1 in full first, then its variance and mean. The notes' mean is proved in the lesson, and the normal part belongs to the normal approximation.
+  gate: ['s2-q1-show', 's2-q1-variance', 's2-q1-mean'],
+  recall: [
+    { front: t`The Poisson probability ${math`P(X = k)`}.`, back: t`${math`e^{-\lambda}\lambda^{k}/k!`}, for ${math`k = ${0}, ${1}, \ldots`}.` },
+    { front: t`Mean and variance of ${math`\text{Po}(\lambda)`}.`, back: t`Both ${ml}.` },
+    { front: t`Why do the Poisson probabilities add to ${1}?`, back: t`${math`\sum_{k} \lambda^{k}/k! = e^{\lambda}`}, which cancels ${math`e^{-\lambda}`}.` },
+  ],
+  proofOrder: [{
+    title: t`The Poisson mean`,
+    steps: [
+      t`Write ${math`E(X) = \sum_{k \ge ${1}} k e^{-\lambda}\lambda^{k}/k!`}, dropping the zero term.`,
+      t`Use ${math`k/k! = ${1}/(k - ${1})!`} and take out one ${ml}.`,
+      t`Shift the index to ${math`j = k - ${1}`}.`,
+      t`The remaining sum is the total probability, ${1}, so ${math`E(X) = \lambda`}.`,
+    ],
+  }],
 };

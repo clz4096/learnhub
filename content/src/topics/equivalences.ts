@@ -13,7 +13,7 @@ import { column, differingRows, equivalent, fm, rowText, TF, truthTable } from '
 import { int, pick } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const PQ = ['P', 'Q'] as const;
 const PQR = ['P', 'Q', 'R'] as const;
@@ -436,21 +436,96 @@ const lemma43 = supervision({
 
 const DM_A = ['T', 'F'];
 
+const mn = math`n`;
+
 export const equivalences: TopicContent = {
   topicId: 'logic.equivalences',
   goal: t`Check that two statements are logically equivalent by truth table, and rewrite statements with De Morgan's laws, double negation, the contrapositive, and "if ${math`P`} then ${math`Q`}" as "not ${math`P`}, or ${math`Q`}".`,
+  objective: t`Check an equivalence by truth table, and rewrite statements with De Morgan's laws and the contrapositive.`,
+  why: t`Proofs constantly swap a statement for an easier equivalent one; next, negating quantifiers and the contrapositive.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`Two statements are [[logically-equivalent|logically equivalent]] when they have the same truth value in every row of the truth table: whatever truth values the letters take, they are both true or both false. Book of Proof writes ${math`P \Rightarrow Q = (\lnot Q) \Rightarrow (\lnot P)`}; the CST notes write ${math`\Leftrightarrow`} between them. Either way it means one can replace the other anywhere, in a proof or in a sentence.` },
+    { kind: 'section', title: t`Same meaning, different words` },
+    { kind: 'hook', text: t`A teacher says: "It is not true that you did your homework and your reading." What do you now know? That you skipped both? That you skipped at least one? Only one of those is right, and a table of trues and falses will settle it for good.` },
+    { kind: 'narrative', text: t`Two sentences can look different and still say exactly the same thing. In logic, "say the same thing" has a precise meaning: they agree in every possible situation.` },
     {
-      kind: 'table', caption: t`The TMUA notes' table for "not (${math`A`} and ${math`B`})", page ${22}: the last two columns agree.`,
+      kind: 'definition',
+      name: t`Logical equivalence`,
+      formal: t`Two statements built from ${mP}, ${mQ}, and so on are [[logically-equivalent|logically equivalent]] if they have the same truth value in every row of their truth table, that is, for every assignment of true and false to the letters.`,
+      plain: t`whatever is true or false, the two statements are both true or both false. Then one can replace the other anywhere, in a proof or a sentence. ${math`\lnot\lnot P`} ("not not ${mP}") is equivalent to ${mP}.`,
+    },
+    { kind: 'p', text: t`Notation varies: Book of Proof writes ${math`=`} between equivalent statements, and the CST notes write ${math`\Leftrightarrow`}. Both mean "logically equivalent".` },
+    { kind: 'narrative', text: t`Now the teacher's sentence. Let ${math`A`} be "you did your homework" and ${math`B`} be "you did your reading". The sentence is ${fm('~(A & B)', ['A', 'B'])}. Compare it with "you skipped at least one", ${fm('~A | ~B', ['A', 'B'])}, row by row.` },
+    {
+      kind: 'table', caption: t`The TMUA notes' table for "not (${math`A`} and ${math`B`})", page ${22}: the last two columns agree in every row.`,
       head: [[math`A`], [math`B`], [fm('~(A & B)', ['A', 'B'])], [fm('~A | ~B', ['A', 'B'])]],
       rows: [0, 1, 2, 3].map((k) => [t`${DM_A[k >> 1] as string}`, t`${DM_A[k & 1] as string}`, t`${TF(column('~(A & B)', ['A', 'B'])[k] === true)}`, t`${TF(column('~A | ~B', ['A', 'B'])[k] === true)}`]),
     },
-    { kind: 'rule', text: t`[[de-morgans-laws|De Morgan's laws]]: ${math`\lnot (P \land Q)`} is equivalent to ${math`(\lnot P) \lor (\lnot Q)`}, and ${math`\lnot (P \lor Q)`} to ${math`(\lnot P) \land (\lnot Q)`}. To negate an "and" or an "or": negate each part, and swap "and" with "or".` },
-    { kind: 'p', text: t`The TMUA notes' example: the negation of "${math`x`} is even and ${math`x`} is prime" is "${math`x`} is not even or ${math`x`} is not prime", that is, "${math`x`} is odd or ${math`x`} is not prime". Not "${math`x`} is odd and not prime": that is false for ${math`x = ${4}`}, yet ${4} makes the original false, so the negation must be true there.` },
-    { kind: 'p', text: t`More equivalences from the CST notes' list (printed page ${134}) and Book of Proof: double negation, ${math`\lnot\lnot P`} is ${mP}; ${math`P \Rightarrow Q`} is ${math`(\lnot P) \lor Q`}, since both are false only when ${mP} is true and ${mQ} false; so ${math`\lnot (P \Rightarrow Q)`} is ${math`P \land \lnot Q`}; and ${math`\lnot (P \Leftrightarrow Q)`} is ${math`P \Leftrightarrow \lnot Q`}. The commutative, associative, and distributive laws work like those of arithmetic: ${math`P \land (Q \lor R)`} is ${math`(P \land Q) \lor (P \land R)`}.` },
-    { kind: 'rule', text: t`The [[contrapositive|contrapositive]] of ${math`P \Rightarrow Q`} is ${math`\lnot Q \Rightarrow \lnot P`}, and it is equivalent to it. The converse ${math`Q \Rightarrow P`} is not, and neither is ${math`\lnot P \Rightarrow \lnot Q`}.` },
-    { kind: 'p', text: t`To show two statements are not equivalent, one row is enough: a row where one is true and the other false. Brackets matter when "and" and "or" mix: ${math`P \lor (Q \land R)`} and ${math`(P \lor Q) \land R`} differ when ${mP} is true and ${math`R`} false.` },
+    { kind: 'p', text: t`So the teacher means "you skipped at least one", not "you skipped both". "Skipped both" would be ${fm('~A & ~B', ['A', 'B'])}, which is false in the second row (homework done, reading skipped) while the teacher's sentence is true there.` },
+    { kind: 'section', title: t`De Morgan's laws` },
+    {
+      kind: 'theorem',
+      name: t`De Morgan's laws`,
+      statement: t`For all statements ${mP} and ${mQ}, ${math`\lnot (P \land Q)`} is logically equivalent to ${math`(\lnot P) \lor (\lnot Q)`}, and ${math`\lnot (P \lor Q)`} is logically equivalent to ${math`(\lnot P) \land (\lnot Q)`}.`,
+    },
+    { kind: 'p', text: t`In words, [[de-morgans-laws|De Morgan's laws]] say: to negate an "and" or an "or", negate each part and swap "and" with "or". The first law is the table above. The second is checked the same way, with four rows.` },
+    {
+      kind: 'pitfall',
+      claim: t`The negation of "${math`x`} is even and ${math`x`} is prime" is "${math`x`} is odd and not prime".`,
+      counterexample: t`Take ${math`x = ${4}`}: it is even and not prime, so the original statement is false, and its negation must be true. But "${4} is odd and not prime" is false. The right negation, by De Morgan, is "${math`x`} is odd or ${math`x`} is not prime", which is true for ${4}.`,
+    },
+    quickCheck({
+      prompt: t`Which statement is the negation of "${mn} is even or ${mn} is a multiple of ${3}"?`,
+      answer: {
+        kind: 'choice',
+        options: [
+          { id: 'and', label: t`${mn} is odd and ${mn} is not a multiple of ${3}` },
+          { id: 'or', label: t`${mn} is odd or ${mn} is not a multiple of ${3}` },
+          { id: 'half', label: t`${mn} is odd or ${mn} is a multiple of ${3}` },
+        ],
+        correct: 'and',
+      },
+      reference: 'and',
+      why: t`Negate each part and swap "or" for "and": ${math`\lnot (P \lor Q)`} is ${math`(\lnot P) \land (\lnot Q)`}. Check with ${math`n = ${5}`}: the original is false, and "odd and not a multiple of ${3}" is true.`,
+    }),
+    { kind: 'section', title: t`Implication as an "or"` },
+    { kind: 'narrative', text: t`An implication ${math`P \Rightarrow Q`} is false in one row only: ${mP} true, ${mQ} false. Which "or" statement is false in exactly that row? ${math`(\lnot P) \lor Q`}: an "or" is false only when both parts are false, that is, when ${mP} is true and ${mQ} is false.` },
+    {
+      kind: 'rule',
+      text: t`${math`P \Rightarrow Q`} is equivalent to ${math`(\lnot P) \lor Q`}. Negating, with De Morgan and double negation: ${math`\lnot (P \Rightarrow Q)`} is equivalent to ${math`P \land \lnot Q`}.`,
+      why: { q: t`How does the negation follow?`, a: t`${math`\lnot (P \Rightarrow Q)`} is ${math`\lnot ((\lnot P) \lor Q)`}. De Morgan turns that into ${math`(\lnot\lnot P) \land (\lnot Q)`}, and double negation gives ${math`P \land \lnot Q`}. In words: an implication fails exactly when the hypothesis holds and the conclusion does not.` },
+    },
+    { kind: 'p', text: t`The CST notes' list (printed page ${134}) adds the familiar laws: "and" and "or" are commutative and associative, and each distributes over the other, as multiplication distributes over addition: ${math`P \land (Q \lor R)`} is equivalent to ${math`(P \land Q) \lor (P \land R)`}.` },
+    {
+      kind: 'pitfall',
+      claim: t`Brackets do not matter: ${math`P \lor (Q \land R)`} is the same as ${math`(P \lor Q) \land R`}.`,
+      counterexample: t`Take ${mP} true and ${math`R`} false. Then ${math`P \lor (Q \land R)`} is true, because ${mP} is. But ${math`(P \lor Q) \land R`} is false, because ${math`R`} is. One row is enough to show two statements are not equivalent.`,
+    },
+    { kind: 'section', title: t`The contrapositive` },
+    {
+      kind: 'definition',
+      name: t`Contrapositive`,
+      formal: t`The [[contrapositive|contrapositive]] of ${math`P \Rightarrow Q`} is ${math`(\lnot Q) \Rightarrow (\lnot P)`}.`,
+      plain: t`negate both sides and swap them. The contrapositive of "if it is raining, the ground is wet" is "if the ground is not wet, it is not raining".`,
+    },
+    { kind: 'theorem', statement: t`For all statements ${mP} and ${mQ}, ${math`P \Rightarrow Q`} is logically equivalent to ${math`(\lnot Q) \Rightarrow (\lnot P)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Write the implication as an "or"`, text: t`${math`P \Rightarrow Q`} is equivalent to ${math`(\lnot P) \lor Q`}.`, plain: t`The rule from the last section.` },
+        { label: t`Swap the order`, text: t`${math`(\lnot P) \lor Q`} is equivalent to ${math`Q \lor (\lnot P)`}.`, plain: t`"Or" is commutative: "${mP} or ${mQ}" and "${mQ} or ${mP}" have the same truth table.` },
+        { label: t`Double negation`, text: t`${math`Q \lor (\lnot P)`} is equivalent to ${math`(\lnot\lnot Q) \lor (\lnot P)`}.`, plain: t`${mQ} and ${math`\lnot\lnot Q`} are always both true or both false.` },
+        { label: t`Read it back as an implication`, text: t`By the first step with ${math`\lnot Q`} in place of ${mP} and ${math`\lnot P`} in place of ${mQ}, ${math`(\lnot\lnot Q) \lor (\lnot P)`} is equivalent to ${math`(\lnot Q) \Rightarrow (\lnot P)`}.`, plain: t`"Not (not ${mQ}), or not ${mP}" is the "or" form of "if not ${mQ}, then not ${mP}".`, why: { q: t`May we use the first step with other statements in place of ${mP} and ${mQ}?`, a: t`Yes. An equivalence checked by truth table holds for every pair of statements, so any statements may be put in for the letters, including ${math`\lnot Q`} and ${math`\lnot P`}.` } },
+        { label: t`Chain the equivalences`, text: t`Logical equivalence is transitive, so ${math`P \Rightarrow Q`} is equivalent to ${math`(\lnot Q) \Rightarrow (\lnot P)`}.`, plain: t`If two statements each agree with a third in every row, they agree with each other in every row.` },
+      ],
+    },
+    {
+      kind: 'pitfall',
+      claim: t`${math`(\lnot P) \Rightarrow (\lnot Q)`} is the contrapositive, so it is equivalent to ${math`P \Rightarrow Q`}.`,
+      counterexample: t`That is the inverse, not the contrapositive, and it is equivalent to the converse. "If ${mn} is a multiple of ${4}, then ${mn} is even" is true; "if ${mn} is not a multiple of ${4}, then ${mn} is not even" is false at ${math`n = ${2}`}.`,
+    },
+    { kind: 'takeaway', text: t`Equivalent means same truth table; to negate, use De Morgan (negate each part, swap "and" and "or"), and remember ${math`P \Rightarrow Q`} equals its contrapositive, never its converse.` },
   ],
   examples: [
     workedCambridge(bop1),
@@ -461,5 +536,25 @@ export const equivalences: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['logically-equivalent', 'de-morgans-laws', 'contrapositive'],
   cambridge: [bop3, bop5, bop7, bop10, bop11, bop12, tmuaF1, tmuaK2, tmuaK4, tmuaF3, tmuaK5, lemma43],
+  // The only problem from a Cambridge-standard document. It also negates quantifiers, taught in
+  // logic.negating-quantifiers, so a learner may meet this gate after that lesson.
   gate: ['cst-lemma-43-equivalences'],
+  recall: [
+    { front: t`When are two statements logically equivalent?`, back: t`When they have the same truth value in every row of the truth table.` },
+    { front: t`State De Morgan's laws.`, back: t`${math`\lnot (P \land Q)`} is equivalent to ${math`(\lnot P) \lor (\lnot Q)`}; ${math`\lnot (P \lor Q)`} is equivalent to ${math`(\lnot P) \land (\lnot Q)`}.` },
+    { front: t`Write ${math`P \Rightarrow Q`} with "not" and "or".`, back: t`${math`(\lnot P) \lor Q`}.` },
+    { front: t`What is the negation of ${math`P \Rightarrow Q`}?`, back: t`${math`P \land \lnot Q`}.` },
+    { front: t`What is the contrapositive of ${math`P \Rightarrow Q`}?`, back: t`${math`(\lnot Q) \Rightarrow (\lnot P)`}, which is equivalent to it.` },
+  ],
+  proofOrder: [
+    {
+      title: t`An implication is equivalent to its contrapositive`,
+      steps: [
+        t`${math`P \Rightarrow Q`} is equivalent to ${math`(\lnot P) \lor Q`}.`,
+        t`By commutativity, that is ${math`Q \lor (\lnot P)`}.`,
+        t`By double negation, that is ${math`(\lnot\lnot Q) \lor (\lnot P)`}.`,
+        t`Read as an implication, that is ${math`(\lnot Q) \Rightarrow (\lnot P)`}.`,
+      ],
+    },
+  ],
 };

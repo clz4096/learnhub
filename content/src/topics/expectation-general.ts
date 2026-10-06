@@ -12,7 +12,7 @@ import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { distinctFrom, expect, population, variance, type Dist } from '../partv-c';
 import { computedTex, listOf, math, t, texOfRational, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const S2 = 'ia-prob-sheet-2' as const;
 const S3 = 'ia-prob-sheet-3' as const;
@@ -358,25 +358,93 @@ const scheduleExpectation = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [mX, mO] = [math`X`, math`\Omega`];
+const D0 = DISTS[0] as Dist;
+const sq = (x: number): Rational => q(x * x);
+
 export const expectationGeneral: TopicContent = {
   topicId: 'rv.expectation-general',
   goal: t`Define ${math`\mathbb{E}(X)`} on a countable space, decide when it exists, and compute ${math`\mathbb{E}(g(X)) = \sum_{x} g(x)\,\mathbb{P}(X = x)`}.`,
+  objective: t`Define the expectation on a countable space, decide when it exists, and compute ${math`\mathbb{E}(g(X))`}.`,
+  why: t`Infinite sample spaces need this care; it underlies independence, conditional expectation, and the inequalities next.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The mean of a random variable weights each value by its probability. On a countable ${math`\Omega`} the sum can be infinite, so the definition must say when it makes sense.` },
-    { kind: 'rule', text: t`The [[expectation-general|expectation]] of ${math`X`} is ${math`\mathbb{E}(X) = \sum_{\omega \in \Omega} X(\omega)\,p_{\omega} = \sum_{x} x\,\mathbb{P}(X = x)`}, defined when ${math`\sum_{x} |x|\,\mathbb{P}(X = x) < \infty`}. For ${math`X \ge ${0}`} the sum always has a value, possibly ${math`+\infty`}.` },
-    { kind: 'p', text: t`Absolute convergence is what lets the sum over outcomes be regrouped by values, and lets the order of the terms not matter. Without it things fail: ${math`\mathbb{P}(X = ${2}^{k}) = ${2}^{-k}`} for ${math`k \ge ${1}`} gives ${math`\sum_{k} ${2}^{k} \cdot ${2}^{-k} = ${1} + ${1} + \cdots = +\infty`}, and if the signs alternate, as in ${math`\mathbb{P}\left(X = (-${2})^{k}\right) = ${2}^{-k}`}, the positive and negative parts are both infinite and ${math`\mathbb{E}(X)`} is not defined at all.` },
-    { kind: 'rule', text: t`[[expectation-of-function|The expectation of a function]]: ${math`\mathbb{E}(g(X)) = \sum_{x} g(x)\,\mathbb{P}(X = x)`}, when the sum converges absolutely. There is no need to find the distribution of ${math`g(X)`} first. In general ${math`\mathbb{E}(g(X)) \ne g(\mathbb{E}(X))`}.` },
-    { kind: 'p', text: t`Linearity, ${math`\mathbb{E}(aX + bY) = a\mathbb{E}(X) + b\mathbb{E}(Y)`}, holds for any random variables with finite means, independent or not: it is linearity of the sum over ${math`\Omega`}. So the mean of ${math`\bar{X} = \frac{${1}}{n}\sum_{i} X_{i}`} is ${math`\mu`}, and in Sheet ${2} Q${8}, ${math`\mathbb{E}\left(\sum_{i} (X_{i} - \bar{X})^{${2}}\right) = (n - ${1})\sigma^{${2}}`}.` },
-    { kind: 'p', text: t`Sheet ${3} Q${6}: the mean squared distance from a point ${math`x`}, ${math`V(x) = \mathbb{E}\left((X - x)^{${2}}\right)`}, equals ${math`\sigma^{${2}} + (x - \mu)^{${2}}`}. It is least at the mean, where it is the variance.` },
+    { kind: 'section', title: t`When the sum is infinite` },
+    { kind: 'hook', text: t`Toss a fair coin until the first head. If it comes on toss ${math`k`}, you win ${math`${2}^{k}`} pounds. How much would you pay to play? The expected prize is ${math`\sum_{k} ${2}^{k} \cdot ${2}^{-k} = ${1} + ${1} + ${1} + \cdots`}, which is infinite. Something has to be said about when an expectation makes sense.` },
+    { kind: 'narrative', text: t`On a finite sample space the mean is a finite sum and always exists. On a countable ${mO}, such as all the sequences of tosses, the sum may have infinitely many terms. A sum with infinitely many positive and negative terms can even change its value when the terms are reordered. So the definition asks for the safest kind of convergence.` },
+    {
+      kind: 'definition',
+      name: t`Expectation on a countable space`,
+      formal: t`Let ${mO} be countable with probabilities ${math`p_{\omega}`}, and ${math`X : \Omega \to \mathbb{R}`}. If ${math`\sum_{\omega} |X(\omega)|\,p_{\omega} < \infty`}, the [[expectation-general|expectation]] of ${mX} is ${math`\mathbb{E}(X) = \sum_{\omega \in \Omega} X(\omega)\,p_{\omega}`}. If ${math`X \ge ${0}`}, the sum always has a value in ${math`[${0}, \infty]`}.`,
+      plain: t`weight each outcome's value by its probability and add, provided the sum still converges when every value is made positive. The coin game has ${math`X \ge ${0}`} and ${math`\mathbb{E}(X) = \infty`}.`,
+    },
+    {
+      kind: 'pitfall',
+      claim: t`Every random variable has a mean, possibly infinite.`,
+      counterexample: t`Let ${math`\mathbb{P}\big(X = (${-2})^{k}\big) = ${2}^{-k}`} for ${math`k \ge ${1}`}. The positive values contribute ${math`${1} + ${1} + \cdots`} and the negative values ${math`${-1} - ${1} - \cdots`}: both parts are infinite, ${math`\infty - \infty`} has no meaning, and ${math`\mathbb{E}(X)`} is not defined at all.`,
+    },
+    { kind: 'section', title: t`Functions of a random variable` },
+    { kind: 'narrative', text: t`Often you want the mean of ${math`g(X)`}, such as ${math`X^{${2}}`}. The slow way is to find the distribution of ${math`g(X)`} first. The theorem below says you never need to.` },
+    {
+      kind: 'theorem',
+      statement: t`Let ${mX} be a random variable on a countable ${mO} and ${math`g : \mathbb{R} \to \mathbb{R}`}. If ${math`\sum_{x} |g(x)|\,\mathbb{P}(X = x) < \infty`}, then ${math`\mathbb{E}(g(X)) = \sum_{x} g(x)\,\mathbb{P}(X = x)`}, the sum over the values ${math`x`} of ${mX}.`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Start from the definition`, text: t`${math`\mathbb{E}(g(X)) = \sum_{\omega} g(X(\omega))\,p_{\omega}`}.`, plain: t`${math`g(X)`} is itself a random variable on ${mO}.` },
+        { label: t`Group the outcomes by value`, text: t`The sets ${math`\{X = x\}`}, one for each value ${math`x`}, split ${mO} into disjoint pieces. So the sum may be taken piece by piece:`, eq: [math`\sum_{\omega} g(X(\omega))\,p_{\omega} = \sum_{x} \sum_{\omega : X(\omega) = x} g(X(\omega))\,p_{\omega}`], plain: t`Every outcome lies in exactly one piece, so each term is counted once.`, why: { q: t`Why is regrouping allowed?`, a: t`The sum of ${math`|g(X(\omega))|\,p_{\omega}`} is finite, by the hypothesis grouped the same way. An absolutely convergent series may be rearranged and grouped freely without changing its sum. Without that, regrouping can change the answer.` } },
+        { label: t`Inside a piece, ${math`g(X)`} is constant`, text: t`On ${math`\{X = x\}`}, ${math`g(X(\omega)) = g(x)`}, so the inner sum is ${math`g(x) \sum_{\omega : X(\omega) = x} p_{\omega} = g(x)\,\mathbb{P}(X = x)`}.`, plain: t`Take the common factor ${math`g(x)`} out; the probabilities of the outcomes in the piece add to the probability of the piece.` },
+        { label: t`Conclude`, text: t`${math`\mathbb{E}(g(X)) = \sum_{x} g(x)\,\mathbb{P}(X = x)`}.`, plain: t`With ${math`g(x) = x`}, this also shows ${math`\mathbb{E}(X) = \sum_{x} x\,\mathbb{P}(X = x)`}.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`This is the [[expectation-of-function|expectation of a function]]. In the second example below, ${distText(D0)} Then ${math`\mathbb{E}(X^{${2}}) = ${expect(D0, sq)}`}, while ${math`\mathbb{E}(X)^{${2}} = ${mul(expect(D0, (x) => q(x)), expect(D0, (x) => q(x)))}`}.`,
+    },
+    {
+      kind: 'pitfall',
+      claim: t`${math`\mathbb{E}(g(X)) = g(\mathbb{E}(X))`}.`,
+      counterexample: t`With ${math`g(x) = x^{${2}}`} and ${mX} equal to ${math`\pm ${1}`} with probability ${q(1, 2)} each: ${math`\mathbb{E}(X^{${2}}) = ${1}`}, but ${math`\mathbb{E}(X)^{${2}} = ${0}`}. The difference ${math`\mathbb{E}(X^{${2}}) - \mathbb{E}(X)^{${2}}`} is the variance.`,
+    },
+    quickCheck({
+      prompt: t`${mX} is ${0}, ${1}, or ${2} with probabilities ${q(1, 4)}, ${q(1, 2)}, ${q(1, 4)}. Find ${math`\mathbb{E}\big(${2}^{X}\big)`}.`,
+      answer: { kind: 'exact', expected: str(add(add(q(1, 4), q(2, 2)), q(4, 4))) },
+      reference: str(add(add(q(1, 4), q(2, 2)), q(4, 4))),
+      why: t`${math`${2}^{${0}} \cdot ${q(1, 4)} + ${2}^{${1}} \cdot ${q(1, 2)} + ${2}^{${2}} \cdot ${q(1, 4)} = ${add(add(q(1, 4), q(2, 2)), q(4, 4))}`}, while ${math`${2}^{\mathbb{E}(X)} = ${2}`}.`,
+    }),
+    { kind: 'section', title: t`Linearity again` },
+    { kind: 'p', text: t`Linearity, ${math`\mathbb{E}(aX + bY) = a\mathbb{E}(X) + b\mathbb{E}(Y)`}, holds for any random variables with finite means, independent or not: on a countable ${mO} it is linearity of the sum over outcomes. Sheet ${3} Q${6}, worked below, uses both linearity and the function rule: the mean squared distance from a point ${math`x`}, ${math`V(x) = \mathbb{E}\big((X - x)^{${2}}\big)`}, is least at the mean.` },
+    { kind: 'takeaway', text: t`${math`\mathbb{E}(X) = \sum_{\omega} X(\omega)\,p_{\omega}`} when the sum converges absolutely; then ${math`\mathbb{E}(g(X)) = \sum_{x} g(x)\,\mathbb{P}(X = x)`}, and in general it is not ${math`g(\mathbb{E}(X))`}.` },
   ],
   examples: [
-    workedCambridge(q6),
-    worked(expectFunction, { d: DISTS[0] as Dist, g: 'square' }, t`The mean of a square is not the square of the mean`),
+    { ...workedCambridge(q6), examiner: t`${math`(X - x)^{${2}}`} rewritten as ${math`\big((X - \mu) + (\mu - x)\big)^{${2}}`}, linearity applied term by term, and the cross term shown to vanish because ${math`\mathbb{E}(X - \mu) = ${0}`}.` },
+    worked(expectFunction, { d: D0, g: 'square' }, t`The mean of a square is not the square of the mean`),
     worked(meanExists, { family: 'alt-power', a: 3, b: 2 }, t`A random variable with no mean`),
   ],
   generators: [expectFunction, meanExists, meanSquaredDistance],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expectation-general', 'expectation-of-function'],
   cambridge: [q8, q10, q10proof, scheduleExpectation],
-  gate: ['ia-s2-q8', 'ia-s2-q10', 'ia-s2-q10-general'],
+  // The IA sheets: the spaghetti proof first (indicators and linearity without independence), then
+  // the sample variance and the four-strand spaghetti. The schedule problem is not from a sheet.
+  gate: ['ia-s2-q10-general', 'ia-s2-q8', 'ia-s2-q10'],
+  recall: [
+    { front: t`When is ${math`\mathbb{E}(X)`} defined on a countable space?`, back: t`When ${math`\sum_{\omega} |X(\omega)|\,p_{\omega} < \infty`}; for ${math`X \ge ${0}`} it always has a value in ${math`[${0}, \infty]`}.` },
+    { front: t`How do you compute ${math`\mathbb{E}(g(X))`}?`, back: t`${math`\sum_{x} g(x)\,\mathbb{P}(X = x)`}, when it converges absolutely.` },
+    { front: t`Is ${math`\mathbb{E}(g(X)) = g(\mathbb{E}(X))`}?`, back: t`Not in general: ${math`\mathbb{E}(X^{${2}}) - \mathbb{E}(X)^{${2}}`} is the variance.` },
+    { front: t`Why is absolute convergence required?`, back: t`So that the sum over outcomes can be regrouped by values and reordered without changing its value.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${math`\mathbb{E}(g(X)) = \sum_{x} g(x)\,\mathbb{P}(X = x)`}`,
+      steps: [
+        t`${math`\mathbb{E}(g(X)) = \sum_{\omega} g(X(\omega))\,p_{\omega}`}.`,
+        t`Group the outcomes by the value of ${mX}, allowed by absolute convergence.`,
+        t`On ${math`\{X = x\}`}, ${math`g(X) = g(x)`}, so each group contributes ${math`g(x)\,\mathbb{P}(X = x)`}.`,
+        t`Adding the groups gives ${math`\sum_{x} g(x)\,\mathbb{P}(X = x)`}.`,
+      ],
+    },
+  ],
 };

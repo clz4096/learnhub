@@ -12,7 +12,7 @@ import { int, pick, sample } from '../math';
 import { egcd, gcd } from '../numbers';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, join, math, paren, t, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mm, mn] = [math`m`, math`n`];
 const big = (v: { num: bigint; den: bigint } | undefined): number | null => (v === undefined || v.den !== 1n ? null : Number(v.num));
@@ -289,18 +289,70 @@ const allCombos = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [XA, XB] = [42, 30];
+const XE = egcd(XA, XB);
+const [mr, ms, mt] = [math`r`, math`s`, math`t`];
+
 export const extendedEuclid: TopicContent = {
   topicId: 'num.extended-euclid',
   goal: t`Run the extended Euclidean algorithm to write ${math`\gcd(m, n) = sm + tn`}, find all such pairs, and use that the combinations of ${mm} and ${mn} are exactly the multiples of the gcd.`,
+  objective: t`Write ${math`\gcd(m, n)`} as ${math`sm + tn`} with the extended algorithm, and find every such pair.`,
+  why: t`It produces modular inverses, the key step in solving congruences and in RSA, which come next.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`Every remainder in Euclid's algorithm is ${math`r = r_{${1}} - q r_{${2}}`}, built from the two before. Starting from ${math`m = ${1} \cdot m + ${0} \cdot n`} and ${math`n = ${0} \cdot m + ${1} \cdot n`}, each remainder, and so the gcd, is an integer [[linear-combination|linear combination]] of ${mm} and ${mn}.` },
-    { kind: 'rule', text: t`Theorem ${88}: ${math`\gcd(m, n) = s m + t n`} for integers ${math`s, t`}, which the [[extended-euclid|extended Euclidean algorithm]] computes by carrying the coefficients ${math`(s, t)`} along with each remainder.` },
-    { kind: 'p', text: t`Example ${87}: ${math`\gcd(${34}, ${13})`}. The rows ${math`((s, t), r)`}: ${math`${rowsTex(34, 13)}`}. So ${math`${1} = ${5} \cdot ${34} - ${13} \cdot ${13}`}. Working back from the bottom by substitution gives the same pair.` },
-    { kind: 'p', text: t`The pair is not unique: ${math`(s + kn, t - km)`} works for every ${math`k`}. With ${math`\gcd = g`}, steps of ${math`n / g`} and ${math`m / g`} suffice: exercise ${3}.${1}.${4} moves ${math`${3} \cdot ${30} - ${4} \cdot ${22} = ${2}`} to ${math`-${8} \cdot ${30} + ${11} \cdot ${22} = ${2}`}.` },
-    { kind: 'p', text: t`Theorem ${92}: ${math`\gcd(m, n)`} is the least positive combination. Every combination is a multiple of the gcd (the gcd divides both terms), and the gcd is one. So ${math`${30}x + ${22}y`} takes exactly the even values, and ${math`km + ln = ${1}`} is possible exactly when ${mm} and ${mn} are coprime.` },
+    { kind: 'section', title: t`Making the gcd from the inputs` },
+    { kind: 'hook', text: t`You have a ${XA}-litre jug and a ${XB}-litre jug, and a big tank. By filling and emptying, which amounts can you move into the tank? Every amount is ${math`${XA}x + ${XB}y`} litres for some whole numbers ${math`x`} and ${math`y`}, positive for pours in, negative for pours out. Can you make exactly ${gcd(XA, XB)} litres?` },
+    {
+      kind: 'definition',
+      name: t`Linear combination`,
+      formal: t`An integer [[linear-combination|linear combination]] of ${mm} and ${mn} is a number ${math`sm + tn`} with ${ms}, ${mt} integers.`,
+      plain: t`some number of ${mm}s plus some number of ${mn}s, where "some number" may be negative. ${math`${XE.s} \times ${XA} + ${XE.t} \times ${XB} = ${XE.s * XA + XE.t * XB}`} is one for ${XA} and ${XB}.`,
+    },
+    { kind: 'narrative', text: t`That example is no accident: it makes the gcd. The trick is to rerun Euclid's algorithm, but to keep a receipt for every remainder saying how it is made from ${mm} and ${mn}.` },
+    { kind: 'section', title: t`Keeping receipts` },
+    { kind: 'narrative', text: t`Start with two receipts you get for free: ${math`m = ${1} \cdot m + ${0} \cdot n`} and ${math`n = ${0} \cdot m + ${1} \cdot n`}. Each step of Euclid's algorithm makes a new remainder as ${math`r = r_{${1}} - q r_{${2}}`} from the two before it. Do the same to their receipts: subtract ${math`q`} times one pair of coefficients from the other.` },
+    { kind: 'p', text: t`For ${XA} and ${XB} the receipts, one per row, are ${math`${rowsTex(XA, XB)}`}. The last row is the gcd, so ${math`\gcd(${XA}, ${XB}) = ${XE.s} \cdot ${XA} + ${XE.t} \cdot ${XB}`}. Check: ${math`${XE.s * XA} + ${XE.t * XB} = ${XE.g}`}.` },
+    { kind: 'theorem', statement: t`For all positive integers ${mm} and ${mn}, there are integers ${ms} and ${mt} with ${math`\gcd(m, n) = sm + tn`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The invariant`, text: t`Claim: every number ${mr} in the run of Euclid's algorithm on ${mm} and ${mn} is ${math`r = sm + tn`} for some integers ${ms}, ${mt}.`, plain: t`Every remainder comes with a receipt.` },
+        { label: t`It holds at the start`, text: t`${math`m = ${1} \cdot m + ${0} \cdot n`} and ${math`n = ${0} \cdot m + ${1} \cdot n`}.`, plain: t`The first two numbers are trivially combinations.` },
+        {
+          label: t`Each step keeps it`, text: t`If ${math`r_{${1}} = s_{${1}}m + t_{${1}}n`} and ${math`r_{${2}} = s_{${2}}m + t_{${2}}n`}, the next remainder is`,
+          eq: [math`r_{${1}} - q r_{${2}} = (s_{${1}} - q s_{${2}}) m + (t_{${1}} - q t_{${2}}) n`],
+          plain: t`Collect the ${mm} terms and the ${mn} terms. The new coefficients are integers, because ${math`q`} and the old ones are.`,
+        },
+        { label: t`Read off the gcd`, text: t`Euclid's algorithm stops and returns ${math`\gcd(m, n)`}, one of the numbers in the run. So it is a combination ${math`sm + tn`}.`, plain: t`The last receipt is the one we want.` },
+      ],
+    },
+    { kind: 'p', text: t`Carrying the coefficients along is the [[extended-euclid|extended Euclidean algorithm]]. You can also work backwards from the bottom of an ordinary run by substitution, as the notes do in Example ${87}; both give a valid pair.` },
+    quickCheck({
+      prompt: t`Find integers ${math`x`} and ${math`y`} with ${math`${7}x + ${5}y = ${1}`}. Give ${math`x`}, taking ${math`x`} between ${0} and ${4}.`,
+      answer: { kind: 'exact', expected: String(((egcd(7, 5).s % 5) + 5) % 5) },
+      reference: String(((egcd(7, 5).s % 5) + 5) % 5),
+      why: t`${math`${7} = ${1} \times ${5} + ${2}`} and ${math`${5} = ${2} \times ${2} + ${1}`}, so ${math`${1} = ${5} - ${2} \times ${2} = ${5} - ${2}(${7} - ${5}) = ${3} \times ${5} - ${2} \times ${7}`}. That gives ${math`x = ${-2}`}; add ${5} to ${math`x`} and take ${7} from ${math`y`}: ${math`${7} \times ${3} + ${5} \times (${-4}) = ${7 * 3 - 5 * 4}`}.`,
+    }),
+    { kind: 'section', title: t`Every pair, and every combination` },
+    {
+      kind: 'p',
+      text: t`The pair is never unique. If ${math`sm + tn = r`}, then ${math`(s + kn)m + (t - km)n = r`} for every integer ${math`k`}: the extra ${math`knm`} and ${math`-kmn`} cancel. Exercise ${3}.${1}.${4} uses this to move ${math`${3} \cdot ${30} - ${4} \cdot ${22} = ${2}`} to ${math`-${8} \cdot ${30} + ${11} \cdot ${22} = ${2}`}.`,
+      why: { q: t`The coefficient of ${30} moved by ${11}, not ${22}. Why?`, a: t`When ${math`\gcd(m, n) = g`}, steps of ${math`n / g`} and ${math`m / g`} already cancel: ${math`(n/g) m - (m/g) n = ${0}`}. Here ${math`g = ${2}`}, so the steps are ${11} and ${15}.` },
+    },
+    {
+      kind: 'p',
+      text: t`Which numbers are combinations of ${mm} and ${mn}? Every combination is a multiple of the gcd, because the gcd divides both ${mm} and ${mn}. And every multiple ${math`c \cdot \gcd(m, n)`} is one: multiply the receipt by ${math`c`}. So the combinations are exactly the multiples of the gcd, and the gcd is the least positive one (the notes' Theorem ${92}). The jugs in the hook can move any multiple of ${gcd(XA, XB)} litres, and nothing else.`,
+    },
+    {
+      kind: 'pitfall',
+      claim: t`${math`${6}x + ${9}y = ${1}`} has an integer solution, since ${6} and ${9} are not multiples of each other.`,
+      counterexample: t`${math`\gcd(${6}, ${9}) = ${gcd(6, 9)}`}, and ${gcd(6, 9)} divides every ${math`${6}x + ${9}y`}, so the left side is always a multiple of ${gcd(6, 9)}. A combination equals ${1} exactly when the gcd is ${1}.`,
+    },
+    { kind: 'takeaway', text: t`Carry the coefficients through Euclid's algorithm to get ${math`\gcd(m, n) = sm + tn`}; the combinations of ${mm} and ${mn} are exactly the multiples of the gcd.` },
   ],
   examples: [
-    workedCambridge(notes87),
+    { ...workedCambridge(notes87), examiner: t`Each division written out, the substitutions done one line at a time, and the final pair checked by multiplying out.` },
     worked(bezout, { a: 240, b: 46 }, t`${math`\gcd(${240}, ${46})`} as a combination`),
     worked(shiftSolution, { a: 35, b: 15 }, t`Moving a solution into range`),
   ],
@@ -308,5 +360,24 @@ export const extendedEuclid: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['linear-combination', 'extended-euclid'],
   cambridge: [sheet314a, sheet314b, notes90, sheet315, bop71, allCombos],
-  gate: ['sheet-3-1-4-a', 'sheet-3-1-4-b', 'notes-255-example-90', 'sheet-3-1-5', 'notes-249-all-combinations'],
+  // The two proofs first; then 3.1.4's second part, which needs a run of the algorithm and a shift into range.
+  // 3.1.4's first part and Example 90 are single runs of the algorithm, left out.
+  gate: ['sheet-3-1-5', 'notes-249-all-combinations', 'sheet-3-1-4-b'],
+  recall: [
+    { front: t`State Bezout's identity, the notes' Theorem ${88}.`, back: t`For positive ${mm}, ${mn} there are integers ${ms}, ${mt} with ${math`\gcd(m, n) = sm + tn`}.` },
+    { front: t`If ${math`sm + tn = r`}, what other pairs work?`, back: t`${math`(s + kn, t - km)`} for every integer ${math`k`}.` },
+    { front: t`Which numbers are combinations ${math`sm + tn`}?`, back: t`Exactly the multiples of ${math`\gcd(m, n)`}.` },
+    { front: t`When can ${math`km + ln = ${1}`}?`, back: t`Exactly when ${math`\gcd(m, n) = ${1}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The gcd is a combination of ${mm} and ${mn}`,
+      steps: [
+        t`${mm} and ${mn} are combinations: ${math`${1} \cdot m + ${0} \cdot n`} and ${math`${0} \cdot m + ${1} \cdot n`}.`,
+        t`If two numbers are combinations, so is ${math`r_{${1}} - q r_{${2}}`}.`,
+        t`So every remainder in Euclid's algorithm is a combination.`,
+        t`The algorithm returns the gcd, which is one of those numbers.`,
+      ],
+    },
+  ],
 };

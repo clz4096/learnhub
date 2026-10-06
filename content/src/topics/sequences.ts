@@ -10,7 +10,7 @@ import { add, div, int, mul, q, str, upTo } from '../math';
 import { poly, signed } from '../poly';
 import { generator, type Misconception } from '../problem';
 import { computedMath as cm, dmath, listOf, math, paren, t, texOf, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const N = ['n'] as const;
 const ND = { n: { kind: 'integer', min: 1, max: 50 } } as const;
@@ -275,19 +275,59 @@ const sw131d = supervision({
 
 const L = { a: 5, d: 3 };
 const u = (n: number): number => L.a + (n - 1) * L.d;
+/** Regions made by joining n points on a circle in general position: 1, 2, 4, 8, 16, 31 (the pattern breaks). */
+const circleRegions = (n: number): number => 1 + (n * (n - 1)) / 2 + (n * (n - 1) * (n - 2) * (n - 3)) / 24;
+const [md, mu1] = [math`d`, math`u_{${1}}`];
 
 export const sequences: TopicContent = {
   topicId: 'pre.sequences',
   goal: t`Generate a sequence from a term-to-term or position-to-term rule, and find the ${mn}th term of an arithmetic sequence.`,
+  objective: t`Generate a sequence from a rule, and find the nth term of an arithmetic sequence.`,
+  why: t`Sequences carry sums, induction and recurrences, and every limit in analysis is a limit of a sequence.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`A [[sequence|sequence]] is a list of numbers in order, such as ${terms(u, 5)}. Each number is a [[term|term]]. We write ${math`u_{${1}}`} for the first term, ${math`u_{${2}}`} for the second, and ${math`u_n`} for the term in position ${mn}.` },
-    { kind: 'p', text: t`A [[term-to-term|term-to-term rule]] says how to get the next term from the one before: here, add ${L.d}. So ${math`u_{n+${1}} = u_n + ${L.d}`}, starting from ${math`u_{${1}} = ${L.a}`}.` },
-    { kind: 'p', text: t`A [[position-to-term|position-to-term rule]], or ${mn}th term, gives any term straight from its position. Here ${math`u_n = ${cm(nth(L.d, L.a - L.d))}`}. Check: ${math`n = ${1}`} gives ${L.d + L.a - L.d}, and ${math`n = ${4}`} gives ${4 * L.d + L.a - L.d}. Now the ${100}th term needs no listing: ${math`u_{${100}} = ${L.d} \times ${100} ${sg(L.a - L.d)} = ${u(100)}`}.` },
-    { kind: 'rule', text: t`An [[arithmetic-sequence|arithmetic sequence]] adds the same number ${math`d`} each time: the [[common-difference|common difference]]. Its ${mn}th term is ${dmath`u_n = dn + (u_{${1}} - d).`}` },
-    { kind: 'p', text: t`Why: the ${mn}th term is the first term plus ${math`n - ${1}`} steps of ${math`d`}. So ${math`u_n = u_{${1}} + (n - ${1})d`}, which expands to ${math`dn + (u_{${1}} - d)`}. For ${terms(u, 4)}, ${math`d = ${L.d}`} and ${math`u_{${1}} - d = ${L.a - L.d}`}.` },
-    { kind: 'p', text: t`A sequence may start at position ${0}. The CST supervision exercises define the [[triangular-number|triangular numbers]] ${math`t_k = ${0} + ${1} + \cdots + k`} from ${math`t_{${0}} = ${0}`}: ${listOf([0, 1, 2, 3, 4, 5].map(tri))}, and so on. The term-to-term rule is ${math`t_k = t_{k - ${1}} + k`}: the steps grow, so it is not arithmetic. Its position-to-term rule is ${math`t_k = \frac{k(k + ${1})}{${2}}`}.` },
-    { kind: 'p', text: t`Spotting a pattern in the first terms suggests a rule; it does not prove one. The STEP Support hints say it plainly: generalising from special cases is not enough, the general case must be shown to work.` },
-    { kind: 'p', text: t`Not every sequence is arithmetic. With the rule "double and add ${1}" from ${1}, the terms are ${terms((n) => 2 ** n - 1, 5)}: the gaps grow, so there is no common difference.` },
+    { kind: 'section', title: t`The hundredth term` },
+    { kind: 'hook', text: t`Here is a list: ${terms(u, 5)}. What is the ${100}th number in it? You could keep adding ${L.d}, ninety-nine times over. There is a much faster way, and finding it is the point of this lesson.` },
+    { kind: 'narrative', text: t`Notice there are two ways to describe the list. One says how to get from each number to the next: add ${L.d}. The other would say how to get any number straight from its position, without the ones before. The first is easy to see; the second is what answers the question.` },
+    { kind: 'section', title: t`Sequences and their rules` },
+    {
+      kind: 'definition',
+      name: t`Sequence`,
+      formal: t`A [[sequence|sequence]] is a list of numbers ${math`u_{${1}}, u_{${2}}, u_{${3}}, \ldots`} indexed by position; formally, a function ${math`n \mapsto u_{n}`} on the positive integers. Each ${math`u_{n}`} is a [[term|term]].`,
+      plain: t`In plain words: numbers in a definite order, with ${math`u_{n}`} the one in position ${mn}. Above, ${math`u_{${1}} = ${u(1)}`} and ${math`u_{${3}} = ${u(3)}`}.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Term-to-term and position-to-term rules`,
+      formal: t`A [[term-to-term|term-to-term rule]] gives ${mu1} and expresses ${math`u_{n + ${1}}`} in terms of ${math`u_{n}`}. A [[position-to-term|position-to-term rule]] expresses ${math`u_{n}`} directly in terms of ${mn}.`,
+      plain: t`In plain words: "start at ${L.a} and add ${L.d} each time" is term-to-term, ${math`u_{n + ${1}} = u_{n} + ${L.d}`}. "The ${mn}th term is ${cm(nth(L.d, L.a - L.d))}" is position-to-term.`,
+    },
+    checkFrom(recursive, { s: 1, m: 2, c: 1, k: 5 }, t`Double and add ${1}, starting from ${1}: ${listOf([1, 3, 7, 15, 31])}. The fifth term is ${31}.`),
+    { kind: 'section', title: t`Arithmetic sequences` },
+    {
+      kind: 'definition',
+      name: t`Arithmetic sequence`,
+      formal: t`A sequence is an [[arithmetic-sequence|arithmetic sequence]] if there is a number ${md} with ${math`u_{n + ${1}} - u_{n} = d`} for every ${math`n \ge ${1}`}. The number ${md} is its [[common-difference|common difference]].`,
+      plain: t`In plain words: the same step every time. ${terms(u, 4)} has ${math`d = ${L.d}`}; ${terms((n) => 10 - 4 * n, 4)} has ${math`d = -${4}`}.`,
+    },
+    { kind: 'theorem', statement: t`If ${math`(u_{n})`} is arithmetic with common difference ${md}, then ${math`u_{n} = u_{${1}} + (n - ${1})d`} for every ${math`n \ge ${1}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Write the gap as steps`, text: t`For ${math`n \ge ${2}`}, ${math`u_{n} - u_{${1}} = (u_{${2}} - u_{${1}}) + (u_{${3}} - u_{${2}}) + \cdots + (u_{n} - u_{n - ${1}})`}.`, why: { q: t`Why is that true?`, a: t`On the right every term except ${math`u_{n}`} and ${math`-u_{${1}}`} appears once with a plus sign and once with a minus sign, so they cancel. With ${math`n = ${3}`}: ${math`(u_{${2}} - u_{${1}}) + (u_{${3}} - u_{${2}}) = u_{${3}} - u_{${1}}`}.` } },
+        { label: t`Count the steps`, text: t`There are ${math`n - ${1}`} brackets, and each equals ${md} by the definition, so ${math`u_{n} - u_{${1}} = (n - ${1})d`}.`, plain: t`From position ${1} to position ${mn} is ${math`n - ${1}`} steps, not ${mn}.` },
+        { label: t`Rearrange`, text: t`Add ${mu1} to both sides: ${math`u_{n} = u_{${1}} + (n - ${1})d`}. For ${math`n = ${1}`} it says ${math`u_{${1}} = u_{${1}}`}, so it holds for every ${math`n \ge ${1}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`Expanding gives the form ${math`u_{n} = dn + (u_{${1}} - d)`}: the common difference times ${mn}, plus a correction. For the hook, ${math`u_{n} = ${L.a} + (n - ${1}) \times ${L.d} = ${cm(nth(L.d, L.a - L.d))}`}, so ${math`u_{${100}} = ${L.d} \times ${100} ${sg(L.a - L.d)} = ${u(100)}`}.` },
+    checkFrom(nthTerm, { a: 4, d: 6 }, t`${math`d = ${6}`} and ${math`u_{${1}} = ${4}`}, so ${math`u_{n} = ${4} + (n - ${1}) \times ${6} = ${6}n - ${2}`}.`),
+    { kind: 'pitfall', claim: t`The ${mn}th term is ${math`u_{${1}} + nd`}.`, counterexample: t`At ${math`n = ${1}`} that gives ${math`u_{${1}} + d`}, already one step too far. For ${terms(u, 3)} it would give ${math`u_{${1}} = ${L.a + L.d}`}. There are ${math`n - ${1}`} steps from the first term to the ${mn}th.` },
+    { kind: 'section', title: t`Triangular numbers` },
+    { kind: 'narrative', text: t`A sequence may start at position ${0}. The Cambridge Discrete Mathematics exercises define the [[triangular-number|triangular numbers]] ${math`t_{k} = ${0} + ${1} + \cdots + k`}, from ${math`t_{${0}} = ${0}`}: ${listOf([0, 1, 2, 3, 4, 5].map(tri))}, and so on. They count the dots in a triangle with rows of ${1}, ${2}, ${3}, and so on.` },
+    { kind: 'p', text: t`Their term-to-term rule is ${math`t_{k} = t_{k - ${1}} + k`}. The step grows each time, ${listOf([1, 2, 3, 4, 5])}, so the sequence is not arithmetic. Finding its position-to-term rule is the first part of supervision exercise ${1}.${3}.${1}.` },
+    { kind: 'pitfall', claim: t`Joining points on a circle in every way makes ${listOf([1, 2, 3, 4, 5].map(circleRegions))} regions for ${listOf([1, 2, 3, 4, 5])} points, so the pattern is doubling and ${6} points give ${32}.`, counterexample: t`${6} points in general position give ${circleRegions(6)} regions, not ${32}. A pattern in the first few terms suggests a rule; it does not prove one. The STEP Support hints say the same: the general case must be shown to work.` },
+    { kind: 'takeaway', text: t`A term-to-term rule builds a sequence step by step; for an arithmetic sequence the position-to-term rule is ${math`u_{n} = u_{${1}} + (n - ${1})d`}.` },
   ],
   examples: [
     worked(nthTerm, { a: 7, d: -2 }, t`A decreasing sequence`),
@@ -299,5 +339,22 @@ export const sequences: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sequence', 'term', 'term-to-term', 'position-to-term', 'arithmetic-sequence', 'common-difference', 'triangular-number'],
   cambridge: [sw131b, sw131c, sw131d],
-  gate: ['sw-1-3-1-b', 'sw-1-3-1-c', 'sw-1-3-1-d'],
+  // Best first: the two proofs (triangular exactly when 8n + 1 is square; consecutive
+  // triangular numbers add to a square), then the formula for the kth triangular number.
+  gate: ['sw-1-3-1-c', 'sw-1-3-1-d', 'sw-1-3-1-b'],
+  recall: [
+    { front: t`Term-to-term rule versus position-to-term rule?`, back: t`Term-to-term gives ${math`u_{n + ${1}}`} from ${math`u_{n}`}; position-to-term gives ${math`u_{n}`} from ${mn}.` },
+    { front: t`When is a sequence arithmetic?`, back: t`When ${math`u_{n + ${1}} - u_{n} = d`}, the same ${md}, for every ${mn}.` },
+    { front: t`The ${mn}th term of an arithmetic sequence?`, back: t`${math`u_{n} = u_{${1}} + (n - ${1})d`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The ${mn}th term of an arithmetic sequence`,
+      steps: [
+        t`Write ${math`u_{n} - u_{${1}}`} as the sum of the ${math`n - ${1}`} gaps between consecutive terms.`,
+        t`Each gap is ${md}, so ${math`u_{n} - u_{${1}} = (n - ${1})d`}.`,
+        t`Add ${mu1}: ${math`u_{n} = u_{${1}} + (n - ${1})d`}.`,
+      ],
+    },
+  ],
 };

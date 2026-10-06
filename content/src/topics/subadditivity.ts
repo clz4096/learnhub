@@ -10,8 +10,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { listOf, math, t, type Rich, type Span } from '../rich';
-import { worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, listOf, math, t, type Rich, type Span } from '../rich';
+import { checkFrom, worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S1 = 'ia-prob-sheet-1' as const;
 const mn = math`n`;
@@ -187,18 +187,66 @@ const converse = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+/** P(some two of k people share a birthday among d days), exactly. */
+const shareExact = (k: number, d: number): number => { let p = 1; for (let i = 0; i < k; i++) p *= (d - i) / d; return 1 - p; };
+const BD = { small: 10, big: 23, days: 365 };
+const round3 = (x: number): number => Number(x.toFixed(3));
 const claims: ProbabilityClaim[] = [
   { what: 'a number from 1 to 30: a multiple of 5 that is not a multiple of 2 or 3', exact: q(2, 30), trial: (rng) => { const x = 1 + Math.floor(rng() * 30); return x % 5 === 0 && x % 2 !== 0 && x % 3 !== 0; } },
 ];
+const [mA, mB] = [math`A_{n}`, math`B_{n}`];
 
 export const subadditivity: TopicContent = {
   topicId: 'prob.subadditivity',
   goal: t`Prove countable subadditivity, ${math`\mathbb{P}\left(\bigcup A_{n}\right) \le \sum \mathbb{P}(A_{n})`}, and use it to bound probabilities of unions, including the first Borel-Cantelli lemma.`,
+  objective: t`Prove the union bound from the axioms and use it to bound probabilities of unions.`,
+  why: t`It bounds "something goes wrong" without knowing overlaps, and gives the first Borel-Cantelli lemma.`,
+  minutes: 30,
   lesson: [
-    { kind: 'rule', text: t`Countable subadditivity, the [[union-bound|union bound]]: for any events ${math`A_{${1}}, A_{${2}}, \ldots`}, ${math`\mathbb{P}\left(\bigcup_{n} A_{n}\right) \le \sum_{n} \mathbb{P}(A_{n})`}, whether or not they are disjoint.` },
-    { kind: 'p', text: t`Proof: replace the events by disjoint pieces, ${math`B_{n} = A_{n} \setminus (A_{${1}} \cup \cdots \cup A_{n - ${1}})`}. They have the same union, so ${math`\mathbb{P}(\bigcup A_{n}) = \sum \mathbb{P}(B_{n})`} by countable additivity, and ${math`B_{n} \subseteq A_{n}`} gives ${math`\mathbb{P}(B_{n}) \le \mathbb{P}(A_{n})`} by monotonicity.` },
-    { kind: 'p', text: t`The bound is crude but needs no information about overlaps. For ${23} people and ${365} days, some pair shares a birthday with probability at most ${math`\binom{${23}}{${2}}/${365} = ${q(choose(23, 2), 365)}`}: the bound is useless here, since the true value is about one half. For ${10} people it gives ${q(choose(10, 2), 365)}, close to the truth.` },
-    { kind: 'p', text: t`Its most important use is Example Sheet ${1} Q${6}: the event "${math`A_{n}`} infinitely often" lies inside ${math`\bigcup_{k \ge n} A_{k}`} for every ${mn}, so its probability is at most the tail ${math`\sum_{k \ge n} \mathbb{P}(A_{k})`}. If the series converges, the tails tend to ${0}, and only finitely many of the ${math`A_{n}`} happen, with probability ${1}.` },
+    { kind: 'section', title: t`A bound without the overlaps` },
+    { kind: 'hook', text: t`In a room of ${BD.small} people, what is the chance that some two share a birthday? There are ${choose(BD.small, 2)} pairs, each sharing with probability ${q(1, BD.days)}. Adding gives ${q(choose(BD.small, 2), BD.days)}. That cannot be exactly right, because the pairs overlap. But is it at least a safe upper bound?` },
+    { kind: 'narrative', text: t`Adding probabilities of events that overlap counts the overlaps more than once. So the sum can only be too big, never too small. That simple idea is countable subadditivity, and it works even for infinitely many events, when inclusion-exclusion is hopeless.` },
+    { kind: 'section', title: t`The theorem` },
+    {
+      kind: 'theorem',
+      name: t`Countable subadditivity`,
+      statement: t`For any events ${math`A_{${1}}, A_{${2}}, \ldots`} in a probability space, ${dmath`\mathbb{P}\Big(\bigcup_{n} A_{n}\Big) \le \sum_{n} \mathbb{P}(A_{n}).`}`,
+    },
+    { kind: 'p', text: t`This is the [[union-bound|union bound]]. The only tools are the axioms: countable additivity (for disjoint events, the probability of the union is the sum) and monotonicity (if ${math`B \subseteq A`} then ${math`\mathbb{P}(B) \le \mathbb{P}(A)`}). The trick is to make the events disjoint without changing their union.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Make them disjoint`, text: t`Let ${math`B_{${1}} = A_{${1}}`} and ${math`B_{n} = A_{n} \setminus (A_{${1}} \cup \cdots \cup A_{n - ${1}})`} for ${math`n \ge ${2}`}. Each ${mB} is an event, since events are closed under unions, complements and intersections.`, plain: t`${mB} keeps the part of ${mA} that no earlier event has already covered.` },
+        { label: t`They are disjoint`, text: t`If ${math`m < n`}, then ${math`B_{m} \subseteq A_{m}`} and ${mB} contains nothing in ${math`A_{m}`}, so ${math`B_{m} \cap B_{n} = \varnothing`}.` },
+        { label: t`Same union`, text: t`${math`\bigcup B_{n} \subseteq \bigcup A_{n}`} since each ${math`B_{n} \subseteq A_{n}`}. Conversely, an outcome in some ${mA} has a first ${mn} with it in ${mA}, and then it is in ${mB}.`, why: { q: t`Why does a first such ${mn} exist?`, a: t`The set of ${mn} with the outcome in ${mA} is a non-empty set of positive integers, and every such set has a smallest element.` } },
+        { label: t`Add and compare`, text: t`By countable additivity, then monotonicity (${math`B_{n} \subseteq A_{n}`}),`, eq: [dmath`\mathbb{P}\Big(\bigcup A_{n}\Big) = \mathbb{P}\Big(\bigcup B_{n}\Big) = \sum \mathbb{P}(B_{n}) \le \sum \mathbb{P}(A_{n}).`] },
+      ],
+    },
+    checkFrom(disjointPiece, { N: 60, ds: [2, 3, 5], j: 1 }, t`${math`B_{${2}}`} is the multiples of ${3} that are not even: ${3}, ${9}, ${15}, and so on, ${10} of the ${60} numbers, so ${q(10, 60)}.`),
+    { kind: 'section', title: t`How good is the bound?` },
+    { kind: 'narrative', text: t`The bound is exact for disjoint events and loose when they overlap a lot. Back to birthdays, with ${math`A_{ij}`} the event that persons ${math`i`} and ${math`j`} share.` },
+    {
+      kind: 'table',
+      caption: t`The union bound against the exact chance that some two share a birthday, ${BD.days} days.`,
+      head: [t`people`, t`union bound`, t`exact`],
+      rows: [BD.small, BD.big].map((k) => [t`${k}`, t`${round3(choose(k, 2) / BD.days)}`, t`${round3(shareExact(k, BD.days))}`]),
+    },
+    { kind: 'p', text: t`With ${BD.small} people the pairs rarely overlap and the bound is close. With ${BD.big} it is far too big: the true value is about a half.` },
+    checkFrom(birthdayBound, { k: 6, days: 365 }, t`There are ${math`\binom{${6}}{${2}} = ${15}`} pairs, each with probability ${q(1, 365)}: ${q(15, 365)}.`),
+    { kind: 'pitfall', claim: t`${math`\mathbb{P}(A \cup B) = \mathbb{P}(A) + \mathbb{P}(B)`} for any events.`, counterexample: t`For one fair die, ${math`A = \{${2}, ${4}, ${6}\}`} and ${math`B = \{${4}, ${5}, ${6}\}`}: the sum is ${1}, but ${math`A \cup B = \{${2}, ${4}, ${5}, ${6}\}`} has probability ${q(2, 3)}. Equality needs disjoint events; in general only "at most" holds.` },
+    { kind: 'section', title: t`Infinitely often` },
+    {
+      kind: 'definition',
+      name: t`Infinitely often`,
+      formal: t`For events ${math`A_{${1}}, A_{${2}}, \ldots`}, ${dmath`\{A_{n} \text{ infinitely often}\} = \bigcap_{n \ge ${1}} \bigcup_{k \ge n} A_{k}.`}`,
+      plain: t`In plain words: the outcomes that lie in infinitely many of the events. Reading the formula: for every ${mn}, the outcome is in some ${math`A_{k}`} with ${math`k \ge n`}, so however far you go, another one happens later.`,
+    },
+    { kind: 'narrative', text: t`For each ${mn}, this event sits inside ${math`\bigcup_{k \ge n} A_{k}`}, so the union bound gives ${math`\mathbb{P}(A_{n} \text{ i.o.}) \le \sum_{k \ge n} \mathbb{P}(A_{k})`}. If the series converges, its tails tend to ${0}, and so does the bound.` },
+    { kind: 'theorem', name: t`First Borel-Cantelli lemma`, statement: t`If ${math`\sum_{n} \mathbb{P}(A_{n}) < \infty`}, then ${math`\mathbb{P}(A_{n} \text{ infinitely often}) = ${0}`}.` },
+    { kind: 'p', text: t`The proof is IA Probability Sheet ${1}, question ${6}, worked below. In words: if the probabilities add up to something finite, then with probability ${1} only finitely many of the events happen.` },
+    checkFrom(tailBound, { f: 0, n: 3 }, t`${math`\sum_{k \ge ${3}} ${2}^{-k} = \frac{${1}}{${8}} + \frac{${1}}{${16}} + \cdots = \frac{${1}}{${4}}`}, a geometric series.`),
+    { kind: 'takeaway', text: t`Make the events disjoint without changing the union, and the axioms give ${math`\mathbb{P}(\bigcup A_{n}) \le \sum \mathbb{P}(A_{n})`}; summable probabilities mean only finitely many events happen.` },
   ],
   examples: [
     q6bc,
@@ -210,5 +258,23 @@ export const subadditivity: TopicContent = {
   terms: ['union-bound'],
   claims,
   cambridge: [q6num, subaddProof, converse],
-  gate: ['ia-q6-numbers', 'ia-q6-subadditivity', 'ia-q6-c-converse'],
+  // Best first: the proof from the axioms, then the converse (a construction and the extra
+  // assumption). The numerical tail is a geometric series, too slight to gate.
+  gate: ['ia-q6-subadditivity', 'ia-q6-c-converse'],
+  recall: [
+    { front: t`State countable subadditivity.`, back: t`${math`\mathbb{P}(\bigcup A_{n}) \le \sum \mathbb{P}(A_{n})`} for any events.` },
+    { front: t`What are the disjoint pieces in its proof?`, back: t`${math`B_{n} = A_{n} \setminus (A_{${1}} \cup \cdots \cup A_{n - ${1}})`}: same union, each inside ${mA}.` },
+    { front: t`State the first Borel-Cantelli lemma.`, back: t`If ${math`\sum \mathbb{P}(A_{n}) < \infty`}, then ${math`\mathbb{P}(A_{n} \text{ i.o.}) = ${0}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Countable subadditivity`,
+      steps: [
+        t`Let ${math`B_{n} = A_{n} \setminus (A_{${1}} \cup \cdots \cup A_{n - ${1}})`}.`,
+        t`The ${mB} are disjoint and have the same union as the ${mA}.`,
+        t`Countable additivity: ${math`\mathbb{P}(\bigcup A_{n}) = \sum \mathbb{P}(B_{n})`}.`,
+        t`Monotonicity: ${math`\mathbb{P}(B_{n}) \le \mathbb{P}(A_{n})`}, so the sum is at most ${math`\sum \mathbb{P}(A_{n})`}.`,
+      ],
+    },
+  ],
 };

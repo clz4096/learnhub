@@ -11,8 +11,8 @@ import { auto, cite, supervision } from '../cambridge';
 import { int, pick } from '../math';
 import { near, Phi, PhiInverse, PhiSeries, phi, round, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { dmath, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const mX = math`X`;
 const SH4 = 'ia-prob-sheet-4' as const;
@@ -265,20 +265,60 @@ const q5why = supervision({
 
 const Z196 = 1.96;
 const Z258 = 2.58;
+const [mmu, msig, mZ] = [math`\mu`, math`\sigma`, math`Z`];
 
 export const normalDistribution: TopicContent = {
   topicId: 'prob.normal-distribution',
   goal: t`Use the ${math`N(\mu, \sigma^{${2}})`} density, standardise to ${math`Z = (X - \mu)/\sigma`}, and read probabilities and quantiles from ${math`\Phi`}.`,
+  objective: t`Use the normal density, standardise to the standard normal, and read probabilities and quantiles.`,
+  why: t`Heights, errors and averages are close to normal; next, normal approximations and the central limit theorem.`,
+  minutes: 30,
   lesson: [
-    { kind: 'rule', text: t`${math`X \sim N(\mu, \sigma^{${2}})`}, the [[normal-distribution|normal distribution]], has density ${math`f(x) = \frac{${1}}{\sigma\sqrt{${2}\pi}}\,e^{-(x - \mu)^{${2}}/(${2}\sigma^{${2}})}`}, with mean ${math`\mu`} and variance ${math`\sigma^{${2}}`}.` },
-    { kind: 'p', text: t`The curve is a bell, symmetric about ${math`\mu`}, so the mean, median, and mode are all ${math`\mu`}; ${math`\sigma`} sets its width. That the area is ${1} rests on the Gaussian integral ${math`\int_{-\infty}^{\infty} e^{-x^{${2}}/${2}}\,dx = \sqrt{${2}\pi}`}, which STEP ${2} Q${4} gives as ${math`\int_{${0}}^{\infty} e^{-x^{${2}}/${2}}\,dx = \sqrt{\pi/${2}}`}. Note that ${math`N(\mu, \sigma^{${2}})`} names the variance: ${math`N(${10}, ${25})`} has standard deviation ${5}.` },
-    { kind: 'rule', text: t`Standardise: if ${math`X \sim N(\mu, \sigma^{${2}})`} then ${math`Z = \frac{X - \mu}{\sigma} \sim N(${0}, ${1})`}, the [[standard-normal|standard normal]], and ${math`P(X \le x) = \Phi\left(\frac{x - \mu}{\sigma}\right)`}, where ${math`\Phi(z) = P(Z \le z)`}.` },
-    { kind: 'p', text: t`${math`\Phi`} has no formula in elementary functions, so its values come from tables or a calculator: ${math`\Phi(${1}) \approx ${r4(Phi(1))}`}, ${math`\Phi(${Z196}) \approx ${r4(Phi(Z196))}`}, ${math`\Phi(${Z258}) \approx ${r4(Phi(Z258))}`}. Symmetry gives the rest: ${math`\Phi(-z) = ${1} - \Phi(z)`}, and ${math`P(|Z| < z) = ${2}\Phi(z) - ${1}`}. So a normal variable is within one standard deviation of its mean with probability about ${r4(2 * Phi(1) - 1)}, and within ${Z196} with probability about ${r4(2 * Phi(Z196) - 1)}.` },
-    { kind: 'p', text: t`Going backwards, a quantile is ${math`x = \mu + z\sigma`} where ${math`\Phi(z)`} is the probability wanted. A linear function ${math`aX + b`} of a normal variable is normal, and so is a sum of independent normal variables; in particular the mean of a sample of ${math`n`} from ${math`N(\mu, \sigma^{${2}})`} is ${math`N(\mu, \sigma^{${2}}/n)`}. That is the fact Sheet ${4} Q${5} turns into a sample size.` },
-    { kind: 'p', text: t`If ${math`\log X`} is normal, ${mX} is log-normal (Sheet ${4} Q${6}). Its mean is not ${math`e^{\mu}`}: completing the square in ${math`E(e^{Y})`} gives ${math`e^{\mu + \sigma^{${2}}/${2}}`}, a first sight of the moment generating function ${math`E(e^{tY}) = e^{\mu t + \sigma^{${2}}t^{${2}}/${2}}`}.` },
+    { kind: 'section', title: t`One curve for every bell` },
+    { kind: 'hook', text: t`Adult heights, measurement errors, and the average of many dice all pile up in the same bell shape, just shifted and stretched. That is lucky: it means a single table of areas, for one standard bell, answers every question about every one of them. The trick is a change of units.` },
+
+    { kind: 'section', title: t`The normal density` },
+    { kind: 'definition', name: t`Normal distribution`, formal: t`For real ${mmu} and ${math`\sigma > ${0}`}, ${math`X \sim N(\mu, \sigma^{${2}})`} has the [[normal-distribution|normal distribution]] if it has density ${dmath`f(x) = \frac{${1}}{\sigma\sqrt{${2}\pi}}\,e^{-(x - \mu)^{${2}}/(${2}\sigma^{${2}})}, \qquad x \in \mathbb{R}.`} ${math`N(${0}, ${1})`} is the [[standard-normal|standard normal]]; its density is written ${math`\phi(z) = \frac{${1}}{\sqrt{${2}\pi}}e^{-z^{${2}}/${2}}`}.`, plain: t`A bell centred at ${mmu}, with width set by ${msig}. The second parameter is the variance: ${math`N(${10}, ${25})`} has standard deviation ${5}, not ${25}.` },
+    { kind: 'theorem', statement: t`${math`f`} is a density: ${math`\int_{-\infty}^{\infty} f(x)\,dx = ${1}`}. Moreover ${math`E(X) = \mu`} and ${math`\operatorname{Var}(X) = \sigma^{${2}}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Change units`, text: t`Substitute ${math`z = (x - \mu)/\sigma`}, so ${math`x = \mu + \sigma z`} and ${math`dx = \sigma\,dz`}:`, eq: [dmath`\int_{-\infty}^{\infty} f(x)\,dx = \int_{-\infty}^{\infty} \frac{${1}}{\sigma\sqrt{${2}\pi}}e^{-z^{${2}}/${2}}\,\sigma\,dz = \frac{${1}}{\sqrt{${2}\pi}}\int_{-\infty}^{\infty} e^{-z^{${2}}/${2}}\,dz.`], plain: t`The ${msig} from ${math`dx`} cancels the ${msig} in the constant.` },
+        { label: t`The Gaussian integral`, text: t`STEP ${2} Statistics question ${4} gives ${math`\int_{${0}}^{\infty} e^{-x^{${2}}/${2}}\,dx = \sqrt{\pi/${2}}`}. The integrand is even, so over the whole line it is twice that, ${math`\sqrt{${2}\pi}`}, and the total is ${1}.`, why: { q: t`Why "even" doubles it?`, a: t`${math`e^{-x^{${2}}/${2}}`} takes the same value at ${math`x`} and ${math`-x`}, so the area left of ${0} equals the area right of ${0}.` } },
+        { label: t`The mean`, text: t`${math`E(X) = \mu + \sigma E(Z)`}, where ${math`E(Z) = \int z\phi(z)\,dz = ${0}`}, because ${math`z\phi(z)`} is odd: its areas left and right of ${0} cancel.` },
+        { label: t`The variance`, text: t`${math`\operatorname{Var}(X) = \sigma^{${2}}\operatorname{Var}(Z)`}, and integrating by parts, ${math`\int z^{${2}}\phi(z)\,dz = \left[-z\phi(z)\right]_{-\infty}^{\infty} + \int \phi(z)\,dz = ${0} + ${1}`}.`, why: { q: t`Which parts?`, a: t`Write ${math`z^{${2}}\phi(z) = z \cdot z\phi(z)`} and note ${math`z\phi(z) = -\phi'(z)`}. Then ${math`\int z(-\phi'(z))\,dz = [-z\phi(z)] + \int \phi(z)\,dz`}, and ${math`z\phi(z) \to ${0}`} at both ends.` } },
+      ],
+    },
+
+    { kind: 'section', title: t`Standardising` },
+    { kind: 'theorem', name: t`Standardising`, statement: t`If ${math`X \sim N(\mu, \sigma^{${2}})`}, then ${math`Z = \frac{X - \mu}{\sigma} \sim N(${0}, ${1})`}. Hence ${math`P(X \le x) = \Phi\left(\frac{x - \mu}{\sigma}\right)`}, where ${math`\Phi(z) = P(Z \le z)`}.` },
+    { kind: 'p', text: t`Proof: ${math`P(Z \le z) = P(X \le \mu + \sigma z) = \int_{-\infty}^{\mu + \sigma z} f(x)\,dx`}, and the same substitution as before turns this into ${math`\int_{-\infty}^{z} \phi(u)\,du`}. ∎ In words: measure ${mX} in standard deviations from its mean, and you get the standard bell.` },
+    { kind: 'p', text: t`${math`\Phi`} has no formula in elementary functions, so its values come from tables or a calculator: ${math`\Phi(${1}) \approx ${r4(Phi(1))}`}, ${math`\Phi(${Z196}) \approx ${r4(Phi(Z196))}`}, ${math`\Phi(${Z258}) \approx ${r4(Phi(Z258))}`}. Tables list only ${math`z \ge ${0}`}; symmetry gives the rest: ${math`\Phi(-z) = ${1} - \Phi(z)`}, and ${math`P(|Z| < z) = ${2}\Phi(z) - ${1}`}.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The question`, text: t`${math`X \sim N(${50}, ${16})`}. Find ${math`P(${46} < X < ${56})`}.` },
+        { label: t`Standardise`, text: t`The standard deviation is ${math`\sqrt{${16}} = ${4}`}. ${math`\frac{${46} - ${50}}{${4}} = -${1}`} and ${math`\frac{${56} - ${50}}{${4}} = ${1.5}`}, so the probability is ${math`P(-${1} < Z < ${1.5}) = \Phi(${1.5}) - \Phi(-${1})`}.` },
+        { label: t`Use symmetry`, text: t`${math`\Phi(-${1}) = ${1} - \Phi(${1})`}, so the answer is ${math`\Phi(${1.5}) + \Phi(${1}) - ${1} \approx ${r4(Phi(1.5) + Phi(1) - 1)}`}.` },
+      ],
+    },
+    checkFrom(standardise, { mu: 20, sigma: 5, ask: 'above', za: 1.2, zb: 2 }, t`${math`\frac{${26} - ${20}}{${5}} = ${1.2}`}, and ${math`P(Z > ${1.2}) = ${1} - \Phi(${1.2})`}.`),
+    { kind: 'p', text: t`Going backwards: the ${math`x`} with ${math`P(X \le x) = p`} is ${math`x = \mu + z\sigma`}, where ${math`\Phi(z) = p`}. For a lower tail, ${math`p < \tfrac{${1}}{${2}}`}, the ${math`z`} is negative, found by symmetry.` },
+    checkFrom(quantile, { mu: 170, sigma: 10, p: 0.9, lower: false }, t`The standardised value is about ${round(PhiInverse(0.9), 4)}, so ${math`x = ${170} + ${round(PhiInverse(0.9), 4)} \times ${10}`}.`),
+
+    { kind: 'section', title: t`Sample means` },
+    { kind: 'p', text: t`A linear function ${math`aX + b`} of a normal variable is normal (with ${math`a \ne ${0}`}), and a sum of independent normal variables is normal; you will prove both with moment generating functions. So the mean ${math`\bar{X}`} of a sample of ${math`n`} from ${math`N(\mu, \sigma^{${2}})`} is ${math`N(\mu, \sigma^{${2}}/n)`}: the bigger the sample, the narrower the bell around ${mmu}. Example Sheet ${4} question ${5}, the worked Cambridge problem below, turns this into a sample size.` },
+    checkFrom(sampleSize, { c: 0.5, level: 1 }, t`${math`P(|\bar{X} - \mu| < ${0.5}\sigma) = ${2}\Phi(${0.5}\sqrt{n}) - ${1}`}, so ${math`${0.5}\sqrt{n} \ge ${1.96}`}, ${math`n \ge ${round((1.96 / 0.5) ** 2, 4)}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`In ${math`N(${10}, ${25})`}, the standard deviation is ${25}.`, counterexample: t`The second parameter is the variance, so the standard deviation is ${5}. Standardising with ${25} turns ${math`P(X < ${15})`} into ${math`\Phi(${0.2})`} instead of the right ${math`\Phi(${1}) \approx ${r4(Phi(1))}`}.` },
+    { kind: 'pitfall', claim: t`${math`\Phi(-z) = -\Phi(z)`}.`, counterexample: t`${math`\Phi(-${1}) \approx ${r4(Phi(-1))}`} is a probability, so it cannot be negative. The rule is ${math`\Phi(-z) = ${1} - \Phi(z)`}.` },
+    { kind: 'pitfall', claim: t`To be within ${mZ} of ${0} with probability ${0.99}, use ${math`\Phi(z) = ${0.99}`}.`, counterexample: t`That leaves ${0.01} in each tail, ${0.02} in all. "Within" is two-sided: ${math`${2}\Phi(z) - ${1} = ${0.99}`} needs ${math`\Phi(z) = ${0.995}`}, so ${math`z \approx ${Z258}`}.` },
+    { kind: 'takeaway', text: t`Standardise with ${math`Z = (X - \mu)/\sigma`}, using the standard deviation, then read ${math`\Phi`} and use ${math`\Phi(-z) = ${1} - \Phi(z)`}.` },
   ],
   examples: [
-    workedCambridge(q5),
+    { ...workedCambridge(q5), examiner: t`The examiner looks for the distribution of the sample mean stated, the two-sided probability written as ${math`${2}\Phi(\sqrt{n}) - ${1}`}, and ${math`n`} rounded up.` },
     worked(standardise, { mu: 50, sigma: 4, ask: 'between', za: -1, zb: 1.5 }, t`Between two values of ${math`N(${50}, ${16})`}`),
     worked(quantile, { mu: 100, sigma: 15, p: 0.95, lower: false }, t`The top five percent of ${math`N(${100}, ${225})`}`),
   ],
@@ -286,5 +326,21 @@ export const normalDistribution: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['normal-distribution', 'standard-normal'],
   cambridge: [q6mean, q6var, q6b, q5why],
-  gate: ['ia4-q6-a-mean', 'ia4-q6-a-variance', 'ia4-q6-b', 'ia4-q5-why'],
+  // Sheet 4 Q6 first: the log-normal mean needs completing the square, which the lesson does not do for you.
+  gate: ['ia4-q6-a-mean', 'ia4-q6-a-variance', 'ia4-q5-why', 'ia4-q6-b'],
+  recall: [
+    { front: t`The density of ${math`N(\mu, \sigma^{${2}})`}.`, back: t`${math`\frac{${1}}{\sigma\sqrt{${2}\pi}}e^{-(x - \mu)^{${2}}/(${2}\sigma^{${2}})}`}.` },
+    { front: t`How do you standardise ${math`X \sim N(\mu, \sigma^{${2}})`}?`, back: t`${math`Z = (X - \mu)/\sigma \sim N(${0}, ${1})`}, so ${math`P(X \le x) = \Phi((x - \mu)/\sigma)`}.` },
+    { front: t`${math`\Phi(-z)`} and ${math`P(|Z| < z)`}.`, back: t`${math`${1} - \Phi(z)`}; and ${math`${2}\Phi(z) - ${1}`}.` },
+    { front: t`The distribution of the mean of ${math`n`} samples from ${math`N(\mu, \sigma^{${2}})`}.`, back: t`${math`N(\mu, \sigma^{${2}}/n)`}.` },
+  ],
+  proofOrder: [{
+    title: t`Standardising gives the standard normal`,
+    steps: [
+      t`${math`P(Z \le z) = P(X \le \mu + \sigma z)`}.`,
+      t`Write it as the integral of the ${math`N(\mu, \sigma^{${2}})`} density up to ${math`\mu + \sigma z`}.`,
+      t`Substitute ${math`u = (x - \mu)/\sigma`}, with ${math`dx = \sigma\,du`}.`,
+      t`The result is ${math`\int_{-\infty}^{z} \phi(u)\,du`}: ${mZ} is standard normal.`,
+    ],
+  }],
 };

@@ -10,8 +10,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { mod, powMod, powModSlow } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { computedTex, listOf, math, setOf, t, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedTex, dmath, listOf, math, setOf, t, type Span } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 import type { Rational } from '../math';
 
 const mm = math`m`;
@@ -249,18 +249,62 @@ const bop617proof = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const C7 = cycle(7, 10).seq;
+const N1 = 4567;
+const ds1 = digits(N1);
+
 export const modularArithmetic: TopicContent = {
   topicId: 'num.modular-arithmetic',
   goal: t`Add, multiply, and raise congruences to powers, and use that to find remainders of large expressions by reducing each part first.`,
+  objective: t`Add, multiply, and raise congruences to powers, and find remainders by reducing each part first.`,
+  why: t`It shrinks huge numbers to small ones; next, the integers modulo m as a number system, and fast powers.`,
+  minutes: 25,
   lesson: [
-    { kind: 'rule', text: t`If ${math`i \equiv j`} and ${math`k \equiv l \pmod{m}`}, then ${math`i + k \equiv j + l`}, ${math`i k \equiv j l`}, and ${math`i^{n} \equiv j^{n} \pmod{m}`} (exercise ${2}.${1}.${2}). So in any sum, product, or power you may [[reduce-mod|reduce]] any part modulo ${mm}.` },
-    { kind: 'p', text: t`The proofs are one line each from divisibility: if ${math`m \mid i - j`} and ${math`m \mid k - l`}, then ${math`m`} divides ${math`(i - j) + (k - l)`}, and also ${math`i(k - l) + l(i - j) = ik - jl`}. Powers follow by repeating the product rule, which is an induction.` },
-    { kind: 'p', text: t`Exercise ${2}.${2}.${4}: ${math`${55}^{${2}} = ${3025} \equiv ${23} \pmod{${79}}`}, ${math`${23}^{${2}} \equiv ${55}`}, and ${math`${23} \times ${55} \equiv ${1}`}. With those, ${math`${55}^{${78}}`} reduces to ${1} without ever writing a number with more than four digits.` },
-    { kind: 'p', text: t`Digit tests are congruences too. ${math`${10} \equiv ${1} \pmod{${9}}`}, so a number is congruent to its digit sum mod ${9} (and mod ${3}); ${math`${10} \equiv -${1} \pmod{${11}}`}, so it is congruent to its alternating digit sum mod ${11}, starting from the units digit. For ${4567}: ${math`${4} + ${5} + ${6} + ${7} = ${22} \equiv ${4} \pmod{${9}}`} and ${math`${7} - ${6} + ${5} - ${4} = ${2}`}, so ${math`${4567} \equiv ${2} \pmod{${11}}`}.` },
-    { kind: 'p', text: t`Powers repeat. The last digits of ${math`${7}, ${7}^{${2}}, ${7}^{${3}}, \ldots`} are ${listOf(cycle(7, 10).seq)}, then the cycle starts again, so ${math`${7}^{${100}}`} ends in ${powMod(7, 100, 10)}. You may replace the base by anything congruent to it, never the exponent.` },
+    { kind: 'section', title: t`A last digit without the number` },
+    { kind: 'hook', text: t`What is the last digit of ${math`${7}^{${100}}`}? The number has ${String(7n ** 100n).length} digits, so you will not be writing it out. But the last digits of ${math`${7}, ${7}^{${2}}, ${7}^{${3}}, ${7}^{${4}}`} are ${listOf(C7)}, and then the pattern repeats. Why is it allowed to throw away everything but the last digit at every step?` },
+    { kind: 'narrative', text: t`The answer is that "same last digit" is a congruence, and congruences survive addition, multiplication, and powers. Recall the definition: for a positive integer ${mm}, ${math`a \equiv b \pmod{m}`} means ${math`m \mid a - b`}, that is, ${math`a`} and ${math`b`} leave the same remainder on division by ${mm}. "Same last digit" is congruence modulo ${10}.` },
+
+    { kind: 'section', title: t`Congruence respects arithmetic` },
+    { kind: 'theorem', name: t`Arithmetic of congruences`, statement: t`Let ${mm} be a positive integer. If ${math`i \equiv j \pmod{m}`} and ${math`k \equiv l \pmod{m}`}, then ${dmath`i + k \equiv j + l, \qquad ik \equiv jl, \qquad i^{n} \equiv j^{n} \pmod{m}`} for every natural number ${math`n`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Unpack the hypotheses`, text: t`${math`m \mid i - j`} and ${math`m \mid k - l`}.`, plain: t`With ${math`m = ${10}`}: ${math`${17} \equiv ${7}`} and ${math`${23} \equiv ${3}`}, since ${10} divides ${10} and ${20}.` },
+        { label: t`Sums`, text: t`${math`(i + k) - (j + l) = (i - j) + (k - l)`}, a sum of two multiples of ${mm}, so it is a multiple of ${mm}.` },
+        { label: t`Products`, text: t`Add and subtract ${math`il`}:`, eq: [dmath`ik - jl = i(k - l) + l(i - j),`], plain: t`and each term on the right is a multiple of ${mm}, so the left side is too.`, why: { q: t`Where did ${math`il`} come from?`, a: t`It is the standard trick for comparing two products: change one factor at a time. ${math`ik - il = i(k - l)`} changes the second factor, then ${math`il - jl = l(i - j)`} changes the first. Adding the two gives ${math`ik - jl`}.` } },
+        { label: t`Powers, by induction`, text: t`${math`i^{${0}} = ${1} = j^{${0}}`}. If ${math`i^{n} \equiv j^{n}`}, multiply by ${math`i \equiv j`} using the product rule: ${math`i^{n + ${1}} \equiv j^{n + ${1}}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`So in any expression built from ${math`+`}, ${math`\times`}, and powers, you may [[reduce-mod|reduce]] any part modulo ${mm} (replace it by its remainder) at any time, and the final remainder is unchanged.` },
+    checkFrom(reduceFirst, { a: 347, b: 829, c: 58, m: 11 }, t`Reduce each part first: ${math`${347} \equiv ${347 % 11}`}, ${math`${829} \equiv ${829 % 11}`}, ${math`${58} \equiv ${58 % 11} \pmod{${11}}`}, then ${math`${347 % 11} \times ${829 % 11} + ${58 % 11} = ${(347 % 11) * (829 % 11) + (58 % 11)} \equiv ${mod(347 * 829 + 58, 11)}`}.`),
+
+    { kind: 'section', title: t`Powers repeat` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Find a power that is ${1}`, text: t`${math`${7}^{${4}} = ${7 ** 4} \equiv ${1} \pmod{${10}}`}.` },
+        { label: t`Split the exponent`, text: t`${math`${100} = ${4} \times ${25}`}, so ${math`${7}^{${100}} = (${7}^{${4}})^{${25}}`}.` },
+        { label: t`Reduce the base`, text: t`By the power rule, ${math`(${7}^{${4}})^{${25}} \equiv ${1}^{${25}} = ${1} \pmod{${10}}`}. The last digit is ${powMod(7, 100, 10)}.` },
+      ],
+    },
+    checkFrom(powerCycle, { a: 3, k: 50, m: 10 }, t`The last digits of the powers of ${3} run ${listOf(cycle(3, 10).seq)}, then repeat; ${math`${50} = ${4} \times ${12} + ${2}`}, so ${math`${3}^{${50}}`} ends like ${math`${3}^{${2}}`}.`),
+
+    { kind: 'section', title: t`Digit tests` },
+    { kind: 'narrative', text: t`Why does a number leave the same remainder on division by ${9} as the sum of its digits? Write the number in base ${10}: ${math`${N1} = ${ds1[0] as number} \cdot ${10}^{${3}} + ${ds1[1] as number} \cdot ${10}^{${2}} + ${ds1[2] as number} \cdot ${10} + ${ds1[3] as number}`}.` },
+    { kind: 'theorem', name: t`Digit sums`, statement: t`If ${math`N = \sum_{i = ${0}}^{d} a_{i}${10}^{i}`} with digits ${math`a_{i}`}, then ${math`N \equiv \sum_{i} a_{i} \pmod{${9}}`} and ${math`N \equiv \sum_{i} (-${1})^{i}a_{i} \pmod{${11}}`}.` },
+    { kind: 'p', text: t`Proof: ${math`${10} \equiv ${1} \pmod{${9}}`}, so by the power rule ${math`${10}^{i} \equiv ${1}`}, and by the sum and product rules each term ${math`a_{i}${10}^{i} \equiv a_{i}`}. Modulo ${11}, ${math`${10} \equiv -${1}`}, so ${math`${10}^{i} \equiv (-${1})^{i}`}. ∎ Since ${3} divides ${9}, the digit sum works modulo ${3} too.` },
+    { kind: 'p', text: t`For ${N1}: the digit sum is ${ds1.reduce((x, y) => x + y, 0)}, and ${math`${ds1.reduce((x, y) => x + y, 0)} \equiv ${mod(N1, 9)} \pmod{${9}}`}. The alternating sum from the units digit is ${math`${ds1[3] as number} - ${ds1[2] as number} + ${ds1[1] as number} - ${ds1[0] as number} = ${altSum(N1)}`}, so ${math`${N1} \equiv ${mod(N1, 11)} \pmod{${11}}`}.` },
+    checkFrom(digitTest, { n: 918273, m: 11 }, t`The alternating sum from the units digit is ${altSum(918273)}, and ${math`${altSum(918273)} \equiv ${mod(918273, 11)} \pmod{${11}}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`You may reduce an exponent modulo ${mm}, like the base.`, counterexample: t`Modulo ${3}: ${math`${5} \equiv ${2}`}, but ${math`${2}^{${5}} = ${32} \equiv ${2}`} while ${math`${2}^{${2}} = ${4} \equiv ${1}`}. The power rule changes the base, never the exponent.` },
+    { kind: 'pitfall', claim: t`You may cancel a common factor from both sides of a congruence.`, counterexample: t`${math`${2} \times ${3} \equiv ${2} \times ${0} \pmod{${6}}`}, since both are multiples of ${6}, but ${math`${3} \not\equiv ${0} \pmod{${6}}`}. Division is not one of the rules.` },
+    { kind: 'pitfall', claim: t`For ${11}, the alternating digit sum may start from the leading digit.`, counterexample: t`For ${1000}, from the front: ${math`${1} - ${0} + ${0} - ${0} = ${1}`}, but ${math`${1000} \equiv ${mod(1000, 11)} \pmod{${11}}`}. The sign of a digit is fixed by its power of ${10}, so start from the units.` },
+    { kind: 'takeaway', text: t`Congruences survive sums, products, and powers, so reduce every part early; never the exponent, and never divide.` },
   ],
   examples: [
-    workedCambridge(sheet224),
+    { ...workedCambridge(sheet224), examiner: t`The examiner looks for every reduction shown, and the pairing of factors explained, rather than an unexplained final ${1}.` },
     worked(reduceFirst, { a: 1234, b: 5678, c: 91, m: 9 }, t`A remainder without the multiplication`),
     worked(powerCycle, { a: 7, k: 100, m: 10 }, t`The last digit of ${math`${7}^{${100}}`}`),
   ],
@@ -268,5 +312,20 @@ export const modularArithmetic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['reduce-mod'],
   cambridge: [bop617, bop517, sheet212, sheet222, bop617proof],
-  gate: ['sheet-2-1-2', 'sheet-2-2-2'],
+  // Both are CST exercises: the digit tests need the rules applied, and 2.1.2 asks for the rules themselves.
+  gate: ['sheet-2-2-2', 'sheet-2-1-2'],
+  recall: [
+    { front: t`What may you do to a congruence modulo ${mm}?`, back: t`Add, multiply, and raise to powers: ${math`i \equiv j`}, ${math`k \equiv l`} give ${math`i + k \equiv j + l`}, ${math`ik \equiv jl`}, ${math`i^{n} \equiv j^{n}`}.` },
+    { front: t`The identity behind the product rule.`, back: t`${math`ik - jl = i(k - l) + l(i - j)`}.` },
+    { front: t`Digit tests for ${9} and ${11}.`, back: t`A number is congruent to its digit sum modulo ${9}, and to its alternating digit sum from the units modulo ${11}.` },
+  ],
+  proofOrder: [{
+    title: t`Congruence respects products`,
+    steps: [
+      t`Suppose ${math`m \mid i - j`} and ${math`m \mid k - l`}.`,
+      t`Write ${math`ik - jl = i(k - l) + l(i - j)`}.`,
+      t`Each term on the right is a multiple of ${mm}.`,
+      t`So ${math`m \mid ik - jl`}, that is, ${math`ik \equiv jl \pmod{m}`}.`,
+    ],
+  }],
 };

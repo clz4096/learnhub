@@ -12,7 +12,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, join, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 import { far, solveLinear, threePointGame } from '../partv-a';
 
 const MIX = 'step-mixed-stats1' as const;
@@ -424,22 +424,70 @@ const evenSuccesses = supervision({
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
-  { what: 'Mixed Q12(ii): R (TH) is chosen', exact: q(1, 2), trial: (rng) => runRace(['HH', 'HT', 'TH'], 0.5, rng) === 2 },
-  { what: 'Mixed Q13(i): HHT before THH', exact: q(1, 4), trial: (rng) => runRace(['HHT', 'THH'], 0.5, rng) === 0 },
+  { what: 'A six before a one or two on repeated rolls of a die', exact: q(1, 3), trial: (rng) => { for (;;) { const r = 1 + Math.floor(rng() * 6); if (r === 6) return true; if (r <= 2) return false; } } },
+  { what: 'HT before TT with a fair coin', exact: q(3, 4), trial: (rng) => runRace(['HT', 'TT'], 0.5, rng) === 0 },
 ];
+
+const [mx, ma, mb, mn] = [math`x`, math`a`, math`b`, math`n`];
+/** The die race of the lesson: A wins on a six, B on a one or two, otherwise roll again. */
+const [DA, DB] = [q(1, 6), q(1, 3)];
+const DIE_A = div(DA, add(DA, DB));
+/** HT against TT with a fair coin, from the start: P(HT first). */
+const HT_TT = (race(['HT', 'TT'], HALF)[0] as Rational);
 
 export const firstStep: TopicContent = {
   topicId: 'prob.first-step',
   goal: t`Find the chance that a repeated experiment ends one way by conditioning on its first step and solving the equations that result.`,
+  objective: t`Find the chance a repeated experiment ends one way, by conditioning on its first step.`,
+  why: t`It turns infinite sums into one equation; next it solves gambler's ruin and random walks.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`Many experiments repeat until something decisive happens: a coin until a pattern appears, a game until someone wins. The total probability rule, applied to the first step, turns such a question into an equation.` },
-    { kind: 'rule', text: t`[[first-step-analysis|First-step analysis]]: let ${math`x`} be the chance of the event from the start. Condition on the first step: ${math`x = \sum_{s} P(\text{first step } s) \times P(\text{event} \mid s)`}. When a step leads back to the start, the chance after it is ${math`x`} again, so ${math`x`} appears on both sides.` },
-    { kind: 'p', text: t`Mixed STEP ${1} Statistics Q${12}(i): toss a coin twice; HH chooses P, HT chooses Q, TH chooses R, and TT means start again. As a sum, ${math`P(P) = \frac{${1}}{${4}} + \frac{${1}}{${4}} \times \frac{${1}}{${4}} + \cdots = ${q(1, 3)}`}. By the first step, ${math`x = \frac{${1}}{${4}} + \frac{${1}}{${4}}x`}, the same ${q(1, 3)} in one line.` },
-    { kind: 'p', text: t`In general, if one round is decided for A with probability ${math`a`}, for B with ${math`b`}, and otherwise repeats, then ${math`x = a + (${1} - a - b)x`} gives ${math`x = \frac{a}{a + b}`}. With alternating turns (the darts of Sheet ${2} Q${4}), a round is A's throw and then B's: ${math`x = a + (${1} - a)(${1} - b)x`}.` },
-    { kind: 'p', text: t`When the experiment has memory, use one unknown per state. Toss a fair coin until HH, HT, or TH appears (Q${12}(ii)): after a first head the next toss decides between HH and HT, but after a first tail TH is certain. So R wins with probability ${q(1, 2)}, not ${q(1, 3)}. In Q${13}(iii), three unknowns, one for each pair of last tosses, satisfy ${math`p = \frac{${1}}{${2}} + \frac{${1}}{${2}}q`}, ${math`q = \frac{${1}}{${2}}p`}, ${math`r = \frac{${1}}{${2}}r + \frac{${1}}{${2}}p`}.` },
+    { kind: 'section', title: t`An equation instead of a sum` },
+    { kind: 'hook', text: t`A die is rolled again and again: a six and A wins, a one or a two and B wins, anything else and they roll again. The game could last forever, so the obvious method is an infinite sum. There is a shortcut: the game after a re-roll is exactly the game you started with.` },
+    { kind: 'narrative', text: t`Call ${mx} the chance that A wins. Look only at the first roll. It is a six with probability ${DA}: A has won. It is a one or two with probability ${DB}: A has lost. Otherwise, with probability ${sub(sub(q(1), DA), DB)}, the game starts afresh, and A's chance from there is ${mx} again. The law of total probability adds these up.` },
+    {
+      kind: 'definition',
+      name: t`First-step analysis`,
+      formal: t`[[first-step-analysis|First-step analysis]] finds ${math`x = P(E)`} by the law of total probability over the outcomes ${math`s`} of the first step: ${math`x = \sum_{s} P(\text{first step is } s)\,P(E \mid \text{first step is } s)`}, where each conditional probability is written in terms of the unknowns for the situation reached.`,
+      plain: t`split on what happens first. If a first step leads back to the start, the chance afterwards is ${mx} again, so ${mx} appears on both sides, and you solve for it. Here: ${math`x = ${DA} + ${sub(sub(q(1), DA), DB)}\,x`}, so ${math`x = ${DIE_A}`}.`,
+    },
+    { kind: 'theorem', statement: t`Each round of an experiment, independently, is decided for A with probability ${ma}, for B with probability ${mb}, and otherwise repeats, where ${math`a + b > ${0}`}. Then A wins with probability ${math`\frac{a}{a + b}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Condition on the first round`, text: t`Let ${mx} be the chance A wins. Then ${math`x = a \cdot ${1} + b \cdot ${0} + (${1} - a - b)\,x`}.`, plain: t`A first round won by A, lost by A, or a repeat, after which everything is as at the start.`, why: { q: t`Why is the chance after a repeat exactly ${mx}?`, a: t`The rounds are independent and identical, so once a round repeats, the future is a fresh copy of the whole experiment. Nothing that happened before can affect it.` } },
+        { label: t`Collect ${mx}`, text: t`${math`x - (${1} - a - b)x = a`}, that is, ${math`(a + b)\,x = a`}.`, plain: t`Take the ${mx} terms to one side: ${math`x(${1} - (${1} - a - b)) = x(a + b)`}.` },
+        { label: t`Divide`, text: t`Since ${math`a + b > ${0}`}, ${math`x = \frac{a}{a + b}`}.`, plain: t`In the hook, ${math`\frac{${DA}}{${add(DA, DB)}} = ${DIE_A}`}.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`The same answer comes from the infinite sum, ${math`a + (${1} - a - b)a + (${1} - a - b)^{${2}}a + \cdots`}, a geometric series. The equation is quicker and harder to get wrong.`,
+      why: { q: t`Isn't there a gap? We assumed ${mx} exists before solving for it.`, a: t`${mx} is a probability, so it exists. The real assumption is that the game ends: with ${math`a + b > ${0}`} the chance of ${mn} repeats in a row is ${math`(${1} - a - b)^{n}`}, which tends to ${0}.` },
+    },
+    quickCheck({
+      prompt: t`Two dice are rolled repeatedly. A wins on a total of ${7}, B on a total of ${12}; anything else, roll again. What is the probability that A wins?`,
+      answer: { kind: 'exact', expected: str(div(q(6, 36), add(q(6, 36), q(1, 36)))) },
+      reference: str(div(q(6, 36), add(q(6, 36), q(1, 36)))),
+      why: t`${math`a = ${q(6, 36)}`} and ${math`b = ${q(1, 36)}`}, so ${math`\frac{a}{a + b} = ${div(q(6, 36), add(q(6, 36), q(1, 36)))}`}.`,
+    }),
+    { kind: 'section', title: t`When the experiment remembers` },
+    { kind: 'narrative', text: t`Sometimes the first step does not lead back to the start but to a different situation. Then use one unknown per situation, or state, and one equation for each.` },
+    {
+      kind: 'p',
+      text: t`Toss a fair coin until HT or TT appears. Only the last toss matters, so the states are "last toss H" and "last toss T", with unknowns ${math`x_{H}`} and ${math`x_{T}`} for the chance that HT wins. From H: a T makes HT, an H leaves you in H, so ${math`x_{H} = \frac{${1}}{${2}} + \frac{${1}}{${2}}x_{H}`}, giving ${math`x_{H} = ${1}`}. From T: an H moves to H, a T makes TT, so ${math`x_{T} = \frac{${1}}{${2}}x_{H} = \frac{${1}}{${2}}`}. The first toss picks the state: ${math`x = \frac{${1}}{${2}}x_{H} + \frac{${1}}{${2}}x_{T} = ${HT_TT}`}.`,
+      why: { q: t`Why is ${math`x_{H} = ${1}`}?`, a: t`Once an H has appeared, TT can never come first: the next T completes HT. So from H, HT wins for sure.` },
+    },
+    {
+      kind: 'pitfall',
+      claim: t`HT and TT each have probability ${q(1, 4)} on any two tosses, so each wins the race with probability ${q(1, 2)}.`,
+      counterexample: t`The patterns overlap with what came before: TT can only win if the first two tosses are both T, since any H lets HT win first. The first-step equations give ${HT_TT} for HT and ${sub(q(1), HT_TT)} for TT.`,
+    },
+    { kind: 'takeaway', text: t`Condition on the first step, write each situation's chance in terms of the unknowns, and solve; when a step returns to the start, the unknown appears on both sides.` },
   ],
   examples: [
-    workedCambridge(q13iii),
+    { ...workedCambridge(q13iii), examiner: t`One unknown per state, each equation justified by the next toss, and the system solved exactly; the answer then built from the first two tosses.` },
     worked(repeatUntil, { sa: [7], sb: [6, 8] }, t`Seven against six or eight`),
     worked(patternRace, { x: 'HH', y: 'TH', h: q(1, 2) }, t`HH against TH`),
   ],
@@ -448,5 +496,24 @@ export const firstStep: TopicContent = {
   terms: ['first-step-analysis'],
   claims,
   cambridge: [q12i, q12ii, q13i, q13ii, s2q3i, darts, s2q3proof, evenSuccesses],
-  gate: ['mixed-q12-i', 'mixed-q12-ii', 'mixed-q13-i', 'mixed-q13-ii', 's2-q3-i-w', 'sheet2-q4-darts', 's2-q3-i-compare', 'sheet2-q3'],
+  // STEP 2 Statistics Q3(i) first (a game with internal states), then the four-player race, Sheet 2 Q3's
+  // recurrence, the two-player race, the darts, and Q12(ii). Left out: Q12(i), a single geometric sum, and
+  // the comparison of Q3(i), which is algebra on the answer rather than first-step analysis.
+  gate: ['s2-q3-i-w', 'mixed-q13-ii', 'sheet2-q3', 'mixed-q13-i', 'sheet2-q4-darts', 'mixed-q12-ii'],
+  recall: [
+    { front: t`What is first-step analysis?`, back: t`The law of total probability over the first step, with unknowns for the chance from each situation reached; then solve.` },
+    { front: t`Rounds decided for A with probability ${ma}, for B with ${mb}, else repeat: A's chance?`, back: t`${math`\frac{a}{a + b}`}.` },
+    { front: t`What to do when the experiment has memory?`, back: t`One unknown per state, one equation for each.` },
+  ],
+  proofOrder: [
+    {
+      title: t`A wins with probability ${math`\frac{a}{a + b}`}`,
+      steps: [
+        t`Condition on the first round: ${math`x = a + (${1} - a - b)x`}.`,
+        t`Collect terms: ${math`(a + b)x = a`}.`,
+        t`Since ${math`a + b > ${0}`}, divide.`,
+        t`So ${math`x = \frac{a}{a + b}`}.`,
+      ],
+    },
+  ],
 };

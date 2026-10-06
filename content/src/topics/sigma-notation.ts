@@ -10,8 +10,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, pick, q, str, upTo, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
-import { computedMath as cm, computedTex, dmath, math, t, type Rich, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedMath as cm, computedTex, dmath, listOf, math, t, type Rich, type Span } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const NDOM = { n: { kind: 'integer' as const, min: 1, max: 40 } };
 const [mi, mn] = [math`i`, math`n`];
@@ -347,23 +347,76 @@ const bop10_20 = supervision({
 const L = { n: 5 };
 const ODD = poly([2, -1], 'i');
 const oddTerms = upTo(L.n).map((i) => 2 * i - 1);
+const HOOK_LAST = 99;
+const hookCount = (HOOK_LAST + 1) / 2;
+const [mm, mf] = [math`m`, math`f`];
 
 export const sigmaNotation: TopicContent = {
   topicId: 'alg.sigma-notation',
   goal: t`Read and write sums in sigma notation, and split, scale, shift, and telescope them to find formulas in ${mn}.`,
+  objective: t`Read and write sums in sigma notation, and split, shift and telescope them to find formulas.`,
+  why: t`Sums carry series, expectations and induction proofs; telescoping finds the formulas induction then proves.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`[[sigma-notation|Sigma notation]] writes a sum of terms that follow a rule. ${sigma(1, mn, cm(`(${ODD})`))} means: let the [[index-variable|index]] ${mi} run through ${math`${1}, ${2}, \ldots, n`}, work out ${cm(ODD)} for each, and add. For ${math`n = ${L.n}`}: ${math`${cmTerms(oddTerms)} = ${oddTerms.reduce((a, b) => a + b, 0)}`}.` },
-    { kind: 'p', text: t`The index is a dummy: ${math`\sum_{i = ${1}}^{n} i^{${2}}`} and ${math`\sum_{j = ${1}}^{n} j^{${2}}`} are the same sum. The sum ${math`\sum_{i = m}^{n}`} has ${math`n - m + ${1}`} terms, since both limits are included.` },
+    { kind: 'section', title: t`A name for a long sum` },
+    { kind: 'hook', text: t`Add up the odd numbers ${math`${1} + ${3} + ${5} + \cdots + ${HOOK_LAST}`}. Even writing the question needs dots and a hope that the reader sees the pattern. Is there a way to write such a sum exactly, and then to work out its value without adding ${hookCount} numbers?` },
+    { kind: 'narrative', text: t`The pattern is "${math`${2}i - ${1}`} for ${mi} from ${1} to ${hookCount}". If the notation records the rule and the range, nothing is left to guess. That notation uses the Greek capital sigma, ${math`\Sigma`}, for "sum".` },
+    { kind: 'section', title: t`Sigma notation` },
     {
-      kind: 'list', items: [
-        t`Split: ${math`\sum (a_i + b_i) = \sum a_i + \sum b_i`}.`,
-        t`Scale: ${math`\sum c\,a_i = c \sum a_i`}, and a constant term adds up once per term, ${math`\sum_{i = ${1}}^{n} c = cn`}.`,
-        t`Shift: ${math`\sum_{i = m}^{n} a_i = \sum_{j = ${1}}^{n - m + ${1}} a_{j + m - ${1}}`}, replacing ${mi} by ${math`j + m - ${1}`} in the term.`,
+      kind: 'definition',
+      name: t`Sigma notation`,
+      formal: t`For integers ${math`m \le n`} and numbers ${math`a_{m}, \ldots, a_{n}`}, ${dmath`\sum_{i = m}^{n} a_{i} = a_{m} + a_{m + ${1}} + \cdots + a_{n}.`} If ${math`n < m`} the sum is empty and equals ${0}.`,
+      plain: t`In plain words: [[sigma-notation|sigma notation]]. Let the [[index-variable|index]] ${mi} run from the bottom limit to the top one, work out the term for each, and add. ${sigma(1, mn, cm(`(${ODD})`))} with ${math`n = ${L.n}`} is ${math`${cmTerms(oddTerms)} = ${oddTerms.reduce((a, b) => a + b, 0)}`}.`,
+    },
+    {
+      kind: 'p',
+      text: t`Both limits are included, so ${math`\sum_{i = m}^{n}`} has ${math`n - m + ${1}`} terms. The index is a dummy: ${math`\sum_{i = ${1}}^{n} i^{${2}}`} and ${math`\sum_{j = ${1}}^{n} j^{${2}}`} are the same sum, just as a loop variable's name does not change what a loop computes.`,
+      why: { q: t`Why ${math`n - m + ${1}`} and not ${math`n - m`}?`, a: t`From ${3} to ${7} the values are ${listOf([3, 4, 5, 6, 7])}: five of them, and ${math`${7} - ${3} + ${1} = ${5}`}. Subtracting counts the gaps between the values; there is one more value than gaps.` },
+    },
+    checkFrom(evaluate, { m: 2, n: 5, a: 3, b: -1 }, t`The terms for ${math`i = ${2}, ${3}, ${4}, ${5}`} are ${listOf([5, 8, 11, 14])}, which add to ${38}.`),
+    { kind: 'section', title: t`Rules for manipulating sums` },
+    { kind: 'theorem', name: t`Linearity`, statement: t`For numbers ${math`a_{i}, b_{i}`} and a constant ${math`c`}, ${math`\sum_{i = m}^{n} (a_{i} + b_{i}) = \sum_{i = m}^{n} a_{i} + \sum_{i = m}^{n} b_{i}`} and ${math`\sum_{i = m}^{n} c\,a_{i} = c \sum_{i = m}^{n} a_{i}`}. In particular ${math`\sum_{i = ${1}}^{n} c = cn`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split`, text: t`${math`(a_{m} + b_{m}) + \cdots + (a_{n} + b_{n})`} can be reordered as ${math`(a_{m} + \cdots + a_{n}) + (b_{m} + \cdots + b_{n})`}, because a finite sum can be added in any order.` },
+        { label: t`Scale`, text: t`${math`c\,a_{m} + \cdots + c\,a_{n} = c(a_{m} + \cdots + a_{n})`}, by the distributive law.` },
+        { label: t`Constants`, text: t`${math`\sum_{i = ${1}}^{n} c`} has ${mn} terms, each equal to ${math`c`}, so it is ${math`cn`}.`, plain: t`The term does not mention ${mi}, but it is still added once for every value of ${mi}.` },
       ],
     },
-    { kind: 'rule', text: t`Two sums to know: ${dmath`\sum_{i = ${1}}^{n} i = \frac{n(n + ${1})}{${2}}, \qquad \sum_{i = ${1}}^{n} i^{${2}} = \frac{n(n + ${1})(${2}n + ${1})}{${6}}.`}` },
-    { kind: 'p', text: t`Where do they come from? The CST supervision exercise ${math`${4}.${3}.${2}`} gives the idea: a sum of differences ${math`\sum_{i = ${0}}^{n} \big(f(i + ${1}) - f(i)\big)`} [[telescoping|telescopes]], since everything cancels except ${math`f(n + ${1}) - f(${0})`}. With ${math`f(i) = i^{${2}}`}, each difference is ${math`${2}i + ${1}`}, so ${math`(n + ${1})^{${2}} = ${2}\sum i + (n + ${1})`}, which gives the first formula. With ${math`f(i) = i^{${3}}`} it gives the second.` },
-    { kind: 'p', text: t`The exercise asks more: that ${math`\sum_{i = ${0}}^{n} i^{k}`} is a polynomial in ${mn} for every ${math`k`}. Proving such formulas for every ${mn} is the job of induction, a later topic; finding them is the job of sum manipulation.` },
+    {
+      kind: 'p',
+      text: t`A third rule moves the index. To start a sum at ${1}, substitute ${math`i = j + m - ${1}`}: as ${math`j`} runs from ${1} to ${math`n - m + ${1}`}, ${mi} runs from ${mm} to ${mn}, so ${dmath`\sum_{i = m}^{n} a_{i} = \sum_{j = ${1}}^{n - m + ${1}} a_{j + m - ${1}}.`}`,
+    },
+    checkFrom(shift, { m: 3, a: 4, b: 1 }, t`Put ${math`i = j + ${2}`} into ${math`${4}i + ${1}`}: ${math`${4}(j + ${2}) + ${1} = ${4}j + ${9}`}.`),
+    { kind: 'pitfall', claim: t`${math`\sum_{i = ${1}}^{n} a_{i}b_{i} = \Big(\sum_{i = ${1}}^{n} a_{i}\Big)\Big(\sum_{i = ${1}}^{n} b_{i}\Big)`}.`, counterexample: t`Take ${math`n = ${2}`} and ${math`a_{i} = b_{i} = i`}. The left side is ${math`${1} + ${4} = ${5}`}; the right side is ${math`${3} \times ${3} = ${9}`}. Sums split over plus signs, not over products.` },
+    { kind: 'section', title: t`Telescoping` },
+    { kind: 'narrative', text: t`Now the trick that finds formulas. Cambridge supervision exercise ${math`${4}.${3}.${2}`} hints at it: look at a sum of differences of one function at neighbouring points. Almost everything cancels, like the sections of a telescope sliding into each other.` },
+    { kind: 'theorem', name: t`Telescoping sum`, statement: t`For any function ${mf} and ${math`n \ge ${0}`}, ${math`\sum_{i = ${0}}^{n} \big(f(i + ${1}) - f(i)\big) = f(n + ${1}) - f(${0})`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Write it out`, text: t`The sum is ${math`\big(f(${1}) - f(${0})\big) + \big(f(${2}) - f(${1})\big) + \cdots + \big(f(n + ${1}) - f(n)\big)`}.` },
+        { label: t`Cancel`, text: t`Each of ${math`f(${1}), \ldots, f(n)`} appears once with a plus sign and once with a minus sign, so they cancel.`, why: { q: t`Can you see it for a small case?`, a: t`With ${math`n = ${1}`}: ${math`\big(f(${1}) - f(${0})\big) + \big(f(${2}) - f(${1})\big) = f(${2}) - f(${0})`}, since ${math`f(${1})`} cancels.` } },
+        { label: t`What is left`, text: t`Only ${math`f(n + ${1})`} and ${math`-f(${0})`} survive.` },
+      ],
+    },
+    { kind: 'narrative', text: t`This is [[telescoping|telescoping]]. Choose ${mf} so that the differences are something you want to add up, and the theorem gives the total for free.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Choose f`, text: t`Take ${math`f(i) = i^{${2}}`}. Then ${math`f(i + ${1}) - f(i) = (i + ${1})^{${2}} - i^{${2}} = ${2}i + ${1}`}.` },
+        { label: t`Telescope`, text: t`By the theorem, ${math`\sum_{i = ${0}}^{n} (${2}i + ${1}) = (n + ${1})^{${2}} - ${0}^{${2}} = (n + ${1})^{${2}}`}.` },
+        { label: t`Use linearity`, text: t`The left side is ${math`${2}\sum_{i = ${0}}^{n} i + (n + ${1})`}, since the constant ${1} is added ${math`n + ${1}`} times.` },
+        { label: t`Solve`, text: t`So ${math`${2}\sum_{i = ${0}}^{n} i = (n + ${1})^{${2}} - (n + ${1}) = n(n + ${1})`}, and the ${math`i = ${0}`} term is ${0}:`, eq: [dmath`\sum_{i = ${1}}^{n} i = \frac{n(n + ${1})}{${2}}.`] },
+      ],
+    },
+    { kind: 'p', text: t`With ${math`f(i) = i^{${3}}`} the same steps give ${math`\sum_{i = ${1}}^{n} i^{${2}} = \frac{n(n + ${1})(${2}n + ${1})}{${6}}`}; that is the worked Cambridge example below. And the hook: ${math`\sum_{i = ${1}}^{${hookCount}} (${2}i - ${1}) = ${2} \times \frac{${hookCount} \times ${hookCount + 1}}{${2}} - ${hookCount} = ${hookCount * hookCount}`}.` },
+    checkFrom(closedForm, { body: { kind: 'lin', a: 4, b: -1 } }, t`Split and scale: ${math`${4}\sum i - \sum ${1} = ${4} \times \frac{n(n + ${1})}{${2}} - n = ${2}n^{${2}} + n`}.`),
+    { kind: 'pitfall', claim: t`${math`\sum_{i = ${1}}^{n} ${3} = ${3}`}.`, counterexample: t`The term does not depend on ${mi}, but it is still added once for each of the ${mn} values of ${mi}: the sum is ${math`${3}n`}.` },
+    { kind: 'takeaway', text: t`Sigma notation records the rule and the range; split, scale and shift to rearrange, and telescope ${math`f(i + ${1}) - f(i)`} to find closed forms.` },
   ],
   examples: [
     workedCambridge(sw432c),
@@ -374,5 +427,24 @@ export const sigmaNotation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sigma-notation', 'index-variable', 'telescoping'],
   cambridge: [bop10_1, bop10_4, bop10_6, bop10_7, bop10_15, bop10_3, sw432d, bop10_20],
+  // The general polynomial for the sum of kth powers is the one Cambridge-standard problem
+  // here; the rest are Book of Proof.
   gate: ['sw-4-3-2-d'],
+  recall: [
+    { front: t`How many terms has ${math`\sum_{i = m}^{n} a_{i}`}?`, back: t`${math`n - m + ${1}`}.` },
+    { front: t`State the telescoping sum.`, back: t`${math`\sum_{i = ${0}}^{n} \big(f(i + ${1}) - f(i)\big) = f(n + ${1}) - f(${0})`}.` },
+    { front: t`${math`\sum_{i = ${1}}^{n} i`} and ${math`\sum_{i = ${1}}^{n} i^{${2}}`}?`, back: t`${math`\frac{n(n + ${1})}{${2}}`} and ${math`\frac{n(n + ${1})(${2}n + ${1})}{${6}}`}.` },
+    { front: t`Shift ${math`\sum_{i = m}^{n} a_{i}`} to start at ${1}.`, back: t`${math`\sum_{j = ${1}}^{n - m + ${1}} a_{j + m - ${1}}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${math`\sum_{i = ${1}}^{n} i`} by telescoping`,
+      steps: [
+        t`With ${math`f(i) = i^{${2}}`}, ${math`f(i + ${1}) - f(i) = ${2}i + ${1}`}.`,
+        t`Telescoping: ${math`\sum_{i = ${0}}^{n} (${2}i + ${1}) = (n + ${1})^{${2}}`}.`,
+        t`Linearity: ${math`${2}\sum i + (n + ${1}) = (n + ${1})^{${2}}`}.`,
+        t`Solve: ${math`\sum_{i = ${1}}^{n} i = \frac{n(n + ${1})}{${2}}`}.`,
+      ],
+    },
+  ],
 };

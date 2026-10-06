@@ -11,8 +11,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, upTo } from '../math';
 import { mod } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { listOf, math, paren, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedTex, listOf, math, paren, t } from '../rich';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mm, mn, mq, mr] = [math`m`, math`n`, math`q`, math`r`];
 const big = (v: { num: bigint; den: bigint } | undefined): number | null => (v === undefined || v.den !== 1n ? null : Number(v.num));
@@ -233,15 +233,96 @@ const sheet213all = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+/** The division algorithm's states (q, r) for m and n, from (0, m) until r < n. */
+function trace(m: number, n: number): [number, number][] {
+  const out: [number, number][] = [[0, m]];
+  while ((out[out.length - 1] as [number, number])[1] >= n) {
+    const [q, r] = out[out.length - 1] as [number, number];
+    out.push([q + 1, r - n]);
+  }
+  return out;
+}
+const [TM, TN] = [20, 6];
+const traceTex = (m: number, n: number): string => trace(m, n).map(([q, r]) => `(${q}, ${r})`).join(',\\ ');
+const [NEG, NB] = [-17, 3];
+
 export const divisionTheorem: TopicContent = {
   topicId: 'num.division-theorem',
   goal: t`State and use the division theorem: unique ${mq} and ${mr} with ${math`m = q n + r`} and ${math`${0} \le r < n`}, found by repeated subtraction, with uniqueness as the tool for proving facts about remainders.`,
+  objective: t`State the division theorem, prove the remainder is unique, and use uniqueness to prove remainder rules.`,
+  why: t`Every remainder in number theory rests on it; next come congruences, the gcd, and Euclid's algorithm.`,
+  minutes: 25,
   lesson: [
-    { kind: 'rule', text: t`Division Theorem (Theorem ${54} of the notes): for every natural number ${mm} and positive ${mn} there is a unique pair of integers ${math`q \ge ${0}`} and ${math`${0} \le r < n`} with ${math`m = q \cdot n + r`}. They are the [[quotient-remainder|quotient and remainder]], ${math`\mathrm{quo}(m, n)`} and ${math`\mathrm{rem}(m, n)`}.` },
-    { kind: 'p', text: t`Existence is the division algorithm: start from ${math`(q, r) = (${0}, m)`} and, while ${math`r \ge n`}, replace ${math`(q, r)`} by ${math`(q + ${1}, r - n)`}. Every step keeps the [[loop-invariant|invariant]] ${math`m = q \cdot n + r`} with ${math`q, r \ge ${0}`}, and ${mr} falls each time, so it stops, with ${math`r < n`}. For ${math`m = ${17}`}, ${math`n = ${3}`}: ${math`(${0}, ${17}), (${1}, ${14}), \ldots, (${5}, ${2})`}.` },
-    { kind: 'p', text: t`Uniqueness (Lemma ${56}): if ${math`q n + r = ${0}`} with ${math`${0} \le r < n`}, then ${math`q n`} is at most ${0} and more than ${math`-n`}, so ${math`q = ${0}`} and ${math`r = ${0}`}. Two divisions of the same number differ by such a pair, so they are equal.` },
-    { kind: 'p', text: t`Uniqueness is a proof tool. To show two remainders are equal, show both fit a division of the same number. The official solution to exercise ${2}.${1}.${3}(a): ${math`km + l = (k + \mathrm{quo}(l, m))\,m + \mathrm{rem}(l, m)`}, so ${math`\mathrm{rem}(km + l, m) = \mathrm{rem}(l, m)`}.` },
-    { kind: 'p', text: t`Negative numbers divide the same way, with ${mq} rounded down so that ${mr} stays from ${0} to ${math`n - ${1}`}: ${math`-${17} = (-${6}) \times ${3} + ${1}`}, not ${math`(-${5}) \times ${3} - ${2}`}. The notes' ${math`[k]_{m}`} is that remainder: ${math`[-${17}]_{${3}} = ${mod(-17, 3)}`}. Many programming languages round toward zero instead and give ${math`-${2}`}.` },
+    { kind: 'section', title: t`Sharing out sweets` },
+    { kind: 'hook', text: t`Share ${TM} sweets among ${TN} children: each gets ${Math.floor(TM / TN)}, and ${TM % TN} are left over. You learned that as a child. But why is there always exactly one answer? Could a cleverer sharing give a different leftover? Proving that it cannot is the first theorem of number theory.` },
+    { kind: 'narrative', text: t`"Each gets ${Math.floor(TM / TN)}, ${TM % TN} left" is the equation ${math`${TM} = ${Math.floor(TM / TN)} \times ${TN} + ${TM % TN}`}. The leftover must be smaller than ${TN}; otherwise you could hand out another round. The CST notes state the general fact like this.` },
+    {
+      kind: 'theorem',
+      name: t`Division Theorem`,
+      statement: t`For every natural number ${mm} and positive integer ${mn}, there is a unique pair of integers ${mq} and ${mr} with ${math`q \ge ${0}`}, ${math`${0} \le r < n`}, and ${math`m = q \cdot n + r`}.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Quotient and remainder`,
+      formal: t`For ${mm} and ${mn} as in the Division Theorem, the unique ${mq} and ${mr} are the [[quotient-remainder|quotient and remainder]] of ${mm} on division by ${mn}, written ${math`\mathrm{quo}(m, n)`} and ${math`\mathrm{rem}(m, n)`}.`,
+      plain: t`how many full rounds, and how many are left over. ${math`\mathrm{quo}(${TM}, ${TN}) = ${Math.floor(TM / TN)}`} and ${math`\mathrm{rem}(${TM}, ${TN}) = ${TM % TN}`}.`,
+    },
+    { kind: 'p', text: t`The theorem makes two claims. Existence: some such pair exists. Uniqueness: only one does. They need different proofs.` },
+    { kind: 'section', title: t`Existence: the algorithm` },
+    { kind: 'narrative', text: t`Existence is proved by doing it. Start with nobody served: quotient ${0}, remainder ${mm}. While at least ${mn} are left, serve one more round: add ${1} to ${mq} and take ${mn} from ${mr}. For ${math`m = ${TM}`} and ${math`n = ${TN}`} the pairs ${math`(q, r)`} are ${math`${computedTex(traceTex(TM, TN))}`}.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Start`, text: t`${math`(q, r) = (${0}, m)`}. Then ${math`m = q \cdot n + r`}, ${math`q \ge ${0}`}, and ${math`r \ge ${0}`}.`, plain: t`${math`m = ${0} \cdot n + m`}, and ${mm} is a natural number.` },
+        { label: t`Each step keeps the equation`, text: t`If ${math`r \ge n`}, replace ${math`(q, r)`} by ${math`(q + ${1}, r - n)`}. Then ${math`(q + ${1}) n + (r - n) = q n + r = m`}, ${math`q + ${1} \ge ${0}`}, and ${math`r - n \ge ${0}`}.`, plain: t`One more round served, ${mn} fewer left: the total is unchanged, and nothing goes negative because we only serve when at least ${mn} remain.` },
+        { label: t`It stops`, text: t`Each step lowers ${mr} by ${mn}, at least ${1}. A natural number cannot fall for ever, so after finitely many steps ${math`r < n`}.`, plain: t`At most ${mm} steps, since ${mr} starts at ${mm}.` },
+        { label: t`Read off the answer`, text: t`At the stop, ${math`m = q \cdot n + r`} with ${math`q \ge ${0}`} and ${math`${0} \le r < n`}.`, plain: t`Exactly the pair the theorem asks for.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`The equation ${math`m = q \cdot n + r`}, with ${math`q, r \ge ${0}`}, holds at the start and survives every step. A statement like that is a [[loop-invariant|loop invariant]]: the notes use it to prove the program correct.`,
+      why: { q: t`Why is an invariant enough to prove the program right?`, a: t`If a statement is true at the start and each step keeps it true, it is true when the loop stops. At the stop we also know ${math`r < n`}, the loop's exit condition. Together those are the theorem.` },
+    },
+    { kind: 'section', title: t`Uniqueness` },
+    { kind: 'narrative', text: t`Could two different pairs both work? Suppose they did, and compare them. The trick is that two remainders, each between ${0} and ${math`n - ${1}`}, are too close together to differ by a whole multiple of ${mn}, unless they are equal.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Two divisions`, text: t`Suppose ${math`m = q n + r = q' n + r'`} with ${math`${0} \le r < n`} and ${math`${0} \le r' < n`}.`, plain: t`Two pairs ${math`(q, r)`} and ${math`(q', r')`} that both satisfy the theorem.` },
+        { label: t`Subtract`, text: t`Then ${math`(q - q') n = r' - r`}.`, plain: t`Take ${math`q'n + r'`} from ${math`qn + r`}: the left side is ${0}, so ${math`(q - q')n + (r - r') = ${0}`}; move ${math`r - r'`} across.` },
+        {
+          label: t`The right side is small`, text: t`${math`-n < r' - r < n`}.`,
+          plain: t`The largest ${math`r' - r`} can be is ${math`(n - ${1}) - ${0}`}, and the smallest is ${math`${0} - (n - ${1})`}.`,
+        },
+        {
+          label: t`So the multiple is zero`, text: t`${math`(q - q')n`} is a multiple of ${mn} strictly between ${math`-n`} and ${mn}, so ${math`q - q' = ${0}`}.`,
+          why: { q: t`Why must the multiple be zero?`, a: t`If ${math`q - q'`} were ${1} or more, ${math`(q - q')n`} would be at least ${mn}; if it were ${math`${-1}`} or less, at most ${math`-n`}. Both are outside the range. With ${math`n = ${TN}`}: the multiples of ${TN} strictly between ${math`${-TN}`} and ${TN} are just ${0}.` },
+        },
+        { label: t`Conclude`, text: t`So ${math`q = q'`}, and then ${math`r' - r = ${0} \cdot n = ${0}`}, so ${math`r = r'`}.`, plain: t`The two pairs were the same pair all along.` },
+      ],
+    },
+    { kind: 'section', title: t`Uniqueness as a tool` },
+    { kind: 'narrative', text: t`Uniqueness is more than a curiosity: it is how you prove facts about remainders. To show ${math`\mathrm{rem}(x, n) = s`}, write ${math`x = (\text{something}) \cdot n + s`} with ${math`${0} \le s < n`}. Since there is only one such way, ${mr} must be ${math`s`}. The supervision exercise ${2}.${1}.${3} asks for three proofs of exactly this kind.` },
+    quickCheck({
+      prompt: t`Using ${math`\mathrm{rem}(k \cdot m + l, m) = \mathrm{rem}(l, m)`}, find ${math`\mathrm{rem}(${100} \times ${7} + ${10}, ${7})`} without multiplying out.`,
+      answer: { kind: 'exact', expected: String((100 * 7 + 10) % 7) },
+      reference: String((100 * 7 + 10) % 7),
+      why: t`The multiple of ${7} drops out: ${math`\mathrm{rem}(${10}, ${7}) = ${10 % 7}`}, since ${math`${10} = ${1} \times ${7} + ${10 % 7}`}.`,
+    }),
+    { kind: 'section', title: t`Negative numbers` },
+    {
+      kind: 'p',
+      text: t`The theorem extends to every integer ${mm}: there is still a unique ${mr} with ${math`${0} \le r < n`}. Round the quotient down, not toward zero: ${math`${NEG} = (${Math.floor(NEG / NB)}) \times ${NB} + ${mod(NEG, NB)}`}. The notes write this remainder ${math`[k]_{m}`}: ${math`[${NEG}]_{${NB}} = ${mod(NEG, NB)}`}.`,
+      why: { q: t`Why round down?`, a: t`Rounding toward zero gives ${math`${NEG} = (${Math.trunc(NEG / NB)}) \times ${NB} + (${NEG - Math.trunc(NEG / NB) * NB})`}, and ${math`${NEG - Math.trunc(NEG / NB) * NB}`} is not between ${0} and ${NB - 1}. Rounding down is the only choice that keeps the remainder in range.` },
+    },
+    {
+      kind: 'pitfall',
+      claim: t`The remainder of ${NEG} on division by ${NB} is ${math`${NEG - Math.trunc(NEG / NB) * NB}`}, as many programming languages say.`,
+      counterexample: t`A remainder must satisfy ${math`${0} \le r < ${NB}`}. Languages such as C and Java round the quotient toward zero and return ${math`${NEG - Math.trunc(NEG / NB) * NB}`}, but the mathematical remainder is ${mod(NEG, NB)}: ${math`${NEG} = (${Math.floor(NEG / NB)}) \times ${NB} + ${mod(NEG, NB)}`}.`,
+    },
+    { kind: 'takeaway', text: t`For ${math`n > ${0}`} there is exactly one way to write ${math`m = qn + r`} with ${math`${0} \le r < n`}; repeated subtraction finds it, and its uniqueness is the tool for proving facts about remainders.` },
   ],
   examples: [
     workedCambridge(bop19),
@@ -252,5 +333,24 @@ export const divisionTheorem: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quotient-remainder', 'loop-invariant'],
   cambridge: [sheet213, cor59, bop728, theorem57, sheet213all],
-  gate: ['sheet-2-1-3-a', 'notes-186-cor-59', 'notes-181-theorem-57', 'sheet-2-1-3'],
+  // The three identities of 2.1.3 need uniqueness used three times; Theorem 57 asks for the invariant
+  // argument. The numeric versions (2.1.3(a) at numbers, Corollary 59) are one-line computations.
+  gate: ['sheet-2-1-3', 'notes-181-theorem-57'],
+  recall: [
+    { front: t`State the Division Theorem.`, back: t`For natural ${mm} and positive ${mn}, there are unique integers ${math`q \ge ${0}`} and ${math`${0} \le r < n`} with ${math`m = qn + r`}.` },
+    { front: t`What is the loop invariant of the division algorithm?`, back: t`${math`m = q \cdot n + r`} with ${math`q \ge ${0}`} and ${math`r \ge ${0}`}.` },
+    { front: t`Why is the remainder unique?`, back: t`Two divisions give ${math`(q - q')n = r' - r`}, a multiple of ${mn} strictly between ${math`-n`} and ${mn}, so zero.` },
+    { front: t`How do you prove ${math`\mathrm{rem}(x, n) = s`}?`, back: t`Write ${math`x = (\text{integer}) \cdot n + s`} with ${math`${0} \le s < n`}, and use uniqueness.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The remainder is unique`,
+      steps: [
+        t`Suppose ${math`qn + r = q'n + r'`} with ${math`${0} \le r, r' < n`}.`,
+        t`Subtract: ${math`(q - q')n = r' - r`}.`,
+        t`${math`r' - r`} lies strictly between ${math`-n`} and ${mn}.`,
+        t`The only multiple of ${mn} in that range is ${0}, so ${math`q = q'`} and ${math`r = r'`}.`,
+      ],
+    },
+  ],
 };

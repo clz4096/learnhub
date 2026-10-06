@@ -7,8 +7,8 @@
 import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
 import { int, pick, sample, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
-import { math, setOf, t, type Rich, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { dmath, math, setOf, t, type Rich, type Span } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 type Op = 'union' | 'intersection';
 
@@ -398,35 +398,77 @@ const bop17_10 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
-const L = { n: 10, a: [1, 2, 3, 4, 6], b: [2, 4, 6, 8, 10] };
+const L = { n: 10, a: [1, 2, 3, 4, 6], b: [2, 4, 6, 8, 10], c: [1, 8, 9] };
 const LU = upTo(L.n);
 const venn = {
   onlyA: minus(L.a, L.b), both: inter(L.a, L.b), onlyB: minus(L.b, L.a), neither: minus(LU, union(L.a, L.b)),
 };
+const U = math`U`;
 
 export const setNotation: TopicContent = {
   topicId: 'pre.set-notation',
   goal: t`Read and use set notation for union, intersection, difference, and complement, and draw them as a Venn diagram.`,
+  objective: t`Read and use union, intersection, difference and complement, and draw them on a Venn diagram.`,
+  why: t`Events in probability are sets, so every probability rule is a rule about these operations.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`A [[set|set]] is a collection of things, written between curly brackets. Each thing in it is an [[element|element]]. Two sets are equal when they have exactly the same elements, so order and repeats do not matter: ${setOf([3, 1, 2])}, ${setOf([1, 2, 3])}, and ${setOf([1, 1, 2, 3])} are the same set. We write ${math`${2} \in ${setOf([1, 2, 3])}`} to say ${2} is an element, and ${math`${5} \notin ${setOf([1, 2, 3])}`} to say ${5} is not.` },
-    { kind: 'p', text: t`Sets combine like statements. "${A} or ${B}" becomes the union, "${A} and ${B}" the intersection, and "not ${A}" the complement, which is how the TMUA notes draw them: one diagram serves for sets, for events, and for statements.` },
-    { kind: 'p', text: t`We almost always regard a set as part of a larger one, the [[universal-set|universal set]], which holds everything under discussion. Book of Proof calls it ${math`U`}; school books often write ${math`\xi`}. Here it is ${math`U = ${setOf(LU)}`}, with ${math`A = ${setOf(L.a)}`} and ${math`B = ${setOf(L.b)}`}.` },
+    { kind: 'section', title: t`Or, and, not` },
+    { kind: 'hook', text: t`In a class, some students play chess and some play football. "Chess or football", "chess and football", "chess but not football", "neither": four different groups, and getting them mixed up is behind many wrong answers in probability. Set notation gives each one a precise name and a picture.` },
+    { kind: 'narrative', text: t`The TMUA notes make a useful point: the same picture serves for sets, for events, and for statements. "Or" will become union, "and" intersection, "not" complement. Learn the picture once and it pays off three times.` },
+    { kind: 'section', title: t`Sets and the universal set` },
+    {
+      kind: 'definition',
+      name: t`Set and element`,
+      formal: t`A [[set|set]] is a collection of objects, its [[element|elements]]. We write ${math`x \in A`} if ${math`x`} is an element of ${A}, and ${math`x \notin A`} if not. Sets are equal when they have exactly the same elements.`,
+      plain: t`In plain words: a collection written between curly brackets, where order and repeats do not matter. ${setOf([3, 1, 2])}, ${setOf([1, 2, 3])} and ${setOf([1, 1, 2, 3])} are the same set; ${math`${2} \in ${setOf([1, 2, 3])}`} and ${math`${5} \notin ${setOf([1, 2, 3])}`}.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Universal set and empty set`,
+      formal: t`The [[universal-set|universal set]] ${U} is a set containing every object under discussion. The [[empty-set|empty set]] ${math`\varnothing`} is the set with no elements.`,
+      plain: t`In plain words: ${U} is the whole box of things we are talking about; Book of Proof writes ${U}, and school books and the practice questions write ${math`\xi`}. Below, ${math`U = ${setOf(LU)}`}, with ${math`A = ${setOf(L.a)}`} and ${math`B = ${setOf(L.b)}`}.`,
+    },
+    { kind: 'section', title: t`The four operations` },
+    {
+      kind: 'definition',
+      name: t`Union, intersection, difference, complement`,
+      formal: t`For sets ${A} and ${B} in ${U}: ${dmath`A \cup B = \{x \mid x \in A \text{ or } x \in B\}, \qquad A \cap B = \{x \mid x \in A \text{ and } x \in B\},`} ${dmath`A - B = \{x \mid x \in A \text{ and } x \notin B\}, \qquad \overline{A} = U - A.`}`,
+      plain: t`In plain words: the [[union|union]] is everything in ${A} or ${B} or both; the [[intersection|intersection]] is everything in both; the [[set-difference|difference]] ${math`A - B`} is ${A} with ${B} taken out; the [[complement|complement]] is everything not in ${A}. School books write the complement ${math`A'`}.`,
+    },
     {
       kind: 'list',
       items: [
-        t`The [[union|union]] ${math`A \cup B`} is everything in ${A} or ${B} or both: ${setOf(union(L.a, L.b))}.`,
-        t`The [[intersection|intersection]] ${math`A \cap B`} is everything in both: ${setOf(inter(L.a, L.b))}.`,
-        t`The [[set-difference|difference]] ${math`A - B`} is everything in ${A} that is not in ${B}: ${setOf(minus(L.a, L.b))}. Order matters: ${math`B - A = ${setOf(minus(L.b, L.a))}`}.`,
-        t`The [[complement|complement]] of ${A} is everything in ${math`U`} that is not in ${A}, so it is ${math`U - A`}: ${setOf(minus(LU, L.a))}. Book of Proof writes it ${math`\overline{A}`}; school books often write ${math`A'`}.`,
-        t`A set with no elements is the [[empty-set|empty set]], written ${math`\varnothing`}. For example ${math`A - A = \varnothing`}.`,
+        t`${math`A \cup B = ${setOf(union(L.a, L.b))}`}.`,
+        t`${math`A \cap B = ${setOf(inter(L.a, L.b))}`}.`,
+        t`${math`A - B = ${setOf(minus(L.a, L.b))}`}, but ${math`B - A = ${setOf(minus(L.b, L.a))}`}: order matters.`,
+        t`${math`\overline{A} = ${setOf(minus(LU, L.a))}`}, and ${math`A - A = \varnothing`}.`,
       ],
     },
     {
-      kind: 'venn', a: 'A', b: 'B', caption: t`A [[venn-diagram|Venn diagram]] of the sets above. The box is ${math`\xi`}; each circle is a set.`,
+      kind: 'venn', a: 'A', b: 'B', caption: t`A [[venn-diagram|Venn diagram]] of the sets above. The box is ${U}; each circle is a set.`,
       onlyA: [setOf(venn.onlyA)], both: [setOf(venn.both)], onlyB: [setOf(venn.onlyB)], neither: [setOf(venn.neither)],
     },
-    { kind: 'p', text: t`Read the regions: the overlap is ${math`A \cap B`}; both circles together are ${math`A \cup B`}; circle ${A} without the overlap is ${math`A - B`}; everything outside circle ${A} is ${math`\overline{A}`}. To count ${math`A \cup B`}, adding the sizes counts the overlap twice: ${math`${L.a.length} + ${L.b.length} - ${venn.both.length} = ${union(L.a, L.b).length}`}.` },
-    { kind: 'p', text: t`With three sets, brackets matter. ${math`A \cup B \cup C`} needs none, and neither does ${math`A \cap B \cap C`}, but ${math`(A \cup B) \cap C`} and ${math`A \cup (B \cap C)`} are different regions, so ${math`A \cup B \cap C`} means nothing until it is bracketed. Shade each part in a diagram before combining them, as Book of Proof does with its Venn diagrams for three sets.` },
+    { kind: 'p', text: t`Read the regions: the overlap is ${math`A \cap B`}; both circles together are ${math`A \cup B`}; circle ${A} without the overlap is ${math`A - B`}; everything outside circle ${A} is ${math`\overline{A}`}; outside both circles is ${math`\overline{A \cup B}`}.` },
+    checkFrom(complement, { n: 8, a: [1, 2, 5], b: [2, 3, 6], kind: 'union' }, t`${math`A \cup B = ${setOf(union([1, 2, 5], [2, 3, 6]))}`}, so its complement in ${setOf(upTo(8))} is ${setOf(minus(upTo(8), union([1, 2, 5], [2, 3, 6])))}.`),
+    { kind: 'section', title: t`Counting a union` },
+    { kind: 'narrative', text: t`How many elements does ${math`A \cup B`} have? Adding ${math`\lvert A \rvert`} and ${math`\lvert B \rvert`} (the numbers of elements) gives ${L.a.length + L.b.length}, but ${math`A \cup B`} has only ${union(L.a, L.b).length}. The elements of the overlap were counted twice, once in each circle.` },
+    { kind: 'theorem', statement: t`For finite sets ${A} and ${B}, ${math`\lvert A \cup B \rvert = \lvert A \rvert + \lvert B \rvert - \lvert A \cap B \rvert`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split the union`, text: t`Every element of ${math`A \cup B`} lies in exactly one of ${math`A - B`}, ${math`A \cap B`}, ${math`B - A`}, so ${math`\lvert A \cup B \rvert = \lvert A - B \rvert + \lvert A \cap B \rvert + \lvert B - A \rvert`}.`, plain: t`The three regions of the two circles: only ${A}, both, only ${B}.` },
+        { label: t`Split each set`, text: t`Likewise ${math`\lvert A \rvert = \lvert A - B \rvert + \lvert A \cap B \rvert`} and ${math`\lvert B \rvert = \lvert B - A \rvert + \lvert A \cap B \rvert`}.` },
+        { label: t`Add and compare`, text: t`Adding the last two, ${math`\lvert A \rvert + \lvert B \rvert = \lvert A - B \rvert + \lvert B - A \rvert + ${2}\lvert A \cap B \rvert`}, which is ${math`\lvert A \cup B \rvert + \lvert A \cap B \rvert`}. Subtract ${math`\lvert A \cap B \rvert`}.` },
+      ],
+    },
+    { kind: 'p', text: t`Check: ${math`${L.a.length} + ${L.b.length} - ${venn.both.length} = ${union(L.a, L.b).length}`}.` },
+    checkFrom(countRegions, { x: 14, y: 11, z: 5, total: 30, ask: 'union' }, t`${math`${14} + ${11} - ${5} = ${20}`}: the ${5} who play both were counted twice.`),
+    { kind: 'pitfall', claim: t`${math`\lvert A \cup B \rvert = \lvert A \rvert + \lvert B \rvert`}.`, counterexample: t`With the sets above, ${math`\lvert A \rvert + \lvert B \rvert = ${L.a.length + L.b.length}`}, but ${math`A \cup B`} has ${union(L.a, L.b).length} elements. It holds only when ${math`A \cap B = \varnothing`}.` },
+    { kind: 'section', title: t`Three sets need brackets` },
+    { kind: 'p', text: t`${math`A \cup B \cup C`} needs no brackets, and neither does ${math`A \cap B \cap C`}. Mixing the two does. Take ${math`C = ${setOf(L.c)}`}. Then ${math`(A \cup B) \cap C = ${setOf(inter(union(L.a, L.b), L.c))}`}, but ${math`A \cup (B \cap C) = ${setOf(union(L.a, inter(L.b, L.c)))}`}.` },
+    { kind: 'pitfall', claim: t`${math`A \cup B \cap C`} is a set.`, counterexample: t`Without brackets it could mean ${math`(A \cup B) \cap C`} or ${math`A \cup (B \cap C)`}, and with ${math`C = ${setOf(L.c)}`} these differ. Shade each part in a diagram before combining, as Book of Proof does.` },
+    { kind: 'takeaway', text: t`Union is or, intersection is and, complement is not, difference is "but not"; and the overlap is counted once, not twice.` },
   ],
   examples: [
     worked(unionIntersection, { n: 10, a: [1, 3, 5, 7], b: [3, 4, 5, 6], op: 'intersection' }, t`An intersection`),
@@ -438,5 +480,23 @@ export const setNotation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['set', 'element', 'universal-set', 'union', 'intersection', 'set-difference', 'complement', 'empty-set', 'venn-diagram'],
   cambridge: [bop15a, bop15c, bop15g, bop15i, bop16a, bop16g, bop16b2f, bop17_5, bop17_8, bop17_3, bop17_10],
+  // Every problem here is from Book of Proof, which is not a gate document; no
+  // Cambridge-standard problem is written for this topic yet, so it has no gate.
   gate: [],
+  recall: [
+    { front: t`Define ${math`A \cup B`}, ${math`A \cap B`}, ${math`A - B`} and ${math`\overline{A}`}.`, back: t`In ${A} or ${B}; in both; in ${A} but not ${B}; in ${U} but not ${A}.` },
+    { front: t`State the counting rule for a union of two sets.`, back: t`${math`\lvert A \cup B \rvert = \lvert A \rvert + \lvert B \rvert - \lvert A \cap B \rvert`}.` },
+    { front: t`When are two sets equal?`, back: t`When they have exactly the same elements; order and repeats do not matter.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Counting a union`,
+      steps: [
+        t`${math`A \cup B`} splits into ${math`A - B`}, ${math`A \cap B`} and ${math`B - A`}.`,
+        t`${A} splits into ${math`A - B`} and ${math`A \cap B`}; ${B} into ${math`B - A`} and ${math`A \cap B`}.`,
+        t`So ${math`\lvert A \rvert + \lvert B \rvert`} counts the overlap twice.`,
+        t`Subtract it once: ${math`\lvert A \cup B \rvert = \lvert A \rvert + \lvert B \rvert - \lvert A \cap B \rvert`}.`,
+      ],
+    },
+  ],
 };

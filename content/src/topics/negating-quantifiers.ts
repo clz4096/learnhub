@@ -10,8 +10,8 @@
 import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
 import { int, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
-import { computedTex, math, t, type Rich, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedTex, dmath, math, t, type Rich, type Span } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mx, my] = [math`x`, math`y`];
 const [mS1, mN1] = [math`S_{${1}}`, math`N_{${1}}`];
@@ -432,19 +432,74 @@ const bop12 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const mP = math`P(x)`;
+
 export const negatingQuantifiers: TopicContent = {
   topicId: 'logic.negating-quantifiers',
   goal: t`Negate a statement with quantifiers by swapping each "for all" and "there exists" and negating what is inside, and write the negation in plain words.`,
+  objective: t`Negate a statement with quantifiers: swap each "for all" and "there exists", then negate the inside.`,
+  why: t`To disprove a claim you prove its negation, so you must write the negation exactly right.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The TMUA notes start with ${mS1}: "for all real ${mx}, ${math`x^{${2}} > ${S1}`}". Its negation ${mN1}, "it is not the case that for all real ${mx}, ${math`x^{${2}} > ${S1}`}", says there is some ${mx} for which ${math`x^{${2}} > ${S1}`} fails: "there exists a real ${mx} such that ${math`x^{${2}} \le ${S1}`}". ${mS1} is false and ${mN1} true; ${math`x = ${2}`} shows it.` },
-    { kind: 'rule', text: t`${math`\lnot \forall x.\ P(x)`} is equivalent to ${math`\exists x.\ \lnot P(x)`}, and ${math`\lnot \exists x.\ P(x)`} is equivalent to ${math`\forall x.\ \lnot P(x)`}. "Not for all" is "there is one for which it fails"; "there is none" is "for all, it fails".` },
-    { kind: 'p', text: t`With several quantifiers, move the "not" inwards one quantifier at a time, swapping each. Book of Proof's Example ${2.13}: every real number has a cube root, ${math`\forall x \in \mathbb{R}\ \exists y \in \mathbb{R}.\ y^{${3}} = x`}. Its negation is ${math`\exists x \in \mathbb{R}\ \forall y \in \mathbb{R}.\ y^{${3}} \ne x`}: some real number has no cube root. The order of the quantifiers is kept; only each one swaps.` },
-    { kind: 'p', text: t`Then negate the inside with what you know: ${math`\lnot (a > b)`} is ${math`a \le b`} (the equality case goes with it); ${math`\lnot (P \land Q)`} is ${math`\lnot P \lor \lnot Q`}; and ${math`\lnot (P \Rightarrow Q)`} is ${math`P \land \lnot Q`}. So the negation of "if ${mx} is odd, then ${math`x^{${2}}`} is odd", read as ${math`\forall x \in \mathbb{Z}.\ x \text{ odd} \Rightarrow x^{${2}} \text{ odd}`}, is "there is an odd integer whose square is not odd" (Book of Proof's Example ${2.15}).` },
-    { kind: 'p', text: t`The [[negation-of-quantifier|negation]] of a "for all" statement is a "there exists" statement, and a witness for it is a counterexample to the original. A statement and its negation always have opposite truth values, so proving the negation is how a statement is disproved.` },
-    { kind: 'p', text: t`In words, "every A is B" negates to "some A is not B", not "no A is B" (that is too strong) and not "some A is B" (that does not contradict it). Hidden quantifiers need care: "I don't eat anything that has a face" is a "for all", so its negation is "I eat some things that have a face".` },
+    { kind: 'section', title: t`One black swan` },
+    { kind: 'hook', text: t`"Every swan is white." What would it take to show that this is false? Not that every swan is black, and not that no swan is white. One black swan is enough. The opposite of "every" is not "none"; it is "at least one is not".` },
+    { kind: 'narrative', text: t`The TMUA notes make the same point with ${mS1}: "for all real ${mx}, ${math`x^{${2}} > ${S1}`}". Its negation ${mN1} is "it is not the case that for all real ${mx}, ${math`x^{${2}} > ${S1}`}", which says some real ${mx} has ${math`x^{${2}} \le ${S1}`}. And ${math`x = ${2}`} is one: ${math`${2}^{${2}} = ${4} \le ${S1}`}. So ${mS1} is false and ${mN1} is true.` },
+    { kind: 'narrative', text: t`Notation: ${math`\forall x`} means "for all ${mx}", ${math`\exists x`} means "there exists an ${mx}", and ${math`\lnot`} means "not". ${mP} is a statement about ${mx}, true for some values and false for others, such as ${math`x^{${2}} > ${S1}`}.` },
+
+    { kind: 'section', title: t`The two laws` },
+    { kind: 'theorem', name: t`Negating a quantifier`, statement: t`For any statement ${mP} about the elements ${mx} of a set, ${dmath`\lnot\, \forall x.\ P(x) \iff \exists x.\ \lnot P(x), \qquad \lnot\, \exists x.\ P(x) \iff \forall x.\ \lnot P(x).`}` },
+    { kind: 'p', text: t`In plain words: "not all" means "at least one fails", and "there is none" means "every one fails". This is the [[negation-of-quantifier|negation of a quantifier]]: the "not" moves inside and the quantifier swaps.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Unpack the left side`, text: t`${math`\lnot\, \forall x.\ P(x)`} is true exactly when ${math`\forall x.\ P(x)`} is false.` },
+        { label: t`What "false for all" means`, text: t`${math`\forall x.\ P(x)`} is false exactly when it is not the case that every ${mx} makes ${mP} true, that is, when at least one ${mx} makes ${mP} false.` },
+        { label: t`That is an existence statement`, text: t`"At least one ${mx} makes ${mP} false" is ${math`\exists x.\ \lnot P(x)`}. This proves the first law.` },
+        { label: t`The second law from the first`, text: t`Apply the first law to the statement ${math`\lnot P(x)`}: ${math`\lnot\, \forall x.\ \lnot P(x) \iff \exists x.\ \lnot\lnot P(x) \iff \exists x.\ P(x)`}. Negate both sides.`, plain: t`Two "not"s cancel, and negating both sides of an equivalence keeps it an equivalence.` },
+      ],
+    },
+    { kind: 'p', text: t`A statement and its negation always have opposite truth values. So to disprove ${math`\forall x.\ P(x)`}, prove ${math`\exists x.\ \lnot P(x)`}: exhibit one ${mx} where ${mP} fails, a counterexample.` },
+
+    { kind: 'section', title: t`Several quantifiers` },
+    { kind: 'narrative', text: t`With several quantifiers, move the "not" inwards one quantifier at a time. Each quantifier it passes swaps; their order stays the same. Book of Proof's Example ${2.13}: every real number has a cube root.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The statement`, text: t`${math`\forall x \in \mathbb{R}\ \exists y \in \mathbb{R}.\ y^{${3}} = x`}.` },
+        { label: t`Negate it`, text: t`${math`\lnot\, \forall x \in \mathbb{R}\ \exists y \in \mathbb{R}.\ y^{${3}} = x`}.` },
+        { label: t`Pass the first quantifier`, text: t`${math`\exists x \in \mathbb{R}\ \lnot\, \exists y \in \mathbb{R}.\ y^{${3}} = x`}.`, plain: t`"Not for all ${mx}" becomes "there is an ${mx} for which not".` },
+        { label: t`Pass the second`, text: t`${math`\exists x \in \mathbb{R}\ \forall y \in \mathbb{R}.\ \lnot(y^{${3}} = x)`}, that is ${math`\exists x \in \mathbb{R}\ \forall y \in \mathbb{R}.\ y^{${3}} \ne x`}.`, plain: t`In words: some real number has no cube root. (The original is true, so this negation is false.)` },
+      ],
+    },
+    checkFrom(negateSymbols, { i: 0, order: 2 }, t`Both quantifiers swap, in the same order, and ${math`\lnot (y > x)`} is ${math`y \le x`}.`),
+
+    { kind: 'section', title: t`Negating the inside` },
+    { kind: 'p', text: t`Once the quantifiers are done, negate what is left with the rules you already know.` },
+    {
+      kind: 'table',
+      caption: t`Negations of common insides.`,
+      head: [t`statement`, t`negation`],
+      rows: [
+        [t`${math`a > b`}`, t`${math`a \le b`} (the equal case moves across)`],
+        [t`${math`a = b`}`, t`${math`a \ne b`}`],
+        [t`${math`P \land Q`}`, t`${math`\lnot P \lor \lnot Q`}`],
+        [t`${math`P \lor Q`}`, t`${math`\lnot P \land \lnot Q`}`],
+        [t`${math`P \Rightarrow Q`}`, t`${math`P \land \lnot Q`}`],
+      ],
+    },
+    { kind: 'p', text: t`So "if ${mx} is odd then ${math`x^{${2}}`} is odd", read as ${math`\forall x \in \mathbb{Z}.\ x \text{ odd} \Rightarrow x^{${2}} \text{ odd}`}, has negation ${math`\exists x \in \mathbb{Z}.\ x \text{ odd} \land x^{${2}} \text{ even}`}: there is an odd integer whose square is even (Book of Proof's Example ${2.15}).`, why: { q: t`Why is the negation of ${math`P \Rightarrow Q`} not another implication?`, a: t`${math`P \Rightarrow Q`} is false in exactly one case: ${math`P`} true and ${math`Q`} false. So its negation is "${math`P`} and not ${math`Q`}".` } },
+    { kind: 'p', text: t`In words, hidden quantifiers need care. "I don't eat anything that has a face" says: for every thing with a face, I do not eat it. Its negation: there is something with a face that I eat.` },
+    checkFrom(negateWords, { i: 3, order: 1 }, t`"Every multiple of four is even" negates to "some multiple of four is not even", that is, odd.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`The negation of "every A is B" is "no A is B".`, counterexample: t`"Every prime is odd" is false, because of ${2}. But "no prime is odd" is false too (${3} is prime and odd). A statement and its negation cannot both be false, so "no A is B" is not the negation: it is "some A is not B".` },
+    { kind: 'pitfall', claim: t`The negation of ${math`x > ${S1}`} is ${math`x < ${S1}`}.`, counterexample: t`At ${math`x = ${S1}`}, both ${math`x > ${S1}`} and ${math`x < ${S1}`} are false. The negation is ${math`x \le ${S1}`}.` },
+    { kind: 'pitfall', claim: t`When negating, you may also swap the order of the quantifiers.`, counterexample: t`${math`\forall x \in \mathbb{Z}\ \exists y \in \mathbb{Z}.\ y > x`} is true. Its negation is ${math`\exists x\ \forall y.\ y \le x`} (false, as it must be). Swapping the order instead gives ${math`\forall y\ \exists x.\ y \le x`}, which is true: not a negation.` },
+    { kind: 'takeaway', text: t`To negate, move the "not" inwards: each "for all" becomes "there exists" and vice versa, the order stays, and the inside is negated at the end.` },
   ],
   examples: [
-    workedCambridge(bop3),
+    { ...workedCambridge(bop3), examiner: t`The examiner looks for both quantifiers swapped in order, and ${math`q > p`} negated to ${math`q \le p`}, not ${math`q < p`}.` },
     worked(negateSymbols, { i: 2, order: 1 }, t`A cube root for every real number`),
     worked(whichTrue, { m: 4, r: 2, ae: false }, t`A statement or its negation`),
   ],
@@ -452,5 +507,21 @@ export const negatingQuantifiers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['negation-of-quantifier'],
   cambridge: [bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12],
-  gate: ['sw-1-1-5-negation', 'sw-1-1-5-witness', 'sw-1-1-5'],
+  // The CST proof first, then its witness. The multiple-choice negation is dropped (a guess passes one time in four), and the Book of Proof items are not Cambridge standard.
+  gate: ['sw-1-1-5', 'sw-1-1-5-witness'],
+  recall: [
+    { front: t`Negate ${math`\forall x.\ P(x)`}.`, back: t`${math`\exists x.\ \lnot P(x)`}: at least one ${mx} fails.` },
+    { front: t`Negate ${math`\exists x.\ P(x)`}.`, back: t`${math`\forall x.\ \lnot P(x)`}: every ${mx} fails.` },
+    { front: t`Negate ${math`P \Rightarrow Q`}.`, back: t`${math`P \land \lnot Q`}.` },
+    { front: t`Negate "every A is B" in words.`, back: t`"Some A is not B."` },
+  ],
+  proofOrder: [{
+    title: t`Not for all is there exists not`,
+    steps: [
+      t`${math`\lnot\, \forall x.\ P(x)`} holds exactly when ${math`\forall x.\ P(x)`} is false.`,
+      t`That means not every ${mx} makes ${mP} true.`,
+      t`So at least one ${mx} makes ${mP} false.`,
+      t`That is ${math`\exists x.\ \lnot P(x)`}.`,
+    ],
+  }],
 };

@@ -10,8 +10,8 @@
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { join, listOf, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { dmath, join, listOf, math, t, type Rich } from '../rich';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 import { average, frogMean, mean, positions, rsum, threePointGame, throwsOf, type Dist } from '../partv-a';
 
 const [mX] = [math`X`];
@@ -350,18 +350,63 @@ const poissonMean = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [mx, mn] = [math`x`, math`n`];
+/** A game: win 5 with probability 1/6, win 1 with probability 1/3, lose 2 otherwise. */
+const GAME: Dist = [[q(5), q(1, 6)], [q(1), q(1, 3)], [q(-2), q(1, 2)]];
+const coin: Dist = [[q(0), q(1, 4)], [q(1), q(1, 2)], [q(2), q(1, 4)]];
+
 export const expectation: TopicContent = {
   topicId: 'rv.expectation',
   goal: t`Compute ${math`E(X) = \sum_{x} x \, P(X = x)`} from a distribution, and read it as the long-run average of ${mX}.`,
+  objective: t`Compute ${math`E(X) = \sum_{x} x \, P(X = x)`} and read it as a long-run average.`,
+  why: t`Expectation is the single most used number in probability; next come variance and the tail-sum formula.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`A discrete random variable ${mX} takes values ${math`x`} with probabilities ${math`P(X = x)`}. Its [[expectation|expectation]] or mean weights each value by how likely it is. Mixed STEP ${1} Statistics gives the definition in question ${1}, noting that it used to be on most A-level specifications.` },
-    { kind: 'rule', text: t`${math`E(X) = \sum_{x} x \, P(X = x)`}, summed over every value ${math`x`} that ${mX} can take.` },
-    { kind: 'p', text: t`Example: ${math`P(X = x) = kx`} for ${math`x = ${1}, ${2}, ${3}, ${4}`}. The probabilities add to ${1}, so ${math`${10}k = ${1}`} and ${math`k = ${q(1, 10)}`}. Then ${math`E(X) = ${q(1, 10)}(${1} + ${4} + ${9} + ${16}) = ${mean(q1Dist)}`}.` },
-    { kind: 'p', text: t`Read it as a long-run average: repeat the experiment many times and the average of the values settles near ${math`E(X)`}. A fair die has ${math`E(X) = \frac{${1} + ${2} + \cdots + ${6}}{${6}} = ${q(7, 2)}`}, a value the die never shows. So the mean need not be a possible value, and it is not the most likely value either.` },
-    { kind: 'p', text: t`A game is a [[fair-game|fair game]] when the expected gain is ${0}. In STEP Support Assignment ${19}, a friend pays £${1} for no sixes in three dice, and you pay £${1}, £${2}, or £${3} for one, two, or three sixes. The expected gain is ${math`\frac{${125} - ${75} - ${30} - ${3}}{${216}} = ${a19Gain}`}, positive, so the bet favours you. To make a game fair, choose the stake equal to the expected prize.` },
+    { kind: 'section', title: t`The long-run average` },
+    { kind: 'hook', text: t`A game costs nothing to play. You win £${5} with probability ${q(1, 6)}, win £${1} with probability ${q(1, 3)}, and lose £${2} otherwise. Should you play? Each single game is a gamble. But play a thousand times, and the average per game settles down to one number. Which number?` },
+    { kind: 'narrative', text: t`Imagine ${600} games. About ${100} win £${5}, about ${200} win £${1}, and about ${300} lose £${2}. The total is about ${math`${100} \times ${5} + ${200} \times ${1} - ${300} \times ${2} = ${100 * 5 + 200 - 300 * 2}`} pounds, so ${math`\frac{${100 * 5 + 200 - 300 * 2}}{${600}} = ${q(100 * 5 + 200 - 300 * 2, 600)}`} per game. Notice the ${600} cancels: each value is simply weighted by its probability.` },
+    {
+      kind: 'definition',
+      name: t`Expectation`,
+      formal: t`Let ${mX} be a discrete random variable. Its [[expectation|expectation]] or mean is ${dmath`E(X) = \sum_{x} x \, P(X = x),`} the sum over every value ${mx} that ${mX} takes (when the sum has finitely many terms, or converges absolutely).`,
+      plain: t`multiply each value by its probability and add. For the game, ${math`E(X) = ${sumTex(GAME)} = ${mean(GAME)}`}.`,
+    },
+    { kind: 'p', text: t`So on average you gain ${mean(GAME)} of a pound per game: play. A game is a [[fair-game|fair game]] when the expected gain is ${0}, so neither side is favoured in the long run.` },
+    {
+      kind: 'p',
+      text: t`The mean need not be a value ${mX} can take. A fair die has ${math`E(X) = \frac{${1} + ${2} + \cdots + ${6}}{${6}} = ${q(7, 2)}`}, which no roll shows. Nor is it the most likely value. It is a balance point: put weight ${math`P(X = x)`} at each ${mx} on a ruler, and the ruler balances at ${math`E(X)`}.`,
+      why: { q: t`Why does the average of many plays approach ${math`E(X)`}?`, a: t`In ${mn} plays, the value ${mx} turns up about ${math`n P(X = x)`} times, so the total is about ${math`\sum_{x} x \, n P(X = x)`} and the average about ${math`E(X)`}. The weak law of large numbers, later in the course, makes "about" precise.` },
+    },
+    quickCheck({
+      prompt: t`${mX} takes the values ${0}, ${1}, ${2} with probabilities ${q(1, 4)}, ${q(1, 2)}, ${q(1, 4)}. What is ${math`E(X)`}?`,
+      answer: { kind: 'exact', expected: str(mean(coin)) },
+      reference: str(mean(coin)),
+      why: t`${math`${sumTex(coin)} = ${mean(coin)}`}. The distribution is symmetric about ${1}, so the balance point is ${1}.`,
+    }),
+    { kind: 'section', title: t`A formula for a whole family` },
+    { kind: 'narrative', text: t`The die's mean, ${q(7, 2)}, is halfway between ${1} and ${6}. Is that a coincidence? Here is the general fact, proved straight from the definition.` },
+    { kind: 'theorem', statement: t`Let ${mn} be a positive integer, and let ${mX} be uniform on ${math`\{${1}, ${2}, \ldots, n\}`}: ${math`P(X = k) = \frac{${1}}{n}`} for each ${math`k`}. Then ${math`E(X) = \frac{n + ${1}}{${2}}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Apply the definition`, text: t`${math`E(X) = \sum_{k = ${1}}^{n} k \cdot \frac{${1}}{n}`}.`, plain: t`Each value ${math`k`} has the same probability, ${math`\frac{${1}}{n}`}.` },
+        { label: t`Take out the constant`, text: t`${math`E(X) = \frac{${1}}{n} \sum_{k = ${1}}^{n} k`}.`, plain: t`${math`\frac{${1}}{n}`} multiplies every term, so it can be taken outside the sum.` },
+        { label: t`Sum the integers`, text: t`${math`\sum_{k = ${1}}^{n} k = \frac{n(n + ${1})}{${2}}`}.`, plain: t`The arithmetic series: pair the first with the last, the second with the second last, and so on, each pair adding to ${math`n + ${1}`}.` },
+        { label: t`Simplify`, text: t`${math`E(X) = \frac{${1}}{n} \cdot \frac{n(n + ${1})}{${2}} = \frac{n + ${1}}{${2}}`}.`, plain: t`The ${mn} cancels. With ${math`n = ${6}`}: ${q(7, 2)}, the die.` },
+      ],
+    },
+    {
+      kind: 'pitfall',
+      claim: t`${math`E(X)`} is the value ${mX} is most likely to take.`,
+      counterexample: t`In the hook's game the most likely result is losing £${2}, with probability ${q(1, 2)}, yet ${math`E(X) = ${mean(GAME)}`}. The mean balances all the values; the most likely one is the mode.`,
+    },
+    { kind: 'section', title: t`Fair stakes` },
+    { kind: 'p', text: t`To make a game fair, set the stake equal to the expected prize: then the expected gain, prize minus stake, is ${0}. STEP questions often ask for exactly this stake, or ask whether a bet is worth accepting. Write down every outcome's gain and probability, check the probabilities add to ${1}, and only then multiply and add.` },
+    { kind: 'takeaway', text: t`${math`E(X) = \sum_{x} x \, P(X = x)`}: weight each value by its probability; it is the long-run average, not necessarily a possible or likely value.` },
   ],
   examples: [
-    workedCambridge(q1c),
+    { ...workedCambridge(q1c), examiner: t`The condition that the probabilities add to ${1} used to find ${math`k`} before anything else, then the definition of ${math`E(X)`} applied term by term.` },
     worked(fromTable, { xs: [0, 1, 2, 5], ws: [3, 4, 2, 1] }, t`A distribution given value by value`),
     worked(expectedGain, { big: 10, small: 2, nBig: 1, nSmall: 2, stake: 3, ask: 'gain' }, t`A dice game with a stake`),
   ],
@@ -369,5 +414,25 @@ export const expectation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expectation', 'fair-game'],
   cambridge: [q1b, a19, s2q3ii, q4iii, s3u3, s2q3iii, poissonMean],
-  gate: ['mixed-q1-i-b', 'a19-q4-ii-gain', 's2-q3-ii-fair-stake', 'mixed-q4-iii', 's3-q1-ii-u3', 's2-q3-iii-p-zero', 's2-notes-poisson-mean'],
+  // STEP questions, best first: the longest run of girls and the frog need a distribution built before the
+  // mean; then the fair stake, the Poisson mean, the three-dice bet, and the degenerate match.
+  // Mixed Q1(i)(b) is one probability, not an expectation, left out.
+  gate: ['mixed-q4-iii', 's3-q1-ii-u3', 's2-q3-ii-fair-stake', 's2-notes-poisson-mean', 'a19-q4-ii-gain', 's2-q3-iii-p-zero'],
+  recall: [
+    { front: t`Define ${math`E(X)`} for a discrete random variable.`, back: t`${math`\sum_{x} x \, P(X = x)`}, over every value ${mx}.` },
+    { front: t`What is a fair game?`, back: t`One whose expected gain is ${0}.` },
+    { front: t`Mean of the uniform distribution on ${math`\{${1}, \ldots, n\}`}?`, back: t`${math`\frac{n + ${1}}{${2}}`}.` },
+    { front: t`Must ${math`E(X)`} be a value ${mX} can take?`, back: t`No: a fair die has mean ${q(7, 2)}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The mean of the uniform distribution on ${math`\{${1}, \ldots, n\}`}`,
+      steps: [
+        t`${math`E(X) = \sum_{k = ${1}}^{n} k \cdot \frac{${1}}{n}`}.`,
+        t`Take out ${math`\frac{${1}}{n}`}: ${math`E(X) = \frac{${1}}{n} \sum_{k = ${1}}^{n} k`}.`,
+        t`${math`\sum_{k = ${1}}^{n} k = \frac{n(n + ${1})}{${2}}`}.`,
+        t`So ${math`E(X) = \frac{n + ${1}}{${2}}`}.`,
+      ],
+    },
+  ],
 };

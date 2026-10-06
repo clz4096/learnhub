@@ -10,7 +10,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { factorial, int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, computedTex, dmath, math, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mn] = [math`n`];
 
@@ -276,16 +276,53 @@ const general = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const rProd = math`r_{${1}}! \times r_{${2}}! \times \cdots \times r_{k}!`;
+
 export const repeatedArrangements: TopicContent = {
   topicId: 'comb.repeated-arrangements',
   goal: t`Count the distinct arrangements of objects some of which are identical, such as the letters of MISSISSIPPI, by dividing ${math`n!`} by the factorial of each repeat.`,
+  objective: t`Count arrangements of objects some of which are identical, by dividing out the repeats.`,
+  why: t`The same count gives bead patterns, grid routes and binomial coefficients, and it recurs in probability.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`STEP Support Assignment ${6} starts from Claire, whose six letters are all different: ${6} places for the first letter, then ${5} for the second, and so on, ${math`${6}! = ${factorial(6)}`} arrangements. Stuart has a repeated T, so some of his arrangements are the same word.` },
-    { kind: 'p', text: t`Stuart deals with the T's last: ${6} places for the S, ${5} for the U, ${4} for the A, ${3} for the R, and the two T's fill what is left in one way. That is ${math`${6} \times ${5} \times ${4} \times ${3} = ${6 * 5 * 4 * 3} = \frac{${6}!}{${2}!}`}.` },
-    { kind: 'p', text: t`Anna labels her letters ${math`A_{${1}}, N_{${1}}, N_{${2}}, A_{${2}}`} to make them different, getting ${math`${4}! = ${factorial(4)}`} arrangements. Each real word appears twice for the two orders of the A's, and twice for the N's, so she divides by ${2} and by ${2} again: ${math`\frac{${4}!}{${2}! \times ${2}!} = ${multinomial([2, 2])}`}.` },
-    { kind: 'rule', text: t`The hints' rule: ${mn} objects, of which ${math`r_{${1}}`} are identical, another ${math`r_{${2}}`} are identical (but different from the first lot), and so on to ${math`r_{k}`}, have ${dmath`\frac{n!}{r_{${1}}! \times r_{${2}}! \times \cdots \times r_{k}!}`} distinct arrangements.` },
-    { kind: 'p', text: t`The reason: label every copy of a [[repeated-letter|repeated letter]] to make all ${mn} objects different. Each distinct arrangement then appears once for every way of ordering the labels of each letter, ${math`r_{${1}}! \times r_{${2}}! \times \cdots`} times. So the labelled count ${math`n!`} is that many times too big. For MISSISSIPPI: ${math`\frac{${11}!}{${4}! \times ${4}! \times ${2}!} = ${multinomial(nameCounts(MISS))}`}.` },
-    { kind: 'p', text: t`The same count turns up elsewhere: beads of a few colours in a row, and shortest routes on a grid, which are words in R (right) and U (up). For two kinds of object it is the binomial coefficient: ${math`\frac{n!}{r!\,(n - r)!} = \binom{n}{r}`}, choosing the places of one kind. The hints add: leave answers as factorials if you like, but be ready to give the number.` },
+    { kind: 'section', title: t`When two letters are the same` },
+    { kind: 'hook', text: t`Claire, in STEP Support Assignment ${6}, can arrange the ${6} different letters of her name in ${math`${6}! = ${factorial(6)}`} ways. Stuart also has ${6} letters, but two of them are T. Swap the two T's in any arrangement and you get the same word. So Stuart has fewer than ${factorial(6)}. How many fewer?` },
+    { kind: 'narrative', text: t`The assignment shows two ways in. Stuart's way is to place the different letters first and let the repeats fill whatever is left. Anna's way is to pretend the repeats are different and then correct for the pretence. The second way gives the general rule.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Place the different letters`, text: t`The S has ${6} places, then the U has ${5}, the A ${4}, the R ${3}.` },
+        { label: t`Let the T's fill the gaps`, text: t`Two places are left, and the two T's fill them in exactly one way, because they look the same.` },
+        { label: t`Multiply`, text: t`By the product rule,`, eq: [dmath`${6} \times ${5} \times ${4} \times ${3} = ${6 * 5 * 4 * 3} = \frac{${6}!}{${2}!}.`], plain: t`Exactly half of Claire's count: each of Stuart's words came up twice, once for each order of the T's.` },
+      ],
+    },
+    { kind: 'section', title: t`Label, count, divide` },
+    { kind: 'narrative', text: t`Anna has two A's and two N's. She labels them ${math`A_{${1}}, N_{${1}}, N_{${2}}, A_{${2}}`}, so that all four letters are different, and counts ${math`${4}! = ${factorial(4)}`} labelled arrangements. Now erase the labels. The word NAAN comes from ${math`N_{${1}}A_{${1}}A_{${2}}N_{${2}}`}, ${math`N_{${1}}A_{${2}}A_{${1}}N_{${2}}`}, ${math`N_{${2}}A_{${1}}A_{${2}}N_{${1}}`} and ${math`N_{${2}}A_{${2}}A_{${1}}N_{${1}}`}: ${2} orders of the A's times ${2} orders of the N's. Every word comes up exactly ${4} times, so there are ${math`\frac{${4}!}{${2}! \times ${2}!} = ${multinomial([2, 2])}`} words.` },
+    {
+      kind: 'definition',
+      name: t`Arrangement with repeats`,
+      formal: t`Let ${mn} objects be of ${math`k`} kinds, with ${math`r_{i}`} identical objects of kind ${math`i`}, so ${math`r_{${1}} + \cdots + r_{k} = n`}. An arrangement is a sequence of length ${mn} in which kind ${math`i`} appears exactly ${math`r_{i}`} times; two arrangements are the same if they agree in every position.`,
+      plain: t`In plain words: a word made from a fixed bag of letters, where copies of a [[repeated-letter|repeated letter]] cannot be told apart. For PEPPER, ${math`n = ${6}`} with ${3} P's, ${2} E's and ${1} R.`,
+    },
+    { kind: 'theorem', statement: t`The number of distinct arrangements is ${dmath`\frac{n!}{r_{${1}}! \times r_{${2}}! \times \cdots \times r_{k}!}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Label the copies`, text: t`Give the ${math`r_{i}`} copies of kind ${math`i`} distinct labels, for every ${math`i`}. Now all ${mn} objects are different, so there are ${math`n!`} labelled arrangements.` },
+        { label: t`Erase the labels`, text: t`Erasing labels sends each labelled arrangement to one arrangement with repeats, and every arrangement with repeats is reached.` },
+        { label: t`Count what lands on one word`, text: t`The labelled arrangements that give one fixed word differ only in how the labels of each kind are ordered among that kind's places: ${math`r_{i}!`} ways for kind ${math`i`}, independently, so ${rProd} in all.`, why: { q: t`Why multiply the ${math`r_{i}!`}?`, a: t`By the product rule: choose the order of the labels for kind ${1}, then for kind ${2}, and so on; each choice can be made whatever the others were.` } },
+        { label: t`Divide`, text: t`So the ${math`n!`} labelled arrangements fall into groups of exactly ${rProd}, one group per word, and the number of words is ${math`\frac{n!}{r_{${1}}! \times \cdots \times r_{k}!}`}.`, plain: t`If every word is counted the same number of times, divide by that number.` },
+      ],
+    },
+    { kind: 'p', text: t`For MISSISSIPPI (${11} letters: ${4} I's, ${4} S's, ${2} P's, ${1} M): ${math`\frac{${11}!}{${4}! \times ${4}! \times ${2}!} = ${multinomial(nameCounts(MISS))}`}. A kind that appears once contributes ${math`${1}! = ${1}`}, so it can be left out of the bottom.` },
+    checkFrom(wordArrangements, { w: 4 }, t`PEPPER has ${6} letters with ${3} P's and ${2} E's: ${math`\frac{${6}!}{${3}! \times ${2}!} = ${multinomial([3, 2, 1])}`}.`),
+    { kind: 'pitfall', claim: t`BANANA has ${math`\frac{${6}!}{${3}!} = ${factorial(6) / factorial(3)}`} arrangements: divide by the repeats of A.`, counterexample: t`The N is repeated too. Every repeated kind gets its own factorial: ${math`\frac{${6}!}{${3}! \times ${2}!} = ${multinomial([3, 2, 1])}`}.` },
+    { kind: 'section', title: t`The same count in disguise` },
+    { kind: 'narrative', text: t`Many problems are arrangements of a few kinds of object in disguise. A row of beads of three colours is a word in three letters. A shortest route on a grid, moving right or up, is a word in R and U: going ${3} right and ${2} up is an arrangement of RRRUU, so there are ${math`\frac{${5}!}{${3}! \times ${2}!} = ${multinomial([3, 2])}`} routes.` },
+    { kind: 'p', text: t`With only two kinds, the count is a binomial coefficient: ${math`\frac{n!}{r!\,(n - r)!} = \binom{n}{r}`}, the number of ways to choose which ${math`r`} of the ${mn} places get the first kind. The STEP hints add a practical note: leaving the answer as factorials is fine while you work, but be ready to give the number.` },
+    checkFrom(routes, { a: 4, b: 2 }, t`A route is an arrangement of ${4} R's and ${2} U's: ${math`\frac{${6}!}{${4}! \times ${2}!} = ${multinomial([4, 2])}`}.`),
+    { kind: 'takeaway', text: t`Label the copies to make them different, count ${math`n!`}, then divide by the factorial of each repeat, because each word was counted that many times.` },
   ],
   examples: [
     workedCambridge(a6q5ii),
@@ -296,5 +333,24 @@ export const repeatedArrangements: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['repeated-letter'],
   cambridge: [a6q2ii, a6q2iii, a6q2v, a6q5iii, lillian, general],
-  gate: ['a6-q2-ii', 'a6-q2-iii', 'a6-q2-v', 'a6-q5-iii', 'a6-q2-iv'],
+  // Best first: Lillian's "show carefully" write-up, MISSISSIPPI, the three names with several
+  // repeats, then the five names. Anna (four letters) is too slight to gate. The general
+  // formula comes from the hints, not a gate document.
+  gate: ['a6-q2-iv', 'a6-q2-v', 'a6-q2-iii', 'a6-q2-ii'],
+  recall: [
+    { front: t`How many arrangements of ${mn} objects with ${math`r_{${1}}, \ldots, r_{k}`} identical copies of each kind?`, back: t`${math`\frac{n!}{r_{${1}}! \times \cdots \times r_{k}!}`}.` },
+    { front: t`Why divide by ${math`r_{i}!`}?`, back: t`Labelling the copies counts each word once for every order of the labels within each kind.` },
+    { front: t`Arrangements of ${math`r`} objects of one kind and ${math`n - r`} of another?`, back: t`${math`\binom{n}{r}`}, the choices of places for the first kind.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Arrangements with repeats`,
+      steps: [
+        t`Label the copies of each kind so all ${mn} objects differ.`,
+        t`There are ${math`n!`} labelled arrangements.`,
+        t`Each word comes from exactly ${rProd} labelled arrangements.`,
+        t`So there are ${math`\frac{n!}{r_{${1}}! \times \cdots \times r_{k}!}`} words.`,
+      ],
+    },
+  ],
 };

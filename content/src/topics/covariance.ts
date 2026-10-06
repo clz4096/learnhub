@@ -12,7 +12,7 @@ import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, expect, meanOf, permutations, variance, type Dist } from '../partv-c';
 import { computedTex, math, t, texOfRational, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const S2 = 'ia-prob-sheet-2' as const;
 const S4 = 'ia-prob-sheet-4' as const;
@@ -291,20 +291,71 @@ const scheduleCorrelation = supervision({
 const EX_TABLE: TabP = { xs: [0, 1], ys: [0, 1], counts: [[3, 1], [1, 3]], total: 8 };
 const UNCORR: Dist = { xs: [-1, 0, 1], ps: [q(1, 3), q(1, 3), q(1, 3)] };
 
+const [mX, mY] = [math`X`, math`Y`];
+const uncorrCov = sub(expect(UNCORR, (x) => q(x ** 3)), mul(expect(UNCORR), expect(UNCORR, (x) => q(x * x))));
+/** Two fair bits that always agree: X = Y, each 0 or 1 with probability 1/2. */
+const SAME: TabP = { xs: [0, 1], ys: [0, 1], counts: [[1, 0], [0, 1]], total: 2 };
+
 export const covariance: TopicContent = {
   topicId: 'rv.covariance',
   goal: t`Compute ${math`\operatorname{cov}(X, Y)`} and the correlation coefficient, and the variance of a sum of dependent or independent random variables.`,
+  objective: t`Compute covariance and correlation, and the variance of a sum of dependent variables.`,
+  why: t`Real variables move together; this is the tool for sums of them, and leads to the bivariate normal and the weak law.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The mean of a sum is the sum of the means, always. The variance of a sum also depends on how the two variables move together, and covariance measures that.` },
-    { kind: 'rule', text: t`The [[covariance|covariance]] is ${math`\operatorname{cov}(X, Y) = \mathbb{E}\left((X - \mathbb{E}X)(Y - \mathbb{E}Y)\right) = \mathbb{E}(XY) - \mathbb{E}(X)\mathbb{E}(Y)`}. It is symmetric and bilinear, ${math`\operatorname{cov}(X, X) = \operatorname{var}(X)`}, and adding a constant to either variable does not change it.` },
-    { kind: 'p', text: t`Example: two fair bits that agree with probability ${q(3, 4)}, with ${math`\mathbb{P}(X = Y = ${1}) = ${cell(EX_TABLE, 1, 1)}`}. Then ${math`\mathbb{E}(XY) = ${exy(EX_TABLE)}`}, ${math`\mathbb{E}(X) = \mathbb{E}(Y) = ${ex(EX_TABLE)}`}, and ${math`\operatorname{cov}(X, Y) = ${covVal(EX_TABLE)}`}: positive, because they tend to agree.` },
-    { kind: 'rule', text: t`The [[variance-of-sum|variance of a sum]]: ${math`\operatorname{var}(X + Y) = \operatorname{var}(X) + \operatorname{var}(Y) + ${2}\operatorname{cov}(X, Y)`}, and in general ${math`\operatorname{var}\left(\sum_{i} X_{i}\right) = \sum_{i} \operatorname{var}(X_{i}) + ${2}\sum_{i < j} \operatorname{cov}(X_{i}, X_{j})`}. Independent variables have covariance ${0}, so their variances add.` },
-    { kind: 'p', text: t`So a count of successes in independent trials, ${math`N = \sum_{i} I_{i}`}, has ${math`\operatorname{var}(N) = \sum_{i} p_{i}(${1} - p_{i})`} (Sheet ${2} Q${9}), and the number of record years in Q${12} has variance ${math`\sum_{k} \left(\frac{${1}}{k} - \frac{${1}}{k^{${2}}}\right)`}. Bilinearity gives Sheet ${4} Q${12}(a): for independent ${math`X_{i}`} with common variance ${math`\sigma^{${2}}`}, ${math`\operatorname{cov}\left(\sum_{i} a_{i}X_{i}, \sum_{i} b_{i}X_{i}\right) = \sigma^{${2}}\sum_{i} a_{i}b_{i}`}.` },
-    { kind: 'rule', text: t`The [[correlation-coefficient|correlation coefficient]] ${math`\rho(X, Y) = \frac{\operatorname{cov}(X, Y)}{\sqrt{\operatorname{var}(X)\operatorname{var}(Y)}}`} has no units and lies in ${math`[-${1}, ${1}]`}, with ${math`\pm ${1}`} exactly when ${math`Y`} is a linear function of ${math`X`}.` },
-    { kind: 'p', text: t`Zero covariance does not mean independence. With ${math`X`} uniform on ${math`\{-${1}, ${0}, ${1}\}`} and ${math`Y = X^{${2}}`}, ${math`\operatorname{cov}(X, Y) = \mathbb{E}(X^{${3}}) - \mathbb{E}(X)\mathbb{E}(X^{${2}}) = ${sub(expect(UNCORR, (x) => q(x ** 3)), mul(expect(UNCORR), expect(UNCORR, (x) => q(x * x))))}`}, though ${math`Y`} is determined by ${math`X`}.` },
+    { kind: 'section', title: t`Moving together` },
+    { kind: 'hook', text: t`Two fair bits ${mX} and ${mY}, each ${0} or ${1}. If they are independent, ${math`X + Y`} has variance ${q(1, 2)}. If they always agree, ${math`X + Y`} is ${0} or ${2}, with variance ${1}. Same parts, same means, twice the spread. What number captures the difference?` },
+    { kind: 'narrative', text: t`The mean of a sum is the sum of the means, always. The variance of a sum is not: it depends on whether the variables tend to be large together. If ${math`X - \mathbb{E}X`} and ${math`Y - \mathbb{E}Y`} usually have the same sign, the product of the two is usually positive.` },
+    {
+      kind: 'definition',
+      name: t`Covariance`,
+      formal: t`For random variables ${mX} and ${mY} with finite variances, the [[covariance|covariance]] is ${math`\operatorname{cov}(X, Y) = \mathbb{E}\big((X - \mathbb{E}X)(Y - \mathbb{E}Y)\big)`}.`,
+      plain: t`the average product of the two deviations from the mean. Positive when the variables tend to be above their means together, negative when one tends to be above while the other is below.`,
+    },
+    {
+      kind: 'p',
+      text: t`Multiplying out gives the form used for calculation: ${math`\operatorname{cov}(X, Y) = \mathbb{E}(XY) - \mathbb{E}(X)\mathbb{E}(Y)`}. Covariance is symmetric, ${math`\operatorname{cov}(X, X) = \operatorname{var}(X)`}, adding a constant to either variable does not change it, and it is bilinear: ${math`\operatorname{cov}(aX + bZ, Y) = a\operatorname{cov}(X, Y) + b\operatorname{cov}(Z, Y)`}.`,
+      why: { q: t`How does the multiplying out go?`, a: t`Write ${math`\mu = \mathbb{E}X`}, ${math`\nu = \mathbb{E}Y`}. Then ${math`(X - \mu)(Y - \nu) = XY - \nu X - \mu Y + \mu\nu`}. Taking means by linearity: ${math`\mathbb{E}(XY) - \nu\mu - \mu\nu + \mu\nu = \mathbb{E}(XY) - \mu\nu`}.` },
+    },
+    { kind: 'p', text: t`Example: two fair bits that agree with probability ${q(3, 4)}, so ${math`\mathbb{P}(X = Y = ${1}) = ${cell(EX_TABLE, 1, 1)}`}. Then ${math`\mathbb{E}(XY) = ${exy(EX_TABLE)}`}, ${math`\mathbb{E}(X) = \mathbb{E}(Y) = ${ex(EX_TABLE)}`}, and ${math`\operatorname{cov}(X, Y) = ${exy(EX_TABLE)} - ${mul(ex(EX_TABLE), ey(EX_TABLE))} = ${covVal(EX_TABLE)}`}: positive, because they tend to agree.` },
+    { kind: 'section', title: t`The variance of a sum` },
+    { kind: 'theorem', statement: t`For random variables ${mX} and ${mY} with finite variances, ${math`\operatorname{var}(X + Y) = \operatorname{var}(X) + \operatorname{var}(Y) + ${2}\operatorname{cov}(X, Y)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Centre both`, text: t`Let ${math`\mu = \mathbb{E}X`}, ${math`\nu = \mathbb{E}Y`}. Then ${math`\mathbb{E}(X + Y) = \mu + \nu`}, so ${math`(X + Y) - \mathbb{E}(X + Y) = (X - \mu) + (Y - \nu)`}.`, plain: t`The deviation of the sum is the sum of the deviations, by linearity of the mean.` },
+        { label: t`Square`, text: t`${math`\big((X - \mu) + (Y - \nu)\big)^{${2}} = (X - \mu)^{${2}} + (Y - \nu)^{${2}} + ${2}(X - \mu)(Y - \nu)`}.`, plain: t`${math`(a + b)^{${2}} = a^{${2}} + b^{${2}} + ${2}ab`}.` },
+        { label: t`Take the mean`, text: t`${math`\operatorname{var}(X + Y) = \mathbb{E}(X - \mu)^{${2}} + \mathbb{E}(Y - \nu)^{${2}} + ${2}\,\mathbb{E}\big((X - \mu)(Y - \nu)\big)`}.`, plain: t`Linearity again, term by term.` },
+        { label: t`Recognise each term`, text: t`That is ${math`\operatorname{var}(X) + \operatorname{var}(Y) + ${2}\operatorname{cov}(X, Y)`}.`, plain: t`The first two are the variances by definition, the last is twice the covariance.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`The hook, checked: for bits that always agree, ${math`\operatorname{cov}(X, Y) = ${covVal(SAME)}`}, so ${math`\operatorname{var}(X + Y) = ${q(1, 4)} + ${q(1, 4)} + ${2} \times ${covVal(SAME)} = ${add(q(1, 2), mul(q(2), covVal(SAME)))}`}. For many variables, ${math`\operatorname{var}\big(\sum_{i} X_{i}\big) = \sum_{i} \operatorname{var}(X_{i}) + ${2}\sum_{i < j} \operatorname{cov}(X_{i}, X_{j})`}. Independent variables have covariance ${0}, so then the variances simply add.`,
+    },
+    quickCheck({
+      prompt: t`${math`\operatorname{var}(X) = ${4}`}, ${math`\operatorname{var}(Y) = ${9}`}, and ${math`\operatorname{cov}(X, Y) = ${-2}`}. Find ${math`\operatorname{var}(X + Y)`}.`,
+      answer: { kind: 'exact', expected: String(4 + 9 - 4) },
+      reference: String(4 + 9 - 4),
+      why: t`${math`${4} + ${9} + ${2} \times (${-2}) = ${4 + 9 - 4}`}. Negative covariance means the two partly cancel.`,
+    }),
+    { kind: 'section', title: t`Correlation` },
+    {
+      kind: 'definition',
+      name: t`Correlation coefficient`,
+      formal: t`For ${mX} and ${mY} with positive finite variances, the [[correlation-coefficient|correlation coefficient]] is ${math`\rho(X, Y) = \frac{\operatorname{cov}(X, Y)}{\sqrt{\operatorname{var}(X)\operatorname{var}(Y)}}`}.`,
+      plain: t`covariance with the units divided out. It always lies in ${math`[${-1}, ${1}]`}, and is ${math`\pm ${1}`} exactly when ${mY} is a linear function of ${mX}; the proof is a supervision problem below.`,
+    },
+    {
+      kind: 'pitfall',
+      claim: t`Zero covariance means ${mX} and ${mY} are independent.`,
+      counterexample: t`Let ${mX} be uniform on ${math`\{${-1}, ${0}, ${1}\}`} and ${math`Y = X^{${2}}`}. Then ${math`\operatorname{cov}(X, Y) = \mathbb{E}(X^{${3}}) - \mathbb{E}(X)\mathbb{E}(X^{${2}}) = ${uncorrCov}`}, yet ${mY} is determined by ${mX}: ${math`\mathbb{P}(Y = ${0} \mid X = ${0}) = ${1}`}, while ${math`\mathbb{P}(Y = ${0}) = ${q(1, 3)}`}.`,
+    },
+    { kind: 'takeaway', text: t`${math`\operatorname{cov}(X, Y) = \mathbb{E}(XY) - \mathbb{E}X\,\mathbb{E}Y`} measures moving together; ${math`\operatorname{var}(X + Y) = \operatorname{var}X + \operatorname{var}Y + ${2}\operatorname{cov}(X, Y)`}, and zero covariance does not imply independence.` },
   ],
   examples: [
-    workedCambridge(q12),
+    { ...workedCambridge(q12), examiner: t`The count written as a sum of indicators, independence of the indicators used to drop every covariance, and each ${math`\operatorname{var}(Y_{k}) = p_{k}(${1} - p_{k})`} computed.` },
     worked(covFromTable, { xs: [0, 1], ys: [0, 1, 2], counts: [[3, 2, 1], [1, 2, 3]], total: 12 }, t`Covariance from a joint table`),
     worked(varianceOfCombination, { a: 2, b: -1, sx: 3, sy: 2, rho: q(1, 2), viaRho: true }, t`The variance of a difference with correlation`),
   ],
@@ -312,5 +363,24 @@ export const covariance: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['covariance', 'correlation-coefficient'],
   cambridge: [q9, q12a, q12aProof, q9proof, scheduleCorrelation],
-  gate: ['ia-s2-q9', 'ia-s4-q12-a', 'ia-s4-q12-a-proof', 'ia-s2-q9-general'],
+  // The IA sheets: Sheet 2 Q9 in general (with its optimisation) first, then Sheet 4 Q12(a) as a proof and
+  // at numbers. Sheet 2 Q9 at three numbers is one sum, left out.
+  gate: ['ia-s2-q9-general', 'ia-s4-q12-a-proof', 'ia-s4-q12-a'],
+  recall: [
+    { front: t`Define ${math`\operatorname{cov}(X, Y)`}.`, back: t`${math`\mathbb{E}\big((X - \mathbb{E}X)(Y - \mathbb{E}Y)\big) = \mathbb{E}(XY) - \mathbb{E}X\,\mathbb{E}Y`}.` },
+    { front: t`${math`\operatorname{var}(X + Y)`}?`, back: t`${math`\operatorname{var}X + \operatorname{var}Y + ${2}\operatorname{cov}(X, Y)`}.` },
+    { front: t`Define the correlation coefficient.`, back: t`${math`\rho = \frac{\operatorname{cov}(X, Y)}{\sqrt{\operatorname{var}X \operatorname{var}Y}}`}, in ${math`[${-1}, ${1}]`}.` },
+    { front: t`Does zero covariance imply independence?`, back: t`No: ${mX} uniform on ${math`\{${-1}, ${0}, ${1}\}`} and ${math`Y = X^{${2}}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The variance of a sum`,
+      steps: [
+        t`The deviation of ${math`X + Y`} is ${math`(X - \mu) + (Y - \nu)`}.`,
+        t`Its square is ${math`(X - \mu)^{${2}} + (Y - \nu)^{${2}} + ${2}(X - \mu)(Y - \nu)`}.`,
+        t`Take means term by term, by linearity.`,
+        t`That gives ${math`\operatorname{var}X + \operatorname{var}Y + ${2}\operatorname{cov}(X, Y)`}.`,
+      ],
+    },
+  ],
 };

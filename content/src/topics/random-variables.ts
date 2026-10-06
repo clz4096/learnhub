@@ -11,8 +11,8 @@ import { add, int, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { choose } from '../numbers';
 import { distinctFrom, draw, type Dist } from '../partv-c';
-import { computedTex, listOf, math, t, texOfRational, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { computedTex, dmath, listOf, math, setOf, t, texOfRational, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S2 = 'ia-prob-sheet-2' as const;
 
@@ -296,16 +296,77 @@ const SUM_FOUR = q(3, 36);
 const claims: ProbabilityClaim[] = [
   { what: 'two dice: the total is 4', exact: SUM_FOUR, trial: (rng) => die(rng) + die(rng) === 4 },
 ];
+const twoDice = Array.from({ length: 36 }, (_, i) => [1 + (i % 6), 1 + Math.floor(i / 6)] as const);
+const FACES = Array.from({ length: 6 }, (_, i) => i + 1);
+const totalCount = (s: number): number => twoDice.filter(([a, b]) => a + b === s).length;
+const [mX, mOmega, mA] = [math`X`, math`\Omega`, math`A`];
 
 export const randomVariables: TopicContent = {
   topicId: 'rv.random-variables',
   goal: t`Treat a random variable as a function on ${math`\Omega`}, and find its distribution by adding the probabilities of the outcomes that give each value.`,
+  objective: t`Treat a random variable as a function on the sample space and find its distribution.`,
+  why: t`Expectation, variance and every named distribution are statements about random variables; this is the bridge.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`Often what matters about an outcome is a number: the total of two dice, the number of heads, the wait for a six. A random variable makes that number the object of study, while the probability still lives on ${math`\Omega`}.` },
-    { kind: 'rule', text: t`A [[random-variable|random variable]] on a countable probability space is a function ${math`X: \Omega \to \mathbb{R}`}. Its [[rv-distribution|distribution]] is ${math`\mathbb{P}(X = x) = \mathbb{P}(\{\omega \in \Omega : X(\omega) = x\})`} for each value ${math`x`}.` },
-    { kind: 'p', text: t`For two dice, ${math`\Omega`} is the ${36} ordered pairs and the total ${math`S(\omega)`} is a function on it. Three pairs give ${math`S = ${4}`}, namely ${math`(${1}, ${3})`}, ${math`(${2}, ${2})`}, ${math`(${3}, ${1})`}, so ${math`\mathbb{P}(S = ${4}) = ${SUM_FOUR}`}. The values of ${math`S`} are not equally likely even though the outcomes are.` },
-    { kind: 'p', text: t`The indicator of an event ${math`A`}, equal to ${1} on ${math`A`} and ${0} off it, is a Bernoulli random variable with parameter ${math`\mathbb{P}(A)`}, and every Bernoulli variable is an indicator. On ${math`\Omega = \{${0}, ${1}\}^{${3}}`} with equally likely outcomes, a Bernoulli variable of parameter ${q(1, 2)} is the indicator of a set of ${4} outcomes, so there are ${math`\binom{${8}}{${4}} = ${choose(8, 4)}`} of them; there is none of parameter ${q(1, 3)}, because every event has probability a multiple of ${q(1, 8)}.` },
-    { kind: 'p', text: t`A function of a random variable is a random variable: ${math`\mathbb{P}(g(X) = y) = \sum_{x : g(x) = y} \mathbb{P}(X = x)`}. Different random variables can share a distribution: on a fair die, the face ${math`X`} and ${math`${7} - X`} differ at every outcome but both are uniform on ${math`${1}, \ldots, ${6}`}.` },
+    { kind: 'section', title: t`Where does the number live?` },
+    { kind: 'hook', text: t`Throw two fair dice. All ${36} ordered pairs of faces are equally likely. Yet the total ${7} turns up ${totalCount(7)} times as often as the total ${2}. How can equally likely outcomes produce totals that are not equally likely?` },
+    { kind: 'narrative', text: t`The answer is that the total is not an outcome. It is something you compute from an outcome. The outcome is a pair such as ${math`(${3}, ${4})`}; the total is the number ${7} you read off it. Many pairs give the same total: ${totalCount(7)} pairs give ${7}, only ${totalCount(2)} gives ${2}.` },
+    { kind: 'narrative', text: t`So keep the probability where it was, on the outcomes, and think of the total as a rule that turns each outcome into a number. That rule is a function, and it has a name.` },
+    { kind: 'section', title: t`Random variables and their distributions` },
+    {
+      kind: 'definition',
+      name: t`Random variable`,
+      formal: t`Let ${mOmega} be a countable probability space with probability ${math`\mathbb{P}`}. A [[random-variable|random variable]] is a function ${math`X: \Omega \to \mathbb{R}`}.`,
+      plain: t`In plain words: a rule that gives a number for every outcome. For two dice, ${math`S(a, b) = a + b`}, so ${math`S(${3}, ${4}) = ${7}`}. Despite the name, it is neither random nor a variable: the randomness is in which ${math`\omega`} occurs.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Distribution`,
+      formal: t`The [[rv-distribution|distribution]] of ${mX} is the list of probabilities ${dmath`\mathbb{P}(X = x) = \mathbb{P}\big(\{\omega \in \Omega : X(\omega) = x\}\big)`} for each value ${math`x`} that ${mX} takes.`,
+      plain: t`In plain words: for each possible value, collect the outcomes that give it, and add up their probabilities. ${math`\{X = x\}`} is shorthand for that set of outcomes.`,
+    },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Find the outcomes`, text: t`${math`\{S = ${4}\} = \{(${1}, ${3}), (${2}, ${2}), (${3}, ${1})\}`}.`, plain: t`Order matters: ${math`(${1}, ${3})`} and ${math`(${3}, ${1})`} are different outcomes.` },
+        { label: t`Add their probabilities`, text: t`Each has probability ${q(1, 36)}, so`, eq: [dmath`\mathbb{P}(S = ${4}) = ${3} \times \frac{${1}}{${36}} = ${SUM_FOUR}.`] },
+      ],
+    },
+    { kind: 'theorem', statement: t`If ${mX} takes the values ${math`x_{${1}}, x_{${2}}, \ldots`}, then ${math`\sum_{i} \mathbb{P}(X = x_{i}) = ${1}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The events split the space`, text: t`Each ${math`\omega \in \Omega`} has exactly one value ${math`X(\omega)`}, so the events ${math`\{X = x_{i}\}`} are pairwise disjoint and their union is ${mOmega}.`, plain: t`A function sends each outcome to one number, never two, so every outcome sits in exactly one of these sets.` },
+        { label: t`Add`, text: t`There are countably many values, so by countable additivity,`, eq: [dmath`\sum_{i} \mathbb{P}(X = x_{i}) = \mathbb{P}\Big(\bigcup_{i} \{X = x_{i}\}\Big) = \mathbb{P}(\Omega) = ${1}.`], why: { q: t`Why only countably many values?`, a: t`${mOmega} is countable and each value comes from at least one outcome, so there are at most as many values as outcomes.` } },
+      ],
+    },
+    checkFrom(distributionFromOmega, { fn: 4, k: 2 }, t`Exactly two heads happens at ${3} of the ${8} sequences (the tail can be first, second or third), so the probability is ${q(3, 8)}.`),
+    { kind: 'pitfall', claim: t`The outcomes are equally likely, so the values of a random variable are equally likely too.`, counterexample: t`For two dice, ${math`\mathbb{P}(S = ${2}) = ${q(totalCount(2), 36)}`} but ${math`\mathbb{P}(S = ${7}) = ${q(totalCount(7), 36)}`}: different numbers of outcomes give each total.` },
+    { kind: 'section', title: t`Indicators and Bernoulli variables` },
+    {
+      kind: 'definition',
+      name: t`Indicator`,
+      formal: t`The indicator of an event ${math`A \subseteq \Omega`} is the random variable ${math`\mathbf{${1}}_{A}`} with ${math`\mathbf{${1}}_{A}(\omega) = ${1}`} if ${math`\omega \in A`} and ${0} otherwise.`,
+      plain: t`In plain words: a switch that reads ${1} when ${mA} happens. Its distribution is ${math`\mathbb{P}(\mathbf{${1}}_{A} = ${1}) = \mathbb{P}(A)`}, so it is Bernoulli with parameter ${math`\mathbb{P}(A)`}.`,
+    },
+    { kind: 'p', text: t`The converse holds too: a random variable ${mX} that only takes the values ${0} and ${1} is the indicator of the event ${math`A = \{X = ${1}\}`}. So counting Bernoulli variables on a space is counting events. On ${math`\Omega = ${setOf(FACES)}`}, a fair die, a Bernoulli variable with parameter ${q(1, 3)} is the indicator of an event of ${2} faces: there are ${math`\binom{${6}}{${2}} = ${choose(6, 2)}`} of them.` },
+    checkFrom(countBernoulli, { n: 6, k: 1, d: 3 }, t`Parameter ${q(1, 3)} on ${6} equally likely outcomes means an event of ${2} outcomes, and there are ${math`\binom{${6}}{${2}} = ${choose(6, 2)}`} such events.`),
+    { kind: 'section', title: t`Functions of a random variable` },
+    { kind: 'narrative', text: t`If ${mX} is a random variable, so is ${math`X^{${2}}`}, or ${math`\lvert X \rvert`}: compose the functions. Its distribution comes from that of ${mX} without going back to ${mOmega}.` },
+    { kind: 'theorem', statement: t`For any ${math`g: \mathbb{R} \to \mathbb{R}`}, ${math`g(X)`} is a random variable and ${dmath`\mathbb{P}(g(X) = y) = \sum_{x : g(x) = y} \mathbb{P}(X = x).`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`It is a function on the space`, text: t`${math`g(X)`} is the composite ${math`\omega \mapsto g(X(\omega))`}, a function ${math`\Omega \to \mathbb{R}`}.` },
+        { label: t`Split the event`, text: t`${math`g(X(\omega)) = y`} exactly when ${math`X(\omega)`} is some ${math`x`} with ${math`g(x) = y`}, so ${math`\{g(X) = y\} = \bigcup_{x : g(x) = y} \{X = x\}`}, a disjoint union.` },
+        { label: t`Add`, text: t`By countable additivity, ${math`\mathbb{P}(g(X) = y) = \sum_{x : g(x) = y} \mathbb{P}(X = x)`}.` },
+      ],
+    },
+    checkFrom(functionOfRv, { d: DISTS[0] as Dist, g: 'abs', y: 1 }, t`${math`\lvert X \rvert = ${1}`} when ${math`X = -${1}`} or ${math`X = ${1}`}: ${math`${q(1, 5)} + ${q(3, 10)} = ${q(1, 2)}`}.`),
+    { kind: 'pitfall', claim: t`Two random variables with the same distribution are the same random variable.`, counterexample: t`On one fair die, the face ${mX} and ${math`${7} - X`} are both uniform on ${math`${1}, \ldots, ${6}`}, yet they differ at every outcome: when ${math`X = ${1}`}, ${math`${7} - X = ${6}`}.` },
+    { kind: 'takeaway', text: t`A random variable is a function on outcomes; its distribution adds up the probabilities of the outcomes that give each value.` },
   ],
   examples: [
     workedCambridge(q5a),
@@ -317,5 +378,23 @@ export const randomVariables: TopicContent = {
   terms: ['random-variable', 'rv-distribution'],
   claims,
   cambridge: [q5b, quarter, scheduleRv],
-  gate: ['ia-s2-q5-b', 'ia-s2-q5-quarter'],
+  // The parameter one quarter needs the count of events of two outcomes; parameter one third
+  // needs the argument that there are none. The schedule write-up is not from a gate document.
+  gate: ['ia-s2-q5-quarter', 'ia-s2-q5-b'],
+  recall: [
+    { front: t`Define a random variable on a countable probability space.`, back: t`A function ${math`X: \Omega \to \mathbb{R}`}.` },
+    { front: t`Define the distribution of ${mX}.`, back: t`${math`\mathbb{P}(X = x) = \mathbb{P}(\{\omega : X(\omega) = x\})`} for each value ${math`x`}.` },
+    { front: t`Distribution of ${math`g(X)`}?`, back: t`${math`\mathbb{P}(g(X) = y) = \sum_{x : g(x) = y} \mathbb{P}(X = x)`}.` },
+    { front: t`Which random variables are Bernoulli?`, back: t`Exactly the indicators ${math`\mathbf{${1}}_{A}`}, with parameter ${math`\mathbb{P}(A)`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The distribution of ${math`g(X)`}`,
+      steps: [
+        t`${math`g(X)`} is the composite ${math`\omega \mapsto g(X(\omega))`}.`,
+        t`${math`\{g(X) = y\}`} is the disjoint union of ${math`\{X = x\}`} over ${math`x`} with ${math`g(x) = y`}.`,
+        t`Countable additivity adds their probabilities.`,
+      ],
+    },
+  ],
 };

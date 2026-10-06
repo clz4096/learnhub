@@ -11,7 +11,7 @@ import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
 import { int, pick, sample, upTo } from '../math';
 import { generator, type AnswerSpec, type ChoiceOption, type Misconception } from '../problem';
 import { math, t, type Rich, type Span } from '../rich';
-import { worked, workedCambridge, workedProof, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, workedProof, type TopicContent } from '../topic';
 
 type V = 'P' | 'Q' | 'R' | 'S';
 type F =
@@ -561,29 +561,98 @@ const two = rowsOf(['P', 'Q']);
 export const implication: TopicContent = {
   topicId: 'logic.implication',
   goal: t`Read ${IMP} as "if ${mP} then ${mQ}", know it is false only when ${mP} is true and ${mQ} is false, and tell it apart from its converse.`,
+  objective: t`Read ${IMP} exactly, prove one by assuming ${mP}, and tell it apart from its converse.`,
+  why: t`Nearly every theorem is an implication; next come if and only if, quantifiers, and direct proof.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Most theorems have the form "if some assumptions hold, then so does a conclusion". The CST notes call identifying exactly what the assumptions and the conclusion are the first goal in dealing with a theorem. In symbols this is an [[implication|implication]], ${IMP}, read "if ${mP} then ${mQ}" or "${mP} implies ${mQ}".` },
-    { kind: 'p', text: t`Book of Proof reads ${IMP} as a promise: whenever ${mP} is true, ${mQ} will be true too. The promise is broken in one case only, ${mP} true and ${mQ} false. If ${mP} is false, nothing was promised, so the statement is true whatever ${mQ} is.` },
+    { kind: 'section', title: t`A promise` },
+    { kind: 'hook', text: t`A friend says: "If it rains tomorrow, I'll bring you an umbrella." Tomorrow is sunny, and no umbrella arrives. Did your friend break the promise?` },
+    { kind: 'narrative', text: t`Almost everyone says no. The promise was only about rainy days, and there wasn't one. Hold on to that instinct: it is the whole of this lesson, made precise.` },
+    { kind: 'narrative', text: t`Most theorems have this shape: "if these assumptions hold, then this conclusion holds". The CST notes say the first job with any theorem is to identify exactly what is assumed and what is concluded. So we need a precise meaning for "if ... then".` },
     {
-      kind: 'table', caption: t`The [[truth-table|truth table]] of ${IMP}.`,
+      kind: 'definition',
+      name: t`Implication`,
+      formal: t`Let ${mP} and ${mQ} be statements. The [[implication|implication]] ${IMP}, read "if ${mP} then ${mQ}" or "${mP} implies ${mQ}", is the statement that is false when ${mP} is true and ${mQ} is false, and true in the other three cases. ${mP} is its hypothesis and ${mQ} its conclusion.`,
+      plain: t`a promise that is broken only when ${mP} happens and ${mQ} does not. "If ${math`n = ${4}`}, then ${math`n^{${2}} = ${16}`}" is true: whenever ${math`n = ${4}`}, the square really is ${16}.`,
+    },
+    {
+      kind: 'table', caption: t`The [[truth-table|truth table]] of ${IMP}: one row for each way ${mP} and ${mQ} can be true (T) or false (F).`,
       head: [[mP], [mQ], [IMP]],
       rows: two.map((r) => [yn(r.P === true), yn(r.Q === true), yn(evalF(imp(P, Q), r))]),
     },
-    { kind: 'p', text: t`So "if ${math`${0} = ${1}`}, then ${math`${2} + ${2} = ${5}`}" is true, as the TMUA notes point out: its left side is false. And "if ${math`x = ${4}`}, then ${math`x^{${2}} = ${8}`}" is false, because ${math`x = ${4}`} can be true while ${math`x^{${2}} = ${8}`} is false.` },
+    {
+      kind: 'p',
+      text: t`Read the last two rows slowly. When ${mP} is false, ${IMP} is true, whatever ${mQ} is. So "if ${math`${0} = ${1}`}, then ${math`${2} + ${2} = ${5}`}" is a true statement, as the TMUA notes point out.`,
+      why: { q: t`Why should a false hypothesis make the implication true?`, a: t`The implication is false in one situation only: ${mP} true and ${mQ} false. If ${mP} is false, that situation cannot occur, so there is nothing to make it false. In the umbrella story: no rain, so nothing was promised.` },
+    },
+    {
+      kind: 'p',
+      text: t`And "if ${math`x = ${4}`}, then ${math`x^{${2}} = ${8}`}" is false: take ${math`x = ${4}`}. The hypothesis is true, but ${math`x^{${2}} = ${4 * 4}`}, so the conclusion is false. One row of the table where T leads to F is enough to break it.`,
+    },
+    quickCheck({
+      prompt: t`Is "if ${math`${2} + ${2} = ${5}`}, then the moon is made of cheese" true or false?`,
+      answer: { kind: 'choice', options: [{ id: 'T', label: t`True` }, { id: 'F', label: t`False` }], correct: 'T' },
+      reference: 'T',
+      why: t`The hypothesis ${math`${2} + ${2} = ${5}`} is false, and an implication with a false hypothesis is true: the only false row needs a true hypothesis.`,
+    }),
+    { kind: 'section', title: t`Many ways to say it` },
+    { kind: 'narrative', text: t`English has many ways to say ${IMP}. Each one below means exactly the same thing. Test each against "if ${mn} is a multiple of ${6}, then ${mn} is even".` },
     {
       kind: 'list', items: [
-        t`"if ${mP}, then ${mQ}", "${mQ} if ${mP}", "${mQ} whenever ${mP}", "${mQ}, provided that ${mP}"`,
-        t`"${mP} only if ${mQ}": ${mP} cannot be true unless ${mQ} is`,
-        t`"${mP} is sufficient for ${mQ}" and "${mQ} is necessary for ${mP}"`,
+        t`"if ${mP}, then ${mQ}"; "${mQ} if ${mP}"; "${mQ} whenever ${mP}"; "${mQ}, provided that ${mP}"`,
+        t`"${mP} only if ${mQ}": ${mP} cannot be true unless ${mQ} is. So "${mn} is a multiple of ${6} only if ${mn} is even".`,
+        t`"${mP} is sufficient for ${mQ}": ${mP} on its own is enough to guarantee ${mQ}.`,
+        t`"${mQ} is necessary for ${mP}": without ${mQ}, you cannot have ${mP}.`,
       ],
     },
-    { kind: 'p', text: t`All of these mean ${IMP}. The [[converse|converse]] ${math`Q \Rightarrow P`} is a different statement: "if ${mn} is a multiple of ${6} then ${mn} is even" is true, but its converse fails at ${math`n = ${4}`}.` },
-    { kind: 'rule', text: t`To prove ${IMP}: assume ${mP}, and show that ${mQ} follows. To use ${IMP}: establish ${mP}, then conclude ${mQ}. The second is [[modus-ponens|modus ponens]]: from ${mP} and ${IMP}, deduce ${mQ}.` },
-    { kind: 'p', text: t`Assuming is not asserting, the notes stress: assuming ${mP} adds it to your list of hypotheses for the rest of the proof. Long proofs are often a chain ${math`P \Rightarrow P_{${1}} \Rightarrow P_{${2}} \Rightarrow Q`}, each link a manageable step, joined by Theorem ${11}: implication is transitive.` },
-    { kind: 'p', text: t`Book of Proof writes ${math`\sim P`} for ${math`\lnot P`}, and the CST notes write ${math`\Longrightarrow`} for ${math`\Rightarrow`}. They mean the same.` },
+    {
+      kind: 'p',
+      text: t`"Only if" is the one that trips people up. "${mP} only if ${mQ}" puts ${mP} first, and it is ${mP} that implies ${mQ}.`,
+      why: { q: t`Why does "${mP} only if ${mQ}" mean ${IMP}, and not the other way round?`, a: t`It says the only way ${mP} can be true is with ${mQ} true. So whenever ${mP} is true, ${mQ} is true: that is ${IMP}. Example: "you pass only if you sit the exam" means if you pass, then you sat the exam. Sitting the exam does not promise a pass.` },
+    },
+    {
+      kind: 'definition',
+      name: t`Converse`,
+      formal: t`The [[converse|converse]] of ${IMP} is ${math`Q \Rightarrow P`}.`,
+      plain: t`swap the hypothesis and the conclusion. The converse of "if ${mn} is a multiple of ${6}, then ${mn} is even" is "if ${mn} is even, then ${mn} is a multiple of ${6}".`,
+    },
+    { kind: 'narrative', text: t`An implication and its converse are different statements, and one can be true while the other is false. The table makes this plain: ${IMP} is false only in the row ${mP} T, ${mQ} F, while ${math`Q \Rightarrow P`} is false only in the row ${mP} F, ${mQ} T.` },
+    {
+      kind: 'pitfall',
+      claim: t`"If ${IMP} is true, then so is its converse ${math`Q \Rightarrow P`}."`,
+      counterexample: t`"If ${mn} is a multiple of ${6}, then ${mn} is even" is true. Its converse fails at ${math`n = ${4}`}: ${4} is even, but ${4} is not a multiple of ${6}.`,
+    },
+    { kind: 'section', title: t`Proving and using an implication` },
+    { kind: 'narrative', text: t`How do you prove ${IMP}? The table tells you. The only way it can fail is ${mP} true and ${mQ} false. So suppose ${mP} is true, and show that ${mQ} must then be true too. If you manage it, the bad row can never happen.` },
+    {
+      kind: 'rule',
+      text: t`To prove ${IMP}: assume ${mP}, and deduce ${mQ}. To use ${IMP}: establish ${mP}, then conclude ${mQ}.`,
+      why: { q: t`Isn't assuming ${mP} cheating? We don't know ${mP} is true.`, a: t`We are not claiming ${mP}. The CST notes put it this way: assuming ${mP} adds it to your list of hypotheses for the rest of the proof. If ${mP} turns out false, the implication is true anyway, by the table.` },
+    },
+    {
+      kind: 'definition',
+      name: t`Modus ponens`,
+      formal: t`From ${mP} and ${IMP}, deduce ${mQ}. This rule of deduction is called [[modus-ponens|modus ponens]].`,
+      plain: t`if the hypothesis holds and the implication holds, the conclusion holds. From "${12} is a multiple of ${6}" and "multiples of ${6} are even", deduce "${12} is even".`,
+    },
+    { kind: 'narrative', text: t`Here is a first proof built exactly this way. You will need one definition: an integer ${mn} is even if ${math`n = ${2}k`} for some integer ${math`k`}. For example, ${6} is even because ${math`${6} = ${2} \times ${3}`}.` },
+    { kind: 'theorem', statement: t`For every integer ${mn}: if ${mn} is even, then ${math`n^{${2}}`} is even.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Assume the hypothesis`, text: t`Let ${mn} be an integer, and assume ${mn} is even.`, plain: t`This is the ${mP} of ${IMP}. We add it to what we know; the goal is ${mQ}: ${math`n^{${2}}`} is even.` },
+        { label: t`Unpack the definition`, text: t`So ${math`n = ${2}k`} for some integer ${math`k`}.`, plain: t`"Even" means exactly this. If ${mn} were ${6}, ${math`k`} would be ${3}.` },
+        { label: t`Square both sides`, text: t`Then`, eq: [math`n^{${2}} = (${2}k)^{${2}} = ${4}k^{${2}} = ${2}(${2}k^{${2}})`], plain: t`Squaring ${math`${2}k`} squares both factors: ${math`${2}^{${2}} = ${4}`} and ${math`k^{${2}}`}. Then write ${4} as ${2} times ${2} to pull out a factor ${2}.` },
+        { label: t`Reach the conclusion`, text: t`${math`${2}k^{${2}}`} is an integer, so ${math`n^{${2}}`} is ${2} times an integer: ${math`n^{${2}}`} is even.`, plain: t`That is the definition of even again, read backwards. With ${math`n = ${6}`}: ${math`${36} = ${2} \times ${18}`}.`, why: { q: t`Why is ${math`${2}k^{${2}}`} an integer?`, a: t`${math`k`} is an integer, and products of integers are integers, so ${math`k^{${2}} = k \times k`} and then ${math`${2} \times k^{${2}}`} are integers.` } },
+      ],
+    },
+    { kind: 'narrative', text: t`Long proofs are often a chain ${math`P \Rightarrow P_{${1}} \Rightarrow P_{${2}} \Rightarrow Q`}, each link one manageable step. The notes' Theorem ${11} says such chains are valid: implication is transitive. You prove it yourself in the Cambridge problems.` },
+    { kind: 'p', text: t`Notation: Book of Proof writes ${math`\sim P`} for "not ${mP}", which the course writes ${math`\lnot P`}; the CST notes write ${math`\Longrightarrow`} for ${math`\Rightarrow`}. They mean the same.` },
+    { kind: 'takeaway', text: t`${IMP} is false only when ${mP} is true and ${mQ} is false; prove it by assuming ${mP} and deducing ${mQ}, and never confuse it with its converse.` },
   ],
   examples: [
-    workedProof(prop8),
+    { ...workedProof(prop8), examiner: t`The assumption stated first, the definition of odd written out with a named integer for each number, and the product shown in the form ${math`${2}k + ${1}`} with ${math`k`} an integer.` },
     workedCambridge(bop25_3),
     worked(rewrite, { k: 1, ph: 'only-if' }, t`"Only if" in the form "If ${mP}, then ${mQ}"`),
     worked(findValues, { left: [{ v: 'P', neg: false }, { v: 'Q', neg: false }], right: [{ v: 'R', neg: false }] }, t`When is ${math`(P \land Q) \Rightarrow R`} false?`),
@@ -592,5 +661,34 @@ export const implication: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['implication', 'converse', 'modus-ponens'],
   cambridge: [bop25_1, bop25_7, bop25_10, bop25_11, bop23_3, bop23_5, bop23_7, bop23_11, tmuaE4, tmua29, prop10, thm11, tmuaE1, tmuaJ],
+  // Both are proofs of an implication from the CST notes, set for supervision. Proposition 10 needs the
+  // assume-then-deduce method on its own; Theorem 11 needs modus ponens named twice.
   gate: ['notes-50-prop10', 'notes-54-thm11'],
+  recall: [
+    { front: t`When is ${IMP} false?`, back: t`Only when ${mP} is true and ${mQ} is false. In the other three cases it is true.` },
+    { front: t`What is the converse of ${IMP}?`, back: t`${math`Q \Rightarrow P`}. It is a different statement: one can be true and the other false.` },
+    { front: t`How do you prove ${IMP}?`, back: t`Assume ${mP}, and deduce ${mQ}.` },
+    { front: t`State modus ponens.`, back: t`From ${mP} and ${IMP}, deduce ${mQ}.` },
+    { front: t`What does "${mP} only if ${mQ}" mean?`, back: t`${IMP}: ${mP} cannot be true unless ${mQ} is.` },
+  ],
+  proofOrder: [
+    {
+      title: t`If ${mn} is even, then ${math`n^{${2}}`} is even`,
+      steps: [
+        t`Assume ${mn} is an even integer.`,
+        t`Then ${math`n = ${2}k`} for some integer ${math`k`}.`,
+        t`So ${math`n^{${2}} = ${4}k^{${2}} = ${2}(${2}k^{${2}})`}.`,
+        t`${math`${2}k^{${2}}`} is an integer, so ${math`n^{${2}}`} is even.`,
+      ],
+    },
+    {
+      title: t`Odd times odd is odd`,
+      steps: [
+        t`Assume ${math`m`} and ${mn} are odd integers.`,
+        t`Write ${math`m = ${2}i + ${1}`} and ${math`n = ${2}j + ${1}`} with ${math`i`}, ${math`j`} integers.`,
+        t`Multiply out: ${math`mn = ${2}(${2}ij + i + j) + ${1}`}.`,
+        t`${math`${2}ij + i + j`} is an integer, so ${math`mn`} is odd.`,
+      ],
+    },
+  ],
 };

@@ -14,7 +14,7 @@ import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../mat
 import { generator, type Misconception } from '../problem';
 import { chance, distinctFrom, nearestFraction, pow } from '../partv-c';
 import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S3 = 'step-s3-stats' as const;
 const S3N = 'step-s3-stats-notes' as const;
@@ -324,19 +324,63 @@ const claims: ProbabilityClaim[] = [
   { what: 'memoryless: no six in rolls 3 to 5 given none in rolls 1 and 2', exact: pow(q(5, 6), 3), trial: (rng) => { for (;;) { const x = trialsDraw(SIXTH, rng); if (x > 2) return x > 5; } } },
 ];
 
+const [mp, mq, mX, mr] = [math`p`, math`q`, math`X`, math`r`];
+
 export const geometricDistribution: TopicContent = {
   topicId: 'prob.geometric-distribution',
   goal: t`Model the wait for the first success in independent trials, with its probabilities, tails, mean, and variance, in both conventions.`,
+  objective: t`Model the wait for a first success, find its probabilities and mean, and keep the two conventions apart.`,
+  why: t`Waiting times are everywhere in probability; sums of these waits give the negative binomial and coupon collecting.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Repeat independent trials, each a success with probability ${math`p`}, until the first success. The wait is random, and its distribution is the same whatever the trials are: tosses until a head, rolls until a six, shots until a hit.` },
-    { kind: 'rule', text: t`The [[geometric-distribution|geometric distribution]]: if ${math`X`} is the number of trials up to and including the first success, ${math`\mathbb{P}(X = r) = (${1} - p)^{r - ${1}} p`} for ${math`r = ${1}, ${2}, \ldots`}. If ${math`Y = X - ${1}`} counts the failures before it, ${math`\mathbb{P}(Y = k) = (${1} - p)^{k} p`} for ${math`k = ${0}, ${1}, \ldots`}. Always check which one a question means.` },
-    { kind: 'p', text: t`The masses add to ${1}: ${math`p\left(${1} + q + q^{${2}} + \cdots\right) = p \cdot \frac{${1}}{${1} - q} = ${1}`}, with ${math`q = ${1} - p`}. The tail is simpler still: ${math`X > r`} exactly when the first ${math`r`} trials fail, so ${math`\mathbb{P}(X > r) = q^{r}`}. For a die and the first six, the chance it comes on roll ${3} is ${math`\left(${q(5, 6)}\right)^{${2}} \cdot ${SIXTH} = ${THIRD_ROLL}`}.` },
-    { kind: 'p', text: t`Differentiating the geometric series ${math`\sum_{n} q^{n} = (${1} - q)^{-${1}}`} gives ${math`\sum_{n} n q^{n - ${1}} = (${1} - q)^{-${2}}`}, so ${math`\mathbb{E}(X) = p(${1} - q)^{-${2}} = ${1}/p`}: a six takes ${6} rolls on average. Differentiating again gives ${math`\mathbb{E}(X^{${2}}) = (${2} - p)/p^{${2}}`} and ${math`\operatorname{Var}(X) = (${1} - p)/p^{${2}}`}. For ${math`Y`}, the mean is ${math`(${1} - p)/p`} and the variance is the same.` },
-    { kind: 'p', text: t`The wait has [[geometric-memoryless|no memory]]: ${math`\mathbb{P}(X > m + n \mid X > m) = q^{m + n}/q^{m} = q^{n}`}. After two rolls without a six, the chance of three more without one is ${math`\left(${q(5, 6)}\right)^{${3}} = ${pow(q(5, 6), 3)}`}, as at the start.` },
-    { kind: 'p', text: t`Waits add up. The wait for the ${math`a`}th success is a sum of ${math`a`} independent geometric waits, and collecting all ${math`n`} figures in Sheet ${2} Q${11} is a sum of ${math`n`} geometric waits with success probabilities ${math`n/n, (n - ${1})/n, \ldots, ${1}/n`}.` },
+    { kind: 'section', title: t`Waiting for a six` },
+    { kind: 'hook', text: t`Roll a die until you see a six. On average, how many rolls does it take? Most people guess ${6}, and they are right. But why exactly ${6}, when the wait could be ${1} roll or ${50}? The answer is a short calculation with a geometric series.` },
+    { kind: 'narrative', text: t`Repeat independent trials, each a success with probability ${mp}, until the first success. The wait is random, and its distribution is the same whatever the trials are: tosses until a head, rolls until a six, shots until a hit. Write ${math`q = ${1} - p`} for the chance of failure.` },
+    {
+      kind: 'definition',
+      name: t`Geometric distribution`,
+      formal: t`${mX} has the [[geometric-distribution|geometric distribution]] with parameter ${math`p \in (${0}, ${1}]`} if ${math`\mathbb{P}(X = r) = q^{r - ${1}} p`} for ${math`r = ${1}, ${2}, \ldots`}: ${mX} counts the trials up to and including the first success. The other convention counts the failures before it, ${math`Y = X - ${1}`}, with ${math`\mathbb{P}(Y = k) = q^{k} p`} for ${math`k = ${0}, ${1}, \ldots`}.`,
+      plain: t`to first succeed on trial ${mr}, the first ${math`r - ${1}`} trials must fail, then one succeed. The first six on roll ${3} has probability ${math`\left(${q(5, 6)}\right)^{${2}} \cdot ${SIXTH} = ${THIRD_ROLL}`}.`,
+    },
+    {
+      kind: 'p',
+      text: t`Always check which convention a question means: "the number of rolls" is ${mX}; "the number of failures first" is ${math`Y`}. The masses add to ${1}: ${math`p(${1} + q + q^{${2}} + \cdots) = \frac{p}{${1} - q} = ${1}`}.`,
+      why: { q: t`Why is ${math`\mathbb{P}(X = r) = q^{r - ${1}}p`}?`, a: t`${math`X = r`} is the event "fail, fail, ..., fail, succeed" with ${math`r - ${1}`} failures. The trials are independent, so the probabilities multiply.` },
+    },
+    { kind: 'p', text: t`The tail is simpler still: ${math`X > r`} exactly when the first ${mr} trials all fail, so ${math`\mathbb{P}(X > r) = q^{r}`}.` },
+    quickCheck({
+      prompt: t`A coin is tossed until the first head. What is the probability that more than ${3} tosses are needed?`,
+      answer: { kind: 'exact', expected: str(pow(q(1, 2), 3)) },
+      reference: str(pow(q(1, 2), 3)),
+      why: t`More than ${3} tosses means the first ${3} are all tails: ${math`\left(${q(1, 2)}\right)^{${3}} = ${pow(q(1, 2), 3)}`}.`,
+    }),
+    { kind: 'section', title: t`The mean wait` },
+    { kind: 'theorem', statement: t`If ${mX} is geometric with parameter ${math`p \in (${0}, ${1}]`}, counting trials, then ${math`\mathbb{E}(X) = \frac{${1}}{p}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Write the mean as a series`, text: t`${math`\mathbb{E}(X) = \sum_{r = ${1}}^{\infty} r\,q^{r - ${1}} p = p \sum_{r = ${1}}^{\infty} r\,q^{r - ${1}}`}.`, plain: t`The definition of expectation, with the constant ${mp} taken out.` },
+        {
+          label: t`Differentiate the geometric series`, text: t`For ${math`|q| < ${1}`}, ${math`\sum_{r = ${0}}^{\infty} q^{r} = (${1} - q)^{-${1}}`}; differentiating both sides in ${mq} gives`, eq: [math`\sum_{r = ${1}}^{\infty} r\,q^{r - ${1}} = (${1} - q)^{-${2}}`],
+          plain: t`The derivative of ${math`q^{r}`} is ${math`r q^{r - ${1}}`}, and the derivative of ${math`(${1} - q)^{-${1}}`} is ${math`(${1} - q)^{-${2}}`}.`,
+          why: { q: t`May an infinite sum be differentiated term by term?`, a: t`A power series can be, inside its radius of convergence; this one converges for ${math`|q| < ${1}`}. That is a theorem of analysis, used here without proof.` },
+        },
+        { label: t`Substitute`, text: t`${math`\mathbb{E}(X) = p\,(${1} - q)^{-${2}} = p \cdot \frac{${1}}{p^{${2}}} = \frac{${1}}{p}`}.`, plain: t`${math`${1} - q = p`}. If ${math`p = ${1}`}, then ${math`X = ${1}`} always and the formula still holds.` },
+      ],
+    },
+    { kind: 'p', text: t`So a six takes ${math`\frac{${1}}{${SIXTH}} = ${6}`} rolls on average. For the failures, ${math`\mathbb{E}(Y) = \frac{${1}}{p} - ${1} = \frac{q}{p}`}. Both have variance ${math`\frac{q}{p^{${2}}}`}, found by differentiating twice.` },
+    {
+      kind: 'pitfall',
+      claim: t`After ${5} rolls without a six, a six is "due", so the next roll is more likely to be one.`,
+      counterexample: t`The rolls are independent, so the next is a six with probability ${SIXTH} as always. In general the wait has [[geometric-memoryless|no memory]]: ${math`\mathbb{P}(X > m + n \mid X > m) = \frac{q^{m + n}}{q^{m}} = q^{n} = \mathbb{P}(X > n)`}.`,
+    },
+    { kind: 'section', title: t`Waits add up` },
+    { kind: 'p', text: t`Waits can be chained. After the first success, the wait for the next is a fresh geometric wait, independent of the first. So the wait for the ${math`a`}th success is a sum of ${math`a`} independent geometric waits, and its mean is ${math`\frac{a}{p}`} by linearity. The supervision problems use exactly this idea.` },
+    { kind: 'takeaway', text: t`The wait for a first success has ${math`\mathbb{P}(X = r) = q^{r - ${1}}p`}, tail ${math`\mathbb{P}(X > r) = q^{r}`}, and mean ${math`\frac{${1}}{p}`}; check whether trials or failures are counted.` },
   ],
   examples: [
-    workedCambridge(arthur),
+    { ...workedCambridge(arthur), examiner: t`The number of shots identified as geometric, the given series matched with ${math`r = ${1} - a`} and ${math`d = ${1}`}, and the expectation simplified to ${math`\frac{${1}}{a}`}.` },
     worked(pmf, { p: q(1, 3), r: 4, conv: 'failures' }, t`Counting failures, not trials`),
     worked(tailProbability, { p: q(1, 4), r: 3, conv: 'trials', tail: 'gt' }, t`A tail as a run of failures`),
   ],
@@ -345,5 +389,24 @@ export const geometricDistribution: TopicContent = {
   terms: ['geometric-distribution', 'geometric-memoryless'],
   claims,
   cambridge: [firstSix, varianceNotes, coupon, negBin],
-  gate: ['s3-notes-first-six', 's3-notes-variance', 'ia-s2-q11-coupons', 'ia-s3-q5-sum-of-geometrics'],
+  // The IA sheets first: the coupon collector and the negative binomial, both sums of geometric waits.
+  // Then the variance from the STEP notes. The first six on roll four is one product, left out.
+  gate: ['ia-s2-q11-coupons', 'ia-s3-q5-sum-of-geometrics', 's3-notes-variance'],
+  recall: [
+    { front: t`${math`\mathbb{P}(X = r)`} for the geometric wait counting trials?`, back: t`${math`q^{r - ${1}}p`} for ${math`r = ${1}, ${2}, \ldots`}.` },
+    { front: t`${math`\mathbb{P}(X > r)`}?`, back: t`${math`q^{r}`}: the first ${mr} trials fail.` },
+    { front: t`Mean and variance of the geometric wait counting trials?`, back: t`${math`\frac{${1}}{p}`} and ${math`\frac{q}{p^{${2}}}`}.` },
+    { front: t`State the memoryless property of the geometric distribution.`, back: t`${math`\mathbb{P}(X > m + n \mid X > m) = \mathbb{P}(X > n)`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The mean of a geometric wait is ${math`\frac{${1}}{p}`}`,
+      steps: [
+        t`${math`\mathbb{E}(X) = p \sum_{r \ge ${1}} r q^{r - ${1}}`}.`,
+        t`Differentiate ${math`\sum_{r \ge ${0}} q^{r} = (${1} - q)^{-${1}}`} to get ${math`\sum_{r \ge ${1}} r q^{r - ${1}} = (${1} - q)^{-${2}}`}.`,
+        t`So ${math`\mathbb{E}(X) = p(${1} - q)^{-${2}}`}.`,
+        t`Since ${math`${1} - q = p`}, ${math`\mathbb{E}(X) = \frac{${1}}{p}`}.`,
+      ],
+    },
+  ],
 };

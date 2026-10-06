@@ -12,8 +12,8 @@ import { auto, cite, supervision } from '../cambridge';
 import { int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, nearestFraction, pow } from '../partv-c';
-import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S2 = 'ia-prob-sheet-2' as const;
 const RATIOS: readonly Rational[] = [q(1, 2), q(1, 3), q(2, 3), q(1, 4), q(3, 4), q(2, 5), q(3, 5)];
@@ -284,20 +284,61 @@ const HALF_EVEN = q(1, 3);
 const claims: ProbabilityClaim[] = [
   { what: 'masses 2^-k on k >= 1: P(even)', exact: HALF_EVEN, trial: (rng) => { let k = 1; while (rng() < 0.5) k++; return k % 2 === 0; } },
 ];
+const [mO, mX] = [math`\Omega`, math`X`];
 
 export const pointMassSpaces: TopicContent = {
   topicId: 'prob.point-mass-spaces',
   goal: t`Build a probability space on a countable set from point masses, and find ${math`\mathbb{P}(A)`} by adding the masses in ${math`A`}.`,
+  objective: t`Build a probability on a countable set from point masses, and find any event's probability by adding.`,
+  why: t`Every discrete random variable lives on such a space; and no uniform distribution on the integers can exist.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`When ${math`\Omega`} is countable (finite, or listed as ${math`\omega_{${1}}, \omega_{${2}}, \ldots`}), a probability on it is fixed by how much it gives each single outcome. Every subset of ${math`\Omega`} can then be an event.` },
-    { kind: 'rule', text: t`A [[countable-probability-space|probability space on a countable set]] is given by [[point-mass|point masses]] ${math`p_{\omega} \ge ${0}`} with ${math`\sum_{\omega \in \Omega} p_{\omega} = ${1}`}, and ${math`\mathbb{P}(A) = \sum_{\omega \in A} p_{\omega}`} for every ${math`A \subseteq \Omega`}.` },
-    { kind: 'p', text: t`Why this is a probability measure: a series of nonnegative terms has the same sum in any order and grouped in any way. If ${math`A_{${1}}, A_{${2}}, \ldots`} are disjoint, the masses in their union can be summed set by set, which is countable additivity. Conversely, any probability measure on the subsets of ${math`\Omega`} has ${math`p_{\omega} = \mathbb{P}(\{\omega\})`}, and countable additivity gives back the sum.` },
-    { kind: 'p', text: t`Example: on ${math`\{${1}, ${2}, \ldots\}`} put ${math`p_{k} = ${q(1, 2)}^{k}`}. These add to ${1}, and the even outcomes have ${math`\sum_{j \ge ${1}} ${q(1, 4)}^{j} = ${HALF_EVEN}`}. Masses given up to a constant, such as ${math`c\,r^{k}`}, are normalised by choosing ${math`c`} so that the total is ${1}.` },
-    { kind: 'p', text: t`There is no uniform distribution on ${math`\mathbb{N}`}: equal masses ${math`c`} add to ${0} if ${math`c = ${0}`} and to infinity otherwise. Probabilities on an infinite countable set must thin out.` },
-    { kind: 'p', text: t`Sheet ${2} Q${13}: for ${math`s > ${1}`}, ${math`\mathbb{P}(X = n) = n^{-s}/\zeta(s)`} with ${math`\zeta(s) = \sum_{n} n^{-s}`}. The multiples of a prime ${math`p`} carry mass ${math`p^{-s}`}, and by unique factorisation these events are independent for different primes.` },
+    { kind: 'section', title: t`Infinitely many outcomes` },
+    { kind: 'hook', text: t`Toss a fair coin until the first head. The number of tosses could be ${1}, ${2}, ${3}, and so on forever, with chances ${q(1, 2)}, ${q(1, 4)}, ${q(1, 8)}, and so on. What is the chance that it takes an even number of tosses? There are infinitely many outcomes to add, and yet the answer is a simple fraction.` },
+    { kind: 'narrative', text: t`A set is countable if it is finite or its elements can be listed as ${math`\omega_{${1}}, \omega_{${2}}, \omega_{${3}}, \ldots`}, like the natural numbers. On such a set, a probability is completely fixed by how much it gives to each single outcome. That is the whole idea of this lesson.` },
+
+    { kind: 'section', title: t`Point masses` },
+    { kind: 'definition', name: t`Point masses`, formal: t`Let ${mO} be countable. A family of [[point-mass|point masses]] is a choice of numbers ${math`p_{\omega} \ge ${0}`}, one for each ${math`\omega \in \Omega`}, with ${math`\sum_{\omega \in \Omega} p_{\omega} = ${1}`}. It defines ${dmath`\mathbb{P}(A) = \sum_{\omega \in A} p_{\omega}, \qquad A \subseteq \Omega.`}`, plain: t`Give each outcome a weight, the weights adding to ${1}; the probability of an event is the total weight of its outcomes. For the coin, ${math`p_{k} = (\tfrac{${1}}{${2}})^{k}`} on ${math`\{${1}, ${2}, \ldots\}`}.` },
+    { kind: 'theorem', statement: t`On a countable ${mO}, point masses define a probability measure on all subsets of ${mO}. Conversely, every probability measure on all subsets of ${mO} comes from point masses, namely ${math`p_{\omega} = \mathbb{P}(\{\omega\})`}.` },
+    { kind: 'p', text: t`This makes the space a [[countable-probability-space|probability space on a countable set]]: every subset is an event, and nothing else needs to be specified.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The sum is well defined`, text: t`A series of nonnegative terms has the same sum, finite or infinite, in every order, so ${math`\sum_{\omega \in A} p_{\omega}`} does not depend on how ${math`A`} is listed. It lies between ${0} and ${1}, since it is part of a series with total ${1}.`, why: { q: t`Why does the order not matter?`, a: t`For nonnegative terms, the sum is the least upper bound of the sums over finite subsets, and that does not mention any order. (Order matters only for series with terms of both signs.)` } },
+        { label: t`The total is ${1}`, text: t`${math`\mathbb{P}(\Omega) = \sum_{\omega} p_{\omega} = ${1}`}, by assumption.` },
+        { label: t`Countable additivity`, text: t`If ${math`A_{${1}}, A_{${2}}, \ldots`} are disjoint, the masses in their union can be summed set by set, because nonnegative series may be grouped freely: ${math`\mathbb{P}(\bigcup_{i} A_{i}) = \sum_{i} \sum_{\omega \in A_{i}} p_{\omega} = \sum_{i} \mathbb{P}(A_{i})`}.` },
+        { label: t`The converse`, text: t`Given a probability measure, set ${math`p_{\omega} = \mathbb{P}(\{\omega\})`}. Any ${math`A`} is the countable disjoint union of its single points, so countable additivity gives ${math`\mathbb{P}(A) = \sum_{\omega \in A} p_{\omega}`}.` },
+      ],
+    },
+
+    { kind: 'section', title: t`Adding masses` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The event`, text: t`For the coin, "an even number of tosses" is ${math`\{${2}, ${4}, ${6}, \ldots\}`}.` },
+        { label: t`Add its masses`, text: t`${math`\sum_{j \ge ${1}} (\tfrac{${1}}{${2}})^{${2}j} = \sum_{j \ge ${1}} (\tfrac{${1}}{${4}})^{j}`}, a geometric series with first term ${q(1, 4)} and ratio ${q(1, 4)}.` },
+        { label: t`Sum it`, text: t`${math`\frac{${1}/${4}}{${1} - ${1}/${4}} = ${HALF_EVEN}`}.`, why: { q: t`Which formula is that?`, a: t`A geometric series ${math`a + ar + ar^{${2}} + \cdots`} with ${math`|r| < ${1}`} sums to ${math`\frac{a}{${1} - r}`}.` } },
+      ],
+    },
+    { kind: 'p', text: t`Masses are often given only up to a constant, such as ${math`c\,r^{k}`}. Choose ${math`c`} so that the total is ${1}: for ${math`k \ge ${0}`}, ${math`\sum c\,r^{k} = \frac{c}{${1} - r}`}, so ${math`c = ${1} - r`}.` },
+    checkFrom(normalise, { r: q(1, 2), m: 0 }, t`${math`\sum_{k \ge ${0}} c(\tfrac{${1}}{${2}})^{k} = ${2}c`}, which must be ${1}.`),
+    checkFrom(eventProbability, { r: q(1, 2), kind: 'multiple-three', m: 1 }, t`Add ${math`p_{${0}} + p_{${3}} + \cdots`}: ${math`\frac{${1}}{${2}} \cdot \frac{${1}}{${1} - (${1}/${2})^{${3}}} = ${q(4, 7)}`}.`),
+
+    { kind: 'section', title: t`No uniform distribution on the integers` },
+    { kind: 'theorem', statement: t`There is no probability measure on ${math`\mathbb{N}`} that gives every point the same mass.` },
+    { kind: 'p', text: t`Proof: if every ${math`p_{n} = c`}, then ${math`\sum_{n} p_{n}`} is ${0} when ${math`c = ${0}`} and infinite when ${math`c > ${0}`}; never ${1}. ∎ So "a random whole number, all equally likely" has no meaning. Probabilities on an infinite countable set must thin out.` },
+    { kind: 'p', text: t`Example Sheet ${2} question ${13} uses a thinning choice: for ${math`s > ${1}`}, ${math`\mathbb{P}(X = n) = n^{-s}/\zeta(s)`}, where ${math`\zeta(s) = \sum_{n} n^{-s}`} makes the masses add to ${1}. The worked Cambridge problem finds the chance that a prime divides ${mX}.` },
+    checkFrom(zetaDivisible, { s: 2, a: 3, b: null }, t`The multiples ${math`${3}m`} carry ${math`\sum_{m} (${3}m)^{-${2}}/\zeta(${2}) = ${3}^{-${2}}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`Half the values of a random positive integer are even, so ${math`\mathbb{P}(\text{even}) = \tfrac{${1}}{${2}}`}.`, counterexample: t`It depends on the masses. With ${math`p_{k} = (\tfrac{${1}}{${2}})^{k}`}, ${math`\mathbb{P}(\text{even}) = ${HALF_EVEN}`}. There is no "fair" distribution on the integers to make it ${q(1, 2)}.` },
+    { kind: 'pitfall', claim: t`Any nonnegative numbers ${math`p_{\omega}`} define a probability.`, counterexample: t`${math`p_{k} = ${q(1, 2)}`} for every ${math`k \ge ${1}`} adds to infinity. The masses must add to exactly ${1}.` },
+    { kind: 'pitfall', claim: t`A probability on an uncountable set, such as ${math`[${0}, ${1}]`}, is also fixed by point masses.`, counterexample: t`For a uniform point of ${math`[${0}, ${1}]`}, every single point has probability ${0}, but the whole interval has probability ${1}. Point masses only work on countable sets.` },
+    { kind: 'takeaway', text: t`On a countable set, a probability is a list of nonnegative masses adding to ${1}, and the probability of any event is the sum of its masses.` },
   ],
   examples: [
-    workedCambridge(q13a),
+    { ...workedCambridge(q13a), examiner: t`The examiner looks for the event written as the set of multiples ${math`pm`}, and ${math`p^{-s}`} factored out of the sum.` },
     worked(eventProbability, { r: q(1, 3), kind: 'even', m: 1 }, t`An even number of failures`),
     worked(normalise, { r: q(2, 3), m: 1 }, t`Normalising masses that start at ${1}`),
   ],
@@ -306,5 +347,20 @@ export const pointMassSpaces: TopicContent = {
   terms: ['point-mass', 'countable-probability-space'],
   claims,
   cambridge: [q13b, q13proof, scheduleProof],
-  gate: ['ia-s2-q13-coprime-six', 'ia-s2-q13-euler'],
+  // The sheet's proof first, then its numbers with s = 2, which still need independence and complements.
+  gate: ['ia-s2-q13-euler', 'ia-s2-q13-coprime-six'],
+  recall: [
+    { front: t`How is a probability on a countable set specified?`, back: t`By point masses ${math`p_{\omega} \ge ${0}`} adding to ${1}, with ${math`\mathbb{P}(A) = \sum_{\omega \in A} p_{\omega}`}.` },
+    { front: t`Why is there no uniform distribution on ${math`\mathbb{N}`}?`, back: t`Equal masses add to ${0} or to infinity, never ${1}.` },
+    { front: t`For ${math`\mathbb{P}(X = n) = n^{-s}/\zeta(s)`}, the chance a prime ${math`p`} divides ${mX}.`, back: t`${math`p^{-s}`}.` },
+  ],
+  proofOrder: [{
+    title: t`Point masses give countable additivity`,
+    steps: [
+      t`Take disjoint events ${math`A_{${1}}, A_{${2}}, \ldots`}.`,
+      t`The masses in the union form a nonnegative series.`,
+      t`A nonnegative series may be grouped set by set without changing its sum.`,
+      t`So ${math`\mathbb{P}(\bigcup A_{i}) = \sum_{i} \mathbb{P}(A_{i})`}.`,
+    ],
+  }],
 };

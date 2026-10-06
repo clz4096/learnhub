@@ -11,7 +11,7 @@ import { int, pick } from '../math';
 import { gcd } from '../numbers';
 import { generator, type Misconception } from '../problem';
 import { computedTex, math, t, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mm, mn] = [math`m`, math`n`];
 const fib = (n: number): number => { let [a, b] = [0, 1]; for (let i = 0; i < n; i++) [a, b] = [b, a + b]; return a; };
@@ -248,18 +248,63 @@ const sheet423dproof = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [EA, EB] = [252, 105];
+/** One division line a = q b + r for each call of the algorithm on (EA, EB). */
+const divLines = (m: number, n: number): Span => computedTex(calls(m, n).map(([a, b]) => `${a} = ${Math.floor(a / b)} \\times ${b} + ${a % b}`).join(',\\quad '));
+
 export const euclidAlgorithm: TopicContent = {
   topicId: 'num.euclid-algorithm',
   goal: t`Compute ${math`\gcd(m, n)`} by Euclid's algorithm, explain why each step keeps the answer and why it stops, and count its steps.`,
+  objective: t`Run Euclid's algorithm, and prove that it stops with the gcd.`,
+  why: t`It is the fastest way to a gcd, and run backwards it gives the extended algorithm and modular inverses.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`The common divisors of ${mm} and ${mn} are those of ${mn} and ${math`\mathrm{rem}(m, n)`} (Key Lemma ${72}), and if ${math`n \mid m`} they are the divisors of ${mn}. So the greatest of them can be found by repeating one step.` },
-    { kind: 'rule', text: t`[[euclids-algorithm|Euclid's algorithm]]: for positive integers, ${math`\gcd(m, n) = n`} if ${math`n \mid m`}, and otherwise ${math`\gcd(m, n) = \gcd(n, \mathrm{rem}(m, n))`}.` },
-    { kind: 'p', text: t`The notes' Example ${75}: ${math`\gcd(${13}, ${34}) = ${chainTex(34, 13)}`}, after a first step that swaps the arguments. Each line is one call; the answer is the last divisor, the one that leaves no remainder.` },
-    { kind: 'p', text: t`It stops (Theorem ${79}): after the first step the second argument is a remainder, smaller than before, and a decreasing sequence of positive integers cannot go on for ever. In fact it at least halves every two steps, so the number of steps is at most about ${math`${1} + ${2}\log_{${2}} \min(m, n)`}: logarithmic, not linear.` },
-    { kind: 'p', text: t`The slowest inputs are consecutive Fibonacci numbers, where every quotient is ${1}: ${math`\gcd(F_{n + ${2}}, F_{n + ${1}})`} takes exactly ${mn} steps (exercise ${4}.${2}.${3}(d)). The subtractive version, which replaces the larger number by the difference, is also correct but can be far slower: ${math`\gcd_{${0}}(${100}, ${1})`} takes ${calls0(100, 1).length} calls.` },
+    { kind: 'section', title: t`Shrinking the problem` },
+    { kind: 'hook', text: t`What is the gcd of ${M2} and ${N2}? Listing divisors of eight-digit numbers would take all day. Euclid found a method, around ${300} BC, that takes ${calls(M2, N2).length} divisions here. It is one of the oldest algorithms still in daily use.` },
+    { kind: 'narrative', text: t`The idea comes straight from the Key Lemma of the last lesson: ${math`\gcd(m, n) = \gcd(m - kn, n)`} for any integer ${math`k`}. Subtract as many copies of ${mn} as you can, that is, take ${math`k = \mathrm{quo}(m, n)`}, and what is left is the remainder. So ${math`\gcd(m, n) = \gcd(n, \mathrm{rem}(m, n))`}, a smaller problem. Repeat until the remainder is ${0}.` },
+    {
+      kind: 'definition',
+      name: t`Euclid's algorithm`,
+      formal: t`For positive integers ${mm} and ${mn}, [[euclids-algorithm|Euclid's algorithm]] computes ${math`\gcd(m, n) = n`} if ${math`n \mid m`}, and ${math`\gcd(m, n) = \gcd(n, \mathrm{rem}(m, n))`} otherwise.`,
+      plain: t`divide, keep the divisor and the remainder, and repeat; the last divisor that leaves no remainder is the gcd. For ${EA} and ${EB}: ${math`${chainTex(EA, EB)}`}.`,
+    },
+    { kind: 'p', text: t`The divisions behind that chain are ${math`${divLines(EA, EB)}`}. Each line's divisor and remainder become the next line's dividend and divisor.` },
+    quickCheck({
+      prompt: t`Run Euclid's algorithm: what is ${math`\gcd(${1071}, ${1029})`}?`,
+      answer: { kind: 'exact', expected: String(gcd(1071, 1029)) },
+      reference: String(gcd(1071, 1029)),
+      why: t`${math`${chainTex(1071, 1029)}`}.`,
+    }),
+    { kind: 'section', title: t`Why it is right` },
+    { kind: 'narrative', text: t`Two things need proving, as with any algorithm: that it stops, and that when it stops the answer is right. The CST notes prove both in Theorem ${79}.` },
+    { kind: 'theorem', statement: t`For all positive integers ${mm} and ${mn}, Euclid's algorithm stops, and returns ${math`\gcd(m, n)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The second argument falls`, text: t`If ${math`n \nmid m`}, the next call is on ${math`(n, r)`} with ${math`r = \mathrm{rem}(m, n)`} and ${math`${0} < r < n`}.`, plain: t`The remainder is less than ${mn} by the Division Theorem, and not ${0} because ${mn} does not divide ${mm}.` },
+        { label: t`So it stops`, text: t`The second arguments form a strictly decreasing sequence of positive integers, which must be finite.`, plain: t`Starting from ${mn}, you cannot step down through positive integers more than ${mn} times.` },
+        { label: t`Each call keeps the answer`, text: t`${math`\mathrm{CD}(m, n) = \mathrm{CD}(n, \mathrm{rem}(m, n))`}, so every call has the same common divisors as the first.`, plain: t`This is the Key Lemma with ${math`k = \mathrm{quo}(m, n)`}: ${math`\mathrm{rem}(m, n) = m - \mathrm{quo}(m, n) \cdot n`}.` },
+        {
+          label: t`The last call is easy`, text: t`At the last call ${math`(a, b)`}, ${math`b \mid a`}, so ${math`\mathrm{CD}(a, b) = D(b)`} and the gcd is ${math`b`}.`,
+          why: { q: t`Why is every divisor of ${math`b`} a common divisor of ${math`a`} and ${math`b`}?`, a: t`If ${math`d \mid b`} and ${math`b \mid a`}, then ${math`d \mid a`}, because divisibility is transitive. So the common divisors are just the divisors of ${math`b`}, and the one they all divide is ${math`b`} itself.` },
+        },
+        { label: t`Conclude`, text: t`The returned ${math`b`} is the gcd of the last pair, whose common divisors are those of ${math`(m, n)`}. So it is ${math`\gcd(m, n)`}.`, plain: t`Same set of common divisors from start to finish, so the same gcd.` },
+      ],
+    },
+    { kind: 'p', text: t`As a by-product, the proof shows the gcd exists at all: the algorithm produces a number with the universal property.` },
+    { kind: 'section', title: t`How fast` },
+    { kind: 'narrative', text: t`The second argument does more than fall: it at least halves every two steps. The notes deduce that the number of steps is at most about ${math`${1} + ${2}\log_{${2}} \min(m, n)`}. For numbers below ${100000000} that is at most about ${Math.ceil(1 + 2 * Math.log2(100000000))} steps, against tens of millions for trial division.` },
+    { kind: 'p', text: t`The slowest inputs are consecutive Fibonacci numbers, where every quotient is ${1}. The notes' Example ${75}: ${math`\gcd(${34}, ${13}) = ${chainTex(34, 13)}`}. Each step moves down one Fibonacci number.` },
+    {
+      kind: 'pitfall',
+      claim: t`Subtracting is as good as dividing: replace the larger number by the difference until the two are equal.`,
+      counterexample: t`That subtractive version is correct (the same Key Lemma with ${math`k = ${1}`}) but can be far slower: on ${math`(${100}, ${1})`} it makes ${calls0(100, 1).length} calls, where Euclid's algorithm makes ${calls(100, 1).length}.`,
+    },
+    { kind: 'takeaway', text: t`${math`\gcd(m, n) = \gcd(n, \mathrm{rem}(m, n))`}: repeat until the remainder is ${0}; it stops because the remainders fall, and it is right because each step keeps the common divisors.` },
   ],
   examples: [
-    workedCambridge(sheet312),
+    { ...workedCambridge(sheet312), examiner: t`Each division written out with its quotient and remainder, and the last nonzero remainder named as the gcd.` },
     worked(runEuclid, { m: 1071, n: 462 }, t`${math`\gcd(${1071}, ${462})`}`),
     worked(countSteps, { m: 89, n: 55 }, t`Counting the steps for ${math`(${89}, ${55})`}`),
   ],
@@ -267,5 +312,24 @@ export const euclidAlgorithm: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['euclids-algorithm'],
   cambridge: [notes75, sheet423d, sheet333, theorem79, sheet423dproof],
-  gate: ['notes-218-example-75', 'sheet-4-2-3-d', 'sheet-3-3-3', 'notes-224-theorem-79-bound', 'sheet-4-2-3-d-proof'],
+  // The proofs: the Fibonacci induction, the halving bound, and the subtractive algorithm's correctness.
+  // The two step counts are left out: each is one run of the algorithm.
+  gate: ['sheet-4-2-3-d-proof', 'notes-224-theorem-79-bound', 'sheet-3-3-3'],
+  recall: [
+    { front: t`State Euclid's algorithm.`, back: t`${math`\gcd(m, n) = n`} if ${math`n \mid m`}, else ${math`\gcd(n, \mathrm{rem}(m, n))`}.` },
+    { front: t`Why does Euclid's algorithm stop?`, back: t`The second argument is a remainder, strictly smaller each call, and positive integers cannot fall for ever.` },
+    { front: t`Why is its answer the gcd?`, back: t`Each call keeps the common divisors (Key Lemma), and at the last call ${math`b \mid a`}, so the gcd is ${math`b`}.` },
+    { front: t`What are the slowest inputs?`, back: t`Consecutive Fibonacci numbers: every quotient is ${1}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Euclid's algorithm stops with the gcd`,
+      steps: [
+        t`Each call replaces ${math`(m, n)`} by ${math`(n, r)`} with ${math`${0} < r < n`}.`,
+        t`The second arguments strictly decrease, so the algorithm stops.`,
+        t`Each call has the same common divisors as the one before.`,
+        t`At the last call ${math`b \mid a`}, so the answer ${math`b`} is the gcd of the first pair.`,
+      ],
+    },
+  ],
 };

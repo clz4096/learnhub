@@ -8,8 +8,8 @@
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computedTex, dmath, listOf, math, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computed, computedTex, dmath, listOf, math, t } from '../rich';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mn, mr, ma] = [math`n`, math`r`, math`a`];
 const pow = (r: Rational, k: number): Rational => Array.from({ length: k }, () => r).reduce((x, y) => mul(x, y), q(1));
@@ -243,18 +243,62 @@ const sw421bProof = supervision({
 
 const EX = { a: 3, r: 2, n: 6 };
 
+const [mS, mk] = [math`S`, math`k`];
+const exSum = (EX.a * (EX.r ** EX.n - 1)) / (EX.r - 1);
+const grains = (n: number): bigint => 2n ** BigInt(n) - 1n;
+
 export const geometricSeries: TopicContent = {
   topicId: 'alg.geometric-series',
   goal: t`Sum a finite geometric series with the formula ${math`\frac{a(${1} - r^{n})}{${1} - r}`}, and use the telescoping trick behind it.`,
+  objective: t`Derive and use the sum of a finite geometric series, ${math`\frac{a(${1} - r^{n})}{${1} - r}`}.`,
+  why: t`Geometric sums appear in probability, interest, and algorithms; next comes the infinite series.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`A geometric sequence multiplies by the same [[common-ratio|common ratio]] ${mr} each time: ${math`a, ar, ar^{${2}}, \ldots`}. Its ${mn}th term is ${math`ar^{n - ${1}}`}. For ${math`a = ${EX.a}`}, ${math`r = ${EX.r}`}: ${listOf([0, 1, 2, 3].map((i) => EX.a * EX.r ** i))}, and so on.` },
-    { kind: 'p', text: t`To add ${mn} terms, ${math`S = a + ar + \cdots + ar^{n - ${1}}`}, multiply by ${mr} and subtract: ${math`rS = ar + \cdots + ar^{n - ${1}} + ar^{n}`}, and everything cancels except the ends, ${math`S - rS = a - ar^{n}`}.` },
-    { kind: 'rule', text: t`For ${math`r \ne ${1}`}, the [[geometric-series|geometric series]] ${dmath`\sum_{i = ${0}}^{n - ${1}} ar^{i} = \frac{a(${1} - r^{n})}{${1} - r} = \frac{a(r^{n} - ${1})}{r - ${1}}.`} For ${math`r = ${1}`} the sum is just ${math`na`}.` },
-    { kind: 'p', text: t`Example: ${math`${EX.a} + ${EX.a * EX.r} + \cdots + ${EX.a * EX.r ** (EX.n - 1)}`} has ${EX.n} terms, so the sum is ${math`\frac{${EX.a}(${EX.r}^{${EX.n}} - ${1})}{${EX.r} - ${1}} = ${(EX.a * (EX.r ** EX.n - 1)) / (EX.r - 1)}`}.` },
-    { kind: 'p', text: t`The CST supervision exercise ${math`${4}.${2}.${1}`} uses this with ratio ${math`${2}^{n}`}: ${math`(${2}^{n} - ${1})\sum_{i = ${0}}^{m - ${1}} ${2}^{i n} = ${2}^{m n} - ${1}`}. Read as a factorisation, it says ${math`${2}^{n} - ${1}`} divides ${math`${2}^{m n} - ${1}`}. So if ${math`k = mn`} with ${math`m, n \ge ${2}`}, then ${math`${2}^{k} - ${1}`} is not prime: a prime of the form ${math`${2}^{k} - ${1}`}, a Mersenne prime, needs ${math`k`} prime.` },
+    { kind: 'section', title: t`Doubling` },
+    { kind: 'hook', text: t`Put ${1} grain of rice on the first square of a chessboard, ${2} on the second, ${4} on the third, doubling each time up to square ${64}. How many grains in all? Adding ${64} numbers one by one is hopeless. One line of algebra gives the exact answer: ${computed(grains(64).toLocaleString('en-US'))}.` },
+    {
+      kind: 'definition',
+      name: t`Geometric sequence`,
+      formal: t`A geometric sequence with first term ${ma} and [[common-ratio|common ratio]] ${mr} is ${math`a, ar, ar^{${2}}, ar^{${3}}, \ldots`}, whose term in position ${mn} is ${math`ar^{n - ${1}}`}.`,
+      plain: t`each term is the one before it times the same number ${mr}. With ${math`a = ${EX.a}`} and ${math`r = ${EX.r}`}: ${listOf([0, 1, 2, 3].map((i) => EX.a * EX.r ** i))}, and so on.`,
+    },
+    { kind: 'narrative', text: t`A [[geometric-series|geometric series]] is the sum of the first ${mn} terms. Here is the trick. Multiplying the sum by ${mr} shifts every term one place along. The shifted sum and the original share all but their end terms, so subtracting wipes out the middle.` },
+    { kind: 'section', title: t`The formula` },
+    { kind: 'theorem', statement: t`For real numbers ${ma} and ${mr} with ${math`r \neq ${1}`}, and a positive integer ${mn}, ${dmath`\sum_{i = ${0}}^{n - ${1}} ar^{i} = a + ar + \cdots + ar^{n - ${1}} = \frac{a(${1} - r^{n})}{${1} - r}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Name the sum`, text: t`Let ${math`S = a + ar + ar^{${2}} + \cdots + ar^{n - ${1}}`}.`, plain: t`${mn} terms, the powers of ${mr} running from ${0} to ${math`n - ${1}`}.` },
+        { label: t`Multiply by ${mr}`, text: t`Then ${math`rS = ar + ar^{${2}} + \cdots + ar^{n - ${1}} + ar^{n}`}.`, plain: t`Each power goes up by one; the list now runs from ${math`ar`} to ${math`ar^{n}`}.` },
+        { label: t`Subtract`, text: t`${math`S - rS = a - ar^{n}`}.`, plain: t`Every term from ${math`ar`} to ${math`ar^{n - ${1}}`} is in both sums, so it cancels. Only ${ma}, first in ${mS}, and ${math`ar^{n}`}, last in ${math`rS`}, survive.` },
+        { label: t`Factorise`, text: t`${math`S(${1} - r) = a(${1} - r^{n})`}.`, plain: t`Take ${mS} out on the left and ${ma} out on the right.` },
+        { label: t`Divide`, text: t`Since ${math`r \neq ${1}`}, ${math`${1} - r \neq ${0}`}, so ${math`S = \frac{a(${1} - r^{n})}{${1} - r}`}.`, plain: t`Division is allowed because the divisor is not zero.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`Multiplying top and bottom by ${math`${-1}`} gives the same thing as ${math`\frac{a(r^{n} - ${1})}{r - ${1}}`}, handier when ${math`r > ${1}`}. When ${math`r = ${1}`} every term is ${ma}, so the sum is ${math`na`}.`,
+      why: { q: t`Why does the proof need ${math`r \neq ${1}`}?`, a: t`At ${math`r = ${1}`} the subtraction gives ${math`${0} \cdot S = ${0}`}, which is true for every ${mS} and tells us nothing. The formula would divide by ${0}.` },
+    },
+    { kind: 'p', text: t`Example: ${math`${EX.a} + ${EX.a * EX.r} + \cdots + ${EX.a * EX.r ** (EX.n - 1)}`} has ${EX.n} terms with ${math`a = ${EX.a}`}, ${math`r = ${EX.r}`}, so the sum is ${math`\frac{${EX.a}(${EX.r}^{${EX.n}} - ${1})}{${EX.r} - ${1}} = ${exSum}`}. The chessboard: ${math`a = ${1}`}, ${math`r = ${2}`}, ${math`n = ${64}`}, so ${math`${2}^{${64}} - ${1}`} grains.` },
+    quickCheck({
+      prompt: t`Find ${math`${1} + ${3} + ${9} + \cdots + ${3}^{${5}}`}.`,
+      answer: { kind: 'exact', expected: String((3 ** 6 - 1) / 2) },
+      reference: String((3 ** 6 - 1) / 2),
+      why: t`Six terms (powers ${0} to ${5}), ${math`a = ${1}`}, ${math`r = ${3}`}: ${math`\frac{${3}^{${6}} - ${1}}{${3} - ${1}} = \frac{${3 ** 6 - 1}}{${2}} = ${(3 ** 6 - 1) / 2}`}.`,
+    }),
+    {
+      kind: 'pitfall',
+      claim: t`${math`${1} + ${2} + \cdots + ${2}^{n}`} is ${math`${2}^{n} - ${1}`}.`,
+      counterexample: t`Count the terms: powers ${0} to ${mn} make ${math`n + ${1}`} terms, so the sum is ${math`${2}^{n + ${1}} - ${1}`}. At ${math`n = ${2}`}: ${math`${1} + ${2} + ${4} = ${7}`}, not ${math`${2}^{${2}} - ${1} = ${3}`}.`,
+    },
+    { kind: 'section', title: t`A factorisation in disguise` },
+    { kind: 'p', text: t`Read the formula backwards and it factorises: ${math`r^{m} - ${1} = (r - ${1})(${1} + r + \cdots + r^{m - ${1}})`}. The CST supervision exercise ${math`${4}.${2}.${1}`} puts ${math`r = ${2}^{n}`}: ${math`(${2}^{n} - ${1})\sum_{i = ${0}}^{m - ${1}} ${2}^{i n} = ${2}^{m n} - ${1}`}. So ${math`${2}^{n} - ${1}`} divides ${math`${2}^{mn} - ${1}`}: for instance ${math`${2}^{${2}} - ${1} = ${3}`} divides ${math`${2}^{${6}} - ${1} = ${63}`}. What does that say about ${math`${2}^{k} - ${1}`} when ${mk} is not prime? That is the exercise's second part.` },
+    { kind: 'takeaway', text: t`Multiply by ${mr} and subtract: ${math`a + ar + \cdots + ar^{n - ${1}} = \frac{a(${1} - r^{n})}{${1} - r}`} for ${math`r \neq ${1}`}; count the terms carefully.` },
   ],
   examples: [
-    workedCambridge(sw421a),
+    { ...workedCambridge(sw421a), examiner: t`The ratio ${math`${2}^{n}`} identified, the number of terms counted as ${math`m`}, and the cancellation shown term by term rather than quoted.` },
     worked(sumGp, { a: 1, r: q(1, 2), n: 6 }, t`Halving each time`),
     worked(mersenne, { m: 2, n: 3 }, t`${math`${2}^{${6}} - ${1}`} is not prime`),
   ],
@@ -262,5 +306,24 @@ export const geometricSeries: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['geometric-series', 'common-ratio'],
   cambridge: [sw421b, bop105, sw421aProof, sw421bProof],
-  gate: ['sw-4-2-1-b', 'sw-4-2-1-a-proof', 'sw-4-2-1-b-proof'],
+  // The two proofs of 4.2.1, (b) first since it needs (a) and care with k equal to 1.
+  // The numerical divisor of 2 to the 15 minus 1 is one application, left out.
+  gate: ['sw-4-2-1-b-proof', 'sw-4-2-1-a-proof'],
+  recall: [
+    { front: t`Sum of a finite geometric series, ${math`r \neq ${1}`}?`, back: t`${math`a + ar + \cdots + ar^{n - ${1}} = \frac{a(${1} - r^{n})}{${1} - r}`}.` },
+    { front: t`The idea of the proof?`, back: t`Multiply the sum by ${mr} and subtract: all but the end terms cancel.` },
+    { front: t`The sum when ${math`r = ${1}`}?`, back: t`${math`na`}.` },
+    { front: t`Factorise ${math`r^{m} - ${1}`}.`, back: t`${math`(r - ${1})(${1} + r + \cdots + r^{m - ${1}})`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The geometric series formula`,
+      steps: [
+        t`Let ${math`S = a + ar + \cdots + ar^{n - ${1}}`}.`,
+        t`Then ${math`rS = ar + \cdots + ar^{n}`}.`,
+        t`Subtracting, ${math`S - rS = a - ar^{n}`}.`,
+        t`Since ${math`r \neq ${1}`}, ${math`S = \frac{a(${1} - r^{n})}{${1} - r}`}.`,
+      ],
+    },
+  ],
 };

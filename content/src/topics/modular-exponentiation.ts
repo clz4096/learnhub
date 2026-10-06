@@ -10,8 +10,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { mod, powMod, powModSlow } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { computedTex, listOf, math, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedTex, dmath, listOf, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mk, mm] = [math`k`, math`m`];
 const bits = (k: number): string => k.toString(2);
@@ -204,18 +204,55 @@ const costWhy = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const S13 = squares(3, 13, 7);
+const K = 100;
+
 export const modularExponentiation: TopicContent = {
   topicId: 'num.modular-exponentiation',
   goal: t`Compute ${math`a^{k} \bmod m`} with about ${math`\log_{${2}} k`} squarings, reducing mod ${mm} at every step.`,
+  objective: t`Compute a large power modulo m quickly, by repeated squaring and reducing at every step.`,
+  why: t`Fast powers make primality tests and public-key cryptography possible; next, Fermat and Diffie-Hellman.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`${math`${2}^{${153}}`} has ${String(2n ** 153n).length} digits, but its remainder mod ${153} needs no number bigger than ${math`${152}^{${2}}`}: reduce after every multiplication, since congruence respects products.` },
-    { kind: 'rule', text: t`[[repeated-squaring|Repeated squaring]]: write ${mk} in binary. Compute ${math`a, a^{${2}}, a^{${4}}, a^{${8}}, \ldots \bmod m`}, each the square of the one before, and multiply together the powers whose binary digit in ${mk} is ${1}.` },
-    { kind: 'p', text: t`Example: ${math`${3}^{${13}} \bmod ${7}`}. ${math`${13} = ${computedTex(bits(13))}_{${2}}`}, so ${math`${3}^{${13}} = ${3}^{${8}} \cdot ${3}^{${4}} \cdot ${3}^{${1}}`}. The squares mod ${7} are ${listOf(squares(3, 13, 7))}, and ${math`${squares(3, 13, 7)[3] as number} \times ${squares(3, 13, 7)[2] as number} \times ${squares(3, 13, 7)[0] as number} \equiv ${powMod(3, 13, 7)} \pmod{${7}}`}.` },
-    { kind: 'p', text: t`The cost is one squaring per binary digit after the first and one product per further ${1}: at most about ${math`${2}\log_{${2}} k`} multiplications, against ${math`k - ${1}`} for the naive method. For a ${300}-digit exponent that is about ${2000} multiplications instead of more than there are atoms in the universe.` },
-    { kind: 'p', text: t`Fast powers make Fermat's little theorem a test: if ${math`i^{m} \not\equiv i \pmod{m}`} then ${mm} is not prime. Exercise ${2}.${2}.${5}: ${math`${2}^{${153}} \equiv ${53}`}, so ${153} is composite. The test can be fooled: ${math`${2}^{${340}} \equiv ${1} \pmod{${341}}`} though ${math`${341} = ${11} \times ${31}`}.` },
+    { kind: 'section', title: t`A huge power, a small remainder` },
+    { kind: 'hook', text: t`${math`${2}^{${153}}`} has ${(2n ** 153n).toString().length} digits. Yet you can find its remainder on division by ${153} by hand, never writing a number bigger than ${math`${152}^{${2}}`}, and in ${countMul(153)} multiplications rather than ${152}. Two ideas do it: reduce at every step, and square instead of multiplying one factor at a time.` },
+    { kind: 'narrative', text: t`The first idea you already have. Congruence respects products: if ${math`x \equiv x'`} and ${math`y \equiv y' \pmod{m}`} then ${math`xy \equiv x'y'`}. So after every multiplication you may replace the result by its remainder, and the final remainder does not change. Numbers stay below ${mm} between steps, and below ${math`m^{${2}}`} during one.` },
+
+    { kind: 'section', title: t`Squaring instead of counting` },
+    { kind: 'narrative', text: t`The second idea, [[repeated-squaring|repeated squaring]]: squaring doubles the exponent. Starting from ${math`a`} and squaring ${math`j`} times reaches ${math`a^{${2}^{j}}`}: after ${10} squarings you are at ${math`a^{${2 ** 10}}`}. Every exponent ${mk} is a sum of powers of ${2}, its binary digits, so ${math`a^{k}`} is a product of these squares.` },
+    { kind: 'theorem', name: t`Repeated squaring`, statement: t`Let ${math`k = \sum_{i \in S} ${2}^{i}`}, where ${math`S`} is the set of positions of the ${1}s in the binary expansion of ${math`k \ge ${1}`}. Then ${dmath`a^{k} \equiv \prod_{i \in S} a^{${2}^{i}} \pmod{m},`} and the right side takes at most ${math`${2}\lfloor \log_{${2}} k \rfloor`} multiplications mod ${mm}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split the exponent`, text: t`By the law ${math`a^{x + y} = a^{x}a^{y}`}, ${math`a^{k} = a^{\sum_{i \in S} ${2}^{i}} = \prod_{i \in S} a^{${2}^{i}}`}; reducing each factor mod ${mm} keeps the congruence.`, plain: t`For ${math`k = ${13} = ${8} + ${4} + ${1}`}: ${math`a^{${13}} = a^{${8}}a^{${4}}a^{${1}}`}.` },
+        { label: t`Each square from the last`, text: t`${math`a^{${2}^{i + ${1}}} = \left(a^{${2}^{i}}\right)^{${2}}`}, so each entry of the chain ${math`a, a^{${2}}, a^{${4}}, \ldots`} is one squaring of the one before.`, why: { q: t`Why is that true?`, a: t`By the law ${math`(a^{x})^{y} = a^{xy}`}: ${math`(a^{${2}^{i}})^{${2}} = a^{${2}^{i} \times ${2}} = a^{${2}^{i + ${1}}}`}.` } },
+        { label: t`Count`, text: t`If ${mk} has ${math`L = \lfloor \log_{${2}} k \rfloor + ${1}`} binary digits, the chain needs ${math`L - ${1}`} squarings, and multiplying the ${math`|S| \le L`} chosen entries needs ${math`|S| - ${1}`} more products. In all at most ${math`${2}(L - ${1}) = ${2}\lfloor \log_{${2}} k \rfloor`}.` },
+      ],
+    },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Binary`, text: t`To find ${math`${3}^{${13}} \bmod ${7}`}: ${math`${13} = ${computedTex(bits(13))}_{${2}}`}, so ${math`${3}^{${13}} = ${3}^{${8}} \cdot ${3}^{${4}} \cdot ${3}^{${1}}`}.` },
+        { label: t`The chain`, text: t`${math`${3}^{${1}} \equiv ${S13[0] as number}`}; square: ${math`${S13[0] as number}^{${2}} = ${(S13[0] as number) ** 2} \equiv ${S13[1] as number}`}; square: ${math`${S13[1] as number}^{${2}} = ${(S13[1] as number) ** 2} \equiv ${S13[2] as number}`}; square: ${math`${S13[2] as number}^{${2}} = ${(S13[2] as number) ** 2} \equiv ${S13[3] as number} \pmod{${7}}`}.` },
+        { label: t`Multiply the chosen ones`, text: t`${math`${S13[3] as number} \times ${S13[2] as number} \times ${S13[0] as number} = ${(S13[3] as number) * (S13[2] as number) * (S13[0] as number)} \equiv ${powMod(3, 13, 7)} \pmod{${7}}`}.` },
+      ],
+    },
+    checkFrom(squareAndMultiply, { a: 5, k: 45, m: 13 }, t`${math`${45} = ${computedTex(bits(45))}_{${2}}`}: multiply ${math`${5}^{${32}}, ${5}^{${8}}, ${5}^{${4}}, ${5}^{${1}}`} from the chain ${listOf(squares(5, 45, 13))}.`),
+
+    { kind: 'section', title: t`Why it is fast` },
+    { kind: 'p', text: t`For ${math`a^{${K}}`}: ${math`${K} = ${computedTex(bits(K))}_{${2}}`} has ${bits(K).length} digits, ${[...bits(K)].filter((d) => d === '1').length} of them ${1}, so repeated squaring takes ${countMul(K)} multiplications, against ${K - 1} one factor at a time. The gap grows fast: the count grows like ${math`\log k`}, not like ${mk}. A ${300}-digit exponent needs about ${2000} multiplications. This is what makes public-key cryptography, such as Diffie-Hellman, practical.` },
+    checkFrom(multiplicationCount, { k: 200 }, t`${math`${200} = ${computedTex(bits(200))}_{${2}}`}: ${bits(200).length - 1} squarings and ${[...bits(200)].filter((d) => d === '1').length - 1} products.`),
+    { kind: 'p', text: t`One use, ahead of its own lesson: Fermat's little theorem says ${math`i^{p} \equiv i \pmod{p}`} for every prime ${math`p`}. So if a fast power gives ${math`i^{m} \not\equiv i \pmod{m}`}, then ${mm} is not prime, and you have proved it without finding a factor. Supervision exercise ${2}.${2}.${5} finds ${math`${2}^{${153}} \equiv ${53} \pmod{${153}}`}.` },
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`You can reduce the exponent modulo ${mm}, as you reduce the base.`, counterexample: t`${math`${2}^{${7}} = ${128} \equiv ${2} \pmod{${7}}`}, but reducing the exponent ${7} to ${0} gives ${math`${2}^{${0}} = ${1}`}. Only the base reduces.` },
+    { kind: 'pitfall', claim: t`If ${math`${2}^{m - ${1}} \equiv ${1} \pmod{m}`}, then ${mm} is prime.`, counterexample: t`${math`${2}^{${340}} \equiv ${powMod(2, 340, 341)} \pmod{${341}}`}, yet ${math`${341} = ${11} \times ${31}`}. The Fermat test can prove a number composite, never prime.` },
+    { kind: 'pitfall', claim: t`Reducing at the end is as good as reducing at every step.`, counterexample: t`It gives the same answer, but ${math`${2}^{${153}}`} has ${(2n ** 153n).toString().length} digits. Reducing as you go is what keeps the numbers small enough to compute with.` },
+    { kind: 'takeaway', text: t`Write the exponent in binary, square and reduce down the chain, and multiply the chosen squares: about ${math`${2}\log_{${2}} k`} small multiplications.` },
   ],
   examples: [
-    workedCambridge(sheet225),
+    { ...workedCambridge(sheet225), examiner: t`The examiner looks for each reduction modulo ${153} shown, and the conclusion that ${153} is composite stated with its reason.` },
     worked(squareAndMultiply, { a: 7, k: 100, m: 33 }, t`${math`${7}^{${100}} \bmod ${33}`}`),
     worked(squareChain, { a: 5, m: 23, j: 4 }, t`The chain of squares of ${5} mod ${23}`),
   ],
@@ -223,5 +260,20 @@ export const modularExponentiation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['repeated-squaring'],
   cambridge: [totd341, btw341, sheet225why, costWhy],
-  gate: ['notes-132-totd-341', 'notes-131-btw-witness', 'sheet-2-2-5-flt', 'squaring-cost'],
+  // The CST write-ups first. The 341 check is dropped: its prompt states the answer.
+  gate: ['sheet-2-2-5-flt', 'squaring-cost', 'notes-131-btw-witness'],
+  recall: [
+    { front: t`Repeated squaring for ${math`a^{k} \bmod m`}.`, back: t`Write ${mk} in binary; square down the chain ${math`a, a^{${2}}, a^{${4}}, \ldots`}, reducing each time; multiply the entries the ${1}s pick out.` },
+    { front: t`How many multiplications does repeated squaring need?`, back: t`At most ${math`${2}\lfloor \log_{${2}} k \rfloor`}: one squaring per binary digit after the first, one product per further ${1}.` },
+    { front: t`What may be reduced modulo ${mm} in ${math`a^{k}`}?`, back: t`The base, and every intermediate result; never the exponent.` },
+  ],
+  proofOrder: [{
+    title: t`Repeated squaring works`,
+    steps: [
+      t`Write ${mk} as a sum of powers of ${2}, from its binary digits.`,
+      t`So ${math`a^{k}`} is the product of the matching ${math`a^{${2}^{i}}`}.`,
+      t`Each ${math`a^{${2}^{i + ${1}}}`} is the square of ${math`a^{${2}^{i}}`}.`,
+      t`Congruence respects products, so reduce after every multiplication.`,
+    ],
+  }],
 };

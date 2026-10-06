@@ -5,10 +5,10 @@
  * problems: Assignment 6 Q1(i).
  */
 import { auto, cite, same, supervision } from '../cambridge';
-import { add, div, gcd, int, mul, pick, q, str, upTo, type Rational } from '../math';
+import { add, div, gcd, int, mul, pick, q, str, sub, upTo, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, frac, math, t, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const lcm = (a: number, b: number): number => (a / gcd(a, b)) * b;
 
@@ -365,24 +365,103 @@ const prod = { a: 2, b: 3, c: 3, d: 5 };
 export const fractions: TopicContent = {
   topicId: 'pre.fractions',
   goal: t`Add, multiply, divide, and simplify fractions, and share an amount in a ratio.`,
+  objective: t`Add, multiply, divide, and simplify fractions, and share an amount in a ratio.`,
+  why: t`Fractions run through all of probability and algebra; probabilities themselves are fractions.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`A [[fraction|fraction]] is a number of equal parts of a whole. Cut a pizza into ${pizza.cut} equal slices and eat ${pizza.eaten}: you ate ${frac(pizza.eaten, pizza.cut)} of it. The top number is the [[numerator|numerator]], how many parts you have. The bottom number is the [[denominator|denominator]], how many equal parts make the whole.` },
-    { kind: 'p', text: t`Multiplying the top and the bottom by the same number gives the same amount cut finer, so ${math`\frac{${eq.n / eq.g}}{${eq.d / eq.g}} = \frac{${eq.n}}{${eq.d}}`}. Dividing both by a common factor goes the other way. A fraction is in [[lowest-terms|lowest terms]] when no number except ${1} divides both top and bottom.` },
-    { kind: 'rule', text: t`To add or subtract, first rewrite the fractions over a [[common-denominator|common denominator]], then add the numerators: ${dmath`\frac{a}{c} + \frac{b}{c} = \frac{a + b}{c}`}` },
-    { kind: 'p', text: t`For ${math`\frac{${ex.a}}{${ex.b}} + \frac{${ex.c}}{${ex.d}}`}, the smallest common denominator is ${exHand.L}. Then ${math`\frac{${ex.a}}{${ex.b}} = \frac{${exHand.x}}{${exHand.L}}`} and ${math`\frac{${ex.c}}{${ex.d}} = \frac{${exHand.y}}{${exHand.L}}`}, so the sum is ${frac(exHand.sum, exHand.L)}${exHand.g > 1 ? t`, which is ${exSum} in lowest terms` : t``}. Adding tops and bottoms instead gives ${wrongSum}, which is less than ${frac(ex.a, ex.b)} alone, so it cannot be right.` },
-    { kind: 'rule', text: t`To multiply, multiply the tops and multiply the bottoms. To divide, multiply by the [[reciprocal|reciprocal]] of the second fraction: ${dmath`\frac{a}{b} \times \frac{c}{d} = \frac{ac}{bd}, \qquad \frac{a}{b} \div \frac{c}{d} = \frac{a}{b} \times \frac{d}{c}`}` },
-    { kind: 'p', text: t`For example ${math`\frac{${prod.a}}{${prod.b}} \times \frac{${prod.c}}{${prod.d}} = \frac{${prod.a * prod.c}}{${prod.b * prod.d}}`}, which is ${mul(q(prod.a, prod.b), q(prod.c, prod.d))}. Dividing by ${half} is multiplying by ${div(q(1), half)}, which is why there are ${div(q(1), half)} halves in one whole.` },
+    { kind: 'section', title: t`What a fraction is` },
+    { kind: 'hook', text: t`Is ${math`\frac{${ex.a}}{${ex.b}} + \frac{${ex.c}}{${ex.d}}`} equal to ${math`\frac{${ex.a + ex.c}}{${ex.b + ex.d}}`}? Adding tops and bottoms looks natural. But ${math`\frac{${ex.a + ex.c}}{${ex.b + ex.d}}`} is smaller than ${math`\frac{${ex.a}}{${ex.b}}`} on its own, and adding a positive amount cannot make something smaller. So what is the right rule, and why?` },
+    { kind: 'narrative', text: t`Cut a pizza into ${pizza.cut} equal slices and eat ${pizza.eaten}: you ate ${frac(pizza.eaten, pizza.cut)} of it. That picture is good for intuition. For proofs we need a definition that works with any whole numbers, negative ones included.` },
+    {
+      kind: 'definition',
+      name: t`Fraction`,
+      formal: t`For integers ${math`a`} and ${math`b`} with ${math`b \neq ${0}`}, the [[fraction|fraction]] ${math`\frac{a}{b}`} is the number ${math`x`} with ${math`bx = a`}. Here ${math`a`} is the [[numerator|numerator]] and ${math`b`} the [[denominator|denominator]].`,
+      plain: t`${math`\frac{a}{b}`} is the number that, multiplied by ${math`b`}, gives ${math`a`}. ${math`\frac{${pizza.eaten}}{${pizza.cut}}`} is the number with ${math`${pizza.cut}x = ${pizza.eaten}`}: ${pizza.eaten} of ${pizza.cut} equal slices.`,
+    },
+    {
+      kind: 'p',
+      text: t`The bottom may not be ${0}.`,
+      why: { q: t`Why can't the denominator be ${0}?`, a: t`${math`\frac{a}{${0}}`} would be a number ${math`x`} with ${math`${0} \cdot x = a`}. If ${math`a \neq ${0}`}, no number works, because ${math`${0} \cdot x = ${0}`}. If ${math`a = ${0}`}, every number works. Either way there is no single answer.` },
+    },
+    { kind: 'section', title: t`When are two fractions equal?` },
+    { kind: 'narrative', text: t`${math`\frac{${eq.n / eq.g}}{${eq.d / eq.g}}`} and ${math`\frac{${eq.n}}{${eq.d}}`} are the same amount: the second is the first cut into finer slices. Here is the test that decides it for any two fractions.` },
+    { kind: 'theorem', statement: t`Let ${math`a, b, c, d`} be integers with ${math`b \neq ${0}`} and ${math`d \neq ${0}`}. Then ${math`\frac{a}{b} = \frac{c}{d}`} if and only if ${math`ad = bc`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Name the two numbers`, text: t`Let ${math`x = \frac{a}{b}`} and ${math`y = \frac{c}{d}`}, so ${math`bx = a`} and ${math`dy = c`}.`, plain: t`Straight from the definition of a fraction.` },
+        { label: t`(${math`\Rightarrow`}) Assume ${math`x = y`}`, text: t`Then ${math`ad = (bx)d = bdx = bdy = b(dy) = bc`}.`, plain: t`Replace ${math`a`} by ${math`bx`}, swap ${math`x`} for ${math`y`}, and put ${math`c = dy`} back. With ${math`\frac{${3}}{${4}} = \frac{${6}}{${8}}`}: ${math`${3} \times ${8} = ${4} \times ${6} = ${24}`}.` },
+        { label: t`(${math`\Leftarrow`}) Assume ${math`ad = bc`}`, text: t`Then ${math`bd \cdot x = d(bx) = da = bc = b(dy) = bd \cdot y`}.`, plain: t`The same substitutions, read the other way.` },
+        { label: t`Cancel ${math`bd`}`, text: t`${math`bd \neq ${0}`}, so dividing by ${math`bd`} gives ${math`x = y`}.`, plain: t`A product of two nonzero numbers is nonzero, so the division is allowed.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`So multiplying top and bottom by the same nonzero ${math`k`} never changes a fraction: ${math`\frac{ka}{kb} = \frac{a}{b}`}, because ${math`ka \cdot b = kb \cdot a`}. Dividing both by a common factor goes the other way. A fraction is in [[lowest-terms|lowest terms]] when no whole number except ${1} divides both top and bottom: ${math`\frac{${eq.n}}{${eq.d}} = \frac{${eq.n / eq.g}}{${eq.d / eq.g}}`}, dividing both by ${eq.g}.`,
+    },
+    { kind: 'section', title: t`Adding and subtracting` },
+    { kind: 'narrative', text: t`Thirds and quarters cannot be added directly, just as ${3} metres and ${4} centimetres are not ${7} of anything. First cut both into slices of the same size.` },
+    { kind: 'rule', text: t`To add or subtract, rewrite the fractions over a [[common-denominator|common denominator]], then add the numerators: ${dmath`\frac{a}{c} + \frac{b}{c} = \frac{a + b}{c}`}` },
+    {
+      kind: 'p',
+      text: t`For ${math`\frac{${ex.a}}{${ex.b}} + \frac{${ex.c}}{${ex.d}}`}, the smallest common denominator is ${exHand.L}. Then ${math`\frac{${ex.a}}{${ex.b}} = \frac{${exHand.x}}{${exHand.L}}`} and ${math`\frac{${ex.c}}{${ex.d}} = \frac{${exHand.y}}{${exHand.L}}`}, so the sum is ${frac(exHand.sum, exHand.L)}${exHand.g > 1 ? t`, which is ${exSum} in lowest terms` : t``}.`,
+      why: { q: t`Why is ${exHand.L} the smallest common denominator?`, a: t`It is the smallest number that both ${ex.b} and ${ex.d} divide, their lowest common multiple. Any common multiple works; the smallest keeps the numbers small.` },
+    },
+    {
+      kind: 'pitfall',
+      claim: t`${math`\frac{a}{b} + \frac{c}{d} = \frac{a + c}{b + d}`}.`,
+      counterexample: t`${math`\frac{${ex.a}}{${ex.b}} + \frac{${ex.c}}{${ex.d}} = ${exSum}`}, but ${math`\frac{${ex.a + ex.c}}{${ex.b + ex.d}} = ${wrongSum}`}, which is less than ${frac(ex.a, ex.b)} alone. Tops add only when the slices are the same size.`,
+    },
+    quickCheck({
+      prompt: t`Work out ${math`\frac{${2}}{${3}} - \frac{${1}}{${4}}`} in lowest terms.`,
+      answer: { kind: 'exact', expected: str(sub(q(2, 3), q(1, 4))), requireLowestTerms: true },
+      reference: str(sub(q(2, 3), q(1, 4))),
+      why: t`Over ${12}: ${math`\frac{${8}}{${12}} - \frac{${3}}{${12}} = ${sub(q(2, 3), q(1, 4))}`}.`,
+    }),
+    { kind: 'section', title: t`Multiplying and dividing` },
+    { kind: 'rule', text: t`To multiply, multiply the tops and multiply the bottoms. To divide, multiply by the [[reciprocal|reciprocal]] of the second fraction, the fraction turned upside down: ${dmath`\frac{a}{b} \times \frac{c}{d} = \frac{ac}{bd}, \qquad \frac{a}{b} \div \frac{c}{d} = \frac{a}{b} \times \frac{d}{c}`}` },
+    {
+      kind: 'p',
+      text: t`For example ${math`\frac{${prod.a}}{${prod.b}} \times \frac{${prod.c}}{${prod.d}} = \frac{${prod.a * prod.c}}{${prod.b * prod.d}}`}, which is ${mul(q(prod.a, prod.b), q(prod.c, prod.d))}. Dividing by ${half} is multiplying by ${div(q(1), half)}: there are ${div(q(1), half)} halves in one whole.`,
+      why: { q: t`Why does multiplying tops and bottoms work?`, a: t`If ${math`bx = a`} and ${math`dy = c`}, then ${math`(bd)(xy) = (bx)(dy) = ac`}. So ${math`xy`} is the number that, times ${math`bd`}, gives ${math`ac`}: that is ${math`\frac{ac}{bd}`}. Dividing by ${math`\frac{c}{d}`} means finding the number that, times ${math`\frac{c}{d}`}, gives ${math`\frac{a}{b}`}, and ${math`\frac{a}{b} \times \frac{d}{c}`} does it.` },
+    },
     { kind: 'p', text: t`Cancel before you multiply. In ${math`\frac{${3}}{${2}} \times \frac{${5}}{${4}} \times \frac{${2}}{${5}}`}, the ${2} and the ${5} each appear once on top and once underneath, so they cancel and leave ${math`\frac{${3}}{${4}}`}, with no large numbers on the way. The STEP Support assignments ask for this habit, and for every answer in lowest terms.` },
-    { kind: 'p', text: t`A [[ratio|ratio]] compares amounts by parts. Sharing in the ratio ${math`${2} : ${3}`} cuts the whole into ${2 + 3} equal parts and gives ${2} of them to the first person, so the first share is ${q(2, 5)} of the total.` },
+    { kind: 'section', title: t`Ratios` },
+    {
+      kind: 'definition',
+      name: t`Ratio`,
+      formal: t`Amounts are shared in the [[ratio|ratio]] ${math`m : n`} (with ${math`m, n > ${0}`}) when the first share is ${math`\frac{m}{m + n}`} of the total and the second is ${math`\frac{n}{m + n}`}.`,
+      plain: t`cut the whole into ${math`m + n`} equal parts; the first person gets ${math`m`} of them. In the ratio ${math`${2} : ${3}`} the first share is ${q(2, 5)} of the total.`,
+    },
+    { kind: 'takeaway', text: t`${math`\frac{a}{b}`} is the number that times ${math`b`} gives ${math`a`}; two fractions are equal when ${math`ad = bc`}, add over a common denominator, and multiply tops and bottoms.` },
   ],
   examples: [
     worked(addFractions, { a: 2, b: 3, c: 1, d: 4 }, t`Adding fractions`),
     worked(multiplyDivide, { a: 3, b: 4, c: 5, d: 6, op: 'divide' }, t`Dividing by a fraction`),
-    workedCambridge(a6Value),
+    { ...workedCambridge(a6Value), examiner: t`Each bracket written as a single fraction, and the cancelling shown before any multiplication, as the assignment's hint asks.` },
   ],
   generators: [addFractions, multiplyDivide, simplify, ratioShare, telescope],
   cambridge: [a6General, a6Show],
-  gate: ['a6-q1-i-general', 'a6-q1-i-show'],
+  // The written argument first, then the general value; both are STEP Support Assignment 6 Q1(i).
+  gate: ['a6-q1-i-show', 'a6-q1-i-general'],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fraction', 'numerator', 'denominator', 'lowest-terms', 'common-denominator', 'reciprocal', 'ratio'],
+  recall: [
+    { front: t`Define the fraction ${math`\frac{a}{b}`}.`, back: t`For integers with ${math`b \neq ${0}`}: the number ${math`x`} with ${math`bx = a`}.` },
+    { front: t`When is ${math`\frac{a}{b} = \frac{c}{d}`}?`, back: t`Exactly when ${math`ad = bc`}.` },
+    { front: t`How do you add ${math`\frac{a}{b} + \frac{c}{d}`}?`, back: t`Rewrite both over a common denominator, then add the numerators.` },
+    { front: t`How do you divide by ${math`\frac{c}{d}`}?`, back: t`Multiply by its reciprocal, ${math`\frac{d}{c}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`If ${math`ad = bc`}, then ${math`\frac{a}{b} = \frac{c}{d}`}`,
+      steps: [
+        t`Let ${math`x = \frac{a}{b}`} and ${math`y = \frac{c}{d}`}, so ${math`bx = a`} and ${math`dy = c`}.`,
+        t`Then ${math`bd \cdot x = da`} and ${math`bd \cdot y = bc`}.`,
+        t`Since ${math`ad = bc`}, ${math`bd \cdot x = bd \cdot y`}.`,
+        t`${math`bd \neq ${0}`}, so ${math`x = y`}.`,
+      ],
+    },
+  ],
 };

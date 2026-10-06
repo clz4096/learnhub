@@ -10,7 +10,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { dmath, math, setOf, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mA, mB] = [math`A`, math`B`];
 const pow = (r: Rational, n: number): Rational => Array.from({ length: n }, () => r).reduce((a, b) => mul(a, b), q(1));
@@ -338,25 +338,78 @@ const SEVEN = EVENTS[2] as DiceEvent;
 const pEven = probOf(EVEN.holds);
 const pSeven = probOf(SEVEN.holds);
 const pBoth = probOf((a, b) => EVEN.holds(a, b) && SEVEN.holds(a, b));
+const nSeven = PAIRS.filter(([a, b]) => SEVEN.holds(a, b)).length;
+const nBoth = PAIRS.filter(([a, b]) => EVEN.holds(a, b) && SEVEN.holds(a, b)).length;
+const HIT = q(2, 3);
+const MISS = sub(q(1), HIT);
+const oneHit = mul(q(3), mul(HIT, pow(MISS, 2)));
 
 const claims: ProbabilityClaim[] = [
   { what: 'exactly one of three children has goggles', exact: exactlyOne, trial: (rng) => [0, 1, 2].filter(() => rng() < 0.25).length === 1 },
   { what: 'first die even and total seven', exact: pBoth, trial: (rng) => { const a = roll(rng); const b = roll(rng); return a % 2 === 0 && a + b === 7; } },
+  { what: 'exactly one of three archers hits', exact: oneHit, trial: (rng) => [0, 1, 2].filter(() => rng() < 2 / 3).length === 1 },
 ];
 
 export const independentEvents: TopicContent = {
   topicId: 'prob.independent-events',
   goal: t`Test whether two events are independent with ${math`P(A \cap B) = P(A)P(B)`}, and use independence to multiply probabilities.`,
+  objective: t`Test two events for independence with the product rule, and use independence to multiply chances.`,
+  why: t`Independence is what lets you multiply along a tree; next, independence of three or more events.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`STEP Support Assignment ${12} says each child remembers goggles "independently of the other two": whether one child remembers tells you nothing about the others. That is what lets the hints multiply along the branches of the tree.` },
-    { kind: 'rule', text: t`Events ${mA} and ${mB} are [[independent-events|independent]] when ${dmath`P(A \cap B) = P(A)\,P(B).`} Equivalently, when ${math`P(B) > ${0}`}, ${math`P(A \mid B) = P(A)`}: knowing ${mB} happened does not change the chance of ${mA}.` },
-    { kind: 'p', text: t`Test it by computing both sides. Throw two dice: "the first die is even" has probability ${pEven}, "the total is seven" has ${pSeven}, and both together have ${pBoth}, the pairs ${setOf([2, 4, 6])} with ${setOf([5, 3, 1])}. Since ${math`${pEven} \times ${pSeven} = ${mul(pEven, pSeven)}`}, they are independent, even though both depend on the first die.` },
-    { kind: 'p', text: t`Use it to multiply. Three dice, each a six with probability ${SIX}: three sixes has probability ${math`\left(${SIX}\right)^{${3}} = ${pow(SIX, 3)}`}, and no sixes ${math`\left(${NOT}\right)^{${3}} = ${pow(NOT, 3)}`}. For exactly two sixes, one pattern has probability ${math`\left(${SIX}\right)^{${2}} \times ${NOT}`}, and there are ${3} patterns.` },
-    { kind: 'p', text: t`If ${mA} and ${mB} are independent, so are their complements, so "neither" has probability ${math`(${1} - P(A))(${1} - P(B))`}, and "at least one" is one minus that. The goggles: at least one of three has goggles with probability ${math`${1} - \left(${sub(q(1), GOG)}\right)^{${3}} = ${pAtLeast}`}.` },
-    { kind: 'p', text: t`Independent is not the same as mutually exclusive, which means the events cannot happen together. If ${mA} and ${mB} cannot both happen and each has positive probability, then ${math`P(A \cap B) = ${0} \ne P(A)P(B)`}, so they are dependent, strongly so. And events built from independent trials can be dependent: "the first child has goggles" and "at least one child has goggles" are not independent.` },
+    { kind: 'section', title: t`Does one tell you about the other?` },
+    { kind: 'hook', text: t`Throw two dice. Let ${mA} be "the first die is even" and ${mB} be "the total is seven". Both events depend on the first die, so surely knowing one tells you something about the other? Count, and you will find that it tells you nothing at all.` },
+    { kind: 'narrative', text: t`Let's make "tells you nothing" precise. Suppose you are told only that ${mB} happened. The ${36} equally likely throws shrink to the ${nSeven} with total seven: ${math`(${1},${6}), (${2},${5}), (${3},${4}), (${4},${3}), (${5},${2}), (${6},${1})`}. Of these, ${nBoth} have an even first die, a share of ${q(nBoth, nSeven)}. Before you were told anything, the chance of ${mA} was ${pEven}. The news did not change it.` },
+
+    { kind: 'section', title: t`The definition` },
+    { kind: 'narrative', text: t`In general, the share of ${mB}'s outcomes that are also in ${mA} is ${math`P(A \cap B)/P(B)`}. "Learning ${mB} does not change the chance of ${mA}" says this share equals ${math`P(A)`}. Multiply both sides by ${math`P(B)`} and you get a cleaner statement, with no division, which is the one we take as the definition.` },
+    { kind: 'definition', name: t`Independent events`, formal: t`Events ${mA} and ${mB} are [[independent-events|independent]] if ${dmath`P(A \cap B) = P(A)\,P(B).`}`, plain: t`The chance that both happen is the product of their chances. For the dice, ${math`P(A \cap B) = ${pBoth}`} and ${math`P(A)P(B) = ${pEven} \times ${pSeven} = ${mul(pEven, pSeven)}`}: independent.` },
+    { kind: 'p', text: t`Why the product form? It treats ${mA} and ${mB} symmetrically, and it makes sense even when ${math`P(B) = ${0}`}, where the share ${math`P(A \cap B)/P(B)`} would mean dividing by zero.`, why: { q: t`Why is the share ${math`P(A \cap B)/P(B)`}?`, a: t`With equally likely outcomes, the share is ${math`|A \cap B| / |B|`}. Divide top and bottom by the total number of outcomes, ${36} for two dice, and it becomes ${math`P(A \cap B)/P(B)`}. For the dice: ${math`${nBoth}/${nSeven}`} is ${math`\frac{${nBoth}/${36}}{${nSeven}/${36}}`}. This share is called the conditional probability of ${mA} given ${mB}, a lesson of its own.` } },
+
+    { kind: 'section', title: t`Testing for independence` },
+    { kind: 'narrative', text: t`To test two events, compute both sides of the definition and compare. The verdict comes from the numbers, not from the story: the dice above share the first die and are still independent. Here is a pair that is not.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The events`, text: t`Two dice. ${mA}: "the total is eight". ${mB}: "the second die shows a six".` },
+        { label: t`Each alone`, text: t`Total eight: ${math`(${2},${6}), (${3},${5}), (${4},${4}), (${5},${3}), (${6},${2})`}, so ${math`P(A) = ${probOf((EVENTS[3] as DiceEvent).holds)}`}. And ${math`P(B) = ${probOf((EVENTS[1] as DiceEvent).holds)}`}.` },
+        { label: t`Both`, text: t`Only ${math`(${2},${6})`} is in both, so ${math`P(A \cap B) = ${q(1, 36)}`}.` },
+        { label: t`Compare`, text: t`${math`P(A)P(B) = ${probOf((EVENTS[3] as DiceEvent).holds)} \times ${probOf((EVENTS[1] as DiceEvent).holds)} = ${mul(probOf((EVENTS[3] as DiceEvent).holds), probOf((EVENTS[1] as DiceEvent).holds))}`}, which is less than ${q(1, 36)}.`, plain: t`Not independent: they happen together more often than independence would give. Without the news, a total of eight is impossible whenever the second die shows a one. Given a six, the first die just needs a ${2}, a chance of ${q(1, 6)}, which beats ${probOf((EVENTS[3] as DiceEvent).holds)}.` },
+      ],
+    },
+    checkFrom(testIndependence, { i: 0, j: 4 }, t`${math`P(A \cap B)`} needs both dice even: ${math`${q(9, 36)} = ${q(1, 2)} \times ${q(1, 2)}`}, so the product rule holds.`),
+
+    { kind: 'section', title: t`Multiplying with independence` },
+    { kind: 'narrative', text: t`The definition is also a tool. When a question says trials are independent (separate dice, separate children, separate coins), it is giving you permission to multiply. The next result says you may multiply the chances of things not happening too.` },
+    { kind: 'theorem', name: t`Complements`, statement: t`If ${mA} and ${mB} are independent, so are ${mA} and ${math`B^{c}`}, and so are ${math`A^{c}`} and ${math`B^{c}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split ${mA}`, text: t`${mA} is the disjoint union of ${math`A \cap B`} and ${math`A \cap B^{c}`}, so ${math`P(A \cap B^{c}) = P(A) - P(A \cap B)`}.`, why: { q: t`Why disjoint?`, a: t`Every outcome of ${mA} either is in ${mB} or is not, never both. So the two pieces have no outcome in common, and their probabilities add up to ${math`P(A)`}.` } },
+        { label: t`Use independence`, text: t`Replace ${math`P(A \cap B)`} by ${math`P(A)P(B)`}:`, eq: [dmath`P(A \cap B^{c}) = P(A) - P(A)P(B) = P(A)\,(${1} - P(B)) = P(A)\,P(B^{c}).`], plain: t`Take out the common factor ${math`P(A)`}, and recall ${math`P(B^{c}) = ${1} - P(B)`}.` },
+        { label: t`Apply it again`, text: t`So ${mA} and ${math`B^{c}`} are independent. Applying the same argument with the roles swapped, ${math`B^{c}`} and ${math`A^{c}`} are independent too.` },
+      ],
+    },
+    { kind: 'p', text: t`So "neither happens" has probability ${math`(${1} - P(A))(${1} - P(B))`}, and "at least one happens" is one minus that. With three independent trials, multiply three factors.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The question`, text: t`Three archers each hit the target with probability ${HIT}, independently. What is the chance that exactly one hits?` },
+        { label: t`One pattern`, text: t`First hits, second and third miss: by independence, ${math`${HIT} \times ${MISS} \times ${MISS} = ${mul(HIT, pow(MISS, 2))}`}.` },
+        { label: t`Count the patterns`, text: t`The one who hits could be any of the ${3} archers, and each pattern has the same probability. The patterns are disjoint, so add: ${math`${3} \times ${mul(HIT, pow(MISS, 2))} = ${oneHit}`}.`, why: { q: t`Why may we add?`, a: t`"Only the first hits" and "only the second hits" cannot both happen, so the chance of one or the other is the sum.` } },
+      ],
+    },
+    checkFrom(useIndependence, { a: 1, ad: 3, b: 1, bd: 4, ask: 'either' }, t`Neither has probability ${math`${q(2, 3)} \times ${q(3, 4)} = ${q(1, 2)}`}, so at least one has ${math`${1} - ${q(1, 2)} = ${q(1, 2)}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`Events that cannot happen together are independent, since they have nothing to do with each other.`, counterexample: t`"Heads" and "tails" on one fair coin cannot both happen, so ${math`P(\text{both}) = ${0}`}, but the product is ${math`${q(1, 2)} \times ${q(1, 2)} = ${q(1, 4)}`}. Each one rules out the other: as dependent as possible.` },
+    { kind: 'pitfall', claim: t`Events about independent trials are independent.`, counterexample: t`Three children each remember goggles with probability ${GOG}, independently. "The first child has goggles" (probability ${pFirst}) and "at least one has goggles" (probability ${pAtLeast}) are not independent: the first makes the second certain, so ${math`P(A \cap B) = ${pFirst}`}, not ${mul(pFirst, pAtLeast)}.` },
+    { kind: 'pitfall', claim: t`Two events that involve the same die must be dependent.`, counterexample: t`"First die even" and "total seven" both involve the first die, and they are independent: ${math`${pBoth} = ${pEven} \times ${pSeven}`}.` },
+    { kind: 'takeaway', text: t`${mA} and ${mB} are independent exactly when ${math`P(A \cap B) = P(A)P(B)`}: check it with numbers, and when trials are independent, multiply.` },
   ],
   examples: [
-    workedCambridge(a19none),
+    { ...workedCambridge(a19none), examiner: t`The examiner looks for a sentence saying the dice are independent before the probabilities are multiplied.` },
     worked(testIndependence, { i: 0, j: 2 }, t`Even first die, total seven`),
     worked(repeated, { s: 1, d: 6, n: 4, k: 2 }, t`Exactly two of four`),
   ],
@@ -365,5 +418,20 @@ export const independentEvents: TopicContent = {
   terms: ['independent-events'],
   claims,
   cambridge: [a19two, a12one, a12dep, a19bet, disjointNotIndependent],
-  gate: ['a19-q4-ii-two', 'a12-q2-iv-one', 'a12-q2-iv-dependent', 'a19-q4-ii-independence', 'a12-q2-iv-disjoint'],
+  // The write-ups first; the multiple-choice verdict is dropped, since a guess passes it one time in three.
+  gate: ['a19-q4-ii-independence', 'a12-q2-iv-disjoint', 'a19-q4-ii-two', 'a12-q2-iv-one'],
+  recall: [
+    { front: t`Define independence of two events.`, back: t`${mA} and ${mB} are independent if ${math`P(A \cap B) = P(A)\,P(B)`}.` },
+    { front: t`If ${mA} and ${mB} are independent, what is the chance that neither happens?`, back: t`${math`(${1} - P(A))(${1} - P(B))`}, since the complements are independent too.` },
+    { front: t`Are two mutually exclusive events independent?`, back: t`Never, if both have positive probability: ${math`P(A \cap B) = ${0}`} but ${math`P(A)P(B) > ${0}`}.` },
+  ],
+  proofOrder: [{
+    title: t`Independence survives a complement`,
+    steps: [
+      t`${mA} is the disjoint union of ${math`A \cap B`} and ${math`A \cap B^{c}`}.`,
+      t`So ${math`P(A \cap B^{c}) = P(A) - P(A \cap B)`}.`,
+      t`By independence that is ${math`P(A) - P(A)P(B)`}.`,
+      t`Factor: ${math`P(A)(${1} - P(B)) = P(A)P(B^{c})`}.`,
+    ],
+  }],
 };

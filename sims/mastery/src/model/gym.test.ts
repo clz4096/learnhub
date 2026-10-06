@@ -6,7 +6,8 @@ import { DEFAULT_COURSES, completeGymItem, completeLesson, masteryOf, startLearn
 import { gymCandidates, gymDoneSince, planGym } from '@/model/gym';
 
 const T0 = new Date(2026, 9, 5, 14, 0).getTime();
-const base = contentFor('pre.fractions') as TopicContent;
+/** pre.fractions without its gym fields, so the content checks below control them. */
+const base: TopicContent = { ...(contentFor('pre.fractions') as TopicContent), recall: undefined, proofOrder: undefined };
 /** pre.fractions with gym content: one quick generator, a proof order, and two recall cards. */
 const withGym: TopicContent = {
   ...base,

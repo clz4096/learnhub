@@ -12,7 +12,7 @@ import { int, pick } from '../math';
 import { divisors, factorise, gcd } from '../numbers';
 import { generator, type Misconception } from '../problem';
 import { computedTex, math, setOf, t, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 import type { Rational } from '../math';
 
 const [mm, mn, md] = [math`m`, math`n`, math`d`];
@@ -227,18 +227,71 @@ const bop531 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [HA, HB] = [12, 18];
+const [KM, KN, KK] = [100, 36, 2];
+const mk = math`k`;
+
 export const gcdTopic: TopicContent = {
   topicId: 'num.gcd',
   goal: t`Define ${math`\gcd(m, n)`} by its universal property, find ${math`\mathrm{CD}(m, n)`} as the divisors of the gcd, and use the laws ${math`\gcd(m, n) = \gcd(m - kn, n)`} and ${math`\gcd(lm, ln) = l \gcd(m, n)`}.`,
+  objective: t`Define the gcd by its universal property, and prove that subtracting multiples does not change it.`,
+  why: t`The gcd drives Euclid's algorithm, modular inverses, and unique factorisation, which come next.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The notes start from sets: ${math`D(n)`}, the divisors of ${mn}, and ${math`\mathrm{CD}(m, n) = \{d \in \mathbb{N} : d \mid m \land d \mid n\}`}, the [[common-divisor|common divisors]]. Example ${69}: ${math`${cd(A69, B69)} = ${setOf(commonDivisors(A69, B69))}`}. Computing divisors is hard; the greatest common divisor turns out to be easy.` },
-    { kind: 'rule', text: t`The [[gcd|greatest common divisor]] of ${mm} and ${mn} is the natural number ${math`g`} with ${math`g \mid m`} and ${math`g \mid n`}, such that every common divisor ${md} of ${mm} and ${mn} divides ${math`g`}. In one line: ${math`d \mid m \land d \mid n \iff d \mid \gcd(m, n)`}. So ${math`\mathrm{CD}(m, n) = D(\gcd(m, n))`}.` },
-    { kind: 'p', text: t`Key Lemma ${72}: if ${math`m \equiv m' \pmod{n}`} then ${math`\mathrm{CD}(m, n) = \mathrm{CD}(m', n)`}, because a common divisor of ${mm} and ${mn} divides ${math`m' = m + kn`}. So ${math`\gcd(m, n) = \gcd(\mathrm{rem}(m, n), n)`}, the step of Euclid's algorithm, and ${math`\gcd(n, n + ${2}) = \gcd(n, ${2})`}, which is ${1} or ${2}.` },
-    { kind: 'p', text: t`The universal property proves laws without computing. Linearity (Lemma ${81}): ${math`\gcd(lm, ln) = l \gcd(m, n)`}, so ${math`\gcd(${300}, ${450}) = ${150} \gcd(${2}, ${3}) = ${150}`}. Commutativity and associativity follow the same way: two numbers that divide each other are equal.` },
-    { kind: 'p', text: t`And ${math`\gcd(m, n)`} divides every combination ${math`km + ln`} (Corollary ${80}). So if some combination equals ${1}, as ${math`${3} \times ${5} - ${2} \times ${7} = ${1}`}, then ${math`\gcd(${5}, ${7}) = ${1}`}.` },
+    { kind: 'section', title: t`Common divisors` },
+    { kind: 'hook', text: t`List the divisors that ${HA} and ${HB} share: ${setOf(commonDivisors(HA, HB))}. Now look at the largest, ${gcd(HA, HB)}, and list its divisors: ${setOf(divisors(gcd(HA, HB)))}. The same list. Coincidence? No, and that fact is the real definition of the greatest common divisor.` },
+    { kind: 'narrative', text: t`The CST notes start from sets. Write ${math`D(n)`} for the set of positive divisors of ${mn}, and look at the divisors two numbers share.` },
+    {
+      kind: 'definition',
+      name: t`Common divisors`,
+      formal: t`For integers ${mm} and ${mn}, the set of [[common-divisor|common divisors]] is ${math`\mathrm{CD}(m, n) = \{d \in \mathbb{N} : d \mid m \land d \mid n\}`}.`,
+      plain: t`the positive whole numbers that divide both. The notes' Example ${69}: ${math`${cd(A69, B69)} = ${setOf(commonDivisors(A69, B69))}`}.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Greatest common divisor`,
+      formal: t`For natural numbers ${mm} and ${mn}, a [[gcd|greatest common divisor]] is a natural number ${math`g`} with ${math`g \mid m`} and ${math`g \mid n`} such that every common divisor ${md} of ${mm} and ${mn} satisfies ${math`d \mid g`}. It is unique, and written ${math`\gcd(m, n)`}.`,
+      plain: t`the common divisor that every other common divisor divides. For ${HA} and ${HB} it is ${gcd(HA, HB)}: each of ${setOf(commonDivisors(HA, HB))} divides ${gcd(HA, HB)}.`,
+    },
+    {
+      kind: 'p',
+      text: t`This is called a universal property: ${math`g`} is not just bigger than the other common divisors, it is divisible by all of them. In one line: ${math`d \mid m \land d \mid n \iff d \mid \gcd(m, n)`}. So ${math`\mathrm{CD}(m, n) = D(\gcd(m, n))`}, which is the hook's pattern.`,
+      why: { q: t`Why is there only one such ${math`g`}?`, a: t`If ${math`g`} and ${math`g'`} both have the property, each is a common divisor, so each divides the other. Positive integers that divide each other are equal (the divisibility lesson). So ${math`g = g'`}.` },
+    },
+    { kind: 'p', text: t`That a gcd always exists is proved by Euclid's algorithm, in the next lesson. For positive numbers it is also the largest common divisor, so the name fits.` },
+    { kind: 'section', title: t`The Key Lemma` },
+    { kind: 'narrative', text: t`Finding divisors is slow. The gcd turns out to be fast, because of one observation: subtracting a multiple of ${mn} from ${mm} does not change which numbers divide both. Watch it on numbers: ${math`\gcd(${KM}, ${KN})`} and ${math`\gcd(${KM} - ${KK} \times ${KN}, ${KN}) = \gcd(${KM - KK * KN}, ${KN})`} are both ${gcd(KM, KN)}.` },
+    { kind: 'theorem', name: t`Key Lemma`, statement: t`For integers ${mm}, ${mn}, and ${mk}, ${math`\mathrm{CD}(m, n) = \mathrm{CD}(m - kn, n)`}. Hence ${math`\gcd(m, n) = \gcd(m - kn, n)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Common divisors of the first pair`, text: t`Let ${math`d \in \mathrm{CD}(m, n)`}, so ${math`m = ad`} and ${math`n = bd`} for integers ${math`a`}, ${math`b`}.`, plain: t`Unpack both divisibilities, each with its own witness. With ${math`m = ${KM}`}, ${math`n = ${KN}`}, ${math`d = ${4}`}: ${math`a = ${KM / 4}`}, ${math`b = ${KN / 4}`}.` },
+        { label: t`They divide the new number`, text: t`Then ${math`m - kn = ad - kbd = (a - kb)d`}, so ${math`d \mid (m - kn)`}, and ${math`d \in \mathrm{CD}(m - kn, n)`}.`, plain: t`Factor ${md} out of both terms. ${math`a - kb`} is an integer, so it is a witness.` },
+        { label: t`And back again`, text: t`Conversely, let ${math`d \in \mathrm{CD}(m - kn, n)`}: ${math`m - kn = ed`} and ${math`n = bd`}. Then ${math`m = (m - kn) + kn = (e + kb)d`}, so ${math`d \mid m`}.`, plain: t`Add the multiple back. The same factoring step works in reverse.` },
+        { label: t`Same sets, same gcd`, text: t`The two sets of common divisors are equal. The gcd is determined by its set of common divisors, so the gcds are equal.`, plain: t`${math`\gcd(m, n)`} is the element of ${math`\mathrm{CD}(m, n)`} that all the others divide, so equal sets give equal gcds.` },
+      ],
+    },
+    { kind: 'p', text: t`Taking ${math`k = \mathrm{quo}(m, n)`} gives ${math`\gcd(m, n) = \gcd(\mathrm{rem}(m, n), n)`}: the step of Euclid's algorithm. It also answers questions about whole families: ${math`\gcd(n + ${2}, n) = \gcd(${2}, n)`}, which is ${2} for even ${mn} and ${1} for odd ${mn}.` },
+    quickCheck({
+      prompt: t`Use the Key Lemma: what is ${math`\gcd(${101}, ${100})`}?`,
+      answer: { kind: 'exact', expected: String(gcd(101, 100)) },
+      reference: String(gcd(101, 100)),
+      why: t`${math`\gcd(${101}, ${100}) = \gcd(${101} - ${100}, ${100}) = \gcd(${1}, ${100}) = ${1}`}. Neighbouring numbers share no factor above ${1}.`,
+    }),
+    {
+      kind: 'pitfall',
+      claim: t`${math`\gcd(m, n)`} is the product of the primes that ${mm} and ${mn} share.`,
+      counterexample: t`${8} and ${24} share only the prime ${2}, yet ${math`\gcd(${8}, ${24}) = ${gcd(8, 24)}`}. Powers count: take each shared prime to the smaller of its two powers, here ${math`${2}^{${3}}`}.`,
+    },
+    { kind: 'section', title: t`Laws from the universal property` },
+    { kind: 'narrative', text: t`The universal property proves laws without any computing. The method: to show ${math`g = \gcd(m, n)`}, check that ${math`g`} divides both, and that every common divisor divides ${math`g`}.` },
+    { kind: 'rule', text: t`Linearity (the notes' Lemma ${81}): for a positive integer ${math`l`}, ${math`\gcd(lm, ln) = l \gcd(m, n)`}. For example ${math`\gcd(${300}, ${450}) = ${150} \gcd(${2}, ${3}) = ${gcd(300, 450)}`}. And ${math`\gcd(m, n)`} divides every combination ${math`km + ln`} (Corollary ${80}), since it divides ${mm} and ${mn}.` },
+    { kind: 'p', text: t`So if some combination equals ${1}, the gcd is ${1}. For instance ${math`${3} \times ${5} - ${2} \times ${7} = ${3 * 5 - 2 * 7}`}, so ${math`\gcd(${5}, ${7})`} divides ${1}, and ${math`\gcd(${5}, ${7}) = ${gcd(5, 7)}`}.` },
+    { kind: 'takeaway', text: t`${math`\gcd(m, n)`} is the common divisor every common divisor divides, and subtracting multiples of one argument from the other never changes it.` },
   ],
   examples: [
-    workedCambridge(notes69),
+    { ...workedCambridge(notes69), examiner: t`The gcd found first, then the common divisors read off as its divisors, rather than by testing every number.` },
     worked(possibleValues, { k: 1, d: 6 }, t`The values of ${math`\gcd(n + ${6}, n)`}`),
     worked(linearity, { l: 12, m: 18, n: 30 }, t`A gcd by linearity`),
   ],
@@ -246,5 +299,23 @@ export const gcdTopic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['common-divisor', 'gcd'],
   cambridge: [bop732, sheet326, sheet313, sheet321, sheet326proof, bop531],
-  gate: ['sheet-3-2-6-numbers', 'sheet-3-1-3', 'sheet-3-2-1', 'sheet-3-2-6'],
+  // The supervision proofs, hardest first. The numerical check of 3.2.6 is left out: it is one gcd computation.
+  gate: ['sheet-3-2-6', 'sheet-3-2-1', 'sheet-3-1-3'],
+  recall: [
+    { front: t`Define ${math`\gcd(m, n)`} by its universal property.`, back: t`The natural number ${math`g`} with ${math`g \mid m`}, ${math`g \mid n`}, and ${math`d \mid g`} for every common divisor ${md}.` },
+    { front: t`What is ${math`\mathrm{CD}(m, n)`} in terms of the gcd?`, back: t`${math`D(\gcd(m, n))`}: the divisors of the gcd.` },
+    { front: t`State the Key Lemma.`, back: t`${math`\mathrm{CD}(m, n) = \mathrm{CD}(m - kn, n)`}, so ${math`\gcd(m, n) = \gcd(m - kn, n)`}.` },
+    { front: t`State linearity of the gcd.`, back: t`${math`\gcd(lm, ln) = l \gcd(m, n)`} for positive ${math`l`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Subtracting a multiple keeps the common divisors`,
+      steps: [
+        t`Let ${md} divide ${mm} and ${mn}: ${math`m = ad`}, ${math`n = bd`}.`,
+        t`Then ${math`m - kn = (a - kb)d`}, so ${md} divides ${math`m - kn`}.`,
+        t`Conversely, a common divisor of ${math`m - kn`} and ${mn} divides ${math`(m - kn) + kn = m`}.`,
+        t`So the sets of common divisors are equal, and so are the gcds.`,
+      ],
+    },
+  ],
 };

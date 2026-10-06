@@ -13,7 +13,7 @@ import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../mat
 import { near, round, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
 import { math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mX, mY] = [math`X`, math`Y`];
 const SH4 = 'ia-prob-sheet-4' as const;
@@ -293,18 +293,55 @@ const claims: ProbabilityClaim[] = [
   { what: 'a stick broken at two uniform points makes a triangle', exact: q(1, 4), trial: (rng) => triangle(rng(), rng()) },
 ];
 
+const [ml, md, mTh] = [math`\ell`, math`d`, math`\Theta`];
+
 export const geometricProbability: TopicContent = {
   topicId: 'prob.geometric-probability',
   goal: t`Compute probabilities as areas for uniform points, as in the broken stick, Buffon's needle, and Bertrand's paradox, and see why "at random" must be specified.`,
+  objective: t`Compute probabilities as areas for uniform random points, and say exactly what "at random" means.`,
+  why: t`Pictures make continuous probability concrete; Buffon even estimates ${math`\pi`}, and Bertrand shows why models matter.`,
+  minutes: 25,
   lesson: [
-    { kind: 'rule', text: t`If a point is uniform in a region ${math`D`} of the plane, then ${math`P(\text{point in } A) = \frac{\text{area of } A \cap D}{\text{area of } D}`}. Two independent uniform coordinates give a uniform point in a rectangle.` },
-    { kind: 'p', text: t`So a geometric probability is a joint density problem whose integrals are areas you can often see. Sheet ${4} Q${2} breaks a stick ${math`[${0}, ${1}]`} at two uniform points ${mX} and ${mY}. The pieces make a triangle when each is shorter than ${q(1, 2)}; in the unit square that is two triangles of area ${q(1, 8)}, so the probability is ${q(1, 4)}.` },
-    { kind: 'p', text: t`[[buffons-needle|Buffon's needle]]: a needle of length ${math`\ell`} falls on lines ${math`d \ge \ell`} apart. The distance ${mX} from its centre to the nearest line is uniform on ${math`[${0}, d/${2}]`} and its angle ${math`\Theta`} uniform on ${math`[${0}, \pi/${2}]`}; it crosses when ${math`X \le \tfrac{\ell}{${2}}\sin\Theta`}. Integrating, ${math`P(\text{cross}) = \frac{${2}\ell}{\pi d}`}: dropping needles estimates ${math`\pi`}.` },
-    { kind: 'p', text: t`[[bertrands-paradox|Bertrand's paradox]] asks for the chance that a random chord of a circle is longer than a side of the inscribed equilateral triangle. Choose the two endpoints uniformly on the circle and the answer is ${q(1, 3)}; choose the chord's distance from the centre uniformly along a radius and it is ${q(1, 2)}; choose its midpoint uniformly in the disc and it is ${q(1, 4)}. Each is right for its own model: "at random" means nothing until the uniform distribution and its sample space are named.` },
-    { kind: 'p', text: t`A uniform angle need not give a uniform position. In Sheet ${4} Q${10}, a direction uniform in angle meets a plate at distance ${math`a`} at ${math`X = a\tan\Theta`}; the distribution function method gives the Cauchy density ${math`\frac{a}{\pi(a^{${2}} + x^{${2}})}`}, whose tails are so heavy that it has no mean.` },
+    { kind: 'section', title: t`Probability you can see` },
+    { kind: 'hook', text: t`Drop a needle on a floor of parallel floorboards. In ${1777} the Comte de Buffon published the chance that it lands across a crack, and the answer contains ${math`\pi`}. Drop enough needles and you can estimate ${math`\pi`} from a floor. Where does a circle's constant come from, with no circle in sight?` },
+    {
+      kind: 'rule',
+      text: t`If a point is uniform in a region ${math`D`} of the plane, then ${math`P(\text{point in } A) = \frac{\text{area of } A \cap D}{\text{area of } D}`}. Two independent uniform coordinates, ${mX} on ${math`[a, b]`} and ${mY} on ${math`[c, e]`}, give a point uniform in the rectangle.`,
+      why: { q: t`Why does independence give a uniform point?`, a: t`The joint density of independent variables is the product of their densities: ${math`\frac{${1}}{b - a} \cdot \frac{${1}}{e - c}`}, a constant on the rectangle. A constant joint density is exactly what uniform in the rectangle means.` },
+    },
+    { kind: 'p', text: t`So a geometric probability is a joint density problem whose integrals are areas you can often see. Sheet ${4} Q${2}, worked below, breaks a stick at two uniform points and asks whether the three pieces make a triangle: draw the unit square and shade.` },
+    quickCheck({
+      prompt: t`${mX} and ${mY} are independent and uniform on ${math`[${0}, ${1}]`}. What is ${math`P(X > ${2}Y)`}?`,
+      answer: { kind: 'exact', expected: str(q(1, 4)) },
+      reference: str(q(1, 4)),
+      why: t`In the unit square, ${math`x > ${2}y`} is the triangle below the line ${math`y = \frac{x}{${2}}`}, with corners ${math`(${0}, ${0})`}, ${math`(${1}, ${0})`}, ${math`(${1}, \frac{${1}}{${2}})`}: area ${math`\frac{${1}}{${2}} \times ${1} \times \frac{${1}}{${2}} = ${q(1, 4)}`}.`,
+    }),
+    { kind: 'section', title: t`Buffon's needle` },
+    { kind: 'narrative', text: t`To compute anything we must say what "dropped at random" means. Describe a fallen needle by two numbers: ${mX}, the distance from its centre to the nearest line, and ${mTh}, the acute angle it makes with the lines. The model: ${mX} uniform on ${math`[${0}, \frac{d}{${2}}]`}, ${mTh} uniform on ${math`[${0}, \frac{\pi}{${2}}]`}, independent.` },
+    { kind: 'theorem', name: t`Buffon's needle`, statement: t`In this model, a needle of length ${ml} dropped on lines ${md} apart, with ${math`\ell \le d`}, crosses a line with probability ${math`\frac{${2}\ell}{\pi d}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`When it crosses`, text: t`The needle reaches ${math`\frac{\ell}{${2}}\sin\Theta`} from its centre towards the nearest line, so it crosses exactly when ${math`X \le \frac{\ell}{${2}}\sin\Theta`}.`, plain: t`Half the needle, tilted at angle ${mTh}, covers a distance ${math`\frac{\ell}{${2}}\sin\Theta`} across the boards.` },
+        { label: t`The region`, text: t`${math`(X, \Theta)`} is uniform on the rectangle ${math`[${0}, \frac{d}{${2}}] \times [${0}, \frac{\pi}{${2}}]`}, of area ${math`\frac{\pi d}{${4}}`}. The crossing region is ${math`\{(x, \theta) : x \le \frac{\ell}{${2}}\sin\theta\}`}.`, plain: t`Since ${math`\ell \le d`}, the curve ${math`x = \frac{\ell}{${2}}\sin\theta`} never leaves the rectangle.` },
+        { label: t`Its area`, text: t`${math`\int_{${0}}^{\pi/${2}} \frac{\ell}{${2}}\sin\theta\,d\theta = \frac{\ell}{${2}}\left[-\cos\theta\right]_{${0}}^{\pi/${2}} = \frac{\ell}{${2}}`}.`, plain: t`${math`-\cos`} goes from ${math`-${1}`} at ${0} to ${0} at ${math`\frac{\pi}{${2}}`}, a change of ${1}.` },
+        { label: t`Divide`, text: t`${math`P(\text{cross}) = \frac{\ell/${2}}{\pi d/${4}} = \frac{${2}\ell}{\pi d}`}.`, plain: t`Area of the crossing region over area of the rectangle. The ${math`\pi`} came from the uniform angle.` },
+      ],
+    },
+    { kind: 'p', text: t`So with ${math`\ell = d`}, a needle crosses with probability ${math`\frac{${2}}{\pi}`}, about ${Number((2 / Math.PI).toFixed(4))}. That is [[buffons-needle|Buffon's needle]]. If ${math`k`} of ${math`n`} drops cross, ${math`\frac{${2}n\ell}{kd}`} estimates ${math`\pi`}.` },
+    { kind: 'section', title: t`What "at random" means` },
+    { kind: 'p', text: t`[[bertrands-paradox|Bertrand's paradox]] asks for the chance that a random chord of a circle is longer than a side of the inscribed equilateral triangle. Choose the two endpoints uniformly on the circle, and the answer is ${q(1, 3)}. Choose the chord's distance from the centre uniformly along a radius, and it is ${q(1, 2)}. Choose its midpoint uniformly in the disc, and it is ${q(1, 4)}.` },
+    {
+      kind: 'pitfall',
+      claim: t`"A random chord" has one right probability of being longer than the triangle's side.`,
+      counterexample: t`Each of ${q(1, 3)}, ${q(1, 2)}, and ${q(1, 4)} is right for its own model. "At random" means nothing until the uniform distribution and its sample space are named, as the needle's model was.`,
+    },
+    { kind: 'p', text: t`A uniform angle need not give a uniform position, either. Sheet ${4} Q${10} sends a particle in a uniformly random direction at a flat plate; where it lands is far from uniform. Finding its density is a supervision problem below.` },
+    { kind: 'takeaway', text: t`For a uniform point, probability is area over area; name the model of "at random" first, as Buffon's needle does and Bertrand's paradox shows you must.` },
   ],
   examples: [
-    workedCambridge(q2),
+    { ...workedCambridge(q2), examiner: t`The two break points as a uniform point in the unit square, the triangle condition as "every piece shorter than half", and the region's area found exactly.` },
     worked(meeting, { T: 60, w1: 15, w2: 15 }, t`Meeting with a quarter hour's wait`),
     worked(buffonNeedle, { l: 5, d: 10 }, t`A needle half the gap`),
   ],
@@ -313,5 +350,23 @@ export const geometricProbability: TopicContent = {
   terms: ['buffons-needle', 'bertrands-paradox'],
   claims,
   cambridge: [q1unequal, buffonAuto, q10a, q10b, bertrand, buffonProof],
-  gate: ['ia4-q1-unequal', 'ia4-q10-a', 'ia4-q10-b'],
+  // Sheet 4: Q10(a) first (a transformation, not just an area), then the unequal meeting times and the
+  // Cauchy mean. The schedule problems are not from a sheet.
+  gate: ['ia4-q10-a', 'ia4-q1-unequal', 'ia4-q10-b'],
+  recall: [
+    { front: t`Probability for a point uniform in ${math`D`}?`, back: t`${math`\frac{\text{area of } A \cap D}{\text{area of } D}`}.` },
+    { front: t`Buffon's needle: chance of crossing?`, back: t`${math`\frac{${2}\ell}{\pi d}`}, for a needle of length ${ml} on lines ${md} apart, ${math`\ell \le d`}.` },
+    { front: t`What does Bertrand's paradox show?`, back: t`"At random" has no meaning until the uniform distribution and its sample space are named: three models give ${q(1, 3)}, ${q(1, 2)}, ${q(1, 4)}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Buffon's needle`,
+      steps: [
+        t`The needle crosses when ${math`X \le \frac{\ell}{${2}}\sin\Theta`}.`,
+        t`${math`(X, \Theta)`} is uniform on a rectangle of area ${math`\frac{\pi d}{${4}}`}.`,
+        t`The crossing region has area ${math`\int_{${0}}^{\pi/${2}} \frac{\ell}{${2}}\sin\theta\,d\theta = \frac{\ell}{${2}}`}.`,
+        t`So the probability is ${math`\frac{${2}\ell}{\pi d}`}.`,
+      ],
+    },
+  ],
 };

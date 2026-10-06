@@ -10,8 +10,8 @@
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computedTex, math, paren, t, texOfRational } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedTex, dmath, listOf, math, paren, t, texOfRational } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 import { frogMean, rpow, rx, solveLinear } from '../partv-a';
 
 const S3 = 'step-s3-stats' as const;
@@ -322,18 +322,74 @@ const theory = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+/** The hook's sequence: u_(n+1) = 5u_n - 6u_(n-1), u_0 = 2, u_1 = 5, which is 2^n + 3^n. */
+const hookSeq = (count: number): number[] => { const u = [2, 5]; while (u.length < count) u.push(5 * (u[u.length - 1] as number) - 6 * (u[u.length - 2] as number)); return u; };
+const H = hookSeq(6);
+const H20 = 2 ** 20 + 3 ** 20;
+const [mk, mn, mathA, mathB] = [math`k`, math`n`, math`A`, math`B`];
+
 export const linearRecurrences: TopicContent = {
   topicId: 'alg.linear-recurrences',
   goal: t`Solve ${math`u_{n + ${1}} = au_{n} + b`} and ${math`u_{n + ${1}} = au_{n} + bu_{n - ${1}}`} from the auxiliary equation, with a particular solution for a constant term.`,
+  objective: t`Solve first and second order linear recurrences in closed form, from the auxiliary equation.`,
+  why: t`First-step analysis in probability ends in a recurrence: ruin chances, expected times, and the frog of STEP.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`A [[difference-equation|difference equation]] gives each term of a sequence from earlier ones. First-step analysis produces them: a probability or an expected time from one state is written in terms of those from neighbouring states.` },
-    { kind: 'rule', text: t`First order: ${math`u_{n + ${1}} = au_{n} + b`} with ${math`a \ne ${1}`} has the fixed point ${math`k = \frac{b}{${1} - a}`}, and ${math`u_{n} = (u_{${0}} - k)a^{n} + k`}.` },
-    { kind: 'p', text: t`Why: ${math`v_{n} = u_{n} - k`} satisfies ${math`v_{n + ${1}} = av_{n}`}, since the constants cancel. Example Sheet ${3} Q${11} is of this kind: ${math`u_{n} = \frac{${1}}{${2}} - \left(\frac{${1}}{${2}} - p\right)u_{n - ${1}}`} gives ${math`u_{n} = \frac{${1} + (-${1})^{n - ${1}}\left(\frac{${1}}{${2}} - p\right)^{n}}{${3} - ${2}p}`}.` },
-    { kind: 'rule', text: t`Second order: for ${math`u_{n + ${1}} = au_{n} + bu_{n - ${1}}`}, try ${math`u_{n} = \lambda^{n}`}. The [[auxiliary-equation|auxiliary equation]] ${math`\lambda^{${2}} = a\lambda + b`} has roots ${math`\alpha`}, ${math`\beta`}. If they differ, ${math`u_{n} = A\alpha^{n} + B\beta^{n}`}; if ${math`\alpha = \beta`}, ${math`u_{n} = (A + Bn)\alpha^{n}`}. Two starting values fix ${math`A`} and ${math`B`}.` },
-    { kind: 'p', text: t`A constant term needs a particular solution added: a constant if ${1} is not a root of the auxiliary equation, ${math`Cn`} if it is a simple root, ${math`Cn^{${2}}`} if it is a double root. The frog of STEP ${3} Statistics Q${1} has ${math`u_{n} = ${1} + pu_{n - ${1}} + qu_{n - ${2}}`}, with roots ${1} and ${math`-q`}, so ${math`u_{n} = A(-q)^{n - ${1}} + B + Cn`}, and ${math`C = \frac{${1}}{${1} + q}`}.` },
+    { kind: 'section', title: t`A formula for the twentieth term` },
+    { kind: 'hook', text: t`The sequence ${listOf(H)}, and so on, is built by one rule: each term is ${5} times the one before minus ${6} times the one before that. What is the twentieth term? You could grind out ${19} steps. Or you could notice that ${listOf(H.slice(0, 4))} are ${math`${1} + ${1}, ${2} + ${3}, ${4} + ${9}, ${8} + ${27}`}: powers of ${2} plus powers of ${3}. This lesson explains where those powers come from.` },
+    { kind: 'definition', name: t`Linear difference equation`, formal: t`A [[difference-equation|difference equation]] (or recurrence) of order ${2} with constant coefficients is ${dmath`u_{n + ${1}} = a\,u_{n} + b\,u_{n - ${1}} + c \qquad (n \ge ${1}),`} with constants ${math`a, b, c`}. It is homogeneous if ${math`c = ${0}`}. With ${math`b = ${0}`} it is of order ${1}.`, plain: t`Each term is a fixed combination of the previous one or two, plus a constant. The hook's rule is ${math`a = ${5}`}, ${math`b = -${6}`}, ${math`c = ${0}`}.` },
+
+    { kind: 'section', title: t`First order` },
+    { kind: 'theorem', name: t`First order`, statement: t`If ${math`a \ne ${1}`}, the solution of ${math`u_{n + ${1}} = a u_{n} + c`} is ${dmath`u_{n} = (u_{${0}} - k)\,a^{n} + k, \qquad \text{where } k = \frac{c}{${1} - a}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Find the fixed point`, text: t`A constant solution ${math`u_{n} = k`} needs ${math`k = ak + c`}, that is ${math`k = \frac{c}{${1} - a}`}.`, plain: t`For ${math`u_{n + ${1}} = ${3}u_{n} - ${4}`}: ${math`k = ${3}k - ${4}`}, so ${math`k = ${2}`}.`, why: { q: t`Why does ${math`a \ne ${1}`} matter?`, a: t`Solving ${math`k - ak = c`} divides by ${math`${1} - a`}. If ${math`a = ${1}`}, the recurrence just adds ${math`c`} each time: ${math`u_{n} = u_{${0}} + cn`}.` } },
+        { label: t`Measure from it`, text: t`Let ${math`v_{n} = u_{n} - k`}. Subtract ${math`k = ak + c`} from ${math`u_{n + ${1}} = au_{n} + c`}:`, eq: [dmath`v_{n + ${1}} = a\,v_{n}.`], plain: t`The constants cancel, leaving a geometric sequence.` },
+        { label: t`Solve the geometric sequence`, text: t`So ${math`v_{n} = a^{n}v_{${0}}`}, and adding ${mk} back gives ${math`u_{n} = (u_{${0}} - k)a^{n} + k`}.` },
+      ],
+    },
+    checkFrom(firstOrder, { a: 2, b: 3, c: 1 }, t`The fixed point is ${math`k = \frac{${3}}{${1} - ${2}} = -${3}`}, and ${math`u_{${0}} - k = ${4}`}.`),
+
+    { kind: 'section', title: t`Second order: the auxiliary equation` },
+    { kind: 'narrative', text: t`For a homogeneous second order recurrence, guess a geometric sequence ${math`u_{n} = \lambda^{n}`}. Put it in ${math`u_{n + ${1}} = au_{n} + bu_{n - ${1}}`}: ${math`\lambda^{n + ${1}} = a\lambda^{n} + b\lambda^{n - ${1}}`}. Divide by ${math`\lambda^{n - ${1}}`} (with ${math`\lambda \ne ${0}`}), and the ${mn} disappears.` },
+    { kind: 'definition', name: t`Auxiliary equation`, formal: t`The [[auxiliary-equation|auxiliary equation]] of ${math`u_{n + ${1}} = a u_{n} + b u_{n - ${1}}`} is ${dmath`\lambda^{${2}} = a\lambda + b.`}`, plain: t`For the hook's rule, ${math`\lambda^{${2}} = ${5}\lambda - ${6}`}, that is ${math`(\lambda - ${2})(\lambda - ${3}) = ${0}`}: roots ${2} and ${3}.` },
+    { kind: 'theorem', name: t`Distinct roots`, statement: t`Let ${math`b \ne ${0}`}, and suppose the auxiliary equation has distinct roots ${math`\alpha \ne \beta`}. Then every solution of ${math`u_{n + ${1}} = au_{n} + bu_{n - ${1}}`} is ${math`u_{n} = A\alpha^{n} + B\beta^{n}`}, for constants ${math`A, B`} fixed by ${math`u_{${0}}`} and ${math`u_{${1}}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Each root gives a solution`, text: t`If ${math`\alpha^{${2}} = a\alpha + b`}, multiply by ${math`\alpha^{n - ${1}}`}: ${math`\alpha^{n + ${1}} = a\alpha^{n} + b\alpha^{n - ${1}}`}. So ${math`\alpha^{n}`} is a solution, and so is ${math`\beta^{n}`}.` },
+        { label: t`Combinations are solutions`, text: t`The recurrence is linear: if ${math`x_{n}`} and ${math`y_{n}`} solve it, so does ${math`Ax_{n} + By_{n}`}, by adding ${mathA} times the first equation to ${mathB} times the second.` },
+        { label: t`Match the start`, text: t`We need ${math`A + B = u_{${0}}`} and ${math`A\alpha + B\beta = u_{${1}}`}. Subtract ${math`\alpha`} times the first from the second:`, eq: [dmath`B(\beta - \alpha) = u_{${1}} - \alpha u_{${0}},`], plain: t`and ${math`\beta - \alpha \ne ${0}`}, so ${mathB} is determined, and then ${math`A = u_{${0}} - B`}.` },
+        { label: t`Two values fix the rest`, text: t`The recurrence computes ${math`u_{${2}}, u_{${3}}, \ldots`} from ${math`u_{${0}}, u_{${1}}`} one at a time. Two solutions that agree at ${math`n = ${0}`} and ${math`n = ${1}`} therefore agree everywhere, by induction. So ${math`u_{n} = A\alpha^{n} + B\beta^{n}`} for all ${mn}.` },
+      ],
+    },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The hook, solved`, text: t`Roots ${2} and ${3}, so ${math`u_{n} = A \cdot ${2}^{n} + B \cdot ${3}^{n}`}.` },
+        { label: t`Fit the start`, text: t`${math`u_{${0}} = A + B = ${2}`} and ${math`u_{${1}} = ${2}A + ${3}B = ${5}`}. Subtract twice the first from the second: ${math`B = ${1}`}, then ${math`A = ${1}`}.` },
+        { label: t`The twentieth term`, text: t`${math`u_{n} = ${2}^{n} + ${3}^{n}`}, so ${math`u_{${20}} = ${2}^{${20}} + ${3}^{${20}} = ${H20}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`When the roots coincide, ${math`\alpha = \beta`}, the formula has only one constant and cannot fit two starting values. The fix: ${math`n\alpha^{n}`} is then a second solution, and ${math`u_{n} = (A + Bn)\alpha^{n}`}.`, why: { q: t`Why is ${math`n\alpha^{n}`} a solution for a double root?`, a: t`A double root means ${math`\lambda^{${2}} - a\lambda - b = (\lambda - \alpha)^{${2}}`}, so ${math`a = ${2}\alpha`} and ${math`b = -\alpha^{${2}}`}. Then ${math`a\,n\alpha^{n} + b(n - ${1})\alpha^{n - ${1}} = ${2}n\alpha^{n + ${1}} - (n - ${1})\alpha^{n + ${1}} = (n + ${1})\alpha^{n + ${1}}`}.` } },
+    checkFrom(secondOrder, { al: 3, be: -1, u0: 2, u1: 2 }, t`Roots ${3} and ${math`-${1}`}: ${math`A + B = ${2}`} and ${math`${3}A - B = ${2}`} give ${math`A = B = ${1}`}.`),
+
+    { kind: 'section', title: t`A constant term` },
+    { kind: 'narrative', text: t`With a constant ${math`c`}, the method has two parts. Find any one particular solution of the full equation, then add the general solution of the homogeneous equation (with ${math`c = ${0}`}). The difference of two solutions solves the homogeneous one, so this catches every solution.` },
+    { kind: 'p', text: t`Try a constant first. That fails exactly when ${1} is a root of the auxiliary equation, since then constants solve the homogeneous equation. Then try ${math`Cn`}, and if ${1} is a double root, ${math`Cn^{${2}}`}. Fit ${mathA} and ${mathB} to the starting values last, after adding the particular solution.` },
+    { kind: 'p', text: t`The frog of STEP ${3} Statistics question ${1} is of this kind: ${math`u_{n} = ${1} + pu_{n - ${1}} + qu_{n - ${2}}`} with ${math`p + q = ${1}`}. Its auxiliary equation has roots ${1} and ${math`-q`}, so the particular solution is ${math`Cn`}, which is why the question offers the form ${math`A(-q)^{n - ${1}} + B + Cn`}.` },
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`u_{n + ${1}} = au_{n} + c`} has solution ${math`u_{n} = u_{${0}}a^{n} + k`}.`, counterexample: t`For ${math`u_{n + ${1}} = ${3}u_{n} - ${4}`} with ${math`u_{${0}} = ${5}`}: ${math`u_{${1}} = ${11}`}, but ${math`${5} \times ${3} + ${2} = ${17}`}. The geometric part starts from ${math`u_{${0}} - k = ${3}`}, not ${math`u_{${0}}`}.` },
+    { kind: 'pitfall', claim: t`With a double root ${math`\alpha`}, ${math`u_{n} = A\alpha^{n} + B\alpha^{n}`}.`, counterexample: t`That is just ${math`(A + B)\alpha^{n}`}, one constant. For ${math`u_{n + ${1}} = ${4}u_{n} - ${4}u_{n - ${1}}`} with ${math`u_{${0}} = ${1}`}, ${math`u_{${1}} = ${4}`}, no ${math`C \cdot ${2}^{n}`} fits both; ${math`(${1} + n)${2}^{n}`} does.` },
+    { kind: 'pitfall', claim: t`Fit the constants to the starting values, then add the particular solution.`, counterexample: t`Adding the particular solution afterwards changes ${math`u_{${0}}`} and ${math`u_{${1}}`}, so they no longer match. Add it first, then fit.` },
+    { kind: 'takeaway', text: t`Guess ${math`\lambda^{n}`}: the roots of the auxiliary equation give the general solution, a particular solution handles a constant, and the starting values fix the constants last.` },
   ],
   examples: [
-    workedCambridge(q11),
+    { ...workedCambridge(q11), examiner: t`The examiner looks for the fixed point found first, the geometric part fitted to ${math`u_{${0}} = ${0}`}, and the answer checked at ${math`n = ${1}`}.` },
     worked(firstOrder, { a: 3, b: -4, c: 5 }, t`A first-order equation`),
     worked(secondOrder, { al: 2, be: -1, u0: 1, u1: 5 }, t`Two distinct roots`),
   ],
@@ -341,5 +397,20 @@ export const linearRecurrences: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['difference-equation', 'auxiliary-equation'],
   cambridge: [frog, slotLimit, frogExplain, slotDerive, theory],
-  gate: ['s3-q1-iii-closed-form', 'sheet3-q11-long-run', 's3-q1-iii-explain', 'sheet3-q11-derive'],
+  // The STEP frog first. The slot machine's limit is dropped: the worked example's closed form gives it at once.
+  gate: ['s3-q1-iii-closed-form', 's3-q1-iii-explain', 'sheet3-q11-derive'],
+  recall: [
+    { front: t`Solve ${math`u_{n + ${1}} = au_{n} + c`}, for ${math`a \ne ${1}`}.`, back: t`${math`u_{n} = (u_{${0}} - k)a^{n} + k`} with ${math`k = c/(${1} - a)`}.` },
+    { front: t`The auxiliary equation of ${math`u_{n + ${1}} = au_{n} + bu_{n - ${1}}`}, and the solution.`, back: t`${math`\lambda^{${2}} = a\lambda + b`}; ${math`A\alpha^{n} + B\beta^{n}`} for distinct roots, ${math`(A + Bn)\alpha^{n}`} for a double root.` },
+    { front: t`Which particular solution for a constant term?`, back: t`A constant; ${math`Cn`} if ${1} is a root of the auxiliary equation; ${math`Cn^{${2}}`} if it is a double root.` },
+  ],
+  proofOrder: [{
+    title: t`Every solution is ${math`A\alpha^{n} + B\beta^{n}`}`,
+    steps: [
+      t`Each root ${math`\alpha`} makes ${math`\alpha^{n}`} a solution.`,
+      t`Linearity: any ${math`A\alpha^{n} + B\beta^{n}`} is a solution.`,
+      t`Since ${math`\alpha \ne \beta`}, ${mathA} and ${mathB} can match ${math`u_{${0}}`} and ${math`u_{${1}}`}.`,
+      t`Two starting values determine the sequence, so it is this one.`,
+    ],
+  }],
 };

@@ -52,6 +52,13 @@ const key = (k: string, o: Partial<KeyboardEventInit> = {}, target: Element = do
 const nav = (): Element | null => document.querySelector('nav.ds-nav');
 const palette = (): HTMLElement | null => document.querySelector('.ds-cmd-box');
 const options = (): string[] => [...document.querySelectorAll('.ds-cmd-res [role="option"]')].map((o) => o.textContent ?? '');
+/** The first section's Next, once the lesson has loaded its content (a lesson may have one section or several). */
+const lessonNext = (): Promise<HTMLElement> => screen.findByRole('button', { name: /^Next: / });
+/** Read a lesson's named sections through to the worked examples. */
+const toExamples = (): void => {
+  for (let i = 0; i < 20 && screen.queryByRole('button', { name: 'Next: worked examples' }) === null; i++) fireEvent.click(screen.getByRole('button', { name: /^Next: / }));
+  fireEvent.click(screen.getByRole('button', { name: 'Next: worked examples' }));
+};
 
 describe('keys', () => {
   it('1 to 5 switch tabs, G opens the gym, and none of them act while typing', async () => {
@@ -132,14 +139,14 @@ describe('focus mode', () => {
     await flush();
     fireEvent.click(document.querySelector('a.ds-cont') as HTMLElement);
     expect(location.hash).toBe('#/learn/pre.fractions/book');
-    await screen.findByRole('button', { name: 'Next: worked examples' });
+    await lessonNext();
     expect(nav()).toBeNull();
     expect(document.querySelector('.app')?.classList.contains('focus')).toBe(true);
     expect(document.querySelector('.ds-fbar-back')?.textContent).toBe('← Course');
     // Number keys do nothing in focus mode.
     key('3');
     expect(location.hash).toBe('#/learn/pre.fractions/book');
-    fireEvent.click(screen.getByRole('button', { name: 'Next: worked examples' }));
+    toExamples();
     key('Escape');
     await flush();
     expect(location.hash).toBe('#/book');
@@ -152,7 +159,7 @@ describe('focus mode', () => {
     go({ view: 'today' });
     go({ view: 'task', index: 0 });
     render(<App />);
-    await screen.findByRole('button', { name: 'Next: worked examples' });
+    await lessonNext();
     key('k', { metaKey: true });
     await waitFor(() => expect(palette()).not.toBeNull());
     key('Escape', {}, document.activeElement as Element);
@@ -166,7 +173,7 @@ describe('focus mode', () => {
   it('a lesson has Top of section next to Continue, and segmented progress with no counts', async () => {
     go({ view: 'task', index: 0 });
     render(<App />);
-    const next = await screen.findByRole('button', { name: 'Next: worked examples' });
+    const next = await lessonNext();
     const foot = next.closest('.ds-lessfoot') as HTMLElement;
     const top = within(foot).getByRole('button', { name: /Top of section/ });
     fireEvent.click(top);

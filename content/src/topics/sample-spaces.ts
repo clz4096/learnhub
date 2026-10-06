@@ -9,7 +9,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q, str, upTo, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const roll = (rng: Rng, n = 6): number => 1 + Math.floor(rng() * n);
 
@@ -361,27 +361,67 @@ const a19bet = supervision({
 // ---------------------------------------------------------------- lesson
 
 const sumCounts = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((s) => twoDice((a, b) => a + b === s).good);
+const BAG = { normal: 1, hh: 2 };
+const bagSides = 2 * (BAG.normal + BAG.hh);
+const bagHeads = BAG.normal + 2 * BAG.hh;
 
 const claims: ProbabilityClaim[] = [
   { what: 'three coins in a bag: P(head behind | head seen)', exact: q(2, 3), trial: (rng) => trickCoins.at({ normal: 1, hh: 1, tt: 1 }).trial?.(rng) ?? false },
   { what: 'three dice: P(exactly one six)', exact: sixes(1), trial: (rng) => [roll(rng), roll(rng), roll(rng)].filter((x) => x === 6).length === 1 },
   { what: 'two dice: P(total 7)', exact: q(sumCounts[5] as number, 36), trial: (rng) => roll(rng) + roll(rng) === 7 },
+  { what: 'two dice: P(total 11)', exact: q(sumCounts[9] as number, 36), trial: (rng) => roll(rng) + roll(rng) === 11 },
+  { what: 'one normal and two double-headed coins: P(head behind | head seen)', exact: q(2 * BAG.hh, bagHeads), trial: (rng) => trickCoins.at({ normal: BAG.normal, hh: BAG.hh, tt: 0 }).trial?.(rng) ?? false },
 ];
+const mOmega = math`\Omega`;
 
 export const sampleSpaces: TopicContent = {
   topicId: 'pre.sample-spaces',
   goal: t`List or tabulate the equally likely outcomes of two or more experiments, and count the ones you want.`,
+  objective: t`List or tabulate the equally likely outcomes of combined experiments and count the ones you want.`,
+  why: t`Choosing the right list of outcomes is the first step of every probability problem, from trees to STEP.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`When an experiment has several parts, such as rolling two dice, the [[sample-space|sample space]] is the list of every combined outcome. If the outcomes are equally likely, a probability is still favourable outcomes over all outcomes.` },
-    { kind: 'rule', text: t`By the product rule, two dice have ${math`${6} \times ${6} = ${36}`} outcomes and three dice ${math`${6}^{${3}} = ${216}`}. ${dmath`P(\text{event}) = \frac{\text{outcomes in the event}}{\text{all outcomes}}`}` },
-    { kind: 'p', text: t`The outcomes must be equally likely, and that is where care is needed. With two dice, list ordered pairs (first die, second die): a ${2} then a ${5} is a different outcome from a ${5} then a ${2}. The totals are not equally likely: a total of ${7} happens in ${sumCounts[5] as number} ways, a total of ${2} in ${sumCounts[0] as number}.` },
+    { kind: 'section', title: t`Eleven or twelve?` },
+    { kind: 'hook', text: t`Roll two dice. A friend argues that a total of ${11} and a total of ${12} are equally likely: ${11} is ${math`${5} + ${6}`} and ${12} is ${math`${6} + ${6}`}, one way each. Is she right?` },
+    { kind: 'narrative', text: t`Paint one die red and the other blue, and the flaw shows. A total of ${11} happens when red is ${5} and blue is ${6}, or when red is ${6} and blue is ${5}: two different outcomes. A total of ${12} needs both to be ${6}: one outcome. Painting the dice changes nothing physical, so ${11} was twice as likely as ${12} all along. The friend counted totals; she should have counted outcomes.` },
+    { kind: 'section', title: t`The list of outcomes` },
+    {
+      kind: 'definition',
+      name: t`Sample space`,
+      formal: t`The [[sample-space|sample space]] ${mOmega} of an experiment is the set of all its possible outcomes. For an experiment in two parts with outcome sets ${math`A`} and ${math`B`}, ${dmath`\Omega = A \times B = \{(a, b) : a \in A,\ b \in B\},`} the ordered pairs.`,
+      plain: t`In plain words: the complete list of what can happen. For two dice it is the ${36} pairs (red score, blue score), and ${math`(${5}, ${6})`} and ${math`(${6}, ${5})`} are different entries.`,
+    },
+    { kind: 'p', text: t`By the product rule, two dice have ${math`${6} \times ${6} = ${36}`} outcomes and three dice ${math`${6}^{${3}} = ${216}`}. For fair dice thrown independently, all of these are equally likely, so the familiar rule applies: ${dmath`P(E) = \frac{\text{number of outcomes in } E}{\lvert \Omega \rvert}.`}` },
     {
       kind: 'table', caption: t`A [[sample-space-diagram|sample space diagram]] for the total of two dice: each cell is one of the ${36} equally likely outcomes.`,
-      head: [t`first die`, ...upTo(6).map((b) => t`${b}`)],
+      head: [t`red die`, ...upTo(6).map((b) => t`${b}`)],
       rows: upTo(6).map((a) => [t`${a}`, ...upTo(6).map((b) => t`${a + b}`)]),
     },
-    { kind: 'p', text: t`The STEP Support notes for Assignment ${19} put it plainly: listing all the possibilities is not "cheating", and it is often the most efficient way to solve a problem, though less so the more possibilities there are. For larger cases, count with the product rule instead of listing.` },
-    { kind: 'p', text: t`Choosing what to list is the real decision. In the three-coins problem below, the coins are not the equally likely outcomes, because a double-headed coin shows a head twice as often as a normal coin. The (coin, side) pairs are equally likely, so list those.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Find the cells`, text: t`Total ${11}: the cells ${math`(${5}, ${6})`} and ${math`(${6}, ${5})`}. Total ${12}: only ${math`(${6}, ${6})`}.` },
+        { label: t`Divide by the total`, text: t`${math`P(\text{total } ${11}) = ${q(sumCounts[9] as number, 36)}`} and ${math`P(\text{total } ${12}) = ${q(sumCounts[10] as number, 36)}`}.`, plain: t`The diagonal of sevens is the longest: ${sumCounts[5] as number} cells, so ${7} is the most likely total, with probability ${q(sumCounts[5] as number, 36)}.` },
+      ],
+    },
+    checkFrom(twoDiceGen, { e: { kind: 'diff', d: 1 } }, t`The scores differ by ${1} in ${twoDice((a, b) => Math.abs(a - b) === 1).good} cells, two beside each of the ${5} steps of the diagonal: ${q(twoDice((a, b) => Math.abs(a - b) === 1).good, 36)}.`),
+    { kind: 'pitfall', claim: t`With two dice, "a ${5} and a ${6}" and "two sixes" are equally likely.`, counterexample: t`"A ${5} and a ${6}" is two outcomes, ${math`(${5}, ${6})`} and ${math`(${6}, ${5})`}, so ${q(2, 36)}. "Two sixes" is one outcome, ${q(1, 36)}. Unordered results are not equally likely.` },
+    { kind: 'section', title: t`Listing is not cheating` },
+    { kind: 'narrative', text: t`The STEP Support notes for Assignment ${19} put it plainly: listing all the possibilities is not "cheating", and it is often the most efficient way to solve a problem, though less so the more possibilities there are. Four coins have ${2 ** 4} outcomes, still easy to write down: HHHH, HHHT, and so on. For three dice, ${216} is too many to list, and you count with the product rule instead.` },
+    checkFrom(coins, { n: 4, k: 2, atLeast: false }, t`Of the ${16} sequences of four tosses, ${6} have exactly two heads (choose the two places for the heads): ${q(6, 16)}.`),
+    { kind: 'section', title: t`Choosing what to list` },
+    { kind: 'narrative', text: t`The hardest part is often deciding what the equally likely outcomes are. A bag holds ${BAG.normal} normal coin and ${BAG.hh} coins with heads on both sides. You pick a coin at random, look at one side at random, and see a head. What is the chance the other side is a head too?` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Choose the outcomes`, text: t`The coins are not equally likely once you have seen a head: a double-headed coin shows a head every time, a normal coin half the time. The equally likely outcomes are the (coin, side) pairs: ${math`${2} \times ${BAG.normal + BAG.hh} = ${bagSides}`} sides, each equally likely to be the one you see.`, why: { q: t`Why are the sides equally likely?`, a: t`Each coin has probability ${q(1, BAG.normal + BAG.hh)}, then each of its two sides ${q(1, 2)}, so every side has probability ${q(1, bagSides)}.` } },
+        { label: t`Keep what you saw`, text: t`You saw a head, so the outcome is one of the ${bagHeads} head sides: ${BAG.normal} on the normal coin and ${2 * BAG.hh} on the double-headed ones.` },
+        { label: t`Count the good ones`, text: t`The other side is a head for the ${2 * BAG.hh} head sides of double-headed coins:`, eq: [dmath`\frac{${2 * BAG.hh}}{${bagHeads}}.`] },
+      ],
+    },
+    checkFrom(trickCoins, { normal: 3, hh: 1, tt: 1 }, t`Head sides: ${3} on the normal coins and ${2} on the double-headed one, ${5} in all. ${2} of them have a head behind: ${q(2, 5)}.`),
+    { kind: 'pitfall', claim: t`You saw a head, so the coin is either the normal one or a double-headed one, and the other side is a head with probability ${q(BAG.hh, BAG.normal + BAG.hh)}.`, counterexample: t`That treats the coins as equally likely after the look, but a double-headed coin is twice as likely to show a head. Counting sides gives ${q(2 * BAG.hh, bagHeads)}.` },
+    { kind: 'takeaway', text: t`List outcomes that really are equally likely, ordered pairs for two dice and sides for coins, then count favourable over total.` },
   ],
   examples: [
     workedCambridge(a19i),
@@ -393,5 +433,12 @@ export const sampleSpaces: TopicContent = {
   terms: ['sample-space', 'sample-space-diagram'],
   claims,
   cambridge: [a19three, a19one, a19table, a19bet],
-  gate: ['a19-q4-ii-three', 'a19-q4-ii-one', 'a19-q4-ii-table', 'a19-q4-ii-bet'],
+  // Best first: the bet (needs every probability and a judgement), the full table, then
+  // exactly one six. Three sixes is a single product, too slight to gate.
+  gate: ['a19-q4-ii-bet', 'a19-q4-ii-table', 'a19-q4-ii-one'],
+  recall: [
+    { front: t`What is a sample space?`, back: t`The set of all possible outcomes of an experiment.` },
+    { front: t`How many outcomes do two dice have, and why ordered pairs?`, back: t`${36}. Ordered pairs are equally likely; unordered results like "a ${5} and a ${6}" are not.` },
+    { front: t`With equally likely outcomes, ${math`P(E)`} is?`, back: t`The number of outcomes in ${math`E`} over the number in ${mOmega}.` },
+  ],
 };

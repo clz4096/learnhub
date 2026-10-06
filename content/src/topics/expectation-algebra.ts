@@ -9,8 +9,8 @@
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, mul, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computedTex, math, paren, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedTex, dmath, math, paren, t } from '../rich';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 import { average, positions, throwsOf, variance, type Dist } from '../partv-a';
 
 const S3 = 'step-s3-stats' as const;
@@ -288,19 +288,68 @@ const notesProof = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [mX, mY, ma, mb] = [math`X`, math`Y`, math`a`, math`b`];
+const DIE = q(35, 12);
+
 export const expectationAlgebra: TopicContent = {
   topicId: 'rv.expectation-algebra',
   goal: t`Use ${math`E(aX + bY + c) = aE(X) + bE(Y) + c`} for any ${math`X`} and ${math`Y`}, and ${math`\mathrm{Var}(aX + bY + c) = a^{${2}}\mathrm{Var}(X) + b^{${2}}\mathrm{Var}(Y)`} when they are independent.`,
+  objective: t`Find means and variances of combinations of random variables without finding their distributions.`,
+  why: t`These rules turn hard distributions into easy sums; next come indicator variables and the general theory.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The STEP ${3} topic notes collect the algebra of expectations. It lets you find means and variances of combinations without finding their distributions.` },
-    { kind: 'rule', text: t`[[linearity-of-expectation|Linearity of expectation]]: ${math`E(aX + bY + c) = aE(X) + bE(Y) + c`} for any random variables ${math`X`} and ${math`Y`}, independent or not.` },
-    { kind: 'p', text: t`For one variable, ${math`\mathrm{Var}(aX + b) = a^{${2}}\mathrm{Var}(X)`}: adding ${math`b`} moves every value and the mean together, so no distance from the mean changes; multiplying by ${math`a`} multiplies every distance by ${math`a`}, and every squared distance by ${math`a^{${2}}`}.` },
-    { kind: 'rule', text: t`For independent ${math`X`} and ${math`Y`}: ${math`E(XY) = E(X)E(Y)`}, and the [[variance-of-sum|variances add]]: ${math`\mathrm{Var}(aX + bY + c) = a^{${2}}\mathrm{Var}(X) + b^{${2}}\mathrm{Var}(Y)`}.` },
-    { kind: 'p', text: t`Two consequences. A difference adds variances too: ${math`\mathrm{Var}(X - Y) = \mathrm{Var}(X) + \mathrm{Var}(Y)`}, since ${math`(-${1})^{${2}} = ${1}`}. And ${math`n`} independent dice, each with variance ${q(35, 12)}, have a total with variance ${math`n \times ${q(35, 12)}`}, while ${math`n`} times one die has variance ${math`n^{${2}} \times ${q(35, 12)}`}: a sum of independent parts spreads less than one part scaled up.` },
-    { kind: 'p', text: t`Without independence, ${math`E(XY)`} can differ from ${math`E(X)E(Y)`}. In STEP ${3} Statistics Q${3}, a row of ${math`a`} As and ${math`b`} Bs, the indicators of "A first" and "BA at places ${math`j - ${1}`}, ${math`j`}" have ${math`E(X_{${1}}X_{j}) = \frac{a(a - ${1})b}{n(n - ${1})(n - ${2})}`}, not ${math`\frac{a}{n} \times \frac{ab}{n(n - ${1})}`}.` },
+    { kind: 'section', title: t`Means of combinations` },
+    { kind: 'hook', text: t`Roll ${3} dice and add them. Finding the distribution of the total means counting ${6 ** 3} outcomes. Yet its mean is simply ${math`${3} \times ${q(7, 2)}`}, three times one die's, and even its variance can be had in one line. The STEP ${3} topic notes call the tools the algebra of expectations.` },
+    {
+      kind: 'theorem',
+      name: t`Linearity of expectation`,
+      statement: t`For any random variables ${mX} and ${mY} with finite means, and constants ${ma}, ${mb}, ${math`c`}: ${math`E(aX + bY + c) = aE(X) + bE(Y) + c`}.`,
+    },
+    {
+      kind: 'p',
+      text: t`This is [[linearity-of-expectation|linearity of expectation]]. The striking part is what it does not need: ${mX} and ${mY} may depend on each other in any way at all. The total of three dice has mean ${math`${q(7, 2)} + ${q(7, 2)} + ${q(7, 2)} = ${mul(q(3), q(7, 2))}`}.`,
+      why: { q: t`Why does it hold without independence?`, a: t`${math`E(X + Y)`} is a sum over outcomes of ${math`(X + Y)`} times the probability of the outcome. That splits into the same sum for ${mX} plus the same sum for ${mY}: no product of probabilities ever appears, so independence is never needed.` },
+    },
+    { kind: 'section', title: t`Variance of a linear function` },
+    { kind: 'narrative', text: t`Variance measures spread: ${math`\mathrm{Var}(X) = E\big((X - \mu)^{${2}}\big)`}, with ${math`\mu = E(X)`}. Picture the values on a line. Adding ${mb} slides every value, and the mean, along by ${mb}: no distance from the mean changes. Multiplying by ${ma} stretches every distance by ${ma}, so every squared distance by ${math`a^{${2}}`}.` },
+    { kind: 'theorem', statement: t`For a random variable ${mX} with finite variance and constants ${ma}, ${mb}: ${math`\mathrm{Var}(aX + b) = a^{${2}}\mathrm{Var}(X)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The new mean`, text: t`Let ${math`\mu = E(X)`}. By linearity, ${math`E(aX + b) = a\mu + b`}.`, plain: t`Linearity with one variable.` },
+        { label: t`The new distance from the mean`, text: t`${math`(aX + b) - (a\mu + b) = a(X - \mu)`}.`, plain: t`The two ${mb}s cancel, and ${ma} factors out.` },
+        { label: t`Square and take the mean`, text: t`${math`\mathrm{Var}(aX + b) = E\big(a^{${2}}(X - \mu)^{${2}}\big) = a^{${2}}E\big((X - \mu)^{${2}}\big)`}.`, plain: t`${math`(a(X - \mu))^{${2}} = a^{${2}}(X - \mu)^{${2}}`}, and linearity takes the constant ${math`a^{${2}}`} outside.` },
+        { label: t`Recognise the variance`, text: t`So ${math`\mathrm{Var}(aX + b) = a^{${2}}\mathrm{Var}(X)`}.`, plain: t`The last expectation is the definition of ${math`\mathrm{Var}(X)`}.` },
+      ],
+    },
+    {
+      kind: 'pitfall',
+      claim: t`${math`\mathrm{Var}(${2}X) = ${2}\mathrm{Var}(X)`}.`,
+      counterexample: t`If ${mX} is ${math`\pm ${1}`} with probability ${q(1, 2)} each, ${math`\mathrm{Var}(X) = ${1}`}; but ${math`${2}X`} is ${math`\pm ${2}`}, with variance ${4}. The constant comes out squared.`,
+    },
+    { kind: 'section', title: t`Independent variables` },
+    {
+      kind: 'rule',
+      text: t`If ${mX} and ${mY} are independent, ${math`E(XY) = E(X)E(Y)`}, and so the [[variance-of-sum|variances add]]: ${dmath`\mathrm{Var}(aX + bY + c) = a^{${2}}\mathrm{Var}(X) + b^{${2}}\mathrm{Var}(Y).`}`,
+      why: { q: t`Where does independence come in?`, a: t`Expanding ${math`\mathrm{Var}(aX + bY)`} gives ${math`a^{${2}}\mathrm{Var}(X) + b^{${2}}\mathrm{Var}(Y)`} plus a cross term ${math`${2}ab\big(E(XY) - E(X)E(Y)\big)`}. Independence makes ${math`E(XY) = E(X)E(Y)`}, so the cross term vanishes. Proving the rules in full is a supervision problem below.` },
+    },
+    { kind: 'p', text: t`Two consequences. A difference adds variances too: ${math`\mathrm{Var}(X - Y) = \mathrm{Var}(X) + \mathrm{Var}(Y)`}, since ${math`(-${1})^{${2}} = ${1}`}. And a die has variance ${DIE}, so ${3} independent dice have total variance ${math`${3} \times ${DIE} = ${mul(q(3), DIE)}`}, while ${3} times one die has variance ${math`${9} \times ${DIE} = ${mul(q(9), DIE)}`}. Independent parts partly cancel each other's spread.` },
+    quickCheck({
+      prompt: t`${mX} and ${mY} are independent with ${math`\mathrm{Var}(X) = ${4}`} and ${math`\mathrm{Var}(Y) = ${1}`}. Find ${math`\mathrm{Var}(X - ${3}Y + ${7})`}.`,
+      answer: { kind: 'exact', expected: String(4 + 9 * 1) },
+      reference: String(4 + 9 * 1),
+      why: t`${math`${1}^{${2}} \times ${4} + (${-3})^{${2}} \times ${1} = ${4 + 9}`}. The ${7} shifts without spreading, and the minus sign is squared away.`,
+    }),
+    {
+      kind: 'pitfall',
+      claim: t`${math`E(XY) = E(X)E(Y)`} for any ${mX} and ${mY}.`,
+      counterexample: t`Take ${math`Y = X`} with ${mX} equal to ${0} or ${1}, each with probability ${q(1, 2)}. Then ${math`E(XY) = E(X^{${2}}) = ${q(1, 2)}`}, but ${math`E(X)E(Y) = ${q(1, 4)}`}. In STEP ${3} Statistics Q${3}, two dependent indicators in a random row fail it in the same way.`,
+    },
+    { kind: 'takeaway', text: t`Means are always linear; ${math`\mathrm{Var}(aX + b) = a^{${2}}\mathrm{Var}(X)`}; and for independent variables the variances add, each with its coefficient squared.` },
   ],
   examples: [
-    workedCambridge(q3iia),
+    { ...workedCambridge(q3iia), examiner: t`The product of indicators read as the indicator of both events, and that probability counted directly; no use of ${math`E(X)E(Y)`}, since the indicators are dependent.` },
     worked(combination, { a: 2, b: -3, c: 5, mx: 4, my: 1, vx: 3, vy: 2, ask: 'var' }, t`A difference of independent variables`),
     worked(dice, { m: 6, k: 3, kind: 'sum' }, t`The total of three dice`),
   ],
@@ -308,5 +357,24 @@ export const expectationAlgebra: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['linearity-of-expectation', 'variance-of-sum'],
   cambridge: [q3iic, notesComb, notesProof],
-  gate: ['s3-q3-ii-c', 's3-notes-combination', 's3-notes-proofs'],
+  // STEP 3 Statistics Q3(ii)(c) first, then the proofs from the topic notes. The notes' numerical
+  // combination is one application of the rule, left out.
+  gate: ['s3-q3-ii-c', 's3-notes-proofs'],
+  recall: [
+    { front: t`State linearity of expectation.`, back: t`${math`E(aX + bY + c) = aE(X) + bE(Y) + c`}, for any ${mX} and ${mY}.` },
+    { front: t`${math`\mathrm{Var}(aX + b)`}?`, back: t`${math`a^{${2}}\mathrm{Var}(X)`}.` },
+    { front: t`${math`\mathrm{Var}(aX + bY + c)`} for independent ${mX}, ${mY}?`, back: t`${math`a^{${2}}\mathrm{Var}(X) + b^{${2}}\mathrm{Var}(Y)`}.` },
+    { front: t`When is ${math`E(XY) = E(X)E(Y)`} guaranteed?`, back: t`When ${mX} and ${mY} are independent.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${math`\mathrm{Var}(aX + b) = a^{${2}}\mathrm{Var}(X)`}`,
+      steps: [
+        t`${math`E(aX + b) = a\mu + b`}, by linearity.`,
+        t`So ${math`(aX + b) - E(aX + b) = a(X - \mu)`}.`,
+        t`Square and take the mean: ${math`a^{${2}}E\big((X - \mu)^{${2}}\big)`}.`,
+        t`That is ${math`a^{${2}}\mathrm{Var}(X)`}.`,
+      ],
+    },
+  ],
 };

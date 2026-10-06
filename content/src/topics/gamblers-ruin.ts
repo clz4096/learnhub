@@ -9,8 +9,8 @@
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, math, t } from '../rich';
+import { quickCheck, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 import { hitTop, rpow, walkHitsTop } from '../partv-a';
 
 const SH3 = 'ia-prob-sheet-3' as const;
@@ -224,21 +224,73 @@ const finiteT = supervision({
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
-  { what: 'walk stopped at ±2 with p = 2/3 stops at +2', exact: topAt(A2, P23), trial: (rng) => walkHitsTop(0, -A2, A2, P23, rng) },
+  { what: 'gambler from 2 with target 4 and p = 2/3 reaches the target', exact: ruinTop(2, 4, q(2, 3)), trial: (rng) => walkHitsTop(2, 0, 4, q(2, 3), rng) },
 ];
+
+const [mp, mq, mk, mN, mrho] = [math`p`, math`q`, math`k`, math`N`, math`\rho`];
+const [EK, EN, EP] = [2, 4, q(2, 3)];
+const casino = (k: number, N: number, p: number): number => { const r = (1 - p) / p; return (1 - r ** k) / (1 - r ** N); };
+const CASINO = Number(casino(50, 100, 0.49).toFixed(3));
 
 export const gamblersRuin: TopicContent = {
   topicId: 'rw.gamblers-ruin',
   goal: t`Find the probability that a simple random walk hits one level before another, by conditioning on the first step and solving the difference equation.`,
+  objective: t`Find the chance a random walk hits one barrier before another, by solving a difference equation.`,
+  why: t`It is the model of every fair or unfair bet, and the start of random walks; next, the expected time to ruin.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`A [[simple-random-walk|simple random walk]] moves ${1} up with probability ${math`p`} or ${1} down with probability ${math`q = ${1} - p`} at each step, independently: ${math`S_{n} = X_{${1}} + \cdots + X_{n}`}. A gambler's fortune when betting £${1} at a time is such a walk.` },
-    { kind: 'p', text: t`In [[gamblers-ruin|gambler's ruin]] the walk starts at ${math`k`} and stops on reaching ${0} (ruin) or ${math`N`} (the target). Both are [[absorbing-barrier|absorbing barriers]]: once there, the walk stays. Let ${math`h_{k}`} be the probability of reaching ${math`N`} first. Conditioning on the first step: ${math`h_{k} = ph_{k + ${1}} + qh_{k - ${1}}`} for ${math`${0} < k < N`}, with ${math`h_{${0}} = ${0}`}, ${math`h_{N} = ${1}`}.` },
-    { kind: 'rule', text: t`For ${math`p \ne q`}, with ${math`\rho = \frac{q}{p}`}: ${math`h_{k} = \frac{${1} - \rho^{k}}{${1} - \rho^{N}}`}. For ${math`p = q = \frac{${1}}{${2}}`}: ${math`h_{k} = \frac{k}{N}`}.` },
-    { kind: 'p', text: t`Why: the auxiliary equation ${math`p\lambda^{${2}} - \lambda + q = ${0}`} has roots ${1} and ${math`\rho`}, so ${math`h_{k} = A + B\rho^{k}`}, and the two boundary values fix ${math`A`} and ${math`B`}. When ${math`p = q`} the root ${1} is repeated and ${math`h_{k} = A + Bk`}.` },
-    { kind: 'p', text: t`With no upper barrier, let ${math`N \to \infty`}: a gambler with an edge (${math`p > q`}) is ruined with probability ${math`\rho^{k}`}; otherwise ruin is certain. On Example Sheet ${3} Q${8}(c), a walk from ${0} stopped when ${math`|S_{n}| = a`} is gambler's ruin shifted by ${math`a`}: it stops at ${math`a`} with probability ${math`\frac{p^{a}}{p^{a} + q^{a}}`}, which is ${topAt(A2, P23)} for ${math`a = ${A2}`} and ${math`p = ${P23}`}.` },
+    { kind: 'section', title: t`Ruin` },
+    { kind: 'hook', text: t`You walk into a casino with £${50} and bet £${1} at a time on a game you win with probability ${0.49} each time. You will stop when you reach £${100} or go broke. The game is only slightly unfair. What is your chance of doubling your money? It is about ${CASINO}. A tiny edge, repeated, is crushing.` },
+    {
+      kind: 'definition',
+      name: t`Simple random walk`,
+      formal: t`A [[simple-random-walk|simple random walk]] has independent steps ${math`X_{${1}}, X_{${2}}, \ldots`}, each ${math`+${1}`} with probability ${mp} and ${math`-${1}`} with probability ${math`q = ${1} - p`}; its position after ${math`n`} steps is ${math`S_{n} = S_{${0}} + X_{${1}} + \cdots + X_{n}`}.`,
+      plain: t`a gambler's fortune when betting £${1} at a time: up one with probability ${mp}, down one otherwise.`,
+    },
+    {
+      kind: 'p',
+      text: t`In [[gamblers-ruin|gambler's ruin]] the walk starts at ${mk} and stops on reaching ${0} (ruin) or ${mN} (the target). Both ends are [[absorbing-barrier|absorbing barriers]]: once there, the walk stays. Let ${math`h_{k}`} be the probability of reaching ${mN} before ${0}, starting from ${mk}.`,
+    },
+    { kind: 'narrative', text: t`First-step analysis gives an equation for each ${mk}. From ${mk}, the first step goes up with probability ${mp}, to ${math`k + ${1}`}, or down with probability ${mq}, to ${math`k - ${1}`}; from there the walk starts afresh. So ${math`h_{k} = p\,h_{k + ${1}} + q\,h_{k - ${1}}`} for ${math`${0} < k < N`}, with ${math`h_{${0}} = ${0}`} and ${math`h_{N} = ${1}`}.` },
+    { kind: 'section', title: t`Solving the equation` },
+    { kind: 'theorem', statement: t`If ${math`p \neq q`}, write ${math`\rho = \frac{q}{p}`}. Then for ${math`${0} \le k \le N`}, ${dmath`h_{k} = \frac{${1} - \rho^{k}}{${1} - \rho^{N}}.`} If ${math`p = q = \frac{${1}}{${2}}`}, then ${math`h_{k} = \frac{k}{N}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Rewrite with differences`, text: t`Since ${math`p + q = ${1}`}, ${math`h_{k} = p\,h_{k} + q\,h_{k}`}, so the equation becomes ${math`p(h_{k + ${1}} - h_{k}) = q(h_{k} - h_{k - ${1}})`}.`, plain: t`Split ${math`h_{k}`} into ${math`p\,h_{k} + q\,h_{k}`} and move terms across.` },
+        { label: t`The differences are geometric`, text: t`Let ${math`d_{k} = h_{k} - h_{k - ${1}}`}. Then ${math`d_{k + ${1}} = \rho\,d_{k}`}, so ${math`d_{k} = \rho^{k - ${1}} d_{${1}}`}.`, plain: t`Each difference is ${mrho} times the one before. With ${math`p = ${EP}`}, ${math`\rho = ${div(sub(q(1), EP), EP)}`}: each step's gain in probability is half the last.` },
+        { label: t`Add them up`, text: t`${math`h_{k} = h_{${0}} + d_{${1}} + \cdots + d_{k} = d_{${1}}(${1} + \rho + \cdots + \rho^{k - ${1}}) = d_{${1}}\frac{${1} - \rho^{k}}{${1} - \rho}`}.`, plain: t`The sum telescopes, ${math`h_{${0}} = ${0}`}, and the bracket is a geometric series with ratio ${math`\rho \neq ${1}`}.` },
+        { label: t`Use the top barrier`, text: t`${math`h_{N} = ${1}`} gives ${math`d_{${1}} = \frac{${1} - \rho}{${1} - \rho^{N}}`}, so ${math`h_{k} = \frac{${1} - \rho^{k}}{${1} - \rho^{N}}`}.`, plain: t`One condition fixes the one unknown ${math`d_{${1}}`}.` },
+        { label: t`The fair case`, text: t`If ${math`p = q`}, then ${math`\rho = ${1}`}, all differences equal ${math`d_{${1}}`}, so ${math`h_{k} = k\,d_{${1}}`}, and ${math`h_{N} = ${1}`} gives ${math`h_{k} = \frac{k}{N}`}.`, plain: t`A fair walk climbs in equal steps of probability.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`Example: start at ${EK}, target ${EN}, ${math`p = ${EP}`}. Then ${math`\rho = ${div(sub(q(1), EP), EP)}`} and ${math`h_{${EK}} = \frac{${1} - (${div(sub(q(1), EP), EP)})^{${EK}}}{${1} - (${div(sub(q(1), EP), EP)})^{${EN}}} = ${ruinTop(EK, EN, EP)}`}.`,
+      why: { q: t`Why does the proof show the answer is the only one?`, a: t`Every step was forced: the equation fixed each difference in terms of ${math`d_{${1}}`}, and ${math`h_{N} = ${1}`} fixed ${math`d_{${1}}`}. So no other sequence satisfies the equation and both boundary values.` },
+    },
+    quickCheck({
+      prompt: t`A fair walk (${math`p = \frac{${1}}{${2}}`}) starts at ${3} and stops at ${0} or ${10}. What is the probability it reaches ${10} first?`,
+      answer: { kind: 'exact', expected: str(q(3, 10)) },
+      reference: str(q(3, 10)),
+      why: t`For a fair walk ${math`h_{k} = \frac{k}{N} = ${q(3, 10)}`}.`,
+    }),
+    { kind: 'section', title: t`No upper limit` },
+    {
+      kind: 'p',
+      text: t`With no target, let ${math`N \to \infty`}. If ${math`p > q`}, then ${math`\rho < ${1}`}, ${math`\rho^{N} \to ${0}`}, and the chance of ever being ruined from ${mk} is ${math`${1} - h_{k} \to \rho^{k}`}. If ${math`p \le q`}, ruin is certain.`,
+      why: { q: t`Why is ruin certain even for a fair game?`, a: t`For ${math`p = q`}, the chance of ruin before ${mN} is ${math`${1} - \frac{k}{N}`}, which tends to ${1} as ${math`N \to \infty`}. A fair game against an opponent with unlimited money ruins you with probability ${1}.` },
+    },
+    {
+      kind: 'pitfall',
+      claim: t`A game that is only slightly unfair, ${math`p = ${0.49}`}, gives about the same chance as a fair one: about ${q(1, 2)} of doubling £${50}.`,
+      counterexample: t`With ${math`k = ${50}`}, ${math`N = ${100}`}, ${math`\rho = \frac{${51}}{${49}}`}: ${math`h_{${50}} = \frac{${1} - \rho^{${50}}}{${1} - \rho^{${100}}} = \frac{${1}}{${1} + \rho^{${50}}}`}, about ${CASINO}. The bias compounds over the many bets a long game needs.`,
+    },
+    { kind: 'takeaway', text: t`Condition on the first step to get ${math`h_{k} = p\,h_{k + ${1}} + q\,h_{k - ${1}}`}; its solution is ${math`\frac{${1} - \rho^{k}}{${1} - \rho^{N}}`} with ${math`\rho = \frac{q}{p}`}, or ${math`\frac{k}{N}`} when fair.` },
   ],
   examples: [
-    workedCambridge(q8var),
+    { ...workedCambridge(q8var), examiner: t`The stopped walk recognised as gambler's ruin shifted by ${math`a`}, the two end probabilities found, and the variance computed as ${math`E(S_{T}^{${2}}) - E(S_{T})^{${2}}`} with ${math`S_{T} = \pm a`}.` },
     worked(ruin, { k: 2, N: 5, p: q(2, 5) }, t`A gambler at a disadvantage`),
     worked(twoSided, { a: 3, b: 1, p: q(1, 2) }, t`A fair walk between two barriers`),
   ],
@@ -247,5 +299,24 @@ export const gamblersRuin: TopicContent = {
   terms: ['simple-random-walk', 'gamblers-ruin', 'absorbing-barrier'],
   claims,
   cambridge: [q8top, schedule, finiteT],
-  gate: ['sheet3-q8c-top', 'sheet3-q8c-finite'],
+  // Sheet 3 Q8(c): the proof that the walk stops, then which end it stops at. The schedule problem is not
+  // from a sheet, and its derivation is the lesson's own proof.
+  gate: ['sheet3-q8c-finite', 'sheet3-q8c-top'],
+  recall: [
+    { front: t`The first-step equation for gambler's ruin?`, back: t`${math`h_{k} = p\,h_{k + ${1}} + q\,h_{k - ${1}}`}, with ${math`h_{${0}} = ${0}`}, ${math`h_{N} = ${1}`}.` },
+    { front: t`${math`h_{k}`} for ${math`p \neq q`}?`, back: t`${math`\frac{${1} - \rho^{k}}{${1} - \rho^{N}}`} with ${math`\rho = \frac{q}{p}`}.` },
+    { front: t`${math`h_{k}`} for a fair walk?`, back: t`${math`\frac{k}{N}`}.` },
+    { front: t`Chance of ever being ruined from ${mk} with no target, ${math`p > q`}?`, back: t`${math`\rho^{k}`}; if ${math`p \le q`}, ruin is certain.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Solving the gambler's ruin equation`,
+      steps: [
+        t`Rewrite as ${math`p(h_{k + ${1}} - h_{k}) = q(h_{k} - h_{k - ${1}})`}.`,
+        t`So the differences satisfy ${math`d_{k} = \rho^{k - ${1}} d_{${1}}`}.`,
+        t`Summing, ${math`h_{k} = d_{${1}}\frac{${1} - \rho^{k}}{${1} - \rho}`}.`,
+        t`${math`h_{N} = ${1}`} fixes ${math`d_{${1}}`}, giving ${math`h_{k} = \frac{${1} - \rho^{k}}{${1} - \rho^{N}}`}.`,
+      ],
+    },
+  ],
 };

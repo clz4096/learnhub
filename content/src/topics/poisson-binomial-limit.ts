@@ -9,11 +9,11 @@
  * have no official answers; each answer is checked against the exact binomial.
  */
 import { auto, cite, same, supervision } from '../cambridge';
-import { int, pick } from '../math';
+import { int, pick, q } from '../math';
 import { binomPmf, binomPmfProduct, fact, farApart, poissonCdf, poissonPmf, poissonPmfRec, sig } from '../partv-d';
 import { generator, type Misconception } from '../problem';
-import { math, t, type Rich } from '../rich';
-import { worked, workedProof, type TopicContent } from '../topic';
+import { dmath, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedProof, type TopicContent } from '../topic';
 
 const [mn, mk, ml] = [math`n`, math`k`, math`\lambda`];
 const s4 = (x: number): number => sig(x, 4);
@@ -239,19 +239,56 @@ const when = supervision({
 
 const L = 2;
 const TABLE_N = [10, 100, 1000];
+const HN = 500;
+const HP = 0.004;
+const HK = 3;
 
 export const poissonBinomialLimit: TopicContent = {
   topicId: 'prob.poisson-binomial-limit',
   goal: t`Prove that ${math`B(n, \lambda/n)`} probabilities tend to ${math`\text{Po}(\lambda)`} probabilities, and use the Poisson distribution to approximate a binomial count with many trials and a small chance of success.`,
+  objective: t`Prove that many rare independent trials give a Poisson count, and use it to approximate binomials.`,
+  why: t`It explains why rare events (typos, faults, calls) are Poisson, and replaces huge binomials with one term.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The IA schedule lists the "relation between Poisson and binomial distributions", and the STEP Support notes put it as a rule of thumb: if ${mn} is large and ${math`p`} is very small, ${math`\text{Po}(np)`} approximates ${math`B(n, p)`}. Both are the same theorem.` },
-    { kind: 'rule', text: t`The [[poisson-approximation|Poisson limit]]: for fixed ${math`\lambda > ${0}`} and ${math`k \ge ${0}`}, ${math`\binom{n}{k}\left(\frac{\lambda}{n}\right)^{k}\left(${1} - \frac{\lambda}{n}\right)^{n - k} \to \frac{e^{-\lambda}\lambda^{k}}{k!}`} as ${math`n \to \infty`}.` },
-    { kind: 'p', text: t`Why: ${math`\binom{n}{k}\frac{${1}}{n^{k}} = \frac{${1}}{k!} \cdot \frac{n}{n} \cdot \frac{n - ${1}}{n} \cdots \frac{n - k + ${1}}{n}`}, and those ${mk} fractions each tend to ${1}. What is left is ${math`\frac{\lambda^{k}}{k!}\left(${1} - \frac{\lambda}{n}\right)^{n}`}, and the exponential limit turns the power into ${math`e^{-\lambda}`}. The ${math`e^{-\lambda}`} is the chance that all ${mn} trials fail, in the limit.` },
-    { kind: 'table', caption: t`${math`P(X = k)`} for ${math`X \sim B(n, ${L}/n)`}, and the Poisson limit, to four significant figures`, head: [t`${mk}`, ...TABLE_N.map((n) => t`${math`n = ${n}`}`), t`${math`\text{Po}(${L})`}`], rows: [0, 1, 2, 3, 4].map((k) => [t`${k}`, ...TABLE_N.map((n) => t`${s4(binomPmf(n, k, L / n))}`), t`${s4(poissonPmf(L, k))}`]) },
-    { kind: 'p', text: t`The means agree exactly, ${math`np = \lambda`}. The variances do not: ${math`np(${1} - p)`} against ${math`np`}, off by the factor ${math`${1} - p`}. So the approximation needs ${math`p`} small, not just ${mn} large: ${math`B(${10}, ${0.5})`} has many trials for its size and is nothing like ${math`\text{Po}(${5})`}.` },
+    { kind: 'section', title: t`Many trials, rare successes` },
+    { kind: 'hook', text: t`A machine makes ${HN} items, each faulty with probability ${HP}, independently. The chance of exactly ${HK} faulty items is ${math`\binom{${HN}}{${HK}}(${HP})^{${HK}}(${1 - HP})^{${HN - HK}}`}, a calculation with enormous and tiny numbers. Yet ${math`e^{-${2}}\frac{${2}^{${3}}}{${3}!} \approx ${s4(poissonPmf(HN * HP, HK))}`} is right to two decimal places: the exact value is ${s4(binomPmf(HN, HK, HP))}. Where does that formula come from?` },
+    { kind: 'narrative', text: t`The ${2} in it is the mean number of faults, ${math`np = ${HN} \times ${HP}`}. Keep that mean fixed, call it ${ml}, and let the number of trials grow while the chance of success shrinks to ${math`\lambda/n`}. The binomial probabilities settle down to the [[poisson-approximation|Poisson]] ones.` },
+
+    { kind: 'section', title: t`The Poisson limit` },
+    { kind: 'theorem', name: t`Poisson limit of the binomial`, statement: t`Let ${math`\lambda > ${0}`} and let ${mk} be a fixed non-negative integer. If ${math`X_{n} \sim B(n, \lambda/n)`}, then ${dmath`P(X_{n} = k) \to \frac{e^{-\lambda}\lambda^{k}}{k!} \qquad \text{as } n \to \infty.`}` },
+    { kind: 'narrative', text: t`The idea in one line: split the binomial probability into pieces whose limits you know.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Write it out`, text: t`For ${math`n > \max(k, \lambda)`},`, eq: [dmath`P(X_{n} = k) = \binom{n}{k}\left(\frac{\lambda}{n}\right)^{k}\left(${1} - \frac{\lambda}{n}\right)^{n - k}.`] },
+        { label: t`Rearrange`, text: t`Write ${math`\binom{n}{k} = \frac{n(n - ${1})\cdots(n - k + ${1})}{k!}`} and share the ${math`n^{k}`} among its ${mk} top factors:`, eq: [dmath`P(X_{n} = k) = \frac{\lambda^{k}}{k!} \cdot \prod_{i = ${0}}^{k - ${1}} \frac{n - i}{n} \cdot \left(${1} - \frac{\lambda}{n}\right)^{n} \cdot \left(${1} - \frac{\lambda}{n}\right)^{-k}.`] },
+        { label: t`The product tends to ${1}`, text: t`Each ${math`\frac{n - i}{n} = ${1} - \frac{i}{n} \to ${1}`}, and there are ${mk} factors, a number that does not grow with ${mn}. So the product tends to ${1}. Likewise ${math`\left(${1} - \frac{\lambda}{n}\right)^{-k} \to ${1}`}.`, why: { q: t`Why does it matter that ${mk} is fixed?`, a: t`A fixed number of factors, each tending to ${1}, has product tending to ${1}. If the number of factors grew with ${mn}, small shortfalls could pile up, which is exactly what happens in the next step.` } },
+        { label: t`The exponential limit`, text: t`${math`\left(${1} - \frac{\lambda}{n}\right)^{n} \to e^{-\lambda}`}.`, why: { q: t`Why is that?`, a: t`Take logarithms: ${math`n\ln(${1} - \lambda/n)`}. Since ${math`\ln(${1} - x) = -x + O(x^{${2}})`} for small ${math`x`}, this is ${math`-\lambda + O(${1}/n) \to -\lambda`}, and ${math`\exp`} is continuous. Numerically, ${math`(${1} - ${2}/${1000})^{${1000}} \approx ${s4((1 - 2 / 1000) ** 1000)}`}, against ${math`e^{-${2}} \approx ${s4(Math.exp(-2))}`}.` } },
+        { label: t`Combine`, text: t`By the algebra of limits, ${math`P(X_{n} = k) \to \frac{\lambda^{k}}{k!} \cdot ${1} \cdot e^{-\lambda} \cdot ${1}`}.`, plain: t`The ${math`e^{-\lambda}`} is, in the limit, the chance that every one of the ${mn} trials fails.` },
+      ],
+    },
+    {
+      kind: 'table', caption: t`${math`P(X = k)`} for ${math`X \sim B(n, ${L}/n)`}, and the Poisson limit, to four significant figures`,
+      head: [t`${mk}`, ...TABLE_N.map((n) => t`${math`n = ${n}`}`), t`${math`\text{Po}(${L})`}`],
+      rows: [0, 1, 2, 3, 4].map((k) => [t`${k}`, ...TABLE_N.map((n) => t`${s4(binomPmf(n, k, L / n))}`), t`${s4(poissonPmf(L, k))}`]),
+    },
+    checkFrom(limit, { k: 3, kind: 'eq' }, t`By the theorem with ${math`k = ${3}`}: ${math`\frac{e^{-\lambda}\lambda^{${3}}}{${3}!}`}.`),
+
+    { kind: 'section', title: t`Using the approximation` },
+    { kind: 'p', text: t`In practice: if ${math`X \sim B(n, p)`} with ${mn} large and ${math`p`} small, use ${math`\text{Po}(\lambda)`} with ${math`\lambda = np`}, the same mean. The STEP Support notes state exactly this rule of thumb.` },
+    checkFrom(approx, { c: 1, n: 200, lambda: 1, k: 2 }, t`${math`\lambda = ${200} \times \frac{${1}}{${200}} = ${1}`}, so ${math`P(X = ${2}) \approx e^{-${1}}\frac{${1}^{${2}}}{${2}!}`}.`),
+    { kind: 'p', text: t`Why ${math`p`} must be small, not just ${mn} large: the means agree exactly, but the variances are ${math`np(${1} - p)`} against ${math`np`}, off by the factor ${math`${1} - p`}. For ${math`B(${10}, ${0.5})`}, ${math`P(X = ${0}) = ${s4(binomPmf(10, 0, 0.5))}`}, while ${math`\text{Po}(${5})`} gives ${s4(poissonPmf(5, 0))}: not close.` },
+    checkFrom(expLimit, { lambda: 2, n: 100 }, t`${math`\left(${1} - \frac{${2}}{${100}}\right)^{${100}}`}, close to but above ${math`e^{-${2}}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`The Poisson approximation to ${math`B(n, p)`} has mean ${math`p`}.`, counterexample: t`It has mean ${math`np`}. For ${HN} items each faulty with probability ${HP}, the mean is ${HN * HP}, not ${HP}.` },
+    { kind: 'pitfall', claim: t`Any binomial with large ${mn} is close to Poisson.`, counterexample: t`${math`B(${1000}, ${q(1, 2)})`} has mean ${500} and variance ${250}, while ${math`\text{Po}(${500})`} has variance ${500}. The approximation needs ${math`p`} small.` },
+    { kind: 'pitfall', claim: t`In the proof, ${math`\left(${1} - \frac{\lambda}{n}\right)^{n} \to ${1}`}, since each factor tends to ${1}.`, counterexample: t`The number of factors grows with ${mn}. With ${math`\lambda = ${2}`} and ${math`n = ${1000}`} the power is about ${s4((1 - 2 / 1000) ** 1000)}, nowhere near ${1}; its limit is ${math`e^{-${2}}`}.` },
+    { kind: 'takeaway', text: t`Many independent trials with a small chance each give a nearly Poisson count, with ${math`\lambda = np`}: the binomial terms tend to ${math`e^{-\lambda}\lambda^{k}/k!`}.` },
   ],
   examples: [
-    proof,
+    { ...proof, examiner: t`The examiner looks for the rearrangement into factors with known limits, the point that ${mk} is fixed, and the exponential limit named.` },
     worked(approx, { c: 0, n: 500, lambda: 2, k: 3 }, t`Three faulty items in ${500}`),
     worked(limit, { k: 2, kind: 'eq' }, t`The limit of ${math`P(X_{n} = ${2})`}`),
   ],
@@ -259,5 +296,19 @@ export const poissonBinomialLimit: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['poisson-approximation'],
   cambridge: [notesAtMost, notesVar, general, when],
-  gate: ['s2-notes-approx', 's2-notes-variance', 's2-notes-when'],
+  // The explanation the notes call for, then the approximation in use. The variance substitution is one line, and the general limit is from the schedule, not a Cambridge problem sheet.
+  gate: ['s2-notes-when', 's2-notes-approx'],
+  recall: [
+    { front: t`State the Poisson limit of the binomial.`, back: t`For fixed ${ml} and ${mk}, ${math`P(B(n, \lambda/n) = k) \to e^{-\lambda}\lambda^{k}/k!`}.` },
+    { front: t`When does ${math`\text{Po}(np)`} approximate ${math`B(n, p)`} well?`, back: t`When ${mn} is large and ${math`p`} is small: the means agree, and the variances differ by the factor ${math`${1} - p`}.` },
+  ],
+  proofOrder: [{
+    title: t`The Poisson limit`,
+    steps: [
+      t`Write ${math`P(X_{n} = k) = \binom{n}{k}(\lambda/n)^{k}(${1} - \lambda/n)^{n - k}`}.`,
+      t`Rearrange into ${math`\frac{\lambda^{k}}{k!}`}, a product of ${mk} factors ${math`\frac{n - i}{n}`}, and two powers.`,
+      t`The ${mk} factors tend to ${1}, as does ${math`(${1} - \lambda/n)^{-k}`}.`,
+      t`${math`(${1} - \lambda/n)^{n} \to e^{-\lambda}`}, which gives the Poisson probability.`,
+    ],
+  }],
 };

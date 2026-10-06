@@ -10,7 +10,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 /** A uniform draw from a population of `total`, sampled until it lands in the condition; true when it is also in the event. */
 function restrictedTrial(rng: Rng, total: number, inCondition: (i: number) => boolean, inEvent: (i: number) => boolean): boolean {
@@ -333,28 +333,31 @@ const a6diagram = supervision({
 
 const EX: TableP = { g: 0, cells: [18, 12, 10, 20], r: 0, c: 0 };
 const exTotal = rowTotal(EX, 0) + rowTotal(EX, 1);
+const DOG: PctP = { n: 100, pa: 20, pbA: 50, pbNotA: 10, given: 'b' };
+const dog = pctCounts(DOG);
 
 const claims: ProbabilityClaim[] = [
   {
-    what: 'P(smoker | woman) in STEP Support Assignment 6 Q4(i)(c)',
-    exact: SMOKE_WOMEN,
-    trial: (rng) => {
-      for (;;) {
-        const man = rng() < 0.4;
-        const smoker = rng() < (man ? 0.5 : 0.3);
-        if (!man) return smoker;
-      }
-    },
+    what: 'P(junior | walks) from the table in the lesson',
+    exact: q(cell(EX, 0, 0), colTotal(EX, 0)),
+    trial: (rng) => restrictedTrial(rng, exTotal, (i) => i < cell(EX, 0, 0) || (i >= rowTotal(EX, 0) && i < rowTotal(EX, 0) + cell(EX, 1, 0)), (i) => i < rowTotal(EX, 0)),
   },
 ];
+const [mA, mB] = [math`A`, math`B`];
 
 export const twoWayTables: TopicContent = {
   topicId: 'pre.two-way-tables',
   goal: t`Find a probability "given that" something happened, by restricting a two-way table or a Venn diagram to the part where it happened.`,
+  objective: t`Find a probability given that something happened, by restricting a table or Venn diagram.`,
+  why: t`Conditional probability starts here; it is the basis of trees, Bayes's formula and independence.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`A [[two-way-table|two-way table]] counts a population split two ways at once: by group along the rows, by answer along the columns. With ${exTotal} students:` },
+    { kind: 'section', title: t`New information changes the odds` },
+    { kind: 'hook', text: t`A school has ${exTotal} students. One is picked at random: the chance of a junior is ${q(rowTotal(EX, 0), exTotal)}. Now you are told the student walks to school, and most walkers are juniors. Surely the chance of a junior has gone up. To what?` },
+    { kind: 'narrative', text: t`Being told something rules things out. Once you know the student walks, every non-walker is off the table. The question becomes: among the walkers only, what share are juniors? A two-way table makes that share easy to read.` },
+    { kind: 'section', title: t`Restricting a table` },
     {
-      kind: 'table', caption: t`How ${exTotal} students get to school.`,
+      kind: 'table', caption: t`How ${exTotal} students get to school: a [[two-way-table|two-way table]].`,
       head: [t``, t`walks`, t`does not walk`, t`total`],
       rows: [
         [t`juniors`, t`${cell(EX, 0, 0)}`, t`${cell(EX, 0, 1)}`, t`${rowTotal(EX, 0)}`],
@@ -362,11 +365,48 @@ export const twoWayTables: TopicContent = {
         [t`total`, t`${colTotal(EX, 0)}`, t`${colTotal(EX, 1)}`, t`${exTotal}`],
       ],
     },
-    { kind: 'p', text: t`Pick a student at random. The probability of a junior is ${math`\frac{${rowTotal(EX, 0)}}{${exTotal}} = ${q(rowTotal(EX, 0), exTotal)}`}. Now suppose we are told the student walks. Only the walkers column is possible, ${colTotal(EX, 0)} students, and ${cell(EX, 0, 0)} of them are juniors.` },
-    { kind: 'rule', text: t`A [[conditional-probability|conditional probability]], "the probability of ${math`A`} given ${math`B`}", is written ${math`P(A \mid B)`}. To find it from counts, keep only the part where ${math`B`} happened, and count ${math`A`} inside it: ${dmath`P(A \mid B) = \frac{\text{number in both } A \text{ and } B}{\text{number in } B}.`}` },
-    { kind: 'p', text: t`So ${math`P(\text{junior} \mid \text{walks}) = \frac{${cell(EX, 0, 0)}}{${colTotal(EX, 0)}} = ${q(cell(EX, 0, 0), colTotal(EX, 0))}`}. The order matters: ${math`P(\text{walks} \mid \text{junior}) = \frac{${cell(EX, 0, 0)}}{${rowTotal(EX, 0)}} = ${q(cell(EX, 0, 0), rowTotal(EX, 0))}`} restricts to a row instead, and is a different number.` },
-    { kind: 'p', text: t`A Venn diagram of counts works the same way: "given ${math`B`}" keeps only circle ${math`B`}, and the answer is the overlap over everything in ${math`B`}. "Given not ${math`B`}" keeps everything outside circle ${math`B`}.` },
-    { kind: 'p', text: t`When the data come as percentages, STEP Support Assignment ${6} suggests modelling the population by ${100} people (or another round number): turn each percentage into a count, fill in the table, then restrict. Its other diagram is a square of area ${1} cut into rectangles, one for each cell; a probability is an area, and a conditional probability is an area over the area of the condition.` },
+    {
+      kind: 'definition',
+      name: t`Conditional probability, by counting`,
+      formal: t`When all outcomes are equally likely and event ${mB} contains at least one outcome, the [[conditional-probability|conditional probability]] of ${mA} given ${mB} is ${dmath`P(A \mid B) = \frac{\text{number of outcomes in both } A \text{ and } B}{\text{number of outcomes in } B}.`}`,
+      plain: t`In plain words: keep only the part where ${mB} happened, and find the share of it where ${mA} also happened. Read the bar as "given".`,
+    },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Keep the condition`, text: t`"Given that the student walks": keep the walkers column, ${colTotal(EX, 0)} students.` },
+        { label: t`Count the event inside it`, text: t`${cell(EX, 0, 0)} of them are juniors.` },
+        { label: t`Divide`, text: t`${math`P(\text{junior} \mid \text{walks}) = \frac{${cell(EX, 0, 0)}}{${colTotal(EX, 0)}} = ${q(cell(EX, 0, 0), colTotal(EX, 0))}`}, up from ${q(rowTotal(EX, 0), exTotal)}.` },
+      ],
+    },
+    { kind: 'narrative', text: t`The same rule can be written with probabilities instead of counts, which is the form you will use once the numbers are not counts.` },
+    { kind: 'theorem', statement: t`With equally likely outcomes and ${math`P(B) > ${0}`}, ${math`P(A \mid B) = \frac{P(A \cap B)}{P(B)}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Name the counts`, text: t`Let ${math`N`} be the number of outcomes, ${math`n_{B}`} the number in ${mB}, and ${math`n_{AB}`} the number in both.` },
+        { label: t`Divide top and bottom`, text: t`${math`P(A \mid B) = \frac{n_{AB}}{n_{B}} = \frac{n_{AB}/N}{n_{B}/N}`}, dividing both by ${math`N`}.`, why: { q: t`Why may we divide both by ${math`N`}?`, a: t`Dividing the top and bottom of a fraction by the same non-zero number leaves its value unchanged: ${math`\frac{${6}}{${8}} = \frac{${6}/${2}}{${8}/${2}}`}.` } },
+        { label: t`Recognise probabilities`, text: t`${math`\frac{n_{AB}}{N} = P(A \cap B)`} and ${math`\frac{n_{B}}{N} = P(B)`}, by the definition of probability for equally likely outcomes.` },
+      ],
+    },
+    { kind: 'pitfall', claim: t`${math`P(\text{walks} \mid \text{junior})`} is the same as ${math`P(\text{junior} \mid \text{walks})`}.`, counterexample: t`Order matters. ${math`P(\text{walks} \mid \text{junior}) = \frac{${cell(EX, 0, 0)}}{${rowTotal(EX, 0)}} = ${q(cell(EX, 0, 0), rowTotal(EX, 0))}`} keeps the juniors row instead of the walkers column, and is a different number from ${q(cell(EX, 0, 0), colTotal(EX, 0))}.` },
+    checkFrom(tableGiven, { g: 1, cells: [12, 8, 20, 10], r: 1, c: 0 }, t`Keep the film column: ${math`${12} + ${20} = ${32}`} people, ${20} of them children: ${q(20, 32)}.`),
+    { kind: 'section', title: t`Venn diagrams and percentages` },
+    { kind: 'p', text: t`A Venn diagram of counts works the same way. "Given ${mB}" keeps only circle ${mB}, and the answer is the overlap over everything in ${mB}. "Given not ${mB}" keeps everything outside circle ${mB}.` },
+    checkFrom(vennGiven, { a: 6, ab: 4, b: 8, n: 2, ask: 'a-given-b' }, t`Keep the art circle: ${math`${4} + ${8} = ${12}`} students, ${4} of them also study French: ${q(4, 12)}.`),
+    { kind: 'narrative', text: t`When the data come as percentages, STEP Support Assignment ${6} suggests imagining a population of ${100} people (or another round number), turning each percentage into a count, and filling in the table. Then restrict, as before.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Make counts`, text: t`${DOG.pa}% live in flats, and ${DOG.pbA}% of those own a dog; ${DOG.pbNotA}% of house dwellers do. In ${DOG.n} people: ${dog.a} in flats, ${dog.ab} of them with dogs; ${dog.n} in houses, ${dog.nb} of them with dogs.` },
+        { label: t`Restrict to dog owners`, text: t`${math`${dog.ab} + ${dog.nb} = ${dog.ab + dog.nb}`} people own a dog, and ${dog.ab} of them live in flats.` },
+        { label: t`Divide`, text: t`${math`P(\text{flat} \mid \text{dog}) = \frac{${dog.ab}}{${dog.ab + dog.nb}} = ${q(dog.ab, dog.ab + dog.nb)}`}.`, plain: t`More than half, although only ${DOG.pa}% of people live in flats: flat dwellers are far likelier to own a dog.` },
+      ],
+    },
+    { kind: 'p', text: t`The assignment's other picture is a square of area ${1}, cut into rectangles, one for each cell of the table. A probability is an area, and a conditional probability is an area divided by the area of the condition.` },
+    { kind: 'pitfall', claim: t`Only ${DOG.pa}% of people live in flats, so a dog owner lives in a flat with probability ${q(DOG.pa, 100)}.`, counterexample: t`That ignores the information. Restricting to dog owners gives ${q(dog.ab, dog.ab + dog.nb)}.` },
+    { kind: 'takeaway', text: t`"Given ${mB}" means keep only the part where ${mB} happened, and find the share of it where ${mA} happened too.` },
   ],
   examples: [
     workedCambridge(a6c),
@@ -378,5 +418,22 @@ export const twoWayTables: TopicContent = {
   terms: ['two-way-table', 'conditional-probability'],
   claims,
   cambridge: [a6regions, a6eWoman, a6diagram],
-  gate: ['a6-q4-i-regions', 'a6-q4-i-e-woman', 'a6-q4-i-diagram'],
+  // Best first: the explanation of both conditional probabilities from the diagram, then the
+  // reversed condition (a non-smoker is a woman), then the four areas.
+  gate: ['a6-q4-i-diagram', 'a6-q4-i-e-woman', 'a6-q4-i-regions'],
+  recall: [
+    { front: t`Conditional probability from counts?`, back: t`${math`P(A \mid B)`} is the number in both over the number in ${mB}.` },
+    { front: t`Conditional probability from probabilities?`, back: t`${math`P(A \mid B) = \frac{P(A \cap B)}{P(B)}`}, for ${math`P(B) > ${0}`}.` },
+    { front: t`Is ${math`P(A \mid B)`} the same as ${math`P(B \mid A)`}?`, back: t`No: one restricts to ${mB}, the other to ${mA}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`From counts to probabilities`,
+      steps: [
+        t`${math`P(A \mid B) = \frac{n_{AB}}{n_{B}}`}, by counting.`,
+        t`Divide top and bottom by the total ${math`N`}.`,
+        t`The top becomes ${math`P(A \cap B)`} and the bottom ${math`P(B)`}.`,
+      ],
+    },
+  ],
 };

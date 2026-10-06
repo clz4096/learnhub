@@ -11,8 +11,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { computedTex, math, t, texOfRational } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedTex, dmath, math, t, texOfRational } from '../rich';
+import { checkFrom, quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 import { average, permutations, positions, rpow, rsum, throwsOf, variance, type Dist } from '../partv-a';
 
 const S3 = 'step-s3-stats' as const;
@@ -385,18 +385,75 @@ const q12proof = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+/** Fixed points of every permutation of n: the hat-check count, listed. */
+const fixedCounts = (n: number): number[] => permutations(n).map((a) => a.filter((x, i) => x === i).length);
+const HATS = 5;
+const hatMean = average(fixedCounts(HATS), (c) => q(c));
+const hatSquare = average(fixedCounts(HATS), (c) => q(c * c));
+const hatVar = variance(distOf(fixedCounts(HATS)));
+const twoVar = variance(distOf(fixedCounts(2)));
+const halfQ = q(1, 2);
+const mn = math`n`;
+
 export const indicators: TopicContent = {
   topicId: 'rv.indicators',
   goal: t`Write a count as a sum of indicator variables and find its mean by linearity, even when the indicators are dependent, and its variance when they are independent.`,
+  objective: t`Write a count as a sum of indicators, find its mean by linearity, and its variance from pairs.`,
+  why: t`It finds means that a full distribution never would; the method behind many STEP and Tripos questions.`,
+  minutes: 25,
   lesson: [
-    { kind: 'rule', text: t`The [[indicator-variable|indicator]] of an event ${math`A`} is ${math`I_{A} = ${1}`} if ${math`A`} happens and ${0} otherwise. Its mean is ${math`E(I_{A}) = ${1} \times P(A) + ${0} \times P(A^{c}) = P(A)`}.` },
-    { kind: 'p', text: t`A count is a sum of indicators: the number of events among ${math`A_{${1}}, \ldots, A_{n}`} that happen is ${math`N = I_{A_{${1}}} + \cdots + I_{A_{n}}`}. By linearity, ${math`E(N) = P(A_{${1}}) + \cdots + P(A_{n})`}, with no need for the events to be independent and no need for the distribution of ${math`N`}.` },
-    { kind: 'p', text: t`STEP ${3} Statistics Q${3}: in a random row of ${math`a`} As and ${math`b`} Bs, the runs of As start either at the front (probability ${math`\frac{a}{n}`}) or just after a B (probability ${math`\frac{ab}{n(n - ${1})}`} at each of ${math`n - ${1}`} places). So the expected number of runs is ${math`\frac{a(b + ${1})}{n}`}.` },
-    { kind: 'p', text: t`Example Sheet ${2} Q${12}: in a random ranking of ${math`n`} years, year ${math`i`} is a [[record|record]] when it is the smallest of the first ${math`i`}, with probability ${math`\frac{${1}}{i}`}. The expected number of records is ${math`${1} + \frac{${1}}{${2}} + \cdots + \frac{${1}}{n}`}: for ${RECORDS} years, ${recordMean}.` },
-    { kind: 'p', text: t`For the variance, use ${math`I^{${2}} = I`}: ${math`\mathrm{Var}(I_{A}) = P(A)(${1} - P(A))`}. If the indicators are independent, the variances add, so ${math`\mathrm{Var}(N) = \sum_{i} p_{i}(${1} - p_{i})`}. If not, expand ${math`N^{${2}}`}: ${math`E(N^{${2}}) = \sum_{i} P(A_{i}) + \sum_{i \ne j} P(A_{i} \cap A_{j})`}, which needs the probabilities of pairs.` },
+    { kind: 'section', title: t`A count you cannot list` },
+    { kind: 'hook', text: t`${HATS} people leave their hats at a cloakroom, and the hats are handed back at random. On average, how many people get their own hat back? Finding the full distribution of that number takes inclusion-exclusion. Yet the average is exactly ${hatMean}, and you can see why in two lines, for any number of people.` },
+    { kind: 'narrative', text: t`The trick is to stop thinking about the count as a whole, and to break it into tiny pieces, one per person, each of which only answers yes or no.` },
+
+    { kind: 'section', title: t`Indicators` },
+    { kind: 'definition', name: t`Indicator`, formal: t`The [[indicator-variable|indicator]] of an event ${math`A`} is the random variable ${dmath`I_{A}(\omega) = \begin{cases} ${1} & \omega \in A, \\ ${0} & \omega \notin A. \end{cases}`}`, plain: t`A switch that reads ${1} when ${math`A`} happens and ${0} when it does not. For the hats, ${math`I_{A_{${3}}}`} is ${1} if person ${3} gets their own hat back.` },
+    { kind: 'theorem', name: t`Mean of an indicator`, statement: t`${math`E(I_{A}) = P(A)`}.` },
+    { kind: 'p', text: t`Proof: ${math`I_{A}`} takes the value ${1} with probability ${math`P(A)`} and ${0} with probability ${math`${1} - P(A)`}, so ${math`E(I_{A}) = ${1} \times P(A) + ${0} \times (${1} - P(A)) = P(A)`}. ∎` },
+    { kind: 'narrative', text: t`Now the key observation. If ${math`N`} counts how many of the events ${math`A_{${1}}, \ldots, A_{n}`} happen, then ${dmath`N = I_{A_{${1}}} + I_{A_{${2}}} + \cdots + I_{A_{n}},`} because each event that happens adds ${1} to the sum and each that does not adds ${0}.` },
+
+    { kind: 'section', title: t`The mean, by linearity` },
+    { kind: 'theorem', name: t`Mean of a count`, statement: t`If ${math`N = I_{A_{${1}}} + \cdots + I_{A_{n}}`}, then ${math`E(N) = P(A_{${1}}) + \cdots + P(A_{n})`}, whether or not the events are independent.` },
+    { kind: 'p', text: t`Proof: expectation is linear, ${math`E(X + Y) = E(X) + E(Y)`} for any random variables with means, so ${math`E(N) = E(I_{A_{${1}}}) + \cdots + E(I_{A_{n}})`}, and each term is ${math`P(A_{i})`} by the theorem above. ∎`, why: { q: t`Doesn't adding means need independence?`, a: t`No. ${math`E(X + Y) = E(X) + E(Y)`} holds for every pair of random variables with means, dependent or not: it comes from adding ${math`x + y`} over the joint outcomes. Independence is needed for products, ${math`E(XY) = E(X)E(Y)`}, and for adding variances.` } },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Name the events`, text: t`Number the people ${1} to ${mn}, and let ${math`A_{i}`} be "person ${math`i`} gets their own hat". The number of matches is ${math`N = I_{A_{${1}}} + \cdots + I_{A_{n}}`}.` },
+        { label: t`One event`, text: t`Person ${math`i`}'s hat is equally likely to go to any of the ${mn} people, so ${math`P(A_{i}) = \frac{${1}}{n}`}.` },
+        { label: t`Add`, text: t`There are ${mn} terms, each ${math`\frac{${1}}{n}`}:`, eq: [dmath`E(N) = n \cdot \frac{${1}}{n} = ${1}.`], plain: t`The events are far from independent (if ${math`n - ${1}`} people have their own hats, so does the last), and it does not matter.` },
+      ],
+    },
+    { kind: 'p', text: t`The same move answers STEP ${3} Statistics question ${3}: in a random row of ${math`a`} As and ${math`b`} Bs, put an indicator on each place where a run of As can start, at the front or just after a B. Add their chances, and the expected number of runs comes out as ${math`\frac{a(b + ${1})}{a + b}`}. It is the worked Cambridge problem below.` },
+    checkFrom(faces, { m: 6, k: 2, ask: 'unseen' }, t`One indicator per face: a face is missed by both throws with probability ${math`\left(\frac{${5}}{${6}}\right)^{${2}}`}, and there are ${6} faces, so ${math`${6} \times \frac{${25}}{${36}} = ${q(25, 6)}`}.`),
+
+    { kind: 'section', title: t`The variance, from pairs` },
+    { kind: 'narrative', text: t`The mean only needed single events. The spread needs pairs. Two facts do all the work. First, ${math`I_{A}^{${2}} = I_{A}`}, because ${math`${0}^{${2}} = ${0}`} and ${math`${1}^{${2}} = ${1}`}. Second, ${math`I_{A}I_{B} = I_{A \cap B}`}, because a product of switches is ${1} only when both are ${1}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Square the sum`, text: t`Multiply out ${math`N^{${2}} = (\sum_{i} I_{A_{i}})(\sum_{j} I_{A_{j}})`}: one term for each ordered pair ${math`(i, j)`}.`, eq: [dmath`N^{${2}} = \sum_{i} I_{A_{i}}^{${2}} + \sum_{i \ne j} I_{A_{i}} I_{A_{j}}.`], plain: t`The terms with ${math`i = j`} are the squares; the rest are the cross terms.` },
+        { label: t`Simplify each kind`, text: t`Use ${math`I_{A_{i}}^{${2}} = I_{A_{i}}`} and ${math`I_{A_{i}}I_{A_{j}} = I_{A_{i} \cap A_{j}}`}:`, eq: [dmath`N^{${2}} = \sum_{i} I_{A_{i}} + \sum_{i \ne j} I_{A_{i} \cap A_{j}}.`] },
+        { label: t`Take means`, text: t`By linearity and ${math`E(I_{A}) = P(A)`},`, eq: [dmath`E(N^{${2}}) = \sum_{i} P(A_{i}) + \sum_{i \ne j} P(A_{i} \cap A_{j}).`] },
+        { label: t`Finish`, text: t`Then ${math`\mathrm{Var}(N) = E(N^{${2}}) - (E(N))^{${2}}`}.`, plain: t`So the variance needs the chance of every pair of events happening together.` },
+      ],
+    },
+    { kind: 'p', text: t`For the hats, ${math`P(A_{i} \cap A_{j}) = \frac{${1}}{n(n - ${1})}`} when ${math`i \ne j`}, and there are ${math`n(n - ${1})`} ordered pairs, so the cross sum is ${1}. Hence ${math`E(N^{${2}}) = ${1} + ${1} = ${2}`} and ${math`\mathrm{Var}(N) = ${2} - ${1}^{${2}} = ${1}`}, for every ${math`n \ge ${2}`}. Listing all permutations of ${HATS} hats confirms it: ${math`E(N^{${2}}) = ${hatSquare}`}, variance ${hatVar}.`, why: { q: t`Why is ${math`P(A_{i} \cap A_{j}) = \frac{${1}}{n(n - ${1})}`}?`, a: t`Person ${math`i`} gets their hat with probability ${math`\frac{${1}}{n}`}; given that, person ${math`j`}'s hat is equally likely to go to any of the other ${math`n - ${1}`} people.` } },
+    { kind: 'p', text: t`When the events are independent, the cross terms factor, ${math`P(A_{i} \cap A_{j}) = p_{i}p_{j}`}, and the formula collapses to ${math`\mathrm{Var}(N) = \sum_{i} p_{i}(${1} - p_{i})`}: the variances of the indicators add. Each indicator has variance ${math`p(${1} - p)`}, since ${math`E(I^{${2}}) - (E(I))^{${2}} = p - p^{${2}}`}. A [[record|record]] count, as in Example Sheet ${2} question ${12}, is a famous case where the indicators turn out to be independent.` },
+    quickCheck({
+      prompt: t`Four people get their hats back at random. Find ${math`E(N^{${2}})`}, where ${math`N`} is the number who get their own hat.`,
+      answer: { kind: 'exact', expected: str(average(fixedCounts(4), (c) => q(c * c))) },
+      reference: str(average(fixedCounts(4), (c) => q(c * c))),
+      why: t`${math`\sum_{i} P(A_{i}) = ${1}`}, and the ${math`${4} \times ${3}`} ordered pairs each have chance ${math`\frac{${1}}{${12}}`}, adding ${1} more.`,
+    }),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`You can only add the means of indicators when the events are independent.`, counterexample: t`The hats are dependent, and ${math`E(N) = ${1}`} is still right; listing the ${permutations(HATS).length} ways to return ${HATS} hats gives mean ${hatMean}.` },
+    { kind: 'pitfall', claim: t`The variance of a count of events with chances ${math`p_{i}`} is always ${math`\sum p_{i}(${1} - p_{i})`}.`, counterexample: t`Two hats: ${math`N`} is ${0} or ${2}, each with probability ${halfQ}, so ${math`\mathrm{Var}(N) = ${twoVar}`}. The formula gives ${math`${2} \times ${halfQ} \times ${halfQ} = ${mul(q(2), mul(halfQ, halfQ))}`}. It needs independence, or at least uncorrelated indicators.` },
+    { kind: 'takeaway', text: t`Write a count as a sum of indicators: the mean is the sum of the chances, always, and the variance needs the chances of pairs.` },
   ],
   examples: [
-    workedCambridge(q3i),
+    { ...workedCambridge(q3i), examiner: t`The examiner looks for the indicators defined, ${math`E(X_{k})`} found for the first place and the others separately, and the sum simplified.` },
     worked(matchingPairs, { n: 4, d: 6 }, t`Matching numbers among four people`),
     worked(faces, { m: 6, k: 3, ask: 'seen' }, t`Faces seen in three throws`),
   ],
@@ -404,15 +461,21 @@ export const indicators: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['indicator-variable', 'record'],
   cambridge: [q3xk, q3iib, sheetQ9, sheetQ10, sheetQ12mean, sheetQ12var, q9proof, q10proof, q12proof],
-  gate: [
-    's3-q3-i-xk',
-    's3-q3-ii-b',
-    'sheet2-q9-variance',
-    'sheet2-q10-hoops',
-    'sheet2-q12-mean',
-    'sheet2-q12-variance',
-    'sheet2-q9',
-    'sheet2-q10',
-    'sheet2-q12',
+  // Multi-step problems first; the plug-in numbers of Q9 and Q12 are drill, and dropped.
+  gate: ['s3-q3-ii-b', 'sheet2-q12', 'sheet2-q10', 'sheet2-q10-hoops', 's3-q3-i-xk', 'sheet2-q9'],
+  recall: [
+    { front: t`The mean of an indicator.`, back: t`${math`E(I_{A}) = P(A)`}.` },
+    { front: t`The mean of a count ${math`N = \sum I_{A_{i}}`}.`, back: t`${math`E(N) = \sum P(A_{i})`}, with or without independence.` },
+    { front: t`${math`E(N^{${2}})`} for a count of events.`, back: t`${math`\sum_{i} P(A_{i}) + \sum_{i \ne j} P(A_{i} \cap A_{j})`}.` },
+    { front: t`Expected number of fixed points of a random permutation.`, back: t`${1}, for every ${mn}; the variance is ${1} too, for ${math`n \ge ${2}`}.` },
   ],
+  proofOrder: [{
+    title: t`The second moment of a count`,
+    steps: [
+      t`Write ${math`N^{${2}}`} as a sum over ordered pairs ${math`(i, j)`}.`,
+      t`Split into the squares, ${math`i = j`}, and the cross terms.`,
+      t`Use ${math`I^{${2}} = I`} and ${math`I_{A}I_{B} = I_{A \cap B}`}.`,
+      t`Take means: ${math`E(N^{${2}}) = \sum P(A_{i}) + \sum_{i \ne j} P(A_{i} \cap A_{j})`}.`,
+    ],
+  }],
 };

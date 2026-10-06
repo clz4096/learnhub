@@ -14,8 +14,8 @@ import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { meanQ, polyDeriv, polyEval, polyMul, polyTex, sampleFrom, varQ, type Poly } from '../partv-d';
 import { generator, type Misconception } from '../problem';
-import { computedTex, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { computedTex, dmath, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mX, mt, mn_] = [math`X`, math`t`, math`n`];
 const SH3 = 'ia-prob-sheet-3' as const;
@@ -331,25 +331,68 @@ const TWO = polyMul(DIE, DIE);
 const claims: ProbabilityClaim[] = [
   { what: 'two dice total seven, as the coefficient of t^7', exact: TWO[7] as Rational, trial: (rng) => sampleFrom(DIE, rng) + sampleFrom(DIE, rng) === 7 },
 ];
+const ways7 = [1, 2, 3, 4, 5, 6].filter((a) => 7 - a >= 1 && 7 - a <= 6).length;
 
 export const pgf: TopicContent = {
   topicId: 'gf.pgf',
   goal: t`Use the probability generating function ${math`G_{X}(t) = E(t^{X})`} to find moments from its derivatives at ${math`t = ${1}`}, and the distribution of a sum of independent variables from a product.`,
+  objective: t`Use a probability generating function to find moments and the distribution of independent sums.`,
+  why: t`It turns sums of independent counts into products; next, random sums and branching processes.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`A random variable with values ${math`${0}, ${1}, ${2}, \ldots`} is a list of probabilities. Pack the list into one function: the [[pgf|probability generating function]] ${math`G_{X}(t) = E(t^{X}) = \sum_{k \ge ${0}} P(X = k)t^{k}`}. The coefficients are at least ${0} and add to ${1}, so the series converges for ${math`|t| \le ${1}`}.` },
-    { kind: 'rule', text: t`${math`G(${1}) = ${1}`}, ${math`P(X = k) = \frac{G^{(k)}(${0})}{k!}`}, ${math`E(X) = G'(${1})`}, ${math`E(X(X - ${1})) = G''(${1})`}, and ${math`\operatorname{Var}(X) = G''(${1}) + G'(${1}) - G'(${1})^{${2}}`}.` },
-    { kind: 'table', caption: t`Some pgfs, with ${math`q = ${1} - p`}`, head: [t`distribution`, t`${math`G(t)`}`, t`mean`], rows: [
-      [t`one trial, success probability ${math`p`}`, t`${math`q + pt`}`, t`${math`p`}`],
-      [t`${math`B(n, p)`}`, t`${math`(q + pt)^{n}`}`, t`${math`np`}`],
-      [t`${math`\text{Po}(\lambda)`}`, t`${math`e^{\lambda(t - ${1})}`}`, t`${math`\lambda`}`],
-      [t`trials to the first success`, t`${math`\frac{pt}{${1} - qt}`}`, t`${math`${1}/p`}`],
-    ] },
-    { kind: 'p', text: t`The reason to bother is sums. If ${mX} and ${math`Y`} are independent, so are ${math`t^{X}`} and ${math`t^{Y}`}, and ${math`G_{X + Y}(t) = E(t^{X}t^{Y}) = G_{X}(t)G_{Y}(t)`}. A convolution becomes a product: ${math`(q + pt)^{n}`} is ${mn_} independent trials, and ${math`e^{\lambda(t - ${1})}e^{\mu(t - ${1})} = e^{(\lambda + \mu)(t - ${1})}`} adds Poisson variables in one line.` },
-    { kind: 'p', text: t`Since a power series determines its coefficients, a pgf determines its distribution: recognise the product and you know the distribution of the sum. Two dice: ${math`\left(\frac{t + \cdots + t^{${6}}}{${6}}\right)^{${2}}`} has coefficient ${TWO[7] as Rational} at ${math`t^{${7}}`}, the chance of a total of ${7}.` },
-    { kind: 'p', text: t`Sheet ${3} Q${5} puts it together: the number of trials to the ${math`a`}th success has pgf ${math`\left(\frac{pt}{${1} - qt}\right)^{a}`}, the ${math`a`}th power of the geometric pgf, so it is a sum of ${math`a`} independent waits, with mean ${math`a/p`}.` },
+    { kind: 'section', title: t`Dice as polynomials` },
+    { kind: 'hook', text: t`Write one die as the polynomial ${math`\frac{${1}}{${6}}(t + t^{${2}} + t^{${3}} + t^{${4}} + t^{${5}} + t^{${6}})`}: the power is the score and the coefficient its chance. Now square it. Collecting the ${math`t^{${7}}`} terms, ${math`t \cdot t^{${6}}, t^{${2}} \cdot t^{${5}}, \ldots`}, gives ${ways7} of them, each with coefficient ${math`\frac{${1}}{${36}}`}: exactly the chance that two dice total ${7}. Multiplying polynomials did the counting for you. Why does that work?` },
+
+    { kind: 'section', title: t`The generating function` },
+    { kind: 'definition', name: t`Probability generating function`, formal: t`For a random variable ${mX} with values in ${math`\{${0}, ${1}, ${2}, \ldots\}`}, the [[pgf|probability generating function]] is ${dmath`G_{X}(t) = E(t^{X}) = \sum_{k = ${0}}^{\infty} P(X = k)\,t^{k}, \qquad |t| \le ${1}.`}`, plain: t`Pack the list of probabilities into one power series, with ${math`P(X = k)`} as the coefficient of ${math`t^{k}`}. The coefficients are at least ${0} and add to ${1}, so the series converges for ${math`|t| \le ${1}`}, and ${math`G(${1}) = ${1}`}.` },
+    { kind: 'theorem', name: t`Uniqueness`, statement: t`${math`G_{X}`} determines the distribution of ${mX}: ${math`P(X = k) = \frac{G_{X}^{(k)}(${0})}{k!}`}.` },
+    { kind: 'p', text: t`In plain words: a power series has only one set of coefficients, and differentiating ${math`k`} times at ${0} picks out the ${math`k`}th, times ${math`k!`}. So if you recognise a pgf, you know the distribution.` },
+    {
+      kind: 'table', caption: t`Some pgfs, with ${math`q = ${1} - p`}`, head: [t`distribution`, t`${math`G(t)`}`], rows: [
+        [t`one trial, success probability ${math`p`}`, t`${math`q + pt`}`],
+        [t`${math`B(n, p)`}`, t`${math`(q + pt)^{n}`}`],
+        [t`${math`\text{Po}(\lambda)`}`, t`${math`e^{\lambda(t - ${1})}`}`],
+        [t`trials to the first success`, t`${math`\frac{pt}{${1} - qt}`}`],
+      ],
+    },
+    { kind: 'p', text: t`The Poisson one is the exponential series: ${math`\sum_{k} e^{-\lambda}\frac{\lambda^{k}}{k!}t^{k} = e^{-\lambda}e^{\lambda t}`}. The geometric one is a geometric series: ${math`\sum_{k \ge ${1}} q^{k - ${1}}p\,t^{k} = pt\sum_{j \ge ${0}} (qt)^{j} = \frac{pt}{${1} - qt}`}.` },
+
+    { kind: 'section', title: t`Moments from derivatives` },
+    { kind: 'theorem', name: t`Moments`, statement: t`If ${math`E(X) < \infty`} then ${math`E(X) = G'(${1})`}, and if ${math`E(X^{${2}}) < \infty`} then ${math`E(X(X - ${1})) = G''(${1})`} and ${dmath`\operatorname{Var}(X) = G''(${1}) + G'(${1}) - G'(${1})^{${2}}.`} (Here ${math`G'(${1})`} means the limit of ${math`G'(t)`} as ${math`t`} rises to ${1}.)` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Differentiate term by term`, text: t`Inside ${math`|t| < ${1}`}, a power series may be differentiated term by term:`, eq: [dmath`G'(t) = \sum_{k \ge ${1}} k\,P(X = k)\,t^{k - ${1}}, \qquad G''(t) = \sum_{k \ge ${2}} k(k - ${1})\,P(X = k)\,t^{k - ${2}}.`] },
+        { label: t`Let ${mt} rise to ${1}`, text: t`The terms are nonnegative and increase with ${math`t`}, so the sums tend to ${math`\sum_{k} k\,P(X = k) = E(X)`} and ${math`\sum_{k} k(k - ${1})P(X = k) = E(X(X - ${1}))`}.`, why: { q: t`Why the limit, and not just put ${math`t = ${1}`}?`, a: t`The series for ${math`G'`} is only guaranteed for ${math`|t| < ${1}`}. Monotone convergence lets increasing nonnegative sums pass to the limit, which is why the theorem is stated with ${math`t`} rising to ${1}.` } },
+        { label: t`Assemble the variance`, text: t`${math`E(X^{${2}}) = E(X(X - ${1})) + E(X) = G''(${1}) + G'(${1})`}, and ${math`\operatorname{Var}(X) = E(X^{${2}}) - E(X)^{${2}}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`For ${math`\text{Po}(\lambda)`}: ${math`G'(t) = \lambda e^{\lambda(t - ${1})}`} and ${math`G''(t) = \lambda^{${2}}e^{\lambda(t - ${1})}`}, so ${math`E(X) = \lambda`} and ${math`\operatorname{Var}(X) = \lambda^{${2}} + \lambda - \lambda^{${2}} = \lambda`}.` },
+    checkFrom(moments, { dist: [q(1, 4), q(1, 4), q(1, 2)], ask: 'mean' }, t`${math`G(t) = \tfrac{${1}}{${4}} + \tfrac{${1}}{${4}}t + \tfrac{${1}}{${2}}t^{${2}}`}, so ${math`G'(${1}) = \tfrac{${1}}{${4}} + ${2} \times \tfrac{${1}}{${2}} = ${q(5, 4)}`}.`),
+
+    { kind: 'section', title: t`Sums become products` },
+    { kind: 'theorem', name: t`Independent sums`, statement: t`If ${mX} and ${math`Y`} are independent, with values in ${math`\{${0}, ${1}, \ldots\}`}, then ${math`G_{X + Y}(t) = G_{X}(t)\,G_{Y}(t)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split the power`, text: t`${math`t^{X + Y} = t^{X}t^{Y}`}.` },
+        { label: t`Use independence`, text: t`${math`t^{X}`} and ${math`t^{Y}`} are functions of independent variables, so they are independent, and the mean of their product is the product of their means.`, eq: [dmath`G_{X + Y}(t) = E(t^{X})\,E(t^{Y}) = G_{X}(t)\,G_{Y}(t).`] },
+      ],
+    },
+    { kind: 'p', text: t`That is the hook explained: the pgf of two dice is the square of the pgf of one, and the coefficient of ${math`t^{${7}}`} is ${TWO[7] as Rational}. It also explains the table: ${math`B(n, p)`} is a sum of ${mn_} independent trials, so its pgf is ${math`(q + pt)^{n}`}; and ${math`e^{\lambda(t - ${1})}e^{\mu(t - ${1})} = e^{(\lambda + \mu)(t - ${1})}`}, so by uniqueness a sum of independent Poisson variables is Poisson.` },
+    checkFrom(sumDist, { x: [q(1, 2), q(1, 2)], y: [q(1, 3), q(1, 3), q(1, 3)], k: 1 }, t`The coefficient of ${mt} in ${math`\left(\tfrac{${1}}{${2}} + \tfrac{${1}}{${2}}t\right)\left(\tfrac{${1}}{${3}} + \tfrac{${1}}{${3}}t + \tfrac{${1}}{${3}}t^{${2}}\right)`} is ${math`\tfrac{${1}}{${6}} + \tfrac{${1}}{${6}} = ${q(1, 3)}`}.`),
+    { kind: 'p', text: t`Example Sheet ${3} question ${5}, the worked Cambridge problem below, uses all of this on the number of trials to the ${math`a`}th success.` },
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`G_{X + Y} = G_{X}G_{Y}`} for any ${mX} and ${math`Y`}.`, counterexample: t`Let ${mX} be ${0} or ${1} with chance ${q(1, 2)} each, and ${math`Y = X`}. Then ${math`G_{X + Y}(t) = \tfrac{${1}}{${2}} + \tfrac{${1}}{${2}}t^{${2}}`}, but ${math`G_{X}(t)^{${2}} = \tfrac{${1}}{${4}}(${1} + t)^{${2}}`}, which has a ${mt} term. Independence is needed.` },
+    { kind: 'pitfall', claim: t`${math`\operatorname{Var}(X) = G''(${1})`}.`, counterexample: t`For ${math`\text{Po}(${2})`}, ${math`G''(${1}) = ${4}`}, but the variance is ${2}. ${math`G''(${1})`} is ${math`E(X(X - ${1}))`}: add ${math`G'(${1})`} and subtract its square.` },
+    { kind: 'pitfall', claim: t`${math`E(X) = G'(${0})`}.`, counterexample: t`${math`G'(${0}) = P(X = ${1})`}. For one fair die, ${math`G'(${0}) = ${q(1, 6)}`} but the mean is ${q(7, 2)}. Moments come from ${math`t = ${1}`}; single probabilities from ${math`t = ${0}`}.` },
+    { kind: 'takeaway', text: t`${math`G_{X}(t) = E(t^{X})`} stores the distribution as coefficients, gives moments from derivatives at ${1}, and turns independent sums into products.` },
   ],
   examples: [
-    workedCambridge(q5pgf),
+    { ...workedCambridge(q5pgf), examiner: t`The examiner looks for the substitution ${math`j = r - a`}, the negative binomial series quoted with its range of ${mt}, and the answer simplified.` },
     worked(moments, { dist: [q(1, 6), q(1, 3), q(1, 2)], ask: 'variance' }, t`Variance from a pgf`),
     worked(sumDist, { x: [q(1, 4), q(1, 2), q(1, 4)], y: [q(2, 3), q(1, 3)], k: 2 }, t`A sum by multiplying pgfs`),
   ],
@@ -358,5 +401,21 @@ export const pgf: TopicContent = {
   terms: ['pgf'],
   claims,
   cambridge: [q5mean, q5var, q5proof, schedule],
-  gate: ['ia-s3-q5-mean', 'ia-s3-q5-variance', 'ia-s3-q5'],
+  // The full sheet question first, then its variance and mean.
+  gate: ['ia-s3-q5', 'ia-s3-q5-variance', 'ia-s3-q5-mean'],
+  recall: [
+    { front: t`Define the probability generating function.`, back: t`${math`G_{X}(t) = E(t^{X}) = \sum_{k} P(X = k)t^{k}`}, for ${mX} with values ${math`${0}, ${1}, ${2}, \ldots`}.` },
+    { front: t`Mean and variance from a pgf.`, back: t`${math`E(X) = G'(${1})`}; ${math`\operatorname{Var}(X) = G''(${1}) + G'(${1}) - G'(${1})^{${2}}`}.` },
+    { front: t`The pgf of an independent sum.`, back: t`${math`G_{X + Y} = G_{X}G_{Y}`}.` },
+    { front: t`The pgfs of ${math`B(n, p)`} and ${math`\text{Po}(\lambda)`}.`, back: t`${math`(q + pt)^{n}`} and ${math`e^{\lambda(t - ${1})}`}.` },
+  ],
+  proofOrder: [{
+    title: t`The variance from a pgf`,
+    steps: [
+      t`Differentiate term by term: ${math`G'(t) = \sum k\,P(X = k)t^{k - ${1}}`}.`,
+      t`Let ${mt} rise to ${1}: ${math`G'(${1}) = E(X)`}.`,
+      t`Likewise ${math`G''(${1}) = E(X(X - ${1}))`}.`,
+      t`So ${math`E(X^{${2}}) = G''(${1}) + G'(${1})`}, and subtract ${math`E(X)^{${2}}`}.`,
+    ],
+  }],
 };

@@ -10,8 +10,8 @@ import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S1 = 'ia-prob-sheet-1' as const;
 const mA = math`A`;
@@ -220,19 +220,61 @@ const totalProof = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const HOOK: UrnP = { a: q(1, 2), r1: 1, n1: 2, r2: 3, n2: 4 };
 const claims: ProbabilityClaim[] = [
-  { what: 'Q9 with p = 1/3, r = 1/4: same way twice', exact: add(q(1, 3), mul(q(2, 3), q(3, 4))), trial: (rng) => (rng() < 1 / 3 ? true : rng() >= 1 / 4) },
+  { what: 'the two urns of the lesson: a red ball', exact: urnVal(HOOK), trial: (rng) => (rng() < 0.5 ? rng() < 1 / 2 : rng() < 3 / 4) },
 ];
+const [mB, mBi] = [math`B`, math`B_{i}`];
 
 export const totalProbability: TopicContent = {
   topicId: 'prob.total-probability',
   goal: t`Split ${math`\mathbb{P}(A)`} over a partition, ${math`\mathbb{P}(A) = \sum_{i} \mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i})`}, and solve it for an unknown piece.`,
+  objective: t`Find a probability by splitting into cases and weighting each case by its probability.`,
+  why: t`It is the first step of Bayes's formula and of every first-step analysis of a random process.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`When an outcome depends on which of several situations holds, find its probability in each situation and weight by how likely the situation is. The situations must form a partition: exactly one of them happens.` },
-    { kind: 'rule', text: t`The [[law-of-total-probability|law of total probability]]: if ${math`B_{${1}}, B_{${2}}, \ldots`} partition ${math`\Omega`} into events of positive probability, then ${math`\mathbb{P}(A) = \sum_{i} \mathbb{P}(A \mid B_{i})\,\mathbb{P}(B_{i})`}.` },
-    { kind: 'p', text: t`Proof: ${mA} is the disjoint union of the ${math`A \cap B_{i}`}, so ${math`\mathbb{P}(A) = \sum_{i} \mathbb{P}(A \cap B_{i})`} by countable additivity, and ${math`\mathbb{P}(A \cap B_{i}) = \mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i})`} by the multiplication rule. A tree diagram draws the same sum: one branch per ${math`B_{i}`}.` },
-    { kind: 'p', text: t`Q${9}: Labour members (proportion ${math`p`}) never change their minds; Conservatives change with probability ${math`r`}. A random member votes the same way twice with probability ${math`p \cdot ${1} + (${1} - p)(${1} - r)`}.` },
-    { kind: 'p', text: t`The law can be run backwards. In Q${8}, the class probabilities for all candidates are a weighted average of those who misread the rubric (weight ${PMIS}) and those who read it (weight ${q(1, 3)}). Knowing the overall value and the misreaders' value leaves one unknown: the readers' chance of class II-${1} is ${readers[1] as Rational}.` },
+    { kind: 'section', title: t`It depends which urn` },
+    { kind: 'hook', text: t`Urn ${1} holds ${HOOK.r1} red and ${HOOK.n1 - HOOK.r1} blue ball; urn ${2} holds ${HOOK.r2} red and ${HOOK.n2 - HOOK.r2} blue. Toss a fair coin to choose an urn, then draw a ball from it. What is the chance of red? Tipping all ${HOOK.n1 + HOOK.n2} balls into one bag gives ${q(HOOK.r1 + HOOK.r2, HOOK.n1 + HOOK.n2)}. That is not the answer. Why not?` },
+    { kind: 'narrative', text: t`Because the balls are not equally likely to be drawn. The ${HOOK.n1} balls of urn ${1} share half the chance between them, the ${HOOK.n2} balls of urn ${2} share the other half. The honest way is to ask "which urn?" first: work out the chance of red in each case, then weight each case by how likely it is.` },
+    { kind: 'section', title: t`The law` },
+    {
+      kind: 'definition',
+      name: t`Partition`,
+      formal: t`Events ${math`B_{${1}}, B_{${2}}, \ldots`} (finitely or countably many) form a partition of ${math`\Omega`} if they are pairwise disjoint and ${math`\bigcup_{i} B_{i} = \Omega`}.`,
+      plain: t`In plain words: a list of cases, exactly one of which happens. "Urn ${1}" and "urn ${2}" partition the experiment; so do ${mB} and its complement ${math`B^{c}`}, for any event ${mB}.`,
+    },
+    {
+      kind: 'theorem',
+      name: t`Law of total probability`,
+      statement: t`If ${math`B_{${1}}, B_{${2}}, \ldots`} partition ${math`\Omega`} and each ${math`\mathbb{P}(B_{i}) > ${0}`}, then for every event ${mA}, ${dmath`\mathbb{P}(A) = \sum_{i} \mathbb{P}(A \mid B_{i})\,\mathbb{P}(B_{i}).`}`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Cut A into pieces`, text: t`${math`A = \bigcup_{i} (A \cap B_{i})`}, and the pieces are disjoint because the ${mBi} are.`, plain: t`Every outcome of ${mA} lies in exactly one case.` },
+        { label: t`Add the pieces`, text: t`By countable additivity, ${math`\mathbb{P}(A) = \sum_{i} \mathbb{P}(A \cap B_{i})`}.` },
+        { label: t`Use the definition of conditional probability`, text: t`${math`\mathbb{P}(A \mid B_{i}) = \frac{\mathbb{P}(A \cap B_{i})}{\mathbb{P}(B_{i})}`}, so ${math`\mathbb{P}(A \cap B_{i}) = \mathbb{P}(A \mid B_{i})\,\mathbb{P}(B_{i})`}. Substitute.`, why: { q: t`Why must each ${math`\mathbb{P}(B_{i})`} be positive?`, a: t`Conditional probability given ${mBi} divides by ${math`\mathbb{P}(B_{i})`}, so it is only defined when that is not ${0}. A case of probability ${0} can simply be left out of the sum.` } },
+      ],
+    },
+    { kind: 'p', text: t`This is the [[law-of-total-probability|law of total probability]]. A tree diagram draws exactly this sum: one branch for each ${mBi}, multiply along the branches, add the branches that end in ${mA}. For the urns: ${math`\mathbb{P}(R) = ${q(HOOK.r1, HOOK.n1)} \times ${HOOK.a} + ${q(HOOK.r2, HOOK.n2)} \times ${sub(q(1), HOOK.a)} = ${urnVal(HOOK)}`}.` },
+    checkFrom(twoUrns, { a: q(1, 3), r1: 2, n1: 3, r2: 1, n2: 4 }, t`${math`${q(2, 3)} \times ${q(1, 3)} + ${q(1, 4)} \times ${q(2, 3)} = ${q(2, 9)} + ${q(1, 6)} = ${q(7, 18)}`}.`),
+    { kind: 'pitfall', claim: t`With an urn chosen at random, pool all the balls and count: ${q(HOOK.r1 + HOOK.r2, HOOK.n1 + HOOK.n2)} for the hook.`, counterexample: t`Pooling treats every ball as equally likely, but a ball in the smaller urn is drawn more often. The law gives ${urnVal(HOOK)}.` },
+    { kind: 'section', title: t`More than two cases` },
+    { kind: 'narrative', text: t`Nothing changes with three cases, or a hundred. A factory's three machines make different shares of its items and have different fault rates. The share of faulty items overall is the fault rates averaged, each weighted by its machine's share.` },
+    checkFrom(threeMachines, { s: [60, 25, 15], d: [1, 4, 6] }, t`${math`${q(60, 100)} \times ${q(1, 100)} + ${q(25, 100)} \times ${q(4, 100)} + ${q(15, 100)} \times ${q(6, 100)} = ${q(25, 1000)}`}.`),
+    { kind: 'section', title: t`Running it backwards` },
+    { kind: 'narrative', text: t`The law is one equation, so if every number but one is known, you can solve for the missing one. Often the unknown is a conditional probability in one case. IA Probability Sheet ${1}, question ${8}, does exactly this: the class probabilities for all examination candidates are a weighted average over those who misread the rubric and those who read it, and you recover the readers' chances.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Write the law`, text: t`With ${math`\mathbb{P}(B) = ${q(1, 4)}`}, ${math`\mathbb{P}(A \mid B) = ${q(1, 5)}`} and ${math`\mathbb{P}(A) = ${q(7, 20)}`}, the law over ${mB} and ${math`B^{c}`} reads`, eq: [dmath`${q(7, 20)} = ${q(1, 5)} \times ${q(1, 4)} + z \times ${q(3, 4)},`], plain: t`where ${math`z = \mathbb{P}(A \mid B^{c})`} is unknown.` },
+        { label: t`Solve`, text: t`${math`${q(3, 4)}z = ${q(7, 20)} - ${q(1, 20)} = ${q(3, 10)}`}, so ${math`z = ${q(2, 5)}`}.` },
+      ],
+    },
+    checkFrom(solveBackwards, { x: q(1, 2), b: q(1, 2), y: q(3, 10) }, t`${math`${q(1, 2)} = ${q(3, 10)} \times ${q(1, 2)} + z \times ${q(1, 2)}`}, so ${math`z = ${1} - ${q(3, 10)} = ${q(7, 10)}`}.`),
+    { kind: 'pitfall', claim: t`If ${math`\mathbb{P}(A) = ${q(1, 2)}`} overall and ${math`\mathbb{P}(A \mid B) = ${q(3, 10)}`}, then ${math`\mathbb{P}(A \mid B^{c}) = ${q(1, 2)}`} too.`, counterexample: t`The overall value is an average of the two cases. If one case is below it, the other must be above it: with ${math`\mathbb{P}(B) = ${q(1, 2)}`}, ${math`\mathbb{P}(A \mid B^{c}) = ${q(7, 10)}`}.` },
+    { kind: 'takeaway', text: t`Split into cases that partition the space, find the probability in each, and weight by the probability of the case.` },
   ],
   examples: [
     workedCambridge(q8a),
@@ -244,5 +286,22 @@ export const totalProbability: TopicContent = {
   terms: ['law-of-total-probability'],
   claims,
   cambridge: [q9a, q8explain, totalProof],
-  gate: ['ia-q9-same-twice', 'ia-q8-reading'],
+  // Best first: the readers' full distribution with its explanation, then the voting question.
+  // The countable-partition proof comes from the schedule, not a gate document.
+  gate: ['ia-q8-reading', 'ia-q9-same-twice'],
+  recall: [
+    { front: t`State the law of total probability.`, back: t`For a partition ${math`B_{${1}}, B_{${2}}, \ldots`} with ${math`\mathbb{P}(B_{i}) > ${0}`}: ${math`\mathbb{P}(A) = \sum_{i} \mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i})`}.` },
+    { front: t`What is a partition of ${math`\Omega`}?`, back: t`Pairwise disjoint events whose union is ${math`\Omega`}: exactly one of them happens.` },
+    { front: t`Which two facts prove the law?`, back: t`Countable additivity over the pieces ${math`A \cap B_{i}`}, and ${math`\mathbb{P}(A \cap B_{i}) = \mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i})`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The law of total probability`,
+      steps: [
+        t`${mA} is the disjoint union of the pieces ${math`A \cap B_{i}`}.`,
+        t`Countable additivity: ${math`\mathbb{P}(A) = \sum_{i} \mathbb{P}(A \cap B_{i})`}.`,
+        t`Each piece is ${math`\mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i})`}.`,
+      ],
+    },
+  ],
 };

@@ -11,8 +11,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { factorial, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { computedTex, math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { computedTex, dmath, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 import { fraction, positions, shuffle } from '../partv-a';
 
 const MIX = 'step-mixed-stats1' as const;
@@ -339,21 +339,75 @@ const q3why = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+/** The shelf in the lesson: red books and blue books, all different. */
+const SHELF = { red: 4, blue: 3 };
+const nShelf = SHELF.red + SHELF.blue;
+const pTogether = q(factorial(SHELF.blue) * factorial(SHELF.red + 1), factorial(nShelf));
+const apartWays = factorial(SHELF.red + 1) / factorial(SHELF.red + 1 - SHELF.blue);
+const pApart = q(factorial(SHELF.red) * apartWays, factorial(nShelf));
+const pEnds = q(SHELF.red * (SHELF.red - 1) * factorial(nShelf - 2), factorial(nShelf));
 const claims: ProbabilityClaim[] = [
-  { what: 'six women and four men: no two men together', exact: q(1, 6), trial: (rng) => noneAdjacent(placesOf(10, 4, rng)) },
-  { what: 'six women and four men: a woman at each end', exact: q(1, 3), trial: (rng) => { const men = placesOf(10, 4, rng); return !men.includes(0) && !men.includes(9); } },
+  { what: 'four red and three blue books: the blue books together', exact: pTogether, trial: (rng) => consecutive(placesOf(nShelf, SHELF.blue, rng)) },
+  { what: 'four red and three blue books: no two blue books together', exact: pApart, trial: (rng) => noneAdjacent(placesOf(nShelf, SHELF.blue, rng)) },
+  { what: 'four red and three blue books: a red book at each end', exact: pEnds, trial: (rng) => { const blue = placesOf(nShelf, SHELF.blue, rng); return !blue.includes(0) && !blue.includes(nShelf - 1); } },
 ];
+const [mk, mn, mw, mm] = [math`k`, math`n`, math`w`, math`m`];
 
 export const restrictedArrangements: TopicContent = {
   topicId: 'comb.restricted-arrangements',
   goal: t`Count arrangements in a line with some objects kept together, kept apart, or at the ends, and turn the counts into probabilities.`,
+  objective: t`Count line-ups with some objects kept together, kept apart, or at the ends, and find the probabilities.`,
+  why: t`These three moves answer most STEP arrangement questions, and they feed probability problems on runs.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`Mixed STEP ${1} Statistics notes that arrangements are on the STEP ${1} specification but not in A-level mathematics. Three ideas cover most questions. Throughout, ${6} women and ${4} men stand in a line in one of ${math`${10}!`} equally likely orders.` },
-    { kind: 'rule', text: t`The [[block-method|block method]]: to keep a group together, glue it into one block (a "rope"), arrange the block with the others, then multiply by the orders inside the block.` },
-    { kind: 'p', text: t`The ${4} men together: the rope and ${6} women are ${7} things, ${math`${7}!`} orders, times ${math`${4}!`} inside, so ${math`\frac{${7}! \, ${4}!}{${10}!} = ${q(1, 30)}`}. The women together: ${math`\frac{${5}! \, ${6}!}{${10}!} = ${q(1, 42)}`}. Both: ${math`\frac{${2} \times ${6}! \, ${4}!}{${10}!} = ${q(1, 105)}`}, not the product of the two, since the events are not independent.` },
-    { kind: 'rule', text: t`The [[gap-method|gap method]]: to keep a group apart, arrange everyone else first, then put the group into different gaps, counting the two ends as gaps.` },
-    { kind: 'p', text: t`No two men together: ${6} women leave ${7} gaps, and the men fill ${4} of them in ${math`${7} \times ${6} \times ${5} \times ${4}`} ways, so ${math`P = \frac{${6}! \times ${7} \times ${6} \times ${5} \times ${4}}{${10}!} = ${q(1, 6)}`}. If there are more of the group than gaps, the probability is ${0}.` },
-    { kind: 'p', text: t`Ends first: for a woman at each end, choose them (${6} then ${5}), then arrange the other ${8}: ${math`\frac{${6} \times ${5} \times ${8}!}{${10}!} = ${q(1, 3)}`}. Filling the most restricted places first keeps the count a simple product.` },
+    { kind: 'section', title: t`Three kinds of rule` },
+    { kind: 'hook', text: t`${SHELF.red} red books and ${SHELF.blue} blue books, all different, go on a shelf in a random order. What is the chance the blue books end up side by side? That none of them touch? That both ends are red? Listing all ${math`${nShelf}! = ${factorial(nShelf)}`} orders is hopeless. Each question has its own trick.` },
+    { kind: 'narrative', text: t`Mixed STEP ${1} Statistics notes that these questions are on the STEP specification but not in A-level mathematics, so they reward a clear method. There are three, one for each kind of rule: together, apart, and at the ends. Every order of the ${nShelf} books is equally likely, so each probability is a count of good orders over ${math`${nShelf}!`}.` },
+    { kind: 'section', title: t`Kept together: glue them` },
+    { kind: 'narrative', text: t`If the blue books must be side by side, tie them together with string and treat the bundle as one big book. Now there are ${SHELF.red} red books and ${1} bundle, ${SHELF.red + 1} things to arrange. Then untie the bundle: the blue books inside can be in any order.` },
+    {
+      kind: 'theorem',
+      name: t`Block method`,
+      statement: t`Among the ${math`n!`} orders of ${mn} different objects, the number in which ${mk} given objects stand together is ${math`k!\,(n - k + ${1})!`}, for ${math`${1} \le k \le n`}.`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Glue`, text: t`Replace the ${mk} objects by one block. An order with them together is the same as an order of the block and the other ${math`n - k`} objects, together with an order inside the block.`, plain: t`Reading along the shelf, the block is where the ${mk} objects sit, and inside it they come in some order.` },
+        { label: t`Arrange the outside`, text: t`The block and the others are ${math`n - k + ${1}`} different things: ${math`(n - k + ${1})!`} orders.` },
+        { label: t`Arrange the inside`, text: t`The ${mk} objects inside the block: ${math`k!`} orders, whatever the outside order was.` },
+        { label: t`Multiply`, text: t`By the product rule, ${math`k!\,(n - k + ${1})!`} orders. Different choices give different shelves, and every shelf with the ${mk} together arises once.` },
+      ],
+    },
+    { kind: 'p', text: t`This is the [[block-method|block method]]. For the shelf: ${math`\frac{${SHELF.blue}! \times ${SHELF.red + 1}!}{${nShelf}!} = \frac{${factorial(SHELF.blue) * factorial(SHELF.red + 1)}}{${factorial(nShelf)}} = ${pTogether}`}. Mixed STEP ${1} Statistics calls the block a rope around the men.` },
+    checkFrom(together, { n: 6, k: 2 }, t`Glue the two friends: ${5} things in ${math`${5}!`} orders, times ${math`${2}!`} inside, over ${math`${6}!`}: ${math`\frac{${2} \times ${120}}{${720}} = ${q(1, 3)}`}.`),
+    { kind: 'section', title: t`Kept apart: use the gaps` },
+    { kind: 'narrative', text: t`Now no two blue books may touch. Gluing does not help. Instead, put the red books down first, in any order, with space around them: _ R _ R _ R _ R _. There are ${SHELF.red + 1} gaps, counting the two ends. Blue books in different gaps can never touch, and blue books in the same gap always do.` },
+    {
+      kind: 'theorem',
+      name: t`Gap method`,
+      statement: t`Among the orders of ${mw} objects of one kind and ${mm} of another, all different, the number with no two of the ${mm} next to each other is ${math`w! \times (w + ${1})(w)\cdots(w - m + ${2})`}, which is ${0} when ${math`m > w + ${1}`}.`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Place the others`, text: t`Arrange the ${mw} objects: ${math`w!`} orders. They leave ${math`w + ${1}`} gaps: one before each, and one at the end.` },
+        { label: t`Use different gaps`, text: t`No two of the ${mm} are adjacent exactly when they go into ${mm} different gaps, at most one per gap.`, why: { q: t`Why does one per gap guarantee they never touch?`, a: t`Between two different gaps there is at least one of the ${mw} objects, so two objects in different gaps are separated. Two in the same gap would be next to each other.` } },
+        { label: t`Fill the gaps in order`, text: t`The first of the ${mm} has ${math`w + ${1}`} gaps to choose, the next ${math`w`}, and so on: ${math`(w + ${1})(w)\cdots(w - m + ${2})`} ways, ${mm} factors.` },
+        { label: t`Multiply`, text: t`By the product rule, the total is ${math`w!`} times that product. If ${math`m > w + ${1}`}, some factor is ${0}: there are not enough gaps.` },
+      ],
+    },
+    { kind: 'p', text: t`This is the [[gap-method|gap method]]. For the shelf: ${math`${SHELF.red}! \times ${SHELF.red + 1} \times ${SHELF.red} \times ${SHELF.red - 1} = ${factorial(SHELF.red) * apartWays}`} good orders, so the probability is ${math`\frac{${factorial(SHELF.red) * apartWays}}{${factorial(nShelf)}} = ${pApart}`}.` },
+    checkFrom(apart, { w: 5, m: 2 }, t`${5} women leave ${6} gaps. Only the places matter for the probability: the men take ${2} of the ${7} places, ${math`\binom{${7}}{${2}} = ${21}`} ways, and ${math`\binom{${6}}{${2}} = ${15}`} of those use different gaps, so ${q(15, 21)}.`),
+    { kind: 'pitfall', claim: t`"No two blue books together" is the complement of "all blue books together", so its probability is ${math`${1} - ${pTogether}`}.`, counterexample: t`The complement of "all together" is "not all together", which includes shelves with two blue books touching and one apart. The true answer is ${pApart}, not ${math`${1} - ${pTogether} = ${sub(q(1), pTogether)}`}.` },
+    { kind: 'section', title: t`At the ends: fill them first` },
+    { kind: 'narrative', text: t`For a red book at each end, deal with the restricted places before the free ones. The left end takes any of the ${SHELF.red} red books, the right end any of the remaining ${SHELF.red - 1}, and the other ${nShelf - 2} books fill the middle in ${math`${nShelf - 2}!`} ways.` },
+    { kind: 'rule', text: t`${dmath`P(\text{red at both ends}) = \frac{${SHELF.red} \times ${SHELF.red - 1} \times ${nShelf - 2}!}{${nShelf}!} = \frac{${SHELF.red} \times ${SHELF.red - 1}}{${nShelf} \times ${nShelf - 1}} = ${pEnds}.`}` },
+    { kind: 'p', text: t`Filling the most restricted places first keeps the count a simple product, because the free places come last and never run out.` },
+    { kind: 'pitfall', claim: t`With the red books together and the blue books together, the probability is the product of the two separate probabilities.`, counterexample: t`The events are not independent: once the blue books form one block, the red books are already more likely to be together. Mixed STEP ${1} Statistics, question ${3}, asks you to check this with ${6} women and ${4} men.` },
+    { kind: 'takeaway', text: t`Together: glue into a block. Apart: place the others, then use the gaps. Ends: fill the restricted places first.` },
   ],
   examples: [
     workedCambridge(q3vi),
@@ -365,16 +419,25 @@ export const restrictedArrangements: TopicContent = {
   terms: ['block-method', 'gap-method'],
   claims,
   cambridge: [q3iiid, q3iv, q3v, q3vii, q4i, q5i, q5ii, q4ii, q5iii, q3why],
-  gate: [
-    'mixed-q3-iii-d',
-    'mixed-q3-iv',
-    'mixed-q3-v',
-    'mixed-q3-vii',
-    'mixed-q4-i',
-    'mixed-q5-i',
-    'mixed-q5-ii',
-    'mixed-q4-ii',
-    'mixed-q5-iii',
-    'mixed-q3-v-why',
+  // Best first: the full STEP parts in letters (1995 S1 Q12 by gaps with its zero case, 2009
+  // S1 Q13), then the dependence question and the numerical parts. The guided rope count
+  // (Q3(iii)(d)) and the woman at each end (Q3(vii)) are too slight to gate.
+  gate: ['mixed-q5-iii', 'mixed-q4-ii', 'mixed-q4-i', 'mixed-q5-ii', 'mixed-q3-v-why', 'mixed-q5-i', 'mixed-q3-v', 'mixed-q3-iv'],
+  recall: [
+    { front: t`How many orders of ${mn} different objects keep ${mk} given ones together?`, back: t`${math`k!\,(n - k + ${1})!`}: glue them into a block, arrange, then order the block.` },
+    { front: t`How many gaps do ${mw} objects in a line leave, ends included?`, back: t`${math`w + ${1}`}.` },
+    { front: t`How do you keep a group apart?`, back: t`Arrange the others, then put the group in different gaps, one per gap.` },
+    { front: t`Restrictions at the ends?`, back: t`Fill the restricted places first, then the free ones.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The gap method`,
+      steps: [
+        t`Arrange the ${mw} other objects: ${math`w!`} ways.`,
+        t`They leave ${math`w + ${1}`} gaps, the two ends included.`,
+        t`No two of the group touch exactly when they use different gaps.`,
+        t`Fill the gaps one object at a time and multiply.`,
+      ],
+    },
   ],
 };

@@ -8,9 +8,10 @@
 import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, pick, q, str, sub, type Rational } from '../math';
+import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mA, mB, mC] = [math`A`, math`B`, math`C`];
 const fl = (n: number, d: number): number => Math.floor(n / d);
@@ -254,19 +255,89 @@ const derive = supervision({
 // ---------------------------------------------------------------- lesson
 
 const EXN = 100;
+const exSingles = fl(EXN, 2) + fl(EXN, 3) + fl(EXN, 5);
+const exPairs = fl(EXN, 6) + fl(EXN, 10) + fl(EXN, 15);
+const exAns = Number(multiples.at({ n: EXN, a: 2, b: 3, c: 5 }).reference);
+/** How often each sum of the formula counts an outcome that lies in exactly k of the three events. */
+const tally = (k: number): [number, number, number, number] => [choose(k, 1), choose(k, 2), choose(k, 3), choose(k, 1) - choose(k, 2) + choose(k, 3)];
 
 export const inclusionExclusionThree: TopicContent = {
   topicId: 'prob.inclusion-exclusion-three',
   goal: t`Find ${math`P(A \cup B \cup C)`}, or the size of a union of three sets, by adding the singles, subtracting the pairs, and adding back the triple.`,
+  objective: t`Find the probability of a union of three events: add the singles, subtract the pairs, add back the triple.`,
+  why: t`Three overlapping conditions are everywhere in counting; next comes the same formula for any number of events.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`For two events, ${math`P(A \cup B) = P(A) + P(B) - P(A \cap B)`}: adding counts the overlap twice, so take it off once. With three events there are more overlaps to correct.` },
-    { kind: 'rule', text: t`[[inclusion-exclusion|Inclusion-exclusion]] for three events: ${dmath`P(A \cup B \cup C) = P(A) + P(B) + P(C) - P(A \cap B) - P(A \cap C) - P(B \cap C) + P(A \cap B \cap C).`} The same holds for the sizes of three finite sets.` },
-    { kind: 'p', text: t`Why the triple comes back: an outcome in all three events is added three times by the singles and subtracted three times by the pairs, so after two steps it is not counted at all. Adding the triple counts it once. An outcome in exactly two events is added twice and subtracted once; one in exactly one is added once. Every outcome in the union ends up counted exactly once.` },
-    { kind: 'p', text: t`Counting example: how many of ${1} to ${EXN} are divisible by ${2}, ${3}, or ${5}? Singles ${math`${fl(EXN, 2)} + ${fl(EXN, 3)} + ${fl(EXN, 5)} = ${fl(EXN, 2) + fl(EXN, 3) + fl(EXN, 5)}`}; pairs (multiples of ${6}, ${10}, ${15}) ${math`${fl(EXN, 6)} + ${fl(EXN, 10)} + ${fl(EXN, 15)} = ${fl(EXN, 6) + fl(EXN, 10) + fl(EXN, 15)}`}; triple (multiples of ${30}) ${fl(EXN, 30)}. So ${math`${fl(EXN, 2) + fl(EXN, 3) + fl(EXN, 5)} - ${fl(EXN, 6) + fl(EXN, 10) + fl(EXN, 15)} + ${fl(EXN, 30)} = ${Number(multiples.at({ n: EXN, a: 2, b: 3, c: 5 }).reference)}`}.` },
-    { kind: 'p', text: t`IA Probability Example Sheet ${1}, question ${5}, uses the same idea for a region that is not a union: ${math`P(A^{c} \cap (B \cup C))`}, the part of ${math`B \cup C`} outside ${mA}. It is ${math`P(B \cup C) - P(A \cap (B \cup C))`}, and expanding both by inclusion-exclusion gives its formula, ${math`P(B) + P(C) - P(B \cap C) - P(C \cap A) - P(A \cap B) + P(A \cap B \cap C)`}.` },
+    { kind: 'section', title: t`Counting too much` },
+    { kind: 'hook', text: t`How many of the numbers from ${1} to ${EXN} are divisible by ${2}, by ${3}, or by ${5}? Add the three counts and you get ${exSingles}, more numbers than there are. But ${30} is divisible by all three, so it was counted three times. How do you count each number exactly once?` },
+    { kind: 'narrative', text: t`You already know the fix for two events. Adding ${math`P(A)`} and ${math`P(B)`} counts the overlap ${math`A \cap B`} twice, so you take it off once: ${math`P(A \cup B) = P(A) + P(B) - P(A \cap B)`}. With three events there are three overlaps of two and one overlap of all three, and the bookkeeping is more delicate. Let's do it carefully.` },
+    { kind: 'narrative', text: t`A word on notation. ${math`A \cup B`} (read "${mA} union ${mB}") is the event that ${mA} happens or ${mB} happens or both. ${math`A \cap B`} (read "${mA} intersect ${mB}") is the event that both happen. ${math`A^{c}`} is the complement: ${mA} does not happen.` },
+
+    { kind: 'section', title: t`The formula` },
+    { kind: 'theorem', name: t`Inclusion-exclusion for three events`, statement: t`For any events ${mA}, ${mB}, ${mC} in a probability space, ${dmath`\mathbb{P}(A \cup B \cup C) = \mathbb{P}(A) + \mathbb{P}(B) + \mathbb{P}(C) - \mathbb{P}(A \cap B) - \mathbb{P}(A \cap C) - \mathbb{P}(B \cap C) + \mathbb{P}(A \cap B \cap C).`} The same holds with sizes ${math`|A|`} in place of probabilities, for any three finite sets.` },
+    { kind: 'p', text: t`In plain words: this is [[inclusion-exclusion|inclusion-exclusion]]. Add the three singles, subtract the three pairs, add back the one triple. The signs alternate: plus, minus, plus.` },
+    { kind: 'narrative', text: t`The proof needs nothing new. It applies the two-event rule twice, once to glue ${mC} onto ${math`A \cup B`}, and once to deal with the overlap that gluing creates.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Treat ${math`A \cup B`} as one event`, text: t`Let ${math`X = A \cup B`}. Then ${math`A \cup B \cup C = X \cup C`}, and the two-event rule gives`, eq: [dmath`\mathbb{P}(A \cup B \cup C) = \mathbb{P}(X) + \mathbb{P}(C) - \mathbb{P}(X \cap C).`], plain: t`Two events at a time is all we know how to do, so bundle two of them together.` },
+        { label: t`Expand ${math`\mathbb{P}(X)`}`, text: t`By the two-event rule again,`, eq: [dmath`\mathbb{P}(X) = \mathbb{P}(A) + \mathbb{P}(B) - \mathbb{P}(A \cap B).`] },
+        {
+          label: t`Rewrite the overlap`,
+          text: t`By the distributive law,`,
+          eq: [dmath`X \cap C = (A \cup B) \cap C = (A \cap C) \cup (B \cap C).`],
+          plain: t`Being in ${mC} and in ${mA} or ${mB} is the same as being in ${mA} and ${mC}, or in ${mB} and ${mC}.`,
+          why: { q: t`Why is that true?`, a: t`An outcome is in ${math`(A \cup B) \cap C`} exactly when it is in ${mC} and in at least one of ${mA}, ${mB}. If it is in ${mA}, it is in ${math`A \cap C`}; if in ${mB}, it is in ${math`B \cap C`}. Conversely, anything in ${math`A \cap C`} or ${math`B \cap C`} is in ${mC} and in ${mA} or ${mB}. Two sets with the same members are equal.` },
+        },
+        {
+          label: t`Use the two-event rule on the overlap`,
+          text: t`The two pieces ${math`A \cap C`} and ${math`B \cap C`} overlap in ${math`(A \cap C) \cap (B \cap C) = A \cap B \cap C`}, so`,
+          eq: [dmath`\mathbb{P}(X \cap C) = \mathbb{P}(A \cap C) + \mathbb{P}(B \cap C) - \mathbb{P}(A \cap B \cap C).`],
+          why: { q: t`Why is ${math`(A \cap C) \cap (B \cap C)`} just ${math`A \cap B \cap C`}?`, a: t`Being in both pieces means being in ${mA}, in ${mC}, in ${mB}, and in ${mC} again. Saying "in ${mC}" twice adds nothing, so it is being in all three.` },
+        },
+        { label: t`Substitute`, text: t`Put the last two lines into the first. The minus sign in front of ${math`\mathbb{P}(X \cap C)`} flips every sign inside the bracket:`, eq: [dmath`\mathbb{P}(A \cup B \cup C) = \mathbb{P}(A) + \mathbb{P}(B) + \mathbb{P}(C) - \mathbb{P}(A \cap B) - \mathbb{P}(A \cap C) - \mathbb{P}(B \cap C) + \mathbb{P}(A \cap B \cap C).`], plain: t`That is why the triple comes back with a plus: it was subtracted inside a bracket that is itself subtracted.` },
+      ],
+    },
+
+    { kind: 'section', title: t`Why each outcome counts once` },
+    { kind: 'narrative', text: t`The proof is airtight, but it is worth seeing the formula work on a single outcome. Take any outcome in the union and ask how many times each sum counts it. It depends only on how many of the three events contain it: one, two, or all three.` },
+    {
+      kind: 'table',
+      caption: t`How often an outcome is counted, by how many of the events it lies in.`,
+      head: [t`In exactly`, t`Singles add`, t`Pairs subtract`, t`Triple adds`, t`Net count`],
+      rows: [1, 2, 3].map((k) => { const [s, p, tr, net] = tally(k); return [t`${k} of them`, t`${s}`, t`${p}`, t`${tr}`, t`${net}`]; }),
+    },
+    { kind: 'p', text: t`Read the last row slowly. An outcome in all three events is added ${tally(3)[0]} times by the singles, then removed ${tally(3)[1]} times by the pairs (it is in ${math`A \cap B`}, ${math`A \cap C`}, and ${math`B \cap C`}). At that point it is not counted at all. The triple puts it back once. Every row nets to ${1}.`, why: { q: t`Where do those numbers come from?`, a: t`An outcome in exactly ${math`k`} of the events is in ${math`\binom{k}{${1}}`} singles, ${math`\binom{k}{${2}}`} pairs, and ${math`\binom{k}{${3}}`} triples, since a pair containing it is a choice of two of its ${math`k`} events. For ${math`k = ${3}`} that is ${tally(3)[0]}, ${tally(3)[1]}, ${tally(3)[2]}.` } },
+    quickCheck({
+      prompt: t`An outcome lies in ${mA} and ${mB} but not in ${mC}. How many times in total does the right-hand side of the formula count it?`,
+      answer: { kind: 'exact', expected: String(tally(2)[3]) },
+      reference: String(tally(2)[3]),
+      why: t`It is in two singles (added ${tally(2)[0]} times) and one pair, ${math`A \cap B`} (subtracted once), and no triple: ${math`${tally(2)[0]} - ${tally(2)[1]} = ${tally(2)[3]}`}.`,
+    }),
+
+    { kind: 'section', title: t`Counting with it` },
+    { kind: 'narrative', text: t`Back to the opening puzzle. Let ${mA}, ${mB}, ${mC} be the sets of numbers from ${1} to ${EXN} divisible by ${2}, by ${3}, and by ${5}. The formula for sizes needs seven counts.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Singles`, text: t`The multiples of ${2} up to ${EXN} are ${2}, ${4}, and so on up to ${EXN}: there are ${math`\lfloor ${EXN}/${2} \rfloor = ${fl(EXN, 2)}`} of them. Likewise ${fl(EXN, 3)} multiples of ${3} and ${fl(EXN, 5)} of ${5}.`, eq: [dmath`|A| + |B| + |C| = ${fl(EXN, 2)} + ${fl(EXN, 3)} + ${fl(EXN, 5)} = ${exSingles}.`], why: { q: t`What does ${math`\lfloor x \rfloor`} mean?`, a: t`The floor of ${math`x`}: the largest whole number not above ${math`x`}. For example ${math`\lfloor ${EXN}/${3} \rfloor = ${fl(EXN, 3)}`}, because ${math`${3} \times ${fl(EXN, 3)} = ${3 * fl(EXN, 3)}`} is the last multiple of ${3} not above ${EXN}.` } },
+        { label: t`Pairs`, text: t`Divisible by both ${2} and ${3} means divisible by ${6}; likewise ${10} for ${2} and ${5}, and ${15} for ${3} and ${5}.`, eq: [dmath`|A \cap B| + |A \cap C| + |B \cap C| = ${fl(EXN, 6)} + ${fl(EXN, 10)} + ${fl(EXN, 15)} = ${exPairs}.`], why: { q: t`Why does divisible by ${2} and ${3} mean divisible by ${6}?`, a: t`Because ${2} and ${3} share no factor, a number divisible by both is divisible by their product. In general it is divisible by their least common multiple: by ${4} and ${6} means by ${12}, not ${24}.` } },
+        { label: t`Triple`, text: t`Divisible by all three means divisible by ${30}: ${math`\lfloor ${EXN}/${30} \rfloor = ${fl(EXN, 30)}`}.` },
+        { label: t`Combine`, text: t`Singles minus pairs plus triple:`, eq: [dmath`${exSingles} - ${exPairs} + ${fl(EXN, 30)} = ${exAns}.`], plain: t`So ${exAns} of the first ${EXN} numbers have at least one of ${2}, ${3}, ${5} as a factor.` },
+      ],
+    },
+    checkFrom(multiples, { n: 200, a: 2, b: 3, c: 7 }, t`Singles ${fl(200, 2) + fl(200, 3) + fl(200, 7)}, pairs (multiples of ${6}, ${14}, ${21}) ${fl(200, 6) + fl(200, 14) + fl(200, 21)}, triple (multiples of ${42}) ${fl(200, 42)}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`Inclusion-exclusion for three events is singles minus pairs, with nothing more.`, counterexample: t`Take ${math`A = B = C = \Omega`}, the whole sample space. The union has probability ${1}, but singles minus pairs is ${math`${3} - ${3} = ${0}`}. The triple, ${1}, is what restores the right answer.` },
+    { kind: 'pitfall', claim: t`The triple is subtracted, since it is an overlap like the pairs.`, counterexample: t`With ${math`A = B = C = \Omega`} again, that gives ${math`${3} - ${3} - ${1} = -${1}`}, a negative probability. The signs alternate: plus for singles, minus for pairs, plus for the triple.` },
+    { kind: 'pitfall', claim: t`Divisible by ${4} and by ${6} means divisible by ${24}.`, counterexample: t`${12} is divisible by both and not by ${24}. Use the least common multiple, ${12}, not the product, when the numbers share a factor.` },
+    { kind: 'narrative', text: t`The Cambridge question below, from IA Probability Example Sheet ${1}, asks for a region that is not a union at all: numbers divisible by ${3} or ${5} but not by ${7}. The trick is to count the union, then remove the part you do not want, using inclusion-exclusion for each count.` },
+    { kind: 'takeaway', text: t`For three events: add the singles, subtract the pairs, add back the triple, so every outcome is counted exactly once.` },
   ],
   examples: [
-    workedCambridge(iaQ5b),
+    { ...workedCambridge(iaQ5b), examiner: t`The examiner looks for named events, the formula stated before the numbers, and multiples of the least common multiple for each overlap.` },
     worked(unionThree, { d: 20, r: [3, 2, 4, 1, 2, 1, 1, 6] }, t`Three events`),
     worked(survey, { total: 60, s: [25, 20, 18], pr: [8, 6, 5], all: 3 }, t`Students studying none`),
   ],
@@ -274,5 +345,20 @@ export const inclusionExclusionThree: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inclusion-exclusion'],
   cambridge: [iaQ5bAny, iaQ5aNum, iaQ5a, derive],
-  gate: ['ia-q5-b-any', 'ia-q5-a-numbers', 'ia-q5-a', 'ia-q5-three'],
+  // The sheet's own proof first; the plug-in with numbers is drill, not a Cambridge-standard test.
+  gate: ['ia-q5-a', 'ia-q5-b-any', 'ia-q5-three'],
+  recall: [
+    { front: t`State inclusion-exclusion for three events.`, back: t`${math`\mathbb{P}(A \cup B \cup C) = \sum \mathbb{P}(A) - \sum \mathbb{P}(A \cap B) + \mathbb{P}(A \cap B \cap C)`}: singles, minus pairs, plus the triple.` },
+    { front: t`Why is the triple added back?`, back: t`An outcome in all three is added ${3} times by the singles and removed ${3} times by the pairs; the triple counts it once.` },
+  ],
+  proofOrder: [{
+    title: t`Inclusion-exclusion for three events, from the two-event rule`,
+    steps: [
+      t`Let ${math`X = A \cup B`}, so ${math`\mathbb{P}(X \cup C) = \mathbb{P}(X) + \mathbb{P}(C) - \mathbb{P}(X \cap C)`}.`,
+      t`Expand ${math`\mathbb{P}(X) = \mathbb{P}(A) + \mathbb{P}(B) - \mathbb{P}(A \cap B)`}.`,
+      t`Write ${math`X \cap C = (A \cap C) \cup (B \cap C)`}.`,
+      t`So ${math`\mathbb{P}(X \cap C) = \mathbb{P}(A \cap C) + \mathbb{P}(B \cap C) - \mathbb{P}(A \cap B \cap C)`}.`,
+      t`Substitute: the subtracted bracket turns the triple's sign to plus.`,
+    ],
+  }],
 };

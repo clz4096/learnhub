@@ -12,7 +12,7 @@ import { factorial, int, pick, q, str, sub } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
 import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mn, mk] = [math`n`, math`k`];
 const falling = (n: number, k: number): number => { let p = 1; for (let i = 0; i < k; i++) p *= n - i; return p; };
@@ -230,17 +230,56 @@ const q12why = supervision({
 
 const claims: ProbabilityClaim[] = [
   { what: 'three balls into three boxes: exactly one box empty', exact: q(2, 3), trial: (rng) => new Set(throwBalls(3, 3, rng)).size === 2 },
+  { what: 'two balls into two boxes: one in each', exact: q(1, 2), trial: (rng) => new Set(throwBalls(2, 2, rng)).size === 2 },
 ];
+const ICE = { n: 3, k: 2 };
 
 export const samplingModels: TopicContent = {
   topicId: 'prob.sampling-models',
   goal: t`Count samples of size ${mk} from ${mn} in the four models, ordered or not and with or without replacement, and use the model whose outcomes are equally likely.`,
+  objective: t`Count samples in the four sampling models and pick the one whose outcomes are equally likely.`,
+  why: t`Most probability counting reduces to one of these four counts; choosing the wrong one is the classic error.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`Choosing ${mk} things from ${mn} can mean four different things, depending on whether order matters and whether a thing can be chosen again. IA Probability calls them the four [[sampling-model|sampling models]].` },
+    { kind: 'section', title: t`Choose two from three` },
+    { kind: 'hook', text: t`"Choose ${ICE.k} from ${ICE.n}." How many ways? A code of ${ICE.k} symbols from ${ICE.n} has ${ICE.n ** ICE.k}. Gold and silver medals for ${ICE.n} runners: ${falling(ICE.n, ICE.k)}. A committee of ${ICE.k} from ${ICE.n} people: ${choose(ICE.n, ICE.k)}. Two scoops from ${ICE.n} flavours: ${choose(ICE.n + ICE.k - 1, ICE.k)}. Same words, four answers. What changed?` },
+    { kind: 'narrative', text: t`Two questions decide it. Does order matter (is gold then silver different from silver then gold)? And can the same thing be chosen twice (can a symbol repeat, can both scoops be vanilla)? Two yes or no questions give four models, and IA Probability names them.` },
+    { kind: 'section', title: t`The four models` },
+    {
+      kind: 'definition',
+      name: t`Sampling models`,
+      formal: t`A sample of size ${mk} from ${math`[n] = \{${1}, \ldots, n\}`} is: ordered with replacement, a sequence ${math`(x_{${1}}, \ldots, x_{k}) \in [n]^{k}`}; ordered without replacement, such a sequence with distinct entries; unordered without replacement, a subset of ${math`[n]`} of size ${mk}; unordered with replacement, a multiset of size ${mk} from ${math`[n]`}.`,
+      plain: t`In plain words: the four [[sampling-model|sampling models]]. Codes, medals, committees and ice-cream orders, in that order. A multiset is a collection where repeats count but order does not: vanilla, vanilla, chocolate.`,
+    },
+    {
+      kind: 'theorem',
+      statement: t`For ${math`${1} \le k \le n`}, the numbers of samples of size ${mk} from ${mn} are as in the table.`,
+    },
     { kind: 'table', caption: t`Samples of size ${mk} from ${mn}`, head: [t``, t`with replacement`, t`without replacement`], rows: [[t`ordered`, t`${math`n^{k}`}`, t`${math`n(n - ${1})\cdots(n - k + ${1})`}`], [t`unordered`, t`${math`\binom{n + k - ${1}}{k}`}`, t`${math`\binom{n}{k}`}`]] },
-    { kind: 'p', text: t`The unordered count with replacement is the [[stars-and-bars|stars and bars]] count: a multiset of ${mk} items from ${mn} kinds is a row of ${mk} stars and ${math`n - ${1}`} bars, so ${math`\binom{n + k - ${1}}{k}`}. For ${math`n = ${3}`} flavours and ${math`k = ${2}`} scoops, ${choose(4, 2)} orders.` },
-    { kind: 'p', text: t`For probability, counting is not enough: the outcomes must be equally likely. When balls are tossed independently and at random, label them: the ${math`n^{k}`} ordered placements are equally likely, the unordered ones are not. Two balls in two boxes: "one in each" happens ${2} ways out of ${4}, not ${1} out of ${3}.` },
-    { kind: 'p', text: t`Sheet ${1} Q${12}: ${mn} balls into ${mn} boxes, exactly one box empty, has probability ${math`\binom{n}{${2}} n! / n^{n}`}, which is ${q(1, 2)} for ${math`n = ${2}`} and ${q(2, 3)} for ${math`n = ${3}`}. Q${13} is the exception that proves the rule: there the non-decreasing functions themselves are the equally likely outcomes, so the unordered count is the right denominator.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Ordered, with replacement`, text: t`Each of the ${mk} entries has ${mn} choices whatever the others are: ${math`n^{k}`} by the product rule.` },
+        { label: t`Ordered, without replacement`, text: t`The first entry has ${mn} choices, the second ${math`n - ${1}`} (any but the first), down to ${math`n - k + ${1}`} for the last.` },
+        { label: t`Unordered, without replacement`, text: t`Each subset of size ${mk} can be listed in ${math`k!`} orders, each an ordered sample without replacement, and each ordered sample arises from exactly one subset. So the count is ${math`\frac{n(n - ${1})\cdots(n - k + ${1})}{k!} = \binom{n}{k}`}.` },
+        { label: t`Unordered, with replacement`, text: t`Record a multiset as a row of ${mk} stars and ${math`n - ${1}`} bars: the stars before the first bar are copies of ${1}, those between the first and second bars are copies of ${2}, and so on. This matches multisets one to one with rows, and a row is fixed by which ${mk} of its ${math`n + k - ${1}`} places hold stars: ${math`\binom{n + k - ${1}}{k}`}.`, why: { q: t`Can you show the star and bar picture with numbers?`, a: t`With ${3} flavours and ${2} scoops, "vanilla, chocolate" (flavours ${1} and ${2}) is star, bar, star, bar; "chocolate, chocolate" is bar, star, star, bar. Rows of ${2} stars and ${2} bars: ${math`\binom{${4}}{${2}} = ${choose(4, 2)}`}.` } },
+      ],
+    },
+    { kind: 'p', text: t`The last count is called [[stars-and-bars|stars and bars]]. For the hook, ${math`n = ${ICE.n}`} and ${math`k = ${ICE.k}`} give ${ICE.n ** ICE.k}, ${falling(ICE.n, ICE.k)}, ${choose(ICE.n, ICE.k)} and ${choose(ICE.n + ICE.k - 1, ICE.k)}.` },
+    checkFrom(fourModels, { c: 2, n: 6, k: 3 }, t`A committee is unordered and nobody is chosen twice: ${math`\binom{${6}}{${3}} = ${choose(6, 3)}`}.`),
+    { kind: 'section', title: t`Which outcomes are equally likely?` },
+    { kind: 'narrative', text: t`Counting is not yet probability. To divide favourable by total, the outcomes you count must be equally likely, and that depends on how the sample is made, not on how you choose to describe it.` },
+    { kind: 'narrative', text: t`Toss ${2} balls at random into ${2} boxes. Described without labels there are ${3} results: both in box ${1}, both in box ${2}, one in each. Are they each ${q(1, 3)}? Label the balls A and B. Now there are ${4} outcomes, each with probability ${math`\frac{${1}}{${2}} \times \frac{${1}}{${2}} = ${q(1, 4)}`}, and "one in each" is ${2} of them: A in box ${1} with B in box ${2}, or the other way round. So it has probability ${q(1, 2)}, not ${q(1, 3)}.` },
+    {
+      kind: 'theorem',
+      statement: t`If ${mk} balls are tossed independently, each into one of ${mn} boxes chosen uniformly at random, then each of the ${math`n^{k}`} ordered placements has probability ${math`n^{-k}`}.`,
+    },
+    { kind: 'p', text: t`It is the product of ${mk} independent factors of ${math`\frac{${1}}{n}`}. So for balls tossed at random, label them and count ordered samples, even if the question only asks about how many balls are in each box. IA Probability Sheet ${1}, question ${12}, is exactly this: ${mn} balls into ${mn} boxes, exactly one box empty.` },
+    checkFrom(allDifferent, { n: 5, k: 2 }, t`Ordered outcomes: ${math`${5}^{${2}} = ${25}`}. Different boxes: ${math`${5} \times ${4} = ${20}`}. So ${q(20, 25)}.`),
+    { kind: 'pitfall', claim: t`Two balls in two boxes give ${3} placements by stars and bars, so "one in each" has probability ${q(1, 3)}.`, counterexample: t`The ${3} unordered placements are not equally likely. With labelled balls, "one in each" is ${2} of ${4} equally likely outcomes: ${q(1, 2)}.` },
+    { kind: 'p', text: t`The model must match the experiment, so occasionally the unordered count is right. Sheet ${1}, question ${13}, picks a random non-decreasing function, every such function equally likely. There the unordered samples with replacement are the outcomes, and ${math`\binom{n + k - ${1}}{k}`} is the correct denominator.` },
+    { kind: 'takeaway', text: t`Decide whether order matters and whether repeats are allowed to pick the count; for probability, count the outcomes that are equally likely, usually with labels.` },
   ],
   examples: [
     workedCambridge(q12),
@@ -252,5 +291,24 @@ export const samplingModels: TopicContent = {
   terms: ['sampling-model', 'stars-and-bars'],
   claims,
   cambridge: [q12four, q13auto, q13why, q12why],
-  gate: ['ia-q12-four', 'ia-q13', 'ia-q13-bijection', 'ia-q12-model'],
+  // Best first: the bijection proof for non-decreasing functions, its probability, then the
+  // explanation of which model is equally likely. Four balls into four boxes is the worked
+  // formula with a number put in, so it does not gate.
+  gate: ['ia-q13-bijection', 'ia-q13', 'ia-q12-model'],
+  recall: [
+    { front: t`Ordered samples of size ${mk} from ${mn}, with and without replacement?`, back: t`${math`n^{k}`} and ${math`n(n - ${1})\cdots(n - k + ${1})`}.` },
+    { front: t`Unordered samples, without and with replacement?`, back: t`${math`\binom{n}{k}`} and ${math`\binom{n + k - ${1}}{k}`}.` },
+    { front: t`Balls tossed at random into boxes: which outcomes are equally likely?`, back: t`The ${math`n^{k}`} ordered placements of labelled balls.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Stars and bars`,
+      steps: [
+        t`Write a multiset of size ${mk} from ${mn} kinds as ${mk} stars and ${math`n - ${1}`} bars.`,
+        t`Stars between consecutive bars count copies of one kind.`,
+        t`This matches multisets one to one with rows.`,
+        t`A row is fixed by the places of its ${mk} stars among ${math`n + k - ${1}`}: ${math`\binom{n + k - ${1}}{k}`}.`,
+      ],
+    },
+  ],
 };

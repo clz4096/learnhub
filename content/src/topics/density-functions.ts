@@ -11,7 +11,7 @@ import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../mat
 import { near, powQ, pw, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
 import { math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mf, mx, mX] = [math`f`, math`x`, math`X`];
 const S2 = 'step-s2-stats' as const;
@@ -283,21 +283,75 @@ const claims: ProbabilityClaim[] = [
   { what: 'P(1 ≤ X ≤ 2) for the density x²/9 on [0, 3]', exact: P12, trial: (rng) => { const x = 3 * rng() ** (1 / 3); return x >= 1 && x <= 2; } },
 ];
 
+const [ma, mb, mh] = [math`a`, math`b`, math`h`];
+const UNI = { a: 2, b: 6, lo: 3, hi: 4 };
+
 export const densityFunctions: TopicContent = {
   topicId: 'rv.pdf',
   goal: t`Find probabilities as areas under a density ${mf}, fix an unknown constant from ${math`\int_{-\infty}^{\infty} f(x)\,dx = ${1}`}, and pass between ${mf} and the distribution function ${math`F`}.`,
+  objective: t`Find probabilities as areas under a density, fix its constant, and move between ${mf} and ${math`F`}.`,
+  why: t`Continuous models are everywhere in statistics; next come means and medians of densities and the cdf method.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`A [[continuous-random-variable|continuous random variable]] takes every value in an interval: a height, a waiting time, the point where a stick breaks. Any one exact value has probability ${0}, so probability belongs to intervals, and it is measured as area under a curve.` },
-    { kind: 'rule', text: t`A [[density-function|probability density function]] ${mf} has ${math`f(x) \ge ${0}`} and ${math`\int_{-\infty}^{\infty} f(x)\,dx = ${1}`}, and then ${math`P(a \le X \le b) = \int_{a}^{b} f(x)\,dx`}.` },
-    { kind: 'p', text: t`Because single points carry no probability, ${math`P(a \le X \le b)`} and ${math`P(a < X < b)`} are equal. And ${math`f(x)`} is not itself a probability: it may exceed ${1}. It is probability per unit length, since ${math`P(x \le X \le x + h) \approx f(x)\,h`} for small ${math`h`}.` },
-    { kind: 'p', text: t`Where ${mf} is zero the limits shrink. If ${math`f(x) = c\,x^{${2}}`} for ${math`${0} \le x \le ${3}`} and ${0} otherwise, the total area is ${math`\int_{${0}}^{${3}} c\,x^{${2}}\,dx = ${9}c`}, so ${math`c = ${C9}`}. Then ${math`P(${1} \le X \le ${2}) = \frac{${8} - ${1}}{${27}} = ${P12}`}.` },
-    { kind: 'rule', text: t`The [[cumulative-distribution-function|distribution function]] is ${math`F(x) = P(X \le x) = \int_{-\infty}^{x} f(t)\,dt`}, and ${math`f = F'`} wherever ${mf} is continuous.` },
-    { kind: 'p', text: t`The letter ${math`t`} inside the integral is a dummy variable, because ${mx} is already the upper limit. For the example, ${math`F(x) = x^{${3}} / ${27}`} on ${math`[${0}, ${3}]`}, with ${math`F = ${0}`} below and ${math`F = ${1}`} above, and ${math`P(${1} \le X \le ${2}) = F(${2}) - F(${1})`}: no integral is needed once ${math`F`} is known.` },
-    { kind: 'p', text: t`The simplest density is constant. ${mX} has the [[uniform-distribution|uniform distribution]] ${math`U(a, b)`} when ${math`f(x) = \frac{${1}}{b - a}`} on ${math`[a, b]`}: the probability of a subinterval is its share of the length, and ${math`F(x) = \frac{x - a}{b - a}`} there.` },
-    { kind: 'p', text: t`STEP ${2} Statistics Q${2} builds a density from three pieces, ${math`\ln x`}, the constant ${math`\ln k`}, and a line ${math`a - bx`}, and says it is continuous. Continuity makes the pieces meet at ${math`${2}k`} and ${math`${4}k`}, which gives ${math`a`} and ${math`b`} in terms of ${math`k`}; total area ${1} then fixes ${math`k`}. The worked example below does it.` },
+    { kind: 'section', title: t`Probability as area` },
+    { kind: 'hook', text: t`Break a stick at a random point. What is the chance it breaks exactly at the middle? Every point is as likely as every other, and there are infinitely many, so the chance of any one exact point must be ${0}. Yet it certainly breaks somewhere. Probability for such quantities has to live on intervals, not points.` },
+    {
+      kind: 'definition',
+      name: t`Density`,
+      formal: t`A random variable ${mX} is a [[continuous-random-variable|continuous random variable]] with [[density-function|probability density function]] ${mf} if ${math`f(x) \ge ${0}`} for all ${mx}, ${math`\int_{-\infty}^{\infty} f(x)\,dx = ${1}`}, and ${math`P(a \le X \le b) = \int_{a}^{b} f(x)\,dx`} for all ${math`a \le b`}.`,
+      plain: t`the probability of an interval is the area under the curve ${math`y = f(x)`} over that interval, and the whole area is ${1}.`,
+    },
+    {
+      kind: 'p',
+      text: t`${math`f(x)`} is not itself a probability: it may exceed ${1}. It is probability per unit length, since ${math`P(x \le X \le x + h) \approx f(x)\,h`} for small ${mh}.`,
+      why: { q: t`How can a density exceed ${1}?`, a: t`Only area must be at most ${1}. A density of height ${4} on an interval of length ${q(1, 4)} has area ${1}: it is ${math`U(${0}, ${q(1, 4)})`}, a perfectly good distribution.` },
+    },
+    { kind: 'theorem', statement: t`If ${mX} has a density, then ${math`P(X = a) = ${0}`} for every real ${ma}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Trap the point`, text: t`For every ${math`h > ${0}`}, the event ${math`\{X = a\}`} lies inside ${math`\{a \le X \le a + h\}`}, so ${math`P(X = a) \le \int_{a}^{a + h} f(x)\,dx`}.`, plain: t`A smaller event has no more probability than a larger one containing it.` },
+        { label: t`Shrink the interval`, text: t`As ${math`h \to ${0}`}, ${math`\int_{a}^{a + h} f(x)\,dx \to ${0}`}.`, plain: t`The area of a strip whose width shrinks to nothing shrinks to nothing.`, why: { q: t`Why does the strip's area go to ${0}?`, a: t`If ${math`f \le M`} near ${ma}, the area is at most ${math`Mh`}, which tends to ${0}. In general, an integral depends continuously on its limits.` } },
+        { label: t`Conclude`, text: t`${math`P(X = a)`} is at most every one of these areas, and they tend to ${0}, so ${math`P(X = a) = ${0}`}.`, plain: t`A number that is at least ${0} and below every positive number is ${0}.` },
+      ],
+    },
+    { kind: 'p', text: t`So with a density, ${math`P(a \le X \le b)`}, ${math`P(a < X \le b)`}, and ${math`P(a < X < b)`} are all equal: the end points carry no probability.` },
+    { kind: 'section', title: t`Fixing the constant` },
+    { kind: 'narrative', text: t`A density is often given up to a constant, and the condition "total area ${1}" pins it down. Where ${mf} is zero, the limits of integration shrink to where it is not.` },
+    { kind: 'p', text: t`If ${math`f(x) = c\,x^{${2}}`} for ${math`${0} \le x \le ${3}`} and ${0} otherwise, the total area is ${math`\int_{${0}}^{${3}} c\,x^{${2}}\,dx = c \left[\frac{x^{${3}}}{${3}}\right]_{${0}}^{${3}} = ${9}c`}, so ${math`c = ${C9}`}. Then ${math`P(${1} \le X \le ${2}) = \int_{${1}}^{${2}} \frac{x^{${2}}}{${9}}\,dx = \frac{${8} - ${1}}{${27}} = ${P12}`}.` },
+    quickCheck({
+      prompt: t`${math`f(x) = c\,x`} for ${math`${0} \le x \le ${2}`}, and ${0} otherwise. Find ${math`c`}.`,
+      answer: { kind: 'exact', expected: str(q(1, 2)) },
+      reference: str(q(1, 2)),
+      why: t`${math`\int_{${0}}^{${2}} c\,x\,dx = c \cdot \frac{${2}^{${2}}}{${2}} = ${2}c = ${1}`}, so ${math`c = ${q(1, 2)}`}.`,
+    }),
+    {
+      kind: 'pitfall',
+      claim: t`Any function that integrates to ${1} is a density.`,
+      counterexample: t`${math`f(x) = ${4}x - ${1}`} on ${math`[${0}, ${1}]`}, and ${0} elsewhere, has area ${math`\left[${2}x^{${2}} - x\right]_{${0}}^{${1}} = ${1}`}, but it is negative for ${math`x < ${q(1, 4)}`}, which would give the interval ${math`[${0}, ${q(1, 4)}]`} a negative probability. A density must also satisfy ${math`f \ge ${0}`}.`,
+    },
+    { kind: 'section', title: t`The distribution function` },
+    {
+      kind: 'definition',
+      name: t`Distribution function`,
+      formal: t`The [[cumulative-distribution-function|distribution function]] of ${mX} is ${math`F(x) = P(X \le x) = \int_{-\infty}^{x} f(t)\,dt`}. Then ${math`f = F'`} wherever ${mf} is continuous.`,
+      plain: t`the area to the left of ${mx}. The letter ${math`t`} inside the integral is a dummy variable, because ${mx} is already the upper limit.`,
+    },
+    {
+      kind: 'p',
+      text: t`For the example, ${math`F(x) = \frac{x^{${3}}}{${27}}`} on ${math`[${0}, ${3}]`}, with ${math`F = ${0}`} below and ${math`F = ${1}`} above. Then ${math`P(${1} \le X \le ${2}) = F(${2}) - F(${1})`}: no integral is needed once ${math`F`} is known.`,
+      why: { q: t`Why is ${math`f = F'`}?`, a: t`${math`F`} is an integral of ${mf} with variable upper limit, so by the fundamental theorem of calculus its derivative is ${mf}, at every point where ${mf} is continuous.` },
+    },
+    {
+      kind: 'p',
+      text: t`The simplest density is constant. ${mX} has the [[uniform-distribution|uniform distribution]] ${math`U(a, b)`} when ${math`f(x) = \frac{${1}}{b - a}`} on ${math`[a, b]`}. The probability of a subinterval is its share of the length: for ${math`U(${UNI.a}, ${UNI.b})`}, ${math`P(${UNI.lo} \le X \le ${UNI.hi}) = \frac{${UNI.hi - UNI.lo}}{${UNI.b - UNI.a}} = ${q(UNI.hi - UNI.lo, UNI.b - UNI.a)}`}.`,
+    },
+    { kind: 'p', text: t`STEP ${2} Statistics Q${2}, worked below, builds a density from three pieces and says it is continuous. Continuity makes the pieces meet, which ties the constants together; total area ${1} then fixes them.` },
+    { kind: 'takeaway', text: t`A density is ${math`f \ge ${0}`} with total area ${1}; probabilities are areas, single points have probability ${0}, and ${math`F(x) = \int_{-\infty}^{x} f`} with ${math`f = F'`}.` },
   ],
   examples: [
-    workedCambridge(q2k),
+    { ...workedCambridge(q2k), examiner: t`Continuity used at each join to link the constants, the total area split into the three pieces and set equal to ${1}, and ${math`k`} solved exactly before any decimals.` },
     worked(normalising, { n: 2, m: 3 }, t`The constant for ${math`c\,x^{${2}}`} on ${math`[${0}, ${3}]`}`),
     worked(stepDensity, { k: q(1, 2), b: q(1, 2) }, t`The second step of a step density`),
   ],
@@ -306,5 +360,24 @@ export const densityFunctions: TopicContent = {
   terms: ['continuous-random-variable', 'density-function', 'cumulative-distribution-function', 'uniform-distribution'],
   claims,
   cambridge: [q2a, q2b, q2bk, q2sketch, q6stem],
-  gate: ['s2-q2-ii-a', 's2-q2-ii-b', 's2-q2-ii-b-in-k', 's2-q2-i', 's2-q6-stem'],
+  // STEP 2 Statistics: Q6's proof first, then the parts of Q2 that need continuity and the total area.
+  // Q2's value of a is one step from the worked value of k, left out.
+  gate: ['s2-q6-stem', 's2-q2-ii-b', 's2-q2-ii-b-in-k', 's2-q2-i'],
+  recall: [
+    { front: t`What makes ${mf} a density?`, back: t`${math`f \ge ${0}`} and ${math`\int_{-\infty}^{\infty} f(x)\,dx = ${1}`}.` },
+    { front: t`${math`P(a \le X \le b)`} from a density?`, back: t`${math`\int_{a}^{b} f(x)\,dx = F(b) - F(a)`}.` },
+    { front: t`${math`P(X = a)`} for a continuous random variable?`, back: t`${0}.` },
+    { front: t`How are ${mf} and ${math`F`} related?`, back: t`${math`F(x) = \int_{-\infty}^{x} f(t)\,dt`}, and ${math`f = F'`} where ${mf} is continuous.` },
+  ],
+  proofOrder: [
+    {
+      title: t`A single point has probability ${0}`,
+      steps: [
+        t`${math`\{X = a\} \subseteq \{a \le X \le a + h\}`} for every ${math`h > ${0}`}.`,
+        t`So ${math`P(X = a) \le \int_{a}^{a + h} f(x)\,dx`}.`,
+        t`That area tends to ${0} as ${math`h \to ${0}`}.`,
+        t`So ${math`P(X = a) = ${0}`}.`,
+      ],
+    },
+  ],
 };

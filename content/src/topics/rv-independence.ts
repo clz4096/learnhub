@@ -13,8 +13,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, draw, expect, permutations, type Dist } from '../partv-c';
-import { computedTex, listOf, math, t, texOfRational, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { computedTex, dmath, listOf, math, t, texOfRational, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S2 = 'ia-prob-sheet-2' as const;
 const probsTex = (d: Dist) => computedTex(d.ps.map(texOfRational).join(', '));
@@ -336,33 +336,60 @@ const q7order = supervision({
 // ---------------------------------------------------------------- lesson
 
 const UNCORR: Dist = { xs: [-1, 0, 1], ps: [q(1, 3), q(1, 3), q(1, 3)] };
-const randomRanking = (rng: Rng, n: number): number[] => {
-  const a = Array.from({ length: n }, (_, i) => i + 1);
-  for (let i = n - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j] as number, a[i] as number]; }
-  return a;
-};
 const claims: ProbabilityClaim[] = [
-  {
-    what: `Sheet 2 Q12, n = ${RN}: years ${RA} and ${RB} both records`,
-    exact: q(1, RA * RB),
-    trial: (rng) => {
-      const a = randomRanking(rng, RN);
-      const rec = (k: number): boolean => a.slice(0, k - 1).every((x) => x > (a[k - 1] as number));
-      return rec(RA) && rec(RB);
-    },
-  },
+  { what: 'X uniform on {-1, 0, 1} and Y = X^2: X = 0 and Y = 0', exact: q(1, 3), trial: (rng) => { const x = Math.floor(rng() * 3) - 1; return x === 0 && x * x === 0; } },
+  { what: 'two fair dice: the first shows 6 and the total is 12', exact: q(1, 36), trial: (rng) => { const a = 1 + Math.floor(rng() * 6); const b = 1 + Math.floor(rng() * 6); return a === 6 && a + b === 12; } },
 ];
+const [mX, mY] = [math`X`, math`Y`];
 
 export const rvIndependence: TopicContent = {
   topicId: 'rv.independence',
   goal: t`Decide when random variables are independent, and use ${math`\mathbb{P}(X = x, Y = y) = \mathbb{P}(X = x)\mathbb{P}(Y = y)`} and ${math`\mathbb{E}(XY) = \mathbb{E}(X)\mathbb{E}(Y)`}.`,
+  objective: t`Decide when random variables are independent, and use the product rules that independence gives.`,
+  why: t`Independence makes sums, maxima and products computable; variance of sums and the law of large numbers rely on it.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`Independence of events says one tells you nothing about the other. For random variables the same must hold for every pair of values at once.` },
-    { kind: 'rule', text: t`Discrete random variables ${math`X`} and ${math`Y`} are [[independent-random-variables|independent]] if ${math`\mathbb{P}(X = x, Y = y) = \mathbb{P}(X = x)\,\mathbb{P}(Y = y)`} for all ${math`x`} and ${math`y`}. Then ${math`\{X \in A\}`} and ${math`\{Y \in B\}`} are independent events for all sets ${math`A, B`}, and ${math`f(X)`} and ${math`g(Y)`} are independent for any functions ${math`f, g`}. Several variables are independent when the joint probabilities of all of them factorise, and a sequence of independent variables with one distribution is [[iid|i.i.d.]]` },
-    { kind: 'rule', text: t`If ${math`X`} and ${math`Y`} are independent with finite means, ${math`\mathbb{E}(XY) = \mathbb{E}(X)\,\mathbb{E}(Y)`}: the double sum ${math`\sum_{x, y} xy\,\mathbb{P}(X = x)\mathbb{P}(Y = y)`} factorises.` },
-    { kind: 'p', text: t`The converse is false. Let ${math`X`} be uniform on ${listOf(UNCORR.xs)} and ${math`Y = X^{${2}}`}. Then ${math`\mathbb{E}(XY) = \mathbb{E}(X^{${3}}) = ${expect(UNCORR, (x) => q(x * x * x))} = \mathbb{E}(X)\mathbb{E}(Y)`}, yet ${math`\mathbb{P}(X = ${0}, Y = ${0}) = ${q(1, 3)}`} while ${math`\mathbb{P}(X = ${0})\mathbb{P}(Y = ${0}) = ${q(1, 9)}`}: ${math`Y`} is a function of ${math`X`}.` },
-    { kind: 'p', text: t`Independence limits what a small space can hold. On ${math`\{${0}, ${1}\}^{${3}}`} with equally likely outcomes the three coordinates are independent fair bits, but four are impossible: they would need ${16} patterns of probability ${q(1, 16)}, and every event has probability a multiple of ${q(1, 8)} (Sheet ${2} Q${5}(c)).` },
-    { kind: 'p', text: t`Independence can hide in a symmetric setup. For a uniformly random ranking of ${math`n`} years, year ${math`k`} is a record (lowest so far) with probability ${math`${1}/k`}, and the record indicators are independent (Sheet ${2} Q${12}): years ${RA} and ${RB} are both records among ${RN} with probability ${q(1, RA * RB)}.` },
+    { kind: 'section', title: t`Telling you nothing` },
+    { kind: 'hook', text: t`Throw a red die and a blue die. Being told the red one shows ${6} tells you nothing about the blue one. Being told it tells you a lot about the total: the total is now at least ${7}. What exactly is the difference between those two situations?` },
+    { kind: 'narrative', text: t`For events you already have an answer: ${math`A`} and ${math`B`} are independent when ${math`\mathbb{P}(A \cap B) = \mathbb{P}(A)\mathbb{P}(B)`}. A random variable carries a whole family of events, one for each value it can take. Independence of random variables asks for the product rule for every pair of values at once.` },
+    { kind: 'section', title: t`The definition` },
+    {
+      kind: 'definition',
+      name: t`Independent random variables`,
+      formal: t`Discrete random variables ${mX} and ${mY} are [[independent-random-variables|independent]] if ${dmath`\mathbb{P}(X = x, Y = y) = \mathbb{P}(X = x)\,\mathbb{P}(Y = y) \quad \text{for all } x, y.`} Random variables ${math`X_{${1}}, \ldots, X_{n}`} are independent if ${math`\mathbb{P}(X_{${1}} = x_{${1}}, \ldots, X_{n} = x_{n}) = \prod_{i} \mathbb{P}(X_{i} = x_{i})`} for all ${math`x_{${1}}, \ldots, x_{n}`}.`,
+      plain: t`In plain words: every joint probability is the product of the separate ones. For the two dice, each of the ${36} pairs has probability ${math`\frac{${1}}{${36}} = \frac{${1}}{${6}} \times \frac{${1}}{${6}}`}. A sequence of independent variables with one common distribution is called [[iid|i.i.d.]], independent and identically distributed.`,
+    },
+    { kind: 'p', text: t`To show two variables are not independent, one pair of values is enough. With ${mX} the red die and ${math`T`} the total, ${math`\mathbb{P}(X = ${6}, T = ${12}) = ${q(1, 36)}`}, but ${math`\mathbb{P}(X = ${6})\mathbb{P}(T = ${12}) = ${q(1, 6)} \times ${q(1, 36)} = ${q(1, 216)}`}. Not equal, so not independent.` },
+    { kind: 'narrative', text: t`If ${mX} and ${mY} are independent, you would expect anything computed from ${mX} alone to be independent of anything computed from ${mY} alone. That is true, and the proof is a good exercise in moving sums around.` },
+    { kind: 'theorem', statement: t`If ${mX} and ${mY} are independent and ${math`f, g`} are functions, then ${math`f(X)`} and ${math`g(Y)`} are independent.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split the joint event`, text: t`For values ${math`a, b`}, the event ${math`\{f(X) = a, g(Y) = b\}`} is the disjoint union of ${math`\{X = x, Y = y\}`} over ${math`x`} with ${math`f(x) = a`} and ${math`y`} with ${math`g(y) = b`}, so`, eq: [dmath`\mathbb{P}(f(X) = a, g(Y) = b) = \sum_{x : f(x) = a} \ \sum_{y : g(y) = b} \mathbb{P}(X = x, Y = y).`] },
+        { label: t`Use independence`, text: t`Replace each term by ${math`\mathbb{P}(X = x)\mathbb{P}(Y = y)`}.` },
+        { label: t`Factor the double sum`, text: t`A sum of products ${math`u_{x}v_{y}`} over all pairs is the product of the two sums:`, eq: [dmath`\Big(\sum_{x : f(x) = a} \mathbb{P}(X = x)\Big)\Big(\sum_{y : g(y) = b} \mathbb{P}(Y = y)\Big) = \mathbb{P}(f(X) = a)\,\mathbb{P}(g(Y) = b).`], why: { q: t`Why does a double sum of products factor?`, a: t`Expand ${math`(u_{${1}} + u_{${2}})(v_{${1}} + v_{${2}})`}: you get ${math`u_{${1}}v_{${1}} + u_{${1}}v_{${2}} + u_{${2}}v_{${1}} + u_{${2}}v_{${2}}`}, one term for each pair. The same holds for any number of terms.` } },
+      ],
+    },
+    checkFrom(sumOfIndependent, { x: SMALL[1] as Dist, y: SMALL[0] as Dist, s: 1 }, t`The pairs with total ${1} are ${math`(${0}, ${1})`} and ${math`(${1}, ${0})`}: ${math`${q(2, 3)} \times ${q(1, 2)} + ${q(1, 3)} \times ${q(1, 4)} = ${q(5, 12)}`}.`),
+    { kind: 'section', title: t`Products of independent variables` },
+    { kind: 'theorem', statement: t`If ${mX} and ${mY} are independent with finite means, then ${math`\mathbb{E}(XY) = \mathbb{E}(X)\,\mathbb{E}(Y)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Expectation over pairs`, text: t`${math`XY`} takes the value ${math`xy`} on ${math`\{X = x, Y = y\}`}, so ${math`\mathbb{E}(XY) = \sum_{x, y} xy\,\mathbb{P}(X = x, Y = y)`}.` },
+        { label: t`Use independence`, text: t`${math`\mathbb{E}(XY) = \sum_{x, y} x\,\mathbb{P}(X = x) \cdot y\,\mathbb{P}(Y = y)`}.`, why: { q: t`Why is rearranging the double sum allowed?`, a: t`The means are finite, so ${math`\sum_{x, y} \lvert x \rvert\,\lvert y \rvert\,\mathbb{P}(X = x)\mathbb{P}(Y = y) = \mathbb{E}\lvert X \rvert\,\mathbb{E}\lvert Y \rvert`} is finite, and an absolutely convergent series can be summed in any order.` } },
+        { label: t`Factor`, text: t`As before, the double sum of products is a product of sums: ${math`\big(\sum_{x} x\,\mathbb{P}(X = x)\big)\big(\sum_{y} y\,\mathbb{P}(Y = y)\big) = \mathbb{E}(X)\mathbb{E}(Y)`}.` },
+      ],
+    },
+    { kind: 'p', text: t`Maxima and minima use the definition directly. ${math`\max(X, Y) \le k`} exactly when ${math`X \le k`} and ${math`Y \le k`}, so for independent ${mX} and ${mY} its probability is ${math`\mathbb{P}(X \le k)\,\mathbb{P}(Y \le k)`}.` },
+    checkFrom(maxMin, { n: 6, m: 6, k: 3, kind: 'max-le' }, t`Both dice must be at most ${3}: ${math`${q(3, 6)} \times ${q(3, 6)} = ${q(1, 4)}`}.`),
+    { kind: 'pitfall', claim: t`If ${math`\mathbb{E}(XY) = \mathbb{E}(X)\mathbb{E}(Y)`}, then ${mX} and ${mY} are independent.`, counterexample: t`Let ${mX} be uniform on ${listOf(UNCORR.xs)} and ${math`Y = X^{${2}}`}. Then ${math`\mathbb{E}(XY) = \mathbb{E}(X^{${3}}) = ${expect(UNCORR, (x) => q(x * x * x))}`} and ${math`\mathbb{E}(X) = ${expect(UNCORR, (x) => q(x))}`}, so both sides are ${0}. But ${math`\mathbb{P}(X = ${0}, Y = ${0}) = ${q(1, 3)}`}, while ${math`\mathbb{P}(X = ${0})\mathbb{P}(Y = ${0}) = ${q(1, 9)}`}. ${mY} is a function of ${mX}, as dependent as can be.` },
+    { kind: 'section', title: t`What a small space can hold` },
+    { kind: 'narrative', text: t`Independence is demanding. On ${math`\Omega = \{${0}, ${1}\}^{${3}}`} with ${8} equally likely outcomes, the three coordinates are independent fair bits. Could you fit a fourth? Four independent fair bits would make each of ${16} patterns have probability ${q(1, 16)}, but every event here has probability a multiple of ${q(1, 8)}. IA Probability Sheet ${2}, question ${5}, makes this precise.` },
+    { kind: 'narrative', text: t`Independence can also hide in a symmetric setup where it is far from obvious. Sheet ${2}, question ${12}, shows that in a random ranking of years, the events "year ${math`k`} is a record" are independent. Proving it is a counting argument worth doing yourself.` },
+    { kind: 'takeaway', text: t`Independent means every joint probability factorises; then functions of them are independent and ${math`\mathbb{E}(XY) = \mathbb{E}(X)\mathbb{E}(Y)`}, but not conversely.` },
   ],
   examples: [
     workedCambridge(q5c),
@@ -374,5 +401,23 @@ export const rvIndependence: TopicContent = {
   terms: ['independent-random-variables', 'iid'],
   claims,
   cambridge: [q12, q12proof, q5cProof, q7order],
-  gate: ['ia-s2-q12-two-records', 'ia-s2-q12-independent', 'ia-s2-q5-c-why', 'ia-s3-q7'],
+  // Best first: the record indicators proved independent, the Chebyshev order inequality by
+  // independent copies, the bound on independent bits, then the two-records number.
+  gate: ['ia-s2-q12-independent', 'ia-s3-q7', 'ia-s2-q5-c-why', 'ia-s2-q12-two-records'],
+  recall: [
+    { front: t`When are discrete ${mX} and ${mY} independent?`, back: t`When ${math`\mathbb{P}(X = x, Y = y) = \mathbb{P}(X = x)\mathbb{P}(Y = y)`} for all ${math`x, y`}.` },
+    { front: t`If ${mX} and ${mY} are independent, what about ${math`f(X)`} and ${math`g(Y)`}?`, back: t`They are independent too.` },
+    { front: t`${math`\mathbb{E}(XY)`} for independent ${mX}, ${mY} with finite means?`, back: t`${math`\mathbb{E}(X)\mathbb{E}(Y)`}. The converse fails.` },
+    { front: t`What does i.i.d. mean?`, back: t`Independent and identically distributed.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${math`\mathbb{E}(XY) = \mathbb{E}(X)\mathbb{E}(Y)`} for independent variables`,
+      steps: [
+        t`Write ${math`\mathbb{E}(XY) = \sum_{x, y} xy\,\mathbb{P}(X = x, Y = y)`}.`,
+        t`By independence the joint probability is ${math`\mathbb{P}(X = x)\mathbb{P}(Y = y)`}.`,
+        t`The double sum of products factors into ${math`\sum_{x} x\,\mathbb{P}(X = x)`} times ${math`\sum_{y} y\,\mathbb{P}(Y = y)`}.`,
+      ],
+    },
+  ],
 };

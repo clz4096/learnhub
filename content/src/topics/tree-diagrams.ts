@@ -10,7 +10,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const pr = (r: Rational): number => Number(r.num) / Number(r.den);
 const pow = (r: Rational, n: number): Rational => Array.from({ length: n }, () => r).reduce((a, b) => mul(a, b), q(1));
@@ -361,24 +361,68 @@ const smokers = supervision({
 
 // ---------------------------------------------------------------- lesson
 
-const claims: ProbabilityClaim[] = [
-  { what: 'two sweets of the same flavour', exact: sameFlavour.ans, trial: (rng) => { const [x, y] = drawWithout(rng, [MINTS, LEMONS], 2); return x === y; } },
-  { what: 'at least one of three children has goggles', exact: sub(q(1), pow(q(3, 4), 3)), trial: (rng) => [0, 1, 2].some(() => rng() < pr(GOGGLES)) },
-];
-
 const EX = { r: 3, b: 2 };
 const ex = twoDraws({ ...EX, e: 'same' });
+const exN = EX.r + EX.b;
+const SPIN = q(1, 3);
+const claims: ProbabilityClaim[] = [
+  { what: 'two sweets of the same flavour', exact: sameFlavour.ans, trial: (rng) => { const [x, y] = drawWithout(rng, [MINTS, LEMONS], 2); return x === y; } },
+  { what: 'three red and two blue: two counters of the same colour', exact: ex.ans, trial: (rng) => { const [x, y] = drawWithout(rng, [EX.r, EX.b], 2); return x === y; } },
+  { what: 'a spinner green with probability 1/3, spun three times: at least one green', exact: sub(q(1), pow(sub(q(1), SPIN), 3)), trial: (rng) => [0, 1, 2].some(() => rng() < pr(SPIN)) },
+];
 
 export const treeDiagrams: TopicContent = {
   topicId: 'pre.tree-diagrams',
   goal: t`Draw a tree diagram for two or three stages, multiply along branches, and add across them, with and without replacement.`,
+  objective: t`Use a tree diagram to multiply along branches and add across them, with and without replacement.`,
+  why: t`Trees organise every multi-stage probability, and lead straight to conditional probability and Bayes.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`A [[tree-diagram|tree diagram]] shows an experiment in stages. Each stage branches into its outcomes, and each branch is labelled with its probability, given everything earlier on the path. The branches from one point add up to ${1}.` },
-    { kind: 'rule', text: t`Multiply along a path to get the probability of that whole path. Add the paths you want. ${dmath`P(\text{red then red}) = P(\text{red first}) \times P(\text{red second} \mid \text{red first})`}` },
-    { kind: 'p', text: t`Take ${EX.r} red and ${EX.b} blue counters, and draw two [[without-replacement|without replacement]]. The first is red with probability ${math`\frac{${EX.r}}{${EX.r + EX.b}}`}. If it was red, ${EX.r - 1} red are left among ${EX.r + EX.b - 1}, so the second is red with ${math`\frac{${EX.r - 1}}{${EX.r + EX.b - 1}}`}. Red then red has probability ${math`\frac{${EX.r}}{${EX.r + EX.b}} \times \frac{${EX.r - 1}}{${EX.r + EX.b - 1}} = ${ex.rr}`}.` },
-    { kind: 'p', text: t`"Both the same colour" is two paths, red-red and blue-blue: ${math`${ex.rr} + ${ex.bb} = ${ex.ans}`}. The four paths together add up to ${math`${ex.rr} + ${ex.rb} + ${ex.br} + ${ex.bb} = ${add(add(ex.rr, ex.rb), add(ex.br, ex.bb))}`}, a useful check.` },
-    { kind: 'p', text: t`With replacement, or for independent trials such as coins, the second stage's probabilities do not change. Without replacement they do: the STEP hints stress that the probabilities for the second sweet depend on what happened to the first.` },
-    { kind: 'p', text: t`For "at least one" over several stages, many paths qualify, but only one does not: the path where every stage fails. One minus that path is quicker than adding the rest.` },
+    { kind: 'section', title: t`When the second draw remembers the first` },
+    { kind: 'hook', text: t`A bag holds ${EX.r} red and ${EX.b} blue counters. You take one out, keep it, and take another. What is the chance both are the same colour? The second draw is not a fresh start: what is left in the bag depends on what you took first.` },
+    { kind: 'narrative', text: t`The way to keep track is to draw the experiment as it happens, one stage at a time. The first counter branches into red or blue. From each of those, the second counter branches again, with probabilities that reflect what is now left. That picture is a tree.` },
+    { kind: 'section', title: t`Multiplying along a path` },
+    {
+      kind: 'definition',
+      name: t`Tree diagram`,
+      formal: t`A [[tree-diagram|tree diagram]] shows an experiment in stages. Each stage branches into its possible outcomes, and each branch is labelled with the probability of that outcome given every outcome earlier on its path. The branches leaving one point add up to ${1}.`,
+      plain: t`In plain words: a map of what can happen, in order. The second-stage branch "red" after a first red is labelled ${math`\frac{${EX.r - 1}}{${exN - 1}}`}, because after a red is taken, ${EX.r - 1} of the remaining ${exN - 1} counters are red.`,
+    },
+    { kind: 'theorem', name: t`Multiplying along a path`, statement: t`The probability of a whole path is the product of the probabilities on its branches. For two stages, ${math`P(\text{first } A \text{ and then } B) = P(A) \times P(B \text{ given } A)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`List equally likely outcomes`, text: t`Label the counters. An outcome is an ordered pair (first, second) of different counters: ${math`${exN} \times ${exN - 1} = ${exN * (exN - 1)}`} pairs, all equally likely.` },
+        { label: t`Count the path`, text: t`Red then red: ${EX.r} choices for the first, then ${EX.r - 1} for the second, so ${math`${EX.r} \times ${EX.r - 1} = ${EX.r * (EX.r - 1)}`} pairs.` },
+        { label: t`Divide and split`, text: t`So the probability is`, eq: [dmath`\frac{${EX.r} \times ${EX.r - 1}}{${exN} \times ${exN - 1}} = \frac{${EX.r}}{${exN}} \times \frac{${EX.r - 1}}{${exN - 1}} = ${ex.rr},`], plain: t`which is the first branch times the second: the product rule for counting, divided through.` },
+      ],
+    },
+    { kind: 'p', text: t`Drawing [[without-replacement|without replacement]] changes the second-stage numbers; drawing with replacement, or tossing coins, does not. The STEP Support hints to Assignment ${12} stress exactly this: the probabilities for the second sweet depend on what happened to the first.` },
+    { kind: 'section', title: t`Adding across paths` },
+    { kind: 'narrative', text: t`Different paths are different ways the experiment can go, and no two can both happen. So the probability of an event made of several paths is the sum of the paths.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Red, red`, text: t`${math`\frac{${EX.r}}{${exN}} \times \frac{${EX.r - 1}}{${exN - 1}} = ${ex.rr}`}.` },
+        { label: t`Blue, blue`, text: t`${math`\frac{${EX.b}}{${exN}} \times \frac{${EX.b - 1}}{${exN - 1}} = ${ex.bb}`}.` },
+        { label: t`Add`, text: t`Both the same colour: ${math`${ex.rr} + ${ex.bb} = ${ex.ans}`}.`, plain: t`Check: all four paths together give ${math`${ex.rr} + ${ex.rb} + ${ex.br} + ${ex.bb} = ${add(add(ex.rr, ex.rb), add(ex.br, ex.bb))}`}.` },
+      ],
+    },
+    checkFrom(withoutReplacement, { r: 4, b: 2, e: 'different' }, t`Red then blue, ${math`\frac{${4}}{${6}} \times \frac{${2}}{${5}}`}, plus blue then red, ${math`\frac{${2}}{${6}} \times \frac{${4}}{${5}}`}: ${q(16, 30)}.`),
+    { kind: 'pitfall', claim: t`Two counters from ${EX.r} red and ${EX.b} blue, without replacement, are both red with probability ${math`\left(\frac{${EX.r}}{${exN}}\right)^{${2}} = ${pow(q(EX.r, exN), 2)}`}.`, counterexample: t`That puts the first counter back. Without replacement the second branch is ${math`\frac{${EX.r - 1}}{${exN - 1}}`}, giving ${ex.rr}.` },
+    { kind: 'section', title: t`Independent stages and "at least one"` },
+    { kind: 'narrative', text: t`When the stages do not affect each other, as with spins of a spinner, every branch at a stage carries the same numbers. Two questions come up constantly. "Exactly one success" is two paths, success then failure and failure then success. "At least one success" over several stages is many paths, but its complement is a single path: every stage fails.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The one path that fails`, text: t`A spinner lands green with probability ${SPIN}, three times independently. No green at all: ${math`\left(${sub(q(1), SPIN)}\right)^{${3}} = ${pow(sub(q(1), SPIN), 3)}`}.` },
+        { label: t`Take the complement`, text: t`At least one green: ${math`${1} - ${pow(sub(q(1), SPIN), 3)} = ${sub(q(1), pow(sub(q(1), SPIN), 3))}`}.`, plain: t`One path to subtract instead of seven to add.` },
+      ],
+    },
+    checkFrom(exactlyOne, { n: 1, d: 4, k: 2 }, t`Green then not, ${math`${q(1, 4)} \times ${q(3, 4)}`}, or not then green, the same again: ${math`${2} \times ${q(3, 16)} = ${q(3, 8)}`}.`),
+    { kind: 'pitfall', claim: t`Exactly one green in two spins, each green with probability ${q(1, 4)}, is ${math`${q(1, 4)} \times ${q(3, 4)} = ${q(3, 16)}`}.`, counterexample: t`That is one path, green first. The green can also come second, so there are two paths: ${q(3, 8)}.` },
+    { kind: 'takeaway', text: t`Multiply along a path, using what is left at each stage; add the paths you want; and for "at least one", subtract the single path where everything fails.` },
   ],
   examples: [
     workedCambridge(a12ii),
@@ -390,5 +434,24 @@ export const treeDiagrams: TopicContent = {
   terms: ['tree-diagram', 'without-replacement'],
   claims,
   cambridge: [a12iiib, a12iva, a12ivc, a12methods, smokers],
-  gate: ['a12-q2-iii-b', 'a12-q2-iv-a', 'a12-q2-iv-c', 'a12-q2-ii-methods', 'a6-q4-i-tree'],
+  // Best first: the two-method write-up, the labelled smokers tree, the three draws in
+  // letters, then at least one child with goggles. The middle child alone (one product) is too
+  // slight to gate.
+  gate: ['a12-q2-ii-methods', 'a6-q4-i-tree', 'a12-q2-iii-b', 'a12-q2-iv-a'],
+  recall: [
+    { front: t`How do you find the probability of one path through a tree?`, back: t`Multiply the probabilities on its branches, each given what came before.` },
+    { front: t`How do you combine several paths?`, back: t`Add them: different paths cannot both happen.` },
+    { front: t`Quickest route to "at least one success"?`, back: t`One minus the single path where every stage fails.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Red then red, by counting`,
+      steps: [
+        t`Label the counters; ordered pairs of different counters are equally likely.`,
+        t`There are ${math`${exN} \times ${exN - 1}`} pairs in all.`,
+        t`Red then red: ${math`${EX.r} \times ${EX.r - 1}`} pairs.`,
+        t`Divide and split: ${math`\frac{${EX.r}}{${exN}} \times \frac{${EX.r - 1}}{${exN - 1}}`}.`,
+      ],
+    },
+  ],
 };

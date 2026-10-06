@@ -12,7 +12,7 @@ import { int, pick, upTo } from '../math';
 import { egcd, gcd, inverseBySearch, mod, powMod, powModSlow } from '../numbers';
 import { generator, type Misconception } from '../problem';
 import { math, paren, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [ma, mb, mc, mp] = [math`a`, math`b`, math`c`, math`p`];
 const big = (v: { num: bigint; den: bigint } | undefined): number | null => (v === undefined || v.den !== 1n ? null : Number(v.num));
@@ -216,18 +216,68 @@ const rsa = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [LP, LC, LA, LB] = [11, 2, 3, 7];
+const [LAL, LBE] = [powMod(LC, LA, LP), powMod(LC, LB, LP)];
+const mk = math`k`;
+
 export const diffieHellman: TopicContent = {
   topicId: 'num.diffie-hellman',
   goal: t`Agree a shared secret ${math`[c^{ab}]_{p}`} over an open channel by the Diffie-Hellman method, and explain why its safety rests on discrete logarithms being hard.`,
+  objective: t`Run the Diffie-Hellman exchange, prove both sides get the same key, and say why it is safe.`,
+  why: t`It is how two strangers on the internet agree a secret, and it puts modular powers to real use.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Two people who have never met want a common secret key, but everything they send can be read. The notes' answer is the [[diffie-hellman|Diffie-Hellman method]], built from modular powers.` },
-    { kind: 'rule', text: t`In public, agree a prime ${mp} and a number ${mc}. A picks a secret ${ma} and sends ${math`\alpha = [c^{a}]_{p}`}; B picks a secret ${mb} and sends ${math`\beta = [c^{b}]_{p}`}. Then A computes ${math`[\beta^{a}]_{p}`} and B computes ${math`[\alpha^{b}]_{p}`}: both are ${math`k = [c^{ab}]_{p}`}.` },
-    { kind: 'p', text: t`With ${math`p = ${P0}`}, ${math`c = ${C0}`}, ${math`a = ${A0}`}, ${math`b = ${B0}`}: ${math`\alpha = ${powMod(C0, A0, P0)}`}, ${math`\beta = ${powMod(C0, B0, P0)}`}, and ${math`k = [${powMod(C0, B0, P0)}^{${A0}}]_{${P0}} = [${powMod(C0, A0, P0)}^{${B0}}]_{${P0}} = ${powMod(C0, A0 * B0, P0)}`}. Every step is a modular power, fast by repeated squaring.` },
-    { kind: 'p', text: t`An eavesdropper knows ${mc}, ${mp}, ${math`\alpha`}, and ${math`\beta`}. Multiplying gives only ${math`c^{a + b}`}. To get ${math`c^{ab}`} she seems to need ${ma} from ${math`\alpha`}: a [[discrete-logarithm|discrete logarithm]]. For a prime of hundreds of digits no fast method is known, while the honest parties' work is a few thousand multiplications.` },
-    { kind: 'p', text: t`The notes also send a key ${math`k`} directly, with exponents that undo each other: Lemma ${94} says that if ${math`ed \equiv ${1} \pmod{p - ${1}}`} then ${math`(k^{e})^{d} \equiv k \pmod{p}`}, by Fermat's little theorem. A locks with ${math`e_{A}`}, B adds a second lock ${math`e_{B}`}, A removes hers with ${math`d_{A}`}, and B removes his: powers commute, so the order of locks does not matter.` },
+    { kind: 'section', title: t`A secret in public` },
+    { kind: 'hook', text: t`Two people who have never met want to share a secret number. Every message they send is read by an eavesdropper. It sounds impossible: whatever one tells the other, the eavesdropper hears too. Yet a version of the method below runs whenever your browser opens a secure page.` },
+    { kind: 'narrative', text: t`The trick uses a one-way street. Raising a number to a power modulo a prime is fast. Undoing it, recovering the exponent from the result, seems to be extremely slow. Each person keeps an exponent private and publishes only a power.` },
+    { kind: 'narrative', text: t`Notation: ${math`[x]_{p}`} is the remainder of ${math`x`} on division by ${mp}, a number from ${0} to ${math`p - ${1}`}.` },
+    {
+      kind: 'definition',
+      name: t`The Diffie-Hellman method`,
+      formal: t`Public: a prime ${mp} and an integer ${mc}. A chooses a secret ${ma} and sends ${math`\alpha = [c^{a}]_{p}`}; B chooses a secret ${mb} and sends ${math`\beta = [c^{b}]_{p}`}. A computes ${math`[\beta^{a}]_{p}`} and B computes ${math`[\alpha^{b}]_{p}`}.`,
+      plain: t`each raises the public number to a private power, swaps results, and raises what they receive to their own power again. This is the [[diffie-hellman|Diffie-Hellman method]].`,
+    },
+    { kind: 'p', text: t`A small run: ${math`p = ${LP}`}, ${math`c = ${LC}`}, A's secret ${math`a = ${LA}`}, B's secret ${math`b = ${LB}`}. A sends ${math`\alpha = [${LC}^{${LA}}]_{${LP}} = ${LAL}`}; B sends ${math`\beta = [${LC}^{${LB}}]_{${LP}} = ${LBE}`}. A computes ${math`[${LBE}^{${LA}}]_{${LP}} = ${powMod(LBE, LA, LP)}`}; B computes ${math`[${LAL}^{${LB}}]_{${LP}} = ${powMod(LAL, LB, LP)}`}. The same number.` },
+    { kind: 'section', title: t`Why both get the same key` },
+    { kind: 'theorem', statement: t`With the notation above, ${math`[\beta^{a}]_{p} = [\alpha^{b}]_{p} = [c^{ab}]_{p}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Replace ${math`\beta`} by ${math`c^{b}`}`, text: t`${math`\beta \equiv c^{b} \pmod{p}`}, so ${math`\beta^{a} \equiv (c^{b})^{a} \pmod{p}`}.`, plain: t`Congruences can be raised to powers: if ${math`x \equiv y`}, then ${math`x^{a} \equiv y^{a}`}.`, why: { q: t`Why can congruences be raised to powers?`, a: t`They can be multiplied: if ${math`x \equiv y`} and ${math`x' \equiv y'`}, then ${math`xx' \equiv yy'`}. A power is repeated multiplication.` } },
+        { label: t`Use a law of indices`, text: t`${math`(c^{b})^{a} = c^{ab}`}.`, plain: t`${mb} copies of ${mc}, taken ${ma} times, is ${math`ab`} copies.` },
+        { label: t`The same for B`, text: t`Likewise ${math`\alpha^{b} \equiv (c^{a})^{b} = c^{ab} \pmod{p}`}.`, plain: t`Multiplication of exponents does not care about order: ${math`ab = ba`}.` },
+        { label: t`Conclude`, text: t`Both are congruent to ${math`c^{ab}`}, so their remainders are equal: ${math`[\beta^{a}]_{p} = [\alpha^{b}]_{p}`}.`, plain: t`Numbers congruent modulo ${mp} have the same remainder.` },
+      ],
+    },
+    quickCheck({
+      prompt: t`Public ${math`p = ${13}`}, ${math`c = ${2}`}. A's secret is ${math`a = ${5}`} and B sends ${math`\beta = ${powMod(2, 4, 13)}`}. What is the shared key ${math`[\beta^{a}]_{p}`}?`,
+      answer: { kind: 'exact', expected: String(powMod(powMod(2, 4, 13), 5, 13)) },
+      reference: String(powMod(powMod(2, 4, 13), 5, 13)),
+      why: t`${math`[${powMod(2, 4, 13)}^{${5}}]_{${13}} = ${powMod(powMod(2, 4, 13), 5, 13)}`}. B's secret was ${4}, and ${math`[${2}^{${20}}]_{${13}}`} gives the same.`,
+    }),
+    { kind: 'section', title: t`Why it is safe` },
+    {
+      kind: 'definition',
+      name: t`Discrete logarithm`,
+      formal: t`Given a prime ${mp}, an integer ${mc}, and ${math`\alpha`}, a [[discrete-logarithm|discrete logarithm]] of ${math`\alpha`} to base ${mc} is an integer ${ma} with ${math`[c^{a}]_{p} = \alpha`}.`,
+      plain: t`the exponent that produced a given remainder. From ${math`[${LC}^{a}]_{${LP}} = ${LAL}`}, a discrete logarithm is ${math`a = ${LA}`}.`,
+    },
+    {
+      kind: 'p',
+      text: t`The eavesdropper knows ${mc}, ${mp}, ${math`\alpha`}, and ${math`\beta`}. Multiplying ${math`\alpha \beta`} gives only ${math`c^{a + b}`}, not ${math`c^{ab}`}. The obvious route to the key is to find ${ma} from ${math`\alpha`}: a discrete logarithm. For a prime with hundreds of digits, no fast method is known, while the honest parties need only a few thousand multiplications, by repeated squaring.`,
+      why: { q: t`Isn't it proved that discrete logarithms are hard?`, a: t`No. Nobody has proved it; the method's safety rests on the fact that, after decades of effort, no fast algorithm is known for ordinary computers. That is an honest assumption, not a theorem.` },
+    },
+    {
+      kind: 'pitfall',
+      claim: t`The shared key is ${math`[\alpha \beta]_{p}`}.`,
+      counterexample: t`${math`\alpha \beta \equiv c^{a + b}`}, not ${math`c^{ab}`}. In the small run, ${math`[${LAL} \times ${LBE}]_{${LP}} = ${(LAL * LBE) % LP}`}, but the key is ${powMod(LC, LA * LB, LP)}. If the key were ${math`\alpha\beta`}, the eavesdropper could compute it too.`,
+    },
+    { kind: 'p', text: t`The notes also send a chosen key ${mk} directly, with exponents that undo each other. Lemma ${94}: if ${math`ed \equiv ${1} \pmod{p - ${1}}`}, then ${math`(k^{e})^{d} \equiv k \pmod{p}`}, by Fermat's little theorem. A locks the key with ${math`e_{A}`}, B adds a second lock ${math`e_{B}`}, A removes hers with ${math`d_{A}`}, and B removes his. Powers commute, so the order of the locks does not matter.` },
+    { kind: 'takeaway', text: t`Each side sends ${mc} to a private power and raises what it receives to its own power; both reach ${math`[c^{ab}]_{p}`}, and an eavesdropper would need a discrete logarithm.` },
   ],
   examples: [
-    workedCambridge(notesDH),
+    { ...workedCambridge(notesDH), examiner: t`Each power reduced modulo ${mp} as it is computed, and both routes to the key carried out, so the agreement is checked rather than assumed.` },
     worked(sharedKey, { p: 47, c: 5, a: 9, b: 14 }, t`A shared key modulo ${47}`),
     worked(decryptionExponent, { p: 29, e: 9 }, t`Undoing the power ${9} modulo ${29}`),
   ],
@@ -235,5 +285,24 @@ export const diffieHellman: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['diffie-hellman', 'discrete-logarithm'],
   cambridge: [lemma94, threePass, lemma94proof, safety, rsa],
-  gate: ['notes-263-lemma-94', 'notes-265-key-exchange', 'notes-264-lemma-94-proof', 'notes-261-safety', 'notes-266-rsa'],
+  // The proofs of Lemmas 94 and 95 first, then the three-message exchange (four computed numbers) and
+  // the safety explanation. Lemma 94 at numbers is one inverse, left out.
+  gate: ['notes-264-lemma-94-proof', 'notes-266-rsa', 'notes-265-key-exchange', 'notes-261-safety'],
+  recall: [
+    { front: t`Describe the Diffie-Hellman exchange.`, back: t`Public ${mp}, ${mc}. A sends ${math`[c^{a}]_{p}`}, B sends ${math`[c^{b}]_{p}`}; each raises what it receives to its own secret power, giving ${math`[c^{ab}]_{p}`}.` },
+    { front: t`Why do both sides get the same key?`, back: t`${math`(c^{b})^{a} = c^{ab} = (c^{a})^{b}`}, and congruences can be raised to powers.` },
+    { front: t`What problem would an eavesdropper have to solve?`, back: t`A discrete logarithm: find ${ma} from ${math`[c^{a}]_{p}`}.` },
+    { front: t`State Lemma ${94}.`, back: t`For a prime ${mp}, if ${math`ed \equiv ${1} \pmod{p - ${1}}`}, then ${math`(k^{e})^{d} \equiv k \pmod{p}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Both sides compute the same key`,
+      steps: [
+        t`${math`\beta \equiv c^{b}`}, so ${math`\beta^{a} \equiv (c^{b})^{a}`}.`,
+        t`${math`(c^{b})^{a} = c^{ab}`}.`,
+        t`Likewise ${math`\alpha^{b} \equiv (c^{a})^{b} = c^{ab}`}.`,
+        t`So ${math`[\beta^{a}]_{p} = [\alpha^{b}]_{p}`}.`,
+      ],
+    },
+  ],
 };

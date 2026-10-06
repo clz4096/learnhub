@@ -8,7 +8,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, listOf, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mn, mk, mc] = [math`n`, math`k`, math`c`];
 const pairsIn = (counts: readonly number[]): number => counts.reduce((a, x) => a + Math.floor(x / 2), 0);
@@ -297,21 +297,62 @@ const notesProof = supervision({
 // ---------------------------------------------------------------- lesson
 
 const L = { boxes: 4, letters: 5 };
+const MONTHS = 12;
 
 export const pigeonhole: TopicContent = {
   topicId: 'comb.pigeonhole',
   goal: t`Use the pigeonhole principle to find how many draws guarantee a match, and show that one fewer is not enough.`,
+  objective: t`Use the pigeonhole principle to find how many draws guarantee a match, and show one fewer fails.`,
+  why: t`It proves that something exists without finding it, a move that STEP and the Tripos use again and again.`,
+  minutes: 25,
   lesson: [
-    { kind: 'rule', text: t`The [[pigeonhole-principle|pigeonhole principle]], as the CST notes state it: let ${mn} be a positive integer. If ${math`n + ${1}`} letters are put in ${mn} pigeonholes, then there will be a pigeonhole with more than one letter.` },
-    { kind: 'p', text: t`Why: if every pigeonhole held at most one letter, there would be at most ${mn} letters. With ${L.letters} letters in ${L.boxes} pigeonholes, some pigeonhole has two. The notes use it as their example of an existential statement: it says such a pigeonhole exists without saying which one.` },
-    { kind: 'rule', text: t`The general form: if more than ${math`kn`} objects go into ${mn} boxes, some box holds more than ${mk}. ${dmath`\text{at most } k \text{ in every box} \implies \text{at most } kn \text{ objects.}`}` },
-    { kind: 'p', text: t`"How many must I take to be sure?" questions have two halves, as the STEP Support hints insist. First the [[worst-case|worst case]]: the largest draw that still fails, which shows that number is not enough. Then show one more always works. The answer is one more than the worst case.` },
-    { kind: 'p', text: t`Socks in ${2} colours: a pair needs ${3} socks, since ${2} might be one of each. The colours are the pigeonholes. With ${mc} colours, ${math`c + ${1}`} socks are needed for one pair.` },
-    { kind: 'p', text: t`For several pairs, the worst case leaves one odd sock in every colour. With ${2} colours and ${2} pairs: RRRB has ${4} socks but one pair, so ${4} is not enough; ${5} is, by the STEP hints' argument. In general, ${mn} pairs from ${mc} colours need ${math`${2}n + c - ${1}`} socks: ${math`${2}n + ${1}`} for two colours and ${math`${2}n + ${2}`} for three.` },
-    { kind: 'p', text: t`Generalising from the first cases suggests the formula; it does not prove it. The proof for ${mn} pairs counts how many colours can have an odd number of socks, a [[proof-by-cases|proof by cases]] on odd and even counts.` },
+    { kind: 'section', title: t`Someone shares your month` },
+    { kind: 'hook', text: t`In any room of ${MONTHS + 1} people, two were born in the same month. You can say this with certainty without asking anyone, and without knowing which month it is. There are only ${MONTHS} months to go round, and ${MONTHS + 1} people. That small observation has a name, and it solves problems that look much harder.` },
+
+    { kind: 'section', title: t`The principle` },
+    { kind: 'theorem', name: t`The pigeonhole principle`, statement: t`Let ${mn} be a positive integer. If ${math`n + ${1}`} letters are put in ${mn} pigeonholes, then some pigeonhole holds more than one letter.` },
+    { kind: 'p', text: t`This is the [[pigeonhole-principle|pigeonhole principle]], as the CST notes state it. With ${L.letters} letters in ${L.boxes} pigeonholes, some pigeonhole has at least two.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Suppose not`, text: t`Suppose every pigeonhole holds at most one letter.` },
+        { label: t`Count`, text: t`Then the total number of letters is at most ${math`${1} + ${1} + \cdots + ${1} = n`}, one for each of the ${mn} pigeonholes.` },
+        { label: t`Contradiction`, text: t`But there are ${math`n + ${1} > n`} letters. So some pigeonhole holds more than one.` },
+      ],
+    },
+    { kind: 'p', text: t`Notice what the proof does not do: it never says which pigeonhole. The CST notes use it as their example of an existential statement, one that says something exists without naming it.` },
+    { kind: 'theorem', name: t`General form`, statement: t`If more than ${math`kn`} objects are put in ${mn} boxes, some box holds more than ${mk} of them.` },
+    { kind: 'p', text: t`Same proof: if every box held at most ${mk}, there would be at most ${math`kn`} objects. So to be sure of ${math`k + ${1}`} people sharing a birth month you need ${math`${MONTHS}k + ${1}`} people. For example, ${MONTHS * 2} people could be spread ${2} to a month, so ${MONTHS * 2 + 1} are needed for ${3} to share one.` },
+    checkFrom(sameKind, { c: 4, k: 3, what: 'socks' }, t`The worst case puts ${2} of each colour: ${math`${4} \times ${2} = ${8}`} socks with no colour at ${3}. One more forces it.`),
+
+    { kind: 'section', title: t`How many to be sure?` },
+    { kind: 'narrative', text: t`"How many must I take to be sure?" questions have two halves, as the STEP Support hints insist. First the [[worst-case|worst case]]: the largest draw that still fails, which shows that number is not enough. Then an argument that one more always works. The answer is one more than the worst case.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The question`, text: t`A drawer has red, blue, and green socks. How many must I take to be sure of a matching pair?` },
+        { label: t`The worst case`, text: t`${3} socks might be one of each colour: no pair. So ${3} is not enough.` },
+        { label: t`One more always works`, text: t`With ${4} socks in ${3} colours, the colours are pigeonholes and the socks are letters: some colour has two socks.` },
+        { label: t`Answer`, text: t`${4}. In general, ${mc} colours need ${math`c + ${1}`} socks for one pair.` },
+      ],
+    },
+    checkFrom(socks, { c: 4, n: 1 }, t`${4} socks might be one of each colour; the fifth must match one of them.`),
+    { kind: 'p', text: t`For several pairs the worst case leaves one odd sock in as many colours as possible, and the proof that one more works splits by which colours have an odd number of socks: a [[proof-by-cases|proof by cases]]. That is the Cambridge problem for this lesson. Working out the first few cases suggests a formula; it does not prove it.` },
+
+    { kind: 'section', title: t`Pigeonholes in disguise` },
+    { kind: 'narrative', text: t`The skill is spotting the pigeonholes. They need not be boxes: they can be colours, months, or remainders.` },
+    { kind: 'p', text: t`Choose any ${8} whole numbers. Two of them differ by a multiple of ${7}. The pigeonholes are the ${7} possible remainders on division by ${7}, ${listOf([0, 1, 2, 3, 4, 5, 6])}; with ${8} numbers, two share a remainder, and then their difference is a multiple of ${7}.`, why: { q: t`Why does a shared remainder give a multiple of ${7}?`, a: t`If ${math`a = ${7}q + r`} and ${math`b = ${7}q' + r`}, then ${math`a - b = ${7}(q - q')`}. For example ${23} and ${9} both leave ${2}, and ${math`${23} - ${9} = ${14}`}.` } },
+    checkFrom(remainders, { k: 9 }, t`There are ${9} possible remainders, ${0} to ${8}; ${10} numbers force a repeat.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${mn} letters in ${mn} pigeonholes force a pigeonhole with two.`, counterexample: t`One letter in each pigeonhole. The principle needs more letters than pigeonholes.` },
+    { kind: 'pitfall', claim: t`To be sure of ${3} socks of one colour from ${4} colours, you need ${math`${4} \times ${3} = ${12}`}.`, counterexample: t`That fills every colour to ${3}. Only one colour needs ${3}: the worst case is ${2} of each, ${8} socks, so ${9} suffice.` },
+    { kind: 'pitfall', claim: t`If ${5} socks gave a pair every time you tried, ${5} is the answer.`, counterexample: t`Trying is not proving. For ${2} pairs from ${2} colours, the draw RRRB has ${4} socks and only one pair; showing ${5} always works needs an argument for every draw.` },
+    { kind: 'takeaway', text: t`More objects than boxes forces a box with two: find the worst case that fails, then show one more always works.` },
   ],
   examples: [
-    workedCambridge(a5i),
+    { ...workedCambridge(a5i), examiner: t`The examiner looks for both halves: a draw of ${2} that fails, and a reason ${3} always works.` },
     workedCambridge(a5ii),
     worked(sameKind, { c: 12, k: 3, what: 'months' }, t`Three people with the same birth month`),
   ],
@@ -319,5 +360,20 @@ export const pigeonhole: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['pigeonhole-principle', 'worst-case', 'proof-by-cases'],
   cambridge: [a8i, a8ii, a5iii, a8iii, a5iiiShow, a8iiiShow, notesProof],
-  gate: ['a8-q4-i', 'a8-q4-ii', 'a5-q4-iii', 'a8-q4-iii', 'a5-q4-iii-show', 'a8-q4-iii-show', 'notes-87-proof'],
+  // The written proofs. The single numbers are dropped: parts (i) and (ii) are one step, and the general formulas appear in the titles of the proof problems.
+  gate: ['a8-q4-iii-show', 'a5-q4-iii-show', 'notes-87-proof'],
+  recall: [
+    { front: t`State the pigeonhole principle.`, back: t`If ${math`n + ${1}`} letters go in ${mn} pigeonholes, some pigeonhole holds more than one.` },
+    { front: t`The general pigeonhole principle.`, back: t`More than ${math`kn`} objects in ${mn} boxes force a box with more than ${mk}.` },
+    { front: t`The two halves of a "how many to be sure" answer.`, back: t`A worst case that fails with one fewer, and an argument that the answer always works.` },
+  ],
+  proofOrder: [{
+    title: t`The pigeonhole principle`,
+    steps: [
+      t`Suppose every pigeonhole holds at most one letter.`,
+      t`Then there are at most ${mn} letters in all.`,
+      t`But there are ${math`n + ${1}`} letters.`,
+      t`So some pigeonhole holds more than one.`,
+    ],
+  }],
 };

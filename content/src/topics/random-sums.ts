@@ -12,8 +12,8 @@ import { auto, cite, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { meanQ, polyCompose, polyMul, polyPow, polyTex, polyText, sampleFrom, samplePoisson, varQ, type Poly } from '../partv-d';
 import { generator, type Misconception } from '../problem';
-import { computedMath, computedTex, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { computedMath, computedTex, dmath, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mN, mS, mt] = [math`N`, math`S_{N}`, math`t`];
 const SH3 = 'ia-prob-sheet-3' as const;
@@ -375,17 +375,70 @@ const LX: Poly = [q(1, 2), q(1, 2)];
 const claims: ProbabilityClaim[] = [
   { what: 'S_N = 1 with N uniform on {0, 1, 2} and fair coin terms', exact: polyCompose(LN, LX)[1] as Rational, trial: (rng) => { const m = sampleFrom(LN, rng); let s = 0; for (let i = 0; i < m; i++) s += sampleFrom(LX, rng); return s === 1; } },
 ];
+const HEN = { lambda: 6, p: q(1, 2) };
+const henMean = mul(q(HEN.lambda), HEN.p);
+const henVar = add(mul(q(HEN.lambda), mul(HEN.p, sub(ONE, HEN.p))), mul(q(HEN.lambda), mul(HEN.p, HEN.p)));
+const mGN = math`G_{N}`;
 
 export const randomSums: TopicContent = {
   topicId: 'gf.random-sums',
   goal: t`For ${math`S_{N} = X_{${1}} + \cdots + X_{N}`} with ${mN} independent of the ${math`X_{i}`}, show that ${math`G_{S_{N}} = G_{N} \circ G_{X}`} and find ${math`E(S_{N})`} and ${math`\operatorname{Var}(S_{N})`}.`,
+  objective: t`Find the pgf, mean and variance of a sum of a random number of random terms.`,
+  why: t`Random sums model claims, offspring and arrivals; they are the engine of branching processes, next.`,
+  minutes: 35,
   lesson: [
-    { kind: 'p', text: t`Insurance claims in a year, eggs in the nests of a colony, misprints a proof-reader catches: a total of a random number of random terms. Such a [[random-sum|random sum]] is ${math`S_{N} = X_{${1}} + \cdots + X_{N}`}, where the ${math`X_{i}`} are independent and identically distributed and ${mN} is a non-negative integer variable independent of them (${math`S_{${0}} = ${0}`}).` },
-    { kind: 'rule', text: t`The random sum formula: ${math`G_{S_{N}}(t) = G_{N}(G_{X}(t))`}.` },
-    { kind: 'p', text: t`Condition on ${mN}. Given ${math`N = n`}, ${mS} is a sum of ${math`n`} independent terms, so ${math`E(t^{S_{N}} \mid N = n) = G_{X}(t)^{n}`}. Averaging, ${math`G_{S_{N}}(t) = \sum_{n} P(N = n)G_{X}(t)^{n} = G_{N}(G_{X}(t))`}. The order matters: with ${math`N = ${2}`} always, ${math`G_{N}(s) = s^{${2}}`} and the formula gives ${math`G_{X}(t)^{${2}}`}, as it should.` },
-    { kind: 'p', text: t`Moments follow by the chain rule: ${math`G_{S}'(${1}) = G_{N}'(G_{X}(${1}))G_{X}'(${1}) = E(N)E(X)`}. Differentiating again gives ${math`\operatorname{Var}(S_{N}) = E(N)\operatorname{Var}(X) + \operatorname{Var}(N)E(X)^{${2}}`}: the spread of the terms, plus the spread of how many there are. Sheet ${3} Q${8} gets the same by conditioning, ${math`E(S_{N}^{${2}} \mid N = n) = n\sigma^{${2}} + n^{${2}}\mu^{${2}}`}.` },
-    { kind: 'p', text: t`Thinning again: if ${math`N \sim \text{Po}(\lambda)`} and each term is ${1} with probability ${math`p`}, then ${math`G_{S}(t) = e^{\lambda(${1} - p + pt - ${1})} = e^{\lambda p(t - ${1})}`}, so ${math`S_{N} \sim \text{Po}(\lambda p)`}: the misprints a proof-reader catches are Poisson.` },
-    { kind: 'p', text: t`Sheet ${3} Q${10} composes the other way as well: immature individuals that mature and then reproduce give ${math`(${1} - p + pF(t))^{k}`}, while mature parents whose offspring then mature give ${math`F(${1} - p + pt)^{k}`}. Same mean, different variance.` },
+    { kind: 'section', title: t`Two layers of chance` },
+    { kind: 'hook', text: t`A hen lays a random number of eggs, on average ${HEN.lambda}, and each egg hatches with probability ${HEN.p}, independently. How many chicks? The total is random twice over: you do not know how many eggs there are, and you do not know which of them hatch. Yet the answer turns out to be strikingly simple.` },
+    { kind: 'narrative', text: t`The trick is to take the two layers one at a time. If you knew there were exactly ${math`n`} eggs, the chicks would be a sum of ${math`n`} independent zero-or-one terms, and you know how to handle a sum of a fixed number of independent terms: multiply their pgfs. Then average over the number of eggs.` },
+    {
+      kind: 'definition',
+      name: t`Random sum`,
+      formal: t`Let ${math`X_{${1}}, X_{${2}}, \ldots`} be independent and identically distributed non-negative integer random variables, and ${mN} a non-negative integer random variable independent of them. The [[random-sum|random sum]] is ${dmath`S_{N} = X_{${1}} + \cdots + X_{N},`} with ${math`S_{N} = ${0}`} when ${math`N = ${0}`}.`,
+      plain: t`In plain words: a total of a random number of random terms. For the hen, ${mN} is the number of eggs and ${math`X_{i}`} is ${1} if egg ${math`i`} hatches, ${0} if not.`,
+    },
+    { kind: 'narrative', text: t`Recall the probability generating function: ${math`G_{X}(t) = E(t^{X}) = \sum_{k} P(X = k)t^{k}`}, defined at least for ${math`\lvert t \rvert \le ${1}`}. For independent ${math`X`} and ${math`Y`}, ${math`G_{X + Y} = G_{X}G_{Y}`}.` },
+    { kind: 'section', title: t`The random sum formula` },
+    { kind: 'theorem', name: t`Random sum formula`, statement: t`With ${mS} as above, ${math`G_{S_{N}}(t) = G_{N}(G_{X}(t))`} for ${math`\lvert t \rvert \le ${1}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split by the value of N`, text: t`The events ${math`\{N = n\}`}, ${math`n = ${0}, ${1}, \ldots`}, partition the sample space, so`, eq: [dmath`G_{S_{N}}(t) = E(t^{S_{N}}) = \sum_{n = ${0}}^{\infty} P(N = n)\, E(t^{S_{N}} \mid N = n).`], why: { q: t`Why may we split the expectation like this?`, a: t`It is the law of total expectation: average within each case ${math`N = n`}, then weight each case by its probability.` } },
+        { label: t`Fix the number of terms`, text: t`On ${math`\{N = n\}`}, ${math`S_{N} = X_{${1}} + \cdots + X_{n}`}, and since ${mN} is independent of the ${math`X_{i}`}, conditioning on ${math`N = n`} does not change their distribution:`, eq: [dmath`E(t^{S_{N}} \mid N = n) = E(t^{X_{${1}} + \cdots + X_{n}}) = G_{X}(t)^{n}.`], plain: t`The last step is the product rule for pgfs of independent terms: ${math`n`} equal factors ${math`G_{X}(t)`}. For ${math`n = ${0}`} both sides are ${1}.` },
+        { label: t`Recognise a pgf`, text: t`Substitute back:`, eq: [dmath`G_{S_{N}}(t) = \sum_{n = ${0}}^{\infty} P(N = n)\, G_{X}(t)^{n} = G_{N}(G_{X}(t)).`], plain: t`The sum is ${mGN} evaluated at ${math`s = G_{X}(t)`}, which lies in ${math`[-${1}, ${1}]`} because ${math`\lvert G_{X}(t) \rvert \le ${1}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`The order matters. If ${math`N = ${2}`} always, then ${math`G_{N}(s) = s^{${2}}`} and the formula gives ${math`G_{X}(t)^{${2}}`}, the pgf of ${math`X_{${1}} + X_{${2}}`}, as it should. The other order, ${math`G_{X}(G_{N}(t))`}, would describe something else entirely.` },
+    checkFrom(pmf, { n: LN, x: LX, k: 1 }, t`${math`G_{N}(G_{X}(t)) = \frac{${1}}{${3}}\left(${1} + \frac{${1} + t}{${2}} + \left(\frac{${1} + t}{${2}}\right)^{${2}}\right)`}; its coefficient of ${mt} is ${math`\frac{${1}}{${3}}\left(\frac{${1}}{${2}} + \frac{${2}}{${4}}\right) = ${polyCompose(LN, LX)[1] as Rational}`}.`),
+    { kind: 'section', title: t`Mean and variance` },
+    { kind: 'theorem', statement: t`If ${mN} and ${math`X`} have finite means and variances, then ${math`E(S_{N}) = E(N)E(X)`} and ${dmath`\operatorname{Var}(S_{N}) = E(N)\operatorname{Var}(X) + \operatorname{Var}(N)E(X)^{${2}}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Differentiate once`, text: t`By the chain rule, ${math`G_{S}'(t) = G_{N}'(G_{X}(t))\,G_{X}'(t)`}. At ${math`t = ${1}`}, ${math`G_{X}(${1}) = ${1}`}, so`, eq: [dmath`E(S_{N}) = G_{S}'(${1}) = G_{N}'(${1})G_{X}'(${1}) = E(N)E(X).`], why: { q: t`What if ${math`t = ${1}`} is the edge of where the series converges?`, a: t`Then the derivatives at ${1} are taken from the left, as in the pgf lesson; with finite means and variances they exist and equal the moments.` } },
+        { label: t`Differentiate again`, text: t`By the product and chain rules,`, eq: [dmath`G_{S}''(t) = G_{N}''(G_{X}(t))\,G_{X}'(t)^{${2}} + G_{N}'(G_{X}(t))\,G_{X}''(t).`] },
+        { label: t`Evaluate at one`, text: t`Write ${math`\mu = E(X)`}. Using ${math`G''(${1}) = E(Y(Y - ${1}))`} for each pgf,`, eq: [dmath`G_{S}''(${1}) = E(N(N - ${1}))\mu^{${2}} + E(N)E(X(X - ${1})).`] },
+        { label: t`Form the variance`, text: t`${math`\operatorname{Var}(S) = G_{S}''(${1}) + G_{S}'(${1}) - G_{S}'(${1})^{${2}}`}. Expand ${math`E(N(N - ${1})) = E(N^{${2}}) - E(N)`} and ${math`E(X(X - ${1})) = E(X^{${2}}) - \mu`}:`, eq: [dmath`\operatorname{Var}(S) = E(N^{${2}})\mu^{${2}} - E(N)\mu^{${2}} + E(N)E(X^{${2}}) - E(N)\mu + E(N)\mu - E(N)^{${2}}\mu^{${2}}.`] },
+        { label: t`Collect terms`, text: t`The ${math`E(N)\mu`} terms cancel. Group the rest:`, eq: [dmath`\operatorname{Var}(S) = \mu^{${2}}\big(E(N^{${2}}) - E(N)^{${2}}\big) + E(N)\big(E(X^{${2}}) - \mu^{${2}}\big) = \operatorname{Var}(N)\mu^{${2}} + E(N)\operatorname{Var}(X).`] },
+      ],
+    },
+    { kind: 'p', text: t`Read the variance as two sources of spread: the terms themselves vary (${math`E(N)\operatorname{Var}(X)`}), and how many terms there are varies (${math`\operatorname{Var}(N)E(X)^{${2}}`}). IA Probability Sheet ${3}, question ${8}, asks you to prove the same by conditioning on ${mN} instead of differentiating.` },
+    checkFrom(meanVar, { nk: 1, a: 4, nr: q(1, 2), xk: 0, b: 2, xr: q(1, 2), ask: 'mean' }, t`${math`E(N) = ${4} \times ${q(1, 2)} = ${2}`} and a fair die has mean ${q(7, 2)}, so ${math`E(S_{N}) = ${2} \times ${q(7, 2)} = ${7}`}.`),
+    { kind: 'pitfall', claim: t`${math`\operatorname{Var}(S_{N}) = E(N)\operatorname{Var}(X)`}: the variance of one term times the average number of terms.`, counterexample: t`Take every ${math`X_{i} = ${1}`}. Then ${math`S_{N} = N`}, so ${math`\operatorname{Var}(S_{N}) = \operatorname{Var}(N)`}, but ${math`E(N)\operatorname{Var}(X) = ${0}`}. The spread of ${mN} must be added.` },
+    { kind: 'section', title: t`The hen, and thinning` },
+    { kind: 'narrative', text: t`Back to the hen. Suppose the number of eggs is ${math`N \sim \text{Po}(${HEN.lambda})`}, so ${math`G_{N}(s) = e^{${HEN.lambda}(s - ${1})}`}, and each egg hatches with probability ${HEN.p}, so ${math`G_{X}(t) = ${sub(ONE, HEN.p)} + ${HEN.p}t`}.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Compose`, text: t`${math`G_{S}(t) = G_{N}(G_{X}(t)) = e^{${HEN.lambda}(${sub(ONE, HEN.p)} + ${HEN.p}t - ${1})}`}.` },
+        { label: t`Simplify`, text: t`${math`${sub(ONE, HEN.p)} + ${HEN.p}t - ${1} = ${HEN.p}(t - ${1})`}, so ${math`G_{S}(t) = e^{${henMean}(t - ${1})}`}.` },
+        { label: t`Recognise it`, text: t`That is the pgf of ${math`\text{Po}(${henMean})`}, and a pgf determines the distribution. So the number of chicks is Poisson with mean ${henMean}.`, plain: t`Check with the theorem: ${math`E(N)\operatorname{Var}(X) + \operatorname{Var}(N)E(X)^{${2}} = ${HEN.lambda} \times ${mul(HEN.p, sub(ONE, HEN.p))} + ${HEN.lambda} \times ${mul(HEN.p, HEN.p)} = ${henVar}`}, the variance of ${math`\text{Po}(${henMean})`}.` },
+      ],
+    },
+    { kind: 'p', text: t`In general a Poisson count of mean ${math`\lambda`}, each kept with probability ${math`p`}, is Poisson with mean ${math`\lambda p`}. This is thinning. Sheet ${3}, question ${10}, composes in both orders: immature animals that mature and then breed give ${math`(${1} - p + pF(t))^{k}`}, while mature parents whose offspring then mature give ${math`F(${1} - p + pt)^{k}`}.` },
+    { kind: 'pitfall', claim: t`The pgf of a random sum is ${math`G_{X}(G_{N}(t))`}, or ${math`G_{N}(t)G_{X}(t)`}.`, counterexample: t`With ${math`N = ${2}`} always, the sum is ${math`X_{${1}} + X_{${2}}`}, whose pgf is ${math`G_{X}(t)^{${2}} = G_{N}(G_{X}(t))`}. ${math`G_{X}(G_{N}(t)) = G_{X}(t^{${2}})`} is the pgf of ${math`${2}X`}, and ${math`G_{N}(t)G_{X}(t)`} is that of ${math`N + X`}.` },
+    { kind: 'takeaway', text: t`Condition on the number of terms: ${math`G_{S_{N}} = G_{N} \circ G_{X}`}, so the mean is ${math`E(N)E(X)`} and the variance adds the spread of the terms to the spread of their number.` },
   ],
   examples: [
     workedCambridge(q8b),
@@ -397,5 +450,24 @@ export const randomSums: TopicContent = {
   terms: ['random-sum'],
   claims,
   cambridge: [q10a, q10b, q8a, q10c],
-  gate: ['ia-s3-q10-a', 'ia-s3-q10-b', 'ia-s3-q8-a', 'ia-s3-q10-c'],
+  // Best first: the mean and variance proof (the heart of the topic), the two compositions
+  // written up, then each composition auto-checked.
+  gate: ['ia-s3-q8-a', 'ia-s3-q10-c', 'ia-s3-q10-a', 'ia-s3-q10-b'],
+  recall: [
+    { front: t`State the random sum formula.`, back: t`${math`G_{S_{N}}(t) = G_{N}(G_{X}(t))`}, for ${mN} independent of the i.i.d. ${math`X_{i}`}.` },
+    { front: t`Mean of a random sum?`, back: t`${math`E(S_{N}) = E(N)E(X)`}.` },
+    { front: t`Variance of a random sum?`, back: t`${math`E(N)\operatorname{Var}(X) + \operatorname{Var}(N)E(X)^{${2}}`}.` },
+    { front: t`A Poisson count of mean ${math`\lambda`}, each kept with probability ${math`p`}: what is the total?`, back: t`${math`\text{Po}(\lambda p)`}, since ${math`e^{\lambda(${1} - p + pt - ${1})} = e^{\lambda p(t - ${1})}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The random sum formula`,
+      steps: [
+        t`Split ${math`E(t^{S_{N}})`} over the values of ${mN}.`,
+        t`Given ${math`N = n`}, ${math`S_{N}`} is a sum of ${math`n`} independent terms.`,
+        t`So ${math`E(t^{S_{N}} \mid N = n) = G_{X}(t)^{n}`}.`,
+        t`Then ${math`\sum_{n} P(N = n)G_{X}(t)^{n} = G_{N}(G_{X}(t))`}.`,
+      ],
+    },
+  ],
 };

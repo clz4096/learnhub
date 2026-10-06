@@ -10,8 +10,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, expect, meanOf, nearestFraction, permutations, population, type Dist } from '../partv-c';
-import { computedTex, listOf, math, t, texOfRational, type Rich } from '../rich';
-import { worked, workedProof, type TopicContent } from '../topic';
+import { computedTex, dmath, listOf, math, t, texOfRational, type Rich } from '../rich';
+import { checkFrom, worked, workedProof, type TopicContent } from '../topic';
 
 const S3 = 'ia-prob-sheet-3' as const;
 const recip = (r: Rational): Rational => q(r.den, r.num);
@@ -209,20 +209,67 @@ const scheduleJensen = supervision({
 // ---------------------------------------------------------------- lesson
 
 const EX: Dist = POS[0] as Dist;
+const SQ: Dist = { xs: [1, 3], ps: [q(1, 2), q(1, 2)] };
+const sqMean = expect(SQ);
+const sqOfMean = expect(SQ, (x) => q(x * x));
 
 export const jensen: TopicContent = {
   topicId: 'ineq.jensen',
   goal: t`Recognise convex functions, prove and apply Jensen's inequality ${math`\mathbb{E}(f(X)) \ge f(\mathbb{E}(X))`}, and derive the AM-GM inequality from it.`,
+  objective: t`Prove Jensen's inequality for convex functions, and derive the AM-GM inequality from it.`,
+  why: t`It compares averages of functions with functions of averages; AM-GM finds minima with no calculus at all.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`A function curving upward, like ${math`x^{${2}}`} or ${math`e^{x}`}, lies below its chords. Averaging inputs and then applying it gives less than applying it and then averaging.` },
-    { kind: 'rule', text: t`${math`f`} is a [[convex-function|convex function]] on an interval if ${math`f(tx + (${1} - t)y) \le tf(x) + (${1} - t)f(y)`} for all ${math`x, y`} in it and ${math`t \in [${0}, ${1}]`}. If ${math`f'' \ge ${0}`}, ${math`f`} is convex. A convex function lies above a line through each of its points: ${math`f(x) \ge f(m) + \lambda(x - m)`}. If ${math`-f`} is convex, ${math`f`} is concave.` },
-    { kind: 'rule', text: t`[[jensen-inequality|Jensen's inequality]]: for convex ${math`f`} and ${math`X`} with finite mean, ${math`\mathbb{E}(f(X)) \ge f(\mathbb{E}(X))`}. Proof: take the line through ${math`(m, f(m))`} with ${math`m = \mathbb{E}(X)`}; then ${math`f(X) \ge f(m) + \lambda(X - m)`}, and taking means kills the last term. For concave ${math`f`} the inequality reverses.` },
-    { kind: 'p', text: t`With ${math`f(x) = x^{${2}}`} it says ${math`\mathbb{E}(X^{${2}}) \ge \mathbb{E}(X)^{${2}}`}, that is, variance is never negative. With ${math`f(x) = ${1}/x`} on positive values it says ${math`\mathbb{E}(${1}/X) \ge ${1}/\mathbb{E}(X)`}: for ${math`X`} equal to ${listOf(EX.xs)} with probabilities ${computedTex(EX.ps.map(texOfRational).join(', '))}, ${math`\mathbb{E}(${1}/X) = ${recVal({ d: EX })}`}, against ${math`${1}/\mathbb{E}(X) = ${recip(expect(EX))}`}. For equally likely values this is Sheet ${3} Q${1}(a): the harmonic mean is at most the arithmetic mean.` },
-    { kind: 'rule', text: t`The [[am-gm|AM-GM inequality]]: for positive ${math`x_{${1}}, \ldots, x_{n}`}, ${math`(x_{${1}} x_{${2}} \cdots x_{n})^{${1}/n} \le \frac{x_{${1}} + \cdots + x_{n}}{n}`}, with equality only when all are equal. Proof: ${math`\log`} is concave, so for ${math`X`} uniform on the ${math`x_{i}`}, ${math`\mathbb{E}(\log X) \le \log \mathbb{E}(X)`}; exponentiate.` },
-    { kind: 'p', text: t`AM-GM finds minima without calculus: ${math`ax + b/x \ge ${2}\sqrt{ab}`} for ${math`x > ${0}`}, with equality at ${math`x = \sqrt{b/a}`}. And in Q${1}(b), the numbers ${math`y_{i}/x_{i}`} have product ${1}, so their mean is at least ${1}; for ${math`(${1}, ${2}, ${4})`} itself the mean is ${ID_VALUE}, and the largest over all reorderings is ${MAXV}.` },
+    { kind: 'section', title: t`Average, then square?` },
+    { kind: 'hook', text: t`A random number ${math`X`} is ${1} or ${3}, each with probability ${q(1, 2)}. Average it and then square: ${math`(\mathbb{E}X)^{${2}} = ${sqMean}^{${2}} = ${sqMean.num * sqMean.num}`}. Square it and then average: ${math`\mathbb{E}(X^{${2}}) = \frac{${1} + ${9}}{${2}} = ${sqOfMean}`}. The second is bigger. Is that luck, or a law?` },
+    { kind: 'narrative', text: t`Picture the parabola ${math`y = x^{${2}}`} and the two points on it above ${1} and ${3}. Join them with a straight line, a chord. The average of the squares, ${sqOfMean}, is the height of the chord above the midpoint ${sqMean}. The square of the average, ${sqMean.num * sqMean.num}, is the height of the curve there. The curve sags below its chord. Functions that always do that are the subject of this lesson.` },
+
+    { kind: 'section', title: t`Convex functions` },
+    { kind: 'definition', name: t`Convex function`, formal: t`A function ${math`f`} on an interval ${math`I`} is [[convex-function|convex]] if for all ${math`x, y \in I`} and all ${math`t \in [${0}, ${1}]`}, ${dmath`f(tx + (${1} - t)y) \le t f(x) + (${1} - t) f(y).`} It is concave if ${math`-f`} is convex.`, plain: t`The point ${math`tx + (${1} - t)y`} runs between ${math`x`} and ${math`y`} as ${math`t`} goes from ${1} to ${0}; the right side is the height of the chord there. Convex means the curve never rises above its chords. With ${math`f(x) = x^{${2}}`}, ${math`x = ${1}`}, ${math`y = ${3}`}, ${math`t = ${q(1, 2)}`}: ${math`${4} \le ${5}`}.` },
+    { kind: 'p', text: t`A test you can use: if ${math`f`} is twice differentiable and ${math`f''(x) \ge ${0}`} on ${math`I`}, then ${math`f`} is convex. So ${math`x^{${2}}`}, ${math`e^{x}`}, and ${math`${1}/x`} on ${math`x > ${0}`} are convex, and ${math`\log x`} is concave, since its second derivative is ${math`-${1}/x^{${2}}`}.`, why: { q: t`Why does ${math`f'' \ge ${0}`} give convexity?`, a: t`${math`f'' \ge ${0}`} means the slope ${math`f'`} never decreases. A curve whose slope only increases bends upward, so it stays below each chord. (A proof uses the mean value theorem on each half of the chord.)` } },
+    { kind: 'theorem', name: t`Supporting line`, statement: t`If ${math`f`} is convex on an open interval ${math`I`} and ${math`m \in I`}, there is a number ${math`\lambda`} with ${dmath`f(x) \ge f(m) + \lambda(x - m) \quad \text{for all } x \in I.`}` },
+    { kind: 'p', text: t`In plain words: at every point you can lay a straight line that touches the curve there and stays below it everywhere. For a smooth ${math`f`}, the tangent works, with ${math`\lambda = f'(m)`}. For ${math`x^{${2}}`} at ${math`m = ${2}`}: ${math`x^{${2}} \ge ${4} + ${4}(x - ${2})`}, which rearranges to ${math`(x - ${2})^{${2}} \ge ${0}`}.`, why: { q: t`Why is there such a line for a general convex function?`, a: t`From the definition, the chord slopes ${math`\frac{f(x) - f(m)}{x - m}`} increase with ${math`x`}. So every chord slope to the left of ${math`m`} is at most every chord slope to the right. Choose ${math`\lambda`} between them: then the line lies below the curve on both sides. This proof is a supervision problem below.` } },
+
+    { kind: 'section', title: t`Jensen's inequality` },
+    { kind: 'theorem', name: t`Jensen's inequality`, statement: t`If ${math`f`} is convex on an open interval ${math`I`}, and ${math`X`} takes values in ${math`I`} with ${math`\mathbb{E}(X)`} and ${math`\mathbb{E}(f(X))`} finite, then ${dmath`\mathbb{E}(f(X)) \ge f(\mathbb{E}(X)).`} If ${math`f`} is concave, the inequality reverses.` },
+    { kind: 'p', text: t`This is [[jensen-inequality|Jensen's inequality]]. The idea in one line: put the supporting line at the mean, and take expectations of both sides.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Choose the point`, text: t`Let ${math`m = \mathbb{E}(X)`}. It lies in ${math`I`}, because ${math`X`} does.`, why: { q: t`Why is the mean in ${math`I`}?`, a: t`An average of numbers in an interval lies in that interval: if ${math`X > a`} always, then ${math`\mathbb{E}(X) > a`}, and likewise for an upper end.` } },
+        { label: t`Lay the line`, text: t`By the supporting line theorem there is a ${math`\lambda`} with ${math`f(x) \ge f(m) + \lambda(x - m)`} for every ${math`x \in I`}. Put ${math`x = X`}:`, eq: [dmath`f(X) \ge f(m) + \lambda(X - m).`], plain: t`This holds for every outcome, so it holds as an inequality between random variables.` },
+        { label: t`Take means`, text: t`Expectation keeps inequalities and is linear, so`, eq: [dmath`\mathbb{E}(f(X)) \ge f(m) + \lambda(\mathbb{E}(X) - m) = f(m).`], plain: t`The last term is ${0}, because ${math`m`} was chosen to be ${math`\mathbb{E}(X)`}.` },
+        { label: t`Concave case`, text: t`If ${math`f`} is concave, apply the result to the convex ${math`-f`}, and multiply by ${math`-${1}`}, which reverses the inequality.` },
+      ],
+    },
+    { kind: 'p', text: t`Two quick consequences. With ${math`f(x) = x^{${2}}`}: ${math`\mathbb{E}(X^{${2}}) \ge (\mathbb{E}X)^{${2}}`}, so a variance is never negative. With ${math`f(x) = ${1}/x`} on positive values: ${math`\mathbb{E}(${1}/X) \ge ${1}/\mathbb{E}(X)`}. For ${math`X`} equal to ${listOf(EX.xs)} with probabilities ${computedTex(EX.ps.map(texOfRational).join(', '))}: ${math`\mathbb{E}(${1}/X) = ${recVal({ d: EX })}`}, against ${math`${1}/\mathbb{E}(X) = ${recip(expect(EX))}`}.` },
+    checkFrom(reciprocalMean, { d: POS[2] as Dist }, t`${math`\frac{${1}}{${3}}\left(\frac{${1}}{${2}} + \frac{${1}}{${3}} + \frac{${1}}{${6}}\right) = \frac{${1}}{${3}}`}, which is more than ${math`${1}/\mathbb{E}(X) = ${recip(expect(POS[2] as Dist))}`}, as Jensen says.`),
+
+    { kind: 'section', title: t`AM-GM` },
+    { kind: 'theorem', name: t`AM-GM`, statement: t`For positive real numbers ${math`x_{${1}}, \ldots, x_{n}`}, ${dmath`(x_{${1}} x_{${2}} \cdots x_{n})^{${1}/n} \le \frac{x_{${1}} + x_{${2}} + \cdots + x_{n}}{n},`} with equality only when all the ${math`x_{i}`} are equal.` },
+    { kind: 'p', text: t`This is the [[am-gm|AM-GM inequality]]: the geometric mean (left) is at most the arithmetic mean (right). For ${math`${2}`} and ${math`${8}`}: ${math`\sqrt{${16}} = ${4} \le ${5}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Make it a random variable`, text: t`Let ${math`X`} take each value ${math`x_{i}`} with probability ${math`${1}/n`}. Then ${math`\mathbb{E}(X) = \frac{${1}}{n}\sum_{i} x_{i}`}.` },
+        { label: t`Apply Jensen to ${math`\log`}`, text: t`${math`\log`} is concave on ${math`(${0}, \infty)`}, so ${math`\mathbb{E}(\log X) \le \log \mathbb{E}(X)`}, that is`, eq: [dmath`\frac{${1}}{n}\sum_{i} \log x_{i} \le \log\left(\frac{${1}}{n}\sum_{i} x_{i}\right).`] },
+        { label: t`Tidy the left side`, text: t`${math`\frac{${1}}{n}\sum_{i} \log x_{i} = \frac{${1}}{n}\log(x_{${1}} \cdots x_{n}) = \log\left((x_{${1}} \cdots x_{n})^{${1}/n}\right)`}.`, why: { q: t`Which rules of logarithms is that?`, a: t`A sum of logs is the log of the product, and ${math`c \log y = \log(y^{c})`}.` } },
+        { label: t`Exponentiate`, text: t`${math`e^{x}`} is increasing, so applying it to both sides keeps the inequality, and ${math`e^{\log y} = y`}. This gives AM-GM.`, plain: t`Equality in Jensen for a strictly concave function needs ${math`X`} to be constant, so all the ${math`x_{i}`} equal.` },
+      ],
+    },
+    { kind: 'p', text: t`AM-GM finds minima without calculus. For ${math`x > ${0}`}, apply it to the two numbers ${math`ax`} and ${math`b/x`}: their product is ${math`ab`}, so ${math`ax + b/x \ge ${2}\sqrt{ab}`}, with equality when ${math`ax = b/x`}.` },
+    checkFrom(amgmMinimum, { a: 1, b: 16 }, t`${math`x + ${16}/x \ge ${2}\sqrt{${16}} = ${8}`}, with equality at ${math`x = ${4}`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`\mathbb{E}(f(X)) = f(\mathbb{E}(X))`}, so the mean of ${math`${1}/X`} is ${math`${1}`} over the mean.`, counterexample: t`For ${math`X`} equal to ${1} or ${3} with equal chances, ${math`\mathbb{E}(${1}/X) = ${q(2, 3)}`} but ${math`${1}/\mathbb{E}(X) = ${q(1, 2)}`}. Equality needs ${math`f`} linear or ${math`X`} constant.` },
+    { kind: 'pitfall', claim: t`Jensen's inequality works the same way for every function.`, counterexample: t`For the concave ${math`\log`}, it reverses: ${math`\mathbb{E}(\log X) \le \log \mathbb{E}(X)`}. Check the direction of curvature first.` },
+    { kind: 'pitfall', claim: t`AM-GM holds for any real numbers.`, counterexample: t`With ${math`-${1}`} and ${math`-${4}`}, the geometric mean ${math`\sqrt{${4}} = ${2}`} exceeds the arithmetic mean ${math`-${q(5, 2)}`}. The numbers must be positive, so that ${math`\log`} applies.` },
+    { kind: 'takeaway', text: t`For convex ${math`f`}, the average of ${math`f`} is at least ${math`f`} of the average, because the curve lies above a line through its mean point.` },
   ],
   examples: [
-    q1a,
+    { ...q1a, examiner: t`The examiner looks for the numbers turned into a random variable, convexity of ${math`${1}/x`} justified, and the reversal of the inequality when taking reciprocals explained.` },
     worked(reciprocalMean, { d: POS[1] as Dist }, t`The mean of a reciprocal`),
     worked(amgmMinimum, { a: 4, b: 9 }, t`A minimum by AM-GM`),
   ],
@@ -230,5 +277,31 @@ export const jensen: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['convex-function', 'jensen-inequality', 'am-gm'],
   cambridge: [q1b, q1bProof, scheduleJensen],
-  gate: ['ia-s3-q1-b-largest', 'ia-s3-q1-b'],
+  // The sheet's proof is the test; the largest reordering is a search over six cases, which does not need Jensen.
+  gate: ['ia-s3-q1-b'],
+  recall: [
+    { front: t`Define a convex function.`, back: t`${math`f(tx + (${1} - t)y) \le tf(x) + (${1} - t)f(y)`} for all ${math`x, y`} and ${math`t \in [${0}, ${1}]`}: the curve lies below its chords.` },
+    { front: t`State Jensen's inequality.`, back: t`For convex ${math`f`}, ${math`\mathbb{E}(f(X)) \ge f(\mathbb{E}(X))`}; reversed for concave ${math`f`}.` },
+    { front: t`State AM-GM.`, back: t`For positive ${math`x_{i}`}, ${math`(x_{${1}} \cdots x_{n})^{${1}/n} \le \frac{${1}}{n}\sum x_{i}`}, with equality only when all are equal.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Jensen's inequality`,
+      steps: [
+        t`Let ${math`m = \mathbb{E}(X)`}.`,
+        t`Take a supporting line at ${math`m`}: ${math`f(x) \ge f(m) + \lambda(x - m)`}.`,
+        t`Put ${math`x = X`} and take expectations.`,
+        t`The term ${math`\lambda(\mathbb{E}X - m)`} is ${0}, leaving ${math`\mathbb{E}f(X) \ge f(m)`}.`,
+      ],
+    },
+    {
+      title: t`AM-GM from Jensen`,
+      steps: [
+        t`Let ${math`X`} be uniform on ${math`x_{${1}}, \ldots, x_{n}`}.`,
+        t`${math`\log`} is concave, so ${math`\mathbb{E}(\log X) \le \log \mathbb{E}(X)`}.`,
+        t`The left side is the log of the geometric mean.`,
+        t`Exponentiate, which keeps the inequality.`,
+      ],
+    },
+  ],
 };

@@ -11,8 +11,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { listOf, math, t, type Rich } from '../rich';
-import { worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, listOf, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mXbar, meps] = [math`\bar{X}_{n}`, math`\varepsilon`];
 const SH3 = 'ia-prob-sheet-3' as const;
@@ -253,19 +253,59 @@ const N_EX = 100;
 const EPS_EX = q(1, 10);
 /** P(|S/n - 1/2| >= 1/10) for n = 100 fair tosses, exactly. */
 const exact100 = ((): number => { let s = 0; for (let k = 0; k <= N_EX; k++) if (Math.abs(k / N_EX - 0.5) >= 0.1 - 1e-12) s += Math.exp(Math.log(choose(N_EX, k)) - N_EX * Math.log(2)); return s; })();
+const cheb100 = div(q(1, 4), mul(q(N_EX), mul(EPS_EX, EPS_EX)));
 const claims: ProbabilityClaim[] = [
   { what: 'ten fair tosses: heads differ from five by at least two', exact: coinVal({ n: 10, c: 2 }), trial: (rng) => { let h = 0; for (let i = 0; i < 10; i++) if (rng() < 0.5) h++; return Math.abs(h - 5) >= 2; } },
 ];
+const [mmu, msig] = [math`\mu`, math`\sigma^{${2}}`];
 
 export const weakLaw: TopicContent = {
   topicId: 'lim.weak-law',
   goal: t`Prove that the sample mean of independent, identically distributed variables with finite variance converges in probability to ${math`\mu`}, by Chebyshev's inequality.`,
+  objective: t`Prove that the sample mean settles near the true mean, and use Chebyshev to choose a sample size.`,
+  why: t`It is why averages, polls and simulations work, and the first step towards the central limit theorem.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`Toss a fair coin ${math`n`} times and let ${mXbar} be the proportion of heads. Long-run frequency says ${mXbar} settles near ${q(1, 2)}. The weak law makes that precise, for the mean of any independent repetitions of an experiment.` },
-    { kind: 'rule', text: t`The [[weak-law|weak law of large numbers]]: if ${math`X_{${1}}, X_{${2}}, \ldots`} are independent and identically distributed with mean ${math`\mu`} and variance ${math`\sigma^{${2}} < \infty`}, then for every ${math`\varepsilon > ${0}`}, ${math`P(|\bar{X}_{n} - \mu| > \varepsilon) \to ${0}`}: ${mXbar} [[convergence-in-probability|converges in probability]] to ${math`\mu`}.` },
-    { kind: 'p', text: t`The proof is two lines. ${math`E(\bar{X}_{n}) = \mu`}, and since independent variables have covariance ${0}, ${math`\operatorname{Var}(\bar{X}_{n}) = \frac{${1}}{n^{${2}}}\sum_{i}\operatorname{Var}(X_{i}) = \frac{\sigma^{${2}}}{n}`}. Chebyshev then gives ${math`P(|\bar{X}_{n} - \mu| \ge \varepsilon) \le \frac{\sigma^{${2}}}{n\varepsilon^{${2}}} \to ${0}`}.` },
-    { kind: 'p', text: t`The bound is crude. For ${N_EX} fair tosses and ${math`\varepsilon = ${EPS_EX}`}, Chebyshev gives ${math`\frac{${q(1, 4)}}{${N_EX} \times ${mul(EPS_EX, EPS_EX)}} = ${div(q(1, 4), mul(q(N_EX), mul(EPS_EX, EPS_EX)))}`}, while the exact chance is about ${Number(exact100.toPrecision(3))}. But it holds for every distribution with that variance, which is what Sheet ${3} Q${4} asks for: a sample size that works whatever the distribution.` },
-    { kind: 'p', text: t`Only the variances and covariances were used, so pairwise uncorrelated variables are enough. The conclusion is about each ${math`n`} separately: it says the chance of a large deviation shrinks, not that a single run of the sequence must settle down (that is the strong law, a harder theorem).` },
+    { kind: 'section', title: t`Why do averages settle?` },
+    { kind: 'hook', text: t`Toss a fair coin ${N_EX} times. You expect about half heads, but not exactly half. Toss it a million times and the proportion of heads will be very close to ${q(1, 2)}. Everyone believes this. What exactly is the statement, and why is it true?` },
+    { kind: 'narrative', text: t`The proportion of heads is an average: score ${1} for a head and ${0} for a tail, and average the scores. Averaging cancels out luck: a run of heads here is offset by tails there. The question is how fast, and the answer comes from the variance. The variance of an average of ${math`n`} independent scores shrinks like ${math`\frac{${1}}{n}`}, and a small variance forces the average to stay close to its mean.` },
+    { kind: 'section', title: t`Convergence in probability` },
+    {
+      kind: 'definition',
+      name: t`Sample mean and convergence in probability`,
+      formal: t`For random variables ${math`X_{${1}}, \ldots, X_{n}`}, the sample mean is ${math`\bar{X}_{n} = \frac{${1}}{n}\sum_{i = ${1}}^{n} X_{i}`}. A sequence ${math`Y_{n}`} [[convergence-in-probability|converges in probability]] to a constant ${math`c`} if ${math`P(\lvert Y_{n} - c \rvert > \varepsilon) \to ${0}`} as ${math`n \to \infty`}, for every ${math`\varepsilon > ${0}`}.`,
+      plain: t`In plain words: however small a margin ${meps} you choose, the chance of missing ${math`c`} by more than ${meps} becomes negligible as ${math`n`} grows. For the coin, ${math`Y_{n}`} is the proportion of heads and ${math`c = ${q(1, 2)}`}.`,
+    },
+    {
+      kind: 'theorem',
+      name: t`Weak law of large numbers`,
+      statement: t`Let ${math`X_{${1}}, X_{${2}}, \ldots`} be independent and identically distributed with mean ${mmu} and variance ${math`\sigma^{${2}} < \infty`}. Then ${mXbar} converges in probability to ${mmu}: for every ${math`\varepsilon > ${0}`}, ${math`P(\lvert \bar{X}_{n} - \mu \rvert > \varepsilon) \to ${0}`}.`,
+    },
+    { kind: 'p', text: t`This is the [[weak-law|weak law of large numbers]]. The proof needs one tool from the previous chapter, Chebyshev's inequality: for any random variable ${math`Y`} with finite variance and any ${math`\varepsilon > ${0}`}, ${math`P(\lvert Y - E(Y) \rvert \ge \varepsilon) \le \frac{\operatorname{Var}(Y)}{\varepsilon^{${2}}}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The mean of the average`, text: t`By linearity of expectation, ${math`E(\bar{X}_{n}) = \frac{${1}}{n}\sum_{i} E(X_{i}) = \frac{${1}}{n} \cdot n\mu = \mu`}.` },
+        { label: t`The variance of the average`, text: t`Independent variables have variances that add, and ${math`\operatorname{Var}(aY) = a^{${2}}\operatorname{Var}(Y)`}, so`, eq: [dmath`\operatorname{Var}(\bar{X}_{n}) = \frac{${1}}{n^{${2}}}\sum_{i} \operatorname{Var}(X_{i}) = \frac{${1}}{n^{${2}}} \cdot n\sigma^{${2}} = \frac{\sigma^{${2}}}{n}.`], why: { q: t`Why do the variances add?`, a: t`${math`\operatorname{Var}(\sum X_{i}) = \sum \operatorname{Var}(X_{i}) + \sum_{i \ne j} \operatorname{cov}(X_{i}, X_{j})`}, and independent variables have covariance ${0}.` } },
+        { label: t`Apply Chebyshev`, text: t`With ${math`Y = \bar{X}_{n}`}:`, eq: [dmath`P(\lvert \bar{X}_{n} - \mu \rvert > \varepsilon) \le P(\lvert \bar{X}_{n} - \mu \rvert \ge \varepsilon) \le \frac{\sigma^{${2}}}{n\varepsilon^{${2}}}.`] },
+        { label: t`Let n grow`, text: t`For fixed ${meps}, ${math`\frac{\sigma^{${2}}}{n\varepsilon^{${2}}} \to ${0}`}. A probability is at least ${0}, so it is squeezed to ${0}.` },
+      ],
+    },
+    checkFrom(bound, { d: 1, n: 50, eps: q(1, 10) }, t`${math`\frac{\sigma^{${2}}}{n\varepsilon^{${2}}} = \frac{${q(1, 4)}}{${50} \times ${q(1, 100)}} = ${q(1, 2)}`}.`),
+    { kind: 'section', title: t`How good is the bound?` },
+    { kind: 'p', text: t`For ${N_EX} fair tosses and ${math`\varepsilon = ${EPS_EX}`}, Chebyshev gives ${math`\frac{${q(1, 4)}}{${N_EX} \times ${mul(EPS_EX, EPS_EX)}} = ${cheb100}`}, while the exact chance of being at least ${EPS_EX} away from ${q(1, 2)} is about ${Number(exact100.toPrecision(3))}. The bound is crude. Its strength is that it holds for every distribution with that variance, and that is exactly what you need to choose a sample size without knowing the distribution, as IA Probability Sheet ${3}, question ${4}, asks.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Set the target`, text: t`We want ${math`P(\lvert \bar{X}_{n} - \mu \rvert \ge \varepsilon) \le \delta`}. Chebyshev guarantees it as soon as ${math`\frac{\sigma^{${2}}}{n\varepsilon^{${2}}} \le \delta`}.` },
+        { label: t`Solve for n`, text: t`Multiply by ${math`n`} and divide by ${math`\delta`}: ${math`n \ge \frac{\sigma^{${2}}}{\varepsilon^{${2}}\delta}`}.`, plain: t`Halving the margin ${meps} costs four times as many observations.` },
+      ],
+    },
+    checkFrom(sampleSize, { sigma: q(2), eps: q(1), delta: q(1, 20) }, t`${math`n \ge \frac{${4}}{${1} \times ${q(1, 20)}} = ${80}`}.`),
+    { kind: 'pitfall', claim: t`After ten heads in a row, a tail is more likely next, because the proportion must get back to ${q(1, 2)}.`, counterexample: t`The tosses are independent: the next one is a head with probability ${q(1, 2)}, whatever came before. The law works by swamping early luck with many later tosses, not by correcting it.` },
+    { kind: 'pitfall', claim: t`The weak law says that in a single long run, the average eventually stays within ${meps} of ${mmu} for ever.`, counterexample: t`It says something weaker: for each large ${math`n`} separately, a big deviation is unlikely. That a single run settles down for good is the strong law, a harder theorem.` },
+    { kind: 'takeaway', text: t`The sample mean has variance ${math`\frac{\sigma^{${2}}}{n}`}, so Chebyshev bounds its chance of straying by ${math`\frac{\sigma^{${2}}}{n\varepsilon^{${2}}}`}, which tends to ${0}.` },
   ],
   examples: [
     q13,
@@ -277,5 +317,23 @@ export const weakLaw: TopicContent = {
   terms: ['weak-law', 'convergence-in-probability'],
   claims,
   cambridge: [q4, q13b, uncorrelated],
-  gate: ['ia-s3-q4', 'ia-s3-q13-variance'],
+  // Best first: the weak law for the sample variance (a fourth moment), then the sample size
+  // from Chebyshev. The uncorrelated version comes from the schedule, not a gate document.
+  gate: ['ia-s3-q13-variance', 'ia-s3-q4'],
+  recall: [
+    { front: t`State the weak law of large numbers.`, back: t`For i.i.d. ${math`X_{i}`} with mean ${mmu} and finite variance, ${math`P(\lvert \bar{X}_{n} - \mu \rvert > \varepsilon) \to ${0}`} for every ${math`\varepsilon > ${0}`}.` },
+    { front: t`Variance of the sample mean?`, back: t`${math`\frac{\sigma^{${2}}}{n}`}, for independent ${math`X_{i}`} with variance ${msig}.` },
+    { front: t`Sample size from Chebyshev for error ${meps} with probability ${math`${1} - \delta`}?`, back: t`${math`n \ge \frac{\sigma^{${2}}}{\varepsilon^{${2}}\delta}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The weak law of large numbers`,
+      steps: [
+        t`${math`E(\bar{X}_{n}) = \mu`} by linearity.`,
+        t`${math`\operatorname{Var}(\bar{X}_{n}) = \frac{\sigma^{${2}}}{n}`}, since independent variances add.`,
+        t`Chebyshev: ${math`P(\lvert \bar{X}_{n} - \mu \rvert \ge \varepsilon) \le \frac{\sigma^{${2}}}{n\varepsilon^{${2}}}`}.`,
+        t`The bound tends to ${0} as ${math`n \to \infty`}.`,
+      ],
+    },
+  ],
 };

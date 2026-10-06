@@ -10,7 +10,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { factorial, int, pick, q, str, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mm, mn] = [math`m`, math`n`];
 
@@ -293,19 +293,64 @@ const q3general = supervision({
 
 const EX: ComP = { a: 5, b: 4, r: 3, k: 2 };
 
+const [RED, BLUE] = [4, 3];
+const comFav = choose(EX.b, EX.k) * choose(EX.a, EX.r - EX.k);
+const mk = math`k`;
+
 export const countingProbability: TopicContent = {
   topicId: 'prob.counting-probability',
   goal: t`Find probabilities of equally likely outcomes by counting the favourable outcomes and all outcomes with combinations and arrangements.`,
+  objective: t`Find probabilities of equally likely outcomes by counting with combinations and arrangements.`,
+  why: t`Many STEP probability questions are counting questions in disguise; next come classical probability and restricted arrangements.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`When every outcome is equally likely, a probability is a count over a count. The hard part is the counting, and the tools are the ones for counting selections and arrangements.` },
-    { kind: 'rule', text: t`${dmath`P(A) = \frac{\text{number of outcomes in } A}{\text{number of outcomes}}`} The outcomes in ${math`A`} are the [[favourable-outcome|favourable outcomes]]. Count both on the same terms: if the outcomes are unordered selections, count favourable unordered selections too.` },
-    { kind: 'p', text: t`Choose a committee of ${EX.r} from ${EX.a} men and ${EX.b} women at random. All outcomes: ${math`${binom(EX.a + EX.b, EX.r)} = ${choose(EX.a + EX.b, EX.r)}`}. Exactly ${EX.k} women: pick them, ${math`${binom(EX.b, EX.k)} = ${choose(EX.b, EX.k)}`} ways, and the other ${EX.r - EX.k} from the men, ${math`${binom(EX.a, EX.r - EX.k)} = ${choose(EX.a, EX.r - EX.k)}`}: ${math`\frac{${choose(EX.b, EX.k) * choose(EX.a, EX.r - EX.k)}}{${choose(EX.a + EX.b, EX.r)}} = ${q(choose(EX.b, EX.k) * choose(EX.a, EX.r - EX.k), choose(EX.a + EX.b, EX.r))}`}. This is sampling [[without-replacement|without replacement]], so the answer is not the dice-style ${math`\binom{${EX.r}}{${EX.k}} p^{${EX.k}} (${1} - p)^{${EX.r - EX.k}}`}.` },
-    { kind: 'p', text: t`The STEP hints to Assignment ${12} work the sweets question both ways: one sweet after the other along a tree, or both at once by counting pairs, ${math`\frac{${binom(9, 2)} + ${binom(6, 2)}}{${binom(15, 2)}}`}. They agree, because each unordered pair corresponds to exactly two ordered ones.` },
-    { kind: 'p', text: t`Arrangements work the same way. In the raffle question (STEP I, ${2011}, question ${12}), each order of the queue is equally likely. With one ${2} pound coin, selling fails only when that person is first, so the probability of success is ${math`\frac{m}{m + ${1}}`}. With more ${2} pound coins, list the starts of the queue that work, in a logical order so none is missed, and add.` },
-    { kind: 'p', text: t`A count that seems too hard often becomes easy by counting the complement, or by fixing what the event forces: for "the largest number drawn is ${math`m`}", ball ${math`m`} is in, and the rest come from below it.` },
+    { kind: 'section', title: t`A count over a count` },
+    { kind: 'hook', text: t`A bag holds ${RED} red balls and ${BLUE} blue ones. Draw two at once. What is the chance both are red? You could count pairs, or you could imagine drawing one after the other and count ordered pairs. The two counts are different. Do they give different answers?` },
+    {
+      kind: 'definition',
+      name: t`Probability by counting`,
+      formal: t`If a sample space ${math`\Omega`} is finite and its outcomes are equally likely, the probability of an event ${math`A \subseteq \Omega`} is ${dmath`P(A) = \frac{|A|}{|\Omega|}.`} The outcomes in ${math`A`} are its [[favourable-outcome|favourable outcomes]].`,
+      plain: t`the number of outcomes you want over the number of outcomes there are, provided each is equally likely. ${math`|A|`} means the number of elements of ${math`A`}.`,
+    },
+    { kind: 'narrative', text: t`The hard part is never the division. It is the counting, and the tools are the ones for selections, ${math`\binom{n}{k}`}, and arrangements, ${math`n!`}. The one rule: count the favourable outcomes and all outcomes in the same way.` },
+    { kind: 'section', title: t`Ordered or unordered?` },
+    { kind: 'p', text: t`The hook, both ways. Unordered pairs: ${math`\frac{${binom(RED, 2)}}{${binom(RED + BLUE, 2)}} = \frac{${choose(RED, 2)}}{${choose(RED + BLUE, 2)}} = ${q(choose(RED, 2), choose(RED + BLUE, 2))}`}. Ordered pairs, first ball then second: ${math`\frac{${RED} \times ${RED - 1}}{${RED + BLUE} \times ${RED + BLUE - 1}} = \frac{${RED * (RED - 1)}}{${(RED + BLUE) * (RED + BLUE - 1)}} = ${q(RED * (RED - 1), (RED + BLUE) * (RED + BLUE - 1))}`}. The same. That is no accident.` },
+    { kind: 'theorem', statement: t`Draw ${mk} items at once from ${mn} distinct items, all selections equally likely, and let ${math`A`} be an event that depends only on which items are drawn. Then ${math`P(A)`} is the same whether outcomes are counted as unordered selections or as ordered ones.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Match the two counts`, text: t`Each unordered selection of ${mk} items can be put in order in exactly ${math`k!`} ways, and each ordered selection comes from exactly one unordered one.`, plain: t`The pair {red ${1}, red ${2}} gives two ordered pairs: red ${1} then red ${2}, and red ${2} then red ${1}.` },
+        { label: t`Count all outcomes`, text: t`So the number of ordered selections is ${math`k! \binom{n}{k}`}.`, plain: t`Every unordered selection contributes ${math`k!`} ordered ones.` },
+        { label: t`Count favourable outcomes`, text: t`${math`A`} depends only on which items are drawn, so all ${math`k!`} orderings of a favourable selection are favourable: ${math`k! |A|`} ordered outcomes.`, plain: t`Reordering two red balls leaves them both red.` },
+        { label: t`Cancel`, text: t`${math`\frac{k! |A|}{k! \binom{n}{k}} = \frac{|A|}{\binom{n}{k}}`}.`, plain: t`The factor ${math`k!`} appears top and bottom, so the probabilities agree.` },
+      ],
+    },
+    {
+      kind: 'pitfall',
+      claim: t`Count the favourable pairs as unordered and all pairs as ordered: ${math`\frac{${choose(RED, 2)}}{${(RED + BLUE) * (RED + BLUE - 1)}}`}.`,
+      counterexample: t`That mixes two ways of counting and gives ${q(choose(RED, 2), (RED + BLUE) * (RED + BLUE - 1))}, half the true ${q(choose(RED, 2), choose(RED + BLUE, 2))}. Count top and bottom the same way.`,
+    },
+    { kind: 'section', title: t`Building a favourable count` },
+    { kind: 'p', text: t`Choose a committee of ${EX.r} from ${EX.a} men and ${EX.b} women, at random. All outcomes: ${math`${binom(EX.a + EX.b, EX.r)} = ${choose(EX.a + EX.b, EX.r)}`}. Exactly ${EX.k} women: choose them, ${math`${binom(EX.b, EX.k)} = ${choose(EX.b, EX.k)}`} ways, then the other ${EX.r - EX.k} from the men, ${math`${binom(EX.a, EX.r - EX.k)} = ${choose(EX.a, EX.r - EX.k)}`} ways. By the product rule, ${comFav} favourable committees, and the probability is ${math`\frac{${comFav}}{${choose(EX.a + EX.b, EX.r)}} = ${q(comFav, choose(EX.a + EX.b, EX.r))}`}.` },
+    {
+      kind: 'p',
+      text: t`This is sampling [[without-replacement|without replacement]]: once chosen, a person cannot be chosen again.`,
+      why: { q: t`Why not use ${math`\binom{${EX.r}}{${EX.k}} p^{${EX.k}} (${1} - p)^{${EX.r - EX.k}}`} with ${math`p = \frac{${EX.b}}{${EX.a + EX.b}}`}?`, a: t`That formula assumes each pick is independent with the same chance, like rolling a die. Here each choice changes who is left, so the chances change from pick to pick.` },
+    },
+    quickCheck({
+      prompt: t`From ${RED} red and ${BLUE} blue balls, ${3} are drawn at once. What is the probability that exactly ${2} are red?`,
+      answer: { kind: 'exact', expected: str(q(choose(RED, 2) * choose(BLUE, 1), choose(RED + BLUE, 3))) },
+      reference: str(q(choose(RED, 2) * choose(BLUE, 1), choose(RED + BLUE, 3))),
+      why: t`${math`\frac{${binom(RED, 2)}${binom(BLUE, 1)}}{${binom(RED + BLUE, 3)}} = \frac{${choose(RED, 2)} \times ${BLUE}}{${choose(RED + BLUE, 3)}} = ${q(choose(RED, 2) * choose(BLUE, 1), choose(RED + BLUE, 3))}`}.`,
+    }),
+    { kind: 'section', title: t`Arrangements` },
+    { kind: 'p', text: t`Arrangements work the same way. In the raffle question (STEP I, ${2011}, question ${12}), every order of the queue is equally likely. With one person holding a ${2} pound coin, selling fails only when that person is first, so the probability of success is ${math`\frac{m}{m + ${1}}`}. With more ${2} pound coins, list the starts of the queue that work, in a logical order so none is missed, and add.` },
+    { kind: 'p', text: t`A count that seems hard often becomes easy by counting the complement, or by fixing what the event forces. For "the largest number drawn is ${mm}", ball ${mm} must be drawn, and the rest come from the numbers below it.` },
+    { kind: 'takeaway', text: t`With equally likely outcomes, ${math`P(A) = \frac{|A|}{|\Omega|}`}: build both counts from selections and arrangements, and count them the same way.` },
   ],
   examples: [
-    workedCambridge(q3i),
+    { ...workedCambridge(q3i), examiner: t`The equally likely outcomes named (orders of the queue), the single failing case identified, and the probability written as a count over a count.` },
     worked(committee, EX, t`A committee`),
     worked(largest, { n: 10, k: 3, m: 7 }, t`The largest number drawn`),
   ],
@@ -313,5 +358,23 @@ export const countingProbability: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['favourable-outcome'],
   cambridge: [q3ii, q3iii, twoMints, q3iiShow, q3general],
-  gate: ['a12-q3-ii', 'a12-q3-iii', 'a12-q2-ii-mints', 'a12-q3-ii-show', 'a12-q3-discussion'],
+  // The raffle question, STEP I 2011 Q12: the hardest case first, then the written justification of
+  // n equal to 2, its answer, and the Discussion. The sweets question is a one-line count, left out.
+  gate: ['a12-q3-iii', 'a12-q3-ii-show', 'a12-q3-ii', 'a12-q3-discussion'],
+  recall: [
+    { front: t`Probability by counting?`, back: t`For equally likely outcomes, ${math`P(A) = \frac{|A|}{|\Omega|}`}.` },
+    { front: t`Ordered or unordered: does it matter?`, back: t`No, if both counts use the same convention: each unordered selection of ${mk} gives ${math`k!`} ordered ones, which cancel.` },
+    { front: t`Exactly ${mk} of type A when drawing ${math`r`} from ${math`a`} of type A and ${math`b`} of type B?`, back: t`${math`\frac{\binom{a}{k}\binom{b}{r - k}}{\binom{a + b}{r}}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Ordered and unordered counts agree`,
+      steps: [
+        t`Each unordered selection of ${mk} items has ${math`k!`} orderings.`,
+        t`So there are ${math`k! \binom{n}{k}`} ordered outcomes in all.`,
+        t`Each favourable selection gives ${math`k!`} favourable ordered outcomes.`,
+        t`The ${math`k!`} cancels, so the probabilities are equal.`,
+      ],
+    },
+  ],
 };

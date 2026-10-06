@@ -11,8 +11,8 @@ import { auto, cite, supervision } from '../cambridge';
 import { add, int, pick, q, str, type Rational } from '../math';
 import { near, Phi, PhiSeries, round } from '../partv-b';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { dmath, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const mX = math`X`;
 const S2 = 'step-s2-stats' as const;
@@ -246,14 +246,27 @@ const EXB: BinP = { n: 100, p: q(1, 2), k: 55, up: false };
 const exApprox = binApprox(EXB);
 const exExact = Array.from({ length: 56 }, (_, j) => binomPmf(100, 0.5, j)).reduce((a, b) => a + b, 0);
 const exNoCc = binApprox(EXB, 0);
+const one50 = binomPmf(100, 0.5, 50);
+const one50Approx = 2 * Phi(0.1) - 1;
 
 export const normalApproximation: TopicContent = {
   topicId: 'prob.normal-approximation',
   goal: t`Approximate binomial and Poisson probabilities by a normal distribution with the same mean and variance, with a continuity correction.`,
+  objective: t`Approximate binomial and Poisson probabilities by a normal curve, with a continuity correction.`,
+  why: t`Exact sums of hundreds of terms become one table lookup; it is the first glimpse of the central limit theorem.`,
+  minutes: 25,
   lesson: [
-    { kind: 'rule', text: t`For large ${math`n`}, ${math`B(n, p) \approx N(np,\ np(${1} - p))`}; for large ${math`\lambda`}, ${math`\mathrm{Po}(\lambda) \approx N(\lambda, \lambda)`}. Match the mean and the variance.` },
-    { kind: 'p', text: t`The STEP ${2} notes give the rule of thumb: ${math`n`} large, or ${math`p`} close to ${q(1, 2)}, for the binomial; ${math`\lambda`} large for the Poisson. The reason is the central limit theorem, later in the course: a binomial count is a sum of ${math`n`} independent trials, and a Poisson count with a large mean is a sum of many independent Poisson counts with small means.` },
-    { kind: 'p', text: t`A discrete ${mX} takes whole values, and the normal curve spreads probability over every real number. The [[continuity-correction|continuity correction]] lets each whole value ${math`j`} stand for the interval from ${math`j - \tfrac{${1}}{${2}}`} to ${math`j + \tfrac{${1}}{${2}}`}:` },
+    { kind: 'section', title: t`A bell from coin tosses` },
+    { kind: 'hook', text: t`Toss a fair coin ${100} times. The chance of at most ${55} heads is a sum of ${56} binomial terms, each with factorials of numbers near ${100}. Yet a bar chart of the binomial probabilities looks almost exactly like a bell curve. If you can read the area under the bell, you can skip the sum, and be right to two decimal places.` },
+    { kind: 'narrative', text: t`The idea is to replace a discrete distribution by the normal distribution with the same mean and variance. Two things need care: when the replacement is good, and how to turn "at most ${55}", a statement about whole numbers, into a statement about a continuous variable.` },
+
+    { kind: 'section', title: t`Match the mean and variance` },
+    { kind: 'theorem', name: t`Normal approximations`, statement: t`If ${math`X \sim B(n, p)`} with ${math`p`} fixed, then for every real ${math`z`}, ${math`P\left(\frac{X - np}{\sqrt{np(${1} - p)}} \le z\right) \to \Phi(z)`} as ${math`n \to \infty`}. Likewise if ${math`X \sim \mathrm{Po}(\lambda)`}, ${math`P\left(\frac{X - \lambda}{\sqrt{\lambda}} \le z\right) \to \Phi(z)`} as ${math`\lambda \to \infty`}.` },
+    { kind: 'p', text: t`In plain words: for large ${math`n`}, ${math`B(n, p)`} behaves like ${math`N(np,\ np(${1} - p))`}, and for large ${math`\lambda`}, ${math`\mathrm{Po}(\lambda)`} behaves like ${math`N(\lambda, \lambda)`}. Both match the mean and the variance. The proof is the central limit theorem, later in the course: a binomial count is a sum of ${math`n`} independent trials.`, why: { q: t`How large is large?`, a: t`The STEP ${2} notes' rule of thumb: the binomial needs ${math`n`} large, and works best with ${math`p`} near ${q(1, 2)}, where the distribution is symmetric; the Poisson needs ${math`\lambda`} large. A common working rule is ${math`np`} and ${math`n(${1} - p)`} both above about ${5}.` } },
+
+    { kind: 'section', title: t`The continuity correction` },
+    { kind: 'narrative', text: t`A binomial variable takes only whole values. On a bar chart, the bar for the value ${math`j`} has width ${1} and stands over the interval from ${math`j - \tfrac{${1}}{${2}}`} to ${math`j + \tfrac{${1}}{${2}}`}. The normal curve should match the area of those bars, so each whole value ${math`j`} becomes that interval.` },
+    { kind: 'definition', name: t`Continuity correction`, formal: t`When a whole-number variable ${mX} is approximated by a continuous ${math`Y`}, the event ${math`X = j`} is replaced by ${math`j - \tfrac{${1}}{${2}} < Y < j + \tfrac{${1}}{${2}}`}, and so ${math`X \le k`} by ${math`Y < k + \tfrac{${1}}{${2}}`} and ${math`X \ge k`} by ${math`Y > k - \tfrac{${1}}{${2}}`}.`, plain: t`This is the [[continuity-correction|continuity correction]]: move each cut-off half a unit outwards, so that every whole value the event includes is covered completely.` },
     {
       kind: 'table', caption: t`Continuity corrections, with ${math`Y`} the approximating normal`, head: [t`Event about ${mX}`, t`Event about ${math`Y`}`],
       rows: [
@@ -264,11 +277,30 @@ export const normalApproximation: TopicContent = {
         [t`${math`X > k`}`, t`${math`Y > k + \tfrac{${1}}{${2}}`}`],
       ],
     },
-    { kind: 'p', text: t`For ${math`X \sim B(${100}, ${q(1, 2)})`}: ${math`Y \sim N(${50}, ${25})`}, and ${math`P(X \le ${55}) \approx P(Y < ${55.5}) = \Phi(${1.1}) \approx ${r4(exApprox)}`}. The exact binomial sum is ${r4(exExact)}; without the correction, ${math`\Phi(${1})`} gives ${r4(exNoCc)}, much further off.` },
-    { kind: 'p', text: t`A single value needs the correction most: with no interval around it, a normal variable gives it probability ${0}. STEP ${2} Q${1} asks for ${math`P(X = ${100})`} when ${math`X`} is essentially ${math`\mathrm{Po}(${100})`}; the worked example below finds about ${0.04}.` },
+    { kind: 'p', text: t`Strict inequalities first become non-strict ones: ${math`X < k`} is the same event as ${math`X \le k - ${1}`}, so its cut-off is ${math`k - ${1} + \tfrac{${1}}{${2}} = k - \tfrac{${1}}{${2}}`}.` },
+    checkFrom(continuityCorrection, { rel: 'gt', k: 40, dist: 2 }, t`${math`X > ${40}`} starts at ${41}, whose bar starts at ${40.5}.`),
+
+    { kind: 'section', title: t`Working it through` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The approximating normal`, text: t`${math`X \sim B(${100}, ${q(1, 2)})`} has mean ${math`${100} \times ${q(1, 2)} = ${50}`} and variance ${math`${100} \times ${q(1, 2)} \times ${q(1, 2)} = ${25}`}. So use ${math`Y \sim N(${50}, ${25})`}, standard deviation ${5}.` },
+        { label: t`Correct for continuity`, text: t`${math`P(X \le ${55}) \approx P(Y < ${55.5})`}.` },
+        { label: t`Standardise`, text: t`${math`Z = \frac{Y - ${50}}{${5}}`} is standard normal, and ${math`Y < ${55.5}`} exactly when ${math`Z < \frac{${5.5}}{${5}} = ${1.1}`}.`, eq: [dmath`P(X \le ${55}) \approx \Phi(${1.1}) \approx ${r4(exApprox)}.`] },
+        { label: t`Compare`, text: t`The exact binomial sum is ${r4(exExact)}. Without the correction, ${math`\Phi(${1})`} gives ${r4(exNoCc)}, much further off.` },
+      ],
+    },
+    { kind: 'p', text: t`A single value needs the correction most: a continuous ${math`Y`} gives any single point probability ${0}. For ${math`P(X = ${50})`}: ${math`P(${49.5} < Y < ${50.5}) = ${2}\Phi(${0.1}) - ${1} \approx ${r4(one50Approx)}`}, against the exact ${r4(one50)}.` },
+    checkFrom(poissonNormal, { lam: 36, k: 42, exactly: false }, t`${math`Y \sim N(${36}, ${36})`}, standard deviation ${6}: ${math`P(Y < ${42.5}) = \Phi\left(\frac{${6.5}}{${6}}\right)`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`P(X = k)`} for a binomial can be read from a normal approximation without a correction.`, counterexample: t`Without the half-unit interval, ${math`P(Y = ${50}) = ${0}`}, but ${math`P(X = ${50}) \approx ${r4(one50)}`} for ${math`B(${100}, ${q(1, 2)})`}.` },
+    { kind: 'pitfall', claim: t`${math`N(np,\ np(${1} - p))`} has standard deviation ${math`np(${1} - p)`}.`, counterexample: t`For ${math`B(${100}, ${q(1, 2)})`}, the variance is ${25} and the standard deviation is ${5}. Standardising with ${25} would give ${math`\Phi(${0.22})`} for ${math`P(X \le ${55})`}, far from ${r4(exExact)}.` },
+    { kind: 'pitfall', claim: t`The approximation is good for any ${math`n`} that looks large.`, counterexample: t`${math`B(${100}, ${q(1, 100)})`} has mean ${1}, so ${math`P(X = ${0}) = \left(\tfrac{${99}}{${100}}\right)^{${100}} \approx ${r4(binomPmf(100, 0.01, 0))}`}, while the normal approximation gives ${math`\Phi\left(\tfrac{${0.5} - ${1}}{\sqrt{${0.99}}}\right) \approx ${r4(Phi(-0.5 / Math.sqrt(0.99)))}`}. A skewed binomial needs a Poisson approximation instead.` },
+    { kind: 'takeaway', text: t`Replace the count by a normal with the same mean and variance, and widen every whole value to an interval of width ${1} before reading the area.` },
   ],
   examples: [
-    workedCambridge(q1),
+    { ...workedCambridge(q1), examiner: t`The examiner looks for the reason ${math`A \approx ${1}`}, the variance ${100} with standard deviation ${10}, and the interval from ${99.5} to ${100.5}.` },
     worked(continuityCorrection, { rel: 'lt', k: 30, dist: 2 }, t`A strict inequality`),
     worked(binomialNormal, { n: 100, p: q(1, 2), k: 55, up: false }, t`At most ${55} heads in ${100} tosses`),
   ],
@@ -276,5 +308,10 @@ export const normalApproximation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['continuity-correction'],
   cambridge: [q1adapted, q1why],
-  gate: ['s2-q1-normal-25', 's2-q1-why'],
+  // The explanation the STEP solution asks for, then the computation with a new lambda.
+  gate: ['s2-q1-why', 's2-q1-normal-25'],
+  recall: [
+    { front: t`The normal approximation to ${math`B(n, p)`} and to ${math`\mathrm{Po}(\lambda)`}.`, back: t`${math`N(np,\ np(${1} - p))`} and ${math`N(\lambda, \lambda)`}: same mean, same variance.` },
+    { front: t`The continuity correction for ${math`X \le k`} and for ${math`X = k`}.`, back: t`${math`Y < k + \tfrac{${1}}{${2}}`}; and ${math`k - \tfrac{${1}}{${2}} < Y < k + \tfrac{${1}}{${2}}`}.` },
+  ],
 };

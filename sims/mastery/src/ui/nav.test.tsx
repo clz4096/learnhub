@@ -41,6 +41,11 @@ async function back(): Promise<void> {
 }
 
 const click = (name: string | RegExp): void => { fireEvent.click(screen.getByRole('button', { name })); };
+/** Read a lesson's named sections through to the worked examples (a lesson may have one section or several). */
+const toExamples = (): void => {
+  for (let i = 0; i < 20 && screen.queryByRole('button', { name: 'Next: worked examples' }) === null; i++) click(/^Next: /);
+  click('Next: worked examples');
+};
 const heading = (): string | null | undefined => document.querySelector('main h1')?.textContent;
 
 beforeEach(async () => {
@@ -210,7 +215,7 @@ describe('a learner with a course', () => {
     await started();
     go({ view: 'task', index: 0 });
     render(<App />);
-    click('Next: worked examples');
+    toExamples();
     click('Next: practice');
     expect(screen.getByText(/If the tab is closed, practice starts again/)).toBeTruthy();
     click(/^Show me how/);
@@ -239,7 +244,8 @@ describe('a learner with a course', () => {
     click('Learn it now');
     expect(location.hash).toBe('#/learn/pre.indices');
     // The lesson downloads its content first; the second time it is already here.
-    fireEvent.click(await screen.findByRole('button', { name: 'Next: worked examples' }));
+    await screen.findByRole('button', { name: /^Next: / });
+    toExamples();
     click('Back to the map');
     expect(location.hash).toBe('#/map/pre.indices');
     click('Learn it now');
@@ -283,7 +289,7 @@ describe('the end of a lesson', () => {
     await commit(ensureSession(startLearner(T0, DEFAULT_COURSES, 60), T0));
     go({ view: 'task', index: 0 });
     render(<App />);
-    click('Next: worked examples');
+    toExamples();
     click('Next: practice');
     const key = `lesson-${progress.value?.session?.startedAt ?? 0}-0.pre.fractions`;
     for (let i = 0; i < 30 && screen.queryByText('Not yet, and that is normal') === null; i++) {

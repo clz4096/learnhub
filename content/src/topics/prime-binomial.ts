@@ -10,8 +10,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { chooseBig, isPrime } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
-import { worked, workedCambridge, workedProof, type TopicContent } from '../topic';
+import { computedTex, dmath, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, workedProof, type TopicContent } from '../topic';
 
 const [mp, mk] = [math`p`, math`k`];
 const C = (n: number, k: number): bigint => chooseBig(n, k);
@@ -181,18 +181,52 @@ const lemma27 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const row = (n: number): bigint[] => Array.from({ length: n + 1 }, (_, k) => C(n, k));
+const rowTex = (n: number) => math`${computedTex(row(n).map(String).join(',\\ '))}`;
+
 export const primeBinomial: TopicContent = {
   topicId: 'num.prime-binomial',
   goal: t`Prove that a prime ${mp} divides ${math`\binom{p}{k}`} for ${math`${0} < k < p`}, from ${math`k\binom{p}{k} = p\binom{p - ${1}}{k - ${1}}`} and Euclid's theorem, and see why primality is needed.`,
+  objective: t`Prove that a prime p divides every inner entry of row p of Pascal's triangle, and see why p must be prime.`,
+  why: t`It is the key step in Fermat's little theorem, which underlies primality tests and RSA.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Row ${7} of Pascal's triangle is ${math`${C(7, 0)}, ${C(7, 1)}, ${C(7, 2)}, ${C(7, 3)}, ${C(7, 4)}, ${C(7, 5)}, ${C(7, 6)}, ${C(7, 7)}`}: every entry except the ends is a multiple of ${7}. Row ${6} is ${math`${C(6, 0)}, ${C(6, 1)}, ${C(6, 2)}, ${C(6, 3)}, ${C(6, 4)}, ${C(6, 5)}, ${C(6, 6)}`}: ${15} and ${20} are not multiples of ${6}.` },
-    { kind: 'rule', text: t`[[prime-divides-binomial|A prime divides its inner binomial coefficients]]: if ${mp} is prime and ${math`${0} < k < p`}, then ${math`p \mid \binom{p}{k}`} (Lemma ${28} of the notes).` },
-    { kind: 'p', text: t`Proof: ${math`k\binom{p}{k} = p\binom{p - ${1}}{k - ${1}}`}, since both count the ways to choose ${mk} of ${mp} people and a leader among them. So ${mp} divides ${math`k\binom{p}{k}`}. As ${math`${0} < k < p`} and ${mp} is prime, ${math`\gcd(p, k) = ${1}`}, and Euclid's theorem gives ${math`p \mid \binom{p}{k}`}. The notes use the same idea with ${math`p - m`} in place of ${mk} (Corollary ${85}).` },
-    { kind: 'p', text: t`For composite ${math`n`} the step "${math`\gcd(n, k) = ${1}`}" fails when ${mk} shares a factor with ${math`n`}: ${math`\binom{${6}}{${2}} = ${15}`}, and ${6} divides ${math`${2} \times ${15} = ${30}`} without dividing ${15}.` },
-    { kind: 'p', text: t`This lemma is the engine of Fermat's little theorem: with the binomial theorem it gives ${math`(m + n)^{p} \equiv m^{p} + n^{p} \pmod{p}`}, the "Freshman's Dream", since every middle term of the expansion is a multiple of ${mp}.` },
+    { kind: 'section', title: t`A pattern in Pascal's triangle` },
+    { kind: 'hook', text: t`Row ${7} of Pascal's triangle is ${rowTex(7)}. Every entry except the ${1}s at the ends is a multiple of ${7}. Row ${5}, ${rowTex(5)}: the same with ${5}. But row ${6} is ${rowTex(6)}, and ${15} and ${20} are not multiples of ${6}. What is special about the rows with a prime number?` },
+    { kind: 'narrative', text: t`Recall ${math`\binom{n}{k}`}, "${math`n`} choose ${mk}", the number of ways to choose ${mk} things from ${math`n`}. Row ${math`n`} of Pascal's triangle lists ${math`\binom{n}{${0}}, \binom{n}{${1}}, \ldots, \binom{n}{n}`}.` },
+
+    { kind: 'section', title: t`The theorem` },
+    { kind: 'theorem', name: t`A prime divides its inner binomial coefficients`, statement: t`If ${mp} is prime and ${math`${0} < k < p`}, then ${math`p \mid \binom{p}{k}`}.` },
+    { kind: 'p', text: t`This is [[prime-divides-binomial|the prime row lemma]], Lemma ${28} of the CST notes. The proof needs two facts. First an identity, then Euclid's lemma: if a prime divides a product ${math`ab`} and shares no factor with ${math`a`}, it divides ${math`b`}.` },
+    { kind: 'theorem', name: t`Leader identity`, statement: t`For ${math`${1} \le k \le n`}, ${math`k\binom{n}{k} = n\binom{n - ${1}}{k - ${1}}`}.` },
+    { kind: 'p', text: t`Proof by counting: both sides count the ways to choose a team of ${mk} from ${math`n`} people with a leader in the team. Choose the team (${math`\binom{n}{k}`} ways) then its leader (${mk} ways); or choose the leader (${math`n`} ways) then the other ${math`k - ${1}`} members from the remaining ${math`n - ${1}`}. ∎ Check with ${math`n = ${7}`}, ${math`k = ${3}`}: ${math`${3} \times ${C(7, 3)} = ${3n * C(7, 3)}`} and ${math`${7} \times ${C(6, 2)} = ${7n * C(6, 2)}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Use the identity`, text: t`With ${math`n = p`}: ${math`k\binom{p}{k} = p\binom{p - ${1}}{k - ${1}}`}, so ${mp} divides ${math`k\binom{p}{k}`}.` },
+        { label: t`p shares no factor with k`, text: t`Since ${math`${0} < k < p`} and ${mp} is prime, the only positive divisors of ${mp} are ${1} and ${mp}, and ${mp} does not divide ${mk}. So ${math`\gcd(p, k) = ${1}`}.` },
+        { label: t`Euclid's lemma`, text: t`${mp} divides the product ${math`k \cdot \binom{p}{k}`} and is coprime to ${mk}, so ${math`p \mid \binom{p}{k}`}.`, why: { q: t`Why does that follow?`, a: t`This is [[euclids-lemma|Euclid's lemma]]: from ${math`\gcd(p, k) = ${1}`}, write ${math`${1} = sp + tk`}; multiply by ${math`b = \binom{p}{k}`}: ${math`b = spb + t(kb)`}, and ${mp} divides both terms.` } },
+      ],
+    },
+    checkFrom(quotient, { p: 7, k: 3 }, t`${math`\binom{${7}}{${3}} = ${C(7, 3)}`}, and ${math`${C(7, 3)} = ${7} \times ${C(7, 3) / 7n}`}.`),
+
+    { kind: 'section', title: t`Why the prime matters` },
+    { kind: 'p', text: t`Primality was used once, to get ${math`\gcd(p, k) = ${1}`}. For a composite ${math`n`} that step fails when ${mk} shares a factor with ${math`n`}: ${math`${2} \times \binom{${6}}{${2}} = ${6} \times \binom{${5}}{${1}}`}, that is ${math`${2} \times ${15} = ${30}`}, so ${6} divides ${30} without dividing ${15}. The factor ${2} of ${6} was absorbed by ${mk}.` },
+    checkFrom(compositeWitness, { n: 9 }, t`${math`\binom{${9}}{${3}} = ${C(9, 3)}`}, not a multiple of ${9}: ${3} shares the factor ${3} with ${9}.`),
+    checkFrom(rowCount, { n: 10 }, t`Only the ${mk} coprime to ${10} are guaranteed, and a direct check finds ${upTo(9).filter((k) => C(10, k) % 10n === 0n).length} in all.`),
+
+    { kind: 'section', title: t`What it is for` },
+    { kind: 'p', text: t`With the binomial theorem, ${math`(a + b)^{p} = \sum_{k} \binom{p}{k}a^{k}b^{p - k}`}, and every middle coefficient is a multiple of ${mp}. So for a prime ${mp} and integers ${math`a, b`}, ${dmath`(a + b)^{p} \equiv a^{p} + b^{p} \pmod{p}.`} This "Freshman's Dream" is false for ordinary arithmetic, true modulo a prime, and the key step in Fermat's little theorem.` },
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`n \mid \binom{n}{k}`} for every ${math`n`} and ${math`${0} < k < n`}.`, counterexample: t`${math`\binom{${6}}{${2}} = ${15}`}, not a multiple of ${6}. The rows with this property are exactly the prime rows.` },
+    { kind: 'pitfall', claim: t`${mp} divides every entry of row ${mp}.`, counterexample: t`The ends ${math`\binom{p}{${0}} = \binom{p}{p} = ${1}`} are not multiples of ${mp}. Only the inner entries, ${math`${0} < k < p`}, are.` },
+    { kind: 'pitfall', claim: t`The identity also shows ${math`p \mid \binom{p - ${1}}{k - ${1}}`}.`, counterexample: t`${math`\binom{${6}}{${2}} = ${15}`}, which ${7} does not divide. The identity says ${mp} divides ${math`k\binom{p}{k}`}; it says nothing about ${mp} dividing ${math`\binom{p - ${1}}{k - ${1}}`}.` },
+    { kind: 'takeaway', text: t`${math`k\binom{p}{k} = p\binom{p - ${1}}{k - ${1}}`} and Euclid's lemma show a prime ${mp} divides ${math`\binom{p}{k}`} for ${math`${0} < k < p`}; for composite rows it can fail.` },
   ],
   examples: [
-    lemma28,
+    { ...lemma28, examiner: t`The examiner looks for the counting identity justified, and the single use of primality, ${math`\gcd(p, p - m) = ${1}`}, stated.` },
     workedCambridge(prop29),
     worked(quotient, { p: 13, k: 5 }, t`${math`\binom{${13}}{${5}} / ${13}`}`),
   ],
@@ -200,5 +234,19 @@ export const primeBinomial: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['prime-divides-binomial'],
   cambridge: [cor85, bop421, lemma27],
-  gate: ['notes-242-corollary-85', 'notes-116-lemmas-27-29'],
+  // The notes' proof by cases. Corollary 85 with numbers is a division sum, and Book of Proof is not Cambridge standard.
+  gate: ['notes-116-lemmas-27-29'],
+  recall: [
+    { front: t`Which entries of row ${mp} does a prime ${mp} divide?`, back: t`Every ${math`\binom{p}{k}`} with ${math`${0} < k < p`}.` },
+    { front: t`The identity behind it.`, back: t`${math`k\binom{n}{k} = n\binom{n - ${1}}{k - ${1}}`}: a team of ${mk} with a leader, counted two ways.` },
+    { front: t`The Freshman's Dream.`, back: t`${math`(a + b)^{p} \equiv a^{p} + b^{p} \pmod{p}`} for a prime ${mp}.` },
+  ],
+  proofOrder: [{
+    title: t`A prime divides its inner binomial coefficients`,
+    steps: [
+      t`${math`k\binom{p}{k} = p\binom{p - ${1}}{k - ${1}}`}, so ${mp} divides ${math`k\binom{p}{k}`}.`,
+      t`Since ${math`${0} < k < p`} and ${mp} is prime, ${math`\gcd(p, k) = ${1}`}.`,
+      t`By Euclid's lemma, ${mp} divides ${math`\binom{p}{k}`}.`,
+    ],
+  }],
 };

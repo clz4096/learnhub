@@ -12,7 +12,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { factorial, int, pick, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { exprTex, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [ma, mb, mc] = [math`a`, math`b`, math`c`];
 const INT = { kind: 'integer' as const, min: -12, max: 12 };
@@ -418,19 +418,88 @@ const scratch = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [mn, mk, mm] = [math`n`, math`k`, math`m`];
+const sqMinus1 = (x: number): number => x * x - 1;
+const nextTo = (k: number): number => k * (k + 1);
+
 export const directProof: TopicContent = {
   topicId: 'proof.direct',
   goal: t`Prove a statement by a chain of deductions from the assumptions to the conclusion, found first in scratch work and then written as sentences.`,
+  objective: t`Find a proof in scratch work, then write it as a chain of justified deductions.`,
+  why: t`Every other proof method is built on this one; next come proof by cases, contradiction, and the contrapositive.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`A mathematical proof, in the CST notes' words, is a sequence of logical deductions from axioms and previously proved statements that concludes with the proposition in question. A theorem is an important true statement; a [[lemma|lemma]] is one used in proving others; a corollary follows simply from a theorem.` },
-    { kind: 'p', text: t`Everything rests on definitions, recalled precisely. An integer ${math`n`} is odd if ${math`n = ${2}i + ${1}`} for some integer ${math`i`}. An integer ${math`d`} divides ${math`n`}, written ${math`d \mid n`}, if ${math`n = k \cdot d`} for some integer ${math`k`}. Note that ${math`d \mid n`} is a statement, true or false, not a number: ${math`${2} \mid ${4}`} is true and ${math`${4} \mid ${2}`} is false.` },
-    { kind: 'rule', text: t`A [[direct-proof|direct proof]] of "if ${math`P`} then ${math`Q`}": assume ${math`P`}, unpack it with the definitions, deduce, and arrive at ${math`Q`}, packed back into the definition. Keep a list of assumptions (what you may use) and goals (what you must show).` },
-    { kind: 'p', text: t`Example, Book of Proof's Chapter ${4}, exercise ${6}: if ${math`a \mid b`} and ${math`a \mid c`} then ${math`a \mid (b + c)`}. Assume ${math`b = ax`} and ${math`c = ay`}. Then ${math`b + c = ax + ay = a(x + y)`}, and ${math`x + y`} is an integer, so ${math`a \mid (b + c)`}.` },
-    { kind: 'p', text: t`Find the proof in [[scratch-work|scratch work]] first: algebra, small cases, working backwards from the goal. The notes warn that scratch work is not the proof. The proof is an essay: say what you assume, in what order you deduce, and why each step follows, then finish by stating what has been shown.` },
-    { kind: 'p', text: t`Common errors, from the TMUA notes: dividing by something that may be zero; cancelling ${ma} from ${math`ab = ac`} when ${math`a`} may be ${0}; multiplying an inequality by a negative number without reversing it; squaring an inequality whose sides may be negative (${math`${-5} < ${4}`}, but ${math`${25} > ${16}`}); and squaring an equation, which can add solutions that must be checked.` },
+    { kind: 'section', title: t`What a proof is` },
+    { kind: 'hook', text: t`Square an odd number and subtract ${1}: ${math`${3}^{${2}} - ${1} = ${sqMinus1(3)}`}, ${math`${5}^{${2}} - ${1} = ${sqMinus1(5)}`}, ${math`${7}^{${2}} - ${1} = ${sqMinus1(7)}`}. Every one is a multiple of ${8}. Does that go on forever? Checking a million cases would not settle it. A proof settles it in five lines.` },
+    { kind: 'narrative', text: t`The CST notes define a proof as a sequence of logical deductions, from axioms and statements already proved, that ends with the statement in question. Each line must follow from the ones before it. Nothing may be assumed just because it looks true.` },
+    {
+      kind: 'p',
+      text: t`Some vocabulary from the notes. A theorem is an important true statement. A [[lemma|lemma]] is a true statement used mainly to prove others. A corollary is a statement that follows quickly from a theorem.`,
+    },
+    { kind: 'narrative', text: t`Everything rests on definitions, recalled exactly. Here are the two this lesson uses.` },
+    {
+      kind: 'definition',
+      name: t`Even, odd`,
+      formal: t`An integer ${mn} is even if ${math`n = ${2}k`} for some integer ${mk}, and odd if ${math`n = ${2}k + ${1}`} for some integer ${mk}.`,
+      plain: t`even is twice a whole number; odd is one more than that. ${math`${7} = ${2} \times ${3} + ${1}`}, so ${7} is odd with ${math`k = ${3}`}.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Divides`,
+      formal: t`For integers ${math`d`} and ${mn}, ${math`d`} divides ${mn}, written ${math`d \mid n`}, if ${math`n = d \cdot k`} for some integer ${mk}.`,
+      plain: t`${mn} is a whole-number multiple of ${math`d`}. ${math`${3} \mid ${12}`} because ${math`${12} = ${3} \times ${4}`}. Note that ${math`d \mid n`} is a statement, true or false, not a number: ${math`${2} \mid ${4}`} is true and ${math`${4} \mid ${2}`} is false.`,
+    },
+    { kind: 'section', title: t`The method` },
+    {
+      kind: 'rule',
+      text: t`A [[direct-proof|direct proof]] of "if ${math`P`} then ${math`Q`}": assume ${math`P`}; unpack it with the definitions; deduce, one justified step at a time; and arrive at ${math`Q`}, packed back into its definition.`,
+      why: { q: t`Why "unpack" and "pack"?`, a: t`Words like "odd" and "divides" cannot be calculated with. Their definitions turn them into equations, such as ${math`n = ${2}k + ${1}`}, which can. At the end, the definition turns an equation back into the word you were asked to prove.` },
+    },
+    { kind: 'narrative', text: t`Before writing, you find the proof. The CST notes call this [[scratch-work|scratch work]]: try small cases, do algebra, work backwards from the goal. It is allowed to be messy. But it is not the proof, and the notes say plainly that scratch work will not be accepted as one.` },
+    { kind: 'narrative', text: t`Scratch work for the hook. Write the odd number as ${math`n = ${2}k + ${1}`}. Then ${math`n^{${2}} - ${1} = ${4}k^{${2}} + ${4}k = ${4}k(k + ${1})`}. That gives a factor ${4}, but we want ${8}. Try numbers: ${math`k(k + ${1})`} is ${nextTo(1)}, ${nextTo(2)}, ${nextTo(3)}, ${nextTo(4)} for ${math`k = ${1}, ${2}, ${3}, ${4}`}. Always even. That is the missing factor ${2}.` },
+    { kind: 'theorem', statement: t`For every odd integer ${mn}, ${math`${8} \mid (n^{${2}} - ${1})`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Assume and unpack`, text: t`Let ${mn} be odd. Then ${math`n = ${2}k + ${1}`} for some integer ${mk}.`, plain: t`The definition of odd. If ${mn} were ${7}, ${mk} would be ${3}.` },
+        { label: t`Compute`, text: t`Expanding,`, eq: [math`n^{${2}} - ${1} = (${2}k + ${1})^{${2}} - ${1} = ${4}k^{${2}} + ${4}k + ${1} - ${1} = ${4}k(k + ${1})`], plain: t`Square the bracket: ${math`(${2}k)^{${2}} = ${4}k^{${2}}`}, twice the cross term gives ${math`${4}k`}, and ${math`${1}^{${2}} = ${1}`}. The ${1}s cancel, and ${math`${4}k`} is a common factor.` },
+        {
+          label: t`One of two neighbours is even`, text: t`${math`k(k + ${1})`} is even: if ${mk} is even, ${mk} is a factor; if ${mk} is odd, ${math`k + ${1}`} is even and is a factor. So ${math`k(k + ${1}) = ${2}m`} for some integer ${mm}.`,
+          plain: t`Of any two whole numbers in a row, one is even, and a product with an even factor is even. ${math`${3} \times ${4} = ${12}`}.`,
+          why: { q: t`Why is a product with an even factor even?`, a: t`If ${math`a = ${2}j`}, then ${math`ab = ${2}(jb)`}, and ${math`jb`} is an integer. So ${math`ab`} is ${2} times an integer.` },
+        },
+        { label: t`Put it together`, text: t`So ${math`n^{${2}} - ${1} = ${4} \cdot ${2}m = ${8}m`}.`, plain: t`Replace ${math`k(k + ${1})`} by ${math`${2}m`} in the line ${math`n^{${2}} - ${1} = ${4}k(k + ${1})`}.` },
+        { label: t`Pack into the definition`, text: t`${mm} is an integer, so ${math`${8} \mid (n^{${2}} - ${1})`}.`, plain: t`${math`n^{${2}} - ${1}`} is ${8} times a whole number: that is what ${8} divides it means.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`Notice what the proof adds to the scratch work: it says what is assumed, names every letter when it first appears, gives a reason for every step, and ends by stating what was shown. The notes describe a proof as an essay, and this is why.`,
+    },
+    quickCheck({
+      prompt: t`To prove "if ${math`a \mid b`}, then ${math`a \mid (b^{${2}} + ${5}b)`}", write ${math`b = ax`}. Then ${math`b^{${2}} + ${5}b = a \cdot (\ldots)`}. What goes in the brackets, in terms of ${ma} and ${math`x`}?`,
+      answer: { kind: 'expression', expected: 'a x^2 + 5x', variables: ['a', 'x'] },
+      reference: 'a x^2 + 5x',
+      why: t`${math`b^{${2}} + ${5}b = a^{${2}}x^{${2}} + ${5}ax = a(ax^{${2}} + ${5}x)`}, and ${math`ax^{${2}} + ${5}x`} is an integer, so ${math`a \mid (b^{${2}} + ${5}b)`}.`,
+    }),
+    { kind: 'section', title: t`Where proofs go wrong` },
+    { kind: 'narrative', text: t`The TMUA notes list the steps that most often break a proof. Each is a move that is fine with most numbers and wrong with a few. A proof must work for every number its letters can stand for.` },
+    {
+      kind: 'pitfall',
+      claim: t`From ${math`ab = ac`}, cancel ${ma} to get ${math`b = c`}.`,
+      counterexample: t`With ${math`a = ${0}`}: ${math`${0} \times ${2} = ${0} \times ${5}`}, but ${math`${2} \neq ${5}`}. Cancelling is dividing by ${ma}, which is only allowed when ${math`a \neq ${0}`}.`,
+    },
+    {
+      kind: 'pitfall',
+      claim: t`If ${math`x < y`}, then ${math`x^{${2}} < y^{${2}}`}.`,
+      counterexample: t`${math`${-5} < ${4}`}, but ${math`(${-5})^{${2}} = ${25}`} is bigger than ${math`${4}^{${2}} = ${16}`}. Squaring keeps an inequality only when both sides are at least ${0}. Likewise, multiplying an inequality by a negative number reverses it.`,
+    },
+    { kind: 'p', text: t`One more: squaring both sides of an equation can create solutions. ${math`x = ${3}`} has one solution, but ${math`x^{${2}} = ${9}`} has two. After squaring, check every answer in the original equation.` },
+    { kind: 'takeaway', text: t`Find the proof in scratch work, then write it as an essay: assume, unpack the definitions, justify every step, and pack the conclusion back into its definition.` },
   ],
   examples: [
-    workedCambridge(bop411),
+    { ...workedCambridge(bop411), examiner: t`Both hypotheses unpacked with different letters, ${math`x`} and ${math`y`}, the product regrouped as ${math`ac`} times an integer, and a closing sentence that says ${math`ac \mid bd`}.` },
     worked(divides, { form: 'chain', p: 2, q: 2 }, t`Divisibility is transitive`),
     worked(errorStep, { kind: 'divide-zero', u: 3, v: 0 }, t`A proof that ${math`${2} = ${1}`}`),
   ],
@@ -438,5 +507,34 @@ export const directProof: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['direct-proof', 'scratch-work', 'lemma'],
   cambridge: [bop47, bop419, bop46, bop410, tmuaR3, tmua72, bop49, bop413, bop424, scratch],
+  // The only problem from a Cambridge-standard document; it asks for exactly this lesson's skill,
+  // scratch work turned into a written proof. The Book of Proof exercises are good practice but easier.
   gate: ['notes-35-scratch'],
+  recall: [
+    { front: t`What is a direct proof of "if ${math`P`} then ${math`Q`}"?`, back: t`Assume ${math`P`}, unpack the definitions, deduce step by step, and arrive at ${math`Q`}.` },
+    { front: t`Define ${math`d \mid n`}.`, back: t`${math`n = d \cdot k`} for some integer ${mk}.` },
+    { front: t`Define odd.`, back: t`${mn} is odd if ${math`n = ${2}k + ${1}`} for some integer ${mk}.` },
+    { front: t`Is scratch work a proof?`, back: t`No. It finds the argument; the proof states the assumptions, justifies each step in order, and states the conclusion.` },
+    { front: t`When may you cancel ${ma} from ${math`ab = ac`}?`, back: t`Only when ${math`a \neq ${0}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${8} divides ${math`n^{${2}} - ${1}`} for odd ${mn}`,
+      steps: [
+        t`Let ${mn} be odd, so ${math`n = ${2}k + ${1}`} for an integer ${mk}.`,
+        t`Then ${math`n^{${2}} - ${1} = ${4}k(k + ${1})`}.`,
+        t`One of ${mk} and ${math`k + ${1}`} is even, so ${math`k(k + ${1}) = ${2}m`} for an integer ${mm}.`,
+        t`So ${math`n^{${2}} - ${1} = ${8}m`}, and ${math`${8} \mid (n^{${2}} - ${1})`}.`,
+      ],
+    },
+    {
+      title: t`If ${math`a \mid b`} and ${math`a \mid c`}, then ${math`a \mid (b + c)`}`,
+      steps: [
+        t`Assume ${math`a \mid b`} and ${math`a \mid c`}.`,
+        t`Then ${math`b = ax`} and ${math`c = ay`} for integers ${math`x`} and ${math`y`}.`,
+        t`So ${math`b + c = a(x + y)`}.`,
+        t`${math`x + y`} is an integer, so ${math`a \mid (b + c)`}.`,
+      ],
+    },
+  ],
 };

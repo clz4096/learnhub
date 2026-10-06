@@ -11,7 +11,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t, type Rich } from '../rich';
-import { worked, workedProof, type TopicContent } from '../topic';
+import { checkFrom, quickCheck, worked, workedProof, type TopicContent } from '../topic';
 
 const [mx, mn, mk] = [math`x`, math`n`, math`k`];
 const TF = (b: boolean): string => (b ? 'T' : 'F');
@@ -349,22 +349,75 @@ const sw1210 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const TF_OPTIONS = [{ id: 't', label: t`True` }, { id: 'f', label: t`False` }];
+const EULER_N = 40;
+const [mS, mP] = [math`S`, math`P(x)`];
+
 export const quantifiers: TopicContent = {
   topicId: 'logic.quantifiers',
   goal: t`Read and write statements with ${math`\forall`} (for all) and ${math`\exists`} (there exists) over a stated set, and know what proves or disproves each.`,
+  objective: t`Read and write statements with "for all" and "there exists", and say what proves or disproves each.`,
+  why: t`Every definition in analysis, algebra and probability is written with quantifiers; next you learn to prove them.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`"${math`x^{${2}}`} is an integer" is neither true nor false until we say which ${mx} we mean: it holds for ${math`x = ${7}`} and fails for ${math`x = \frac{${1}}{${2}}`}. A [[quantifier|quantifier]] says which: "for all integers ${mx}, ${math`x^{${2}}`} is an integer" is true, "for all real ${mx}" is false.` },
+    { kind: 'section', title: t`True or false?` },
+    { kind: 'hook', text: t`Is "${math`x^{${2}}`} is an integer" true or false? You cannot say yet. It is true for ${math`x = ${7}`} and false for ${math`x = \frac{${1}}{${2}}`}. A sentence with a free letter in it has no truth value until we say which values of the letter we mean, and whether we mean all of them or just one.` },
+    { kind: 'narrative', text: t`There are two natural ways to settle it. "For every integer ${mx}, ${math`x^{${2}}`} is an integer" makes a claim about all integers at once, and it is true. "There is a real ${mx} for which ${math`x^{${2}}`} is an integer" asks for just one, and it is true too: ${math`x = ${3}`} will do. Each of those words, "for every" and "there is", is a quantifier.` },
+    { kind: 'section', title: t`For all and there exists` },
     {
-      kind: 'list', items: [
-        t`${math`\forall x \in S.\ P(x)`}: for all (every, each) ${mx} in ${math`S`}, ${math`P(x)`} holds.`,
-        t`${math`\exists x \in S.\ P(x)`}: there exists (for some, for at least one) ${mx} in ${math`S`} with ${math`P(x)`}.`,
+      kind: 'definition',
+      name: t`Quantifiers`,
+      formal: t`Let ${mS} be a set and ${mP} a statement about ${math`x \in S`}. The statement ${math`\forall x \in S.\ P(x)`} is true if ${math`P(a)`} is true for every ${math`a \in S`}. The statement ${math`\exists x \in S.\ P(x)`} is true if ${math`P(a)`} is true for at least one ${math`a \in S`}.`,
+      plain: t`In plain words: ${math`\forall`} reads "for all" (every, each) and ${math`\exists`} reads "there exists" (for some, for at least one). Each is a [[quantifier|quantifier]]. With ${mS} the integers and ${mP} "${math`x^{${2}} \ge x`}", both statements are true.`,
+    },
+    { kind: 'narrative', text: t`Two things change the truth of a quantified statement: the quantifier and the set. "${math`x^{${2}} > ${0}`}" is true for every positive integer, false for every real number (it fails at ${0}), and true for some real number.` },
+    {
+      kind: 'table',
+      caption: t`What settles each kind of statement.`,
+      head: [t`statement`, t`to prove it true`, t`to prove it false`],
+      rows: [
+        [t`${math`\forall x \in S.\ P(x)`}`, t`an argument for an arbitrary ${math`x \in S`}`, t`one ${math`x \in S`} where ${mP} fails`],
+        [t`${math`\exists x \in S.\ P(x)`}`, t`one ${math`x \in S`} where ${mP} holds`, t`an argument that ${mP} fails for every ${math`x \in S`}`],
       ],
     },
-    { kind: 'rule', text: t`To prove ${math`\forall x.\ P(x)`}: let ${mx} be an arbitrary individual, a fresh variable, and prove ${math`P(x)`}. To prove ${math`\exists x.\ P(x)`}: find a [[witness|witness]] ${math`w`} and prove ${math`P(w)`}.` },
-    { kind: 'p', text: t`Using them, the CST notes' rules: from ${math`\forall x.\ P(x)`} you may plug in any value ${math`a`} and conclude ${math`P(a)`} (universal instantiation): from ${math`\forall x.\ x^{${2}} \ge ${0}`}, conclude ${math`\pi^{${2}} \ge ${0}`}. From ${math`\exists x.\ P(x)`} you may introduce a new name ${math`x_{${0}}`} for some individual with ${math`P(x_{${0}})`}, but you do not get to choose which.` },
-    { kind: 'p', text: t`Disproving is the mirror image. One [[counterexample|counterexample]] makes ${math`\forall x.\ P(x)`} false: "every real ${mx} has ${math`x^{${2}} > ${0}`}" fails at ${math`x = ${0}`}. To show ${math`\exists x.\ P(x)`} false, show no ${mx} works, which is a "for all" claim.` },
-    { kind: 'p', text: t`The TMUA notes add a warning: "there exists" does not mean there must also be values where the statement fails. "There exists a real ${mx} with ${math`x^{${2}} > ${-2}`}" is true, though every real ${mx} has that property.` },
-    { kind: 'p', text: t`Checking many cases is not a proof of "for all". ${math`n^{${2}} + n + ${41}`} is prime for ${math`n = ${1}, \ldots, ${39}`}, yet at ${math`n = ${40}`} it is ${40 * 40 + 40 + 41}, which is ${math`${41}^{${2}}`}.` },
+    {
+      kind: 'p',
+      text: t`The single value that proves a "there exists" statement is a [[witness|witness]]. The single value that disproves a "for all" statement is a [[counterexample|counterexample]]: "every real ${mx} has ${math`x^{${2}} > ${0}`}" fails at ${math`x = ${0}`}.`,
+      why: { q: t`Why does one value never prove a "for all" statement?`, a: t`Because the statement claims something about every element. One value that works tells you nothing about the others, which may fail. To cover them all, the argument must work for an element you know nothing special about.` },
+    },
+    quickCheck({
+      prompt: t`True or false: ${math`\exists x \in \mathbb{R}.\ x^{${2}} = -${1}`}.`,
+      answer: { kind: 'choice', options: TF_OPTIONS, correct: 'f' },
+      reference: ['f'],
+      why: t`Every real square is at least ${0}, so no real ${mx} has ${math`x^{${2}} = -${1}`}. To show "there exists" is false you need an argument about every ${mx}, as here.`,
+    }),
+    { kind: 'section', title: t`A first proof of each` },
+    { kind: 'narrative', text: t`Here is a "for all" proof. The trick is to let ${mx} be an arbitrary real number: a fresh letter about which we assume nothing except that it is real. Whatever we prove about it then holds for each real number.` },
+    { kind: 'theorem', statement: t`${math`\forall x \in \mathbb{R}.\ x^{${2}} - ${2}x + ${2} > ${0}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Arbitrary element`, text: t`Let ${mx} be an arbitrary real number.` },
+        { label: t`Complete the square`, text: t`${math`x^{${2}} - ${2}x + ${1} = (x - ${1})^{${2}}`}, so`, eq: [dmath`x^{${2}} - ${2}x + ${2} = (x - ${1})^{${2}} + ${1}.`] },
+        { label: t`Bound it`, text: t`A real square is at least ${0}, so ${math`(x - ${1})^{${2}} + ${1} \ge ${1} > ${0}`}.` },
+        { label: t`Conclude`, text: t`${mx} was arbitrary, so the inequality holds for every real ${mx}.` },
+      ],
+    },
+    { kind: 'narrative', text: t`A "there exists" proof needs just one witness, often found by scratch work and then checked. Proposition ${21} of the Cambridge Discrete Mathematics notes, worked below, combines the two: for every positive integer ${math`k`} (arbitrary) there are ${math`i`} and ${math`j`} (witnesses, built from ${math`k`}) with ${math`${4}k = i^{${2}} - j^{${2}}`}.` },
+    { kind: 'section', title: t`Using quantified statements` },
+    {
+      kind: 'list',
+      items: [
+        t`From ${math`\forall x.\ P(x)`} you may conclude ${math`P(a)`} for any value ${math`a`} you like (universal instantiation). From ${math`\forall x \in \mathbb{R}.\ x^{${2}} \ge ${0}`}, conclude ${math`\pi^{${2}} \ge ${0}`}.`,
+        t`From ${math`\exists x.\ P(x)`} you may introduce a new name, say ${math`x_{${0}}`}, for some value with ${math`P(x_{${0}})`}. You do not get to choose which value it is.`,
+      ],
+    },
+    checkFrom(counterexample, { i: 0 }, t`At ${math`n = ${1}`}, ${math`n^{${2}} = ${1}`} and ${math`${2}n = ${2}`}, so ${math`n^{${2}} \ge ${2}n`} fails: a counterexample.`),
+    { kind: 'section', title: t`Two traps` },
+    { kind: 'pitfall', claim: t`${math`n^{${2}} + n + ${41}`} is prime for every positive integer ${math`n`}: it is prime for ${math`n = ${1}, \ldots, ${EULER_N - 1}`}.`, counterexample: t`At ${math`n = ${EULER_N}`} it is ${EULER_N * EULER_N + EULER_N + 41}, which is ${math`${41}^{${2}}`}. Checking cases, however many, never proves a "for all" statement.` },
+    { kind: 'pitfall', claim: t`"There exists a real ${mx} with ${math`x^{${2}} > -${2}`}" suggests some real ${mx} has ${math`x^{${2}} \le -${2}`}.`, counterexample: t`The TMUA notes warn against this reading. "There exists" asks for at least one, and says nothing about the rest. Here every real ${mx} works, and the statement is still true.` },
+    { kind: 'takeaway', text: t`"For all" needs an argument for an arbitrary element and falls to one counterexample; "there exists" needs one witness.` },
   ],
   examples: [
     prop21,
@@ -375,5 +428,24 @@ export const quantifiers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quantifier', 'witness', 'counterexample'],
   cambridge: [tmuaM, bop271, prop21k, prop22, prop18, sw132, sw1210],
-  gate: ['notes-93-prop21', 'notes-95-prop22', 'notes-72-prop18', 'sw-1-3-2', 'sw-1-2-10'],
+  // Best first: the three supervision proofs, then the Proposition 21 witness. The
+  // Proposition 22 witness (the l with 2^l at most 1000) is a lookup, so it does not gate.
+  gate: ['sw-1-3-2', 'notes-72-prop18', 'sw-1-2-10', 'notes-93-prop21'],
+  recall: [
+    { front: t`When is ${math`\forall x \in S.\ P(x)`} true?`, back: t`When ${math`P(a)`} is true for every ${math`a \in S`}.` },
+    { front: t`When is ${math`\exists x \in S.\ P(x)`} true?`, back: t`When ${math`P(a)`} is true for at least one ${math`a \in S`}.` },
+    { front: t`What proves a "there exists" statement, and what disproves a "for all"?`, back: t`A witness proves "there exists"; a counterexample disproves "for all".` },
+    { front: t`What is universal instantiation?`, back: t`From ${math`\forall x.\ P(x)`}, conclude ${math`P(a)`} for any particular ${math`a`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${math`x^{${2}} - ${2}x + ${2} > ${0}`} for every real ${mx}`,
+      steps: [
+        t`Let ${mx} be an arbitrary real number.`,
+        t`Write ${math`x^{${2}} - ${2}x + ${2} = (x - ${1})^{${2}} + ${1}`}.`,
+        t`A square is at least ${0}, so this is at least ${1}.`,
+        t`Since ${mx} was arbitrary, it holds for every real ${mx}.`,
+      ],
+    },
+  ],
 };

@@ -13,7 +13,7 @@ import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../mat
 import { meanQ, polyCompose, polyEval, polyTex, varQ, type Poly } from '../partv-d';
 import { generator, type Misconception } from '../problem';
 import { computedTex, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mZ, mG] = [math`Z_{n}`, math`G`];
 const SH3 = 'ia-prob-sheet-3' as const;
@@ -375,18 +375,73 @@ const claims: ProbabilityClaim[] = [
 ];
 const EX: Poly = [q(1, 4), q(1, 4), q(1, 2)];
 
+const [mq, ms, mm] = [math`q`, math`s`, math`m`];
+
 export const extinctionTopic: TopicContent = {
   topicId: 'bp.extinction',
   goal: t`Show that the generation sizes of a branching process have pgf ${math`G \circ \cdots \circ G`}, and find the extinction probability as the least root of ${math`t = G(t)`} in ${math`[${0}, ${1}]`}.`,
+  objective: t`Find the pgf of each generation of a branching process, and its extinction probability.`,
+  why: t`It shows generating functions answering a real question: does a family name, an epidemic, or a chain reaction die out?`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`A [[branching-process|branching process]] starts from one individual, ${math`Z_{${0}} = ${1}`}. Each individual of each generation has a random number of offspring, independently, all with the same pgf ${mG}; ${mZ} is the size of generation ${math`n`}. Family names, cell cultures, and chain reactions all work this way.` },
-    { kind: 'rule', text: t`${math`Z_{n + ${1}}`} is a random sum of ${mZ} offspring counts, so ${math`G_{n + ${1}}(t) = G_{n}(G(t))`} and ${math`G_{n} = G \circ G \circ \cdots \circ G`}, with ${math`n`} copies. In particular ${math`E(Z_{n}) = m^{n}`}, where ${math`m = G'(${1})`}.` },
-    { kind: 'p', text: t`The events ${math`\{Z_{n} = ${0}\}`} increase with ${math`n`} (once empty, always empty), and their union is extinction. By continuity of probability, the [[extinction-probability|extinction probability]] is ${math`q = \lim_{n} P(Z_{n} = ${0}) = \lim_{n} G_{n}(${0})`}. Since ${math`G_{n + ${1}}(${0}) = G(G_{n}(${0}))`} and ${mG} is continuous, ${math`q = G(q)`}.` },
-    { kind: 'rule', text: t`${math`q`} is the smallest root of ${math`t = G(t)`} in ${math`[${0}, ${1}]`}: for any root ${math`s \ge ${0}`}, ${math`G_{n}(${0}) \le s`} for every ${math`n`} by induction, since ${mG} is increasing. And ${math`q = ${1}`} exactly when ${math`m \le ${1}`} (unless ${math`G(t) = t`}), because ${mG} is convex with ${math`G(${1}) = ${1}`}.` },
-    { kind: 'p', text: t`Example: offspring ${0}, ${1}, ${2} with probabilities ${EX[0] as Rational}, ${EX[1] as Rational}, ${EX[2] as Rational}. ${math`m = ${meanQ(EX)}`}, and ${math`t = G(t)`} is ${math`(${2}t - ${1})(t - ${1}) = ${0}`}: ${math`q = ${q(1, 2)}`}. The iterates ${math`G_{n}(${0})`} creep up to it: ${computedTex([1, 2, 3, 4].map((n) => texR(zeroAt(EX, n))).join(',\\ '))}.` },
+    { kind: 'section', title: t`Will the family survive?` },
+    { kind: 'hook', text: t`In Victorian England, Francis Galton asked why so many old family names die out. Each man has some random number of sons, and each son the same, independently. Even if each man has on average more than one son, there is a real chance the name vanishes. How big? One equation, ${math`t = G(t)`}, answers it.` },
+    {
+      kind: 'definition',
+      name: t`Branching process`,
+      formal: t`A [[branching-process|branching process]] with offspring pgf ${mG} has ${math`Z_{${0}} = ${1}`} and ${math`Z_{n + ${1}} = \sum_{i = ${1}}^{Z_{n}} X_{n, i}`}, where the offspring counts ${math`X_{n, i}`} are independent, each with pgf ${mG}. ${mZ} is the size of generation ${math`n`}.`,
+      plain: t`one ancestor; each individual of each generation has a random number of children, independently, all with the same distribution. Family names, cell cultures, and chain reactions work this way.`,
+    },
+    {
+      kind: 'p',
+      text: t`${math`Z_{n + ${1}}`} is a random sum of ${mZ} independent offspring counts, so its pgf is the pgf of ${mZ} with ${mG} put inside: ${math`G_{n + ${1}}(t) = G_{n}(G(t))`}. So ${math`G_{n} = G \circ G \circ \cdots \circ G`}, with ${math`n`} copies, and ${math`E(Z_{n}) = m^{n}`}, where ${math`m = G'(${1})`} is the mean number of offspring.`,
+      why: { q: t`Why does a random sum compose the pgfs?`, a: t`For a random sum ${math`S = X_{${1}} + \cdots + X_{N}`} with independent ${math`X_{i}`} of pgf ${mG}, independent of ${math`N`}: given ${math`N = k`}, ${math`E(t^{S}) = G(t)^{k}`}. Averaging over ${math`N`} gives ${math`E\big(G(t)^{N}\big) = G_{N}(G(t))`}. That is the random sums lesson.` },
+    },
+    { kind: 'section', title: t`The extinction probability` },
+    {
+      kind: 'definition',
+      name: t`Extinction probability`,
+      formal: t`The [[extinction-probability|extinction probability]] is ${math`q = P(Z_{n} = ${0} \text{ for some } n)`}.`,
+      plain: t`the chance that the family dies out at some generation. Once a generation is empty, all later ones are.`,
+    },
+    { kind: 'theorem', statement: t`${mq} is the smallest root of ${math`t = G(t)`} in ${math`[${0}, ${1}]`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Extinction as a limit`, text: t`The events ${math`\{Z_{n} = ${0}\}`} increase with ${math`n`}, and their union is extinction. By continuity of probability, ${math`q = \lim_{n} P(Z_{n} = ${0}) = \lim_{n} G_{n}(${0})`}.`, plain: t`${math`P(Z_{n} = ${0})`} is the pgf at ${0}: only the ${math`t^{${0}}`} term survives.` },
+        { label: t`It is a root`, text: t`${math`G_{n + ${1}}(${0}) = G(G_{n}(${0}))`}. Let ${math`n \to \infty`}: since ${mG} is continuous on ${math`[${0}, ${1}]`}, ${math`q = G(q)`}.`, plain: t`Take the limit of both sides; continuity lets the limit pass inside ${mG}.` },
+        {
+          label: t`It is below every other root`, text: t`Let ${math`s \in [${0}, ${1}]`} with ${math`G(s) = s`}. Then ${math`G_{${0}}(${0}) = ${0} \le s`}, and if ${math`G_{n}(${0}) \le s`}, then ${math`G_{n + ${1}}(${0}) = G(G_{n}(${0})) \le G(s) = s`}.`,
+          plain: t`Induction on ${math`n`}, using that ${mG} is increasing on ${math`[${0}, ${1}]`}.`,
+          why: { q: t`Why is ${mG} increasing?`, a: t`${math`G(t) = \sum_{k} p_{k} t^{k}`} with every ${math`p_{k} \ge ${0}`}, so on ${math`[${0}, ${1}]`} each term, and so the sum, can only grow as ${math`t`} grows.` },
+        },
+        { label: t`Conclude`, text: t`So ${math`q = \lim G_{n}(${0}) \le s`}. As ${mq} is itself a root, it is the smallest.`, plain: t`Limits keep inequalities that hold at every step.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`When is ${math`q = ${1}`}? The curve ${math`y = G(t)`} is convex on ${math`[${0}, ${1}]`} and meets the line ${math`y = t`} at ${math`t = ${1}`}. If its slope there, ${math`m = G'(${1})`}, is at most ${1}, it stays above the line before ${1}, so ${math`q = ${1}`}. If ${math`m > ${1}`}, it crosses the line once below ${1}, so ${math`q < ${1}`}. The exception is ${math`G(t) = t`}: exactly one child always, and the family never dies.`,
+    },
+    {
+      kind: 'p',
+      text: t`Example: offspring ${0}, ${1}, ${2} with probabilities ${EX[0] as Rational}, ${EX[1] as Rational}, ${EX[2] as Rational}. Then ${math`m = ${meanQ(EX)}`}, and ${math`t = G(t)`} becomes ${math`${2}t^{${2}} - ${3}t + ${1} = ${0}`}, that is ${math`(${2}t - ${1})(t - ${1}) = ${0}`}: ${math`q = ${q(1, 2)}`}. The iterates ${math`G_{n}(${0})`} creep up to it: ${computedTex([1, 2, 3, 4].map((n) => texR(zeroAt(EX, n))).join(',\\ '))}.`,
+    },
+    quickCheck({
+      prompt: t`Each individual has ${0} or ${2} children, with probability ${q(1, 2)} each. What is the extinction probability?`,
+      answer: { kind: 'exact', expected: '1' },
+      reference: '1',
+      why: t`${math`m = ${2} \times ${q(1, 2)} = ${1}`}, so ${math`q = ${1}`}: ${math`t = \frac{${1}}{${2}} + \frac{${1}}{${2}}t^{${2}}`} gives ${math`(t - ${1})^{${2}} = ${0}`}, whose only root is ${1}.`,
+    }),
+    {
+      kind: 'pitfall',
+      claim: t`If the mean number of children is more than ${1}, the family survives.`,
+      counterexample: t`In the example, ${math`m = ${meanQ(EX)}`}, yet the family dies out with probability ${q(1, 2)}: with probability ${EX[0] as Rational} the first individual has no children at all. A mean above ${1} only makes survival possible.`,
+    },
+    { kind: 'takeaway', text: t`Generation ${math`n`} has pgf ${math`G \circ \cdots \circ G`}; extinction has probability equal to the smallest root of ${math`t = G(t)`} in ${math`[${0}, ${1}]`}, which is ${1} exactly when ${math`m \le ${1}`}, apart from ${math`G(t) = t`}.` },
   ],
   examples: [
-    workedCambridge(q9b),
+    { ...workedCambridge(q9b), examiner: t`The red cells identified as the branching process (white cells have no offspring), its pgf written down, and the smaller root of ${math`t = G(t)`} chosen with a reason.` },
     worked(extinction, { w: [1, 1, 2], d: 4 }, t`A root below one`),
     worked(generation, { w: [1, 0, 1], d: 2, n: 2 }, t`Empty by generation two`),
   ],
@@ -395,5 +450,24 @@ export const extinctionTopic: TopicContent = {
   terms: ['branching-process', 'extinction-probability'],
   claims,
   cambridge: [q9a, q12, q12proof, theorem],
-  gate: ['ia-s3-q9-a', 'ia-s3-q12-extinction', 'ia-s3-q12'],
+  // Sheet 3 Q12 in full first (the iterates by induction, the mean, and the extinction probability), then
+  // its answer alone, then Q9(a). The schedule theorem is the lesson's own proof.
+  gate: ['ia-s3-q12', 'ia-s3-q12-extinction', 'ia-s3-q9-a'],
+  recall: [
+    { front: t`The pgf of generation ${math`n`}?`, back: t`${math`G_{n} = G \circ \cdots \circ G`}, ${math`n`} copies; ${math`G_{n + ${1}} = G_{n} \circ G`}.` },
+    { front: t`The extinction probability?`, back: t`The smallest root of ${math`t = G(t)`} in ${math`[${0}, ${1}]`}.` },
+    { front: t`When is extinction certain?`, back: t`When ${math`m = G'(${1}) \le ${1}`}, unless ${math`G(t) = t`}.` },
+    { front: t`${math`E(Z_{n})`}?`, back: t`${math`m^{n}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Extinction is the smallest fixed point`,
+      steps: [
+        t`By continuity of probability, ${math`q = \lim G_{n}(${0})`}.`,
+        t`Since ${math`G_{n + ${1}}(${0}) = G(G_{n}(${0}))`} and ${mG} is continuous, ${math`q = G(q)`}.`,
+        t`For any root ${ms}, induction gives ${math`G_{n}(${0}) \le s`}, as ${mG} is increasing.`,
+        t`So ${math`q \le s`}: ${mq} is the smallest root.`,
+      ],
+    },
+  ],
 };

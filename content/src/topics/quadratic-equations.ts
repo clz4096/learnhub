@@ -9,8 +9,8 @@
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computedMath, computedTex, frac, math, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedMath, computedTex, dmath, frac, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 import { far } from '../partv-a';
 import { poly } from '../poly';
 
@@ -265,16 +265,81 @@ const showQuadratic = supervision({
 // ---------------------------------------------------------------- lesson
 
 const EXP = { a: 2, b: -7, c: 3 };
+const mx = math`x`;
+const HID = { y1: 4, y2: -1 };
 
 export const quadraticEquations: TopicContent = {
   topicId: 'pre.quadratic-equations',
   goal: t`Solve ${math`ax^{${2}} + bx + c = ${0}`} by factorising, completing the square, or the formula, tell from the discriminant how many real roots there are, and spot a quadratic in a function of the unknown.`,
+  objective: t`Solve any quadratic, count its real roots from the discriminant, and spot one in disguise.`,
+  why: t`Quadratics turn up inside probability and statistics problems, as in a STEP question on Poisson waiting times.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`A quadratic equation is ${math`ax^{${2}} + bx + c = ${0}`} with ${math`a \ne ${0}`}. If it factorises, each factor gives a root: ${computedMath(`${poly([EXP.a, EXP.b, EXP.c])} = (${poly([2, -1])})(${poly([1, -3])})`)}, so ${math`x = ${q(1, 2)}`} or ${math`x = ${3}`}.` },
-    { kind: 'p', text: t`Every quadratic can be solved by completing the square: ${math`ax^{${2}} + bx + c = a\left(x + \frac{b}{${2}a}\right)^{${2}} - \frac{b^{${2}} - ${4}ac}{${4}a}`}. Setting this to ${0} and taking square roots gives the formula.` },
-    { kind: 'rule', text: t`The [[quadratic-formula|quadratic formula]]: ${math`x = \frac{-b \pm \sqrt{b^{${2}} - ${4}ac}}{${2}a}`}. The [[discriminant|discriminant]] ${math`b^{${2}} - ${4}ac`} decides the number of real roots: two if it is positive, one repeated root if it is ${0}, none if it is negative.` },
-    { kind: 'p', text: t`Adding and multiplying the two roots of the formula gives ${math`x_{${1}} + x_{${2}} = -\frac{b}{a}`} and ${math`x_{${1}} x_{${2}} = \frac{c}{a}`}, often quicker than finding the roots themselves.` },
-    { kind: 'p', text: t`A quadratic can hide in a function of the unknown. STEP ${2} Statistics Q${5} reaches ${math`pe^{${2}\lambda} - e^{\lambda} + ${1} = ${0}`}: with ${math`y = e^{\lambda}`} it is ${math`py^{${2}} - y + ${1} = ${0}`}. Real roots need ${math`${1} - ${4}p \ge ${0}`}; a positive ${math`\lambda`} needs ${math`y > ${1}`}, since ${math`e^{\lambda}`} is always positive; and the product of the roots, ${math`\frac{${1}}{p}`}, gives the sum of the two rates.` },
+    { kind: 'section', title: t`Have you found them all?` },
+    { kind: 'hook', text: t`Find every ${mx} with ${computedMath(`${poly([EXP.a, EXP.b, EXP.c])} = ${0}`)}. Trying small numbers, ${math`x = ${3}`} works: ${math`${2} \times ${9} - ${21} + ${3} = ${0}`}. Is that the only one? Guessing can find a root, but it can never tell you that you have found them all.` },
+    { kind: 'narrative', text: t`What we want is a method that produces every root and proves there are no others. There are three, and they are really one idea seen three ways.` },
+    {
+      kind: 'definition',
+      name: t`Quadratic equation`,
+      formal: t`A quadratic equation is ${math`ax^{${2}} + bx + c = ${0}`}, where ${math`a, b, c`} are real numbers and ${math`a \ne ${0}`}. A real number ${math`r`} is a root if ${math`ar^{${2}} + br + c = ${0}`}.`,
+      plain: t`In plain words: an equation whose highest power of ${mx} is the square. A root is a value of ${mx} that makes it true. Above, ${math`a = ${EXP.a}`}, ${math`b = ${EXP.b}`}, ${math`c = ${EXP.c}`}, and ${3} is a root.`,
+    },
+    { kind: 'section', title: t`Factorising` },
+    { kind: 'narrative', text: t`The key fact is about products. If two numbers multiply to ${0}, one of them must be ${0}. So if the quadratic splits into two factors, each factor hands you a root, and nothing else can be a root.` },
+    { kind: 'theorem', name: t`Zero product`, statement: t`For real numbers ${math`u`} and ${math`v`}, if ${math`uv = ${0}`} then ${math`u = ${0}`} or ${math`v = ${0}`}.` },
+    {
+      kind: 'p',
+      text: t`Then ${computedMath(`${poly([EXP.a, EXP.b, EXP.c])} = (${poly([2, -1])})(${poly([1, -3])})`)}, so the roots are exactly ${math`x = ${q(1, 2)}`} (from the first factor) and ${math`x = ${3}`} (from the second). The guess found one of two.`,
+      why: { q: t`Why is the zero product fact true?`, a: t`Suppose ${math`uv = ${0}`} and ${math`u \ne ${0}`}. Divide both sides by ${math`u`}: ${math`v = \frac{${0}}{u} = ${0}`}. So if ${math`u`} is not ${0}, then ${math`v`} is.` },
+    },
+    { kind: 'section', title: t`The formula, derived` },
+    { kind: 'narrative', text: t`Not every quadratic factorises with whole numbers. Completing the square always works: it rewrites the quadratic as a perfect square plus a constant, so solving needs only a square root.` },
+    {
+      kind: 'definition',
+      name: t`Discriminant`,
+      formal: t`The [[discriminant|discriminant]] of ${math`ax^{${2}} + bx + c`} is ${math`\Delta = b^{${2}} - ${4}ac`}.`,
+      plain: t`In plain words: one number built from the coefficients that decides how many real roots there are. For ${computedMath(poly([EXP.a, EXP.b, EXP.c]))}, ${math`\Delta = (${EXP.b})^{${2}} - ${4} \times ${EXP.a} \times ${EXP.c} = ${EXP.b * EXP.b - 4 * EXP.a * EXP.c}`}.`,
+    },
+    {
+      kind: 'theorem',
+      name: t`Quadratic formula`,
+      statement: t`Let ${math`a \ne ${0}`} and ${math`\Delta = b^{${2}} - ${4}ac`}. If ${math`\Delta > ${0}`}, ${math`ax^{${2}} + bx + c = ${0}`} has exactly two real roots, ${math`x = \frac{-b \pm \sqrt{\Delta}}{${2}a}`}. If ${math`\Delta = ${0}`}, it has exactly one, ${math`x = -\frac{b}{${2}a}`} (a repeated root). If ${math`\Delta < ${0}`}, it has none.`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Divide by a`, text: t`Since ${math`a \ne ${0}`}, the equation is equivalent to`, eq: [dmath`x^{${2}} + \frac{b}{a}x + \frac{c}{a} = ${0}.`] },
+        { label: t`Complete the square`, text: t`${math`\left(x + \frac{b}{${2}a}\right)^{${2}} = x^{${2}} + \frac{b}{a}x + \frac{b^{${2}}}{${4}a^{${2}}}`}, so the equation is`, eq: [dmath`\left(x + \frac{b}{${2}a}\right)^{${2}} - \frac{b^{${2}}}{${4}a^{${2}}} + \frac{c}{a} = ${0}.`], why: { q: t`Why add half the coefficient of ${mx}?`, a: t`Expanding ${math`(x + h)^{${2}}`} gives ${math`x^{${2}} + ${2}hx + h^{${2}}`}. To match ${math`\frac{b}{a}x`} we need ${math`${2}h = \frac{b}{a}`}, so ${math`h = \frac{b}{${2}a}`}; the extra ${math`h^{${2}}`} is then taken away again.` } },
+        { label: t`Isolate the square`, text: t`Move the constants right and put them over ${math`${4}a^{${2}}`}: ${math`-\frac{c}{a} = -\frac{${4}ac}{${4}a^{${2}}}`}, so`, eq: [dmath`\left(x + \frac{b}{${2}a}\right)^{${2}} = \frac{b^{${2}} - ${4}ac}{${4}a^{${2}}} = \frac{\Delta}{${4}a^{${2}}}.`] },
+        { label: t`If the discriminant is negative`, text: t`The right side is negative, since ${math`${4}a^{${2}} > ${0}`}. A real square is never negative, so there is no real root.` },
+        { label: t`If it is zero`, text: t`The square is ${0}, so ${math`x + \frac{b}{${2}a} = ${0}`}: the single root ${math`x = -\frac{b}{${2}a}`}.` },
+        { label: t`If it is positive`, text: t`A number whose square is ${math`\frac{\Delta}{${4}a^{${2}}}`} is ${math`\pm\frac{\sqrt{\Delta}}{${2}a}`}, and there are exactly two such numbers, so`, eq: [dmath`x = -\frac{b}{${2}a} \pm \frac{\sqrt{\Delta}}{${2}a} = \frac{-b \pm \sqrt{\Delta}}{${2}a}.`], why: { q: t`Does the sign of ${math`a`} matter when taking the root?`, a: t`The square root of ${math`${4}a^{${2}}`} is ${math`${2}\lvert a \rvert`}, which is ${math`${2}a`} or ${math`-${2}a`}. Because we take both signs with ${math`\pm`}, the two roots come out the same either way.` } },
+      ],
+    },
+    { kind: 'p', text: t`The result is the [[quadratic-formula|quadratic formula]]. For the hook, ${math`\Delta = ${EXP.b * EXP.b - 4 * EXP.a * EXP.c}`}, so ${math`x = \frac{${7} \pm ${5}}{${4}}`}, which is ${3} or ${q(1, 2)}, as factorising found.` },
+    checkFrom(repeatedRoot, { b: 6, c: 3 }, t`A repeated root needs ${math`\Delta = ${0}`}: ${math`${36} - ${12}k = ${0}`}, so ${math`k = ${3}`}.`),
+    { kind: 'section', title: t`Sum and product of the roots` },
+    { kind: 'narrative', text: t`Sometimes you need only how the roots combine, not the roots themselves. The STEP question below needs exactly that.` },
+    { kind: 'theorem', statement: t`If ${math`\Delta \ge ${0}`} and ${math`x_{${1}}, x_{${2}}`} are the roots of ${math`ax^{${2}} + bx + c = ${0}`} (equal when ${math`\Delta = ${0}`}), then ${math`x_{${1}} + x_{${2}} = -\frac{b}{a}`} and ${math`x_{${1}} x_{${2}} = \frac{c}{a}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Factorise by the roots`, text: t`By the formula, both roots exist, and ${math`ax^{${2}} + bx + c = a(x - x_{${1}})(x - x_{${2}})`}.`, why: { q: t`Why does that factorisation hold?`, a: t`Completing the square gave ${math`a\left[\left(x + \frac{b}{${2}a}\right)^{${2}} - \frac{\Delta}{${4}a^{${2}}}\right]`}. That is ${math`a`} times a difference of two squares, ${math`a(x - x_{${1}})(x - x_{${2}})`}.` } },
+        { label: t`Expand`, text: t`${math`a(x - x_{${1}})(x - x_{${2}}) = ax^{${2}} - a(x_{${1}} + x_{${2}})x + ax_{${1}}x_{${2}}`}.` },
+        { label: t`Compare coefficients`, text: t`Matching the ${mx} term and the constant with ${math`bx`} and ${math`c`}: ${math`-a(x_{${1}} + x_{${2}}) = b`} and ${math`ax_{${1}}x_{${2}} = c`}. Divide by ${math`a`}.` },
+      ],
+    },
+    { kind: 'p', text: t`Check with the hook: ${math`${3} + ${q(1, 2)} = ${q(7, 2)} = -\frac{b}{a}`} and ${math`${3} \times ${q(1, 2)} = ${q(3, 2)} = \frac{c}{a}`}.` },
+    { kind: 'section', title: t`Quadratics in disguise` },
+    { kind: 'narrative', text: t`A quadratic can hide inside another function. ${math`${4}^{x} - ${3} \times ${2}^{x} - ${4} = ${0}`} has no ${math`x^{${2}}`} in sight. But ${math`${4}^{x} = (${2}^{x})^{${2}}`}, so with ${math`y = ${2}^{x}`} it reads ${math`y^{${2}} - ${3}y - ${4} = ${0}`}, that is ${math`(y - ${HID.y1})(y + ${-HID.y2}) = ${0}`}.` },
+    { kind: 'p', text: t`So ${math`y = ${HID.y1}`} or ${math`y = ${HID.y2}`}. Now translate back: ${math`${2}^{x} = ${HID.y1}`} gives ${math`x = ${2}`}. But ${math`${2}^{x}`} is positive for every real ${mx}, so ${math`${2}^{x} = ${HID.y2}`} has no solution. One root of the quadratic in ${math`y`} gives no ${mx} at all.` },
+    { kind: 'p', text: t`STEP ${2} Statistics question ${5} reaches ${math`pe^{${2}\lambda} - e^{\lambda} + ${1} = ${0}`}, a quadratic in ${math`y = e^{\lambda}`}: ${math`py^{${2}} - y + ${1} = ${0}`}. Real roots need ${math`\Delta = ${1} - ${4}p \ge ${0}`}; a positive ${math`\lambda`} needs ${math`y > ${1}`}; and the product of the roots, ${math`\frac{${1}}{p}`}, gives the sum of the two rates.` },
+    checkFrom(hiddenQuadratic, { base: 3, m: 1, n: 0, neg: true }, t`With ${math`y = ${3}^{x}`}: ${math`(y - ${3})(y + ${1}) = ${0}`}. ${math`${3}^{x} = ${3}`} gives ${math`x = ${1}`}; ${math`${3}^{x} = -${1}`} is impossible.`),
+    { kind: 'pitfall', claim: t`${math`x^{${2}} = ${3}x`}, so dividing by ${mx}, ${math`x = ${3}`} is the solution.`, counterexample: t`Dividing by ${mx} assumes ${math`x \ne ${0}`}, and ${math`x = ${0}`} is also a root. Factorise instead: ${math`x(x - ${3}) = ${0}`}, so ${math`x = ${0}`} or ${math`x = ${3}`}.` },
+    { kind: 'pitfall', claim: t`Every root of the quadratic in ${math`y = ${2}^{x}`} gives a solution ${mx}.`, counterexample: t`${math`y = ${HID.y2}`} solves ${math`y^{${2}} - ${3}y - ${4} = ${0}`}, but no real ${mx} has ${math`${2}^{x} = ${HID.y2}`}.` },
+    { kind: 'takeaway', text: t`Complete the square to get every root at once; the discriminant counts them, and a substitution can reveal a quadratic in disguise.` },
   ],
   examples: [
     workedCambridge(mildredSum),
@@ -285,5 +350,24 @@ export const quadraticEquations: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quadratic-formula', 'discriminant'],
   cambridge: [mildredWait, twoRates, showQuadratic],
-  gate: ['s2-q5-first-text', 's2-q5-two-values', 's2-q5-show'],
+  // The two values of the exponential test the quadratic. The write-up (s2-q5-show) and
+  // Mildred's first text both need Poisson processes, not yet met here, so neither gates.
+  gate: ['s2-q5-two-values'],
+  recall: [
+    { front: t`State the quadratic formula.`, back: t`${math`x = \frac{-b \pm \sqrt{b^{${2}} - ${4}ac}}{${2}a}`}, for ${math`a \ne ${0}`}.` },
+    { front: t`How does the discriminant count the real roots?`, back: t`${math`\Delta > ${0}`}: two. ${math`\Delta = ${0}`}: one repeated root. ${math`\Delta < ${0}`}: none.` },
+    { front: t`Sum and product of the roots of ${math`ax^{${2}} + bx + c = ${0}`}?`, back: t`Sum ${math`-\frac{b}{a}`}, product ${math`\frac{c}{a}`}.` },
+    { front: t`State the zero product fact.`, back: t`If ${math`uv = ${0}`} then ${math`u = ${0}`} or ${math`v = ${0}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Deriving the quadratic formula`,
+      steps: [
+        t`Divide by ${math`a`}: ${math`x^{${2}} + \frac{b}{a}x + \frac{c}{a} = ${0}`}.`,
+        t`Complete the square: ${math`\left(x + \frac{b}{${2}a}\right)^{${2}} - \frac{b^{${2}}}{${4}a^{${2}}} + \frac{c}{a} = ${0}`}.`,
+        t`Isolate the square: ${math`\left(x + \frac{b}{${2}a}\right)^{${2}} = \frac{b^{${2}} - ${4}ac}{${4}a^{${2}}}`}.`,
+        t`Take square roots: ${math`x = \frac{-b \pm \sqrt{b^{${2}} - ${4}ac}}{${2}a}`}.`,
+      ],
+    },
+  ],
 };

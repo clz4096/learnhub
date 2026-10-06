@@ -10,7 +10,7 @@ import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
 import { gcd, int, pick, q, str, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, t, type Rich, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mx, my] = [math`x`, math`y`];
 const [S1, S2] = [math`S_{${1}}`, math`S_{${2}}`];
@@ -282,19 +282,75 @@ const bop29_13 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const TRUE_FALSE: ChoiceOption[] = [{ id: 'true', label: t`True` }, { id: 'false', label: t`False` }];
+const S3 = upTo(3);
+const ex3 = S3.some((y) => S3.every((x) => x <= y));
+const parity3 = S3.some((y) => S3.every((x) => (x + y) % 2 === 0));
+
 export const nestedQuantifiers: TopicContent = {
   topicId: 'logic.nested-quantifiers',
   goal: t`Read statements with several quantifiers, and see why ${math`\forall x\, \exists y`} differs from ${math`\exists y\, \forall x`}.`,
+  objective: t`Read statements with two quantifiers, and say why swapping "for all" and "there exists" changes the meaning.`,
+  why: t`Every definition in analysis, such as a limit or continuity, is a nested quantifier statement.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The TMUA notes compare two statements. ${S1}: "for all positive real ${mx} there exists a real ${my} such that ${math`y^{${2}} = x`}". ${S2}: "there exists a real ${my} such that for all positive real ${mx}, ${math`y^{${2}} = x`}". The same words, in a different order; ${S1} is true and ${S2} is false.` },
-    { kind: 'rule', text: t`In ${math`\forall x\ \exists y.\ P(x, y)`}, ${my} is chosen after ${mx}, so it may depend on ${mx}: a different ${my} for each ${mx}. In ${math`\exists y\ \forall x.\ P(x, y)`}, one ${my} is chosen first and must work for every ${mx}. ${dmath`\exists y\ \forall x.\ P(x, y) \implies \forall x\ \exists y.\ P(x, y),`} but not the other way round.` },
-    { kind: 'p', text: t`${S1} is true because for each ${mx} we can take ${math`y = \sqrt{x}`}, a [[dependent-witness|witness that depends]] on ${mx}. ${S2} is false because no single ${my} has ${math`y^{${2}}`} equal to ${1}, ${2}, and ${3} at once.` },
-    { kind: 'p', text: t`Quantifiers of the same kind can swap: ${math`\forall x\ \forall y`} is the same as ${math`\forall y\ \forall x`}, and ${math`\exists x\ \exists y`} the same as ${math`\exists y\ \exists x`}. Only mixed kinds are sensitive to order.` },
-    { kind: 'p', text: t`The CST notes' strategy for ${math`\forall x\ \exists y.\ P(x, y)`}: take an arbitrary ${mx}, construct the witness as a function of it, say ${math`f(x)`}, and show ${math`P(x, f(x))`}. For "for all reals ${mx}, ${my} there is ${math`z`} with ${math`x + z = y - z`}", take ${math`z = \frac{y - x}{${2}}`}.` },
-    { kind: 'p', text: t`Book of Proof's translations show where this matters: continuity, ${math`\forall \varepsilon > ${0}\ \exists \delta > ${0}`} and so on, lets ${math`\delta`} depend on ${math`\varepsilon`}; putting ${math`\exists \delta`} first would say something far stronger.` },
+    { kind: 'section', title: t`Same words, different order` },
+    { kind: 'hook', text: t`Compare two sentences from the TMUA notes. ${S1}: "for every positive real ${mx} there is a real ${my} with ${math`y^{${2}} = x`}". ${S2}: "there is a real ${my} such that for every positive real ${mx}, ${math`y^{${2}} = x`}". The same pieces in a different order. ${S1} says every positive number has a square root, which is true. ${S2} says one number is the square root of every positive number at once, which is absurd.` },
+    { kind: 'narrative', text: t`The difference is about who chooses first. Think of a statement with quantifiers as a game. "For all ${mx}" is a move by a sceptic, who picks any ${mx} they like. "There exists ${my}" is your move: you must produce a ${my} that works. Read left to right, each player sees the moves already made.` },
+
+    { kind: 'section', title: t`Who chooses first` },
+    { kind: 'p', text: t`In ${math`\forall x\ \exists y.\ P(x, y)`}, the sceptic picks ${mx} first, and you choose ${my} knowing ${mx}. So ${my} may depend on ${mx}: a [[dependent-witness|witness that depends]] on ${mx}, such as ${math`y = \sqrt{x}`} in ${S1}.` },
+    { kind: 'p', text: t`In ${math`\exists y\ \forall x.\ P(x, y)`}, you must commit to ${my} first, and then the sceptic picks any ${mx} to try to break it. One ${my} must work for every ${mx}. In ${S2}, whatever ${my} you pick, the sceptic chooses ${math`x = y^{${2}} + ${1}`}, and ${math`y^{${2}} \ne x`}.` },
+    { kind: 'theorem', name: t`Order of quantifiers`, statement: t`For any statement ${math`P(x, y)`}, ${dmath`\exists y\ \forall x.\ P(x, y) \implies \forall x\ \exists y.\ P(x, y),`} but the converse can fail. Quantifiers of the same kind commute: ${math`\forall x\ \forall y`} means the same as ${math`\forall y\ \forall x`}, and likewise for ${math`\exists`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Take the single witness`, text: t`Suppose ${math`\exists y\ \forall x.\ P(x, y)`}, and let ${math`y_{${0}}`} be a ${my} with ${math`P(x, y_{${0}})`} for every ${mx}.` },
+        { label: t`Use it for each x`, text: t`Let ${mx} be arbitrary. Then ${math`P(x, y_{${0}})`} holds, so there exists a ${my} (namely ${math`y_{${0}}`}) with ${math`P(x, y)`}.`, plain: t`One ${my} that works for everyone certainly works for each person separately.` },
+        { label: t`Conclude`, text: t`Since ${mx} was arbitrary, ${math`\forall x\ \exists y.\ P(x, y)`}.` },
+        { label: t`The converse fails`, text: t`${S1} and ${S2} are a counterexample: ${S1}, of the form ${math`\forall x\ \exists y`}, is true, and ${S2}, of the form ${math`\exists y\ \forall x`}, is false.` },
+      ],
+    },
+    quickCheck({
+      prompt: t`Let ${math`S = \{${1}, ${2}, ${3}\}`}. Is ${math`\exists y \in S\ \forall x \in S.\ x \le y`} true or false?`,
+      answer: { kind: 'choice', options: TRUE_FALSE, correct: ex3 ? 'true' : 'false' },
+      reference: ex3 ? 'true' : 'false',
+      why: t`True: commit to ${math`y = ${3}`} first, and every ${mx} in ${math`S`} has ${math`x \le ${3}`}.`,
+    }),
+    quickCheck({
+      prompt: t`With the same ${math`S`}, is ${math`\exists y \in S\ \forall x \in S.\ x + y \text{ is even}`} true or false?`,
+      answer: { kind: 'choice', options: TRUE_FALSE, correct: parity3 ? 'true' : 'false' },
+      reference: parity3 ? 'true' : 'false',
+      why: t`False: any ${my} has the wrong parity for some ${mx}. Yet ${math`\forall x\ \exists y`} is true here: take ${math`y = x`}.`,
+    }),
+
+    { kind: 'section', title: t`Proving a for all, there exists` },
+    { kind: 'narrative', text: t`The CST notes give the strategy for proving ${math`\forall x\ \exists y.\ P(x, y)`}: let ${mx} be arbitrary, construct the witness ${my} from ${mx}, and check ${math`P(x, y)`}. The construction is usually found by working backwards.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`The claim`, text: t`For all real ${mx} and ${my} there is a real ${math`z`} with ${math`x + z = y - z`}.` },
+        { label: t`Take arbitrary values`, text: t`Let ${mx} and ${my} be any real numbers. We must produce ${math`z`}, and it may depend on both.` },
+        { label: t`Work backwards`, text: t`${math`x + z = y - z`} means ${math`${2}z = y - x`}, so try ${math`z = \frac{y - x}{${2}}`}.` },
+        { label: t`Check forwards`, text: t`${math`x + \frac{y - x}{${2}} = \frac{x + y}{${2}}`} and ${math`y - \frac{y - x}{${2}} = \frac{x + y}{${2}}`}: equal, so this ${math`z`} works.` },
+      ],
+    },
+    checkFrom(construct, { a: 2, b: 1, c: 1 }, t`${math`${2}x + z = y - z`} gives ${math`${2}z = y - ${2}x`}, so ${math`z = \frac{y - ${2}x}{${2}}`}.`),
+
+    { kind: 'section', title: t`From words to symbols` },
+    { kind: 'p', text: t`English hides the order. "Every integer has a larger integer" is ${math`\forall x\ \exists y.\ y > x`}: for each integer, a larger one (it depends on ${mx}). "Some integer is larger than every integer" is ${math`\exists y\ \forall x.\ y > x`}: one integer beating all. Ask: is one object chosen for all, or a new one for each?` },
+    { kind: 'p', text: t`Continuity at ${math`a`} reads ${math`\forall \varepsilon > ${0}\ \exists \delta > ${0}`} and so on: ${math`\delta`} is chosen after ${math`\varepsilon`}, so it may depend on it. Putting ${math`\exists \delta`} first would demand one ${math`\delta`} for every ${math`\varepsilon`}, a much stronger claim.` },
+    checkFrom(translate, { i: 0, order: 3 }, t`For each integer ${mx} there is a larger one, chosen after ${mx}: ${math`\forall x\ \exists y`}.`),
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`\forall x\ \exists y.\ P(x, y)`} and ${math`\exists y\ \forall x.\ P(x, y)`} say the same thing.`, counterexample: t`On the integers, ${math`\forall x\ \exists y.\ y > x`} is true (take ${math`y = x + ${1}`}), and ${math`\exists y\ \forall x.\ y > x`} is false (it fails at ${math`x = y`}).` },
+    { kind: 'pitfall', claim: t`In ${math`\forall x\ \exists y`}, the witness must be the same for every ${mx}.`, counterexample: t`For ${S1}, the witness for ${math`x = ${4}`} is ${math`${2}`} and for ${math`x = ${9}`} it is ${math`${3}`}. Different ${mx}, different ${my}, and that is allowed.` },
+    { kind: 'pitfall', claim: t`To prove ${math`\forall x\ \exists y`}, checking a few values of ${mx} is enough.`, counterexample: t`Checking ${math`x = ${1}, ${2}, ${3}`} says nothing about ${math`x = ${4}`}. Take ${mx} arbitrary and give ${my} as a formula in ${mx}.` },
+    { kind: 'takeaway', text: t`Read quantifiers left to right as moves in a game: in ${math`\forall x\ \exists y`} the witness may depend on ${mx}; in ${math`\exists y\ \forall x`} one witness must work for all.` },
   ],
   examples: [
-    workedCambridge(bop27_3),
+    { ...workedCambridge(bop27_3), examiner: t`The marker looks for the witness ${math`a = ${1}`} named, and a check that it works for every ${mx}.` },
     worked(order, { m: 4, r: 1 }, t`Order on the set ${math`\{${1}, \ldots, ${4}\}`}`),
     worked(construct, { a: 1, b: 1, c: 1 }, t`A witness that depends on ${mx} and ${my}`),
   ],
@@ -302,5 +358,20 @@ export const nestedQuantifiers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['dependent-witness'],
   cambridge: [tmuaN, bop27_9, bop27_10, bop29_7, bop29_5, s1s2, bop29_13],
+  // None fits: every problem here is from the TMUA notes or Book of Proof, below Cambridge standard (not in GATE_DOCS).
   gate: [],
+  recall: [
+    { front: t`What may the witness depend on in ${math`\forall x\ \exists y.\ P(x, y)`}?`, back: t`On ${mx}: ${my} is chosen after ${mx}.` },
+    { front: t`Which implies which: ${math`\exists y\ \forall x`} or ${math`\forall x\ \exists y`}?`, back: t`${math`\exists y\ \forall x.\ P \implies \forall x\ \exists y.\ P`}; not conversely.` },
+    { front: t`How do you prove ${math`\forall x\ \exists y.\ P(x, y)`}?`, back: t`Take ${mx} arbitrary, construct ${my} from ${mx}, and check ${math`P(x, y)`}.` },
+  ],
+  proofOrder: [{
+    title: t`One witness for all gives a witness for each`,
+    steps: [
+      t`Suppose ${math`\exists y\ \forall x.\ P(x, y)`}, with witness ${math`y_{${0}}`}.`,
+      t`Let ${mx} be arbitrary.`,
+      t`Then ${math`P(x, y_{${0}})`} holds, so some ${my} works for this ${mx}.`,
+      t`As ${mx} was arbitrary, ${math`\forall x\ \exists y.\ P(x, y)`}.`,
+    ],
+  }],
 };

@@ -11,8 +11,8 @@ import { auto, cite, supervision } from '../cambridge';
 import { int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { bisect, near, powQ, round, rootTex } from '../partv-b';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mU, mX] = [math`U`, math`X`];
 const SCHED = 'tripos-schedules' as const;
@@ -251,7 +251,7 @@ const rejectProof = supervision({
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
-  { what: 'rejection sampling from 6x(1 - x) with a uniform proposal accepts a proposal', exact: q(2, 3), trial: (rng) => { const y = rng(); return rng() * 1.5 <= 6 * y * (1 - y); } },
+  { what: 'rejection sampling from 2x with a uniform proposal accepts a proposal', exact: q(1, 2), trial: (rng) => { const y = rng(); return rng() * 2 <= 2 * y; } },
   {
     what: 'Box-Muller: both samples positive',
     exact: q(1, 4),
@@ -259,18 +259,77 @@ const claims: ProbabilityClaim[] = [
   },
   { what: 'inverse transform for F(x) = x³ on [0, 1]: P(X ≤ 1/2)', exact: q(1, 8), trial: (rng) => rng() ** (1 / 3) <= 0.5 },
 ];
+const mF = math`F`;
+const BM_CHECK: BmP = { u1: 0.25, u2: 0.1, which: 'x' };
 
 export const simulation: TopicContent = {
   topicId: 'rv.simulation',
   goal: t`Generate samples of a continuous random variable from uniform ones: by inverting the distribution function, by the Box-Muller transform, and by rejection sampling.`,
+  objective: t`Turn uniform random numbers into samples from any continuous distribution, three ways.`,
+  why: t`Every simulation, Monte Carlo check and randomised algorithm starts from uniforms; these are the standard recipes.`,
+  minutes: 35,
   lesson: [
-    { kind: 'p', text: t`A computer supplies (pseudo)random numbers ${mU} uniform on ${math`(${0}, ${1})`}, independent of each other. Every other distribution is built from them, and each method below is a theorem about distributions, proved with the tools of this chapter.` },
-    { kind: 'rule', text: t`[[inverse-transform-sampling|Inverse transform]]: if ${math`F`} is continuous and strictly increasing, then ${math`X = F^{-${1}}(U)`} has distribution function ${math`F`}, because ${math`P(F^{-${1}}(U) \le x) = P(U \le F(x)) = F(x)`}.` },
-    { kind: 'p', text: t`For ${math`\mathrm{Exp}(\lambda)`}, ${math`F(x) = ${1} - e^{-\lambda x}`} inverts to ${math`x = -\frac{${1}}{\lambda}\ln(${1} - u)`}; since ${math`${1} - U`} is uniform too, ${math`-\frac{${1}}{\lambda}\ln U`} also works. For ${math`F(x) = x^{${3}}`} on ${math`[${0}, ${1}]`}, ${math`X = U^{${1}/${3}}`}, and ${math`P(X \le \tfrac{${1}}{${2}}) = P(U \le \tfrac{${1}}{${8}}) = ${q(1, 8)}`}. The method needs ${math`F^{-${1}}`} in a usable form, which the normal distribution lacks.` },
-    { kind: 'rule', text: t`The [[box-muller|Box-Muller transform]]: for independent uniforms ${math`U_{${1}}, U_{${2}}`}, put ${math`R = \sqrt{-${2}\ln U_{${1}}}`} and ${math`\Theta = ${2}\pi U_{${2}}`}. Then ${math`X = R\cos\Theta`} and ${math`Y = R\sin\Theta`} are independent ${math`N(${0}, ${1})`}.` },
-    { kind: 'p', text: t`It is Sheet ${4} Q${9} run backwards. Two independent standard normals, in polar coordinates, have a uniform angle and an independent distance with ${math`P(R > r) = e^{-r^{${2}}/${2}}`}; inverting that gives ${math`R = \sqrt{-${2}\ln U_{${1}}}`}. By the symmetry of the angle, both samples are positive with probability ${q(1, 4)}.` },
-    { kind: 'rule', text: t`[[rejection-sampling|Rejection sampling]]: if ${math`f \le M`} on ${math`[${0}, ${1}]`}, propose ${math`Y`} uniform and accept it with probability ${math`f(Y)/M`}, otherwise try again. Accepted values have density ${math`f`}; each proposal is accepted with probability ${math`${1}/M`}, so a sample costs ${math`M`} proposals on average.` },
-    { kind: 'p', text: t`For ${math`f(x) = ${6}x(${1} - x)`}, the maximum is ${math`f(\tfrac{${1}}{${2}}) = ${q(3, 2)}`}, so ${q(2, 3)} of the proposals are kept. The tighter the bound, the less is wasted; with a proposal density ${math`g`} and ${math`f \le Mg`}, accept with probability ${math`f(Y)/(Mg(Y))`}.` },
+    { kind: 'section', title: t`Only uniforms to work with` },
+    { kind: 'hook', text: t`A computer's random number generator gives you one thing: numbers ${mU} spread evenly over ${math`(${0}, ${1})`}, independent of each other. Yet simulations need waiting times, heights, errors: exponential, normal, and stranger shapes. How do you bend a uniform number into one with the distribution you want?` },
+    { kind: 'narrative', text: t`There are three classic answers in the Cambridge schedule. Each is a small theorem about distributions, and each has a picture: squash the number line with a function, rotate a point in the plane, or throw darts and keep only those under a curve.` },
+    { kind: 'section', title: t`Inverting the distribution function` },
+    { kind: 'narrative', text: t`Here is the idea. A distribution function ${mF} climbs from ${0} to ${1}. Pick a height ${mU} uniformly, and read off where ${mF} reaches that height. Where ${mF} climbs steeply, many heights land in a short stretch of ${mX}, so ${mX} lands there often: exactly where the density is large.` },
+    {
+      kind: 'theorem',
+      name: t`Inverse transform`,
+      statement: t`Let ${mF} be a continuous, strictly increasing distribution function and ${mU} uniform on ${math`(${0}, ${1})`}. Then ${math`X = F^{-${1}}(U)`} has distribution function ${mF}.`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Unwrap the inverse`, text: t`For any ${math`x`}, since ${mF} is strictly increasing, ${math`F^{-${1}}(U) \le x`} exactly when ${math`U \le F(x)`}.`, why: { q: t`Why does increasing matter?`, a: t`An increasing function keeps order: applying ${mF} to both sides of ${math`F^{-${1}}(U) \le x`} gives ${math`U \le F(x)`}, and applying ${math`F^{-${1}}`} undoes it. A decreasing function would flip the inequality.` } },
+        { label: t`Use the uniform`, text: t`For ${math`${0} \le c \le ${1}`}, ${math`P(U \le c) = c`}. With ${math`c = F(x)`}:`, eq: [dmath`P(X \le x) = P(U \le F(x)) = F(x).`] },
+        { label: t`Conclude`, text: t`So ${mX} has distribution function ${mF}.` },
+      ],
+    },
+    { kind: 'p', text: t`This is [[inverse-transform-sampling|inverse transform sampling]]. For ${math`\mathrm{Exp}(\lambda)`}, solving ${math`${1} - e^{-\lambda x} = u`} gives ${math`x = -\frac{${1}}{\lambda}\ln(${1} - u)`}; since ${math`${1} - U`} is uniform too, ${math`-\frac{${1}}{\lambda}\ln U`} works as well. For ${math`F(x) = x^{${3}}`} on ${math`[${0}, ${1}]`}, ${math`X = U^{${1}/${3}}`}, and ${math`P(X \le \tfrac{${1}}{${2}}) = P(U \le \tfrac{${1}}{${8}}) = ${q(1, 8)}`}.` },
+    checkFrom(inversePower, { n: 2, m: 3, r: q(2, 3) }, t`Solve ${math`\left(\frac{x}{${3}}\right)^{${2}} = ${q(4, 9)}`}: ${math`\frac{x}{${3}} = ${q(2, 3)}`}, so ${math`x = ${2}`}.`),
+    { kind: 'pitfall', claim: t`To sample from ${mF}, compute ${math`F(U)`}.`, counterexample: t`For ${math`F(x) = x^{${3}}`}, ${math`F(U) = U^{${3}}`} gives ${math`P(U^{${3}} \le \tfrac{${1}}{${2}}) = \left(\tfrac{${1}}{${2}}\right)^{${1}/${3}}`}, about ${round(0.5 ** (1 / 3), 3)}, not ${math`F(\tfrac{${1}}{${2}}) = ${q(1, 8)}`}. The method applies the inverse.` },
+    { kind: 'section', title: t`Box and Muller: normals from a rotation` },
+    { kind: 'narrative', text: t`The normal distribution function has no formula to invert. Box and Muller found a way round it: generate two normals at once. Scatter two independent standard normals as a point in the plane. The cloud is perfectly round, so the angle of the point is uniform, and its distance from the origin turns out to have a simple law.` },
+    {
+      kind: 'theorem',
+      name: t`Box-Muller transform`,
+      statement: t`Let ${math`U_{${1}}, U_{${2}}`} be independent and uniform on ${math`(${0}, ${1})`}, and put ${math`R = \sqrt{-${2}\ln U_{${1}}}`}, ${math`\Theta = ${2}\pi U_{${2}}`}. Then ${math`X = R\cos\Theta`} and ${math`Y = R\sin\Theta`} are independent ${math`N(${0}, ${1})`}.`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Normals in polar form`, text: t`Independent standard normals have joint density ${math`\frac{${1}}{${2}\pi}e^{-(x^{${2}} + y^{${2}})/${2}}`}. In polar coordinates ${math`x = r\cos\theta`}, ${math`y = r\sin\theta`}, with Jacobian ${math`r`}, the density of ${math`(R, \Theta)`} is`, eq: [dmath`\frac{${1}}{${2}\pi} \cdot r e^{-r^{${2}}/${2}}, \quad r > ${0},\ ${0} \le \theta < ${2}\pi.`] },
+        { label: t`Read off the parts`, text: t`It factorises: ${math`\Theta`} is uniform on ${math`[${0}, ${2}\pi)`}, independent of ${math`R`}, and ${math`R`} has density ${math`re^{-r^{${2}}/${2}}`}, so ${math`P(R > r) = e^{-r^{${2}}/${2}}`}.`, why: { q: t`How does the density give that tail?`, a: t`${math`\int_{r}^{\infty} se^{-s^{${2}}/${2}}\,ds = \big[-e^{-s^{${2}}/${2}}\big]_{r}^{\infty} = e^{-r^{${2}}/${2}}`}.` } },
+        { label: t`Check the recipe`, text: t`${math`P(\sqrt{-${2}\ln U_{${1}}} > r) = P(U_{${1}} < e^{-r^{${2}}/${2}}) = e^{-r^{${2}}/${2}}`}, and ${math`${2}\pi U_{${2}}`} is uniform on ${math`[${0}, ${2}\pi)`}, independent of it.` },
+        { label: t`Conclude`, text: t`So the recipe's ${math`(R, \Theta)`} has the same joint law as the polar form of two independent normals, and so ${math`(X, Y)`} has their joint law.` },
+      ],
+    },
+    { kind: 'p', text: t`This is the [[box-muller|Box-Muller transform]], and it is IA Probability Sheet ${4}, question ${9}, run backwards. By the symmetry of the angle, both samples are positive with probability ${q(1, 4)}: the angle must fall in the first quarter turn.` },
+    checkFrom(boxMuller, BM_CHECK, t`${math`R = \sqrt{-${2}\ln ${0.25}} \approx ${r4(Math.sqrt(-2 * Math.log(0.25)))}`} and ${math`\Theta = ${2}\pi \times ${0.1}`}, so ${math`X = R\cos\Theta \approx ${r4(bm(BM_CHECK))}`}.`),
+    { kind: 'section', title: t`Rejection: darts under a curve` },
+    { kind: 'narrative', text: t`The third method works for any bounded density on ${math`[${0}, ${1}]`}, with no inverse at all. Draw the graph of ${math`f`} inside a box of height ${math`M`}. Throw darts uniformly at the box, and keep only those that land under the curve. The ${math`x`} positions of the kept darts pile up exactly where ${math`f`} is tall.` },
+    {
+      kind: 'theorem',
+      name: t`Rejection sampling`,
+      statement: t`Let ${math`f`} be a density on ${math`[${0}, ${1}]`} with ${math`f \le M`}. Propose ${math`Y`} uniform on ${math`[${0}, ${1}]`} and an independent ${mU} uniform on ${math`[${0}, ${1}]`}; accept ${math`Y`} if ${math`U \le f(Y)/M`}, otherwise repeat. Then an accepted value has density ${math`f`}, and each proposal is accepted with probability ${math`${1}/M`}.`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Accept and land low`, text: t`Given ${math`Y = y`}, acceptance has probability ${math`f(y)/M`}. Integrating over ${math`y \le x`}:`, eq: [dmath`P(Y \le x,\ \text{accept}) = \int_{${0}}^{x} \frac{f(y)}{M}\,dy = \frac{F(x)}{M}.`] },
+        { label: t`Accept at all`, text: t`Put ${math`x = ${1}`}: ${math`P(\text{accept}) = \frac{${1}}{M}`}, because ${math`f`} integrates to ${1}.` },
+        { label: t`Condition`, text: t`So ${math`P(Y \le x \mid \text{accept}) = \frac{F(x)/M}{${1}/M} = F(x)`}: an accepted ${math`Y`} has density ${math`f`}.`, plain: t`Rounds are independent and alike, so the first accepted value has this law too, and the number of rounds is geometric with mean ${math`M`}.` },
+      ],
+    },
+    { kind: 'p', text: t`This is [[rejection-sampling|rejection sampling]]. For ${math`f(x) = ${2}x`}, the maximum is ${math`M = ${2}`}, so half the proposals are kept. The tighter the box, the less is wasted, which is why ${math`M`} should be the maximum of ${math`f`}. With a proposal density ${math`g`} and ${math`f \le Mg`}, accept with probability ${math`f(Y)/(Mg(Y))`}.` },
+    checkFrom(rejection, { j: 1, k: 2 }, t`${math`f(x) = ${12}x(${1} - x)^{${2}}`} peaks at ${math`x = ${q(1, 3)}`}, where it is ${q(16, 9)}; so a proposal is accepted with probability ${q(9, 16)}.`),
+    { kind: 'pitfall', claim: t`For ${math`f(x) = ${12}x(${1} - x)^{${2}}`}, use the constant in front, ${math`M = ${12}`}.`, counterexample: t`That box is far too tall: only ${q(1, 12)} of the proposals would be kept. The smallest valid bound is the maximum of ${math`f`}, ${q(16, 9)}, which keeps ${q(9, 16)}.` },
+    { kind: 'takeaway', text: t`Invert ${mF} when you can; for normals, rotate a Box-Muller point; otherwise throw darts under the density and keep the ones that land below it.` },
   ],
   examples: [
     workedCambridge(q9back),
@@ -282,5 +341,22 @@ export const simulation: TopicContent = {
   terms: ['inverse-transform-sampling', 'box-muller', 'rejection-sampling'],
   claims,
   cambridge: [rejectAuto, inverseProof, bmProof, rejectProof],
+  // The example sheets set no simulation problem; these come from the schedule, which is not a
+  // gate document, so the topic has no gate yet.
   gate: [],
+  recall: [
+    { front: t`State the inverse transform method.`, back: t`If ${mF} is continuous and strictly increasing and ${mU} is uniform, ${math`F^{-${1}}(U)`} has distribution function ${mF}.` },
+    { front: t`State the Box-Muller transform.`, back: t`${math`R = \sqrt{-${2}\ln U_{${1}}}`}, ${math`\Theta = ${2}\pi U_{${2}}`}; then ${math`R\cos\Theta`} and ${math`R\sin\Theta`} are independent ${math`N(${0}, ${1})`}.` },
+    { front: t`In rejection sampling with bound ${math`M`}, what is the acceptance probability?`, back: t`${math`${1}/M`}; the number of proposals per sample is geometric with mean ${math`M`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Why the inverse transform works`,
+      steps: [
+        t`${math`F^{-${1}}(U) \le x`} exactly when ${math`U \le F(x)`}, as ${mF} is increasing.`,
+        t`${mU} is uniform, so ${math`P(U \le F(x)) = F(x)`}.`,
+        t`So ${math`P(F^{-${1}}(U) \le x) = F(x)`}.`,
+      ],
+    },
+  ],
 };

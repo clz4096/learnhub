@@ -12,7 +12,7 @@ import { add, int, pick, q, str, type Rational } from '../math';
 import { expSample, integrateToInfinity, near, round } from '../partv-b';
 import { generator, type Misconception } from '../problem';
 import { math, t, type Span } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { quickCheck, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const mX = math`X`;
 const SH4 = 'ia-prob-sheet-4' as const;
@@ -245,18 +245,66 @@ const claims: ProbabilityClaim[] = [
   { what: 'P(min(X, Y) is X) for independent X ~ Exp(3), Y ~ Exp(1)', exact: q(3, 4), trial: (rng) => expSample(rng, 3) < expSample(rng, 1) },
 ];
 
+const [mlam, ms, mt, mx] = [math`\lambda`, math`s`, math`t`, math`x`];
+
 export const exponentialDistribution: TopicContent = {
   topicId: 'prob.exponential-distribution',
   goal: t`Use the ${math`\mathrm{Exp}(\lambda)`} density ${math`\lambda e^{-\lambda x}`}, its survival function ${math`e^{-\lambda x}`}, and the memoryless property ${math`P(X > s + t \mid X > s) = P(X > t)`}.`,
+  objective: t`Use the exponential distribution for waiting times, and prove and apply its memoryless property.`,
+  why: t`It is the continuous model of waiting, behind Poisson processes, queues, and radioactive decay.`,
+  minutes: 20,
   lesson: [
-    { kind: 'rule', text: t`${math`X \sim \mathrm{Exp}(\lambda)`}, the [[exponential-distribution|exponential distribution]] with parameter ${math`\lambda > ${0}`}, has density ${math`\lambda e^{-\lambda x}`} for ${math`x \ge ${0}`}. Then ${math`P(X > x) = e^{-\lambda x}`}, ${math`E(X) = \frac{${1}}{\lambda}`}, and ${math`\operatorname{Var}(X) = \frac{${1}}{\lambda^{${2}}}`}.` },
-    { kind: 'p', text: t`It models waiting times: until a radioactive atom decays, a part fails, or the next call arrives. ${math`\lambda`} is a rate, events per unit time, so the mean wait is ${math`${1}/\lambda`}. The mean comes by parts: ${math`\int_{${0}}^{\infty} x\,\lambda e^{-\lambda x}\,dx = \left[-x e^{-\lambda x}\right]_{${0}}^{\infty} + \int_{${0}}^{\infty} e^{-\lambda x}\,dx = \frac{${1}}{\lambda}`}.` },
-    { kind: 'rule', text: t`The [[memoryless-property|memoryless property]]: ${math`P(X > s + t \mid X > s) = \frac{e^{-\lambda(s + t)}}{e^{-\lambda s}} = e^{-\lambda t} = P(X > t)`}.` },
-    { kind: 'p', text: t`A part that has lasted ${math`s`} hours is as good as new: the time it has left has the same distribution as a new part's lifetime. That suits radioactive decay and fits poorly for things that wear out. Among continuous distributions only the exponential has it: ${math`G(s + t) = G(s)\,G(t)`} for the survival function forces ${math`G(t) = e^{-\lambda t}`}.` },
-    { kind: 'p', text: t`Several independent exponential clocks race. The first to ring rings after ${math`\min\{X, Y\}`}, which exceeds ${math`t`} only if both do: ${math`e^{-\lambda t}e^{-\mu t}`}. So the minimum is ${math`\mathrm{Exp}(\lambda + \mu)`} (Sheet ${4} Q${4}), and ${mX} wins the race with probability ${math`\frac{\lambda}{\lambda + \mu}`}. With rates ${3} and ${1}, the first clock wins with probability ${q(3, 4)}; with ${mX} of rate ${1} and ${math`Y`} of rate ${2}, ${math`P(X > Y) = ${q(2, 3)}`}.` },
+    { kind: 'section', title: t`Waiting without memory` },
+    { kind: 'hook', text: t`A radioactive atom has survived for a thousand years. Is it now more likely to decay soon, like an old car? No: as far as anyone can measure, the atom is exactly as good as new. A waiting time with no memory turns out to have exactly one possible distribution.` },
+    {
+      kind: 'definition',
+      name: t`Exponential distribution`,
+      formal: t`For ${math`\lambda > ${0}`}, ${mX} has the [[exponential-distribution|exponential distribution]] ${math`\mathrm{Exp}(\lambda)`} if it has density ${math`f(x) = \lambda e^{-\lambda x}`} for ${math`x \ge ${0}`}, and ${math`f(x) = ${0}`} for ${math`x < ${0}`}.`,
+      plain: t`a waiting time whose density starts at height ${mlam} and decays. ${mlam} is a rate, events per unit time: ${math`\lambda = ${2}`} per hour means two per hour on average.`,
+    },
+    {
+      kind: 'p',
+      text: t`Integrating the density from ${mx} to infinity gives the survival function, ${math`P(X > x) = \int_{x}^{\infty} \lambda e^{-\lambda u}\,du = \left[-e^{-\lambda u}\right]_{x}^{\infty} = e^{-\lambda x}`} for ${math`x \ge ${0}`}. The mean is ${math`E(X) = \frac{${1}}{\lambda}`} and the variance ${math`\frac{${1}}{\lambda^{${2}}}`}.`,
+      why: { q: t`Where does the mean come from?`, a: t`By parts: ${math`\int_{${0}}^{\infty} x\,\lambda e^{-\lambda x}\,dx = \left[-x e^{-\lambda x}\right]_{${0}}^{\infty} + \int_{${0}}^{\infty} e^{-\lambda x}\,dx = ${0} + \frac{${1}}{\lambda}`}. A rate of ${2} per hour gives a mean wait of ${q(1, 2)} an hour.` },
+    },
+    quickCheck({
+      prompt: t`${math`X \sim \mathrm{Exp}(${q(1, 3)})`}. Find ${math`P(X > ${6})`}, as a power of ${math`e`}.`,
+      answer: { kind: 'expression', expected: 'e^(-2)', variables: [] },
+      reference: 'e^(-2)',
+      why: t`${math`P(X > ${6}) = e^{-${6}/${3}} = e^{-${2}}`}.`,
+    }),
+    { kind: 'section', title: t`The memoryless property` },
+    {
+      kind: 'theorem',
+      name: t`Memoryless property`,
+      statement: t`If ${math`X \sim \mathrm{Exp}(\lambda)`}, then for all ${math`s, t \ge ${0}`}, ${math`P(X > s + t \mid X > s) = P(X > t)`}.`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Conditional probability`, text: t`${math`P(X > s + t \mid X > s) = \frac{P(X > s + t \text{ and } X > s)}{P(X > s)}`}.`, plain: t`The definition, with ${math`P(X > s) = e^{-\lambda s} > ${0}`}.` },
+        { label: t`Simplify the event`, text: t`Since ${math`t \ge ${0}`}, ${math`X > s + t`} already implies ${math`X > s`}, so the top is ${math`P(X > s + t)`}.`, plain: t`If you have waited more than ${math`s + t`}, you have certainly waited more than ${ms}.` },
+        { label: t`Use the survival function`, text: t`${math`\frac{e^{-\lambda(s + t)}}{e^{-\lambda s}} = e^{-\lambda t}`}.`, plain: t`A law of indices: ${math`e^{-\lambda s - \lambda t} = e^{-\lambda s}e^{-\lambda t}`}, and ${math`e^{-\lambda s}`} cancels.` },
+        { label: t`Recognise it`, text: t`${math`e^{-\lambda t} = P(X > t)`}.`, plain: t`The time still to wait has the same distribution as a fresh wait.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`This is the [[memoryless-property|memoryless property]]. A part that has lasted ${ms} hours is as good as new. That suits radioactive decay and fits poorly for things that wear out.`,
+      why: { q: t`Is the exponential the only memoryless distribution?`, a: t`Among continuous distributions, yes. Memorylessness says the survival function ${math`G`} satisfies ${math`G(s + t) = G(s)\,G(t)`}, and with continuity that forces ${math`G(t) = e^{-\lambda t}`}. Proving it is a supervision problem.` },
+    },
+    {
+      kind: 'pitfall',
+      claim: t`A part with exponential lifetime of mean ${10} years that has lasted ${8} years has about ${2} years left on average.`,
+      counterexample: t`By memorylessness, the remaining life is again ${math`\mathrm{Exp}(${q(1, 10)})`}, so its mean is still ${10} years. The past wait tells you nothing about the future one.`,
+    },
+    { kind: 'section', title: t`Racing clocks` },
+    { kind: 'p', text: t`Several independent exponential clocks race. The first rings after ${math`\min\{X, Y\}`}, which exceeds ${mt} only if both do: ${math`P(\min\{X, Y\} > t) = e^{-\lambda t}e^{-\mu t} = e^{-(\lambda + \mu)t}`}, using independence. So the minimum is ${math`\mathrm{Exp}(\lambda + \mu)`}: rates add. And ${mX} wins the race with probability ${math`\frac{\lambda}{\lambda + \mu}`}. With rates ${3} and ${1}, the first clock wins with probability ${q(3, 4)}; with ${mX} of rate ${1} and ${math`Y`} of rate ${2}, ${math`P(X > Y) = ${q(2, 3)}`}.` },
+    { kind: 'takeaway', text: t`${math`\mathrm{Exp}(\lambda)`} has ${math`P(X > x) = e^{-\lambda x}`} and mean ${math`\frac{${1}}{\lambda}`}; it forgets the past, and the first of independent exponential clocks rings at the sum of the rates.` },
   ],
   examples: [
-    workedCambridge(q4min),
+    { ...workedCambridge(q4min), examiner: t`The event ${math`\{\min\{X, Y\} > t\}`} written as ${math`\{X > t\} \cap \{Y > t\}`}, independence named when the probabilities are multiplied, and the result read off as a survival function.` },
     worked(memoryless, { lam: q(1, 4), s: 6, t: 2 }, t`A server that has already run for ${6} hours`),
     worked(firstFailure, { rates: [q(1, 2), q(1, 3)] }, t`The first of two parts to fail`),
   ],
@@ -265,5 +313,23 @@ export const exponentialDistribution: TopicContent = {
   terms: ['exponential-distribution', 'memoryless-property'],
   claims,
   cambridge: [q4three, memorylessProof, q4firstWhich],
-  gate: ['ia4-q4-three', 'ia4-q4-which'],
+  // Sheet 4 Q4: the independence of the winner and the time first, then the three bulbs.
+  gate: ['ia4-q4-which', 'ia4-q4-three'],
+  recall: [
+    { front: t`Density and survival function of ${math`\mathrm{Exp}(\lambda)`}?`, back: t`${math`\lambda e^{-\lambda x}`} and ${math`P(X > x) = e^{-\lambda x}`}, for ${math`x \ge ${0}`}.` },
+    { front: t`Mean and variance of ${math`\mathrm{Exp}(\lambda)`}?`, back: t`${math`\frac{${1}}{\lambda}`} and ${math`\frac{${1}}{\lambda^{${2}}}`}.` },
+    { front: t`State the memoryless property.`, back: t`${math`P(X > s + t \mid X > s) = P(X > t)`} for all ${math`s, t \ge ${0}`}.` },
+    { front: t`Minimum of independent ${math`\mathrm{Exp}(\lambda)`} and ${math`\mathrm{Exp}(\mu)`}?`, back: t`${math`\mathrm{Exp}(\lambda + \mu)`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The exponential distribution is memoryless`,
+      steps: [
+        t`${math`P(X > s + t \mid X > s) = \frac{P(X > s + t,\ X > s)}{P(X > s)}`}.`,
+        t`${math`X > s + t`} implies ${math`X > s`}, so the top is ${math`P(X > s + t)`}.`,
+        t`That gives ${math`\frac{e^{-\lambda(s + t)}}{e^{-\lambda s}} = e^{-\lambda t}`}.`,
+        t`And ${math`e^{-\lambda t} = P(X > t)`}.`,
+      ],
+    },
+  ],
 };

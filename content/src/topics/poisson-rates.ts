@@ -13,8 +13,8 @@ import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { farApart, poissonPmf, poissonPmfRec, powQ, samplePoisson, sig } from '../partv-d';
 import { generator, type Misconception } from '../problem';
-import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mX, mY, ml, mmu] = [math`X`, math`Y`, math`\lambda`, math`\mu`];
 const s4 = (x: number): number => sig(x, 4);
@@ -347,20 +347,54 @@ const q7b = supervision({
 const claims: ProbabilityClaim[] = [
   { what: 'given X + Y = 3 for Po(1) and Po(2), X = 1', exact: condVal({ a: 1, b: 2, n: 3, k: 1 }), trial: (rng) => { for (;;) { const x = samplePoisson(1, rng); const y = samplePoisson(2, rng); if (x + y === 3) return x === 1; } } },
 ];
+const HR = 6;
+const MIN = 20;
 
 export const poissonRates: TopicContent = {
   topicId: 'prob.poisson-rates',
   goal: t`Scale a Poisson rate to an interval or an area, add independent Poisson counts, and split a Poisson count at random.`,
+  objective: t`Scale a Poisson rate to any interval, add independent Poisson counts, and split one at random.`,
+  why: t`Arrivals, faults and texts are modelled this way; STEP and Tripos questions combine all three moves.`,
+  minutes: 30,
   lesson: [
-    { kind: 'p', text: t`A Poisson count comes with a [[poisson-rate|rate]]: so many per hour, per page, per square kilometre. The STEP Support notes put it as: if the number in an interval of length ${math`T`} is ${math`\text{Po}(\lambda)`}, the number in an interval of length ${math`kT`} is ${math`\text{Po}(k\lambda)`}.` },
-    { kind: 'rule', text: t`Events at rate ${ml} per unit: the count in an interval or region of size ${math`s`} is ${math`\text{Po}(\lambda s)`}, and counts in disjoint intervals are independent.` },
-    { kind: 'p', text: t`Sums: if ${math`X \sim \text{Po}(\lambda)`} and ${math`Y \sim \text{Po}(\mu)`} are independent, then ${math`P(X + Y = n) = \sum_{k = ${0}}^{n} \frac{e^{-\lambda}\lambda^{k}}{k!} \cdot \frac{e^{-\mu}\mu^{n - k}}{(n - k)!} = \frac{e^{-(\lambda + \mu)}}{n!}\sum_{k} \binom{n}{k}\lambda^{k}\mu^{n - k} = \frac{e^{-(\lambda + \mu)}(\lambda + \mu)^{n}}{n!}`} by the binomial theorem. So ${math`X + Y \sim \text{Po}(\lambda + \mu)`}, as scaling demands: an hour is two half-hours.` },
-    { kind: 'p', text: t`Reversing it (Sheet ${2} Q${6}): given ${math`X + Y = n`}, each of the ${math`n`} occurrences came from ${mX} with probability ${math`\frac{\lambda}{\lambda + \mu}`}, and ${mX} is ${math`B\left(n, \frac{\lambda}{\lambda + \mu}\right)`}. With means ${1} and ${2} and a total of ${3}, ${math`P(X = ${1}) = ${3} \times ${q(1, 3)} \times \left(${q(2, 3)}\right)^{${2}} = ${condVal({ a: 1, b: 2, n: 3, k: 1 })}`}.` },
-    { kind: 'p', text: t`[[thinning|Thinning]] goes the other way (Sheet ${2} Q${7}(b)): keep each of ${math`\text{Po}(\lambda)`} occurrences with probability ${math`p`}, independently, and the kept and discarded counts are independent, ${math`\text{Po}(\lambda p)`} and ${math`\text{Po}(\lambda(${1} - p))`}.` },
-    { kind: 'p', text: t`Waiting: the first event comes after time ${math`t`} exactly when the count in ${math`[${0}, t]`} is ${0}, with probability ${math`e^{-\lambda t}`}. In STEP ${2} Q${5}, the first text between ${1} and ${2} hours means none in the first hour and at least one in the second: ${math`e^{-\lambda}(${1} - e^{-\lambda})`}.` },
+    { kind: 'section', title: t`From an hour to twenty minutes` },
+    { kind: 'hook', text: t`Texts arrive at random, ${HR} an hour on average. How many in ${MIN} minutes? Your instinct says the count is Poisson with mean ${HR * MIN / 60}. That instinct is right, but it hides a fact: if each third of an hour has a Poisson count, their total must be Poisson too. Is it?` },
+
+    { kind: 'section', title: t`Rates` },
+    { kind: 'definition', name: t`Poisson rate`, formal: t`Events occur at [[poisson-rate|rate]] ${ml} per unit if the number in any interval (or region) of size ${math`s`} is ${math`\text{Po}(\lambda s)`}, and the numbers in disjoint intervals are independent.`, plain: t`The mean scales with the size of the interval. At ${HR} per hour, ${MIN} minutes is a third of an hour, so the count is ${math`\text{Po}(${HR * MIN / 60})`}. The STEP Support notes state exactly this scaling rule.` },
+    { kind: 'p', text: t`The waiting time comes for free. The first event comes after time ${math`t`} exactly when there are no events in ${math`[${0}, t]`}, so ${math`P(\text{wait} > t) = e^{-\lambda t}`}, the Poisson probability of ${0}.` },
+    checkFrom(scale, { c: 1, rate: 12, len: 10, k: 0 }, t`${math`${12} \times \frac{${10}}{${60}} = ${2}`}, so the chance of none is ${math`e^{-${2}}`}.`),
+
+    { kind: 'section', title: t`Independent Poisson counts add` },
+    { kind: 'theorem', name: t`Sums`, statement: t`If ${math`X \sim \text{Po}(\lambda)`} and ${math`Y \sim \text{Po}(\mu)`} are independent, then ${math`X + Y \sim \text{Po}(\lambda + \mu)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split by the value of X`, text: t`${math`X + Y = n`} happens when ${math`X = k`} and ${math`Y = n - k`} for some ${math`k = ${0}, \ldots, n`}. These cases are disjoint, and ${mX}, ${mY} are independent, so`, eq: [dmath`P(X + Y = n) = \sum_{k = ${0}}^{n} \frac{e^{-\lambda}\lambda^{k}}{k!} \cdot \frac{e^{-\mu}\mu^{n - k}}{(n - k)!}.`] },
+        { label: t`Make a binomial coefficient`, text: t`Take out ${math`e^{-(\lambda + \mu)}`}, and multiply and divide by ${math`n!`}:`, eq: [dmath`P(X + Y = n) = \frac{e^{-(\lambda + \mu)}}{n!}\sum_{k = ${0}}^{n} \binom{n}{k}\lambda^{k}\mu^{n - k}.`], why: { q: t`Where does ${math`\binom{n}{k}`} come from?`, a: t`${math`\frac{${1}}{k!\,(n - k)!} = \frac{${1}}{n!} \cdot \frac{n!}{k!\,(n - k)!} = \frac{${1}}{n!}\binom{n}{k}`}.` } },
+        { label: t`Binomial theorem`, text: t`The sum is ${math`(\lambda + \mu)^{n}`}, so ${math`P(X + Y = n) = \frac{e^{-(\lambda + \mu)}(\lambda + \mu)^{n}}{n!}`}: the ${math`\text{Po}(\lambda + \mu)`} probability.` },
+      ],
+    },
+    { kind: 'p', text: t`That settles the hook: three independent ${math`\text{Po}(${2})`} counts add to ${math`\text{Po}(${6})`}, so scaling the rate is consistent.` },
+    checkFrom(sum, { c: 0, a: 1.5, b: 1, n: 3 }, t`The total is ${math`\text{Po}(${2.5})`}: ${math`e^{-${2.5}}\frac{${2.5}^{${3}}}{${3}!}`}.`),
+
+    { kind: 'section', title: t`Given the total, and thinning` },
+    { kind: 'narrative', text: t`Now reverse the question. Two independent Poisson counts, and you are told their total. How is it shared? Each of the ${math`n`} events came from ${mX} with probability proportional to its rate, independently of the others.` },
+    { kind: 'theorem', name: t`Given the total`, statement: t`If ${math`X \sim \text{Po}(\lambda)`} and ${math`Y \sim \text{Po}(\mu)`} are independent, then given ${math`X + Y = n`}, ${math`X \sim B\left(n, \frac{\lambda}{\lambda + \mu}\right)`}.` },
+    { kind: 'p', text: t`The proof divides ${math`P(X = k,\ Y = n - k)`} by ${math`P(X + Y = n)`}; it is Example Sheet ${2} question ${6}, a Cambridge problem for this lesson. With means ${1} and ${2} and a total of ${3}: ${math`P(X = ${1}) = ${3} \times ${q(1, 3)} \times \left(${q(2, 3)}\right)^{${2}} = ${condVal({ a: 1, b: 2, n: 3, k: 1 })}`}.` },
+    checkFrom(conditional, { a: 2, b: 2, n: 4, k: 2 }, t`Each of the ${4} events came from ${mX} with probability ${q(1, 2)}: ${math`\binom{${4}}{${2}}\left(${q(1, 2)}\right)^{${4}}`}.`),
+    { kind: 'theorem', name: t`Thinning`, statement: t`If ${math`N \sim \text{Po}(\lambda)`} and each of the ${math`N`} events is kept with probability ${math`p`}, independently, then the kept and discarded counts are independent, ${math`\text{Po}(\lambda p)`} and ${math`\text{Po}(\lambda(${1} - p))`}.` },
+    { kind: 'p', text: t`This is [[thinning|thinning]]: a proof-reader who catches each misprint with probability ${math`p`} catches a Poisson number, and misses an independent Poisson number. Proving it is Example Sheet ${2} question ${7}(b).` },
+
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`At ${HR} per hour, the count in ${MIN} minutes is ${math`\text{Po}(${HR})`}.`, counterexample: t`The mean scales with the interval: ${math`${HR} \times \tfrac{${1}}{${3}} = ${HR / 3}`}. ${math`P(\text{none})`} is ${math`e^{-${HR / 3}} \approx ${s4(Math.exp(-HR / 3))}`}, not ${math`e^{-${HR}} \approx ${s4(Math.exp(-HR))}`}.` },
+    { kind: 'pitfall', claim: t`Given ${math`X + Y = n`}, ${mX} is still Poisson.`, counterexample: t`Given the total, ${mX} cannot exceed ${math`n`}, so it is not Poisson: it is ${math`B(n, \lambda/(\lambda + \mu))`}.` },
+    { kind: 'pitfall', claim: t`Any two Poisson counts add to a Poisson count.`, counterexample: t`If ${math`Y = X`} with ${math`X \sim \text{Po}(${1})`}, then ${math`X + Y = ${2}X`} only takes even values, so it is not ${math`\text{Po}(${2})`}. Independence is needed.` },
+    { kind: 'takeaway', text: t`Poisson counts scale with the interval, add when independent, split into independent Poisson parts when thinned, and are binomial given their total.` },
   ],
   examples: [
-    workedCambridge(q5Both),
+    { ...workedCambridge(q5Both), examiner: t`The examiner looks for "first text between ${1} and ${2} hours" written as none in the first hour and at least one in the second, with independence of the two hours stated.` },
     worked(scale, { c: 0, rate: 6, len: 20, k: 1 }, t`One text in twenty minutes`),
     worked(conditional, { a: 1, b: 3, n: 4, k: 2 }, t`Splitting a total of four`),
   ],
@@ -369,5 +403,21 @@ export const poissonRates: TopicContent = {
   terms: ['poisson-rate', 'thinning'],
   claims,
   cambridge: [q5Sum, q4None, q7a, q5George, q4Rest, q6, q7b],
-  gate: ['s2-q5-sum', 's2-q4-none', 'ia-s2-q7-a', 's2-q5-george', 's2-q4-nearest', 'ia-s2-q6', 'ia-s2-q7-b'],
+  // Multi-part proofs first. The no-supermarket probability is a single step, and dropped.
+  gate: ['ia-s2-q7-b', 's2-q4-nearest', 'ia-s2-q6', 's2-q5-george', 'ia-s2-q7-a', 's2-q5-sum'],
+  recall: [
+    { front: t`Events at rate ${ml}: the count in an interval of length ${math`s`}.`, back: t`${math`\text{Po}(\lambda s)`}, independent over disjoint intervals.` },
+    { front: t`The sum of independent ${math`\text{Po}(\lambda)`} and ${math`\text{Po}(\mu)`}.`, back: t`${math`\text{Po}(\lambda + \mu)`}.` },
+    { front: t`${mX} given ${math`X + Y = n`}, for independent Poisson counts.`, back: t`${math`B(n, \lambda/(\lambda + \mu))`}.` },
+    { front: t`Thinning ${math`\text{Po}(\lambda)`} with probability ${math`p`}.`, back: t`Independent ${math`\text{Po}(\lambda p)`} kept and ${math`\text{Po}(\lambda(${1} - p))`} discarded.` },
+  ],
+  proofOrder: [{
+    title: t`Independent Poisson counts add`,
+    steps: [
+      t`Split ${math`X + Y = n`} into the disjoint cases ${math`X = k`}, ${math`Y = n - k`}.`,
+      t`Multiply the Poisson probabilities, by independence, and add.`,
+      t`Take out ${math`e^{-(\lambda + \mu)}/n!`} to leave ${math`\sum \binom{n}{k}\lambda^{k}\mu^{n - k}`}.`,
+      t`By the binomial theorem that is ${math`(\lambda + \mu)^{n}`}: a ${math`\text{Po}(\lambda + \mu)`} probability.`,
+    ],
+  }],
 };
