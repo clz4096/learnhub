@@ -54,12 +54,14 @@ const BROKEN_TEXT = /\b(?:NaN|undefined|Infinity|null)\b|\[object /;
 /**
  * LaTeX that a generator wrote without simplifying: a sign pair ("+ -", "- -", "+ +"), a
  * coefficient of 1 or 0 before a letter ("1x", "0n" not after another digit, a dot, or a
- * letter), or a power of 1 ("x^{1}", "x^1"). Each is a degenerate parameter choice.
+ * letter), or a power of 1 ("x^{1}", "x^1"). Each is a degenerate parameter choice. A
+ * superscript right after a subscript is an upper limit (\int_{0}^{1}), not a power. Code
+ * (\texttt, ocaml-code.ts) is not algebra: "find 1 m" is an argument, not a coefficient.
  */
 const DEGENERATE_TEX: readonly { re: RegExp; what: string }[] = [
   { re: /[+-]\s*[+-]/, what: 'a sign pair' },
   { re: /(?<![\d.,{}_A-Za-z\\])[01]\s?[a-z](?![a-z])/, what: 'a coefficient of 1 or 0' },
-  { re: /\^\{?1\}?(?![\d.])/, what: 'a power of 1' },
+  { re: /(?<!_(?:\{[^{}]*\}|-?\w))\^\{?1\}?(?![\d.])/, what: 'a power of 1' },
 ];
 
 function mathSpans(r: Rich): string[] {
@@ -144,6 +146,7 @@ export function auditInstance(inst: Instance, seed: number): AuditIssue[] {
     const bad = BROKEN_TEXT.exec(text);
     if (bad !== null) add('degenerate', `"${bad[0]}" in "${text.slice(0, 80)}"`);
     for (const tex of mathSpans(r)) {
+      if (tex.includes('\\texttt{')) continue;
       for (const d of DEGENERATE_TEX) {
         if (d.re.test(tex)) add('degenerate', `${d.what} in $${tex}$`);
       }

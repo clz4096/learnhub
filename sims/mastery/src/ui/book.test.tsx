@@ -10,6 +10,8 @@ import { emptyStory, NO_NUMBERS } from '@/model/story';
 import { saveStory } from '@/model/storyStore';
 import { App } from '@/ui/App';
 import { placeOf } from '@learnhub/content/book';
+import { hasContent } from '@learnhub/content';
+import { ALL_TOPICS } from '@/model/courses';
 
 const chapterIdOf = (topicId: string): string => placeOf(topicId)?.chapter.id ?? '';
 
@@ -74,10 +76,15 @@ describe('the Course tab: the degree as a book', () => {
     const next = document.querySelector('.book-steps li.here');
     expect(next?.textContent).toMatch(/^Fractions and ratios/);
     expect(next?.querySelector('a')?.getAttribute('href')).toBe('#/learn/pre.fractions/book');
-    // A step without a lesson is listed as to write, without a link.
-    const unwritten = [...document.querySelectorAll('.book-steps li')].find((li) => li.textContent?.startsWith('Primes, factors, and multiples'));
-    expect(unwritten?.querySelector('a')).toBeNull();
-    expect(unwritten?.querySelector('.book-tag')?.textContent).toBe('bridge');
+    // A bridge step is tagged; a step links to its lesson exactly when the lesson is written.
+    const steps = [...document.querySelectorAll('.book-steps li')];
+    const bridge = steps.find((li) => li.textContent?.startsWith('Primes, factors, and multiples'));
+    expect(bridge?.querySelector('.book-tag')?.textContent).toBe('bridge');
+    const titles = new Map(ALL_TOPICS.map((t) => [t.title, t.id] as const));
+    for (const li of steps) {
+      const id = titles.get(li.querySelector('.book-step-t > a, .book-step-t > span')?.textContent ?? '');
+      if (id !== undefined) expect(li.querySelector('a') !== null, id).toBe(hasContent(id));
+    }
   });
 
   it('a chapter page shows its sections, steps, and progress, with previous and next', () => {

@@ -20,10 +20,10 @@ describe('next in the book', () => {
   it('is the first written, unlearned step whose prerequisites are learned, in book order', () => {
     const p = learn(fresh(), 'pre.fractions', 'pre.indices', 'pre.algebraic-manipulation');
     const next = nextInBook(p);
-    // Quadratic equations are taught in Assignment 1 since the Preparation map (graph/reviews/cambridge-prep.md).
-    expect(next?.step.topicId).toBe('pre.quadratic-equations');
+    // Surds open Assignment 1 after indices (graph/reviews/cambridge-prep.md); their lesson is written in Preparation group A.
+    expect(next?.step.topicId).toBe('alg.surds');
     expect(next?.section.title).toMatch(/^Assignment 1:/);
-    // The frontier is limited to the chosen courses' closure, which quadratic equations are not in.
+    // The frontier is limited to the chosen courses' closure, which surds are not in.
     const front = bookFrontier(p);
     expect(front[0]).toBe('pre.sequences');
     expect([...front].sort((a, b) => bookIndex(a) - bookIndex(b))).toEqual(front);

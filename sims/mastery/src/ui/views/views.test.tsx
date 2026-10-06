@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/preact';
 import { IDBFactory } from 'fake-indexeddb';
 import type { IdbFactoryLike } from '@learnhub/mastery';
-import { placedMemory, type Progress } from '@learnhub/mastery';
+import { ancestors, placedMemory, type Progress } from '@learnhub/mastery';
 import { DEFAULT_COURSES, localDay, startLearner } from '@/model/learner';
 import { route } from '@/model/route';
 import { HUB_KEY, commit, flush, init, loadWarnings, progress, setClock } from '@/model/store';
@@ -128,7 +128,8 @@ function expectNoSelfReport(): void {
 }
 
 describe('no view offers self-report', () => {
-  const NO_CONTENT = 'pre.primes-and-factors';
+  // Every root of the courses' closure has a lesson, so use a topic whose prerequisites all do (content.test.ts's probe).
+  const NO_CONTENT = 'prob.simpsons-paradox';
   const T = (kind: 'lesson' | 'review' | 'quiz', topicIds: string[]) => ({ kind, topicIds, minutes: 3, reason: 'r', done: false, passed: null });
   // A stored plan from before the migration, so the views meet topics without content.
   async function withSession(tasks: ReturnType<typeof T>[], memory: Progress['memory'] = {}): Promise<void> {
@@ -213,10 +214,10 @@ describe('a stored document with self-reported progress', () => {
     await init(idb);
     await startedLearner();
     const p = progress.value as Progress;
-    await commit({ ...p, memory: placedMemory(['pre.fractions', 'pre.primes-and-factors'], T0) });
+    await commit({ ...p, memory: placedMemory(['pre.fractions', 'prob.simpsons-paradox'], T0) });
     await init(idb);
     expect(Object.keys(progress.value?.memory ?? {})).toEqual([]);
-    expect(loadWarnings.value.join(' ')).toMatch(/2 topics were marked learned by self-report.*pre\.primes-and-factors/);
+    expect(loadWarnings.value.join(' ')).toMatch(/2 topics were marked learned by self-report.*prob\.simpsons-paradox/);
     await init(idb);
     expect(loadWarnings.value).toEqual([]);
   });
@@ -278,7 +279,9 @@ describe('map connections', () => {
 
   it('shows a frontier topic without content as "Lesson not written yet" in the list and details', async () => {
     await startedLearner();
-    render(<MapView topicId="pre.primes-and-factors" />);
+    // Learn everything below a topic without content, so it is on the frontier.
+    await commit({ ...(progress.value as Progress), memory: placedMemory([...ancestors(ALL_TOPICS, 'prob.simpsons-paradox')], T0) });
+    render(<MapView topicId="prob.simpsons-paradox" />);
     fireEvent.click(screen.getByRole('button', { name: 'List' }));
     expect(screen.getAllByText('Lesson not written yet').length).toBeGreaterThanOrEqual(2);
     expect(screen.queryByRole('button', { name: 'Learn it now' })).toBeNull();

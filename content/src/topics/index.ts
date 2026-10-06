@@ -51,6 +51,20 @@ import { factorialTopic } from './factorial';
 import { fermatLittle } from './fermat-little';
 import { firstStep } from './first-step';
 import { fractions } from './fractions';
+// Preparation group E: functional programming 1
+import { fpExpressions } from './fp-expressions';
+import { fpFunctions } from './fp-functions';
+import { fpRecursion } from './fp-recursion';
+import { fpLists } from './fp-lists';
+import { fpPolymorphism } from './fp-polymorphism';
+import { fpRecordsTuples } from './fp-records-tuples';
+import { fpVariants } from './fp-variants';
+import { fpExceptions } from './fp-exceptions';
+import { fpTrees } from './fp-trees';
+import { fpSpecificationsTesting } from './fp-specifications-testing';
+import { fpEquationalReasoning } from './fp-equational-reasoning';
+import { fpStructuralInduction } from './fp-structural-induction';
+// End of Preparation group E imports
 import { fundamentalTheorem } from './fundamental-theorem';
 import { gamblersRuin } from './gamblers-ruin';
 import { gcdTopic } from './gcd';
@@ -117,7 +131,105 @@ import { treeDiagrams } from './tree-diagrams';
 import { twoWayTables } from './two-way-tables';
 import { varianceTopic } from './variance';
 import { weakLaw } from './weak-law';
+// Preparation, group C imports (begin)
+import { derivatives } from './derivatives';
+import { stationaryPoints } from './stationary-points';
+import { rationalFunctions } from './rational-functions';
+import { curveSketching } from './curve-sketching';
+import { convexity } from './convexity';
+import { inflectionPoints } from './inflection-points';
+import { graphTransformations } from './graph-transformations';
+import { firstPrinciples } from './first-principles';
+import { hyperbolic } from './hyperbolic';
+import { differentiationRules } from './differentiation-rules';
+import { expSeries } from './exp-series';
+import { definiteIntegrals } from './definite-integrals';
+import { integrationByParts } from './integration-by-parts';
+import { standardIntegrals } from './standard-integrals';
+import { substitution } from './substitution';
+import { symmetryIntegrals } from './symmetry-integrals';
+import { implicitDifferentiation } from './implicit-differentiation';
+import { separableOdes } from './separable-odes';
+import { improperIntegrals } from './improper-integrals';
+// Preparation, group C imports (end)
+// Prep D imports
+import { geometricSumToInfinity } from './geometric-sum-to-infinity';
+import { subsetsTopic } from './subsets';
+import { cartesianProduct } from './cartesian-product';
+import { indexedSets } from './indexed-sets';
+import { setProofs } from './set-proofs';
+import { disproof } from './disproof';
+import { smallestCounterexample } from './smallest-counterexample';
+import { permutations } from './permutations';
+import { mutuallyExclusive } from './mutually-exclusive';
+import { additionRule } from './addition-rule';
+import { amGm } from './am-gm';
+import { fibonacci } from './fibonacci';
+import { sequenceLimits } from './sequence-limits';
+import { recurrenceSequences } from './recurrence-sequences';
+import { telescoping } from './telescoping';
+import { sumsOfPowers } from './sums-of-powers';
+import { binomialRational } from './binomial-rational';
+import { discreteDistributions } from './discrete-distributions';
+import { matrices } from './matrices';
+// end Prep D imports
+// Preparation, group F: functional programming 2
+import { higherOrder } from './higher-order';
+import { mapFilterFold } from './map-filter-fold';
+import { complexity } from './complexity';
+import { modules } from './modules';
+import { functionalQueues } from './functional-queues';
+import { functors } from './functors';
+import { references } from './references';
+import { hashTables } from './hash-tables';
+import { binarySearchTrees } from './binary-search-trees';
+import { redBlackTrees } from './red-black-trees';
+import { lazySequences } from './lazy-sequences';
+import { sorting } from './sorting';
+import { search } from './search';
 
+// Preparation, group A: begin
+import { surds } from './surds';
+import { linearQuadraticInequalities } from './linear-quadratic-inequalities';
+import { straightLines } from './straight-lines';
+import { quadraticGraphs } from './quadratic-graphs';
+import { primesAndFactors } from './primes-and-factors';
+import { remainders } from './remainders';
+import { floorFunction } from './floor-function';
+import { linearDiophantine } from './linear-diophantine';
+import { polynomials } from './polynomials';
+import { polynomialRegions } from './polynomial-regions';
+import { simultaneousEquations } from './simultaneous-equations';
+import { expAndLn } from './exp-and-ln';
+import { rationalInequalities } from './rational-inequalities';
+import { rootsCoefficients } from './roots-coefficients';
+import { hcfLcm } from './hcf-lcm';
+import { functionsTopic } from './functions';
+import { exponentialEquations } from './exponential-equations';
+import { surdEquations } from './surd-equations';
+import { factorisations } from './factorisations';
+import { partialFractions } from './partial-fractions';
+import { modulus } from './modulus';
+import { modulusRegions } from './modulus-regions';
+// Preparation, group A: end
+// Preparation group B imports start
+import { euclideanProof } from './euclidean-proof';
+import { rightTriangle } from './right-triangle';
+import { sineCosineRules } from './sine-cosine-rules';
+import { coordinates3d } from './coordinates-3d';
+import { circles } from './circles';
+import { intersections } from './intersections';
+import { compoundAngles } from './compound-angles';
+import { doubleAngle } from './double-angle';
+import { radiansAndGraphs } from './radians-and-graphs';
+import { trigEquations } from './trig-equations';
+import { smallAngles } from './small-angles';
+import { loci } from './loci';
+import { reciprocalFunctions } from './reciprocal-functions';
+import { vectors } from './vectors';
+import { vectorLines } from './vector-lines';
+import { complexNumbers } from './complex-numbers';
+// Preparation group B imports end
 /**
  * The first ten topics the engine schedules for a learner who places at nothing and takes
  * both courses at the even split (gate 3), in that order; then the new topics of Cambridge
@@ -249,4 +361,115 @@ export const TOPIC_CONTENT: readonly TopicContent[] = [
   weakLaw,
   mgf,
   clt,
+  // Preparation, group A: begin
+  surds,
+  linearQuadraticInequalities,
+  straightLines,
+  quadraticGraphs,
+  primesAndFactors,
+  remainders,
+  floorFunction,
+  linearDiophantine,
+  polynomials,
+  polynomialRegions,
+  simultaneousEquations,
+  expAndLn,
+  rationalInequalities,
+  rootsCoefficients,
+  hcfLcm,
+  functionsTopic,
+  exponentialEquations,
+  surdEquations,
+  factorisations,
+  partialFractions,
+  modulus,
+  modulusRegions,
+  // Preparation, group A: end
+  // Preparation, group C (begin)
+  derivatives,
+  stationaryPoints,
+  rationalFunctions,
+  curveSketching,
+  convexity,
+  inflectionPoints,
+  graphTransformations,
+  firstPrinciples,
+  hyperbolic,
+  differentiationRules,
+  expSeries,
+  definiteIntegrals,
+  integrationByParts,
+  standardIntegrals,
+  substitution,
+  symmetryIntegrals,
+  implicitDifferentiation,
+  separableOdes,
+  improperIntegrals,
+  // Preparation, group C (end)
+  // Preparation, group D: sequences, series, sets, and proof, in book order
+  geometricSumToInfinity,
+  subsetsTopic,
+  cartesianProduct,
+  indexedSets,
+  setProofs,
+  disproof,
+  smallestCounterexample,
+  permutations,
+  mutuallyExclusive,
+  additionRule,
+  amGm,
+  fibonacci,
+  sequenceLimits,
+  recurrenceSequences,
+  telescoping,
+  sumsOfPowers,
+  binomialRational,
+  discreteDistributions,
+  matrices,
+  // end Prep D
+  // Preparation group E: functional programming 1, in book order
+  fpExpressions,
+  fpFunctions,
+  fpRecursion,
+  fpLists,
+  fpPolymorphism,
+  fpRecordsTuples,
+  fpVariants,
+  fpExceptions,
+  fpTrees,
+  fpSpecificationsTesting,
+  fpEquationalReasoning,
+  fpStructuralInduction,
+  // Preparation, group F: functional programming 2, in book order
+  higherOrder,
+  mapFilterFold,
+  complexity,
+  modules,
+  functionalQueues,
+  functors,
+  references,
+  hashTables,
+  binarySearchTrees,
+  redBlackTrees,
+  lazySequences,
+  sorting,
+  search,
+  // Preparation, group B start
+  euclideanProof,
+  rightTriangle,
+  sineCosineRules,
+  coordinates3d,
+  circles,
+  intersections,
+  compoundAngles,
+  doubleAngle,
+  radiansAndGraphs,
+  trigEquations,
+  smallAngles,
+  loci,
+  reciprocalFunctions,
+  vectors,
+  vectorLines,
+  complexNumbers,
+  // Preparation, group B end
 ];

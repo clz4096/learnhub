@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { AUDIT_SEEDS, AUDIT_WARNINGS, auditGenerator, auditInstance, summarizeAudit, type AuditCode } from './audit';
 import { int } from './math';
 import { generator, grade, type AnswerSpec, type Misconception } from './problem';
+import { code } from './ocaml-code';
 import { math, t } from './rich';
 import { TOPIC_CONTENT } from './topics';
 
@@ -102,8 +103,8 @@ describe('the audit\'s checks', () => {
     for (const [what, prompt] of cases) {
       expect(codes(auditGenerator(adder({ prompt: () => prompt }), 2)), what).toEqual(['degenerate']);
     }
-    // Not degenerate: 10x, 21x, x_1, 1.5x, a power of 12.
-    for (const prompt of [[math`${10}x`], [math`${21}x`], [math`x_{${1}}`], [math`${1.5}x`], [math`x^{${12}}`]]) {
+    // Not degenerate: 10x, 21x, x_1, 1.5x, a power of 12, an upper limit of 1, code.
+    for (const prompt of [[math`${10}x`], [math`${21}x`], [math`x_{${1}}`], [math`${1.5}x`], [math`x^{${12}}`], [math`\int_{${0}}^{${1}} x\,dx`], [code`IntMap.find ${1} m`]]) {
       expect(auditGenerator(adder({ prompt: () => prompt }), 2), prompt[0]?.text).toEqual([]);
     }
   });

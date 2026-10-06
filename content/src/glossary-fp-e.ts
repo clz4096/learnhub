@@ -1,0 +1,60 @@
+/**
+ * Glossary entries of the functional programming topics of Preparation group E (OCaml from
+ * values to trees, and correctness), kept in their own file so glossary.ts gains one line.
+ * Same rules as glossary.ts: computed numbers only, one or two plain sentences.
+ */
+import { code } from './ocaml-code';
+import type { GlossaryEntry } from './glossary';
+import { math, t, type Rich } from './rich';
+
+const g = (topic: string, id: string, term: string, definition: Rich, example: Rich, aliases?: readonly string[]): GlossaryEntry =>
+  (aliases === undefined ? { id, term, definition, example, topic } : { id, term, definition, example, topic, aliases });
+
+const EX = 'fp.expressions';
+const FN = 'fp.functions';
+const RC = 'fp.recursion';
+const LI = 'fp.lists';
+const PO = 'fp.polymorphism';
+const RT = 'fp.records-tuples';
+const VA = 'fp.variants';
+const EXN = 'fp.exceptions';
+const TR = 'fp.trees';
+const ST = 'fp.specifications-testing';
+const EQ = 'fp.equational-reasoning';
+const SI = 'fp.structural-induction';
+
+export const GLOSSARY_FP_E: readonly GlossaryEntry[] = [
+  g(EX, 'ocaml-expression', 'Expression (OCaml)', t`A piece of OCaml that can be evaluated to a value. Every well typed expression has a type, found before it runs.`, t`${code`${7} * (${1} + ${2} + ${3})`} is an expression of type ${code`int`} with value ${42}.`, ['OCaml expression']),
+  g(EX, 'ocaml-value', 'Value (OCaml)', t`An expression that needs no more evaluation: the result of evaluating an expression.`, t`${code`${42}`}, ${code`true`}, and ${code`"hi"`} are values; ${code`${40} + ${2}`} is not, but it evaluates to ${code`${42}`}.`, ['value']),
+  g(EX, 'ocaml-type', 'Type (OCaml)', t`What kind of value an expression can produce, such as ${code`int`}, ${code`float`}, ${code`bool`}, or ${code`string`}. OCaml checks types before running a program and never converts between them on its own.`, t`${code`${3} + ${4}`} has type ${code`int`}, while ${code`${3} + ${4}.${0}`} is a type error.`, ['type', 'data type']),
+  g(EX, 'structural-equality', 'Structural equality', t`OCaml's ${code`=`}: two values are equal when they have the same contents. Physical equality, ${code`==`}, instead asks whether they are the same object in memory.`, t`${code`"hi" = "hi"`} is ${code`true`}, while ${code`"hi" == "hi"`} is ${code`false`} in the toplevel.`, ['equality', 'physical equality']),
+  g(FN, 'ocaml-function', 'Function (OCaml)', t`A value ${code`fun x -> e`} that, given an argument, evaluates its body ${code`e`} with the argument in place of ${code`x`}. ${code`let f x = e`} names one.`, t`${code`let square x = x * x`} defines a function, and ${code`square ${3}`} is ${9}.`, ['function', 'fun']),
+  g(FN, 'function-type', 'Function type', t`The type ${code`t -> u`} of a function taking a ${code`t`} and giving a ${code`u`}. The arrow groups to the right, so ${code`int -> int -> int`} is ${code`int -> (int -> int)`}.`, t`${code`let add x y = x + y`} has type ${code`int -> int -> int`}, and ${code`add ${5}`} has type ${code`int -> int`}.`, ['arrow type']),
+  g(FN, 'function-application', 'Function application', t`Writing a function before its argument, ${code`f a`}: the argument is evaluated and substituted for the parameter. Application binds tighter than any operator and groups to the left.`, t`${code`square ${3} + ${1}`} is ${code`(square ${3}) + ${1}`}, which is ${10}.`, ['application', 'applying a function']),
+  g(RC, 'recursive-function', 'Recursive function', t`A function whose body calls the function itself, declared in OCaml with ${code`let rec`}. It needs a base case and calls that move towards it.`, t`${code`let rec npower x n = if n = ${0} then ${1}.${0} else x *. npower x (n - ${1})`}; ${code`npower ${2}. ${3}`} is ${code`${8}.`}`, ['recursion', 'let rec']),
+  g(RC, 'tail-recursion', 'Tail recursion', t`A function is tail recursive, or iterative, when each recursive call is the last thing it does, so no work is pending after the call and the recursion runs in constant stack space.`, t`${code`summing (n - ${1}) (n + total)`} is a tail call; ${code`n + nsum (n - ${1})`} is not, because the addition waits.`, ['tail recursive', 'tail call', 'iterative function']),
+  g(RC, 'accumulator', 'Accumulator', t`An extra argument that carries the result built so far, so the base case can return it. Adding one often makes a function tail recursive.`, t`In ${code`summing n total`}, ${code`total`} is the accumulator: ${code`summing ${3} ${0}`} passes ${3}, then ${5}, then ${6}.`, ['accumulating argument']),
+  g(LI, 'ocaml-list', 'List (OCaml)', t`A value of type ${code`t list`}: either ${code`[]`}, the empty list, or ${code`x :: xs`}, an element ${code`x : t`} on the front of a list ${code`xs : t list`}.`, t`${code`[${5}; ${6}; ${7}]`} is notation for ${code`${5} :: ${6} :: ${7} :: []`}; its head is ${5} and its tail ${code`[${6}; ${7}]`}.`, ['list', 'linked list']),
+  g(LI, 'cons', 'Cons', t`The list constructor ${code`::`}, and one use of it: a new list cell holding a head and pointing to a tail. Costs of list functions are often counted in conses.`, t`${code`${1} :: [${2}; ${3}]`} is one cons, giving ${code`[${1}; ${2}; ${3}]`}.`, ['::', 'cons cell']),
+  g(LI, 'pattern-matching', 'Pattern matching', t`Choosing a case by the shape of a value: ${code`match e with`} tries each pattern in order and binds the variables of the first that fits.`, t`Matching ${code`[${5}; ${6}]`} against ${code`h :: t`} binds ${code`h`} to ${5} and ${code`t`} to ${code`[${6}]`}.`, ['match', 'pattern']),
+  g(PO, 'type-variable', 'Type variable', t`A name such as ${code`'a`} (read alpha) in a type, standing for any type; within one use, the same variable is the same type everywhere.`, t`${code`length : 'a list -> int`} works on an ${code`int list`} and on a ${code`string list`}.`, ["'a", 'alpha']),
+  g(PO, 'polymorphic-type', 'Polymorphic type', t`A type containing type variables. A value of polymorphic type can be used at every instance, obtained by replacing the variables by types consistently.`, t`${code`'a -> 'a`} has instances ${code`int -> int`} and ${code`bool -> bool`}, but not ${code`int -> bool`}.`, ['polymorphism', 'polymorphic function', 'instance']),
+  g(PO, 'most-general-type', 'Most general type', t`A type of an expression of which every other type it can be given is an instance. OCaml infers it.`, t`${code`fun x -> [x]`} has most general type ${code`'a -> 'a list`}; ${code`int -> int list`} is one of its instances.`, ['principal type']),
+  g(RT, 'tuple', 'Tuple', t`Several values grouped by position, ${code`(e${1}, e${2})`}, with a product type such as ${code`int * string`}. Taken apart by a pattern such as ${code`(x, y)`}.`, t`${code`(${3}, "eight")`} has type ${code`int * string`}.`, ['pair', 'triple', 'product type']),
+  g(RT, 'record-type', 'Record type', t`A type whose values have named fields, declared as ${code`type r = { f : t; ... }`}. Fields are read with ${code`e.f`}, and ${code`{ e with f = v }`} makes a changed copy.`, t`With ${code`type pt = { x : int; y : int }`}, ${code`{ x = ${3}; y = ${8} }.x`} is ${3}.`, ['record (OCaml)', 'field']),
+  g(VA, 'variant-type', 'Variant type', t`A type declared by listing its constructors, ${code`type t = A | B of int`}; each value is made by exactly one constructor. Also called an algebraic data type.`, t`${code`type vehicle = Bike | Lorry of int`} has values ${code`Bike`}, ${code`Lorry ${6}`}, ${code`Lorry ${18}`}, and so on.`, ['algebraic data type', 'datatype', 'variant', 'enumeration type']),
+  g(VA, 'constructor', 'Constructor', t`A capitalised name in a variant type that builds its values, possibly from an argument, and is used in patterns to take them apart.`, t`In ${code`Car true`}, ${code`Car`} is the constructor and ${code`true`} its argument.`, ['data constructor']),
+  g(VA, 'option-type', 'Option type', t`${code`type 'a option = None | Some of 'a`}: a value that may be missing. Functions with no sensible result for some inputs return ${code`None`} for them.`, t`A safe head returns ${code`None`} on ${code`[]`} and ${code`Some ${5}`} on ${code`[${5}; ${6}]`}.`, ['option', 'Some', 'None']),
+  g(EXN, 'exception', 'Exception', t`A value of the type ${code`exn`}, declared with ${code`exception E`}. ${code`raise E`} abandons the current computation and passes ${code`E`} outwards until a handler catches it.`, t`${code`failwith "empty"`} raises ${code`Failure "empty"`}.`, ['raise', 'exn', 'Failure']),
+  g(EXN, 'exception-handler', 'Exception handler', t`The cases of ${code`try e with p -> e'`}: if ${code`e`} raises an exception matching ${code`p`}, the value of ${code`e'`} replaces the whole of ${code`e`}. The most recently entered matching handler catches it.`, t`${code`try ${1} / ${0} with Division_by_zero -> ${0}`} is ${0}.`, ['handler', 'try with', 'catching an exception']),
+  g(TR, 'binary-tree', 'Binary tree', t`A value of ${code`type 'a tree = Lf | Br of 'a * 'a tree * 'a tree`}: empty, or a labelled node with a left and a right subtree.`, t`${code`Br (${1}, Br (${2}, Lf, Lf), Lf)`} has ${2} labelled nodes, depth ${2}, and ${3} empty subtrees.`, ['tree', 'Lf', 'Br']),
+  g(TR, 'tree-traversal', 'Tree traversal', t`Listing a tree's labels in a fixed order: preorder (label before the subtrees), inorder (between them), or postorder (after them).`, t`For ${code`Br (${1}, Br (${2}, Lf, Lf), Br (${3}, Lf, Lf))`}: preorder ${code`[${1}; ${2}; ${3}]`}, inorder ${code`[${2}; ${1}; ${3}]`}, postorder ${code`[${2}; ${3}; ${1}]`}.`, ['preorder', 'inorder', 'postorder', 'traversal']),
+  g(ST, 'specification', 'Specification', t`A function's contract: what the client must guarantee (the precondition) and what the function then guarantees (the postcondition), usually written as a comment above it.`, t`${code`(** [list_max xs] is the largest element of [xs]. Requires: [xs] is not empty. *)`}`, ['spec', 'contract']),
+  g(ST, 'precondition', 'Precondition', t`What must hold of a function's inputs before it is called: CS${3110}'s Requires clause. If it fails, the function may do anything.`, t`${code`isqrt n`} requires ${code`n >= ${0}`}; ${code`isqrt (-${4})`} breaks the contract.`, ['Requires clause', 'requires']),
+  g(ST, 'postcondition', 'Postcondition', t`What a function guarantees about its result whenever its precondition holds: CS${3110}'s Returns and Raises clauses.`, t`${code`list_max`} guarantees to return the largest element, so on ${code`[${3}; ${9}; ${4}]`} it must return ${9}.`, ['Returns clause', 'Raises clause', 'ensures']),
+  g(ST, 'black-box-testing', 'Black-box testing', t`Choosing test cases from the specification alone: typical inputs from each class it distinguishes, and boundary cases between them.`, t`For ${code`list_max`}: a list of one element, the maximum first or last, and a list of negative numbers.`, ['black box', 'specification-based testing']),
+  g(ST, 'glass-box-testing', 'Glass-box testing', t`Choosing test cases from the code, to exercise every path: each branch of each ${code`if`} and ${code`match`}, each base case, and each raise. A suite covering every path is path complete.`, t`Code with ${3} independent ${code`if`}s has ${8} paths, so a path complete suite has at least ${8} tests.`, ['white-box testing', 'path complete', 'path coverage']),
+  g(EQ, 'equational-reasoning', 'Equational reasoning', t`Proving two expressions of pure code equal by a chain of steps, each justified by evaluation, arithmetic, or an equation already proved, such as an induction hypothesis.`, t`${code`fact ${0} = { evaluation } ${1}`}, then induction proves ${code`p * fact n = facti p n`} for every ${code`p`}.`, ['proving correctness', 'equational proof']),
+  g(SI, 'structural-induction', 'Structural induction', t`Induction over the ways a value of a variant type is built: one case per constructor, assuming the property for each argument of the same type.`, t`For lists: prove ${math`P([\,])`}, and ${math`P(t)`} implies ${math`P(h :: t)`}; then ${math`P`} holds for every list, such as ${code`lst @ [] = lst`}.`, ['induction on lists', 'induction on trees']),
+];
+

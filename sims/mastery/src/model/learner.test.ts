@@ -261,10 +261,12 @@ describe('the Cambridge gate and item data', () => {
   });
 });
 
-// Topics with content, and one root without: these tests read the real graph and content,
-// so they say what holds for any content set rather than naming today's ten topics.
+// Topics with content, and one without: these tests read the real graph and content,
+// so they say what holds for any content set rather than naming today's ten topics. Every
+// root of the courses' closure now has a lesson (Preparation), so the topic without content
+// is one whose prerequisites all have content, the probe content.test.ts also uses.
 const CONTENT = closureTopics(DEFAULT_COURSES).filter((t) => hasContent(t.id)).map((t) => t.id);
-const NO_CONTENT_ROOT = 'pre.primes-and-factors';
+const NO_CONTENT_ROOT = 'prob.simpsons-paradox';
 
 describe('migrated placement answers credit only topics with real problems', () => {
   it('topics without content are never credited, even below a known topic', () => {
@@ -274,7 +276,7 @@ describe('migrated placement answers credit only topics with real problems', () 
   });
 
   it('an answer about a topic without content counts for nothing', () => {
-    const p = finishOpenPlacement(answered(fresh(), 'comb.permutations', true), T0 + 1);
+    const p = finishOpenPlacement(answered(fresh(), 'prob.simpsons-paradox', true), T0 + 1);
     expect(p.memory).toEqual({});
   });
 });
@@ -288,9 +290,11 @@ describe('topics without content are never scheduled or learned', () => {
     expect(s?.tasks.filter((t) => t.kind === 'lesson')).toEqual([]);
   });
 
-  it('across a month of passing everything, every task is on a topic with content', () => {
+  it('across two months of passing everything, every task is on a topic with content', () => {
     let p = fresh();
-    for (let d = 0; d < 30; d++) {
+    // Two months, not one: with the Preparation lessons written, every topic of the closure that
+    // the old unwritten roots used to block is learnable, and a month at the default pace is too short.
+    for (let d = 0; d < 60; d++) {
       const day = T0 + d * DAY_MS;
       p = ensureSession(p, day);
       (p.session?.tasks ?? []).forEach((t, i) => {
@@ -317,35 +321,36 @@ describe('topics without content are never scheduled or learned', () => {
   });
 
   it('shows a frontier topic without content as unwritten, not ready', () => {
-    const st = statusMap(fresh(), T0);
-    expect(st.get(NO_CONTENT_ROOT)).toBe('unwritten');
-    expect(st.get('pre.fractions')).toBe('ready');
+    expect(statusMap(fresh(), T0).get('pre.fractions')).toBe('ready');
+    // Learn everything below it, so it is on the frontier.
+    const p = { ...fresh(), memory: placedMemory([...ancestors(ALL_TOPICS, NO_CONTENT_ROOT)], T0) };
+    expect(statusMap(p, T0).get(NO_CONTENT_ROOT)).toBe('unwritten');
   });
 });
 
 describe('migration: self-reported progress is removed', () => {
-  // A version 2 document from the build that offered self-report. comb.permutations has no
-  // content; its self-reported "known" spread to pre.product-rule and comb.factorial.
+  // A version 2 document from the build that offered self-report. an.epsilon-limit has no
+  // content; the old build also wrote pre.product-rule and comb.factorial as known.
   const legacy = (): Progress => {
     let p = fresh();
     p = answered(p, 'pre.fractions', true);
-    p = answered(p, 'comb.permutations', true);
+    p = answered(p, 'an.epsilon-limit', true);
     p = answered(p, NO_CONTENT_ROOT, true);
     // finishPlacement now ignores those answers, so build the memory the old build wrote.
     p = { ...p, placement: { answers: p.placement?.answers ?? [], done: true } };
-    p = { ...p, memory: placedMemory(['pre.fractions', 'pre.product-rule', 'comb.factorial', NO_CONTENT_ROOT, 'comb.permutations'], T0) };
+    p = { ...p, memory: placedMemory(['pre.fractions', 'pre.product-rule', 'comb.factorial', NO_CONTENT_ROOT, 'an.epsilon-limit'], T0) };
     // A self-reported lesson on a topic without content, and a real one with content.
-    p = { ...p, memory: { ...p.memory, 'prob.addition-rule': placedMemory(['prob.addition-rule'], T0)['prob.addition-rule'] as never } };
-    p = { ...p, history: [...p.history, { at: T0, kind: 'lesson', topicId: 'prob.addition-rule', correct: true }] };
+    p = { ...p, memory: { ...p.memory, 'prob.stirling-log': placedMemory(['prob.stirling-log'], T0)['prob.stirling-log'] as never } };
+    p = { ...p, history: [...p.history, { at: T0, kind: 'lesson', topicId: 'prob.stirling-log', correct: true }] };
     p = completeLesson(p, 'logic.connectives', true, T0, null, 15);
-    p = { ...p, learnedSinceQuiz: ['prob.addition-rule', 'logic.connectives'] };
+    p = { ...p, learnedSinceQuiz: ['prob.stirling-log', 'logic.connectives'] };
     return p;
   };
 
   it('keeps only measured topics with content', () => {
     const { progress: p, dropped } = withoutSelfReport(legacy());
     expect(Object.keys(p.memory).sort()).toEqual(['logic.connectives', 'pre.fractions']);
-    expect(dropped.sort()).toEqual(['comb.permutations', 'comb.factorial', 'prob.addition-rule', NO_CONTENT_ROOT, 'pre.product-rule'].sort());
+    expect(dropped.sort()).toEqual(['an.epsilon-limit', 'comb.factorial', 'prob.stirling-log', NO_CONTENT_ROOT, 'pre.product-rule'].sort());
   });
 
   it('drops placement answers about topics without content, so they can never count later', () => {
@@ -372,10 +377,10 @@ describe('migration: self-reported progress is removed', () => {
       session: {
         day: localDay(T0), startedAt: T0, tasks: [
           { kind: 'lesson', topicIds: [NO_CONTENT_ROOT], minutes: 15, reason: 'r', done: true, passed: true },
-          { kind: 'lesson', topicIds: ['comb.permutations'], minutes: 15, reason: 'r', done: false, passed: null },
+          { kind: 'lesson', topicIds: ['an.epsilon-limit'], minutes: 15, reason: 'r', done: false, passed: null },
           { kind: 'review', topicIds: ['comb.factorial'], minutes: 3, reason: 'r', done: false, passed: null },
           { kind: 'review', topicIds: ['pre.fractions'], minutes: 3, reason: 'r', done: false, passed: null },
-          { kind: 'quiz', topicIds: ['pre.fractions', 'prob.addition-rule', 'logic.connectives', 'comb.permutations'], minutes: 8, reason: 'r', done: false, passed: null },
+          { kind: 'quiz', topicIds: ['pre.fractions', 'prob.stirling-log', 'logic.connectives', 'an.epsilon-limit'], minutes: 8, reason: 'r', done: false, passed: null },
           { kind: 'lesson', topicIds: ['pre.indices'], minutes: 15, reason: 'r', done: false, passed: null },
         ],
       },

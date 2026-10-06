@@ -5,6 +5,12 @@
 import { PARTV_A_GLOSSARY } from './glossary-partv-a';
 import { PARTV_B_GLOSSARY } from './glossary-partv-b';
 import { GLOSSARY_PARTV_C } from './glossary-partv-c';
+import { GLOSSARY_PREP_A } from './glossary-prep-a';
+import { GLOSSARY_PREP_C } from './glossary-prep-c';
+import { GLOSSARY_PREP_D } from './glossary-prep-d';
+import { GLOSSARY_FP_E } from './glossary-fp-e';
+import { PREP_F_GLOSSARY } from './glossary-prep-f';
+import { GLOSSARY_PREP_B } from './glossary-prep-b';
 import { factorial, q, sub } from './math';
 import { Phi } from './partv-d';
 import { factor, poly, times } from './poly';
@@ -302,6 +308,16 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   ...PARTV_B_GLOSSARY,
   // Part V, group C (glossary-partv-c.ts)
   ...GLOSSARY_PARTV_C,
+  // Preparation, group A (glossary-prep-a.ts)
+  ...GLOSSARY_PREP_A,
+  // Preparation, group C: calculus (glossary-prep-c.ts)
+  ...GLOSSARY_PREP_C,
+  // Preparation, group D (glossary-prep-d.ts)
+  ...GLOSSARY_PREP_D,
+  // Preparation group E: functional programming 1 (glossary-fp-e.ts)
+  ...GLOSSARY_FP_E,
+  // Preparation, group F: functional programming 2 (glossary-prep-f.ts)
+  ...PREP_F_GLOSSARY,
   // Part V, group D
   g(PD, 'poisson-distribution', 'Poisson distribution', t`${math`X \sim \text{Po}(\lambda)`} when ${math`P(X = k) = e^{-\lambda}\lambda^{k}/k!`} for ${math`k = ${0}, ${1}, ${2}, \ldots`}. It counts independent occurrences in an interval; its mean and its variance are both ${math`\lambda`}.`, t`With ${math`\lambda = ${2}`}, ${math`P(X = ${0}) = e^{-${2}} \approx ${s4(Math.exp(-2))}`}.`, ['Po(lambda)', 'Poisson']),
   g(PBL, 'poisson-approximation', 'Poisson approximation to the binomial', t`For large ${mn} and small ${math`p`}, ${math`B(n, p)`} probabilities are close to those of ${math`\text{Po}(np)`}. Exactly: for fixed ${math`\lambda`} and ${math`k`}, ${math`P(B(n, \lambda/n) = k) \to e^{-\lambda}\lambda^{k}/k!`} as ${math`n \to \infty`}.`, t`For ${math`B(${100}, ${0.02})`}, ${math`P(X = ${0}) = ${0.98}^{${100}} \approx ${s4(0.98 ** 100)}`}, against ${math`e^{-${2}} \approx ${s4(Math.exp(-2))}`}.`, ['Poisson limit', 'law of small numbers']),
@@ -318,6 +334,8 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   g(WL, 'weak-law', 'Weak law of large numbers', t`For independent, identically distributed ${math`X_{i}`} with mean ${math`\mu`} and finite variance, the sample mean ${math`\bar{X}_{n}`} satisfies ${math`P(|\bar{X}_{n} - \mu| > \varepsilon) \to ${0}`} for every ${math`\varepsilon > ${0}`}.`, t`For a fair die, Chebyshev gives ${math`P(|\bar{X}_{n} - ${q(7, 2)}| \ge ${q(1, 2)}) \le \frac{${q(35, 12)}}{n/${4}}`}, which is ${q(7, 60)} at ${math`n = ${100}`}.`, ['law of large numbers', 'WLLN']),
   g(WL, 'convergence-in-probability', 'Convergence in probability', t`${math`Y_{n} \to c`} in probability when ${math`P(|Y_{n} - c| > \varepsilon) \to ${0}`} for every ${math`\varepsilon > ${0}`}.`, t`The proportion of heads in ${mn} fair tosses tends to ${q(1, 2)} in probability.`, ['in probability']),
   g(CLT, 'central-limit-theorem', 'Central limit theorem', t`For independent, identically distributed ${math`X_{i}`} with mean ${math`\mu`} and variance ${math`\sigma^{${2}}`} in ${math`(${0}, \infty)`}: ${math`P\left(\frac{S_{n} - n\mu}{\sigma\sqrt{n}} \le x\right) \to \Phi(x)`} for every ${math`x`}.`, t`${100} fair tosses: ${math`P(S \le ${55}) \approx \Phi\left(\frac{${55} - ${50}}{${5}}\right) = \Phi(${1}) \approx ${s4(Phi(1))}`}.`, ['CLT', 'normal approximation for sums']),
+  // Preparation, group B: geometry, trigonometry, and complex numbers (glossary-prep-b.ts)
+  ...GLOSSARY_PREP_B,
 ];
 
 export function glossaryEntry(id: string): GlossaryEntry | undefined {

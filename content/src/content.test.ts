@@ -118,6 +118,51 @@ const BATCH_4 = ['comb.binomial-theorem-proof', 'proof.strong-induction', 'num.d
  * which a check below confirms.
  */
 const BATCH_5 = ['rv.expectation', 'rv.tail-sum', 'comb.restricted-arrangements', 'prob.first-step', 'pre.quadratic-equations', 'rv.variance', 'rv.pdf', 'rv.continuous-summaries', 'rv.cdf-method', 'prob.normal-distribution', 'prob.normal-approximation', 'rv.expectation-algebra', 'rv.indicators', 'alg.arithmetico-geometric', 'prob.point-mass-spaces', 'prob.geometric-distribution', 'prob.poisson-distribution', 'prob.poisson-binomial-limit', 'prob.poisson-rates', 'rv.random-variables', 'rv.expectation-general', 'rv.independence', 'rv.covariance', 'rv.conditional-expectation', 'gf.pgf', 'gf.random-sums', 'gf.combinatorial', 'alg.linear-recurrences', 'rw.gamblers-ruin', 'rw.absorption-time', 'bp.extinction', 'prob.exponential-distribution', 'rv.joint-densities', 'rv.transformations', 'prob.geometric-probability', 'rv.simulation', 'rv.bivariate-normal', 'ineq.markov-chebyshev', 'ineq.jensen', 'lim.weak-law', 'gf.mgf', 'lim.clt'];
+// Preparation, group A: begin
+/** Preparation group A (graph/reviews/cambridge-prep.md): algebra, functions, and inequalities from STEP Foundation Blocks 1 to 5, in book order. Not course targets, so the book places them. */
+const PREP_A: readonly string[] = ['alg.surds', 'ineq.linear-quadratic', 'geom.straight-lines', 'fn.quadratic-graphs', 'pre.primes-and-factors', 'pre.remainders', 'fn.floor-function', 'num.linear-diophantine', 'alg.polynomials', 'ineq.polynomial-regions', 'alg.simultaneous-equations', 'alg.exp-and-ln', 'ineq.rational', 'alg.roots-coefficients', 'pre.hcf-lcm', 'fn.functions', 'alg.exponential-equations', 'alg.surd-equations', 'alg.factorisations', 'alg.partial-fractions', 'fn.modulus', 'fn.modulus-regions'];
+// Preparation, group A: end
+/** The Preparation group C topics (graph/reviews/cambridge-prep.md): calculus, in book order. Not course targets; the book places them. */
+const PREP_C = [
+  // Preparation, group C (begin)
+  'calc.derivatives',
+  'calc.stationary-points',
+  'fn.rational-functions',
+  'calc.curve-sketching',
+  'calc.convexity',
+  'calc.inflection-points',
+  'fn.graph-transformations',
+  'calc.first-principles',
+  'calc.hyperbolic',
+  'calc.differentiation-rules',
+  'an.exp-series',
+  'calc.definite-integrals',
+  'calc.integration-by-parts',
+  'calc.standard-integrals',
+  'calc.substitution',
+  'calc.symmetry-integrals',
+  'calc.implicit-differentiation',
+  'calc.separable-odes',
+  'calc.improper-integrals',
+  // Preparation, group C (end)
+];
+/** Preparation, group D (graph/reviews/cambridge-prep.md): placed by the book, not course targets, in book order. */
+const PREP_D: string[] = ['alg.geometric-sum-to-infinity', 'sets.subsets', 'sets.cartesian-product', 'sets.indexed', 'proof.set-proofs', 'proof.disproof', 'proof.smallest-counterexample', 'comb.permutations', 'pre.mutually-exclusive', 'prob.addition-rule', 'ineq.am-gm', 'alg.fibonacci', 'an.sequence-limits', 'alg.recurrence-sequences', 'alg.telescoping', 'alg.sums-of-powers', 'alg.binomial-rational', 'prob.discrete-distributions', 'mat.matrices'];
+/**
+ * Preparation group E: functional programming 1 (graph/reviews/cambridge-prep.md), in book
+ * order. Not course targets, so the engine does not schedule them; the book places them.
+ */
+const PREP_E = ['fp.expressions', 'fp.functions', 'fp.recursion', 'fp.lists', 'fp.polymorphism', 'fp.records-tuples', 'fp.variants', 'fp.exceptions', 'fp.trees', 'fp.specifications-testing', 'fp.equational-reasoning', 'fp.structural-induction'];
+/**
+ * Preparation, group F (graph/reviews/cambridge-prep.md): functional programming 2, in book
+ * order. Not course targets; the book places them in CS-0 Functional programming.
+ */
+const PREP_F = ['fp.higher-order', 'fp.map-filter-fold', 'fp.complexity', 'fp.modules', 'fp.functional-queues', 'fp.functors', 'fp.references', 'fp.hash-tables', 'fp.binary-search-trees', 'fp.red-black-trees', 'fp.lazy-sequences', 'fp.sorting', 'fp.search'];
+/**
+ * Preparation, group B (graph/reviews/cambridge-prep.md; geometry, trigonometry, and complex
+ * numbers): new Preparation topics, not course targets, in book order (content/src/book/book.ts).
+ */
+const PREP_B = ['geom.euclidean-proof', 'trig.right-triangle', 'trig.sine-cosine-rules', 'geom.3d-coordinates', 'geom.circles', 'geom.intersections', 'trig.compound-angles', 'trig.double-angle', 'trig.radians-and-graphs', 'trig.equations', 'trig.small-angles', 'geom.loci', 'trig.reciprocal-functions', 'geom.vectors', 'geom.vector-lines', 'cx.complex-numbers'];
 /** A graph topic neither map gives a source for, so it has no lesson: the probe for "not written". */
 const UNWRITTEN = 'prob.simpsons-paradox';
 
@@ -216,9 +261,9 @@ function checkTeachingFields(c: TopicContent): void {
 describe('content topics', () => {
   it('are the first ten topics, the new topics of Cambridge batch 1, and batches 2 to 5, each in the graph, each once', () => {
     const ids = TOPIC_CONTENT.map((c) => c.topicId);
-    expect(ids).toHaveLength(FIRST_TEN + BATCH_1_NEW.length + BATCH_2.length + BATCH_3.length + BATCH_4.length + BATCH_5.length);
+    expect(ids).toHaveLength(FIRST_TEN + BATCH_1_NEW.length + BATCH_2.length + BATCH_3.length + BATCH_4.length + BATCH_5.length + PREP_A.length + PREP_C.length + PREP_D.length + PREP_E.length + PREP_F.length + PREP_B.length);
     expect(ids.slice(FIRST_TEN, FIRST_TEN + BATCH_1_NEW.length)).toEqual(BATCH_1_NEW);
-    expect(ids.slice(FIRST_TEN + BATCH_1_NEW.length)).toEqual([...BATCH_2, ...BATCH_3, ...BATCH_4, ...BATCH_5]);
+    expect(ids.slice(FIRST_TEN + BATCH_1_NEW.length)).toEqual([...BATCH_2, ...BATCH_3, ...BATCH_4, ...BATCH_5, ...PREP_A, ...PREP_C, ...PREP_D, ...PREP_E, ...PREP_F, ...PREP_B]);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(graphIds.has(id), id).toBe(true);
     for (const id of ids) expect(contentFor(id)?.topicId).toBe(id);
@@ -260,9 +305,18 @@ describe('content topics', () => {
     expect(mapped).toEqual([...BATCH_2, ...BATCH_3, ...BATCH_4]);
   });
 
-  it('are all in the closure of the two courses, except Part V topics, which the book places', () => {
+  it('are all in the closure of the two courses, except Part V and Preparation topics, which the book places', () => {
     const closure = coursesClosure(topics, [courseById('ia-probability'), courseById('cst-discrete-maths')]);
-    for (const c of TOPIC_CONTENT) expect(closure.has(c.topicId) || (BATCH_5.includes(c.topicId) && BOOK_ORDER.includes(c.topicId)), c.topicId).toBe(true);
+    for (const c of TOPIC_CONTENT) expect(closure.has(c.topicId) || ([...BATCH_5, ...PREP_A, ...PREP_C, ...PREP_D, ...PREP_E, ...PREP_F, ...PREP_B].includes(c.topicId) && BOOK_ORDER.includes(c.topicId)), c.topicId).toBe(true);
+  });
+
+  it('Preparation group C follows the book order', () => {
+    expect([...PREP_C].sort((a, b) => BOOK_ORDER.indexOf(a) - BOOK_ORDER.indexOf(b))).toEqual(PREP_C);
+  });
+
+  it('Preparation group B follows the book order', () => {
+    for (const id of PREP_B) expect(BOOK_ORDER.includes(id), id).toBe(true);
+    expect([...PREP_B].sort((a, b) => BOOK_ORDER.indexOf(a) - BOOK_ORDER.indexOf(b))).toEqual(PREP_B);
   });
 
   it('batch 5 follows the book order', () => {
