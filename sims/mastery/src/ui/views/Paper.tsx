@@ -63,6 +63,7 @@ function PaperBody({ adm, c, paperId }: { adm: Admissions; c: Campaign; paperId:
   const link = paperLink(paper);
   const p = progress.value;
   const act = p === null ? 1 : currentAct(acts(adm, c, courseInputs(p)));
+  if (running !== undefined && running.paperId === paperId) return <TimedPaper paper={paper} s={running} />;
 
   return (
     <section class="camp" aria-labelledby="paper-title">
@@ -95,8 +96,6 @@ function PaperBody({ adm, c, paperId }: { adm: Admissions; c: Campaign; paperId:
             <div class="c-card c-pad">
               <p class="c-body">Another paper is running: <AppLink to={{ view: 'paper', paperId: running.paperId }}>{adm.registryPaper(running.paperId) === undefined ? running.paperId : paperName(adm.registryPaper(running.paperId) as RegistryPaper)}</AppLink>. Finish it first.</p>
             </div>
-          ) : running !== undefined ? (
-            <Clock paper={paper} s={running} />
           ) : unmarked !== undefined ? (
             <Marks adm={adm} paper={paper} s={unmarked} />
           ) : (
@@ -116,23 +115,87 @@ function PaperBody({ adm, c, paperId }: { adm: Admissions; c: Campaign; paperId:
   );
 }
 
-function Clock({ paper, s }: { paper: RegistryPaper; s: Sitting }) {
+const FLAG_KEY = 'mastery.flags.v1';
+
+/** The parts flagged to come back to, per sitting, in this browser only. */
+function loadFlags(sittingId: string): string[] {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(FLAG_KEY) ?? '{}');
+    const xs = typeof v === 'object' && v !== null ? (v as Record<string, unknown>)[sittingId] : undefined;
+    return Array.isArray(xs) ? xs.filter((x): x is string => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveFlags(sittingId: string, flags: readonly string[]): void {
+  try {
+    // One sitting runs at a time, so only its flags are kept.
+    localStorage.setItem(FLAG_KEY, JSON.stringify({ [sittingId]: flags }));
+  } catch {
+    // Not kept; the flags last for this page.
+  }
+}
+
+/**
+ * A paper while its clock runs (mastery/design-v4.html, "Timed problem"), in focus mode: the
+ * source in mono, a large timer, the parts flagged to come back to, and two actions.
+ */
+function TimedPaper({ paper, s }: { paper: RegistryPaper; s: Sitting }) {
   const [, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(id);
   }, []);
+  const [flags, setFlags] = useState(() => loadFlags(s.id));
+  const [adding, setAdding] = useState(false);
+  const [part, setPart] = useState('');
   const left = timeLeft(paper, s, now());
   const total = paper.duration_minutes * 60_000;
   const over = left <= 0;
+  const link = paperLink(paper);
+  const setAll = (xs: string[]): void => { setFlags(xs); saveFlags(s.id, xs); };
+  const add = (): void => {
+    const x = part.trim();
+    if (x !== '' && !flags.includes(x)) setAll([...flags, x]);
+    setPart('');
+    setAdding(false);
+  };
   return (
-    <div class={`c-card c-pad c-clock${over ? ' over' : ''}`}>
-      <div class="c-label">{over ? 'Time is up' : 'Time left'}</div>
-      <div class="c-time c-num" role="timer" aria-live="off">{over ? `+${clock(-left)}` : clock(left)}</div>
-      <div class="c-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, (100 * (total - Math.max(0, left))) / total)}%` }} /></div>
-      <p class="c-tiny">Started {new Date(s.startedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}. No pause.{over ? ' Put the pen down and finish.' : ''}</p>
-      <button type="button" class="c-btn" onClick={() => update((x) => finishSitting(x, s.id, now()))}>Finish</button>
-    </div>
+    <section class="ds-page ds-timed" aria-labelledby="paper-title">
+      <div class="ds-eyebrow">{paper.exam} · {paper.year} · {paper.paper}</div>
+      <h1 id="paper-title" class="ds-h1">{paperName(paper)}</h1>
+      <div class={`ds-big${over ? ' over' : ''}`} role="timer" aria-live="off" aria-label={over ? `Time is up, ${clock(-left)} over` : `${clock(left)} left`}>
+        {over ? `+${clock(-left)}` : clock(left)}
+      </div>
+      <p class="ds-meta ds-center">{over ? 'time is up · put the pen down and finish' : `remaining of ${clock(total)}`}</p>
+      <div class="ds-flags">
+        <span class="ds-eyebrow">Flagged to come back to</span>
+        <div>
+          {flags.map((f) => (
+            <button key={f} type="button" class="ds-chip" onClick={() => setAll(flags.filter((y) => y !== f))} aria-label={`${f}, flagged. Press to unflag.`}>{f}</button>
+          ))}
+          {adding
+            ? (
+              <form class="ds-flag-form" onSubmit={(e) => { e.preventDefault(); add(); }}>
+                <label class="visually-hidden" for="flag-part">Part to flag, for example Q3 (ii)</label>
+                <input id="flag-part" type="text" value={part} placeholder="Q3 (ii)" autoFocus onInput={(e) => setPart((e.currentTarget as HTMLInputElement).value)} />
+                <button type="submit" class="ds-chip">Flag</button>
+              </form>
+            )
+            : <button type="button" class="ds-chip ds-ghostchip" onClick={() => setAdding(true)}>+ flag a part</button>}
+        </div>
+      </div>
+      <div class="ds-stack">
+        {link !== null && (
+          <a class="ds-btn wide ghost" href={link.url} target="_blank" rel="noopener noreferrer">
+            Open the paper <span aria-hidden="true">↗</span><span class="visually-hidden">(opens in a new tab{link.file === undefined ? '' : `; open ${link.file} inside the zip`})</span>
+          </a>
+        )}
+        <button type="button" class="ds-btn wide" onClick={() => { update((x) => finishSitting(x, s.id, now())); setAll([]); }}>Finish and mark</button>
+      </div>
+      <p class="c-tiny">Started {new Date(s.startedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}. No pause; leaving this screen does not stop the clock.</p>
+    </section>
   );
 }
 

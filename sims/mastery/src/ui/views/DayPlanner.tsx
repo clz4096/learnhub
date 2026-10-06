@@ -10,22 +10,21 @@
  * when the learner acts: opening a forecast item, planning the day, or replanning adds the
  * day's tasks to the session.
  */
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import type { Progress } from '@learnhub/mastery';
 import {
-  CORE, GET_GOING, addDays, clockValue, fillBlocks, fmtLong, isDate, parseClock, planDate, planMinute,
-  replanDay, sunsetMinutes, tickedMinutes, weekOf, weekdayOf, type DayPlan, type FixedBlock, type Slot,
+  CORE, GET_GOING, addDays, clockValue, fmtLong, isDate, parseClock, planDate,
+  replanDay, sunsetMinutes, weekdayOf, type FixedBlock, type Slot,
 } from '@/model/day';
-import { loadDays, planOf, saveDay, type DayEntry, type DayLog } from '@/model/dayLog';
-import { REDO_MINUTES, dayItems, replanDayTasks, withDayTasks, type DayItem } from '@/model/dayQueue';
-import { localDay, planMore } from '@/model/learner';
+import { loadDays, saveDay, type DayEntry, type DayLog } from '@/model/dayLog';
+import { replanDayTasks, withDayTasks, type DayItem } from '@/model/dayQueue';
+import { planMore } from '@/model/learner';
 import { go, hrefOf, type Route } from '@/model/route';
 import { commit, now } from '@/model/store';
+import { DEFAULT_WAKE, WEEK_TARGET_HOURS, budgetFor, dayView, weekMinutes, type Next } from '@/ui/views/dayView';
 
-const DEFAULT_WAKE = '09:00';
 const KIND: Record<DayItem['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz', redo: 'Supervision redo' };
-const WEEK_TARGET_HOURS = 36;
 const BAR_MAX_HOURS = 8;
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 /** Up next shows this many items until Show all. */
@@ -110,35 +109,32 @@ function WakeTime({ value, onChange }: { value: string; onChange: (v: string) =>
   );
 }
 
-/** One entry of Up next: a queue item, or a timed paper with its block. */
-type Next = { item: DayItem; slot: Slot | null } | { paper: Slot };
-
 const CHECK = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4L18 8" /></svg>;
 
-/** Minutes the queue fills on a plan: its study and optional blocks, less timed papers. */
-const fillMinutes = (plan: DayPlan): number =>
-  plan.slots.filter((s) => (s.kind === 'study' || s.kind === 'optional') && s.fixed === undefined).reduce((a, s) => a + s.end - s.start, 0);
-
-/** `fixed` gives a date's fixed blocks (timed papers), placed first in that day; none by default. */
-export function DayPlanner({ p, fixed = NO_FIXED }: { p: Progress; fixed?: (date: string) => readonly FixedBlock[] }) {
+/**
+ * `fixed` gives a date's fixed blocks (timed papers), placed first in that day; none by
+ * default. `log` and `onLog`, when given, share the day log with Today's header, so a new
+ * wake time or a tick shows there at once; without them the planner keeps its own.
+ */
+export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog }: {
+  p: Progress; fixed?: (date: string) => readonly FixedBlock[]; log?: DayLog; onLog?: (f: (l: DayLog) => DayLog) => void;
+}) {
   const [, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick((n) => n + 1), 30_000);
     return () => clearInterval(id);
   }, []);
-  const [log, setLog] = useState<DayLog>(loadDays);
+  const [own, setOwn] = useState<DayLog>(loadDays);
+  const log = shared ?? own;
+  const setLog = onLog ?? setOwn;
   const [showAll, setShowAll] = useState(false);
   const t = now();
   const today = planDate(t);
   const [date, setDate] = useState(today);
-  const current: DayEntry = log[date] ?? { wake: DEFAULT_WAKE, ticks: [] };
+  const v = dayView(p, log, date, t, fixed);
+  const { entry: current, wake, plan, isToday, nowMin, ticks, queue, studySlots, fill, upNext, cur, coreDone, dryBlocks } = v;
   const wakeText = current.wake;
-  const wake = parseClock(wakeText) ?? (parseClock(DEFAULT_WAKE) as number);
-  const fixedHere = fixed(date);
-  const plan = planOf(date, current, fixedHere) ?? (planOf(date, { wake: DEFAULT_WAKE, ticks: [] }, fixedHere) as DayPlan);
-  const isToday = date === today;
-  const nowMin = planMinute(t);
-  const ticks = new Set(current.ticks);
+  const fixedHere = v.fixed;
 
   const save = (d: string, e: DayEntry): void => setLog((l) => saveDay(l, d, e));
   const setWake = (w: string): void => {
@@ -153,14 +149,7 @@ export function DayPlanner({ p, fixed = NO_FIXED }: { p: Progress; fixed?: (date
     save(date, { ...current, ticks: [...next].sort((a, b) => a - b) });
   };
 
-  // The queue fills the day's study minutes, less redos; other days have no queue yet.
-  const budgetFor = (budgetPlan: DayPlan): number =>
-    Math.max(0, fillMinutes(budgetPlan) - dayItems(p, t).filter((x) => x.kind === 'redo').length * REDO_MINUTES);
-  const budget = isToday ? budgetFor(plan) : 0;
-  const day = localDay(t);
-  // Planning the forecast runs the scheduler round after round, so it is kept until the document, budget, or day changes.
-  const queue = useMemo(() => ({ at: t, items: isToday ? dayItems(p, t, budget) : [] }), [p, isToday, budget, day]);
-  const items = queue.items;
+  const budget = v.budget;
   // The forecast is added at the moment it was planned, so its tasks are the ones shown.
   const addDay = (): void => {
     const next = withDayTasks(p, queue.at, budget);
@@ -170,39 +159,15 @@ export function DayPlanner({ p, fixed = NO_FIXED }: { p: Progress; fixed?: (date
     const at = nowMin;
     const next = replanDay(plan, at, [...ticks], fixedHere);
     save(date, { ...current, replans: [...(current.replans ?? []), { at, ticks: [...ticks] }] });
-    void commit(replanDayTasks(p, t, budgetFor(next)));
+    void commit(replanDayTasks(p, t, budgetFor(p, next, t)));
   };
 
-  const studySlots = plan.slots.filter((s) => s.kind === 'study' || s.kind === 'optional');
-  const fillSlots = studySlots.filter((s) => s.fixed === undefined);
-  const { filled, left } = fillBlocks(fillSlots.map((s) => ({ minutes: s.end - s.start, heavy: s.heavy, optional: s.kind === 'optional' })), items);
-  const fill = new Map<Slot, DayItem[]>(fillSlots.map((s, i) => [s, filled[i] ?? []]));
-  const dryBlocks = isToday ? fillSlots.filter((s) => (fill.get(s) ?? []).length === 0).length : 0;
-
-  // Up next: what is still to do, in the order the day takes it.
-  const upNext: Next[] = [];
-  for (const s of studySlots) {
-    if (s.fixed !== undefined) {
-      if (!ticks.has(s.start) && !(isToday && s.end <= nowMin)) upNext.push({ paper: s });
-      continue;
-    }
-    for (const x of fill.get(s) ?? []) if (!x.done) upNext.push({ item: x, slot: s });
-  }
-  for (const x of left) if (!x.done) upNext.push({ item: x, slot: null });
   const shown = showAll ? upNext : upNext.slice(0, UP_NEXT);
-
-  const cur = isToday ? plan.slots.find((s) => s.kind !== 'break' && nowMin >= s.start && nowMin < s.end) : undefined;
   const empty = (s: Slot): { what: string; detail: string } => ({
     what: s.kind === 'optional' ? 'Light study' : 'Study',
     detail: isToday ? 'Today\'s queue has nothing more for this block.' : 'Filled from the queue on the day.',
   });
 
-  // The progress line: core study done, a block counting whole once ticked and by the clock while it runs.
-  const coreDone = Math.min(CORE, plan.slots.filter((s) => s.kind === 'study').reduce((a, s) => {
-    const len = s.end - s.start;
-    if (ticks.has(s.start)) return a + len;
-    return isToday ? a + Math.min(len, Math.max(0, nowMin - s.start)) : a;
-  }, 0));
   const short = Math.max(0, CORE - plan.core);
   const state = (start: number, end: number): string => (!isToday ? '' : nowMin >= end ? ' past' : nowMin >= start ? ' now' : '');
 
@@ -211,16 +176,12 @@ export function DayPlanner({ p, fixed = NO_FIXED }: { p: Progress; fixed?: (date
   const sat = addDays(fri, 1);
   const shortDate: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' };
 
-  const week = weekOf(date).map((d) => {
-    const e = log[d];
-    const dp = e === undefined ? null : planOf(d, e, fixed(d));
-    return { date: d, minutes: e === undefined || dp === null ? 0 : tickedMinutes(dp, e.ticks) };
-  });
-  const weekMinutes = week.reduce((a, d) => a + d.minutes, 0);
+  const week = weekMinutes(log, date, fixed);
+  const weekTotal = week.reduce((a, d) => a + d.minutes, 0);
 
   return (
     <section class="day" aria-labelledby="today-title">
-      <h1 id="today-title">{dayTitle(date)}</h1>
+      <h2 id="today-title" class="d-title">{dayTitle(date)}</h2>
       <div class="d-meta">
         <span>{longDate(date, { month: 'long', day: 'numeric' })}</span>
         <WakeTime value={wakeText} onChange={setWake} />
@@ -381,7 +342,7 @@ export function DayPlanner({ p, fixed = NO_FIXED }: { p: Progress; fixed?: (date
       )}
 
       <section class="sec" aria-labelledby="this-week">
-        <div class="sec-h"><h2 id="this-week">This week</h2><span>{hours(weekMinutes)} of {WEEK_TARGET_HOURS} h</span></div>
+        <div class="sec-h"><h2 id="this-week">This week</h2><span>{hours(weekTotal)} of {WEEK_TARGET_HOURS} h</span></div>
         <ol class="d-week">
           {week.map((d, i) => (
             <li key={d.date} class={`${d.date === date ? 'cur' : ''}${i === 6 ? ' shab' : ''}`}>

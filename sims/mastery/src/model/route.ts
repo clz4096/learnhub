@@ -12,6 +12,8 @@
  *   #/progress    per course, backup, settings
  *   #/glossary    every term; #/glossary/<id> at one entry
  *   #/campaign    the Cambridge Entry campaign; #/paper/<id> one past paper in exam mode
+ *   #/papers      the campaign's past papers (Admission's Papers tab)
+ *   #/gym         gym mode: recall cards, proof orders, drills, and listening
  *   #/report      the results report
  *   #/letters     the campaign's letters
  *   #/story       story mode: the chapters, scenes to replay, REP, relationships
@@ -37,6 +39,8 @@ export type Route =
   | { view: 'glossary'; termId: string | null }
   | { view: 'campaign' }
   | { view: 'paper'; paperId: string }
+  | { view: 'papers' }
+  | { view: 'gym' }
   | { view: 'report' }
   | { view: 'letters' }
   | { view: 'story' };
@@ -63,6 +67,8 @@ export function parseRoute(hash: string): Route {
     case 'glossary': return { view: 'glossary', termId: id };
     case 'campaign': return { view: 'campaign' };
     case 'paper': return id === null ? { view: 'campaign' } : { view: 'paper', paperId: id };
+    case 'papers': return { view: 'papers' };
+    case 'gym': return { view: 'gym' };
     case 'report': return { view: 'report' };
     case 'letters': return { view: 'letters' };
     case 'story': return { view: 'story' };
@@ -84,6 +90,8 @@ export function hrefOf(r: Route): string {
     case 'glossary': return r.termId === null ? '#/glossary' : `#/glossary/${encodeURIComponent(r.termId)}`;
     case 'campaign': return '#/campaign';
     case 'paper': return `#/paper/${encodeURIComponent(r.paperId)}`;
+    case 'papers': return '#/papers';
+    case 'gym': return '#/gym';
     case 'report': return '#/report';
     case 'letters': return '#/letters';
     case 'story': return '#/story';

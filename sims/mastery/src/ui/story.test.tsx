@@ -1,7 +1,7 @@
 /**
  * Story mode in the app: the Prologue on first launch (once, skippable, replayable), the
- * choices and the end card, First Light from real progress, Shabbat and work in progress
- * holding scenes back, the Story tab, and Book One's campaign scenes from a real campaign
+ * choices and the end card, First Light from real progress, scenes playing as soon as they
+ * trigger except on Shabbat and during a timed paper (then Today says one is ready), the Story tab, and Book One's campaign scenes from a real campaign
  * (the registry loaded on demand, letters filed, real marks on the end cards).
  */
 import 'fake-indexeddb/auto';
@@ -151,18 +151,45 @@ describe('the Prologue', () => {
     expect(dialog()).toBeNull();
     expect(story.value.queued.map((q) => q.id)).toEqual(['prologue']);
     expect(document.querySelector('main')?.textContent).toContain('Ready. It waits until Saturday sundown to play by itself.');
-    click('Play The Kitchen Table');
+    // The scene card leads the tab, with its art and a Play button.
+    const card = document.querySelector('.ds-scenecard') as HTMLElement;
+    expect(card.querySelector('b')?.textContent).toBe('The Kitchen Table');
+    expect(card.querySelector('.ds-art svg')).not.toBeNull();
+    fireEvent.click(card.querySelector('button') as HTMLElement);
     await waitFor(() => expect(dialog()).not.toBeNull());
   });
 
-  it('waits while a lesson is open', async () => {
+  it('on Shabbat a waiting scene shows on Today as one line, which plays it', async () => {
+    setClock(() => SATURDAY);
+    await withCourse();
+    render(<App />);
+    await flush();
+    await new Promise((r) => setTimeout(r, 20));
+    expect(dialog()).toBeNull();
+    const line = await screen.findByRole('button', { name: /A scene is ready: The Kitchen Table/ });
+    fireEvent.click(line);
+    await waitFor(() => expect(dialog()).not.toBeNull());
+  });
+
+  it('plays at once even with a lesson open', async () => {
     await withCourse();
     go({ view: 'task', index: 0 });
+    render(<App />);
+    await waitFor(() => expect(dialog()).not.toBeNull());
+  });
+
+  it('waits while a timed paper runs, on any screen, and Today says it is ready', async () => {
+    await withCourse();
+    let c = newCampaign('cs', T0);
+    c = startSitting(c, 'tmua-2016-p1', 1, T0);
+    saveCampaign(c);
     render(<App />);
     await flush();
     await new Promise((r) => setTimeout(r, 20));
     expect(dialog()).toBeNull();
     expect(story.value.queued.map((q) => q.id)).toEqual(['prologue']);
+    expect(await screen.findByRole('button', { name: /A scene is ready/ })).toBeTruthy();
+    saveCampaign(null);
   });
 });
 
@@ -194,13 +221,13 @@ describe('First Light', () => {
 });
 
 describe('the Story tab', () => {
-  it('follows Letters in the tabs and shows REP, relationships, and every scene with its real trigger', async () => {
+  it('is the fourth tab and shows REP, relationships, and every scene with its real trigger', async () => {
     prologueSeen();
     await withCourse();
     render(<App />);
     await flush();
-    expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent).slice(-2)).toEqual(['Letters', 'Story']);
-    fireEvent.click(screen.getByText('Story', { selector: 'nav a' }));
+    expect([...document.querySelectorAll('nav.ds-nav a.ds-tab .ds-tab-l')].map((a) => a.textContent).slice(-2)).toEqual(['Story', 'You']);
+    fireEvent.click(document.querySelector('nav.ds-nav a[data-nav="story"]') as Element);
     expect(location.hash).toBe('#/story');
     const main = (): string => document.querySelector('main')?.textContent ?? '';
     expect(document.querySelector('main h1')?.textContent).toBe('Story');

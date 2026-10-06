@@ -52,10 +52,10 @@ export function WithAdmissions({ children }: { children: (adm: Admissions) => Co
   return <p class="camp c-tiny">Loading the paper registry.</p>;
 }
 
-export function AppLink({ to, children, class: cls }: { to: Route; children: ComponentChildren; class?: string }) {
+export function AppLink({ to, children, class: cls, 'aria-current': current }: { to: Route; children: ComponentChildren; class?: string; 'aria-current'?: 'page' }) {
   return (
     <a
-      href={hrefOf(to)} class={cls}
+      href={hrefOf(to)} class={cls} aria-current={current}
       onClick={(e) => {
         if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();

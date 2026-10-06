@@ -1,15 +1,16 @@
 /**
- * One universal way home (design decision 19a): on every route, in every state of the
- * learner, the header's title and the Home item go home (Start before a course is chosen,
- * Today after), the browser's Back still returns to where the learner was, leaving by
- * Home keeps the place, and Escape closes every overlay.
+ * One universal way home (design decision 19a, in design v4): on every tab route, in every
+ * state of the learner, the rail's title and the Home (Today) tab go home (Start before a
+ * course is chosen, Today after); a focus screen (a lesson) hides the tabs and its bar's
+ * back button, or Escape, returns to where the learner came from. The browser's Back still
+ * returns to where the learner was, leaving keeps a lesson's place, and Escape closes every
+ * overlay.
  */
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import { IDBFactory } from 'fake-indexeddb';
 import type { IdbFactoryLike } from '@learnhub/mastery';
-import { planDate } from '@/model/day';
 import { DEFAULT_COURSES, ensureSession, startLearner } from '@/model/learner';
 import { loadPlace } from '@/model/lessonState';
 import { go, hrefOf, parseRoute, route, type Route } from '@/model/route';
@@ -17,11 +18,13 @@ import { commit, flush, init, progress, setClock } from '@/model/store';
 import { App } from '@/ui/App';
 import { helpOpen, tour } from '@/ui/help/state';
 import { termOpen } from '@/ui/termState';
-import { dayTitle } from '@/ui/views/DayPlanner';
+import { emptyStory, NO_NUMBERS } from '@/model/story';
+import { saveStory } from '@/model/storyStore';
+import { LEARNER_NAME, focusOf, greeting, nyClock } from '@/model/shell';
 
 const T0 = new Date(2026, 9, 4, 9, 0).getTime();
-/** Today's heading is the day's name. */
-const TODAY = dayTitle(planDate(T0));
+/** Today's heading is the greeting. */
+const TODAY = `${greeting(nyClock(T0).h)}, ${LEARNER_NAME}.`;
 
 /** The browser's Back: resolves once the app has seen the hash change. */
 async function back(): Promise<void> {
@@ -40,8 +43,9 @@ async function back(): Promise<void> {
 }
 
 const heading = (): string | null | undefined => document.querySelector('main h1')?.textContent;
-const title = (): HTMLAnchorElement => document.querySelector('header .app-title') as HTMLAnchorElement;
-const homeItem = (): HTMLAnchorElement => document.querySelector('nav.nav a[data-nav="home"]') as HTMLAnchorElement;
+const title = (): HTMLAnchorElement => document.querySelector('nav.ds-nav .app-title') as HTMLAnchorElement;
+const homeItem = (): HTMLAnchorElement => document.querySelector('nav.ds-nav a[data-nav="home"]') as HTMLAnchorElement;
+const tabs = (): (string | null)[] => [...document.querySelectorAll('nav.ds-nav a.ds-tab .ds-tab-l')].map((a) => a.textContent);
 
 beforeEach(async () => {
   Element.prototype.scrollTo ??= () => {};
@@ -51,6 +55,8 @@ beforeEach(async () => {
   history.replaceState(null, '', '#/');
   route.value = parseRoute('#/');
   setClock(() => T0);
+  // The Prologue seen, so it does not play over the views under test.
+  saveStory({ ...emptyStory(), seen: { prologue: { first: T0, last: T0, plays: 1, n: { ...NO_NUMBERS } } } });
   await init(new IDBFactory() as unknown as IdbFactoryLike);
 });
 afterEach(cleanup);
@@ -79,20 +85,39 @@ const STATES = {
   },
 } as const;
 
-describe('every route has a header with a way home', () => {
+describe('every route has a way home', () => {
   for (const [state, setUp] of Object.entries(STATES)) {
     const started = state === 'a learner with a course';
     const home = started ? '#/' : '#/start';
     const homeHeading = started ? TODAY : 'Welcome';
     for (const r of ROUTES) {
-      it(`${state}, at ${hrefOf(r)}: the title and Home go to ${home}`, async () => {
+      // With a course, a lesson is a focus screen: no tabs, a bar with one way back.
+      const focus = started && focusOf(r, null) !== null;
+      it(`${state}, at ${hrefOf(r)}: ${focus ? 'the focus bar and Escape go back' : `the title and Home go to ${home}`}`, async () => {
         await setUp();
+        if (focus) {
+          go({ view: 'today' });
+          go(r);
+          render(<App />);
+          await flush();
+          expect(document.querySelector('nav.ds-nav')).toBeNull();
+          fireEvent.click(document.querySelector('.ds-fbar-back') as HTMLElement);
+          await flush();
+          expect(document.querySelector('nav.ds-nav')).not.toBeNull();
+          // And by Escape, from the same route again.
+          go(r);
+          await flush();
+          fireEvent.keyDown(document.body, { key: 'Escape' });
+          await flush();
+          expect(document.querySelector('nav.ds-nav')).not.toBeNull();
+          return;
+        }
         go(r);
         render(<App />);
         await flush();
         expect(title().getAttribute('href')).toBe(home);
         expect(homeItem().getAttribute('href')).toBe(home);
-        expect(homeItem().textContent).toBe(started ? 'Today' : 'Home');
+        expect(homeItem().querySelector('.ds-tab-l')?.textContent).toBe(started ? 'Today' : 'Home');
         fireEvent.click(homeItem());
         await flush();
         expect(location.hash).toBe(home);
@@ -108,19 +133,20 @@ describe('every route has a header with a way home', () => {
     }
   }
 
-  it('the tabs before a course is chosen are Home and Glossary; after, Today, Course, Campaign, Report, Letters, and Story, with Progress and Glossary in the footer', async () => {
+  it('the tabs before a course is chosen are Home and Glossary; after, Today, Course, Admission, Story, and You, each with its number key', async () => {
     render(<App />);
-    expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Glossary']);
-    expect(document.querySelector('nav.foot-nav')).toBeNull();
+    expect(tabs()).toEqual(['Home', 'Glossary']);
     cleanup();
     await STATES['a learner with a course']();
     render(<App />);
-    expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Today', 'Course', 'Campaign', 'Report', 'Letters', 'Story']);
-    expect([...document.querySelectorAll('nav.foot-nav a')].map((a) => a.textContent)).toEqual(['Progress', 'Glossary']);
+    expect(tabs()).toEqual(['Today', 'Course', 'Admission', 'Story', 'You']);
+    expect([...document.querySelectorAll('nav.ds-nav a.ds-tab kbd')].map((k) => k.textContent)).toEqual(['1', '2', '3', '4', '5']);
     expect(homeItem().getAttribute('aria-current')).toBe('page');
-    expect(document.querySelector('nav.nav a[data-nav="map"]')?.getAttribute('href')).toBe('#/book');
-    expect(document.querySelector('nav.nav a[data-nav="letters"]')?.getAttribute('href')).toBe('#/letters');
-    expect(document.querySelector('nav.nav a[data-nav="story"]')?.getAttribute('href')).toBe('#/story');
+    const href = (id: string): string | null | undefined => document.querySelector(`nav.ds-nav a[data-nav="${id}"]`)?.getAttribute('href');
+    expect([href('course'), href('admission'), href('story'), href('you')]).toEqual(['#/book', '#/campaign', '#/story', '#/progress']);
+    // The brand block: the arms and the title, which goes home.
+    expect(document.querySelector('.ds-brand .ds-arms use')?.getAttribute('href')).toBe('#euclid-arms');
+    expect(title().textContent).toBe('Computational MathematicsUniversity of Cambridge');
   });
 
   it('a modified click on Home is left to the browser (open in a new tab)', async () => {
@@ -135,8 +161,9 @@ describe('every route has a header with a way home', () => {
 });
 
 describe('Home and the browser history', () => {
-  it('Back after Home returns to the lesson, which kept its place', async () => {
+  it('Back after leaving a lesson returns to the lesson, which kept its place', async () => {
     await STATES['a learner with a course']();
+    go({ view: 'today' });
     go({ view: 'task', index: 0 });
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Next: worked examples' }));
@@ -145,7 +172,8 @@ describe('Home and the browser history', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next problem' }));
     expect(screen.getByText(/^Problem 2\./)).toBeTruthy();
 
-    fireEvent.click(homeItem());
+    // The lesson is a focus screen: its bar's back button returns to Today, where it was opened from.
+    fireEvent.click(document.querySelector('.ds-fbar-back') as HTMLElement);
     await flush();
     expect(location.hash).toBe('#/');
     expect(heading()).toBe(TODAY);
@@ -182,8 +210,9 @@ describe('Escape closes every overlay', () => {
 
   it('the help dialog, a glossary term, and the tour', async () => {
     await STATES['a learner with a course']();
+    go({ view: 'progress' });
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Help' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Help/ }));
     expect(helpOpen.value).toBe(true);
     esc(document.querySelector('.modal.help') as Element);
     await waitFor(() => expect(helpOpen.value).toBe(false));
@@ -215,7 +244,8 @@ describe('Escape closes every overlay', () => {
     await STATES['a learner with a course']();
     go({ view: 'map', topicId: 'pre.fractions' });
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Help' }));
+    helpOpen.value = true;
+    await waitFor(() => expect(document.querySelector('.modal.help')).not.toBeNull());
     esc(document.querySelector('.modal.help') as Element);
     await waitFor(() => expect(helpOpen.value).toBe(false));
     expect(location.hash).toBe('#/map/pre.fractions');

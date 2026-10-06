@@ -1,0 +1,28 @@
+
+ RUN  v5.0.3 /private/tmp/claude-501/-Users-bertburtbert-Brainstorm-brainstorm/df740534-a317-4551-8d2f-d6f7124b5846/scratchpad/gate-s2a/content
+
+ ❯ src/content.test.ts (2245 tests | 1 failed | 2243 skipped) 98357ms
+   ❯ probability claims (2)
+     × every generator with an experiment: the exact answer agrees with a simulation of it 96583ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/content.test.ts > probability claims > every generator with an experiment: the exact answer agrees with a simulation of it
+Error: Test timed out in 60000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/content.test.ts:641:3
+    639|   const close = (hits: number, p: number): boolean => Math.abs(hits / …
+    640|
+    641|   it('every generator with an experiment: the exact answer agrees with…
+       |   ^
+    642|     let checked = 0;
+    643|     for (const c of TOPIC_CONTENT) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed | 2243 skipped (2245)
+   Start at  03:03:30
+   Duration  110.72s (tests 89%, transform 9%, import 1%)
+

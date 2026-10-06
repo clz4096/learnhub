@@ -1,14 +1,14 @@
 /**
- * The Course tab: the whole degree as a book (mastery/DESIGN-BOOK.md, revision of
- * 2026-10-05), in the minimalist look. The contents page shows the years as collapsible
- * sections, each term's two tracks, core chapters with lecture counts and progress,
- * optional courses folded, and left-out courses listed quietly. "Here" marks the chapter
- * of the next step in book order. A chapter opens to its sections, and a section to its
- * steps, each linked to its lesson. Part IA and later carry a label: they open after the
- * Preparation campaign; nothing is blocked. The prerequisite map stays one link away.
+ * The Course tab: the whole degree as a book (mastery/DESIGN-BOOK.md), in design v4
+ * (mastery/design-v4.html): the four stages in plain words, what each covers and its main
+ * courses, and "6 of 11 lessons" counts on each chapter, with a Continue card for the next
+ * step in book order. The stage you are in is open; each stage opens to its chapters by
+ * term, optional courses folded and left-out ones listed quietly. A chapter opens to its
+ * sections, and a section to its steps, each linked to its lesson. Later stages open after
+ * the first; nothing is locked. The prerequisite map stays one link away.
  */
 import type { ComponentChildren } from 'preact';
-import { BOOK, PREREQ_FLAGS, TRACK_NAMES, chapterById, type BookChapter, type BookSection, type BookTerm, type BookYear, type Track } from '@learnhub/content/book';
+import { BOOK, PREREQ_FLAGS, TRACK_NAMES, chapterById, type BookChapter, type BookSection, type BookYear } from '@learnhub/content/book';
 import type { Progress } from '@learnhub/mastery';
 import { STEP_TEXT, chapterProgress, hereChapter, neighbours, nextInBook, stepStates, type StepState } from '@/model/book';
 import { titleOf } from '@/model/courses';
@@ -16,6 +16,7 @@ import { hasContent } from '@/model/learner';
 import { go, hrefOf, type Route } from '@/model/route';
 import { now, progress } from '@/model/store';
 import { BackLink } from '@/ui/BackLink';
+import { plainChapter, stageOf } from '@/ui/views/stages';
 
 const AFTER_PREP = 'Opens after the Preparation campaign';
 
@@ -38,12 +39,6 @@ export function BookLink({ to, cls, children }: { to: Route; cls?: string; child
 
 const lectures = (n: number | null): string => (n === null ? '' : `${n} lecture${n === 1 ? '' : 's'}`);
 const join = (xs: readonly string[]): string => xs.filter((x) => x !== '').join(' · ');
-
-function chapterStatus(p: Progress, ch: BookChapter, here: boolean): string {
-  const c = chapterProgress(p, ch);
-  const count = c.steps === 0 ? '' : c.learned === c.steps ? 'done' : c.written === 0 ? 'to write' : `${c.learned} of ${c.steps}`;
-  return here ? join(['here', count]) : count;
-}
 
 function StepList({ sec, states, next }: { sec: BookSection; states: ReadonlyMap<string, StepState>; next: string | undefined }) {
   return (
@@ -94,75 +89,6 @@ function Sections({ ch, p, states, next, open }: { ch: BookChapter; p: Progress;
   );
 }
 
-function ChapterRow({ ch, p, here, states, next }: { ch: BookChapter; p: Progress; here: boolean; states: ReadonlyMap<string, StepState>; next: string | undefined }) {
-  const status = chapterStatus(p, ch, here);
-  const sub = join([lectures(ch.lectures), ch.sections.length > 0 ? `${ch.sections.length} section${ch.sections.length === 1 ? '' : 's'}` : '', ch.runs]);
-  const cls = `book-ch${here ? ' here' : ''}`;
-  if (ch.sections.length === 0) {
-    return (
-      <li class={cls}>
-        <div class="book-row">
-          <BookLink to={{ view: 'chapter', chapterId: ch.id }} cls="t">{ch.title}</BookLink>
-          <span class="r">{status}</span>
-          {sub !== '' && <span class="s">{sub}</span>}
-        </div>
-      </li>
-    );
-  }
-  return (
-    <li class={cls}>
-      <details open={here}>
-        <summary class="book-row">
-          <span class="t">{ch.title}</span>
-          <span class={`r${here ? ' cam' : ''}`}>{status}</span>
-          {sub !== '' && <span class="s">{sub}</span>}
-        </summary>
-        <Sections ch={ch} p={p} states={states} next={next} open={false} />
-        <p class="book-open"><BookLink to={{ view: 'chapter', chapterId: ch.id }}>Open the chapter</BookLink></p>
-      </details>
-    </li>
-  );
-}
-
-function Term({ term, p, here, states, next }: { term: BookTerm; p: Progress; here: BookChapter | undefined; states: ReadonlyMap<string, StepState>; next: string | undefined }) {
-  const tracks = (['Maths', 'CS'] as const).filter((tr) => term.chapters.some((c) => c.track === tr));
-  const row = (c: BookChapter) => <ChapterRow key={c.id} ch={c} p={p} here={c === here} states={states} next={next} />;
-  return (
-    <div class="book-term">
-      <h3>{term.name}</h3>
-      {tracks.map((tr: Track) => {
-        const cs = term.chapters.filter((c) => c.track === tr);
-        const main = cs.filter((c) => c.status === 'core' || c.status === 'overlap');
-        const opt = cs.filter((c) => c.status === 'opt');
-        const out = cs.filter((c) => c.status === 'out');
-        return (
-          <div key={tr} class="book-track">
-            <p class="book-track-h">{TRACK_NAMES[tr]}</p>
-            {main.length > 0 && <ul class="book-list">{main.map(row)}</ul>}
-            {opt.length > 0 && (
-              <details class="book-opt" open={opt.includes(here as BookChapter)}>
-                <summary>{opt.length} optional</summary>
-                <ul class="book-list">{opt.map(row)}</ul>
-              </details>
-            )}
-            {out.length > 0 && <p class="book-out">Left out: {out.map((c) => c.title).join(', ')}.</p>}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function yearMeta(p: Progress, y: BookYear, here: BookChapter | undefined): string {
-  const chs = y.terms.flatMap((t) => t.chapters);
-  const ps = chs.map((c) => chapterProgress(p, c));
-  const steps = ps.reduce((a, c) => a + c.steps, 0);
-  const learned = ps.reduce((a, c) => a + c.learned, 0);
-  const pct = steps === 0 ? '' : `${Math.round((100 * learned) / steps)}%`;
-  const at = here !== undefined && chs.includes(here) ? here.termName : '';
-  return join([pct, at, y.afterPreparation ? AFTER_PREP : '']);
-}
-
 /** Today's "continue" line: the next step in book order, linked to its lesson. */
 export function ContinueReading({ p }: { p: Progress }) {
   const next = nextInBook(p);
@@ -178,29 +104,100 @@ export function ContinueReading({ p }: { p: Progress }) {
   );
 }
 
+/** A chapter on the Course tab: its plain name, the exam it belongs to as a small tag, and its lesson count. */
+function StageChapter({ ch, p, here }: { ch: BookChapter; p: Progress; here: boolean }) {
+  const c = chapterProgress(p, ch);
+  const name = plainChapter(ch.title);
+  const count = c.steps === 0 ? '' : `${c.learned} of ${c.steps}${here ? ' lessons' : ''}`;
+  return (
+    <li class={`book-ch${here ? ' here' : ''}`}>
+      <BookLink to={{ view: 'chapter', chapterId: ch.id }} cls="ds-ch">
+        <span class="t">
+          {name.name}
+          {name.tag !== null && <> <abbr class="ds-codetag" title={name.help ?? undefined}>{name.tag}</abbr></>}
+          {here && <span class="visually-hidden"> (you are here)</span>}
+        </span>
+        <span class="r">{count}</span>
+      </BookLink>
+    </li>
+  );
+}
+
+/** One stage's chapters, by term: the main courses, optional ones folded, left-out ones quietly. */
+function StageChapters({ y, p, here }: { y: BookYear; p: Progress; here: BookChapter | undefined }) {
+  return (
+    <div class="ds-chs">
+      {y.terms.map((term) => {
+        const main = term.chapters.filter((c) => c.status === 'core' || c.status === 'overlap');
+        const opt = term.chapters.filter((c) => c.status === 'opt');
+        const out = term.chapters.filter((c) => c.status === 'out');
+        return (
+          <div key={term.name} class="book-term">
+            {y.terms.length > 1 && <h3 class="ds-eyebrow">{term.name}</h3>}
+            {main.length > 0 && <ul class="ds-chlist">{main.map((c) => <StageChapter key={c.id} ch={c} p={p} here={c === here} />)}</ul>}
+            {opt.length > 0 && (
+              <details class="book-opt" open={opt.includes(here as BookChapter)}>
+                <summary>{opt.length} optional</summary>
+                <ul class="ds-chlist">{opt.map((c) => <StageChapter key={c.id} ch={c} p={p} here={c === here} />)}</ul>
+              </details>
+            )}
+            {out.length > 0 && <p class="book-out">Left out: {out.map((c) => c.title).join(', ')}.</p>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function BookView() {
   const p = progress.value;
   if (p === null) return null;
   const here = hereChapter(p);
-  const next = nextInBook(p)?.step.topicId;
-  const states = stepStates(p, now());
+  const next = nextInBook(p);
   const hereYear = BOOK.find((y) => y.id === here?.yearId);
+  const first = BOOK[0];
   return (
-    <section class="page book" aria-labelledby="book-title">
-      <h1 id="book-title">The course</h1>
-      <p class="lead">
-        Preparation, then Parts IA, IB, and II in Cambridge's term order, the Mathematical and Computer Science Triposes side by side.
-        {here !== undefined && hereYear !== undefined && <> You are in {hereYear.label.split(',')[0]}, {here.termName}.</>}
-      </p>
-      <ContinueReading p={p} />
+    <section class="ds-page book" aria-labelledby="book-title">
+      <div class="ds-eyebrow">Course</div>
+      <h1 id="book-title" class="ds-h1">{BOOK.length === 4 ? 'Four stages' : 'The course'}</h1>
+      <p class="ds-meta">the order Cambridge students take them</p>
+      {next !== undefined && (
+        <BookLink to={{ view: 'learn', topicId: next.step.topicId, from: 'book' }} cls="ds-now ds-cont">
+          <span class="ds-tag">CONTINUE</span>
+          <span class="ds-now-t">{titleOf(next.step.topicId)}</span>
+          <span class="ds-meta">{plainChapter(next.chapter.title).name} · {next.section.title}</span>
+        </BookLink>
+      )}
+      <ol class="ds-stages" aria-label="Stages">
+        {BOOK.map((y) => {
+          const st = stageOf(y);
+          const isHere = y === hereYear;
+          const chs = y.terms.flatMap((t) => t.chapters);
+          const ps = chs.map((c) => chapterProgress(p, c));
+          const steps = ps.reduce((a, c) => a + c.steps, 0);
+          const learned = ps.reduce((a, c) => a + c.learned, 0);
+          return (
+            <li key={y.id} class={`ds-stage${isHere ? ' here' : ''}`}>
+              <details class="book-yr" open={isHere}>
+                <summary>
+                  <span class="ds-stage-top">
+                    <span><span class="ds-num">{st.n}</span><span class="t ds-stage-n">{st.name}</span></span>
+                    {isHere
+                      ? <span class="ds-chip">{steps === 0 ? '' : `${Math.round((100 * learned) / steps)}%`}</span>
+                      : <span class="ds-meta">{y.afterPreparation && first !== undefined ? `after ${stageOf(first).name}` : steps === 0 ? '' : `${learned} of ${steps}`}</span>}
+                  </span>
+                  <span class="ds-what">{st.what}</span>
+                  {!isHere && st.peek.length > 0 && <span class="ds-peek">{st.peek.join(' · ')}</span>}
+                  <span class="visually-hidden">{y.label}</span>
+                </summary>
+                {y.afterPreparation && <p class="book-note">You can read ahead; nothing is locked.</p>}
+                <StageChapters y={y} p={p} here={here} />
+              </details>
+            </li>
+          );
+        })}
+      </ol>
       <p class="book-links"><BookLink to={{ view: 'map', topicId: null }}>Prerequisite map</BookLink></p>
-      {BOOK.map((y) => (
-        <details key={y.id} class="book-yr" open={y === hereYear}>
-          <summary><span class="t">{y.label}</span><span class="r">{yearMeta(p, y, here)}</span></summary>
-          {y.afterPreparation && <p class="book-note">{AFTER_PREP}. You can read ahead; nothing is locked.</p>}
-          {y.terms.map((t) => <Term key={t.name} term={t} p={p} here={here} states={states} next={next} />)}
-        </details>
-      ))}
     </section>
   );
 }

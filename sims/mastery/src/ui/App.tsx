@@ -1,88 +1,79 @@
 /**
- * The app shell, in the minimalist look: the course title, a row of text tabs (Today,
- * Course, Campaign, Report, Letters, Story), the current view in a reading column, and a footer
- * with Progress, the glossary, Help, and the theme. A new learner (no course yet) sees the
- * Start step on every route but the glossary; a learner with a course goes to Today, and
- * #/start is no longer a step for them (decision 20).
+ * The app shell (mastery/design-v4.html): five tabs, Today, Course, Admission, Story, and
+ * You. A phone gets a bar of tabs at the bottom; a wide screen gets a left rail with the
+ * arms and the title, the tabs with their number keys (1 to 5), and the search button.
+ * Cmd+K (Ctrl+K) opens the command palette anywhere.
  *
- * Every screen has the same way home (design decision 19a): the header is always shown,
- * its title goes home, and the tabs start with it. Home is the Start step until a course
- * is chosen and Today after. Leaving a lesson by Home keeps its place, as the Back links do.
+ * Focus mode: a lesson (or review, quiz, or problem), the gym, and a past paper while its
+ * clock runs hide the tabs behind a thin bar with one way back. Escape, or that bar's back
+ * button, returns to the screen the learner came from (after a reload, the screen the
+ * focus screen belongs to). Leaving keeps a lesson's place, as before.
  *
- * Dialogs (help, a glossary term, the tour) close whenever the route changes, so the
- * browser's Back never leaves one open over a view it does not belong to.
+ * A new learner (no course yet) sees the Start step on every route but the glossary, and
+ * the tabs are Home and Glossary; with a course, Home is Today (decision 20).
+ *
+ * Dialogs (help, a glossary term, the tour, the palette) close whenever the route changes,
+ * so the browser's Back never leaves one open over a view it does not belong to.
  *
  * Story mode's scenes play over everything (StoryPlayer), started by the story director
  * when real progress triggers one; the tour waits until no scene is playing or due.
  */
 import type { ComponentChildren } from 'preact';
-import { useEffect } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
+import { activeSitting } from '@/model/campaign';
+import { campaign } from '@/model/campaignStore';
+import { placeOf } from '@learnhub/content/book';
 import { go, hrefOf, listen, route, type Route } from '@/model/route';
-import { loadErrors, loadState, loadWarnings, progress, saveError, volatile } from '@/model/store';
-import { setTheme, theme, type Theme } from '@/model/theme';
+import {
+  TABS, backLabel, focusOf, isPaletteKey, isTyping, naturalParent, recentOf, tabOf, type FocusKind, type TabId,
+} from '@/model/shell';
+import { loadErrors, loadState, loadWarnings, now, progress, saveError, volatile } from '@/model/store';
 import { HelpDialog, Tour } from '@/ui/help/Help';
 import { autoStartTour, closeTour, helpOpen, tour } from '@/ui/help/state';
 import { BackLink } from '@/ui/BackLink';
 import { TermDialog } from '@/ui/TermDialog';
-import { closeTerm } from '@/ui/termState';
+import { closeTerm, termOpen } from '@/ui/termState';
 import { GlossaryView } from '@/ui/views/Glossary';
 import { BookView, ChapterView } from '@/ui/views/Book';
 import { MapView } from '@/ui/views/MapView';
-import { ProgressView, StartOver } from '@/ui/views/ProgressView';
+import { StartOver } from '@/ui/views/ProgressView';
+import { YouView } from '@/ui/views/You';
 import { Start } from '@/ui/views/Start';
 import { LearnView, TaskView } from '@/ui/views/Task';
 import { ProblemView } from '@/ui/views/Lesson';
 import { Today } from '@/ui/views/Today';
-import { CampaignView } from '@/ui/views/Campaign';
+import { CampaignView, PapersView } from '@/ui/views/Campaign';
 import { PaperView } from '@/ui/views/Paper';
 import { ReportView } from '@/ui/views/Report';
 import { LettersView } from '@/ui/views/Letters';
 import { StoryView } from '@/ui/views/Story';
+import { GymView } from '@/ui/views/Gym';
 import { StoryPlayer } from '@/ui/story/Player';
 import { useStoryDirector } from '@/ui/story/director';
 import { playing } from '@/model/storyStore';
 import { Arms, SealDefs } from '@/ui/Seal';
-
-type NavId = 'home' | 'map' | 'progress' | 'glossary' | 'campaign' | 'report' | 'letters' | 'story';
+import { SearchIcon, TabIcon } from '@/ui/shell/Icons';
+import { Palette, timedPaperRoute } from '@/ui/shell/Palette';
+import { RestTimer } from '@/ui/shell/RestTimer';
+import { addRecent, focusOrigin, paletteOpen } from '@/ui/shell/state';
 
 /** The displayed name; ids, routes, and storage keys keep "mastery". */
 export const APP_TITLE = 'Computational Mathematics at the University of Cambridge';
-
-const THEMES: readonly Theme[] = ['system', 'light', 'dark'];
 
 /** Where Home goes: the Start step until a course is chosen, then Today. */
 export function homeRoute(setUp: boolean): Route {
   return setUp ? { view: 'today' } : { view: 'start' };
 }
 
-type NavItem = { id: NavId; label: string; to: Route };
-const GLOSSARY: NavItem = { id: 'glossary', label: 'Glossary', to: { view: 'glossary', termId: null } };
+/** The `data-nav` id of each tab; Today is "home", the way home from anywhere. */
+const NAV_ID: Readonly<Record<TabId, string>> = { today: 'home', course: 'course', admission: 'admission', story: 'story', you: 'you' };
 
-/** The tabs: before a course is chosen only Home and the glossary can be visited. */
-function navItems(setUp: boolean): NavItem[] {
-  if (!setUp) return [{ id: 'home', label: 'Home', to: homeRoute(false) }, GLOSSARY];
-  return [
-    { id: 'home', label: 'Today', to: homeRoute(true) },
-    { id: 'map', label: 'Course', to: { view: 'book' } },
-    { id: 'campaign', label: 'Campaign', to: { view: 'campaign' } },
-    { id: 'report', label: 'Report', to: { view: 'report' } },
-    { id: 'letters', label: 'Letters', to: { view: 'letters' } },
-    { id: 'story', label: 'Story', to: { view: 'story' } },
-  ];
-}
-
-/** The footer's links, once a course is chosen (before, the glossary is a tab). */
-const FOOT_ITEMS: readonly NavItem[] = [{ id: 'progress', label: 'Progress', to: { view: 'progress' } }, GLOSSARY];
-
-function navOf(r: Route): NavId {
-  if (r.view === 'task' || r.view === 'today' || r.view === 'start' || r.view === 'problem') return 'home';
-  if (r.view === 'learn' || r.view === 'book' || r.view === 'chapter') return 'map';
-  if (r.view === 'paper') return 'campaign';
-  return r.view;
-}
+/** The palette's key, shown as the Mac writes it, or Ctrl+K elsewhere. */
+const isMac = (): boolean => typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+const paletteKey = (): string => (isMac() ? '⌘K' : 'Ctrl K');
 
 /** A link that moves within the app: a real href (open in a new tab works), handled by `go`. */
-function NavLink({ to, children, ...rest }: { to: Route; children: ComponentChildren; class?: string; 'data-nav'?: string; 'aria-current'?: 'page' }) {
+function NavLink({ to, children, ...rest }: { to: Route; children: ComponentChildren; class?: string; 'data-nav'?: string; 'aria-current'?: 'page'; 'aria-label'?: string }) {
   return (
     <a href={hrefOf(to)} {...rest} onClick={(e) => {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -105,10 +96,12 @@ function View({ r }: { r: Route }) {
     case 'chapter': return <ChapterView key={r.chapterId} chapterId={r.chapterId} />;
     case 'problem': return <ProblemView key={`${r.topicId}/${r.problemId}`} topicId={r.topicId} problemId={r.problemId} />;
     case 'map': return <MapView topicId={r.topicId} />;
-    case 'progress': return <ProgressView />;
+    case 'progress': return <YouView />;
     case 'glossary': return <GlossaryView termId={r.termId} />;
+    case 'gym': return <GymView />;
     // Only reached with a course chosen (see App), so the progress document is loaded.
     case 'campaign': return progress.value === null ? <Today /> : <CampaignView p={progress.value} />;
+    case 'papers': return progress.value === null ? <Today /> : <PapersView p={progress.value} />;
     case 'paper': return <PaperView key={r.paperId} paperId={r.paperId} />;
     case 'report': return progress.value === null ? <Today /> : <ReportView p={progress.value} />;
     case 'letters': return progress.value === null ? <Today /> : <LettersView p={progress.value} />;
@@ -116,19 +109,59 @@ function View({ r }: { r: Route }) {
   }
 }
 
+const FOCUS_LABEL: Readonly<Record<FocusKind, string>> = { lesson: '', gym: 'gym · REP ×0.5', paper: 'timed · no hints' };
+
+/** Leaves a focus screen for where the learner came from. */
+export function exitFocus(): void {
+  const r = route.peek();
+  go(focusOrigin.peek() ?? naturalParent(r, (id) => placeOf(id)?.chapter.id));
+}
+
+function FocusBar({ kind }: { kind: FocusKind }) {
+  const r = route.value;
+  const to = focusOrigin.value ?? naturalParent(r, (id) => placeOf(id)?.chapter.id);
+  return (
+    <div class="ds-fbar" role="navigation" aria-label="Focus mode">
+      <button type="button" class="ds-fbar-back" onClick={exitFocus} aria-label={`Back to ${backLabel(to)} (Escape)`}>
+        <span aria-hidden="true">← </span>{backLabel(to)}
+      </button>
+      <span class="ds-fbar-mid">{FOCUS_LABEL[kind]}</span>
+      {kind === 'gym'
+        ? <RestTimer />
+        : <button type="button" class="ds-fbar-k" onClick={() => { paletteOpen.value = true; }} aria-label={`Search (${paletteKey()})`}>{paletteKey()}</button>}
+    </div>
+  );
+}
+
+/** Something is open over the page that takes Escape and the keys for itself. */
+const overlayOpen = (): boolean =>
+  paletteOpen.peek() || playing.peek() !== null || helpOpen.peek() || termOpen.peek() !== null || tour.peek().open
+  || (typeof document !== 'undefined' && document.querySelector('.modal-layer, .tour-layer, .map-details.open') !== null);
+
 export function App() {
   useEffect(() => listen(), []);
   const r = route.value;
   const p = progress.value;
   const setUp = p !== null && p.courses.length > 0;
   const ready = loadState.value === 'ready';
+  const running = campaign.value === null ? undefined : activeSitting(campaign.value);
+  const focus = setUp ? focusOf(r, running?.paperId ?? null) : null;
 
   // Declared before the tour's auto start, so arriving at Today closes nothing it opens.
   const href = hrefOf(r);
+  const prev = useRef<{ r: Route; focus: boolean } | null>(null);
   useEffect(() => {
     closeTerm();
     helpOpen.value = false;
+    paletteOpen.value = false;
     if (tour.value.open) closeTour();
+    // Remember where a focus screen was entered from; forget it on leaving focus mode.
+    const before = prev.current;
+    if (focus === null || before === null) focusOrigin.value = null;
+    else if (!before.focus) focusOrigin.value = before.r;
+    prev.current = { r, focus: focus !== null };
+    const recent = recentOf(r, now());
+    if (recent !== null) addRecent(recent);
   }, [href]);
 
   // Declared before the tour's auto start, so a scene that starts now holds the tour back.
@@ -144,10 +177,39 @@ export function App() {
   // The route is read when the effect runs, not when it was scheduled: a click on Home in
   // between must not be overwritten by a redirect meant for the URL before it.
   useEffect(() => {
-    const now = route.peek().view;
+    const at = route.peek().view;
     if (!ready) return;
-    if (setUp ? now === 'start' : now !== 'start' && now !== 'glossary') go(homeRoute(setUp), { replace: true });
+    if (setUp ? at === 'start' : at !== 'start' && at !== 'glossary') go(homeRoute(setUp), { replace: true });
   }, [ready, setUp, href]);
+
+  // The keys that work everywhere: the palette, Escape out of focus mode, 1 to 5 for the
+  // tabs, G for the gym, and T for a timed paper. Single keys never act while typing.
+  useEffect(() => {
+    const on = (e: KeyboardEvent): void => {
+      if (isPaletteKey(e)) {
+        if (playing.peek() !== null) return;
+        e.preventDefault();
+        paletteOpen.value = !paletteOpen.peek();
+        return;
+      }
+      if (e.defaultPrevented || overlayOpen()) return;
+      const doc = progress.peek();
+      if (doc === null || doc.courses.length === 0) return;
+      const c = campaign.peek();
+      const inFocus = focusOf(route.peek(), c === null ? null : activeSitting(c)?.paperId ?? null) !== null;
+      if (e.key === 'Escape') {
+        if (inFocus && !isTyping(e.target)) { e.preventDefault(); exitFocus(); }
+        return;
+      }
+      if (inFocus || e.metaKey || e.ctrlKey || e.altKey || isTyping(e.target)) return;
+      const tab = TABS.find((t) => t.key === e.key);
+      if (tab !== undefined) { e.preventDefault(); go(tab.to); return; }
+      if (e.key === 'g' || e.key === 'G') { e.preventDefault(); go({ view: 'gym' }); return; }
+      if (e.key === 't' || e.key === 'T') { e.preventDefault(); go(timedPaperRoute()); }
+    };
+    document.addEventListener('keydown', on);
+    return () => document.removeEventListener('keydown', on);
+  }, []);
 
   let body;
   if (loadState.value === 'loading') body = <p class="page">Loading your progress.</p>;
@@ -172,44 +234,65 @@ export function App() {
     );
   } else body = <View r={r} />;
 
-  const active = navOf(r);
+  const active = tabOf(r);
   const home = homeRoute(setUp);
-  const link = (n: NavItem) => (
-    <NavLink key={n.id} to={n.to} data-nav={n.id} class={active === n.id ? 'on' : ''} aria-current={active === n.id ? 'page' : undefined}>
-      {n.label}
-    </NavLink>
-  );
-  const t = theme.value;
+  const k = paletteKey();
   return (
     <>
-      <div class="app" inert={scene}>
+      <div class={`app${focus !== null ? ' focus' : ''}`} inert={scene || paletteOpen.value}>
         <a class="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to content</a>
         <SealDefs />
-        <header class="top">
-          <div class="brand">
-            <Arms class="brand-arms" />
-            <NavLink to={home} class="app-title">{APP_TITLE}</NavLink>
-          </div>
-          <nav class="nav" aria-label="Main">{navItems(setUp).map(link)}</nav>
-        </header>
-        {volatile.value && <p class="banner warning small">This browser does not offer storage here, so progress will be lost when the tab closes. Export a file in Progress to keep it.</p>}
-        {saveError.value !== null && <p class="banner error small" role="alert">Saving failed: {saveError.value}. Export a progress file to keep your work.</p>}
-        {loadWarnings.value.length > 0 && <p class="banner warning small">Some saved data was out of date and was dropped: {loadWarnings.value.slice(0, 3).join('; ')}.</p>}
-        <main id="main" tabIndex={-1}>{body}</main>
-        <footer class="app-foot">
-          {setUp && <nav class="foot-nav" aria-label="More">{FOOT_ITEMS.map(link)}</nav>}
-          <button type="button" class="foot-btn help-button" onClick={() => { helpOpen.value = true; }}>Help</button>
-          <button
-            type="button" class="foot-btn theme-button"
-            onClick={() => setTheme(THEMES[(THEMES.indexOf(t) + 1) % THEMES.length] as Theme)}
-          >
-            Theme: {t}
-          </button>
-        </footer>
+        {focus === null && (
+          <nav class="ds-nav" aria-label="Main">
+            <div class="ds-brand">
+              <Arms class="ds-arms" />
+              <NavLink to={home} class="app-title" aria-label={`${APP_TITLE}, home`}>
+                <b>Computational Mathematics</b><span>University of Cambridge</span>
+              </NavLink>
+            </div>
+            {setUp
+              ? TABS.map((t) => (
+                <NavLink
+                  key={t.id} to={t.to} data-nav={NAV_ID[t.id]} class={`ds-tab${active === t.id ? ' on' : ''}`}
+                  aria-current={active === t.id ? 'page' : undefined}
+                >
+                  <TabIcon id={t.id} /><span class="ds-tab-l">{t.label}</span><kbd aria-hidden="true">{t.key}</kbd>
+                </NavLink>
+              ))
+              : (
+                <>
+                  <NavLink to={home} data-nav="home" class={`ds-tab${r.view !== 'glossary' ? ' on' : ''}`} aria-current={r.view !== 'glossary' ? 'page' : undefined}>
+                    <TabIcon id="today" /><span class="ds-tab-l">Home</span>
+                  </NavLink>
+                  <NavLink to={{ view: 'glossary', termId: null }} data-nav="glossary" class={`ds-tab${r.view === 'glossary' ? ' on' : ''}`} aria-current={r.view === 'glossary' ? 'page' : undefined}>
+                    <TabIcon id="course" /><span class="ds-tab-l">Glossary</span>
+                  </NavLink>
+                </>
+              )}
+            {setUp && (
+              <button type="button" class="ds-kbtn" onClick={() => { paletteOpen.value = true; }} aria-label={`Search or jump to (${k})`}>
+                <SearchIcon /><span>Search or jump to…</span><kbd aria-hidden="true">{k}</kbd>
+              </button>
+            )}
+          </nav>
+        )}
+        <div class="ds-main">
+          {focus !== null && <FocusBar kind={focus} />}
+          {focus === null && setUp && (
+            <button type="button" class="ds-msearch" onClick={() => { paletteOpen.value = true; }} aria-label="Search or jump to">
+              <SearchIcon />
+            </button>
+          )}
+          {volatile.value && <p class="banner warning small">This browser does not offer storage here, so progress will be lost when the tab closes. Export a file in You to keep it.</p>}
+          {saveError.value !== null && <p class="banner error small" role="alert">Saving failed: {saveError.value}. Export a progress file to keep your work.</p>}
+          {loadWarnings.value.length > 0 && <p class="banner warning small">Some saved data was out of date and was dropped: {loadWarnings.value.slice(0, 3).join('; ')}.</p>}
+          <main id="main" tabIndex={-1}>{body}</main>
+        </div>
         <TermDialog />
         <HelpDialog />
         <Tour />
       </div>
+      <Palette />
       <StoryPlayer />
     </>
   );

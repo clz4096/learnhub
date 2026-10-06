@@ -8,6 +8,7 @@ describe('routes', () => {
     { view: 'map', topicId: null }, { view: 'map', topicId: 'num.gcd' }, { view: 'progress' },
     { view: 'glossary', termId: null }, { view: 'glossary', termId: 'union' },
     { view: 'book' }, { view: 'chapter', chapterId: 'ia-discrete-mathematics' }, { view: 'learn', topicId: 'proof.direct', from: 'book' },
+    { view: 'gym' }, { view: 'papers' },
   ];
   for (const r of all) it(`round-trips ${hrefOf(r)}`, () => expect(parseRoute(hrefOf(r))).toEqual(r));
   it('falls back to Today on anything unknown or malformed', () => {

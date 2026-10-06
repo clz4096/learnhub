@@ -19,16 +19,17 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'home',
     title: 'Getting around',
     paragraphs: [
-      'Today, first in the tabs, and the course title at the top both take you home from any screen: the start page until you choose your course, then Today.',
-      'The tabs are Today, Course (the map), Campaign, Report, and Letters. Progress, the glossary, Help, and the theme are at the foot of every page.',
-      'Leaving a lesson this way keeps your place, as the Back links do. The browser\'s Back button works too, and Escape closes a dialog or the topic panel on the map.',
+      'There are five tabs: Today, Course, Admission, Story, and You. On a phone they sit at the bottom of the screen; on a computer they run down the left, and the keys 1 to 5 switch between them.',
+      'Press Command K (Ctrl K on Windows), or the search button, to search lessons, glossary terms, and past papers, or to jump to an action. G starts the gym and T a timed paper.',
+      'A lesson, the gym, and a timed paper open in focus mode: the tabs hide, and Escape or the back button at the top returns to where you came from. Your place in a lesson is kept, and the browser\'s Back button works too.',
+      'The glossary, the map, Help, and the theme are on the You tab.',
     ],
   },
   {
     id: 'today',
     title: 'Today',
     paragraphs: [
-      'Today shows the day as a timeline from your wake time. Set the time you woke, or press now, and tick blocks off as you go. Study items link straight into the lesson.',
+      'Today opens with the time, what to do now, and what comes later. Open The whole day for the timeline from your wake time: set the time you woke, or press now, and tick blocks off as you go. Study items link straight into the lesson.',
       'Below the timeline, Today\'s session lists the tasks in order, with the reason for each one. Press Start on the first task, and Continue moves you on to the next one.',
       'Minutes left counts the planned time of the tasks still open. Lesson minutes per course shows how today\'s new lessons split between the courses.',
       'You can skip a task. It is not marked as failed; it simply waits for another day.',
@@ -77,8 +78,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'progress',
     title: 'Progress, settings, and backups',
     paragraphs: [
-      'Progress shows each course and how much is learned. Settings change your daily minutes and how new lessons are split between courses.',
-      'Your progress lives in this browser only. Export a progress file to keep a copy or to move to another device, then Import it there. Start over is at the bottom of Progress and needs a typed confirmation.',
+      'Progress, on the You tab, shows each course and how much is learned. Settings change your daily minutes and how new lessons are split between courses.',
+      'Your progress lives in this browser only. Export a progress file to keep a copy or to move to another device, then Import it there. Start over is at the bottom of the You tab and needs a typed confirmation.',
     ],
   },
 ];
@@ -91,9 +92,9 @@ export interface TourStep {
 }
 
 export const TOUR_STEPS: readonly TourStep[] = [
-  { title: 'Today', text: 'Today is your day as a timeline: study blocks with new lessons, reviews, and quizzes, around the gym and meals. Today and the title at the top bring you back here from anywhere.', target: '[data-nav="home"]' },
-  { title: 'Course', text: 'The map of every topic of your courses and where you are with each one. Choose a topic to see what it covers and where Cambridge teaches it.', target: '[data-nav="map"]' },
-  { title: 'Progress', text: 'At the foot of every page. How far you are in each course, your daily time and course split, and backups of your progress file.', target: '[data-nav="progress"]' },
-  { title: 'Glossary', text: 'Every term the lessons use. Words with a dotted underline open their definition right where you are.', target: '[data-nav="glossary"]' },
-  { title: 'Help', text: 'How each part works, how to type answers, and this tour again.', target: '.help-button' },
+  { title: 'Today', text: 'Your day: the time, what to do now with one Start, and what comes later. Today brings you back here from anywhere; press 1.', target: '[data-nav="home"]' },
+  { title: 'Course', text: 'The four stages of the course in the order Cambridge students take them, with how far you are in each chapter.', target: '[data-nav="course"]' },
+  { title: 'Admission', text: 'The real steps to a Cambridge place, as five acts, with the papers to sit, your results, and your letters.', target: '[data-nav="admission"]' },
+  { title: 'Story', text: 'A story you play by studying. Your real progress triggers every scene.', target: '[data-nav="story"]' },
+  { title: 'You', text: 'Predicted outcomes, the glossary, help, the theme, your daily time, and backups of your progress file.', target: '[data-nav="you"]' },
 ];

@@ -8,7 +8,6 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import { IDBFactory } from 'fake-indexeddb';
 import type { IdbFactoryLike, Progress } from '@learnhub/mastery';
-import { planDate } from '@/model/day';
 import { DEFAULT_COURSES, ensureSession, finishPlacement, startLearner } from '@/model/learner';
 import { loadPlace } from '@/model/lessonState';
 import { go, parseRoute, route } from '@/model/route';
@@ -16,11 +15,11 @@ import { commit, flush, init, progress, setClock } from '@/model/store';
 import { App } from '@/ui/App';
 import { helpOpen } from '@/ui/help/state';
 import { termOpen } from '@/ui/termState';
-import { dayTitle } from '@/ui/views/DayPlanner';
+import { LEARNER_NAME, greeting, nyClock } from '@/model/shell';
 
 const T0 = new Date(2026, 9, 4, 9, 0).getTime();
-/** Today's heading is the day's name. */
-const TODAY = dayTitle(planDate(T0));
+/** Today's heading is the greeting. */
+const TODAY = `${greeting(nyClock(T0).h)}, ${LEARNER_NAME}.`;
 let idb: IdbFactoryLike;
 
 /** The browser's Back: resolves once the app has seen the hash change. */
@@ -82,7 +81,7 @@ describe('the start', () => {
   it('the glossary before a course is chosen has a way back to the start', async () => {
     go({ view: 'glossary', termId: null });
     render(<App />);
-    expect([...document.querySelectorAll('nav.nav a')].map((a) => a.textContent)).toEqual(['Home', 'Glossary']);
+    expect([...document.querySelectorAll('nav.ds-nav a.ds-tab')].map((a) => a.textContent)).toEqual(['Home', 'Glossary']);
     click('Back to the start');
     expect(location.hash).toBe('#/start');
     expect(heading()).toBe('Welcome');
@@ -107,13 +106,15 @@ describe('no route or control leads to a placement test', () => {
       expect(route.value.view).toBe(started ? 'today' : 'start');
       expect(heading()).toBe(started ? TODAY : 'Welcome');
       noPlacement();
-      for (const a of [...document.querySelectorAll<HTMLAnchorElement>('nav.nav a')]) {
+      for (const a of [...document.querySelectorAll<HTMLAnchorElement>('nav.ds-nav a')]) {
         fireEvent.click(a);
         await flush();
         noPlacement();
       }
-      click('Help');
+      helpOpen.value = true;
+      await waitFor(() => expect(document.querySelector('.modal.help')).not.toBeNull());
       noPlacement();
+      helpOpen.value = false;
       cleanup();
     }
   });
@@ -157,22 +158,29 @@ describe('a learner with a course', () => {
     await commit(ensureSession(startLearner(T0, DEFAULT_COURSES, 60), T0));
   }
 
-  it('Back walks the views in order: Today, a lesson, the course, the map, a topic, the glossary', async () => {
+  it('Back walks the views in order: Today, a lesson, Today, the course, the map, a topic, You, the glossary', async () => {
     await started();
     render(<App />);
     await screen.findByText('Fractions and ratios', { selector: '.task-title' });
     click('Start');
     expect(location.hash).toBe('#/task/0');
-    expect(screen.getByRole('button', { name: 'Back to today' })).toBeTruthy();
-    fireEvent.click(screen.getByText('Course', { selector: 'nav a' }));
+    // A lesson is a focus screen: no tabs; the bar's way back goes to Today, where it was opened.
+    expect(document.querySelector('nav.ds-nav')).toBeNull();
+    fireEvent.click(document.querySelector('.ds-fbar-back') as Element);
+    expect(location.hash).toBe('#/');
+    fireEvent.click(document.querySelector('nav.ds-nav a[data-nav="course"]') as Element);
     expect(location.hash).toBe('#/book');
     fireEvent.click(screen.getByText('Prerequisite map'));
     fireEvent.click(document.querySelector('.node') as Element);
     const topic = location.hash;
     expect(topic).toMatch(/^#\/map\//);
-    fireEvent.click(screen.getByText('Glossary', { selector: 'nav a' }));
+    fireEvent.click(document.querySelector('nav.ds-nav a[data-nav="you"]') as Element);
+    expect(location.hash).toBe('#/progress');
+    fireEvent.click(screen.getByText('Glossary', { selector: '.ds-x' }));
     expect(location.hash).toBe('#/glossary');
 
+    await back();
+    expect(location.hash).toBe('#/progress');
     await back();
     expect(location.hash).toBe(topic);
     expect(document.querySelector('.map-details.open')).not.toBeNull();
@@ -180,6 +188,8 @@ describe('a learner with a course', () => {
     expect(location.hash).toBe('#/map');
     await back();
     expect(location.hash).toBe('#/book');
+    await back();
+    expect(location.hash).toBe('#/');
     await back();
     expect(location.hash).toBe('#/task/0');
     expect(heading()).toBe('Fractions and ratios');
@@ -250,7 +260,7 @@ describe('a learner with a course', () => {
     go({ view: 'map', topicId: null });
     go({ view: 'progress' });
     render(<App />);
-    click('Help');
+    click(/^Help/);
     expect(helpOpen.value).toBe(true);
     termOpen.value = 'union';
     await back();

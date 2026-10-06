@@ -280,20 +280,21 @@ describe('playing by itself', () => {
     expect(isShabbat(ny(8, 23))).toBe(false);
   });
 
-  it('waits out Shabbat and work in progress, then plays the first queued scene', () => {
+  it('waits out Shabbat and a timed paper, and otherwise plays the first queued scene at once, even mid-lesson', () => {
     const st = enqueue(emptyStory(), [PROLOGUE, FIRST_LIGHT], facts(), T0);
     expect(autoPlay(st, ny(12, 9), { view: 'today' })).toBe('prologue');
     expect(autoPlay(st, ny(9, 20), { view: 'today' })).toBeNull();
     expect(autoPlay(st, ny(10, 20), { view: 'today' })).toBe('prologue');
-    expect(autoPlay(st, ny(12, 9), { view: 'task', index: 0 })).toBeNull();
+    expect(autoPlay(st, ny(12, 9), { view: 'task', index: 0 })).toBe('prologue');
+    expect(autoPlay(st, ny(12, 9), { view: 'today' }, true)).toBeNull();
     expect(autoPlay(emptyStory(), ny(12, 9), { view: 'today' })).toBeNull();
   });
 
-  it('counts lessons, problems, and timed papers as work in progress', () => {
-    expect(calmView({ view: 'learn', topicId: 'x' })).toBe(false);
-    expect(calmView({ view: 'problem', topicId: 'x', problemId: 'y' })).toBe(false);
+  it('holds scenes back only on a past paper\'s screen', () => {
     expect(calmView({ view: 'paper', paperId: 'x' })).toBe(false);
-    for (const view of ['today', 'start', 'book', 'campaign', 'letters', 'report', 'story', 'progress'] as const) expect(calmView({ view })).toBe(true);
+    expect(calmView({ view: 'learn', topicId: 'x' })).toBe(true);
+    expect(calmView({ view: 'problem', topicId: 'x', problemId: 'y' })).toBe(true);
+    for (const view of ['today', 'start', 'book', 'campaign', 'letters', 'report', 'story', 'progress', 'gym'] as const) expect(calmView({ view })).toBe(true);
   });
 });
 

@@ -17,6 +17,7 @@ import { summarize } from '@/model/campaignSummary';
 import { loadDays } from '@/model/dayLog';
 import { now } from '@/model/store';
 import { AppLink, WithAdmissions, entryLine, shortStamp } from '@/ui/campaignShared';
+import { AdmissionTabs } from '@/ui/views/Campaign';
 
 /** TMUA context, October 2024 sitting (UAT-UK TMUA technical report 2024-25), and the unverified offer-holder average. */
 export const TMUA_CONTEXT = { median: 4.5, p90: 7.0, offerHolders: 6.6 } as const;
@@ -34,8 +35,10 @@ export function ReportView({ p }: { p: Progress }) {
   if (c === null) {
     return (
       <section class="camp" aria-labelledby="report-title">
+        <div class="ds-eyebrow">Admission</div>
         <h1 id="report-title">Results report</h1>
         <p class="lead">Your papers, set among the real candidates who sat them.</p>
+        <AdmissionTabs />
         <p class="c-body">Nothing to report yet. Begin the campaign and sit a paper: <AppLink to={{ view: 'campaign' }}>Campaign</AppLink>.</p>
       </section>
     );
@@ -50,8 +53,10 @@ function ReportBody({ adm, c, p }: { adm: Admissions; c: Campaign; p: Progress }
   const pr = s.projection;
   return (
     <section class="camp" aria-labelledby="report-title">
+      <div class="ds-eyebrow">Admission</div>
       <h1 id="report-title">Results report</h1>
       <p class="lead">Your papers, set among the real candidates who sat them. Your marks are your own; boundaries and statistics are published figures.</p>
+      <AdmissionTabs />
       <p class={`c-entry${pr.slipped ? ' warn' : ''}`}>{pr.entry === null ? 'Entry: beyond ten years at this pace' : entryLine(pr)}</p>
       <ul class="ruled">
         <li><span>Route</span><span class="r">{ROUTE_NAMES[c.route]}</span></li>

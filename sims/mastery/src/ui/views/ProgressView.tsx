@@ -235,12 +235,13 @@ export function StartOver() {
   );
 }
 
-export function ProgressView() {
+/** `embedded`: a section of the You tab, under its own heading, rather than a page. */
+export function ProgressView({ embedded = false }: { embedded?: boolean }) {
   const p = progress.value;
   if (p === null) return null;
   return (
     <section class="page progress-page" aria-labelledby="pv-title">
-      <h1 id="pv-title">Progress</h1>
+      {embedded ? <h2 id="pv-title" class="ds-h2">Progress</h2> : <h1 id="pv-title">Progress</h1>}
       <Courses p={p} />
       <Settings key={p.createdAt} p={p} />
       <SyncCard />

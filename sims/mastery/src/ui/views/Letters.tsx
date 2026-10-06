@@ -15,6 +15,7 @@ import { summarize } from '@/model/campaignSummary';
 import { loadDays } from '@/model/dayLog';
 import { now } from '@/model/store';
 import { AppLink, WithAdmissions, shortStamp, useDeliverLetters } from '@/ui/campaignShared';
+import { AdmissionTabs } from '@/ui/views/Campaign';
 import { Certificate, EXAMPLE_DEGREE, EXAMPLE_OFFER, OfferLetter, offerData, type OfferData } from '@/ui/Documents';
 import { Arms, Seal } from '@/ui/Seal';
 
@@ -24,8 +25,10 @@ function Head() {
   return (
     <>
       <Seal class="letters-seal" label="Seal of Euclid College" />
+      <div class="ds-eyebrow">Admission</div>
       <h1 id="letters-title">Letters</h1>
       <p class="lead">{LEAD}</p>
+      <AdmissionTabs />
     </>
   );
 }

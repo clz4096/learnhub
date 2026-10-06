@@ -5,10 +5,13 @@ import { IDBFactory } from 'fake-indexeddb';
 import type { IdbFactoryLike } from '@learnhub/mastery';
 import { DEFAULT_COURSES, ensureSession, startLearner } from '@/model/learner';
 import { go } from '@/model/route';
-import { commit, init, setClock } from '@/model/store';
+import { commit, flush, init, setClock } from '@/model/store';
 import { emptyStory, NO_NUMBERS } from '@/model/story';
 import { saveStory } from '@/model/storyStore';
 import { App } from '@/ui/App';
+import { placeOf } from '@learnhub/content/book';
+
+const chapterIdOf = (topicId: string): string => placeOf(topicId)?.chapter.id ?? '';
 
 const T0 = new Date(2026, 9, 4, 9, 0).getTime();
 
@@ -27,40 +30,46 @@ afterEach(cleanup);
 const text = (): string => document.querySelector('main')?.textContent ?? '';
 
 describe('the Course tab: the degree as a book', () => {
-  it('opens the contents from the Course tab: years, terms, tracks, and where you are', () => {
+  it('opens from the Course tab: four stages in plain words, what each covers, and where you are', () => {
     render(<App />);
-    fireEvent.click(screen.getByText('Course', { selector: 'nav a' }));
+    fireEvent.click(document.querySelector('nav.ds-nav a[data-nav="course"]') as Element);
     expect(location.hash).toBe('#/book');
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('The course');
-    const years = [...document.querySelectorAll('details.book-yr > summary .t')].map((x) => x.textContent);
-    expect(years).toEqual(['Preparation, before Part IA', 'Part IA, first year', 'Part IB, second year', 'Part II, third year']);
-    // Only the year you are in is open.
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Four stages');
+    const stages = [...document.querySelectorAll('.ds-stage .ds-stage-n')].map((x) => x.textContent);
+    expect(stages).toEqual(['Getting in', 'First year', 'Second year', 'Third year']);
+    expect([...document.querySelectorAll('.ds-stage .ds-num')].map((x) => x.textContent)).toEqual(['01', '02', '03', '04']);
+    // Only the stage you are in is open; the others show what they cover and their main courses.
     expect([...document.querySelectorAll('details.book-yr')].map((d) => (d as HTMLDetailsElement).open)).toEqual([true, false, false, false]);
-    expect(text()).toContain('You are in Preparation, Stage A: STEP Foundation and CS-0.');
-    const here = document.querySelector('.book-ch.here');
-    expect(here?.querySelector('.t')?.textContent).toBe('STEP Foundation, Block 1: Algebra and graphs');
-    expect(here?.querySelector('.r')?.textContent).toBe('here · 0 of 21');
-    expect(screen.getAllByText('Mathematics', { selector: '.book-track-h' }).length).toBeGreaterThan(3);
-    expect(screen.getAllByText('Computer Science', { selector: '.book-track-h' }).length).toBeGreaterThan(3);
+    const first = document.querySelectorAll('.ds-stage')[1] as HTMLElement;
+    expect(first.querySelector('.ds-what')?.textContent).toBe('Probability, analysis, algebra, first computer science courses.');
+    expect(first.querySelector('.ds-peek')?.textContent).toContain('Analysis I · Probability');
+    expect(first.querySelector('.ds-stage-top .ds-meta')?.textContent).toBe('after Getting in');
+    // The chapter you are in, in plain words, with its exam as a tag and a lesson count.
+    const here = document.querySelector('.book-ch.here') as HTMLElement;
+    expect(here.querySelector('.t')?.textContent).toBe('Algebra and graphs STEP (you are here)');
+    expect(here.querySelector('abbr')?.getAttribute('title')).toMatch(/^STEP: /);
+    expect(here.querySelector('.r')?.textContent).toBe('0 of 21 lessons');
+    expect(here.querySelector('a')?.getAttribute('href')).toBe(`#/book/${chapterIdOf('pre.fractions')}`);
     expect(text()).not.toMatch(/[–—]/);
   });
 
-  it('labels Part IA and later as opening after the Preparation campaign, folds optional courses, and lists left-out ones quietly', () => {
+  it('has a Continue card for the next step, folds optional courses, lists left-out ones quietly, and keeps the map one link away', () => {
     go({ view: 'book' });
     render(<App />);
-    const summaries = [...document.querySelectorAll('details.book-yr > summary .r')].map((x) => x.textContent ?? '');
-    expect(summaries[0]).not.toMatch(/Opens after/);
-    for (const s of summaries.slice(1)) expect(s).toMatch(/Opens after the Preparation campaign/);
+    const cont = document.querySelector('a.ds-cont') as HTMLAnchorElement;
+    expect(cont.getAttribute('href')).toBe('#/learn/pre.fractions/book');
+    expect(cont.querySelector('.ds-now-t')?.textContent).toBe('Fractions and ratios');
     const ia = document.querySelectorAll('details.book-yr')[1] as HTMLElement;
     expect(ia.querySelector('details.book-opt > summary')?.textContent).toBe('3 optional');
     expect(ia.textContent).toContain('Left out: Mechanics.');
-    // Lecture counts sit under each chapter.
-    const dm = [...ia.querySelectorAll('.book-ch')].find((li) => li.querySelector('.t')?.textContent === 'Discrete Mathematics');
-    expect(dm?.querySelector('.s')?.textContent).toMatch(/^24 lectures · 4 sections/);
+    expect(ia.textContent).toContain('You can read ahead; nothing is locked.');
+    fireEvent.click(screen.getByText('Prerequisite map'));
+    expect(location.hash).toBe('#/map');
   });
 
-  it('expands a section to its steps, each linked to its lesson, and keeps the map one link away', () => {
-    go({ view: 'book' });
+  it('a chapter page expands a section to its steps, each linked to its lesson', () => {
+    const ch = chapterIdOf('pre.fractions');
+    go({ view: 'chapter', chapterId: ch });
     render(<App />);
     const next = document.querySelector('.book-steps li.here');
     expect(next?.textContent).toMatch(/^Fractions and ratios/);
@@ -69,8 +78,6 @@ describe('the Course tab: the degree as a book', () => {
     const unwritten = [...document.querySelectorAll('.book-steps li')].find((li) => li.textContent?.startsWith('Primes, factors, and multiples'));
     expect(unwritten?.querySelector('a')).toBeNull();
     expect(unwritten?.querySelector('.book-tag')?.textContent).toBe('bridge');
-    fireEvent.click(screen.getByText('Prerequisite map'));
-    expect(location.hash).toBe('#/map');
   });
 
   it('a chapter page shows its sections, steps, and progress, with previous and next', () => {
@@ -98,7 +105,7 @@ describe('the Course tab: the degree as a book', () => {
   });
 
   it('flags a step whose prerequisite comes later in the book', () => {
-    go({ view: 'book' });
+    go({ view: 'chapter', chapterId: chapterIdOf('prob.normal-approximation') });
     render(<App />);
     // STEP 2 Statistics approximates the Poisson distribution, which IA Probability teaches.
     const approx = [...document.querySelectorAll('.book-steps li')].find((li) => li.textContent?.startsWith('Approximating binomial and Poisson by a normal'));
@@ -106,8 +113,11 @@ describe('the Course tab: the degree as a book', () => {
   });
 
   it("Today shows where to continue reading", async () => {
+    localStorage.setItem('mastery.wholeday.v1', '1');
+    go({ view: 'today' });
     render(<App />);
-    const line = await screen.findByText('Continue reading');
+    await flush();
+    const line = await screen.findByText('Continue reading', undefined, { timeout: 5000 });
     const p = line.closest('p');
     expect(p?.querySelector('a.book-next')?.textContent).toBe('Fractions and ratios');
     expect(p?.querySelector('.book-where')?.textContent).toMatch(/^STEP Foundation, Block 1: Algebra and graphs, Assignment 1:/);

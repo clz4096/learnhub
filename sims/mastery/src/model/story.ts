@@ -469,14 +469,21 @@ export function isShabbat(ms: number): boolean {
   return false;
 }
 
-/** Views in the middle of work (a lesson, a problem, a timed paper): a scene waits until the learner leaves them. */
+/**
+ * Whether a scene may play over this view: anywhere but a past paper's screen, where a
+ * timed sitting may be running (design v4: scenes play as soon as they trigger, except
+ * during a timed paper and on Shabbat).
+ */
 export function calmView(r: Route): boolean {
-  return r.view !== 'task' && r.view !== 'learn' && r.view !== 'problem' && r.view !== 'paper';
+  return r.view !== 'paper';
 }
 
-/** The queued scene to play by itself now, or null: never on Shabbat, never mid-work. */
-export function autoPlay(st: StoryState, now: number, r: Route): string | null {
-  if (st.queued.length === 0 || isShabbat(now) || !calmView(r)) return null;
+/**
+ * The queued scene to play by itself now, or null: never on Shabbat, never during a timed
+ * paper (`timedRunning`: a sitting's clock is running, whatever the screen).
+ */
+export function autoPlay(st: StoryState, now: number, r: Route, timedRunning = false): string | null {
+  if (st.queued.length === 0 || isShabbat(now) || timedRunning || !calmView(r)) return null;
   return st.queued[0]?.id ?? null;
 }
 

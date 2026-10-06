@@ -62,7 +62,7 @@ describe('Begin the day', () => {
   it('plans the day from the wake time, with the current block, the progress line, and the gym', async () => {
     await open();
     // The day's name is the heading, the date under it.
-    expect(document.querySelector('main h1')?.textContent).toBe('Monday');
+    expect(document.querySelector('#today-title')?.textContent).toBe('Monday');
     expect(document.querySelector('.d-meta')?.textContent).toContain('October 5');
     setWake('09:00');
     const tl = timeline();
@@ -229,11 +229,11 @@ describe('Begin the day', () => {
     expect(shab.textContent).toContain('Begins Fri, Oct 9');
     expect(shab.textContent).toContain('6:25 pm');
     fireEvent.change(dateInput(), { target: { value: '2026-10-09' } });
-    expect(document.querySelector('main h1')?.textContent).toBe('Friday');
+    expect(document.querySelector('#today-title')?.textContent).toBe('Friday');
     expect(screen.getByText(/Friday: the plan ends at sundown, 6:25 pm\./)).toBeTruthy();
     expect(timeline().textContent).toContain('Shabbat begins');
     fireEvent.click(screen.getByRole('button', { name: 'back to today' }));
-    expect(document.querySelector('main h1')?.textContent).toBe('Monday');
+    expect(document.querySelector('#today-title')?.textContent).toBe('Monday');
   });
 
   it('still works when storage refuses writes', async () => {
@@ -250,30 +250,74 @@ describe('Begin the day', () => {
   });
 });
 
-describe('the header and footer', () => {
-  it('shows the course title with the arms, and no disclaimer line', async () => {
+describe('Today\'s header', () => {
+  it('shows the date, the live time to the second in 12-hour form, a greeting, and one line of status', async () => {
     await open();
-    expect(document.querySelector('header .app-title')?.textContent).toBe(APP_TITLE);
+    expect(document.querySelector('main h1')?.textContent).toBe('Good morning, Albert.');
+    expect(document.querySelector('.ds-clockrow .ds-eyebrow')?.textContent).toBe('Monday, October 5');
+    expect(document.querySelector('.ds-clock')?.textContent).toBe('11:00:00 am');
+    setClock(() => T0 + 7_000);
+    await waitFor(() => expect(document.querySelector('.ds-clock')?.textContent).toBe('11:00:07 am'), { timeout: 2500 });
+    expect(document.querySelector('.ds-today > .ds-split .ds-meta')?.textContent).toMatch(/^woke 9:00 am · 1\.3 of 6 h studied · Getting in, week 1$/);
+  });
+
+  it('the Now card names the block running now and has one Start, into the first open item', async () => {
+    await open();
+    const card = document.querySelector('.ds-now') as HTMLElement;
+    expect(card.querySelector('.ds-tag')?.textContent).toBe('NOW · 9:45 AM to 11:15 AM');
+    const first = progress.value?.session?.tasks[0]?.topicIds[0] as string;
+    expect(card.querySelector('.ds-now-t')?.textContent).toBe(titleOf(first));
+    const start = [...card.querySelectorAll('a')];
+    expect(start).toHaveLength(1);
+    expect(start[0]?.textContent).toBe('Start');
+    fireEvent.click(start[0] as HTMLElement);
+    expect(location.hash).toBe('#/task/0');
+  });
+
+  it('Later today lists the rest of the day in short rows, the gym among them', async () => {
+    await open();
+    const rows = [...document.querySelectorAll('.ds-today .ds-list .ds-li')];
+    expect(rows.length).toBeGreaterThan(2);
+    for (const r of rows) expect(r.querySelector('.ds-t')?.textContent).toMatch(/^(1[0-2]|[1-9]):[0-5]\d (am|pm)$/);
+    const gym = rows.find((r) => r.querySelector('.ds-x')?.firstChild?.textContent === 'Gym') as HTMLAnchorElement;
+    expect(gym.getAttribute('href')).toBe('#/gym');
+    expect(gym.querySelector('small')?.textContent).toBe('gym mode · 90 min');
+  });
+
+  it('the side column has the week, Shabbat, and the streak', async () => {
+    await open();
+    const side = document.querySelector('.ds-side') as HTMLElement;
+    expect(side.textContent).toContain('0 / 36 h');
+    expect(side.textContent).toContain('Fri 6:25 pm to Sat');
+    expect(side.querySelector('.ds-streak')?.textContent).toBe('0 days');
+  });
+});
+
+describe('the rail and the theme', () => {
+  it('shows the arms and the title in the rail, and no disclaimer line', async () => {
+    await open();
+    expect(document.querySelector('.ds-brand .app-title')?.getAttribute('aria-label')).toBe(`${APP_TITLE}, home`);
     expect(APP_TITLE).toBe('Computational Mathematics at the University of Cambridge');
-    expect(document.querySelector('header .brand-arms use')?.getAttribute('href')).toBe('#euclid-arms');
+    expect(document.querySelector('.ds-brand .ds-arms use')?.getAttribute('href')).toBe('#euclid-arms');
     // The art's defs are in the page once, every id namespaced.
     for (const id of ['arms', 'armsMono', 'armsUni', 'seal']) expect(document.querySelectorAll(`#euclid-${id}`)).toHaveLength(1);
     expect([...document.querySelectorAll('.seal-defs [id]')].every((e) => e.id.startsWith('euclid-'))).toBe(true);
     expect(screen.queryByText(/Not affiliated with the University of Cambridge/)).toBeNull();
   });
 
-  it('the footer toggle cycles the theme through system, light, and dark, and remembers it', async () => {
+  it('You sets the theme to system, light, or dark, and remembers it', async () => {
     setTheme('system');
     await open();
-    const toggle = (): HTMLElement => screen.getByRole('button', { name: /^Theme: / });
-    expect(toggle().textContent).toBe('Theme: system');
-    fireEvent.click(toggle());
+    fireEvent.click(document.querySelector('nav.ds-nav a[data-nav="you"]') as Element);
+    const pick = (name: string): HTMLElement => screen.getByRole('button', { name });
+    expect(pick('System').getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(pick('Light'));
     expect(document.documentElement.dataset.theme).toBe('light');
     expect(localStorage.getItem(THEME_KEY)).toBe('light');
-    fireEvent.click(toggle());
+    fireEvent.click(pick('Dark'));
     expect(document.documentElement.dataset.theme).toBe('dark');
-    expect(toggle().textContent).toBe('Theme: dark');
-    fireEvent.click(toggle());
+    expect(pick('Dark').getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(pick('System'));
     expect(document.documentElement.dataset.theme).toBeUndefined();
     expect(localStorage.getItem(THEME_KEY)).toBe('system');
   });

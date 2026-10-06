@@ -8,12 +8,13 @@ import { campaign } from '@/model/campaignStore';
 import { loadDays } from '@/model/dayLog';
 import { now } from '@/model/store';
 import {
-  CHARACTERS, REL_IDS, REP_TABLE, isShabbat, metOf, relationWord, repLevel, repOf, titleOf, triggerText, type Scene, type StoryState,
+  CHARACTERS, REL_IDS, REP_TABLE, isShabbat, metOf, relationWord, repLevel, repOf, titleOf, triggerText, type Scene, type StoryNumbers, type StoryState,
 } from '@/model/story';
 import { BOOKS, LATER_BOOKS, SCENES } from '@/model/storyScenes';
 import { storyFacts } from '@/model/storyFacts';
 import { playing, story } from '@/model/storyStore';
 import { shortStamp } from '@/ui/campaignShared';
+import { ART } from '@/ui/story/art';
 
 const sentence = (s: string): string => `${s.charAt(0).toUpperCase()}${s.slice(1)}.`;
 
@@ -51,6 +52,40 @@ function SceneRow({ s, st, shabbat }: { s: Scene; st: StoryState; shabbat: boole
   );
 }
 
+/** The scene for the card: the first ready to play, else the next still locked, else the last one seen. */
+function featured(st: StoryState): { s: Scene; state: 'ready' | 'locked' | 'seen' } | null {
+  const written = SCENES.filter((x) => x.script !== null);
+  const q = st.queued.map((x) => written.find((y) => y.id === x.id)).find((x) => x !== undefined);
+  if (q !== undefined) return { s: q, state: 'ready' };
+  const next = written.find((x) => st.seen[x.id] === undefined);
+  if (next !== undefined) return { s: next, state: 'locked' };
+  const last = [...written].reverse().find((x) => st.seen[x.id] !== undefined);
+  return last === undefined ? null : { s: last, state: 'seen' };
+}
+
+function SceneCard({ st, numbers }: { st: StoryState; numbers: StoryNumbers }) {
+  const f = featured(st);
+  if (f === null) return null;
+  const { s, state } = f;
+  const Art = s.art === null ? null : ART[s.art];
+  const title = state === 'seen' ? titleOf(s, { n: st.seen[s.id]?.n ?? numbers, rel: st.relationships }) : s.title;
+  const play = (): void => { playing.value = { id: s.id, auto: false }; };
+  return (
+    <div class="ds-scenecard">
+      <div class="ds-art" aria-hidden="true">{Art !== null && <Art fx={[]} now={null} t={0} reduce n={numbers} />}</div>
+      <div class="ds-cap">
+        <span>
+          <b>{title}</b>
+          <span class="ds-meta">{state === 'ready' ? `ready · ${s.kicker}` : state === 'seen' ? `seen · ${s.kicker}` : sentence(triggerText(s.trigger))}</span>
+        </span>
+        {state !== 'locked' && (
+          <button type="button" class="ds-btn" onClick={play} aria-label={`${state === 'ready' ? 'Play' : 'Replay'} ${title}`}>{state === 'ready' ? 'Play' : 'Replay'}</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function StoryView({ p }: { p: Progress }) {
   const st = story.value;
   const f = storyFacts(p, campaign.value, loadDays(), now());
@@ -58,13 +93,57 @@ export function StoryView({ p }: { p: Progress }) {
   const level = repLevel(rep);
   const met = metOf(SCENES, st.seen);
   const shabbat = isShabbat(now());
+  const span = level.next === null ? 1 : level.next.at - level.at;
+  const pct = level.next === null ? 100 : Math.min(100, Math.round((100 * (rep - level.at)) / span));
+  const written = SCENES.filter((x) => x.script !== null);
+  const seen = written.filter((x) => st.seen[x.id] !== undefined).length;
   return (
-    <section class="camp" aria-labelledby="story-title">
-      <h1 id="story-title">Story</h1>
+    <section class="camp ds-story" aria-labelledby="story-title">
+      <div class="ds-eyebrow">Story · Book One</div>
+      <h1 id="story-title" class="ds-h1">Story</h1>
+      <p class="ds-meta">
+        REP {rep.toLocaleString('en-US')} · {level.next === null ? `${level.name}, the top level` : `${level.name} → ${level.next.name} · ${level.next.at - rep} to go`}
+        <span class="visually-hidden">{level.next === null ? '' : `. ${level.next.at - rep} to ${level.next.name}`}</span>
+      </p>
+      <div class="ds-track" role="progressbar" aria-label={`REP toward ${level.next?.name ?? 'the top'}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
+        <i style={{ width: `${pct}%` }} />
+      </div>
       <p class="lead">A story you play through by studying. Your real progress triggers every scene, and REP comes only from real work.</p>
+      <SceneCard st={st} numbers={f} />
 
-      <section class="sec" aria-labelledby="story-rep">
-        <div class="sec-h"><h2 id="story-rep">Reputation</h2><span>{rep} REP</span></div>
+      <section class="ds-sect story-scenes" aria-labelledby="story-chapters">
+        <div class="ds-eyebrow ds-sect-h"><h2 id="story-chapters">Chapters</h2><span>{seen} / {written.length}</span></div>
+        {BOOKS.map((b) => (
+          <section key={b.n} class="sec story-book" aria-labelledby={`story-book-${b.n}`}>
+            <div class="sec-h"><h3 id={`story-book-${b.n}`}>{b.title}</h3></div>
+            <ul class="ruled">
+              {SCENES.filter((x) => x.book === b.n).map((x) => <SceneRow key={x.id} s={x} st={st} shabbat={shabbat} />)}
+            </ul>
+          </section>
+        ))}
+        <section class="sec story-book" aria-labelledby="story-later">
+          <div class="sec-h"><h3 id="story-later">Later books</h3></div>
+          <ul class="ruled">
+            {LATER_BOOKS.map((t) => <li key={t} class="story-locked"><span>{t}</span><span class="r">not yet written</span></li>)}
+          </ul>
+        </section>
+      </section>
+
+      <section class="ds-sect story-rel" aria-labelledby="story-rel">
+        <div class="ds-eyebrow ds-sect-h"><h2 id="story-rel">Relationships</h2></div>
+        <ul class="ruled">
+          {REL_IDS.map((id) => (
+            <li key={id}>
+              <span>{CHARACTERS[id].name}</span>
+              <span class="r">{met.has(id) ? relationWord(st.relationships[id]) : 'not met yet'}</span>
+              <span class="s">{CHARACTERS[id].role}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="ds-sect" aria-labelledby="story-rep">
+        <div class="ds-eyebrow ds-sect-h"><h2 id="story-rep">Reputation</h2><span>{rep} REP</span></div>
         <ul class="ruled">
           <li>
             <span>{level.name}</span>
@@ -78,36 +157,7 @@ export function StoryView({ p }: { p: Progress }) {
           ))}
         </ul>
       </section>
-
-      <section class="sec story-rel" aria-labelledby="story-rel">
-        <div class="sec-h"><h2 id="story-rel">Relationships</h2></div>
-        <ul class="ruled">
-          {REL_IDS.map((id) => (
-            <li key={id}>
-              <span>{CHARACTERS[id].name}</span>
-              <span class="r">{met.has(id) ? relationWord(st.relationships[id]) : 'not met yet'}</span>
-              <span class="s">{CHARACTERS[id].role}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {BOOKS.map((b) => (
-        <section key={b.n} class="sec story-scenes" aria-labelledby={`story-book-${b.n}`}>
-          <div class="sec-h"><h2 id={`story-book-${b.n}`}>{b.title}</h2></div>
-          <ul class="ruled">
-            {SCENES.filter((s) => s.book === b.n).map((s) => <SceneRow key={s.id} s={s} st={st} shabbat={shabbat} />)}
-          </ul>
-        </section>
-      ))}
-
-      <section class="sec story-scenes" aria-labelledby="story-later">
-        <div class="sec-h"><h2 id="story-later">Later books</h2></div>
-        <ul class="ruled">
-          {LATER_BOOKS.map((t) => <li key={t} class="story-locked"><span>{t}</span><span class="r">not yet written</span></li>)}
-        </ul>
-      </section>
-      <p class="note">Scenes never play by themselves from Friday sundown to Saturday sundown; they wait and play after.</p>
+      <p class="note">Scenes play as soon as your work triggers them, except during a timed paper and from Friday sundown to Saturday sundown; then they wait, and Today shows that one is ready.</p>
     </section>
   );
 }

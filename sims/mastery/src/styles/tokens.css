@@ -1,6 +1,8 @@
 /*
- * Design tokens: the minimalist look (book-mockup/minimal.html). Ink on paper, hairlines,
- * one accent (Cambridge blue), STIX Two Text bundled from @fontsource (no CDN).
+ * Design tokens: design system v4 (mastery/design-v4.html). Ink on paper, hairlines,
+ * Cambridge green for "now" and progress, scarlet only for what needs the learner. STIX Two
+ * Text for reading and maths, IBM Plex Sans for the interface, IBM Plex Mono for times,
+ * counts, and labels; all bundled from @fontsource (no CDN).
  * The theme follows the device unless the learner picks one (data-theme on the root, set
  * from the footer toggle or Progress). The older role tokens (--surface, --text, --accent,
  * and the rest) are mapped onto the new ones, so the lessons, problems, glossary, and map
@@ -8,20 +10,25 @@
  */
 :root {
   color-scheme: light;
-  --bg: #fbfbf9;
-  --fg: #1b1d1c;
-  --mute: #737875;
-  --faint: #b9bdb9;
-  --line: #e3e5e1;
-  --cam: #3f7a63;
-  --cam-soft: rgba(63, 122, 99, 0.1);
+  --bg: #fafaf8;
+  --fg: #141615;
+  /* the spec's #737a76 is 4.2:1 on paper; this is the nearest grey that meets AA on paper and wash */
+  --mute: #686f6b;
+  --faint: #b8bdb9;
+  --line: #e4e6e2;
+  --ink2: #3d423f;
+  --cam: #2e6a57;
+  --cam-l: #85b09a;
+  --cam-soft: rgba(46, 106, 87, 0.08);
+  --scarlet: #a8201c;
+  --outer: #e6e8e4;
   --serif: 'STIX Two Text', 'Times New Roman', serif;
-  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  /* the UI sans, for plain-words lines under formal objects (mastery/design-v4.html) */
-  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  /* the interface sans (mastery/design-v4.html) */
+  --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   /* definitions: a tinted panel with a gold rule (mastery/TEACHING-STYLE.md, "How it looks") */
   --gold: #b68a2e;
-  --wash: #f3f4f0;
+  --wash: #f2f3f0;
 
   /* roles used across the app, mapped onto the tokens above */
   --surface: var(--bg);
@@ -32,7 +39,7 @@
   /* 3:1 against --bg, for the edges of fields and buttons */
   --border-strong: #8a8f8b;
   --accent: var(--cam);
-  --accent-hover: #33664f;
+  --accent-hover: #24584a;
   --accent-text: #ffffff;
   --accent-soft: #e9f0ec;
   --focus: var(--cam);
@@ -40,12 +47,12 @@
   --error-bg: #fbeeea;
   --warning: #7a4d00;
   --warning-bg: #fbf4e2;
-  --good: #2f6b52;
+  --good: #2e6a57;
   --good-bg: #e9f0ec;
 
   /* topic status on the map */
   --st-mastered: #e1eee7;
-  --st-mastered-line: #3f7a63;
+  --st-mastered-line: #2e6a57;
   --st-due: #f8efd6;
   --st-due-line: #9a6a12;
   --st-ready: #eef1ee;
@@ -67,7 +74,7 @@
   --radius-sm: 2px;
   --radius-md: 3px;
   --radius-lg: 4px;
-  --font-ui: var(--serif);
+  --font-ui: var(--sans);
   --font-math: 'STIX Two Math', 'Cambria Math', 'Times New Roman', Georgia, serif;
   --text-sm: 0.875rem;
   --text-md: 1.0625rem;
@@ -80,19 +87,23 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --bg: #0f1211;
-    --fg: #e6e9e6;
-    --mute: #8d948f;
-    --faint: #4a504c;
-    --line: #232826;
-    --cam: #9cc5b2;
-    --cam-soft: rgba(156, 197, 178, 0.1);
+    --bg: #0e1110;
+    --fg: #e8ebe8;
+    --mute: #8b928e;
+    --faint: #4b524e;
+    --line: #222826;
+    --ink2: #c3c8c4;
+    --cam: #8fc0a8;
+    --cam-l: #5f8f7b;
+    --cam-soft: rgba(143, 192, 168, 0.08);
+    --scarlet: #e2727f;
+    --outer: #060807;
     --gold: #d9b56a;
     --wash: #151a18;
     --surface-2: #171b19;
     --border-strong: #69716c;
     --accent-hover: #b6d6c7;
-    --accent-text: #0f1211;
+    --accent-text: #0e1110;
     --accent-soft: #18221e;
     --error: #f0a092;
     --error-bg: #2a1714;
@@ -118,19 +129,23 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0f1211;
-  --fg: #e6e9e6;
-  --mute: #8d948f;
-  --faint: #4a504c;
-  --line: #232826;
-  --cam: #9cc5b2;
-  --cam-soft: rgba(156, 197, 178, 0.1);
+  --bg: #0e1110;
+  --fg: #e8ebe8;
+  --mute: #8b928e;
+  --faint: #4b524e;
+  --line: #222826;
+  --ink2: #c3c8c4;
+  --cam: #8fc0a8;
+  --cam-l: #5f8f7b;
+  --cam-soft: rgba(143, 192, 168, 0.08);
+  --scarlet: #e2727f;
+  --outer: #060807;
   --gold: #d9b56a;
   --wash: #151a18;
   --surface-2: #171b19;
   --border-strong: #69716c;
   --accent-hover: #b6d6c7;
-  --accent-text: #0f1211;
+  --accent-text: #0e1110;
   --accent-soft: #18221e;
   --error: #f0a092;
   --error-bg: #2a1714;

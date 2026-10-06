@@ -21,7 +21,7 @@ import { clock } from '@/ui/views/Paper';
 const T0 = new Date(2026, 9, 5, 9, 0).getTime();
 let t = T0;
 const heading = (): string | null | undefined => document.querySelector('main h1')?.textContent;
-const navLabels = (): (string | null)[] => [...document.querySelectorAll('nav.nav a')].map((a) => a.textContent);
+const navLabels = (): (string | null)[] => [...document.querySelectorAll('nav.ds-nav a.ds-tab .ds-tab-l')].map((a) => a.textContent);
 const DASH = /[–—]/;
 
 beforeEach(async () => {
@@ -54,29 +54,33 @@ describe('routes', () => {
 describe('the campaign screen', () => {
   it('is in the navigation, starts with the route choice, and saves the campaign in this browser', async () => {
     render(<App />);
-    expect(navLabels()).toContain('Campaign');
-    expect(navLabels()).toContain('Report');
-    fireEvent.click(screen.getByRole('link', { name: 'Campaign' }));
+    expect(navLabels()).toContain('Admission');
+    fireEvent.click(document.querySelector('nav.ds-nav a[data-nav="admission"]') as Element);
     expect(location.hash).toBe('#/campaign');
     expect(heading()).toBe('Cambridge Entry');
     // The disclaimer line is gone from the app (the owner's decision); simulated letters still say what they are.
     expect(document.body.textContent).not.toMatch(/Not affiliated with the University of Cambridge/);
     fireEvent.click(screen.getByRole('button', { name: 'Computer Science' }));
-    await screen.findByText('current act');
-    expect(screen.getByRole('heading', { name: 'Recent qualifications' })).toBeTruthy();
+    await waitFor(() => expect(document.querySelector('.ds-rail li[aria-current="step"]')).not.toBeNull());
+    // The heading is the entry the learner is on course for; acts are explained in one line.
+    expect(heading()).toMatch(/^October 20\d\d$/);
+    expect(document.querySelector('.ds-actsnote')?.textContent).toBe('Five acts: the real steps to a Cambridge place, each finished by doing the work.');
+    // Acts, Papers, Results, and Letters.
+    expect([...document.querySelectorAll('nav.ds-subtabs a')].map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
+      ['Acts', '#/campaign'], ['Papers', '#/papers'], ['Results', '#/report'], ['Letters', '#/letters'],
+    ]);
+    expect(screen.getByRole('heading', { name: 'Act I: School exams' })).toBeTruthy();
     expect(JSON.parse(localStorage.getItem(CAMPAIGN_KEY) as string).route).toBe('cs');
     // Act I's chapters are the course lessons until the book is restructured, and the UI says so.
     expect(screen.getByText(/Course lessons mastered/)).toBeTruthy();
-    // The status line: route, act, days studied, this week against 36 hours.
-    const status = document.querySelector('.c-status') as HTMLElement;
-    expect(status.textContent).toContain('Computer Science');
-    expect(status.textContent).toContain('Act I of V');
-    expect(status.textContent).toContain('of 36 h');
-    // The acts as a timeline: Act I is the current one, the later acts and matriculation follow.
-    const acts = [...document.querySelectorAll('ol.c-tl > li')];
-    expect(acts.map((li) => li.querySelector('.t')?.textContent)).toEqual(['Act I', 'Act II', 'Act III', 'Act IV', 'Act V', '']);
-    expect(acts[0]?.classList.contains('now')).toBe(true);
+    // The status line: route, college, and whether the entry is on course.
+    expect(document.querySelector('.ds-admission > .ds-meta')?.textContent).toMatch(/^Computer Science · college not chosen · /);
+    // The acts as a rail with Roman numerals: Act I is the current one, with why it is there; matriculation follows.
+    const acts = [...document.querySelectorAll('ol.ds-rail > li')];
+    expect(acts.map((li) => li.querySelector('.ds-rn')?.textContent)).toEqual(['I', 'II', 'III', 'IV', 'V', '∎']);
     expect(acts[0]?.getAttribute('aria-current')).toBe('step');
+    expect(acts[0]?.querySelector('.ds-why')?.textContent).toBe('Cambridge does not accept the GED, and mature applicants need recent study at a high level.');
+    expect(acts[1]?.querySelector('.ds-why')).toBeNull();
     // The calendar: 2028 entry at the earliest, dates labelled as estimates.
     expect(document.querySelector('.c-entry')?.textContent).toMatch(/On course for October 2028 entry|Slipped to October 20\d\d entry/);
     expect(screen.getByText(/2028 dates are not published/)).toBeTruthy();
@@ -90,7 +94,7 @@ describe('the campaign screen', () => {
     saveCampaign(newCampaign('maths', T0));
     go({ view: 'campaign' });
     render(<App />);
-    await screen.findByText('current act');
+    await waitFor(() => expect(document.querySelector('.ds-rail li[aria-current="step"]')).not.toBeNull());
     fireEvent.click(within(screen.getByRole('group', { name: 'Route' })).getByRole('button', { name: 'Computer Science' }));
     expect(campaign.value?.route).toBe('cs');
     const college = screen.getByRole('combobox', { name: 'College' }) as HTMLSelectElement;
@@ -108,7 +112,7 @@ describe('the campaign screen', () => {
     saveCampaign({ ...newCampaign('maths', T0), college: 'hughes-hall' });
     go({ view: 'campaign' });
     render(<App />);
-    await screen.findByText('current act');
+    await waitFor(() => expect(document.querySelector('.ds-rail li[aria-current="step"]')).not.toBeNull());
     fireEvent.click(screen.getByRole('button', { name: 'Copy interview packet' }));
     const text = (writeText.mock.calls[0] as unknown as [string])[0];
     expect(text).toContain('LEARNHUB MOCK INTERVIEW v1');
@@ -139,7 +143,7 @@ describe('exam mode', () => {
     expect(screen.getByRole('timer').textContent).toBe('1:15:00');
     expect(screen.queryByRole('button', { name: /pause/i })).toBeNull();
     t = T0 + 80 * 60_000;
-    fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Finish and mark' }));
     const key = adm.tmuaKey(2016, 1) as string;
     const selects = screen.getAllByRole('combobox').filter((s) => /^Q\d+$/.test(s.closest('label')?.querySelector('span')?.textContent ?? ''));
     expect(selects).toHaveLength(20);
@@ -157,7 +161,7 @@ describe('exam mode', () => {
     render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: 'Start the clock' }));
     t = T0 + 170 * 60_000;
-    fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Finish and mark' }));
     fireEvent.click(screen.getByRole('button', { name: 'Copy for supervision' }));
     expect((writeText.mock.calls[0] as unknown as [string])[0]).toContain('PAPER: step-2019-2');
     const inputs = screen.getAllByRole('spinbutton');
@@ -167,7 +171,7 @@ describe('exam mode', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save the marks' }));
     await screen.findByText('66 / 120');
 
-    fireEvent.click(screen.getByRole('link', { name: 'Report' }));
+    fireEvent.click(screen.getByRole('link', { name: 'report' }));
     await screen.findByRole('heading', { name: 'Results report' });
     expect(screen.getAllByText('Grade 2').length).toBeGreaterThan(0);
     const share = Math.round(100 * adm.stepPercentile(2019, 'STEP 2', 66));

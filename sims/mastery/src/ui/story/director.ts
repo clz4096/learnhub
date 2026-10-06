@@ -1,8 +1,9 @@
 /**
  * Watches the learner's real data for scenes that have just triggered, queues them, and
  * starts the first queued scene by itself when that is allowed: the app has loaded, no
- * scene is playing, the learner is not in the middle of a lesson, problem, or paper, and
- * it is not Shabbat (see `autoPlay`). A scene queued on Shabbat plays after it.
+ * scene is playing, no timed paper is running, and it is not Shabbat (see `autoPlay`).
+ * A scene that waits shows as "A scene is ready" on Today; one queued on Shabbat plays
+ * after it.
  *
  * The campaign's scenes read the acts and results, which need the paper registry. It loads
  * on demand, as the Report and Paper screens load it: only with a campaign and a campaign
@@ -10,7 +11,7 @@
  * so a letter's scene never waits for a visit to the Letters tab.
  */
 import { useEffect } from 'preact/hooks';
-import { acts, deliverLetters, lettersDue } from '@/model/campaign';
+import { activeSitting, acts, deliverLetters, lettersDue } from '@/model/campaign';
 import { campaign, saveCampaign } from '@/model/campaignStore';
 import { courseInputs } from '@/model/campaignSummary';
 import { loadDays } from '@/model/dayLog';
@@ -47,7 +48,7 @@ export function directStory(r: Route): string | null {
   const next = enqueue(st, newlyDue(SCENES, st, f), f, now());
   if (next !== st) saveStory(next);
   if (playing.peek() !== null) return null;
-  const id = autoPlay(next, now(), r);
+  const id = autoPlay(next, now(), r, c !== null && activeSitting(c) !== undefined);
   if (id !== null) playing.value = { id, auto: true };
   return id;
 }

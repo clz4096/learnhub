@@ -609,6 +609,7 @@ export function LessonRunner(props: LessonProps) {
 
 function LessonBody({ salt, onEnd, c, head, title }: LessonProps & { c: TopicContent; head: (pos: Position) => ComponentChildren; title: string }) {
   const placeKey = `${salt}.${c.topicId}`;
+  const topRef = useRef<HTMLDivElement>(null);
   const [saved] = useState(() => loadPlace(placeKey));
   const outline = lessonOutline(c);
   const sections = lessonSections(c.lesson);
@@ -650,24 +651,37 @@ function LessonBody({ salt, onEnd, c, head, title }: LessonProps & { c: TopicCon
   const next = outline[at + 1];
   const nextLabel = next === undefined ? '' : next.stage === 'examples' ? 'Next: worked examples' : next.stage === 'practice' ? 'Next: practice' : `Next: ${plain(next.title)}`;
   const section = sections[entry.section];
+  // Back to this section's title, for a long section read on a phone.
+  const toTop = (): void => {
+    const el = topRef.current;
+    if (el === null) return;
+    const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView?.({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    el.focus({ preventScroll: true });
+  };
+  const topLink = <button type="button" class="ds-link" onClick={toTop}><span aria-hidden="true">↑ </span>Top of section</button>;
   return (
     <section class="page lesson" aria-label={title}>
       <Segments pos={pos} />
       {head(pos)}
-      <Rich as="h2" class="section-title" text={entry.title} />
+      <div ref={topRef} tabIndex={-1} class="sec-anchor"><Rich as="h2" class="section-title" text={entry.title} /></div>
       {stage === 'learn' && section !== undefined && (
         <div class="lesson-body">
           {section.blocks.map((b, j) => {
             const i = section.start + j;
             return <BlockView key={i} b={b} id={`blk${i}`} topicId={c.topicId} num={nums[i]} />;
           })}
-          {next !== undefined && <button type="button" class="btn btn-primary" onClick={() => goTo(at + 1)}>{nextLabel}</button>}
+          <div class="ds-lessfoot">
+            {topLink}
+            {next !== undefined && <button type="button" class="btn btn-primary" onClick={() => goTo(at + 1)}>{nextLabel}</button>}
+          </div>
         </div>
       )}
       {stage === 'examples' && (
         <div class="lesson-body">
           {c.examples.map((e, i) => <Example key={i} e={e} n={i + 1} />)}
-          <div class="actions">
+          <div class="ds-lessfoot">
+            {topLink}
             <button type="button" class="btn btn-primary" onClick={() => goStage('practice')}>Next: practice</button>
           </div>
         </div>

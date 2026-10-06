@@ -18,7 +18,7 @@ import { interviewPacket } from '@/model/campaignPackets';
 import { campaign, saveCampaign } from '@/model/campaignStore';
 import { summarize, type Summary } from '@/model/campaignSummary';
 import { loadDays } from '@/model/dayLog';
-import { go } from '@/model/route';
+import { go, route, type Route } from '@/model/route';
 import { now } from '@/model/store';
 import { AppLink, CopyBlock, ROMAN, WithAdmissions, entryLine, longDay, shortStamp, useDeliverLetters } from '@/ui/campaignShared';
 
@@ -64,24 +64,15 @@ function CampaignBody({ adm, c, p }: { adm: Admissions; c: CampaignState; p: Pro
   const college = collegeOf(c.college);
 
   return (
-    <section class="camp" aria-labelledby="camp-title">
-      <h1 id="camp-title">Cambridge Entry</h1>
-      <p class="lead">
-        {entryLine(s.projection)}. {ROUTE_NAMES[c.route]}, {college?.name ?? 'college not chosen'}, January round, TMUA in {c.tmuaSitting === 'october' ? 'October' : 'January'}.
-      </p>
-      <p class="meta c-status">
-        <span>{ROUTE_NAMES[c.route]}</span>
-        <span>{s.act > 5 ? 'Matriculated' : `Act ${ROMAN[s.act - 1]} of V`}</span>
-        <span><span class="c-num">{s.daysStudied}</span> {s.daysStudied === 1 ? 'day' : 'days'} studied</span>
-        <span>This week <span class="c-num">{hours(s.weekHours)} of {TARGET_WEEK_HOURS} h</span></span>
-      </p>
-
+    <section class="camp ds-admission" aria-labelledby="camp-title">
+      <AdmissionHead s={s} c={c} />
+      <AdmissionTabs />
       <Acts s={s} />
+      <NextRequirement s={s} />
 
       <ChoicesSection c={c} s={s} />
       <Standing s={s} />
       <CalendarSection s={s} />
-      <PapersSection adm={adm} />
       <ApplicationSection c={c} s={s} />
       <InterviewSection c={c} s={s} />
       <LettersSection adm={adm} c={c} s={s} />
@@ -96,53 +87,109 @@ function CampaignBody({ adm, c, p }: { adm: Admissions; c: CampaignState; p: Pro
   );
 }
 
-/** The acts as a timeline: past acts faded, the open act marked, with its requirements. */
-function Acts({ s }: { s: Summary }) {
+/** Each act's plain name, as the design names them: the real step it stands for. */
+function actName(a: Act, route: CampaignState['route']): string {
+  return ['School exams', 'Entrance test', 'Application', 'Interview', route === 'maths' ? 'Offer and STEP' : 'Offer and results'][a.n - 1] as string;
+}
+
+/** The first sentence of an act's explanation: why the step is there. */
+const whyLine = (a: Act): string => (/^[^.]*\./.exec(a.real)?.[0] ?? a.real);
+
+const railDate = (date: string): string => new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+
+/** The heading: the entry the learner is on course for, the route and college, and what acts are. */
+export function AdmissionHead({ s, c }: { s: Summary; c: CampaignState }) {
+  const college = collegeOf(c.college);
+  const entry = s.projection.entry;
   return (
-    <ol class="tl c-tl" aria-label="Acts">
+    <>
+      <div class="ds-eyebrow">Admission</div>
+      <h1 id="camp-title" class="ds-h1">{entry === null ? 'Not yet on course' : `October ${entry}`}</h1>
+      <p class="ds-meta">
+        {ROUTE_NAMES[c.route]} · {college?.name ?? 'college not chosen'} · {entry === null ? 'beyond ten years at this pace' : s.projection.slipped ? 'slipped' : 'on course'}
+        <span class="visually-hidden">. {entryLine(s.projection)}.</span>
+      </p>
+      <p class="ds-actsnote">Five acts: the real steps to a Cambridge place, each finished by doing the work.</p>
+    </>
+  );
+}
+
+const ADMISSION_TABS: readonly { label: string; to: Route }[] = [
+  { label: 'Acts', to: { view: 'campaign' } },
+  { label: 'Papers', to: { view: 'papers' } },
+  { label: 'Results', to: { view: 'report' } },
+  { label: 'Letters', to: { view: 'letters' } },
+];
+
+/** Acts, Papers, Results, and Letters: the Admission tab's own tabs. */
+export function AdmissionTabs() {
+  const v = route.value.view;
+  return (
+    <nav class="ds-subtabs" aria-label="Admission">
+      {ADMISSION_TABS.map((t) => (
+        <AppLink key={t.label} to={t.to} class={v === t.to.view ? 'on' : undefined} aria-current={v === t.to.view ? 'page' : undefined}>{t.label}</AppLink>
+      ))}
+    </nav>
+  );
+}
+
+/** The acts as a rail with Roman numerals: done, the open act with why it is there, and the dates ahead. */
+function Acts({ s }: { s: Summary }) {
+  const c = campaign.value as CampaignState;
+  const dl = actDeadlines(s.cycle);
+  return (
+    <ol class="ds-rail" aria-label="Acts">
       {s.acts.map((a, i) => {
         const cur = s.act === i + 1;
+        const need = a.requirements.reduce((x, r) => x + (r.id === 'lessons' ? 1 : r.need), 0);
+        const done = a.requirements.reduce((x, r) => x + (r.id === 'lessons' ? (r.need === 0 ? 0 : r.done / r.need) : r.done), 0);
+        const d = dl[i];
         return (
-          <li key={a.n} class={`study${a.complete ? ' past' : cur ? ' now' : ''}`} aria-current={cur ? 'step' : undefined}>
-            <span class="t">Act {ROMAN[i]}</span>
-            <span class="n" />
-            <div class="w">
-              {cur && <span class="tag">current act</span>}
-              <h2 class="it">{a.title}</h2>
-              <div class="sub">{a.real}{a.complete ? <span class="visually-hidden">, complete</span> : null}</div>
-              {cur && <Requirements act={a} s={s} />}
-            </div>
+          <li key={a.n} class={a.complete ? 'done' : cur ? 'cur' : undefined} aria-current={cur ? 'step' : undefined}>
+            <span class="ds-rn" aria-hidden="true">{ROMAN[i]}</span>
+            <span class="ds-x">
+              <h2 class="ds-rail-t"><span class="visually-hidden">Act {ROMAN[i]}:</span>{' '}{actName(a, c.route)}</h2>
+              {cur && <small class="ds-why">{whyLine(a)}</small>}
+              <span class="visually-hidden">{a.title}{a.complete ? ', complete' : cur ? ', current act' : ''}</span>
+            </span>
+            <span class="ds-r">{a.complete ? 'done' : cur ? `${Math.round((100 * done) / Math.max(1, need))}%` : d === null || d === undefined ? '' : railDate(d.date)}</span>
           </li>
         );
       })}
-      <li class={`quiet${s.act > 5 ? ' now' : ''}`}>
-        <span class="t" />
-        <span class="n" />
-        <div class="w">
-          <h2 class="it">Matriculation · Part IA Michaelmas opens</h2>
-          <div class="sub">
-            {s.act > 5
-              ? 'Act V is complete. Part IA Michaelmas opens, and the results report is filed with your admission.'
-              : 'Completing Act V admits you, and the report is filed with your admission.'}
-          </div>
-        </div>
+      <li class={s.act > 5 ? 'done' : undefined}>
+        <span class="ds-rn" aria-hidden="true">∎</span>
+        <span class="ds-x"><h2 class="ds-rail-t">Matriculation</h2><small class="ds-why">{s.act > 5 ? 'Act V is complete. Part IA Michaelmas opens.' : 'Completing Act V admits you and opens Part IA Michaelmas.'}</small></span>
+        <span class="ds-r" />
       </li>
     </ol>
+  );
+}
+
+/** Below the rail: what the open act still needs, and the next paper to sit. */
+function NextRequirement({ s }: { s: Summary }) {
+  const act = s.acts[s.act - 1];
+  if (act === undefined) return null;
+  return (
+    <section class="ds-sect" aria-labelledby="next-req">
+      <div class="ds-eyebrow ds-sect-h"><h2 id="next-req">Requirements of this act</h2></div>
+      <Requirements act={act} s={s} />
+    </section>
   );
 }
 
 function Requirements({ act, s }: { act: Act; s: Summary }) {
   return (
     <>
-      <ul class="ruled c-req">
+      <ul class="ds-list plain c-req">
         {act.requirements.map((r) => {
           const share = r.need === 0 ? 0 : r.done / r.need;
           const done = r.done >= r.need;
           return (
             <li key={r.id}>
-              <span>{r.label}</span>
-              <span class={`r${done ? ' cam' : ''}`}>{r.id === 'lessons' ? `${Math.round(100 * share)}%` : `${r.done} of ${r.need}`}</span>
-              <span class="s">{r.id === 'lessons' ? 'Course lessons mastered, until the book is restructured into Stage A chapters' : r.detail}</span>
+              <div class="ds-li">
+                <span class="ds-x">{r.label}<small>{r.id === 'lessons' ? 'Course lessons mastered, until the book is restructured into Stage A chapters' : r.detail}</small></span>
+                <span class={`ds-r${done ? ' cam' : ''}`}>{r.id === 'lessons' ? `${Math.round(100 * share)}%` : `${r.done} / ${r.need}`}</span>
+              </div>
             </li>
           );
         })}
@@ -317,6 +364,24 @@ function CalendarSection({ s }: { s: Summary }) {
         statement {ESTIMATE_HOURS.statement} h, Stage B {ESTIMATE_HOURS.stageB} h, Stage C {ESTIMATE_HOURS.stageC} h.
       </p>
     </section>
+  );
+}
+
+/** The Papers tab: every past paper in the registry, to open and sit timed. */
+export function PapersView({ p }: { p: Progress }) {
+  const c = campaign.value;
+  if (c === null) return <BeginCampaign />;
+  return (
+    <WithAdmissions>{(adm) => {
+      const s = summarize(adm, c, p, loadDays(), now());
+      return (
+        <section class="camp ds-admission" aria-labelledby="camp-title">
+          <AdmissionHead s={s} c={c} />
+          <AdmissionTabs />
+          <PapersSection adm={adm} />
+        </section>
+      );
+    }}</WithAdmissions>
   );
 }
 
