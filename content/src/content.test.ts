@@ -102,7 +102,9 @@ const BATCH_4 = ['comb.binomial-theorem-proof', 'proof.strong-induction', 'num.d
 const UNWRITTEN = 'prob.poisson-distribution';
 
 /** Source ids of the batch, from the committed batch file; the manifest too when the local source cache exists. */
-const batchIds = new Set((JSON.parse(readFileSync(new URL('../../scripts/sources/batch-1.json', import.meta.url), 'utf8')) as { sources: { id: string }[] }).sources.map((x) => x.id));
+const readBatch = (n: number) => (JSON.parse(readFileSync(new URL(`../../scripts/sources/batch-${n}.json`, import.meta.url), 'utf8')) as { sources: { id: string }[] }).sources.map((x) => x.id);
+const batchIds = new Set(readBatch(1));
+const citableIds = new Set([...readBatch(1), ...readBatch(2)]);
 const manifestUrl = new URL('../../sources/manifest.json', import.meta.url);
 const manifest: Map<string, string> | null = existsSync(manifestUrl)
   ? new Map((JSON.parse(readFileSync(manifestUrl, 'utf8')) as { sources: { id: string; status: string }[] }).sources.map((x) => [x.id, x.status]))
@@ -110,7 +112,7 @@ const manifest: Map<string, string> | null = existsSync(manifestUrl)
 
 /** A citation names a document of the batch (and, with the cache present, one fetched OK) and a location, with no dashes. */
 function checkCitation(cit: Citation, where: string): void {
-  expect(batchIds.has(cit.doc), `${where}: ${cit.doc} is not in scripts/sources/batch-1.json`).toBe(true);
+  expect(citableIds.has(cit.doc), `${where}: ${cit.doc} is not in scripts/sources/batch-1.json or batch-2.json`).toBe(true);
   if (manifest !== null) expect(manifest.get(cit.doc), `${where}: ${cit.doc} in sources/manifest.json`).toBe('ok');
   expect(cit.at.trim().length, where).toBeGreaterThan(0);
   expect(DASH.test(citationText(cit)), `${where}: dash in "${citationText(cit)}"`).toBe(false);

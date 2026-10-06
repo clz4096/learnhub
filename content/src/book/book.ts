@@ -118,6 +118,17 @@ export const PLACEMENT: Readonly<Record<string, Readonly<Record<string, readonly
   'prep/STEP Foundation, Block 5: Toward calculus': {
     'Assignment 19': [b('prob.discrete-distributions'), 'prob.binomial-distribution'],
   },
+  // Mixed STEP 1 Statistics, then the STEP 2 module (graph/reviews/cambridge-batch-2.md, chapter 5.2).
+  'prep/STEP 2 modules': {
+    Statistics: [
+      'rv.expectation', 'rv.tail-sum', 'comb.restricted-arrangements', 'prob.first-step',
+      b('pre.quadratic-equations'), 'rv.variance', 'rv.pdf', 'rv.continuous-summaries', 'rv.cdf-method',
+      'prob.normal-distribution', 'prob.normal-approximation',
+    ],
+  },
+  'prep/STEP 3 modules': {
+    Statistics: ['rv.expectation-algebra', 'rv.indicators', 'alg.arithmetico-geometric'],
+  },
   'IA/Discrete Mathematics': {
     Proof: [
       'logic.connectives', 'logic.implication', 'proof.direct', 'logic.iff', 'sets.comprehension', 'logic.quantifiers',
@@ -135,11 +146,11 @@ export const PLACEMENT: Readonly<Record<string, Readonly<Record<string, readonly
   'IA/Analysis I': {
     'Limits and convergence': [
       'an.sequence-limits', 'an.epsilon-limit', 'an.limit-algebra', 'an.monotone-convergence', 'alg.geometric-sum-to-infinity',
-      'an.series-convergence', 'an.nonnegative-series',
+      'an.series-convergence', 'an.nonnegative-series', 'an.absolute-convergence',
     ],
-    Differentiability: [b('alg.exp-and-ln'), 'calc.derivatives', 'an.exp-limit'],
-    'Power series': ['an.exp-series'],
-    Integration: ['calc.definite-integrals', 'calc.integration-by-parts'],
+    Differentiability: [b('alg.exp-and-ln'), 'calc.derivatives', 'calc.differentiation-rules', b('calc.convexity'), 'an.exp-limit'],
+    'Power series': ['an.exp-series', 'an.power-series'],
+    Integration: ['calc.definite-integrals', 'calc.integration-by-parts', b('calc.substitution'), 'calc.improper-integrals'],
   },
   'IA/Probability': {
     'Basic concepts': ['prob.classical-probability', 'prob.sampling-models', 'prob.stirling-log', 'prob.stirling-formula'],
@@ -150,7 +161,19 @@ export const PLACEMENT: Readonly<Record<string, Readonly<Record<string, readonly
     ],
     'Discrete random variables': [
       'prob.point-mass-spaces', 'prob.geometric-distribution', 'prob.poisson-distribution', 'prob.poisson-binomial-limit',
+      // STEP 2 Statistics uses Poisson rates, but they need the Poisson distribution and the binomial theorem, both taught here or earlier.
+      'prob.poisson-rates', 'rv.random-variables', 'rv.expectation-general', 'rv.independence', 'rv.covariance',
+      'rv.conditional-expectation', 'gf.pgf', 'gf.random-sums', 'gf.combinatorial', 'alg.linear-recurrences',
+      'rw.gamblers-ruin', 'rw.absorption-time', 'bp.extinction',
     ],
+    'Continuous random variables': [
+      'prob.exponential-distribution', 'rv.joint-densities', 'rv.transformations', 'prob.geometric-probability',
+      'rv.simulation', 'rv.bivariate-normal',
+    ],
+    'Inequalities and limits': ['ineq.markov-chebyshev', 'ineq.jensen', 'lim.weak-law', 'gf.mgf', 'lim.clt'],
+  },
+  'IA/Vector Calculus': {
+    'Integration in R^2 and R^3': ['calc.double-integrals', 'calc.jacobians'],
   },
 };
 
@@ -162,6 +185,36 @@ export const PREREQ_FLAGS: Readonly<Record<string, { prereq: string; why: string
   'comb.pigeonhole': {
     prereq: 'proof.cases',
     why: 'STEP Assignment 5 sets the socks problem in Preparation; proof by cases is taught in IA Discrete Mathematics, Proof.',
+  },
+  // Batch 2: STEP statistics sits in Preparation, but the analysis toolkit it leans on is in IA Analysis I.
+  'prob.first-step': {
+    prereq: 'alg.geometric-sum-to-infinity',
+    why: 'Mixed STEP 1 Statistics Q12 sums a repeated experiment as a geometric series; the sum to infinity is taught in IA Analysis I, Limits and convergence.',
+  },
+  'rv.pdf': {
+    prereq: 'calc.improper-integrals',
+    why: 'STEP 2 Statistics integrates densities over infinite ranges; improper integrals are taught in IA Analysis I, Integration.',
+  },
+  'rv.cdf-method': {
+    prereq: 'calc.differentiation-rules',
+    why: 'STEP 2 and STEP 3 Statistics differentiate a distribution function by the chain rule; the rule is taught in IA Analysis I, Differentiability.',
+  },
+  'prob.normal-approximation': {
+    prereq: 'prob.poisson-distribution',
+    why: 'STEP 2 Statistics approximates the Poisson distribution, which IA Probability, Discrete random variables teaches.',
+  },
+  'alg.arithmetico-geometric': {
+    prereq: 'alg.geometric-sum-to-infinity',
+    why: 'STEP 3 Statistics Q2 sums n r^n from the geometric series; the sum to infinity is taught in IA Analysis I, Limits and convergence.',
+  },
+  // IA Vector Calculus follows IA Probability in the Lent term.
+  'rv.joint-densities': {
+    prereq: 'calc.double-integrals',
+    why: 'IA Probability uses double integrals before IA Vector Calculus, Integration in R^2 and R^3, teaches them in the same term.',
+  },
+  'rv.transformations': {
+    prereq: 'calc.jacobians',
+    why: 'IA Probability uses the Jacobian before IA Vector Calculus, Integration in R^2 and R^3, teaches change of variables in the same term.',
   },
 };
 

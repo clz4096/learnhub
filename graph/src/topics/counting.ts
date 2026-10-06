@@ -1,6 +1,6 @@
 /** Area `counting`. From the product rule to the binomial theorem. */
 import type { Topic } from '@learnhub/mastery';
-import { CST, CST_DM, CST_NUMBERS, CST_PROOF, GCSE, GCSE_NUMBER, STEP, STEP_SS, STEP_SUPPORT_6 } from '../sources';
+import { CST, CST_DM, CST_NUMBERS, CST_PROOF, GCSE, GCSE_NUMBER, M1_PROB, STEP, STEP_SS, STEP_SUPPORT_6 } from '../sources';
 
 export const counting: Topic[] = [
   {
@@ -109,6 +109,17 @@ export const counting: Topic[] = [
       note: 'Syllabus: "existential quantification". The 2025-26 notes give the pigeonhole principle as their example of an existential statement (printed page 87). STEP Support Foundation Assignments 5 and 8 (the socks) use it at STEP level (batch 1 decision 3).',
       verified: true,
     }],
+    estMinutes: 20,
+  },
+  {
+    id: 'comb.restricted-arrangements',
+    title: 'Arrangements with objects together or apart',
+    summary: 'Count arrangements with some objects kept together (glue them into a block) or kept apart (place them in the gaps), and at the ends.',
+    level: 'step',
+    area: 'counting',
+    prereqs: ['prob.counting-probability'],
+    encompasses: { 'comb.permutations': 0.6, 'comb.factorial': 0.5, 'prob.counting-probability': 0.5 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: `${M1_PROB}, Probability`, note: 'Spec: "Use combinatorial arguments, including the use of n! and nCr in the context of calculating probabilities." Mixed STEP 1 Statistics Q3 says arrangements are on STEP 1, not A level.', verified: true }],
     estMinutes: 20,
   },
 ];

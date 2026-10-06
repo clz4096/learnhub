@@ -1,6 +1,9 @@
-/** Area `calculus`. Only the calculus that the log n! proof and the exponential limit need. */
+/**
+ * Area `calculus`. Only the calculus that the log n! proof and the exponential limit need,
+ * and what Part V's densities, transformations, and Jensen's inequality need (cambridge-batch-2.md).
+ */
 import type { Topic } from '@learnhub/mastery';
-import { M1_PURE, STEP } from '../sources';
+import { M1_PURE, M2_FURTHER_CALCULUS, STEP, TRIPOS } from '../sources';
 
 export const calculus: Topic[] = [
   {
@@ -35,5 +38,80 @@ export const calculus: Topic[] = [
     encompasses: { 'calc.definite-integrals': 0.6, 'calc.derivatives': 0.5 },
     sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: `${M1_PURE}, Integration`, verified: true }],
     estMinutes: 20,
+  },
+  {
+    id: 'calc.differentiation-rules',
+    title: 'The chain, product, and quotient rules',
+    summary: 'Differentiate composites, products, and quotients, such as $e^{-x^2/2}$ and $x e^{-x}$.',
+    level: 'a-level',
+    area: 'calculus',
+    prereqs: ['calc.derivatives'],
+    encompasses: { 'calc.derivatives': 0.7 },
+    sources: [
+      { doc: STEP, course: 'STEP Mathematics 1', section: `${M1_PURE}, Differentiation`, note: 'Spec: "Differentiate using the product rule, the quotient rule, and the chain rule".', verified: true },
+      { doc: TRIPOS, course: 'IA Analysis I', section: 'Differentiability', note: 'Schedule: "Derivative of sums and products. The chain rule."', verified: true },
+    ],
+    estMinutes: 20,
+  },
+  {
+    id: 'calc.substitution',
+    title: 'Integration by substitution',
+    summary: 'Change the variable of a definite integral, with its limits, to turn it into one you can evaluate.',
+    level: 'a-level',
+    area: 'calculus',
+    prereqs: ['calc.definite-integrals', 'calc.differentiation-rules'],
+    encompasses: { 'calc.definite-integrals': 0.6, 'calc.differentiation-rules': 0.5 },
+    sources: [
+      { doc: STEP, course: 'STEP Mathematics 1', section: `${M1_PURE}, Integration`, note: 'Spec: "Carry out simple and more complex cases of integration by substitution".', verified: true },
+      { doc: TRIPOS, course: 'IA Differential Equations', section: 'Basic calculus', note: 'Schedule: "integration by substitution and parts."', verified: true },
+    ],
+    estMinutes: 20,
+  },
+  {
+    id: 'calc.improper-integrals',
+    title: 'Integrals over infinite ranges',
+    summary: 'Evaluate $\\int_a^\\infty f(x) \\, dx$ as the limit of $\\int_a^R f(x) \\, dx$ as $R \\to \\infty$, and decide when it converges.',
+    level: 'step',
+    area: 'calculus',
+    prereqs: ['calc.definite-integrals', 'an.sequence-limits'],
+    encompasses: { 'calc.definite-integrals': 0.6, 'an.sequence-limits': 0.4 },
+    sources: [
+      { doc: STEP, course: 'STEP Mathematics 2', section: M2_FURTHER_CALCULUS, note: 'Spec: "Evaluate improper integrals where ... the range of integration extends to infinity."', verified: true },
+      { doc: TRIPOS, course: 'IA Analysis I', section: 'Integration', note: 'Schedule: "Improper integrals."', verified: true },
+    ],
+    estMinutes: 20,
+  },
+  {
+    id: 'calc.convexity',
+    title: 'Convex functions',
+    summary: 'Recognise a convex function by $f\'\' \\ge 0$ or by its chords lying above the graph, and use that its tangents lie below it.',
+    level: 'a-level',
+    area: 'calculus',
+    prereqs: ['calc.derivatives'],
+    encompasses: { 'calc.derivatives': 0.6 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: `${M1_PURE}, Differentiation`, note: 'Spec: "the second derivative as the rate of change of gradient; connection to convex and concave sections of curves".', verified: true }],
+    estMinutes: 15,
+  },
+  {
+    id: 'calc.double-integrals',
+    title: 'Double integrals',
+    summary: 'Evaluate an integral over a region of the plane as repeated single integrals, including over infinite regions.',
+    level: 'tripos-ia',
+    area: 'calculus',
+    prereqs: ['calc.improper-integrals'],
+    encompasses: { 'calc.improper-integrals': 0.5, 'calc.definite-integrals': 0.6 },
+    sources: [{ doc: TRIPOS, course: 'IA Vector Calculus', section: 'Integration in R2 and R3', note: 'Schedule: "Surface and volume integrals: definitions, examples using Cartesian, cylindrical and spherical coordinates".', verified: true }],
+    estMinutes: 25,
+  },
+  {
+    id: 'calc.jacobians',
+    title: 'Change of variables and the Jacobian',
+    summary: 'Change variables in a double integral with the Jacobian determinant, as in polar coordinates $dx \\, dy = r \\, dr \\, d\\theta$.',
+    level: 'tripos-ia',
+    area: 'calculus',
+    prereqs: ['calc.double-integrals', 'calc.substitution'],
+    encompasses: { 'calc.double-integrals': 0.6, 'calc.substitution': 0.5 },
+    sources: [{ doc: TRIPOS, course: 'IA Vector Calculus', section: 'Integration in R2 and R3', note: 'Schedule: "change of variables."', verified: true }],
+    estMinutes: 25,
   },
 ];

@@ -1,6 +1,6 @@
 /** Area `number-and-algebra`. Fraction, algebra, and index skills, plus e^x and ln x, and the whole-number skills (primes, factors, remainders) under number theory. */
 import type { Topic } from '@learnhub/mastery';
-import { GCSE, GCSE_ALGEBRA, GCSE_NUMBER, M1_PURE, STEP, STEP_SUPPORT } from '../sources';
+import { GCSE, GCSE_ALGEBRA, GCSE_NUMBER, M1_ALGEBRA, M1_PURE, STEP, STEP_SUPPORT } from '../sources';
 
 export const numberAndAlgebra: Topic[] = [
   {
@@ -102,5 +102,16 @@ export const numberAndAlgebra: Topic[] = [
       verified: true,
     }],
     estMinutes: 10,
+  },
+  {
+    id: 'pre.quadratic-equations',
+    title: 'Solving quadratic equations',
+    summary: 'Solve $ax^2 + bx + c = 0$ by factorising, completing the square, or the formula, and tell from the discriminant how many real roots there are.',
+    level: 'pre-a-level',
+    area: 'number-and-algebra',
+    prereqs: ['pre.algebraic-manipulation'],
+    encompasses: { 'pre.algebraic-manipulation': 0.6 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_ALGEBRA, note: 'Spec: "solution of quadratic equations including solving quadratic equations in a function of the unknown." A bridge: the batch 2 sources assume it (STEP 2 Statistics Q5, a quadratic in e^lambda; Sheet 3 Q9; difference equations).', verified: true }],
+    estMinutes: 15,
   },
 ];

@@ -40,6 +40,20 @@ export const CITED_DOCS = {
   bop: 'Book of Proof',
   'tmua-logic-proof': 'TMUA Notes on Logic and Proof',
   'tripos-schedules': 'Mathematical Tripos schedules 2026-27',
+  // Batch 2 (scripts/sources/batch-2.json): statistics and IA Probability sheets 2 to 4.
+  'step-mixed-stats1': 'STEP Support Mixed STEP 1 Statistics',
+  'step-mixed-stats1-hints': 'STEP Support Mixed STEP 1 Statistics, Hints and Feedback',
+  'step-s2-stats': 'STEP Support STEP 2 Statistics',
+  'step-s2-stats-notes': 'STEP Support STEP 2 Statistics, Topic Notes',
+  'step-s2-stats-hints': 'STEP Support STEP 2 Statistics, Hints',
+  'step-s2-stats-solutions': 'STEP Support STEP 2 Statistics, Solutions',
+  'step-s3-stats': 'STEP Support STEP 3 Statistics',
+  'step-s3-stats-notes': 'STEP Support STEP 3 Statistics, Topic Notes',
+  'step-s3-stats-hints': 'STEP Support STEP 3 Statistics, Hints',
+  'step-s3-stats-solutions': 'STEP Support STEP 3 Statistics, Solutions',
+  'ia-prob-sheet-2': 'IA Probability Example Sheet 2',
+  'ia-prob-sheet-3': 'IA Probability Example Sheet 3',
+  'ia-prob-sheet-4': 'IA Probability Example Sheet 4',
 } as const;
 
 export type CitedDoc = keyof typeof CITED_DOCS;

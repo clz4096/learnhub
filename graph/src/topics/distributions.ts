@@ -1,6 +1,6 @@
 /** Area `distributions`. Binomial, Poisson, and geometric, and the Poisson limit. */
 import type { Topic } from '@learnhub/mastery';
-import { IA_AXIOMATIC, M1_PROB, STEP, TRIPOS } from '../sources';
+import { IA_AXIOMATIC, M1_PROB, M2_PROB_DIST, STEP, TRIPOS } from '../sources';
 
 export const distributions: Topic[] = [
   {
@@ -46,5 +46,16 @@ export const distributions: Topic[] = [
     encompasses: { 'an.exp-limit': 0.6, 'prob.binomial-distribution': 0.5, 'prob.poisson-distribution': 0.5, 'an.limit-algebra': 0.3 },
     sources: [{ doc: TRIPOS, course: 'IA Probability', section: IA_AXIOMATIC, note: 'Schedule: "Relation between Poisson and binomial distributions."', verified: true }],
     estMinutes: 25,
+  },
+  {
+    id: 'prob.poisson-rates',
+    title: 'Poisson rates and sums of Poissons',
+    summary: 'Scale a Poisson rate to an interval or an area, and show that a sum of independent Poissons is Poisson.',
+    level: 'step',
+    area: 'distributions',
+    prereqs: ['prob.poisson-distribution', 'prob.independent-events', 'comb.binomial-theorem'],
+    encompasses: { 'prob.poisson-distribution': 0.6, 'comb.binomial-theorem': 0.4, 'prob.independent-events': 0.4 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 2', section: M2_PROB_DIST, note: 'Spec: "Know, understand and use the Poisson distribution". Scaling and sums are not named; the STEP 2 Statistics topic notes (page 2) teach them.', verified: true }],
+    estMinutes: 20,
   },
 ];

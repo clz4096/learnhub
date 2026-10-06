@@ -33,6 +33,16 @@ export const SOURCE_DOCS = {
   'cst-dm-sw1': { title: 'Discrete Mathematics supervision exercises: Proofs, Numbers, and Sets, Part IA CST 2025-26', url: 'https://www.cl.cam.ac.uk/teaching/2526/DiscMath/DiscMathProofsNumbersSetsSupExs.pdf' },
   bop: { title: 'Richard Hammack, Book of Proof, edition 3.4', url: 'https://richardhammack.github.io/BookOfProof/Main.pdf' },
   'tmua-logic-proof': { title: 'Notes on Logic and Proof, for TMUA Paper 2 (June 2025)', url: 'https://uat-wp.s3.eu-west-2.amazonaws.com/wp-content/uploads/2025/06/25160507/Notes_on_Logic_and_Proof_June2025.pdf' },
+  // Cambridge batch 2 (graph/reviews/cambridge-batch-2.md), keyed by the source ids in
+  // scripts/sources/batch-2.json, as batch 1.
+  'step-mixed-stats1': { title: 'STEP Support Programme, Mixed STEP 1 Statistics questions', url: 'https://step.maths.org/sites/default/files/2023-07/Statistics_STEP1_2019_0.pdf' },
+  'step-s2-stats': { title: 'STEP Support Programme, STEP 2 Statistics questions', url: 'https://step.maths.org/sites/default/files/2023-07/Statistics_questions_2019_0.pdf' },
+  'step-s2-stats-notes': { title: 'STEP Support Programme, STEP 2 Statistics topic notes', url: 'https://step.maths.org/sites/default/files/2023-07/Statistics_topic_notes_2019_1.pdf' },
+  'step-s3-stats': { title: 'STEP Support Programme, STEP 3 Statistics questions', url: 'https://step.maths.org/sites/default/files/2023-07/Stats3_questions_2019.pdf' },
+  'step-s3-stats-notes': { title: 'STEP Support Programme, STEP 3 Statistics topic notes', url: 'https://step.maths.org/sites/default/files/2023-07/Stats3_topic_notes_2019_0.pdf' },
+  'ia-prob-sheet-2': { title: 'IA Probability Example Sheet 2, Lent 2026 (DPMMS, Perla Sousi)', url: 'https://www.dpmms.cam.ac.uk/study/IA/Probability/2025-2026/pex2-2026.pdf' },
+  'ia-prob-sheet-3': { title: 'IA Probability Example Sheet 3, Lent 2026 (DPMMS, Perla Sousi)', url: 'https://www.dpmms.cam.ac.uk/study/IA/Probability/2025-2026/pex3-2026.pdf' },
+  'ia-prob-sheet-4': { title: 'IA Probability Example Sheet 4, Lent 2026 (DPMMS, Perla Sousi)', url: 'https://www.dpmms.cam.ac.uk/study/IA/Probability/2025-2026/pex4-2026.pdf' },
 } as const;
 
 export type SourceDoc = keyof typeof SOURCE_DOCS;
@@ -55,6 +65,20 @@ export const IA_AXIOMATIC = 'Axiomatic approach';
 export const IA_LIMITS = 'Limits and convergence';
 export const M1_ALGEBRA = `${M1_PURE}, Algebra and functions`;
 export const M1_PROOF = `${M1_PURE}, Proof`;
+export const M1_STAT_DIST = `${M1_PROB}, Statistical distributions`;
+export const M2_FURTHER_CALCULUS = `${M1_PURE}, Further calculus`;
+export const M2_PROB_DIST = 'Section C: Probability/Statistics, Probability distributions';
+export const M3_ALGEBRA_OF_EXPECTATION = 'Section C: Probability/Statistics, Algebra of expectation';
+export const IA_DISCRETE_RV = 'Discrete random variables';
+export const IA_CONTINUOUS_RV = 'Continuous random variables';
+export const IA_INEQUALITIES = 'Inequalities and limits';
+/**
+ * The `course` of a Part V topic's IA Probability schedule citation. Not `'IA Probability'`
+ * on purpose: that name makes a topic a target of the `ia-probability` course, and widening
+ * the course to Part V reorders the scheduler and the measured simulations, which is its
+ * own decision. Rename to `'IA Probability'` when the course takes Part V in.
+ */
+export const IA_PROB_PART_V = 'IA Probability, Part V sections (not yet course targets)';
 /** The notation list (page 32): chapter, heading, and table title as printed. */
 export const STEP_SET_NOTATION = 'Notation and Required Formulae, Notation, Set notation';
 
@@ -65,7 +89,7 @@ export const CST_PROOF = 'Proof';
 export const CST_NUMBERS = 'Numbers';
 
 /**
- * The `course` of a Cambridge batch 1 citation, one per document. None is a course of
+ * The `course` of a Cambridge batch 1 or 2 citation, one per document. None is a course of
  * `COURSES`, so these citations add teaching sources without adding course targets.
  */
 export const CAMBRIDGE_COURSE = {
@@ -80,6 +104,14 @@ export const CAMBRIDGE_COURSE = {
   'cst-dm-sw1': 'CST IA Discrete Mathematics supervision exercises, 2025-26',
   bop: 'Book of Proof',
   'tmua-logic-proof': 'TMUA Notes on Logic and Proof',
+  'step-mixed-stats1': 'STEP Support Programme, Mixed STEP 1 Statistics',
+  'step-s2-stats': 'STEP Support Programme, STEP 2 Statistics',
+  'step-s2-stats-notes': 'STEP Support Programme, STEP 2 Statistics',
+  'step-s3-stats': 'STEP Support Programme, STEP 3 Statistics',
+  'step-s3-stats-notes': 'STEP Support Programme, STEP 3 Statistics',
+  'ia-prob-sheet-2': 'IA Probability example sheets, 2025-26',
+  'ia-prob-sheet-3': 'IA Probability example sheets, 2025-26',
+  'ia-prob-sheet-4': 'IA Probability example sheets, 2025-26',
 } as const satisfies Partial<Record<SourceDoc, string>>;
 
 export type CambridgeDoc = keyof typeof CAMBRIDGE_COURSE;

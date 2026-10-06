@@ -5,6 +5,7 @@ import {
 import { courseById, courseTargets, coursesClosure } from './courses';
 import { CST_DISCRETE_MATHS_SLICE } from './schedules';
 import { topics } from './topics';
+import { BATCH_2_NEW_TOPICS } from './topics/cambridge-batch-2';
 
 const byId = new Map(topics.map((t) => [t.id, t]));
 const ia = courseById('ia-probability');
@@ -82,9 +83,11 @@ describe('the two courses share foundations', () => {
     for (const id of shared) expect(LEVELS.indexOf(byId.get(id)?.level as Topic['level'])).toBeLessThanOrEqual(LEVELS.indexOf('step'));
   });
 
-  it('together cover the whole graph, each topic once', () => {
+  it('together cover the whole graph but batch 2, each topic once', () => {
+    // Batch 2's topics are not course targets yet (IA_PROB_PART_V in sources.ts).
     const union = new Set([...A, ...D]);
-    expect(union.size).toBe(topics.length);
+    expect(topics.map((t) => t.id).filter((id) => !union.has(id)).sort()).toEqual([...BATCH_2_NEW_TOPICS].sort());
+    expect(union.size).toBe(topics.length - BATCH_2_NEW_TOPICS.length);
     expect(A.size + D.size - union.size).toBe(13);
   });
 });
@@ -110,15 +113,15 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
     expect(pg.entries).toHaveLength(9);
   });
 
-  it('works on the union of the two closures, the whole graph', () => {
-    expect(g.order.length).toBe(topics.length);
+  it('works on the union of the two closures, the whole graph but batch 2', () => {
+    expect(g.order.length).toBe(topics.length - BATCH_2_NEW_TOPICS.length);
   });
 
   // Measured on the 101-topic graph of batch 1: split needs at most 41 questions for these learners, entry-points at most 42.
   for (const [strategy, most] of [['split', 42], ['entry-points', 45]] as [PlacementStrategy, number][]) {
     for (const [name, knows] of profiles) {
       it(`${strategy}: a truthful learner who knows ${name} is placed exactly within ${most} questions`, () => {
-        const known = new Set(topics.filter(knows).map((t) => t.id));
+        const known = new Set(g.topics.filter(knows).map((t) => t.id));
         const { result } = runPlacement(g, (id) => known.has(id), 0, { strategy, budget: 60 });
         expect(new Set(result.mastered)).toEqual(known);
         expect(result.questions).toBeLessThanOrEqual(most);

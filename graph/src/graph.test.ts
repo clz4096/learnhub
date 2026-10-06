@@ -145,3 +145,40 @@ describe('Cambridge batch 1 citations', () => {
     for (const c of Object.values(CAMBRIDGE_COURSE)) expect(courses.has(c as never), c).toBe(false);
   });
 });
+
+describe('Cambridge batch 2 citations', () => {
+  it('name only graph topics, and cite each document by its source id in the batch files', async () => {
+    const { CAMBRIDGE_BATCH_2 } = await import('./topics/cambridge-batch-2');
+    const { existsSync, readFileSync } = await import('node:fs');
+    const read = (path: string): { sources: { id: string; url: string; status?: string }[] } =>
+      JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8')) as { sources: { id: string; url: string; status?: string }[] };
+    const batch2 = new Map(read('../../scripts/sources/batch-2.json').sources.map((s) => [s.id, s.url]));
+    const batch1 = new Map(read('../../scripts/sources/batch-1.json').sources.map((s) => [s.id, s.url]));
+    // The source cache is not committed; check it when it is present.
+    const manifestUrl = new URL('../../sources/manifest.json', import.meta.url);
+    const manifest = existsSync(manifestUrl) ? new Map(read('../../sources/manifest.json').sources.map((s) => [s.id, s])) : null;
+    for (const [id, cites] of Object.entries(CAMBRIDGE_BATCH_2)) {
+      expect(byId.has(id), id).toBe(true);
+      for (const s of cites) {
+        const url = (SOURCE_DOCS as Record<string, { url: string }>)[s.doc]?.url;
+        // step-f19 is the one batch 1 document batch 2 cites (the bet in Assignment 19).
+        expect(batch2.get(s.doc) ?? (s.doc === 'step-f19' ? batch1.get(s.doc) : undefined), `${id}: ${s.doc}`).toBe(url);
+        if (manifest !== null) {
+          expect(manifest.get(s.doc)?.url, `${id}: ${s.doc} in the manifest`).toBe(url);
+          expect(manifest.get(s.doc)?.status, `${id}: ${s.doc} fetched`).toBe('ok');
+        }
+        expect(byId.get(id)?.sources, id).toContainEqual(s);
+      }
+    }
+  });
+
+  it('leave both course target sets as they were', () => {
+    // Part V cites the IA Probability schedule under its own course name (IA_PROB_PART_V)
+    // until the course is widened; the probstats slice above still has 62 topics.
+    const dm = courseById('cst-discrete-maths');
+    for (const t of topics.filter((x) => ['random-variables', 'continuous', 'generating-functions', 'random-processes', 'limit-theorems'].includes(x.area))) {
+      expect(courseTargets(topics, courseById('ia-probability')), t.id).not.toContain(t.id);
+      expect(courseTargets(topics, dm), t.id).not.toContain(t.id);
+    }
+  });
+});

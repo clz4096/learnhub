@@ -1,6 +1,8 @@
 /** Area `sequences-and-series`. Sequences, sigma notation, arithmetic and geometric series, and induction. */
 import type { Topic } from '@learnhub/mastery';
-import { CST, CST_DM, CST_NUMBERS, GCSE, GCSE_SEQUENCES, M1_PURE, STEP, STEP_SS, STEP_SUPPORT } from '../sources';
+import {
+  CST, CST_DM, CST_NUMBERS, GCSE, GCSE_SEQUENCES, IA_DISCRETE_RV, IA_PROB_PART_V, M1_PURE, STEP, STEP_SS, STEP_SUPPORT, TRIPOS,
+} from '../sources';
 
 export const sequencesAndSeries: Topic[] = [
   {
@@ -80,5 +82,27 @@ export const sequencesAndSeries: Topic[] = [
       verified: true,
     }],
     estMinutes: 20,
+  },
+  {
+    id: 'alg.arithmetico-geometric',
+    title: 'Sums of n r^n',
+    summary: 'Sum $\\sum n r^n$ and $\\sum (a + nd) r^n$ by multiplying by $r$ and subtracting, or by differentiating the geometric series.',
+    level: 'step',
+    area: 'sequences-and-series',
+    prereqs: ['alg.geometric-sum-to-infinity'],
+    encompasses: { 'alg.geometric-sum-to-infinity': 0.6, 'alg.sigma-notation': 0.4 },
+    sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: STEP_SS, note: 'Not named; the spec\'s geometric series and sigma notation, as STEP 3 Statistics Q2 (2010 S3 Q12) uses them.', verified: true }],
+    estMinutes: 15,
+  },
+  {
+    id: 'alg.linear-recurrences',
+    title: 'Linear difference equations',
+    summary: 'Solve $u_{n+1} = a u_n + b$ and $u_{n+1} = a u_n + b u_{n-1}$ from the auxiliary equation, with a particular solution for a constant term.',
+    level: 'tripos-ia',
+    area: 'sequences-and-series',
+    prereqs: ['pre.quadratic-equations', 'alg.geometric-series'],
+    encompasses: { 'pre.quadratic-equations': 0.6, 'alg.geometric-series': 0.4, 'pre.sequences': 0.4 },
+    sources: [{ doc: TRIPOS, course: IA_PROB_PART_V, section: IA_DISCRETE_RV, note: 'Schedule: "Difference equations and their solution."', verified: true }],
+    estMinutes: 25,
   },
 ];

@@ -4,8 +4,8 @@ import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_SCHEDULER_OPTIONS, measurePlacement, placementBudget, placementGraph, simulate, type CourseShare, type PlacementMeasure, type SimResult,
 } from '@learnhub/mastery';
-import { courseById, courseTargets, coursesClosure } from './courses';
-import { topics } from './topics';
+import { courseById, courseTargets, coursesClosure, coursesTopics } from './courses';
+import { topics as allTopics } from './topics';
 
 /**
  * Design decision 14: IA Probability and CST Discrete Mathematics at once, an even split of
@@ -14,6 +14,9 @@ import { topics } from './topics';
  */
 const ia = courseById('ia-probability');
 const dm = courseById('cst-discrete-maths');
+// The union of the two closures, in graph order. It was the whole graph until Cambridge batch 2
+// added topics that are not course targets yet; restricting to it keeps these runs unchanged.
+const topics = coursesTopics(allTopics, [ia, dm]);
 const courses: CourseShare[] = [ia, dm].map((c) => ({ id: c.id, targets: courseTargets(topics, c) }));
 const SEEDS = [1, 2, 3, 4, 5];
 const DAYS = 120;
