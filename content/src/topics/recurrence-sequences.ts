@@ -6,7 +6,7 @@
  * Q2 and Q3 (2006 STEP II Q1), all checked against the hints and by iterating.
  */
 import { auto, cite, same, supervision } from '../cambridge';
-import { div, int, pick, q, str, sub, type Rational } from '../math';
+import { add, div, int, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { listOf, math, t } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
@@ -179,25 +179,38 @@ const kGen = generator<KP>({
 const F15 = 'step-f15';
 const F15H = 'step-f15-hints';
 
-const a15q3b = auto({
-  id: 'a15-q3-i-b',
-  source: cite(F15, 'Assignment 15, Q3(i)(b)'),
-  title: t`Period two`,
-  prompt: t`(${2006} STEP II, Question ${1}.) The sequence is ${math`u_{${1}} = ${2}`}, ${math`u_{n + ${1}} = k - \frac{${36}}{u_{n}}`}. For ${math`k = ${20}`} it is constant. Find the value of ${mk} for which it is periodic with period ${2}.`,
-  answer: { kind: 'exact', expected: '0' },
+/** The terms of u_(n+1) = (2/u_n + u_n)/2 from u_1 = 1, exactly: Newton's method for sqrt 2. */
+const newtonTerms = (n: number): Rational[] => {
+  const u: Rational[] = [q(1)];
+  while (u.length < n) {
+    const x = u[u.length - 1] as Rational;
+    u.push(div(add(div(q(2), x), x), q(2)));
+  }
+  return u;
+};
+const A15IV = newtonTerms(5);
+const [n1, n2, n3, n4, n5] = A15IV as [Rational, Rational, Rational, Rational, Rational];
+const a15iv = auto({
+  id: 'a15-q2-iv',
+  source: cite(F15, 'Assignment 15, Q2(iv)'),
+  title: t`A sequence that homes in on ${math`\sqrt{${2}}`}`,
+  prompt: t`Find the first ${5} terms of the convergent sequence defined by ${math`u_{${1}} = ${1}`} and ${math`u_{n + ${1}} = \frac{${1}}{${2}}\left(\frac{${2}}{u_{n}} + u_{n}\right)`} for ${math`n \ge ${1}`}. By setting ${math`u_{n} = u_{n + ${1}} = l`}, find the limit ${ml} of the sequence. (Type a square root as sqrt(${2}).)`,
+  answer: { kind: 'expression', expected: 'sqrt(2)', variables: [] },
   solution: [
-    t`${math`u_{${2}} = k - ${18}`} and ${math`u_{${3}} = k - \frac{${36}}{k - ${18}} = \frac{k(k - ${18}) - ${36}}{k - ${18}}`}.`,
-    t`Period dividing ${2} needs ${math`u_{${3}} = u_{${1}} = ${2}`} (then the rule repeats from there): ${math`${2}(k - ${18}) = k^{${2}} - ${18}k - ${36}`}, so ${math`k^{${2}} - ${20}k = ${0}`}, ${math`k = ${0}`} or ${math`k = ${20}`}.`,
-    t`${math`k = ${20}`} gives the constant sequence, period ${1}. So period exactly ${2} needs ${math`k = ${0}`}: the terms are ${math`${2}, -${18}, ${2}, -${18}, \ldots`}.`,
+    t`Compute: ${math`u_{${1}} = ${n1}`}, ${math`u_{${2}} = \frac{${1}}{${2}}\left(\frac{${2}}{${1}} + ${1}\right) = ${n2}`}, ${math`u_{${3}} = \frac{${1}}{${2}}\left(\frac{${4}}{${3}} + \frac{${3}}{${2}}\right) = ${n3}`}, ${math`u_{${4}} = ${n4}`}, ${math`u_{${5}} = ${n5} \approx ${Number((Number(n5.num) / Number(n5.den)).toFixed(9))}`}.`,
+    t`If ${math`u_{n} \to l`} with ${math`l \neq ${0}`}, the theorem on limits gives ${math`l = \frac{${1}}{${2}}\left(\frac{${2}}{l} + l\right)`}. Multiply both sides by ${math`${2}l`}: ${math`${2}l^{${2}} = ${2} + l^{${2}}`}, so ${math`l^{${2}} = ${2}`} and ${math`l = \pm\sqrt{${2}}`}.`,
+    t`Every term is positive: ${math`u_{${1}} > ${0}`}, and if ${math`u_{n} > ${0}`} then ${math`\frac{${2}}{u_{n}}`} and ${math`u_{n}`} are positive, so ${math`u_{n + ${1}} > ${0}`}. No term after the first is below ${math`\frac{${1}}{${2}}`}: if ${math`u_{n} \ge ${1}`}, then ${math`u_{n + ${1}} \ge \frac{u_{n}}{${2}} \ge \frac{${1}}{${2}}`}; if ${math`${0} < u_{n} < ${1}`}, then ${math`\frac{${2}}{u_{n}} > ${2}`}, so ${math`u_{n + ${1}} > ${1}`}.`,
+    t`So ${math`l \ge \frac{${1}}{${2}}`}: it is not ${0}, and of ${math`\pm\sqrt{${2}}`} it must be ${math`\sqrt{${2}}`}. Already ${math`u_{${5}}`} agrees with ${math`\sqrt{${2}}`} to ${11} decimal places.`,
   ],
-  reference: '0',
+  reference: 'sqrt(2)',
   verify: () => {
-    const run = (k: number) => { const u = [2]; for (let i = 0; i < 6; i++) u.push(k - 36 / (u[u.length - 1] as number)); return u; };
-    const u = run(0);
-    return same('period 2 at k = 0', u[2] === 2 && u[1] !== 2, true);
+    const e = same('the first five terms', A15IV.map(str).join(' '), '1 3/2 17/12 577/408 665857/470832');
+    if (e !== null) return e;
+    const u5 = Number(n5.num) / Number(n5.den);
+    return Math.abs(u5 - Math.SQRT2) < 1e-11 && Math.abs(u5 - Math.SQRT2) > 1e-13 ? null : `u5 = ${u5}`;
   },
-  misconceptions: [{ response: '20', why: t`${math`k = ${20}`} makes every term ${2}: period ${1}, constant. The question wants period exactly ${2}.` }],
-  official: { source: cite(F15H, 'Assignment 15, Q3(i)(b)'), answer: '0', agrees: true },
+  misconceptions: [{ response: '-sqrt(2)', why: t`Both ${math`\pm\sqrt{${2}}`} solve ${math`l^{${2}} = ${2}`}, but every term is positive, so the limit cannot be negative.` }],
+  official: { source: cite(F15H, 'Assignment 15, Q2(iv)'), answer: 'sqrt(2)', agrees: true },
 });
 
 const a15q3c = auto({
@@ -291,6 +304,10 @@ const a15iii = auto({
 // ---------------------------------------------------------------- lesson
 
 const EXU = linTerms({ a: 2, b: -1, u1: 3, k: 0 }, 6);
+// The hook's 1 + 2/u from 1: 1, 3, 5/3, 11/5, 21/11, tending to the fixed point 2.
+const EXH: Rational[] = [q(1)];
+while (EXH.length < 5) EXH.push(add(q(1), div(q(2), EXH[EXH.length - 1] as Rational)));
+const [h1, h2, h3, h4, h5] = EXH as [Rational, Rational, Rational, Rational, Rational];
 
 export const recurrenceSequences: TopicContent = {
   topicId: 'alg.recurrence-sequences',
@@ -300,7 +317,7 @@ export const recurrenceSequences: TopicContent = {
   minutes: 30,
   lesson: [
     { kind: 'section', title: t`A rule for the next term` },
-    { kind: 'hook', text: t`Start at ${2}, and repeatedly replace the number ${math`u`} by ${math`${37} - \frac{${36}}{u}`}. You get ${math`${2}, ${19}, ${q(667, 19)}, \ldots`}, creeping up towards ${36}. Change ${37} to ${0} and the numbers bounce between ${2} and ${math`-${18}`} forever. One little rule, very different fates.` },
+    { kind: 'hook', text: t`Start at ${1}, and repeatedly replace the number ${math`u`} by ${math`${1} + \frac{${2}}{u}`}. You get ${math`${h1}, ${h2}, ${h3}, ${h4}, ${h5}, \ldots`}, closing in on ${2} from either side. Replace ${math`u`} by ${math`${6} - u`} instead and the numbers bounce between ${1} and ${5} forever. Two tiny rules, very different fates.` },
     {
       kind: 'definition',
       name: t`Recurrence, fixed point, periodic`,
@@ -314,24 +331,24 @@ export const recurrenceSequences: TopicContent = {
       proof: true,
       steps: [
         { label: t`Shift the index`, text: t`If ${math`u_{n} \to l`} then ${math`u_{n + ${1}} \to l`}: it is the same list of numbers, starting one later.` },
-        { label: t`Apply the limit laws`, text: t`${math`f(u_{n})`} is built from ${math`u_{n}`} by sums, products and quotients (with non-zero limits underneath), so ${math`f(u_{n}) \to f(l)`}.`, plain: t`For ${math`f(u) = ${37} - \frac{${36}}{u}`}: if ${math`u_{n} \to l \neq ${0}`}, then ${math`\frac{${36}}{u_{n}} \to \frac{${36}}{l}`}.` },
+        { label: t`Apply the limit laws`, text: t`${math`f(u_{n})`} is built from ${math`u_{n}`} by sums, products and quotients (with non-zero limits underneath), so ${math`f(u_{n}) \to f(l)`}.`, plain: t`For ${math`f(u) = ${1} + \frac{${2}}{u}`}: if ${math`u_{n} \to l \neq ${0}`}, then ${math`\frac{${2}}{u_{n}} \to \frac{${2}}{l}`}, so ${math`f(u_{n}) \to ${1} + \frac{${2}}{l} = f(l)`}.` },
         { label: t`Limits are unique`, text: t`The sequence ${math`u_{n + ${1}} = f(u_{n})`} tends to both ${ml} and ${math`f(l)`}, so ${math`f(l) = l`}.` },
       ],
     },
-    { kind: 'p', text: t`So to find a limit, solve ${math`l = f(l)`}. But the theorem only says a limit, if there is one, is a fixed point. It does not say the sequence converges, nor which fixed point it picks. For ${math`${37} - \frac{${36}}{u}`} the fixed points are ${1} and ${36}; the terms from ${2} stay at least ${2}, so the limit must be ${36}.` },
+    { kind: 'p', text: t`So to find a limit, solve ${math`l = f(l)`}. But the theorem only says a limit, if there is one, is a fixed point. It does not say the sequence converges, nor which fixed point it picks. For ${math`${1} + \frac{${2}}{u}`} the fixed points solve ${math`l = ${1} + \frac{${2}}{l}`}; multiply by ${ml}: ${math`l^{${2}} - l - ${2} = ${0}`}, that is ${math`(l - ${2})(l + ${1}) = ${0}`}, so ${math`l = ${2}`} or ${math`l = -${1}`}. Which one? Every term from ${1} is at least ${1}, because a positive ${math`u`} makes ${math`\frac{${2}}{u}`} positive and so ${math`${1} + \frac{${2}}{u} > ${1}`}. A limit of terms that are all at least ${1} is at least ${1}, so if the sequence converges, its limit is ${2}, not ${math`-${1}`}.` },
     checkFrom(fixGen, { a: q(1, 2), b: 3 }, t`${math`l = \frac{${1}}{${2}}l + ${3}`} gives ${math`\frac{${1}}{${2}}l = ${3}`}, so ${math`l = ${6}`}.`),
     { kind: 'section', title: t`Periodic sequences` },
-    { kind: 'narrative', text: t`If some term equals an earlier one, a one-term rule repeats everything after it: if ${math`u_{m + p} = u_{m}`} then ${math`u_{m + p + ${1}} = f(u_{m + p}) = f(u_{m}) = u_{m + ${1}}`}, and so on. So for a period ${math`p`} it is enough to show ${math`u_{${1} + p} = u_{${1}}`}. For a two-term rule, a repeated consecutive pair is needed. The sequence ${math`u_{n + ${2}} = u_{n + ${1}} - u_{n}`} always has period ${6} (or ${1}, if every term is ${0}), and ${math`u_{n + ${1}} = \frac{c}{u_{n}}`} has period ${2} unless ${math`u_{${1}}^{${2}} = c`}.` },
+    { kind: 'narrative', text: t`If some term equals an earlier one, a one-term rule repeats everything after it: if ${math`u_{m + p} = u_{m}`} then ${math`u_{m + p + ${1}} = f(u_{m + p}) = f(u_{m}) = u_{m + ${1}}`}, and so on. So for a period ${math`p`} it is enough to show ${math`u_{${1} + p} = u_{${1}}`}. For a two-term rule, a repeated consecutive pair is needed. The sequence ${math`u_{n + ${2}} = u_{n + ${1}} - u_{n}`} always has period ${6} (or ${1}, if every term is ${0}), and ${math`u_{n + ${1}} = c - u_{n}`} has period ${2} unless ${math`u_{${1}} = \frac{c}{${2}}`}: ${math`u_{${2}} = c - u_{${1}}`} and ${math`u_{${3}} = c - (c - u_{${1}}) = u_{${1}}`}, while ${math`u_{${2}} = u_{${1}}`} only when ${math`u_{${1}} = \frac{c}{${2}}`}.` },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`${math`u_{${1}} = ${5}`}, ${math`u_{n + ${1}} = \frac{${1}}{${4}}(u_{n}^{${2}} + ${2})`} converges, to a root of ${math`l = \frac{l^{${2}} + ${2}}{${4}}`}.`, counterexample: t`The terms are ${math`${5}, ${q(27, 4)}, \ldots`} and grow without bound: they start above the fixed point ${math`${2} + \sqrt{${2}}`} and are pushed away from it. Fixed points exist, but the sequence diverges. Solving ${math`l = f(l)`} finds candidates, not a proof of convergence.` },
-    { kind: 'pitfall', claim: t`A sequence with ${math`u_{${3}} = u_{${1}}`} has period ${2}.`, counterexample: t`It has period ${2} or ${1}: with ${math`u_{${1}} = ${2}`} and ${math`u_{n + ${1}} = ${20} - \frac{${36}}{u_{n}}`}, every term is ${2}. Rule out the smaller periods separately.` },
-    { kind: 'pitfall', claim: t`A periodic sequence converges, since it keeps returning to the same values.`, counterexample: t`${math`${2}, -${18}, ${2}, -${18}, \ldots`} has no limit: no number is within ${10} of both values. A periodic sequence converges only if it is constant.` },
+    { kind: 'pitfall', claim: t`A sequence with ${math`u_{${3}} = u_{${1}}`} has period ${2}.`, counterexample: t`It has period ${2} or ${1}: with ${math`u_{${1}} = ${3}`} and ${math`u_{n + ${1}} = ${6} - u_{n}`}, every term is ${3}, so ${math`u_{${3}} = u_{${1}}`} but the period is ${1}. Rule out the smaller periods separately.` },
+    { kind: 'pitfall', claim: t`A periodic sequence converges, since it keeps returning to the same values.`, counterexample: t`${math`${1}, ${5}, ${1}, ${5}, \ldots`} has no limit: the values are ${4} apart, so no number is within ${2} of both, and the terms never settle near one number. A periodic sequence converges only if it is constant.` },
     { kind: 'takeaway', text: t`Compute terms to see the behaviour; a limit, if it exists, solves ${math`l = f(l)`}, and bounds on the terms pick the right root.` },
   ],
   examples: [
-    workedCambridge(a15q3b),
+    workedCambridge(a15iv),
     worked(perGen, { kind: 'diff', x: 4, y: 1 }, t`Period six`),
-    worked(kGen, { c: 2, m: 36 }, t`The constant sequence`),
+    worked(kGen, { c: 3, m: 12 }, t`The constant sequence`),
   ],
   generators: [iterGen, fixGen, perGen, kGen],
   mastery: { correctInARow: 3, maxProblems: 10 },

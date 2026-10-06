@@ -173,7 +173,7 @@ const ia5b = auto({
   solution: [
     t`Let ${math`T`}, ${math`F`}, ${math`S`} be the multiples of ${3}, ${5}, ${7} in the range. First count ${math`T \cup F`}: ${math`\lfloor ${500}/${3} \rfloor + \lfloor ${500}/${5} \rfloor - \lfloor ${500}/${15} \rfloor = ${166} + ${100} - ${33} = ${233}`}.`,
     t`Now remove those divisible by ${7}. A number in ${math`(T \cup F) \cap S`} is a multiple of ${21} or of ${35}: by the same rule, ${math`\lfloor ${500}/${21} \rfloor + \lfloor ${500}/${35} \rfloor - \lfloor ${500}/${105} \rfloor = ${23} + ${14} - ${4} = ${33}`}.`,
-    t`So the answer is ${math`${233} - ${33} = ${200}`}. (This is part (a)'s identity, ${math`P(A^{c} \cap (B \cup C))`}, with counts instead of probabilities.)`,
+    t`So the answer is ${math`${233} - ${33} = ${200}`}.`,
   ],
   reference: '200',
   verify: () => same('count', Array.from({ length: 500 }, (_, i) => i + 1).filter((n) => n % 7 !== 0 && (n % 3 === 0 || n % 5 === 0)).length, 200),
@@ -262,7 +262,7 @@ export const additionRule: TopicContent = {
   terms: ['addition-rule'],
   claims: [{ what: 'a picture card or a heart', exact: q(22, 52), trial: (rng) => { const c = DECK[Math.floor(rng() * 52)] as Card; return c.rank >= 11 || c.suit === 1; } }],
   cambridge: [ia4e, ia5a, a6or],
-  gate: ['ia1-q4-e', 'ia1-q5-a'],
+  gate: ['ia1-q5-a'],
   recall: [
     { front: t`State the addition rule for two events.`, back: t`${math`P(A \cup B) = P(A) + P(B) - P(A \cap B)`}.` },
     { front: t`How is the addition rule proved from the rule for exclusive events?`, back: t`Split ${math`A \cup B = A \cup (B \setminus A)`} and ${math`B = (B \setminus A) \cup (A \cap B)`}, both disjoint, and add.` },

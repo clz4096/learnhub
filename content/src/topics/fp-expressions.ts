@@ -494,7 +494,7 @@ export const fpExpressions: TopicContent = {
       kind: 'definition',
       name: t`Structural equality`,
       formal: t`For values ${math`x, y`} of the same type, ${code`x = y`} is ${code`true`} exactly when they have the same structure: equal numbers, equal booleans, or strings with the same characters in the same order. ${code`x <> y`} is its negation.`,
-      plain: t`Same contents means equal. ${code`"hi" = "hi"`} is ${code`true`}, though the two strings may sit in different places in memory.`,
+      plain: t`Same contents means equal. ${code`"ab" ^ "c" = "abc"`} is ${code`true`}: the join builds a new string in its own place in memory, apart from the written ${code`"abc"`}, but the characters agree one by one.`,
     },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`OCaml turns an int into a float when it needs to, as a calculator would.`, counterexample: t`${code`${3} + ${2}.${5}`} is a type error. Write ${code`float_of_int ${3} +. ${2}.${5}`}, which is ${math`${5.5}`}.` },

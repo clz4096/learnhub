@@ -317,7 +317,7 @@ export const fpPolymorphism: TopicContent = {
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`A type variable means each element of a list may have its own type.`, counterexample: t`${code`[${1}; true]`} is a type error. In ${code`'a list`} the one variable ${code`'a`} stands for one type, shared by every element.` },
     { kind: 'pitfall', claim: t`If ${code`push : 'a -> 'a list -> 'a list`}, then ${code`push ${3} [true]`} is fine, because ${code`'a`} can be anything.`, counterexample: t`At one use, ${code`'a`} is one type: the ${3} makes it ${code`int`} and the ${code`[true]`} makes it ${code`bool`}. That is a type error.` },
-    { kind: 'pitfall', claim: t`A result type variable that appears in no argument, as in ${code`loop : 'a -> 'b`}, means the function can return a value of any type.`, counterexample: t`No real value has every type at once. A function of type ${code`'a -> 'b`} can never return: ${code`let rec loop x = loop x`} runs for ever. That is why the type is safe, as FoCS Exercise ${3.4} asks you to explain.` },
+    { kind: 'pitfall', claim: t`${code`let pair x y = (x, y)`} has type ${code`'a -> 'a -> 'a * 'a`}, so its two arguments must have the same type.`, counterexample: t`That is a type of ${code`pair`}, but not the most general one. Nothing in the body ties ${code`x`} to ${code`y`}, so each keeps its own variable: OCaml prints ${code`'a -> 'b -> 'a * 'b`}, and ${code`pair ${1} true`} is fine, of type ${code`int * bool`}. The narrower type is the instance that puts ${code`'a`} for ${code`'b`}.` },
     { kind: 'takeaway', text: t`A type variable stands for any type, the same type at each occurrence in one use; OCaml infers the most general type by collecting what each use of an argument forces and leaving the rest as variables.` },
   ],
   examples: [
@@ -334,7 +334,7 @@ export const fpPolymorphism: TopicContent = {
   recall: [
     { front: t`What is an instance of a polymorphic type?`, back: t`The type with each type variable replaced by a type, the same type at every occurrence of the same variable.` },
     { front: t`What is a most general type of ${math`e`}?`, back: t`A type of ${math`e`} of which every type of ${math`e`} is an instance; OCaml's inference finds it.` },
-    { front: t`Why does ${code`let i x y z = if x then y else y`} have type ${code`bool -> 'a -> 'b -> 'a`}?`, back: t`${code`x`} is a condition, the result is ${code`y`}, and ${code`z`} is unused, so it gets a separate variable.` },
+    { front: t`Why does ${code`let k x y = if x = y then [x] else []`} have type ${code`'a -> 'a -> 'a list`}?`, back: t`${code`=`} compares two values of one type, so ${code`x`} and ${code`y`} share ${code`'a`}; ${code`[x]`} is an ${code`'a list`}, and the other branch ${code`[]`} must have that type too.` },
   ],
 };
 

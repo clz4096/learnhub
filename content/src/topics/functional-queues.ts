@@ -288,7 +288,7 @@ export const functionalQueues: TopicContent = {
         { label: t`Add up`, text: t`At most ${math`e + e = ${2}e`} conses. A sequence of ${math`m`} operations has ${math`e \le m`}, so it costs ${math`O(m)`}: ${math`O(${1})`} per operation, amortised.` },
       ],
     },
-    { kind: 'pitfall', claim: t`Amortised ${math`O(${1})`} means every operation is fast.`, counterexample: t`After ${1000} enqueues, the first ${ml`deq`} reverses ${999} elements in one go. FoCS warns that such unpredictable delays make the queue unsuitable for real-time programs with deadlines.` },
+    { kind: 'pitfall', claim: t`Amortised ${math`O(${1})`} means every operation is fast.`, counterexample: t`Enqueue ${1000} elements into the empty queue. The first goes straight to the front list; the other ${999} wait in the rear. Then the first ${ml`deq`} empties the front, and ${ml`norm`} reverses all ${999} in one go. The average over the run is small, but that single operation is not.` },
     { kind: 'takeaway', text: t`Keep the back of the queue in a reversed list and reverse it only when the front runs out: each element is handled twice, so each operation is ${math`O(${1})`} amortised.` },
   ],
   examples: [

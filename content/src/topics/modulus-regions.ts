@@ -2,8 +2,10 @@
  * fn.modulus-regions: sketch regions such as |x| + |y| <= 1 and |x - 1| - |y + 1| <= 1 by
  * drawing the boundary in each quadrant (relative to the critical lines) and testing a
  * point. Sources: STEP Support Foundation Assignment 21 Q2(iv), (v) and Q3 (1999 STEP I
- * Q4). Membership is checked by evaluating the inequality at each point; areas by counting
- * grid points (a Monte Carlo-free lattice estimate) against the exact formula.
+ * Q4), both gates, so the worked example is the NST Maths Workbook FC1(iii) and the point
+ * test does not describe the region of Q3(iii). Membership is checked by evaluating the
+ * inequality at each point; areas by counting grid points (a Monte Carlo-free lattice
+ * estimate) against the exact formula.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q, sample } from '../math';
@@ -164,23 +166,27 @@ const boundaryPiece = generator<QdP>({
 
 // ---------------------------------------------------------------- Cambridge problems
 
-const a21area = auto({
-  id: 'a21-q3-area',
-  source: cite('step-f21', 'Q3(i), (ii) (1999 STEP I Q4)', true),
-  title: t`Two squares from moduli`,
-  prompt: t`Sketch the regions ${math`|x| + |y| \le ${1}`} and ${math`|x - ${1}| + |y - ${1}| \le ${1}`}. Find the area ${math`P`} of the first and the area ${math`Q`} of the overlap of the two regions.`,
-  answer: namedAnswer(['P', 'Q'], [q(2), q(0)], 'The second region is the first moved by (1, 1).'),
+const fc1 = auto({
+  id: 'nst-fc1-iii-area',
+  source: cite('nst-workbook', 'Functions and curve sketching, FC1(iii)', true),
+  title: t`A modulus inside a modulus`,
+  prompt: t`Sketch the curve ${math`y = |${2} - |x||`}, marking where it meets the axes. Then find the area of the region between the curve and the ${math`x`}-axis for ${math`-${2} \le x \le ${2}`}.`,
+  answer: { kind: 'exact', expected: '4' },
   solution: [
-    t`In the first quadrant ${math`|x| + |y| \le ${1}`} is ${math`x + y \le ${1}`}; by symmetry in both axes the region is the square with corners ${math`(\pm ${1}, ${0})`}, ${math`(${0}, \pm ${1})`}, of area ${math`\frac{${2} \times ${2}}{${2}} = ${2}`}.`,
-    t`The second is the same square moved by ${math`(${1}, ${1})`}, with corners ${math`(${0}, ${1})`}, ${math`(${1}, ${0})`}, ${math`(${2}, ${1})`}, ${math`(${1}, ${2})`}. Both contain the segment from ${math`(${1}, ${0})`} to ${math`(${0}, ${1})`}, but nothing more: the overlap is a line segment, of area ${0}.`,
+    t`The inner modulus ${math`|x|`} changes formula at ${math`x = ${0}`}; the outer one changes where ${math`${2} - |x| = ${0}`}, at ${math`x = \pm ${2}`}. So the critical values are ${math`-${2}`}, ${0} and ${2}.`,
+    t`For ${math`${0} \le x \le ${2}`}: ${math`|x| = x`} and ${math`${2} - x \ge ${0}`}, so ${math`y = ${2} - x`}. For ${math`x > ${2}`}: ${math`${2} - x < ${0}`}, so the outer modulus changes its sign: ${math`y = -(${2} - x) = x - ${2}`}.`,
+    t`Replacing ${math`x`} by ${math`-x`} leaves ${math`|x|`}, and so ${math`y`}, unchanged: the curve is symmetric in the ${math`y`}-axis. It is a W: it meets the ${math`x`}-axis at ${math`(-${2}, ${0})`} and ${math`(${2}, ${0})`}, the ${math`y`}-axis at ${math`(${0}, ${2})`}, and climbs with gradient ${1} beyond ${math`x = ${2}`} and gradient ${math`-${1}`} before ${math`x = -${2}`}.`,
+    t`For ${math`-${2} \le x \le ${2}`} the region is ${math`${0} \le y \le ${2} - |x|`}: the triangle with corners ${math`(-${2}, ${0})`}, ${math`(${2}, ${0})`} and ${math`(${0}, ${2})`}, of base ${4} and height ${2}. Its area is ${math`\frac{${4} \times ${2}}{${2}} = ${4}`}. It is the top half of the diamond ${math`|x| + |y| \le ${2}`}, of area ${math`${2} \times ${2}^{${2}} = ${8}`}.`,
   ],
-  reference: 'P = 2, Q = 0',
+  reference: '4',
   verify: () => {
-    const a1 = latticeArea((x, y) => Math.abs(x) + Math.abs(y) <= 1, 1.5, 600);
-    const ov = latticeArea((x, y) => Math.abs(x) + Math.abs(y) <= 1 && Math.abs(x - 1) + Math.abs(y - 1) <= 1, 2.5, 600);
-    return Math.abs(a1 - 2) < 0.02 && ov < 0.02 ? same('areas', '2,0', '2,0') : `lattice areas ${a1}, ${ov}`;
+    const area = latticeArea((x, y) => Math.abs(x) <= 2 && y >= 0 && y <= Math.abs(2 - Math.abs(x)), 2.5, 600);
+    return Math.abs(area - 4) < 0.05 ? same('area', '4', '4') : `lattice area ${area}`;
   },
-  misconceptions: [{ response: 'P = 1, Q = 0', why: t`The square is tilted, with diagonals of length ${2}: its area is ${2}, not ${1}.` }],
+  misconceptions: [
+    { response: '8', why: t`That is the whole diamond ${math`|x| + |y| \le ${2}`}. The region lies above the ${math`x`}-axis only, so it is the top half.` },
+    { response: '2', why: t`The base runs from ${math`-${2}`} to ${2}, so it is ${4} long, not ${2}: the area is ${math`\frac{${4} \times ${2}}{${2}} = ${4}`}.` },
+  ],
 });
 
 const a21points = auto({
@@ -195,7 +201,6 @@ const a21points = auto({
   },
   solution: [
     t`${math`(${0}, ${0})`}: ${math`${1} - ${1} = ${0} \le ${1}`}, in. ${math`(${3}, -${1})`}: ${math`${2} - ${0} = ${2}`}, out. ${math`(${4}, ${2})`}: ${math`${3} - ${3} = ${0}`}, in. ${math`(-${2}, -${1})`}: ${math`${3} - ${0} = ${3}`}, out.`,
-    t`The region is everything except two wedges opening left and right from the points ${math`(${0}, -${1})`} and ${math`(${2}, -${1})`}, bounded by lines of gradient ${math`\pm ${1}`}.`,
   ],
   reference: ['a', 'c'],
   verify: () => {
@@ -233,14 +238,14 @@ export const modulusRegions: TopicContent = {
   minutes: 20,
   lesson: [
     { kind: 'section', title: t`The idea` },
-    { kind: 'hook', text: t`What shape is ${math`|x| + |y| \le ${1}`}? Not a circle: it is a square standing on one corner. And ${math`|x - ${1}| + |y - ${1}| \le ${1}`} is the same square slid along. Seeing why takes one idea: remove the moduli one region at a time.` },
+    { kind: 'hook', text: t`What shape is ${math`|x| + |y| \le ${2}`}? Not a circle: it is a square standing on one corner. And ${math`|x - ${3}| + |y + ${1}| \le ${2}`} is the same square slid along. Seeing why takes one idea: remove the moduli one region at a time.` },
     { kind: 'narrative', text: t`Each modulus in ${math`x`} has a critical line, a vertical line where its inside is ${0}; each modulus in ${math`y`} has a horizontal one. Between these lines every modulus has a fixed sign, so the boundary is an ordinary curve, usually a straight line, in each piece.` },
     { kind: 'section', title: t`Boundaries piece by piece` },
     {
       kind: 'definition',
       name: t`Boundary of a region`,
       formal: t`For a continuous ${math`F(x, y)`}, the [[boundary-curve|boundary]] of the region ${math`F(x, y) \le c`} lies on the curve ${math`F(x, y) = c`}. Off that curve, ${math`F - c`} keeps one sign on each connected piece of the plane it leaves.`,
-      plain: t`Draw where equality holds; then each part of the plane cut off by that curve is either all in or all out. For ${math`|x| + |y| \le ${1}`} the boundary is the tilted square, and ${math`(${0}, ${0})`} is inside.`,
+      plain: t`Draw where equality holds; then each part of the plane cut off by that curve is either all in or all out. For ${math`|x| + |y| \le ${2}`} the boundary is the tilted square with corners ${math`(\pm ${2}, ${0})`} and ${math`(${0}, \pm ${2})`}, and ${math`(${0}, ${0})`} is inside.`,
     },
     { kind: 'theorem', name: t`The diamond`, statement: t`For ${math`k > ${0}`}, the set ${math`|x| + |y| \le k`} is the square with vertices ${math`(\pm k, ${0})`} and ${math`(${0}, \pm k)`}, together with its inside; its area is ${math`${2}k^{${2}}`}.` },
     {
@@ -253,17 +258,17 @@ export const modulusRegions: TopicContent = {
       ],
     },
     checkFrom(diamondArea, { a: 0, b: 0, k: 3 }, t`Diagonals of length ${6}: area ${math`\frac{${6} \times ${6}}{${2}} = ${18}`}.`),
-    { kind: 'pitfall', claim: t`${math`|x| + |y| \le ${1}`} is the square ${math`-${1} \le x \le ${1}`}, ${math`-${1} \le y \le ${1}`}.`, counterexample: t`${math`(${1}, ${1})`} is in that square, but ${math`|${1}| + |${1}| = ${2} > ${1}`}. The region is the tilted square inside it.` },
+    { kind: 'pitfall', claim: t`${math`|x| + |y| \le ${2}`} is the square ${math`-${2} \le x \le ${2}`}, ${math`-${2} \le y \le ${2}`}.`, counterexample: t`${math`(${2}, ${2})`} is in that square, but ${math`|${2}| + |${2}| = ${4} > ${2}`}. The region is the tilted square inside it.` },
     { kind: 'section', title: t`Shifts and other shapes` },
-    { kind: 'narrative', text: t`Replacing ${math`x`} by ${math`x - ${1}`} slides a region ${1} to the right, and ${math`y`} by ${math`y - ${1}`} slides it up: so ${math`|x - ${1}| + |y - ${1}| \le ${1}`} is the diamond centred at ${math`(${1}, ${1})`}. For shapes like ${math`|x - ${1}| - |y + ${1}| \le ${1}`} or ${math`|x||y - ${2}| \le ${1}`}, draw the critical lines, sketch the boundary piece in each part, then test one point in each region to decide what to shade.` },
-    checkFrom(boundaryPiece, { a: 1, b: 1, k: 1, qx: -1, qy: 1 }, t`For ${math`x \le ${1}`}, ${math`y \ge ${1}`}: ${math`(${1} - x) + (y - ${1}) = ${1}`}, so ${math`y = x + ${1}`}.`),
-    checkFrom(regionPoints, { kind: 'diff', a: 1, b: -1, k: 1, pts: [[0, 0], [3, -1], [4, 2], [-2, -1]] }, t`The left side is ${0}, ${2}, ${0}, ${3} at the four points, so the first and third are in.`),
+    { kind: 'narrative', text: t`Replacing ${math`x`} by ${math`x - ${3}`} slides a region ${3} to the right, and ${math`y`} by ${math`y + ${1}`} slides it ${1} down: so ${math`|x - ${3}| + |y + ${1}| \le ${2}`} is the diamond centred at ${math`(${3}, -${1})`}. For shapes like ${math`|x + ${2}| - |y - ${1}| \le ${2}`} or ${math`|x - ${1}||y| \le ${2}`}, draw the critical lines, sketch the boundary piece in each part, then test one point in each region to decide what to shade.` },
+    checkFrom(boundaryPiece, { a: 3, b: -1, k: 2, qx: -1, qy: 1 }, t`For ${math`x \le ${3}`}, ${math`y \ge -${1}`}: ${math`(${3} - x) + (y + ${1}) = ${2}`}, so ${math`y = x - ${2}`}.`),
+    checkFrom(regionPoints, { kind: 'diff', a: -2, b: 1, k: 2, pts: [[0, 0], [3, 1], [1, 4], [-6, 0]] }, t`The left side is ${1}, ${5}, ${0}, ${3} at the four points, so the first and third are in.`),
     { kind: 'takeaway', text: t`Draw the critical lines, remove the moduli in each piece to get the boundary, and test one point per region before shading.` },
   ],
   examples: [
-    withExaminer(workedCambridge(a21area), t`Each quadrant's boundary written out, the symmetry used to finish the sketch, and the vertices labelled.`),
+    withExaminer(workedCambridge(fc1), t`Each critical value found, the formula stated on each piece, the symmetry used to finish the sketch, and the points on the axes labelled.`),
     worked(boundaryPiece, { a: -2, b: 1, k: 3, qx: 1, qy: -1 }, t`One piece of a shifted diamond`),
-    worked(regionPoints, { kind: 'prod', a: 0, b: 2, k: 1, pts: [[1, 2], [2, 3], [-1, 0], [3, 4]] }, t`Testing points in ${math`|x||y - ${2}| \le ${1}`}`),
+    worked(regionPoints, { kind: 'prod', a: 1, b: 0, k: 2, pts: [[2, 1], [3, 2], [0, 1], [-2, 1]] }, t`Testing points in ${math`|x - ${1}||y| \le ${2}`}`),
   ],
   generators: [diamondArea, regionPoints, boundaryPiece],
   mastery: { correctInARow: 3, maxProblems: 10 },

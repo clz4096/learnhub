@@ -350,7 +350,7 @@ export const doubleAngle: TopicContent = {
   minutes: 25,
   lesson: [
     { kind: 'section', title: t`Doubling an angle` },
-    { kind: 'hook', text: t`If you know ${math`\cos A = \frac{${3}}{${5}}`}, do you know ${math`\cos ${2}A`}? It is not ${math`\frac{${6}}{${5}}`}, since no cosine is bigger than ${1}. Yet ${math`${2}A`} is fixed once ${mA} is, so its cosine must be some function of ${math`\cos A`}. Which one?` },
+    { kind: 'hook', text: t`If you know ${math`\cos A = \frac{${2}}{${3}}`}, do you know ${math`\cos ${2}A`}? It is not ${math`\frac{${4}}{${3}}`}, since no cosine is bigger than ${1}. Yet ${math`${2}A`} is fixed once ${mA} is, so its cosine must be some function of ${math`\cos A`}. Which one?` },
     { kind: 'narrative', text: t`You already own the answer. The compound angle formulae hold for any two angles, so let the two angles be equal. Put ${math`B = A`} in each, and the [[double-angle-formula|double angle formulae]] drop out.` },
     { kind: 'theorem', name: t`Double angle formulae`, statement: t`For every angle ${mA}: ${math`\sin ${2}A = ${2}\sin A\cos A`}, and ${math`\cos ${2}A = \cos^{${2}} A - \sin^{${2}} A = ${2}\cos^{${2}} A - ${1} = ${1} - ${2}\sin^{${2}} A`}. Where both sides are defined, ${math`\tan ${2}A = \frac{${2}\tan A}{${1} - \tan^{${2}} A}`}.` },
     {
@@ -363,9 +363,9 @@ export const doubleAngle: TopicContent = {
         { label: t`Tangent`, text: t`Put ${math`B = A`} in ${math`\tan(A + B) = \frac{\tan A + \tan B}{${1} - \tan A\tan B}`}: ${math`\tan ${2}A = \frac{${2}\tan A}{${1} - \tan^{${2}} A}`}.` },
       ],
     },
-    { kind: 'p', text: t`The hook: with ${math`\cos A = \frac{${3}}{${5}}`}, the form with only cosine gives ${math`\cos ${2}A = ${2} \cdot \frac{${9}}{${25}} - ${1} = -\frac{${7}}{${25}}`}. Choosing the form that uses what you are given saves a step.` },
+    { kind: 'p', text: t`The hook: with ${math`\cos A = \frac{${2}}{${3}}`}, the form with only cosine gives ${math`\cos ${2}A = ${2} \cdot \frac{${4}}{${9}} - ${1} = -\frac{${1}}{${9}}`}. Choosing the form that uses what you are given saves a step.` },
     checkFrom(cosForms, { given: 'sin', n: 1, d: 3 }, t`With ${math`\sin A`} given, use ${math`\cos ${2}A = ${1} - ${2}\sin^{${2}} A`}.`),
-    checkFrom(doubleFromCos, { i: 0, swap: false, fn: 'sin' }, t`Find ${math`\sin A`} first, then ${math`\sin ${2}A = ${2}\sin A\cos A`}.`),
+    checkFrom(doubleFromCos, { i: 1, swap: false, fn: 'sin' }, t`Find ${math`\sin A`} first, then ${math`\sin ${2}A = ${2}\sin A\cos A`}.`),
     { kind: 'section', title: t`Tripling an angle` },
     { kind: 'narrative', text: t`Write ${math`${3}A = ${2}A + A`} and expand once more. Every ${math`\sin^{${2}}`} can be turned into cosines, so ${math`\cos ${3}A`} becomes a polynomial in ${math`\cos A`}. This is the formula STEP uses to solve cubic equations.` },
     { kind: 'theorem', name: t`Triple angle formulae`, statement: t`For every angle ${mA}: ${math`\cos ${3}A = ${4}\cos^{${3}} A - ${3}\cos A`} and ${math`\sin ${3}A = ${3}\sin A - ${4}\sin^{${3}} A`}.` },

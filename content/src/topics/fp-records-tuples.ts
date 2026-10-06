@@ -326,7 +326,7 @@ export const fpRecordsTuples: TopicContent = {
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`${code`(int * int) * bool`} and ${code`int * int * bool`} are the same type.`, counterexample: t`${code`((${PAIR[0]}, ${PAIR[1]}), true)`} is a pair whose first part is a pair; ${code`(${PAIR[0]}, ${PAIR[1]}, true)`} is a triple. The pattern ${code`(a, b, c)`} matches the second but not the first.` },
     { kind: 'pitfall', claim: t`${code`{ p with x = ${10} }`} sets ${code`p.x`} to ${10}.`, counterexample: t`It returns a new record; ${code`p`} is unchanged. Bind the result, ${code`let q = { p with x = ${10} }`}, and use ${code`q`}.` },
-    { kind: 'pitfall', claim: t`A record can leave out a field it does not need.`, counterexample: t`${code`{ name = "charizard"; hp = ${78} }`} is an error when the type also has ${code`ptype`}: every field must be given.` },
+    { kind: 'pitfall', claim: t`A record can leave out a field it does not need.`, counterexample: t`With ${code`type pt = { x : int; y : int }`}, the value ${code`{ x = ${PAIR[0]} }`} is an error: OCaml reports "Some record fields are undefined: y". Every field must be given, because a value of type ${code`pt`} must always have both an ${code`x`} and a ${code`y`} to read.` },
     { kind: 'takeaway', text: t`A tuple groups values by position and a record by name; both are taken apart by patterns, never changed in place, and a function returns several results as one tuple, as ${code`unzip`} does.` },
   ],
   examples: [
@@ -342,6 +342,6 @@ export const fpRecordsTuples: TopicContent = {
   recall: [
     { front: t`What is the type of a tuple ${code`(e${1}, e${2})`}?`, back: t`The product type ${math`\tau_{${1}} * \tau_{${2}}`} of the components' types, in order.` },
     { front: t`What does ${code`{ r with f = v }`} do?`, back: t`It builds a new record equal to ${code`r`} except in field ${code`f`}; ${code`r`} itself is unchanged.` },
-    { front: t`How does FoCS's ${code`zip`} treat lists of different lengths?`, back: t`The wildcard case returns ${code`[]`} as soon as either list is empty, so the surplus elements are discarded.` },
+    { front: t`How does ${code`unzip`} build two lists in one pass?`, back: t`It returns a pair: ${code`let xs, ys = unzip pairs in (x :: xs, y :: ys)`} takes apart the pair from the recursive call and puts ${code`x`} and ${code`y`} on the front of its two lists.` },
   ],
 };

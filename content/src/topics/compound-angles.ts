@@ -414,7 +414,7 @@ export const compoundAngles: TopicContent = {
       ],
     },
     checkFrom(exactCompound, { fn: 'cos', a: 60, b: 45, plus: true }, t`${math`\cos(${60}^\circ + ${45}^\circ)`} uses a minus sign between the products.`),
-    checkFrom(tanSum, { a: q(1, 2), b: q(1, 3), plus: true }, t`The top is ${math`\frac{${5}}{${6}}`} and the bottom ${math`${1} - \frac{${1}}{${6}} = \frac{${5}}{${6}}`}, so the tangent is ${1}: the angles add to ${math`${45}^\circ`}.`),
+    checkFrom(tanSum, { a: q(1, 2), b: q(1, 5), plus: true }, t`The top is ${math`\frac{${1}}{${2}} + \frac{${1}}{${5}} = ${q(7, 10)}`} and the bottom ${math`${1} - \frac{${1}}{${10}} = ${q(9, 10)}`}, so the tangent is ${q(7, 9)}.`),
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`${math`\cos(\alpha + \beta) = \cos\alpha\cos\beta + \sin\alpha\sin\beta`}, with the same sign as the angle.`, counterexample: t`Take ${math`\alpha = \beta = ${45}^\circ`}: the left side is ${math`\cos ${90}^\circ = ${0}`}, but the right side would be ${math`\frac{${1}}{${2}} + \frac{${1}}{${2}} = ${1}`}. For cosine the sign flips.` },
     { kind: 'pitfall', claim: t`${math`\tan(\alpha + \beta)`} is always defined when ${math`\tan\alpha`} and ${math`\tan\beta`} are.`, counterexample: t`${math`\tan ${30}^\circ \tan ${60}^\circ = ${1}`}, so the formula's denominator is ${0}, and indeed ${math`\tan ${90}^\circ`} is undefined.` },
@@ -435,7 +435,7 @@ export const compoundAngles: TopicContent = {
   recall: [
     { front: t`State ${math`\sin(\alpha \pm \beta)`} and ${math`\cos(\alpha \pm \beta)`}.`, back: t`${math`\sin\alpha\cos\beta \pm \cos\alpha\sin\beta`}; ${math`\cos\alpha\cos\beta \mp \sin\alpha\sin\beta`}.` },
     { front: t`State ${math`\tan(\alpha + \beta)`}.`, back: t`${math`\frac{\tan\alpha + \tan\beta}{${1} - \tan\alpha\tan\beta}`}.` },
-    { front: t`How does the area proof of ${math`\sin(\alpha + \beta)`} go?`, back: t`Split the angle by a perpendicular; the area is ${math`\frac{${1}}{${2}}ac\sin(\alpha + \beta)`} whole and the sum of two pieces; write the height as ${math`a\cos\alpha`} and ${math`c\cos\beta`} and compare.` },
+    { front: t`How does the area proof of ${math`\sin(\alpha + \beta)`} go?`, back: t`Split the angle by a perpendicular; the area is ${math`\frac{${1}}{${2}}ac\sin(\alpha + \beta)`} whole and the sum of two pieces; write the height ${math`h`} as ${math`c\cos\alpha`} and as ${math`a\cos\beta`}, and compare.` },
   ],
   proofOrder: [
     {

@@ -232,19 +232,21 @@ export const functors: TopicContent = {
     { kind: 'narrative', text: t`The comparison is not alone, though: it comes with a type of keys. So the argument must be a whole module, a type together with its ${ml`compare`}. A function that takes a module and returns a module is called a functor.` },
     { kind: 'definition', name: t`Functor`, formal: t`A [[functor|functor]] is a parameterised module, ${ml`module F (M : S) = struct ... end`}: given any module ${ml`A`} matching the signature ${ml`S`}, the application ${ml`F (A)`} is a module, the body with ${ml`M`} replaced by ${ml`A`}.`, plain: t`A function on modules. Its argument must match a signature, as a function's argument must have a type.` },
     { kind: 'rule', text: [mlBlock`
-      module type ToString = sig
+      module type Addable = sig
         type t
-        val to_string : t -> string
+        val zero : t
+        val plus : t -> t -> t
       end
-      module Print (M : ToString) = struct
-        let print x = print_endline (M.to_string x)
+      module Sum (M : Addable) = struct
+        let total xs = List.fold_left M.plus M.zero xs
       end
-      module PrintInt = Print (struct
+      module IntSum = Sum (struct
         type t = int
-        let to_string = string_of_int
+        let zero = ${0}
+        let plus = ( + )
       end)
     `] },
-    { kind: 'p', text: t`Now ${ml`PrintInt.print ${42}`} prints ${42}. The functor wrote ${ml`print`} once; each application specialises it to one type.` },
+    { kind: 'p', text: t`Now ${ml`IntSum.total [${3}; ${4}; ${5}]`} is ${3 + 4 + 5}. The functor wrote ${ml`total`} once; each application specialises it to one type. Apply ${ml`Sum`} to a structure with ${ml`type t = string`}, ${ml`zero = ""`}, and ${ml`plus = ( ^ )`}, and the same ${ml`total`} joins a list of strings: ${ml`["ab"; "c"; "d"]`} gives ${ml`"abcd"`}.` },
     { kind: 'section', title: t`Maps from an ordered type` },
     { kind: 'narrative', text: t`The standard library's ${ml`Map.Make`} is exactly the dictionary functor. Its argument must match ${ml`Map.OrderedType`}.` },
     { kind: 'definition', name: t`Ordered type`, formal: t`A module matches ${ml`Map.OrderedType`} when it has a type ${ml`t`} and ${ml`compare : t -> t -> int`}, where ${ml`compare a b`} is negative, zero, or positive as ${ml`a`} is less than, equal to, or greater than ${ml`b`}, for a [[total-order|total order]] on ${ml`t`}.`, plain: t`Total order: any two keys are comparable, and the comparisons are consistent (if ${math`a < b`} and ${math`b < c`} then ${math`a < c`}). ${ml`Char`}, ${ml`Int`}, and ${ml`String`} all qualify.` },
@@ -260,7 +262,7 @@ export const functors: TopicContent = {
     checkFrom(mapOps, { ops: [{ add: 5, v: 10 }, { add: 2, v: 20 }, { add: 5, v: 30 }, { remove: 2 }, { add: 9, v: 40 }, { add: 7, v: 50 }], ask: 'find', key: 5 }, t`The second ${ml`add`} of ${5} replaced ${10} by ${30}.`),
     checkFrom(dateOrder, { m1: 3, d1: 31, m2: 4, d2: 1 }, t`The months differ, so ${math`${3} - ${4} = ${-1}`}: March ${31} comes before April ${1}.`),
     { kind: 'pitfall', claim: t`Any function returning an ${ml`int`} will do as ${ml`compare`}.`, counterexample: t`${ml`compare a b = ${1}`} for all ${ml`a`}, ${ml`b`} says every key is greater than every other, which is no order at all: a map built with it may fail to find a key it has just added. The specification asks for a total order, and the functor cannot check it.` },
-    { kind: 'pitfall', claim: t`A functor can take a value, such as a comparison function, as its argument.`, counterexample: t`Its argument is a module. To pass a comparison, wrap it with its type: ${ml`Map.Make (struct type t = string let compare = compare_ci end)`}.` },
+    { kind: 'pitfall', claim: t`A functor can take a value, such as a comparison function, as its argument.`, counterexample: t`Its argument is a module. To pass a comparison, wrap it with its type: ${ml`Map.Make (struct type t = int let compare a b = compare b a end)`} makes maps whose ${ml`bindings`} come out largest key first. (Inside, ${ml`compare b a`} is the standard ${ml`compare`}, since the new one is not recursive.)` },
     { kind: 'takeaway', text: t`A functor is a function from modules to modules; Map.Make and Set.Make turn any type with a total order into dictionaries and sets.` },
   ],
   examples: [

@@ -253,7 +253,7 @@ export const standardIntegrals: TopicContent = {
   minutes: 20,
   lesson: [
     { kind: 'section', title: t`Reading derivatives backwards` },
-    { kind: 'hook', text: t`What is ${math`\int_{${0}}^{\pi} (x\cos x + \sin x)\,dx`}? It looks like work. But if you notice that ${math`x\cos x + \sin x`} is the derivative of ${math`x\sin x`}, the answer is ${math`\pi\sin\pi - ${0} = ${0}`} at once. Integration is mostly recognition.` },
+    { kind: 'hook', text: t`What is ${math`\int_{${0}}^{\frac{\pi}{${2}}} (x^{${2}}\cos x + ${2}x\sin x)\,dx`}? It looks like work. But if you notice that ${math`x^{${2}}\cos x + ${2}x\sin x`} is the derivative of ${math`x^{${2}}\sin x`}, the answer is ${math`\left(\frac{\pi}{${2}}\right)^{${2}}\sin\frac{\pi}{${2}} - ${0} = \frac{\pi^{${2}}}{${4}}`} at once. Integration is mostly recognition.` },
     { kind: 'narrative', text: t`The fundamental theorem says: to integrate ${math`f`}, find any ${math`F`} with ${math`F' = f`}. So every derivative you know, read backwards, is an integral you know. Guessing ${math`F`} and checking by differentiating is called integration by inspection.` },
     { kind: 'theorem', name: t`Standard integrals`, statement: t`For a constant ${math`k \ne ${0}`}, on any interval: ${math`\int e^{kx}\,dx = \frac{e^{kx}}{k} + c`}, ${math`\int \sin kx\,dx = -\frac{\cos kx}{k} + c`}, ${math`\int \cos kx\,dx = \frac{\sin kx}{k} + c`}, and, on an interval not containing ${0}, ${math`\int \frac{${1}}{x}\,dx = \ln|x| + c`}.` },
     { kind: 'p', text: t`Each is checked by differentiating the right side. The ${math`\frac{${1}}{k}`} is there because the chain rule brings out a factor ${math`k`}: ${math`\frac{d}{dx}\sin kx = k\cos kx`}. Angles are in radians.` },

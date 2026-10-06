@@ -398,7 +398,7 @@ export const fpTrees: TopicContent = {
     },
     {
       kind: 'p',
-      text: t`These definitions are clear but can be slow: each ${code`@`} copies its left list, and on a tree shaped like a long path the copying adds up to a quadratic number of conses (FoCS Exercise ${7.6}). FoCS removes the appends with an accumulator, exactly as ${code`rev_app`} did for reverse, giving traversals in linear time.`,
+      text: t`These definitions are clear but can be slow: each ${code`@`} copies its whole left list, so a label may be copied again at every node above it. How bad that gets depends on the shape of the tree. FoCS removes the appends with an accumulator, exactly as ${code`rev_app`} did for reverse, giving traversals in linear time.`,
     },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`The depth of a tree is the number of edges on its longest path.`, counterexample: t`Conventions differ, and FoCS counts nodes: ${code`Br (${1}, Lf, Lf)`} has depth ${1}, and ${code`Lf`} depth ${0}. With edges, the single node would have depth ${0}. Check the definition before you answer.` },

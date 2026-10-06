@@ -9,7 +9,7 @@ import { auto, cite, supervision } from '../cambridge';
 import { mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { agreesAt, close, firstError, fn, simpson } from '../prep-c';
-import { computedMath as cm, math, t, type Rich } from '../rich';
+import { computedMath as cm, dmath, math, t, type Rich } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const F24 = 'step-f24' as const;
@@ -272,7 +272,17 @@ export const integrationByParts: TopicContent = {
         { label: t`Check`, text: t`${math`\frac{d}{dx}(x\ln x - x) = \ln x + x \cdot \frac{${1}}{x} - ${1} = \ln x`}.` },
       ],
     },
-    { kind: 'narrative', text: t`Sometimes two rounds return the integral you started with. For ${math`I = \int e^{x}\sin x\,dx`}, parts twice (integrating ${math`e^{x}`} both times) gives ${math`I = e^{x}\sin x - e^{x}\cos x - I`}, so ${math`I = \frac{${1}}{${2}}e^{x}(\sin x - \cos x) + c`}. And when the integrand depends on a whole number ${math`n`}, parts often links ${math`I_{n}`} to ${math`I_{n - ${1}}`}: a recurrence.` },
+    { kind: 'narrative', text: t`Sometimes two rounds return the integral you started with. Take ${math`I = \int e^{x}\sin x\,dx`}, and integrate the ${math`e^{x}`} factor both times.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`First round`, text: t`Take ${math`u = \sin x`} and ${math`v' = e^{x}`}, so ${math`u' = \cos x`} and ${math`v = e^{x}`}:`, eq: [dmath`I = e^{x}\sin x - \int e^{x}\cos x\,dx.`] },
+        { label: t`Second round`, text: t`On the new integral take ${math`u = \cos x`} and ${math`v' = e^{x}`}, so ${math`u' = -\sin x`} and ${math`v = e^{x}`}:`, eq: [dmath`\int e^{x}\cos x\,dx = e^{x}\cos x - \int e^{x}(-\sin x)\,dx = e^{x}\cos x + I.`], plain: t`The integral on the right is ${math`I`} again.` },
+        { label: t`Substitute back`, text: t`Put the second line into the first:`, eq: [dmath`I = e^{x}\sin x - (e^{x}\cos x + I) = e^{x}\sin x - e^{x}\cos x - I.`] },
+        { label: t`Solve for I`, text: t`Add ${math`I`} to both sides: ${math`${2}I = e^{x}(\sin x - \cos x)`}, so ${math`I = \frac{${1}}{${2}}e^{x}(\sin x - \cos x) + c`}.`, why: { q: t`Why does the constant appear only at the end?`, a: t`Each line is true up to a constant of integration, since an indefinite integral is fixed only up to one. Those constants combine into the single arbitrary ${math`c`}. Check by differentiating: ${math`\frac{${1}}{${2}}e^{x}(\sin x - \cos x) + \frac{${1}}{${2}}e^{x}(\cos x + \sin x) = e^{x}\sin x`}.` } },
+      ],
+    },
+    { kind: 'narrative', text: t`And when the integrand depends on a whole number ${math`n`}, parts often links ${math`I_{n}`} to ${math`I_{n - ${1}}`}: a recurrence.` },
     checkFrom(xExp, { k: 2 }, t`${math`\left[\frac{xe^{${2}x}}{${2}}\right]_{${0}}^{${1}} - \left[\frac{e^{${2}x}}{${4}}\right]_{${0}}^{${1}} = \frac{e^{${2}}}{${2}} - \frac{e^{${2}} - ${1}}{${4}}`}.`),
     { kind: 'pitfall', claim: t`Either factor can be ${math`u`}; it makes no difference.`, counterexample: t`For ${math`\int xe^{x}\,dx`} with ${math`u = e^{x}`} and ${math`v' = x`}: ${math`\int xe^{x}\,dx = \frac{x^{${2}}}{${2}}e^{x} - \int \frac{x^{${2}}}{${2}}e^{x}\,dx`}, a harder integral than before. The power of ${math`x`} must be differentiated away.` },
     { kind: 'pitfall', claim: t`${math`\int uv' = uv + \int u'v`}.`, counterexample: t`With ${math`u = x`}, ${math`v' = ${1}`} on ${math`[${0}, ${1}]`}: ${math`\int_{${0}}^{${1}} x\,dx = \frac{${1}}{${2}}`}, while ${math`\left[x^{${2}}\right]_{${0}}^{${1}} + \int_{${0}}^{${1}} x\,dx = \frac{${3}}{${2}}`}. The sign is minus.` },

@@ -254,25 +254,6 @@ const m3 = supervision({
   writeUp: 'proof',
 });
 
-const m3auto = auto({
-  id: 'nst-m3-scale',
-  source: cite(NST, 'Section 2, Matrices, M3', true),
-  title: t`The scale factor`,
-  prompt: t`The matrix ${math`${texM(mat(1, -1, 1, 1))}`} is a rotation followed by a scaling by a factor ${math`s > ${0}`}. Find ${math`s`}. (Type a square root as sqrt(${2}).)`,
-  answer: { kind: 'expression', expected: 'sqrt(2)', variables: [] },
-  solution: [
-    t`Write it as ${math`s\begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}`}: then ${math`s\cos\theta = ${1}`} and ${math`s\sin\theta = ${1}`}.`,
-    t`Square and add: ${math`s^{${2}} = ${2}`}, so ${math`s = \sqrt{${2}}`}, and ${math`\theta = \frac{\pi}{${4}}`}. (Also ${math`\det = ${2} = s^{${2}}`}: area scales by ${math`s^{${2}}`}.)`,
-  ],
-  reference: 'sqrt(2)',
-  verify: () => {
-    const s = Math.SQRT2;
-    const th = Math.PI / 4;
-    return Math.abs(s * Math.cos(th) - 1) < 1e-12 && Math.abs(s * Math.sin(th) - 1) < 1e-12 ? null : 'does not match';
-  },
-  misconceptions: [{ response: '2', why: t`${2} is the determinant, which is ${math`s^{${2}}`}, the area scale factor. Lengths scale by ${math`s = \sqrt{${2}}`}.` }],
-});
-
 // ---------------------------------------------------------------- lesson
 
 const EXA = mat(2, 1, 5, 3);
@@ -312,6 +293,34 @@ export const matrices: TopicContent = {
       ],
     },
     { kind: 'p', text: t`Back to the hook: ${math`\det = ${1}`}, so the inverse is ${math`${texM(inv(EXA))}`}, and ${math`\begin{pmatrix} x \\ y \end{pmatrix} = ${texM(inv(EXA))}\begin{pmatrix} ${4} \\ ${11} \end{pmatrix} = \begin{pmatrix} ${1} \\ ${2} \end{pmatrix}`}. Check: ${math`${2} + ${2} = ${4}`} and ${math`${5} + ${6} = ${11}`}.` },
+    { kind: 'section', title: t`Rotations and scalings` },
+    { kind: 'narrative', text: t`Which matrix turns the plane? A matrix sends ${math`\begin{pmatrix} ${1} \\ ${0} \end{pmatrix}`} to its first column and ${math`\begin{pmatrix} ${0} \\ ${1} \end{pmatrix}`} to its second: ${math`\begin{pmatrix} a & b \\ c & d \end{pmatrix}\begin{pmatrix} ${1} \\ ${0} \end{pmatrix} = \begin{pmatrix} a \\ c \end{pmatrix}`}. So to build the matrix of a transformation, ask where it sends those two points.` },
+    {
+      kind: 'definition',
+      name: t`Rotation, scaling`,
+      formal: t`The rotation of the plane about the origin through the angle ${math`\theta`} (anticlockwise) has matrix ${dmath`R_{\theta} = \begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}.`} The scaling about the origin by the factor ${math`s > ${0}`} has matrix ${math`sI = \begin{pmatrix} s & ${0} \\ ${0} & s \end{pmatrix}`}; it multiplies every length by ${math`s`}.`,
+      plain: t`${math`R_{\theta}`} turns every point through ${math`\theta`} about the origin and keeps its distance from the origin; ${math`sI`} keeps every direction and multiplies every distance from the origin by ${math`s`}. For a quarter turn, ${math`\theta = \frac{\pi}{${2}}`}: ${math`R_{\pi/${2}} = ${texM(mat(0, -1, 1, 0))}`} sends ${math`(${1}, ${0})`} to ${math`(${0}, ${1})`} and ${math`(${0}, ${1})`} to ${math`(-${1}, ${0})`}.`,
+    },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Where ${math`(${1}, ${0})`} goes`, text: t`${math`(${1}, ${0})`} is on the unit circle at angle ${0}. Turning it through ${math`\theta`} lands at angle ${math`\theta`}: the point ${math`(\cos\theta, \sin\theta)`}, the first column.` },
+        { label: t`Where ${math`(${0}, ${1})`} goes`, text: t`${math`(${0}, ${1})`} is at angle ${math`\frac{\pi}{${2}}`}. Turning it through ${math`\theta`} lands at angle ${math`\theta + \frac{\pi}{${2}}`}: the point ${math`(-\sin\theta, \cos\theta)`}, the second column.`, why: { q: t`Why is that point ${math`(-\sin\theta, \cos\theta)`}?`, a: t`By the compound angle formulae, ${math`\cos(\theta + \frac{\pi}{${2}}) = \cos\theta\cos\frac{\pi}{${2}} - \sin\theta\sin\frac{\pi}{${2}} = -\sin\theta`} and ${math`\sin(\theta + \frac{\pi}{${2}}) = \sin\theta\cos\frac{\pi}{${2}} + \cos\theta\sin\frac{\pi}{${2}} = \cos\theta`}, since ${math`\cos\frac{\pi}{${2}} = ${0}`} and ${math`\sin\frac{\pi}{${2}} = ${1}`}.` } },
+        { label: t`Every other point`, text: t`${math`(x, y) = x(${1}, ${0}) + y(${0}, ${1})`}, and the rotation carries this to ${math`x(\cos\theta, \sin\theta) + y(-\sin\theta, \cos\theta)`}, which is ${math`R_{\theta}\begin{pmatrix} x \\ y \end{pmatrix}`}.`, why: { q: t`Why does the rotation respect the sum?`, a: t`The point ${math`(x, y)`} is the far corner of the rectangle with sides ${math`x(${1}, ${0})`} and ${math`y(${0}, ${1})`} at the origin. Turning the whole rectangle about the origin turns its sides and its far corner together, so the far corner goes to the sum of the turned sides.` } },
+      ],
+    },
+    { kind: 'theorem', name: t`A rotation with a scaling`, statement: t`For ${math`s > ${0}`} and any angle ${math`\theta`}, ${math`(sI)R_{\theta} = R_{\theta}(sI) = \begin{pmatrix} s\cos\theta & -s\sin\theta \\ s\sin\theta & s\cos\theta \end{pmatrix}`}. Conversely, a matrix ${math`\begin{pmatrix} a & -c \\ c & a \end{pmatrix}`} with ${math`a`}, ${math`c`} not both ${0} has this form, with ${math`s = \sqrt{a^{${2}} + c^{${2}}}`}, ${math`\cos\theta = \frac{a}{s}`} and ${math`\sin\theta = \frac{c}{s}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Multiply by the scaling`, text: t`${math`(sI)X = sX = X(sI)`} for every ${math`${2} \times ${2}`} matrix ${math`X`}, so both products are ${math`sR_{\theta}`}: every entry of ${math`R_{\theta}`} times ${math`s`}.`, why: { q: t`Why is ${math`(sI)X = sX`}?`, a: t`Row ${math`i`} of ${math`sI`} has ${math`s`} in place ${math`i`} and ${0} elsewhere, so entry ${math`(i, j)`} of the product is ${math`s`} times entry ${math`(i, j)`} of ${math`X`}. The same holds on the other side, column by column.` } },
+        { label: t`Match the entries`, text: t`If ${math`\begin{pmatrix} a & -c \\ c & a \end{pmatrix} = sR_{\theta}`}, then ${math`a = s\cos\theta`} and ${math`c = s\sin\theta`}.` },
+        { label: t`Find the scale`, text: t`Square and add: ${math`a^{${2}} + c^{${2}} = s^{${2}}(\cos^{${2}}\theta + \sin^{${2}}\theta) = s^{${2}}`}, so ${math`s = \sqrt{a^{${2}} + c^{${2}}}`}, taking the positive root as ${math`s > ${0}`}. It is not ${0}, since ${math`a`} and ${math`c`} are not both ${0}.` },
+        { label: t`Find the angle`, text: t`${math`\left(\frac{a}{s}\right)^{${2}} + \left(\frac{c}{s}\right)^{${2}} = ${1}`}, so ${math`\left(\frac{a}{s}, \frac{c}{s}\right)`} is a point on the unit circle, and ${math`\theta`} is its angle: ${math`\cos\theta = \frac{a}{s}`}, ${math`\sin\theta = \frac{c}{s}`}. With these, ${math`sR_{\theta}`} has the entries ${math`a, -c, c, a`}.` },
+      ],
+    },
+    { kind: 'p', text: t`For example, ${math`${texM(mat(0, -3, 3, 0))}`} has ${math`a = ${0}`}, ${math`c = ${3}`}: ${math`s = \sqrt{${0} + ${9}} = ${3}`}, ${math`\cos\theta = ${0}`} and ${math`\sin\theta = ${1}`}, so ${math`\theta = \frac{\pi}{${2}}`}. It is a quarter turn and a tripling of lengths, in either order. Its determinant is ${math`${0} \times ${0} - (-${3}) \times ${3} = ${det(mat(0, -3, 3, 0))} = s^{${2}}`}: lengths scale by ${3}, so areas scale by ${9}.` },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`If ${math`AB = ${0}`}, then ${math`A = ${0}`} or ${math`B = ${0}`}.`, counterexample: t`${math`${texM(mat(0, 1, 0, 0))}${texM(mat(0, 1, 0, 0))} = ${texM(mat(0, 0, 0, 0))}`}, yet neither factor is zero. Matrices can multiply to zero; that is why "dividing" needs a non-zero determinant.` },
     { kind: 'pitfall', claim: t`${math`(AB)^{-${1}} = A^{-${1}}B^{-${1}}`}.`, counterexample: t`It is ${math`B^{-${1}}A^{-${1}}`}: undo the last step first. ${math`(AB)(B^{-${1}}A^{-${1}}) = A(BB^{-${1}})A^{-${1}} = AA^{-${1}} = I`}, while ${math`A^{-${1}}B^{-${1}}`} generally fails, since ${math`AB \neq BA`}.` },
@@ -325,11 +334,12 @@ export const matrices: TopicContent = {
   generators: [prodGen, detGen, invGen, sysGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['matrix', 'determinant', 'inverse-matrix'],
-  cambridge: [m2, m3, m3auto, m1ba, m1sum],
+  cambridge: [m2, m3, m1ba, m1sum],
   gate: ['nst-m3', 'nst-m2'],
   recall: [
     { front: t`State the inverse of ${math`\begin{pmatrix} a & b \\ c & d \end{pmatrix}`}, and when it exists.`, back: t`${math`\frac{${1}}{ad - bc}\begin{pmatrix} d & -b \\ -c & a \end{pmatrix}`}, when ${math`ad - bc \neq ${0}`}.` },
     { front: t`What is entry ${math`(i, j)`} of ${math`AB`}?`, back: t`${math`\sum_{k} a_{ik}b_{kj}`}: row ${math`i`} of ${mA} times column ${math`j`} of ${mB}.` },
+    { front: t`State the matrix of the rotation through ${math`\theta`} about the origin, and why its columns are what they are.`, back: t`${math`\begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}`}: its columns are where ${math`(${1}, ${0})`} and ${math`(${0}, ${1})`} land after turning through ${math`\theta`}.` },
   ],
   proofOrder: [
     {

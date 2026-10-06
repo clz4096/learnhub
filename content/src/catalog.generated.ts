@@ -323,7 +323,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "tmua-n1", title: "Not every square is more than 6", mode: "auto", gate: false },
     { id: "sw-1-1-5-negation", title: "The negation of a supervision exercise", mode: "auto", gate: false },
     { id: "sw-1-1-5-witness", title: "No integer between them", mode: "auto", gate: false },
-    { id: "sw-1-1-5", title: "No integer z", mode: "supervision", gate: true },
+    { id: "sw-1-1-5", title: "No integer z", mode: "supervision", gate: false },
     { id: "bop-2-10-5", title: "A limit, negated", mode: "supervision", gate: false },
     { id: "bop-2-10-12", title: "Two evils", mode: "supervision", gate: false },
     { id: "ns1-q5", title: "Two negations from the first IA sheet", mode: "supervision", gate: true },
@@ -1057,7 +1057,8 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   "fn.modulus": [
     { id: "a21-q2-i", title: "A modulus equation", mode: "auto", gate: false },
     { id: "a5-q2-iii", title: "A root that becomes a modulus", mode: "auto", gate: true },
-    { id: "a21-q2-ii", title: "Sketching a modulus graph", mode: "supervision", gate: true },
+    { id: "a21-q2-ii", title: "Sketching a modulus graph", mode: "supervision", gate: false },
+    { id: "s2eqns-q1-iii", title: "How many roots?", mode: "supervision", gate: true },
   ],
   "fn.modulus-regions": [
     { id: "a21-q3-iii-points", title: "Testing points in |x - 1| - |y + 1| ≤ 1", mode: "auto", gate: false },
@@ -1259,7 +1260,6 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "b8-26", title: "Two descriptions of one set", mode: "supervision", gate: false },
   ],
   "proof.disproof": [
-    { id: "sw-1-1-5", title: "A middle integer", mode: "auto", gate: false },
     { id: "sw-1-1-5-proof", title: "Reals against integers", mode: "supervision", gate: true },
     { id: "b9-21", title: "Primes ninety-seven apart", mode: "auto", gate: false },
     { id: "b9-30", title: "42a + 7b = 1", mode: "auto", gate: false },
@@ -1285,7 +1285,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a12-q2-ii", title: "Two sweets of one flavour", mode: "auto", gate: false },
   ],
   "prob.addition-rule": [
-    { id: "ia1-q4-e", title: "The addition rule from the axioms", mode: "supervision", gate: true },
+    { id: "ia1-q4-e", title: "The addition rule from the axioms", mode: "supervision", gate: false },
     { id: "ia1-q5-a", title: "Not A, but B or C", mode: "supervision", gate: true },
     { id: "a6-q4-i-or", title: "A woman or a smoker", mode: "auto", gate: false },
   ],
@@ -1329,7 +1329,6 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a24-q2-iii", title: "A sum of root differences", mode: "auto", gate: false },
   ],
   "alg.sums-of-powers": [
-    { id: "a17-q3-cubes", title: "Cubes by fitting a quartic", mode: "auto", gate: false },
     { id: "a17-q3-proof", title: "The whole STEP question", mode: "supervision", gate: true },
     { id: "a20-q2-b", title: "Cubes by induction", mode: "supervision", gate: true },
     { id: "nst-se1", title: "A sum of r(r^2 + 2)", mode: "auto", gate: false },
@@ -1357,7 +1356,6 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   "mat.matrices": [
     { id: "nst-m2", title: "Zero one way, not the other", mode: "supervision", gate: true },
     { id: "nst-m3", title: "A rotation and a scaling", mode: "supervision", gate: true },
-    { id: "nst-m3-scale", title: "The scale factor", mode: "auto", gate: false },
     { id: "nst-m1-ba", title: "The product BA", mode: "auto", gate: false },
     { id: "nst-m1-sum", title: "The sum A + B", mode: "auto", gate: false },
   ],
@@ -1494,7 +1492,6 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "cs3110-3-is-bst", title: "Checking the invariant", mode: "supervision", gate: false },
   ],
   "fp.red-black-trees": [
-    { id: "cs3110-9-rb-draw-insert-root", title: "The root after D A T A S T R U C T U R E", mode: "auto", gate: false },
     { id: "cs3110-9-rb-draw-complete", title: "Three colourings of one tree", mode: "supervision", gate: true },
     { id: "cs3110-9-rb-draw-insert", title: "Draw every step of an insertion sequence", mode: "supervision", gate: true },
   ],

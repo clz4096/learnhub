@@ -224,16 +224,16 @@ export const functionsTopic: TopicContent = {
   minutes: 25,
   lesson: [
     { kind: 'section', title: t`The idea` },
-    { kind: 'hook', text: t`A function satisfies ${math`f(x + y) = f(x)f(y)`} and ${math`f(${1}) = ${2}`}. That is all you are told. What is ${math`f(${3})`}? Try it: ${math`f(${2}) = f(${1})f(${1}) = ${4}`}, and ${math`f(${3}) = f(${2})f(${1}) = ${8}`}. The equation alone pins the function down to ${math`${2}^{x}`} at whole numbers.` },
+    { kind: 'hook', text: t`A function satisfies ${math`f(x + y) = f(x) + f(y)`} and ${math`f(${1}) = ${3}`}. That is all you are told. What is ${math`f(${3})`}? Try it: ${math`f(${2}) = f(${1}) + f(${1}) = ${6}`}, and ${math`f(${3}) = f(${2}) + f(${1}) = ${9}`}. The equation alone pins the function down to ${math`${3}x`} at whole numbers.` },
     { kind: 'narrative', text: t`STEP loves this: a function given by a property instead of a formula. To handle such questions you need a precise idea of what a function is, and three operations: restricting the inputs, composing, and inverting.` },
     { kind: 'section', title: t`Domain and range` },
     {
       kind: 'definition',
       name: t`Function, domain, range`,
       formal: t`A [[function-domain-range|function]] ${math`f : A \to B`} assigns to each element ${math`x`} of the set ${math`A`}, its domain, exactly one element ${math`f(x)`} of ${math`B`}. Its range is ${math`\{f(x) : x \in A\}`}.`,
-      plain: t`A rule with a stated set of allowed inputs. ${math`f(y) = ${1} + y^{${2}}`} on all reals has range ${math`f \ge ${1}`}: every output is at least ${1}, and every value from ${1} up is reached.`,
+      plain: t`A rule with a stated set of allowed inputs. ${math`f(y) = y^{${2}} - ${2}`} on all reals has range ${math`f \ge -${2}`}: every output is at least ${math`-${2}`}, since ${math`y^{${2}} \ge ${0}`}, and every value from ${math`-${2}`} up is reached.`,
     },
-    { kind: 'narrative', text: t`The domain matters. If ${math`f(x^{${2}}) = \sqrt{${1} + x^{${4}}}`} for all ${math`x`}, then putting ${math`y = x^{${2}}`} gives ${math`f(y) = \sqrt{${1} + y^{${2}}}`}, but only for ${math`y \ge ${0}`}: the information never reaches negative inputs.` },
+    { kind: 'narrative', text: t`The domain matters. If ${math`f(x^{${2}} + ${1}) = x^{${2}} + ${3}`} for all ${math`x`}, then putting ${math`y = x^{${2}} + ${1}`} gives ${math`x^{${2}} = y - ${1}`}, so ${math`f(y) = (y - ${1}) + ${3} = y + ${2}`}. But only for ${math`y \ge ${1}`}: ${math`x^{${2}} + ${1}`} is never less than ${1}, so the information never reaches smaller inputs.` },
     { kind: 'section', title: t`Composites and inverses` },
     {
       kind: 'definition',

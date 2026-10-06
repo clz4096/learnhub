@@ -391,7 +391,7 @@ export const fpVariants: TopicContent = {
     },
     checkFrom(wheelsGen, { vs: [{ c: 'Lorry', w: 6 }, { c: 'Motorbike', cc: 450 }, { c: 'Car', robin: false }] }, t`${6} for the lorry, ${2} for the motorbike whatever its engine, ${4} for an ordinary car: ${12}.`),
     { kind: 'section', title: t`A result that might not exist` },
-    { kind: 'narrative', text: t`What is the head of the empty list? There is none. ${code`List.hd []`} fails while the program runs. A safer design is to make "no answer" a value: a function returns ${code`None`}, or ${code`Some x`} when the answer is ${code`x`}. That is the option type, and it is just a variant.` },
+    { kind: 'narrative', text: t`What is ${code`${7} / ${0}`}? There is no answer, and OCaml stops the program while it runs, reporting ${code`Division_by_zero`}. A safer design is to make "no answer" a value: a division function returns ${code`None`} when the divisor is ${0}, and ${code`Some q`} when the answer is ${code`q`}. That is the option type, and it is just a variant.` },
     {
       kind: 'definition',
       name: t`Option`,

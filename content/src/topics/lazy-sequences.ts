@@ -223,11 +223,14 @@ export const lazySequences: TopicContent = {
         | Cons (x, xf) ->
             if p x then Cons (x, fun () -> filterq p (xf ()))
             else filterq p (xf ())
+      let rec appendq xq yq = match xq with
+        | Nil -> yq
+        | Cons (x, xf) -> Cons (x, fun () -> appendq (xf ()) yq)
       let rec interleave xq yq = match xq with
         | Nil -> yq
         | Cons (x, xf) -> Cons (x, fun () -> interleave yq (xf ()))
     `] },
-    { kind: 'p', text: t`${ml`filterq`} has one unprotected force, in the ${ml`else`} branch: it keeps forcing until an element passes. ${ml`interleave`} swaps its arguments at each step, so it takes from both sequences fairly.` },
+    { kind: 'p', text: t`${ml`filterq`} has one unprotected force, in the ${ml`else`} branch: it keeps forcing until an element passes. ${ml`appendq`} gives every element of ${ml`xq`} and then, if ${ml`xq`} ends, those of ${ml`yq`}. ${ml`interleave`} swaps its arguments at each step, so it takes from both sequences fairly: ${ml`get ${4} (interleave (from ${1}) (from ${100}))`} is ${ml`[${1}; ${100}; ${2}; ${101}]`}.` },
     checkFrom(filterGen, { k: 10, m: 3, n: 4 }, t`The multiples of ${3} from ${10} are ${12}, ${15}, ${18}, ${21}.`),
     { kind: 'pitfall', claim: t`${ml`appendq xq yq`} combines two infinite sequences.`, counterexample: t`If ${ml`xq`} is infinite, ${ml`appendq`} never reaches ${ml`yq`}: every element of the result comes from ${ml`xq`}. Use ${ml`interleave`}, which alternates.` },
     { kind: 'pitfall', claim: t`${ml`filterq p s`} always returns.`, counterexample: t`If no element of the infinite ${ml`s`} satisfies ${ml`p`}, as for ${ml`filterq (fun x -> x < ${0}) (from ${1})`}, it forces the tail forever.` },

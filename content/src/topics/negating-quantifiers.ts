@@ -549,10 +549,10 @@ export const negatingQuantifiers: TopicContent = {
   terms: ['negation-of-quantifier'],
   cambridge: [bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12, ns1q5, lp16],
   // The IA sheet's two negations first (four quantifiers, and an implication in words), then the
-  // CST proof and the Logic and Proof equivalences. The witness (x = 0, y = 1) is guessed at once,
-  // and the multiple-choice negation can be guessed, so neither gates; the Book of Proof items are
-  // not Cambridge standard.
-  gate: ['ns1-q5', 'sw-1-1-5', 'lp-ex-16'],
+  // Logic and Proof equivalences. The CST proof 1.1.5 does not gate: the practice problems on the
+  // same exercise give its negation and its witness. The Book of Proof items are not Cambridge
+  // standard.
+  gate: ['ns1-q5', 'lp-ex-16'],
   recall: [
     { front: t`Negate ${math`\forall x.\ P(x)`}.`, back: t`${math`\exists x.\ \lnot P(x)`}: at least one ${mx} fails.` },
     { front: t`Negate ${math`\exists x.\ P(x)`}.`, back: t`${math`\forall x.\ \lnot P(x)`}: every ${mx} fails.` },

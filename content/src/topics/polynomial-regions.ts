@@ -337,7 +337,7 @@ export const polynomialRegions: TopicContent = {
   minutes: 25,
   lesson: [
     { kind: 'section', title: t`The idea` },
-    { kind: 'hook', text: t`${math`(x - ${4}y)(x - y)(x + y) \ge ${0}`}: where in the plane is that true? It sounds hopeless until you notice that the expression is ${0} on three straight lines, and the lines cut the plane into six wedges. In each wedge the sign never changes. Test one point per wedge and you are done.` },
+    { kind: 'hook', text: t`${math`(x - ${3}y)(x - y)(x + ${2}y) \ge ${0}`}: where in the plane is that true? It sounds hopeless until you notice that the expression is ${0} on three straight lines, and the lines cut the plane into six wedges. In each wedge the sign never changes. Test one point per wedge and you are done.` },
     { kind: 'narrative', text: t`The same idea solves one-variable inequalities like ${math`(x + ${2})(x - ${1})(x - ${3}) \le ${0}`}: the roots cut the line into pieces, the sign is constant on each piece, and it flips as you cross a root. One rule, two settings.` },
     { kind: 'section', title: t`Sign diagrams` },
     {

@@ -215,7 +215,7 @@ export const separableOdes: TopicContent = {
     },
     checkFrom(power, { k: 2, c: 3, m: 2 }, t`${math`\ln|y| = ${2}\ln x + C`} gives ${math`y = Ax^{${2}}`}; ${math`y(${1}) = ${3}`} gives ${math`A = ${3}`}, and ${math`y(${2}) = ${12}`}.`),
     { kind: 'pitfall', claim: t`${math`\ln|y| = ${2}x + C`} gives ${math`y = e^{${2}x} + C`}.`, counterexample: t`${math`e^{${2}x + C} = e^{C}e^{${2}x}`}: the constant multiplies. Check: ${math`y = e^{${2}x} + ${1}`} has ${math`\frac{dy}{dx} = ${2}e^{${2}x}`}, but ${math`${2}y = ${2}e^{${2}x} + ${2}`}.` },
-    { kind: 'pitfall', claim: t`Dividing by ${math`g(y)`} loses nothing.`, counterexample: t`${math`\frac{dy}{dx} = y^{${2}} - ${1}`} has the solution ${math`y = ${1}`} for all ${math`x`}, which ${math`\int \frac{dy}{y^{${2}} - ${1}}`} never produces.` },
+    { kind: 'pitfall', claim: t`Dividing by ${math`g(y)`} loses nothing.`, counterexample: t`${math`\frac{dy}{dx} = (y - ${3})\cos x`} has the solution ${math`y = ${3}`} for all ${math`x`}, since both sides are then ${0}, but ${math`\int \frac{dy}{y - ${3}}`} never produces it: dividing by ${math`y - ${3}`} assumed ${math`y \ne ${3}`}.` },
     { kind: 'takeaway', text: t`Separate as ${math`\int \frac{dy}{g(y)} = \int f(x)\,dx`}, add one constant, fix it with the condition, and remember the constant solutions where ${math`g(y) = ${0}`}.` },
   ],
   examples: [

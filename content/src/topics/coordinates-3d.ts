@@ -209,7 +209,7 @@ const a5q3d = supervision({
   id: 'a5-q3-distance',
   source: cite('step-f05', 'Q3'),
   title: t`The distance of the origin from the slanted face`,
-  prompt: t`With ${math`O`}, ${math`A`}, ${math`B`}, ${math`C`} as in  STEP I Q (the origin and the points ${math`(a, ${0}, ${0})`}, ${math`(${0}, b, ${0})`}, ${math`(${0}, ${0}, c)`}), let ${math`\theta = \angle ACB`}. Show that ${math`\cos \theta = \frac{c^{${2}}}{\sqrt{(a^{${2}} + c^{${2}})(b^{${2}} + c^{${2}})}}`}, find the area of triangle ${math`ABC`}, and hence show that ${math`d`}, the perpendicular distance of the origin from the triangle ${math`ABC`}, satisfies ${math`\frac{${1}}{d^{${2}}} = \frac{${1}}{a^{${2}}} + \frac{${1}}{b^{${2}}} + \frac{${1}}{c^{${2}}}`}.`,
+  prompt: t`Let ${math`O`} be the origin and ${math`A`}, ${math`B`}, ${math`C`} the points ${math`(a, ${0}, ${0})`}, ${math`(${0}, b, ${0})`}, ${math`(${0}, ${0}, c)`}, with ${math`a, b, c`} positive, and let ${math`\theta = \angle ACB`}. Show that ${math`\cos \theta = \frac{c^{${2}}}{\sqrt{(a^{${2}} + c^{${2}})(b^{${2}} + c^{${2}})}}`}, find the area of triangle ${math`ABC`}, and hence show that ${math`d`}, the perpendicular distance of the origin from the triangle ${math`ABC`}, satisfies ${math`\frac{${1}}{d^{${2}}} = \frac{${1}}{a^{${2}}} + \frac{${1}}{b^{${2}}} + \frac{${1}}{c^{${2}}}`}.`,
   writeUp: 'proof',
   official: cite('step-f05-hints', 'Q3'),
 });

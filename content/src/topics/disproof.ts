@@ -204,35 +204,6 @@ const ex93 = workedProof({
   source: cite('bop', 'Section 9.2, Example 9.3'),
 });
 
-const sw115 = auto({
-  id: 'sw-1-1-5',
-  source: cite('cst-dm-sw1', 'Exercises 1, 1.1.5'),
-  title: t`A middle integer`,
-  prompt: t`Prove or disprove: for all integers ${mx} and ${math`y`} there is an integer ${math`z`} such that ${math`x + z = y - z`}. The statement is false. Disprove it: give integers ${mx} and ${math`y`} for which no integer ${math`z`} works.`,
-  answer: {
-    kind: 'witness', count: 2, names: ['x', 'y'], example: 'x = 0, y = 1',
-    check: ([x, y]) => {
-      if (x === undefined || y === undefined || x.den !== 1n || y.den !== 1n) return 'Give two integers.';
-      return (y.num - x.num) % 2n !== 0n ? null : `With these, z = ${(y.num - x.num) / 2n} works: x + z = y - z.`;
-    },
-  },
-  solution: [
-    t`The negation: there exist integers ${mx}, ${math`y`} such that for every integer ${math`z`}, ${math`x + z \neq y - z`}.`,
-    t`Rearranging, ${math`x + z = y - z`} is the same as ${math`${2}z = y - x`}. Take ${math`x = ${0}`}, ${math`y = ${1}`}: then ${math`${2}z = ${1}`}, and ${math`${2}z`} is even for every integer ${math`z`} while ${1} is odd. So no integer ${math`z`} works: the inner existence statement is disproved for these ${mx}, ${math`y`}.`,
-    t`Any ${mx}, ${math`y`} with ${math`y - x`} odd will do. Over the reals the statement is true (exercise ${4}): take ${math`z = \frac{y - x}{${2}}`}.`,
-  ],
-  reference: 'x = 0, y = 1',
-  verify: () => {
-    // For x = 0, y = 1 no z in a wide range works, and for every pair with y - x odd none can (2z is even).
-    for (let z = -1000; z <= 1000; z++) if (0 + z === 1 - z) return 'found z';
-    return null;
-  },
-  misconceptions: [
-    { response: 'x = 1, y = 3', why: t`With ${math`x = ${1}`}, ${math`y = ${3}`}, the integer ${math`z = ${1}`} works: ${math`${1} + ${1} = ${3} - ${1}`}. You need ${math`y - x`} odd.` },
-    { response: 'x = 0, y = 0', why: t`${math`z = ${0}`} works there. You need a pair for which no integer ${math`z`} works.` },
-  ],
-});
-
 const sw115proof = supervision({
   id: 'sw-1-1-5-proof',
   source: cite('cst-dm-sw1', 'Exercises 1, 1.1.4 and 1.1.5'),
@@ -398,7 +369,8 @@ export const disproof: TopicContent = {
     },
     checkFrom(negGen, { s: 3 }, t`The negation of "there is an ${mx} with ${mP}" is "every ${mx} fails ${mP}". Here that is ${math`x^{${2}} + ${1} \ge ${2}x`} for all real ${mx}, true because ${math`x^{${2}} - ${2}x + ${1} = (x - ${1})^{${2}} \ge ${0}`}.`),
     { kind: 'section', title: t`Mixed quantifiers` },
-    { kind: 'narrative', text: t`Statements of the form "for all ${mx} there is a ${math`z`}" combine both kinds. CST exercise ${1}.${1}.${5} claims: for all integers ${mx} and ${math`y`} there is an integer ${math`z`} with ${math`x + z = y - z`}. Its negation is: there are integers ${mx}, ${math`y`} such that for every integer ${math`z`}, ${math`x + z \neq y - z`}. So the disproof gives an example (${math`x = ${0}`}, ${math`y = ${1}`}) and then disproves an existence statement about ${math`z`}: ${math`${2}z = ${1}`} has no integer solution, since ${math`${2}z`} is even.` },
+    { kind: 'narrative', text: t`Statements of the form "for all ${mx} there is a ${math`z`}" combine both kinds. Take the claim: for all integers ${mx} and ${math`y`} with ${math`x < y`}, there is an integer ${math`z`} with ${math`x < z < y`}. Its negation swaps each quantifier, keeps the condition ${math`x < y`} (the negation of "if ${mP}, then ${math`Q`}" is "${mP} and not ${math`Q`}"), and negates the rest: there are integers ${mx} and ${math`y`} with ${math`x < y`} such that for every integer ${math`z`}, ${math`x < z < y`} fails.` },
+    { kind: 'narrative', text: t`So the disproof has two layers. The outer "there are" needs one example: ${math`x = ${0}`}, ${math`y = ${1}`}. The inner "for every ${math`z`}" is a disproof of an existence statement, so it needs an argument about an arbitrary integer ${math`z`}. If ${math`z \le ${0}`}, then ${math`${0} < z`} fails. If ${math`z > ${0}`}, then ${math`z`} is one of ${1}, ${2}, ${3}, and so on, so ${math`z \ge ${1}`} and ${math`z < ${1}`} fails. Every integer ${math`z`} is covered, not just the few you tried.` },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`"There are integers ${math`a, b`} with ${math`${6}a + ${9}b = ${3}`}" is false, because ${math`a = ${1}`}, ${math`b = ${1}`} gives ${15}.`, counterexample: t`One failure says nothing about other values: ${math`a = -${1}`}, ${math`b = ${1}`} gives ${math`-${6} + ${9} = ${3}`}. The statement is true.` },
     { kind: 'pitfall', claim: t`A computer search finding no example up to a million disproves the existence statement.`, counterexample: t`For ${math`n^{${2}} + n + ${41}`}, every ${math`n`} from ${0} to ${39} gives a prime; the first composite value is at ${math`n = ${40}`}. Patterns can hold for a long time and then stop, and existence claims can first come true far out. Only an argument covers all cases.` },
@@ -413,7 +385,7 @@ export const disproof: TopicContent = {
   generators: [linGen, primeGen, negGen, sqGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['disproof-of-existence'],
-  cambridge: [sw115, sw115proof, b921, b930, b920, b92, ns2q7ii],
+  cambridge: [sw115proof, b921, b930, b920, b92, ns2q7ii],
   gate: ['sw-1-1-5-proof', 'ns2-q7-ii'],
   recall: [
     { front: t`What is the negation of ${math`\exists x \in S,\ P(x)`}?`, back: t`${math`\forall x \in S,\ \neg P(x)`}.` },

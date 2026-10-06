@@ -225,7 +225,17 @@ export const factorisations: TopicContent = {
     { kind: 'pitfall', claim: t`${math`a^{${3}} + b^{${3}} = (a + b)^{${3}}`}.`, counterexample: t`${math`a = b = ${1}`}: ${math`${1} + ${1} = ${2}`}, but ${math`(${1} + ${1})^{${3}} = ${8}`}.` },
     { kind: 'section', title: t`Higher powers` },
     { kind: 'theorem', name: t`Difference of nth powers`, statement: t`For every integer ${math`n \ge ${1}`}, ${math`a^{n} - b^{n} = (a - b)(a^{n - ${1}} + a^{n - ${2}}b + \cdots + ab^{n - ${2}} + b^{n - ${1}})`}.` },
-    { kind: 'p', text: t`It comes from the geometric sum ${math`${1} + t + \cdots + t^{n - ${1}} = \frac{${1} - t^{n}}{${1} - t}`}: put ${math`t = \frac{b}{a}`} and multiply through by ${math`a^{n}`}. For odd ${math`n`}, replacing ${math`b`} by ${math`-b`} gives ${math`a^{n} + b^{n}`} with the factor ${math`a + b`}.`, why: { q: t`Why only odd ${math`n`}?`, a: t`For odd ${math`n`}, ${math`(-b)^{n} = -b^{n}`}, so ${math`a^{n} - (-b)^{n} = a^{n} + b^{n}`}. For even ${math`n`} the sign does not change.` } },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Name the long bracket`, text: t`Let ${math`S = a^{n - ${1}} + a^{n - ${2}}b + \cdots + ab^{n - ${2}} + b^{n - ${1}}`}: the terms ${math`a^{n - ${1} - k}b^{k}`} for ${math`k = ${0}, ${1}, \ldots, n - ${1}`}.`, plain: t`With ${math`n = ${4}`}, ${math`S = a^{${3}} + a^{${2}}b + ab^{${2}} + b^{${3}}`}.` },
+        { label: t`Multiply by a`, text: t`${math`aS = a^{n} + a^{n - ${1}}b + \cdots + ab^{n - ${1}}`}: the terms ${math`a^{n - k}b^{k}`} for ${math`k = ${0}, \ldots, n - ${1}`}.`, plain: t`Each power of ${math`a`} goes up by one.` },
+        { label: t`Multiply by b`, text: t`${math`bS = a^{n - ${1}}b + \cdots + ab^{n - ${1}} + b^{n}`}: the terms ${math`a^{n - k}b^{k}`} for ${math`k = ${1}, \ldots, n`}.`, plain: t`Each power of ${math`b`} goes up by one.` },
+        { label: t`Subtract`, text: t`${math`(a - b)S = aS - bS`}. The terms with ${math`k = ${1}, \ldots, n - ${1}`} appear once in each list, so they cancel, leaving ${math`a^{n} - b^{n}`}.`, why: { q: t`Which terms survive?`, a: t`Only the ${math`k = ${0}`} term of ${math`aS`}, which is ${math`a^{n}`}, and the ${math`k = n`} term of ${math`bS`}, which is ${math`b^{n}`}. With ${math`n = ${4}`}: ${math`aS = a^{${4}} + a^{${3}}b + a^{${2}}b^{${2}} + ab^{${3}}`} and ${math`bS = a^{${3}}b + a^{${2}}b^{${2}} + ab^{${3}} + b^{${4}}`}.` } },
+      ],
+    },
+    { kind: 'p', text: t`Nothing was divided, so the identity holds for every ${math`a`} and ${math`b`}, including ${math`a = ${0}`} and ${math`a = b`}. For odd ${math`n`}, replacing ${math`b`} by ${math`-b`} gives ${math`a^{n} + b^{n}`} with the factor ${math`a + b`}.`, why: { q: t`Why only odd ${math`n`}?`, a: t`For odd ${math`n`}, ${math`(-b)^{n} = -b^{n}`}, so ${math`a^{n} - (-b)^{n} = a^{n} + b^{n}`}. For even ${math`n`} the sign does not change.` } },
     { kind: 'section', title: t`Making a difference of squares` },
     { kind: 'narrative', text: t`Back to ${math`x^{${4}} + ${4}`}. Compare it with ${math`(x^{${2}} + ${2})^{${2}} = x^{${4}} + ${4}x^{${2}} + ${4}`}: it is that square minus ${math`${4}x^{${2}}`}, and ${math`${4}x^{${2}} = (${2}x)^{${2}}`}. So ${math`x^{${4}} + ${4} = (x^{${2}} + ${2})^{${2}} - (${2}x)^{${2}}`}, a difference of two squares. The same move gives ${math`x^{${4}} + ${1} = (x^{${2}} + ${1})^{${2}} - (\sqrt{${2}}x)^{${2}}`}.` },
     checkFrom(disguised, { k: 1 }, t`${math`x^{${4}} + ${4} = (x^{${2}} + ${2})^{${2}} - (${2}x)^{${2}} = (x^{${2}} - ${2}x + ${2})(x^{${2}} + ${2}x + ${2})`}.`),

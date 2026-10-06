@@ -304,7 +304,7 @@ export const fpExceptions: TopicContent = {
   minutes: 20,
   lesson: [
     { kind: 'section', title: t`When there is no answer` },
-    { kind: 'hook', text: t`What is the largest element of the empty list? There is none, and an option type would make every caller check for ${code`None`}, even deep inside a search that just wants to give up and try something else. FoCS's answer is the exception: abandon the computation now, and let whoever is prepared to deal with it pick up the pieces.` },
+    { kind: 'hook', text: t`What is the first element of the empty list? There is none, and an option type would make every caller check for ${code`None`}, even deep inside a search that just wants to give up and try something else. FoCS's answer is the exception: abandon the computation now, and let whoever is prepared to deal with it pick up the pieces.` },
     {
       kind: 'definition',
       name: t`Exception`,
@@ -319,7 +319,7 @@ export const fpExceptions: TopicContent = {
     },
     {
       kind: 'p',
-      text: t`Why can ${code`raise e`} have every type? Because it never returns a value, so it can stand where any value is expected: in ${code`if n < ${0} then raise Neg else n * ${2}`} it acts as an ${code`int`}. Its type is ${code`exn -> 'a`}, the same trick as ${code`loop : 'a -> 'b`} in the lesson on polymorphism.`,
+      text: t`Why can ${code`raise e`} have every type? Because it never returns a value, so it can stand where any value is expected: after ${code`exception Neg`}, in ${code`if n < ${0} then raise Neg else n * ${2}`} it acts as an ${code`int`}. Its type is ${code`exn -> 'a`}: since no value ever comes back, ${code`'a`} can be whatever type the context needs.`,
     },
     checkFrom(tryEval, { a: 3, b: -1, c: 100 }, t`${code`f (-${1})`} raises ${code`Neg`}, which abandons the whole sum; the handler gives ${100}.`),
     { kind: 'section', title: t`Backtracking: making change` },
@@ -336,7 +336,7 @@ export const fpExceptions: TopicContent = {
     },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`A handler replaces only the call that failed, so ${code`try f ${3} + f (-${1}) with Neg -> ${100}`} is ${6 + 100}.`, counterexample: t`Raising abandons the whole body of the ${code`try`}, including the pending addition. The value is ${100}.` },
-    { kind: 'pitfall', claim: t`A handler only catches exceptions raised in the code written inside it.`, counterexample: t`It catches exceptions raised anywhere during the evaluation, including inside functions called from there: ${code`try list_max [] with Failure _ -> ${0}`} catches the ${code`Failure`} raised inside ${code`list_max`}.` },
+    { kind: 'pitfall', claim: t`A handler only catches exceptions raised in the code written inside it.`, counterexample: t`It catches exceptions raised anywhere during the evaluation, including inside functions called from there. With ${code`let half n = if n mod ${2} = ${0} then n / ${2} else failwith "odd"`}, the expression ${code`try half ${7} + ${1} with Failure _ -> ${0}`} is ${0}: the ${code`Failure "odd"`} is raised inside ${code`half`}, abandons the addition, and is caught by the handler outside.` },
     { kind: 'pitfall', claim: t`An exception is caught by the handler nearest to it in the program text.`, counterexample: t`It is caught by the most recently entered handler that is still active, which depends on how the program ran. In the change trace, the same handler text catches different exceptions at different moments.` },
     { kind: 'takeaway', text: t`${code`raise`} abandons the computation and passes an exception outwards to the most recently entered handler with a matching case, whose value replaces the whole ${code`try`} body; this makes giving up, and backtracking, simple.` },
   ],

@@ -329,7 +329,7 @@ export const curveSketching: TopicContent = {
   minutes: 25,
   lesson: [
     { kind: 'section', title: t`Counting without solving` },
-    { kind: 'hook', text: t`STEP once asked: when does ${math`x^{${3}} + ax^{${2}} + b = ${0}`} have three distinct real roots? There is a formula for the roots of a cubic, but it is a monster. The examiners wanted something better: an answer you can see. How can a picture count roots it never finds?` },
+    { kind: 'hook', text: t`For which numbers ${math`k`} does ${math`x^{${3}} - ${27}x = k`} have three distinct real roots? There is a formula for the roots of a cubic, but it is a monster. STEP examiners want something better: an answer you can see. How can a picture count roots it never finds?` },
     { kind: 'narrative', text: t`The roots of ${math`f(x) = k`} are the ${math`x`} values where the curve ${math`y = f(x)`} meets the horizontal line ${math`y = k`}. So if you know the shape of the curve (where it rises, where it falls, and how high it gets) you can count meetings by sliding the line up and down. Two facts make that rigorous.` },
     { kind: 'theorem', name: t`Intermediate value theorem`, statement: t`If ${math`f`} is continuous on ${math`[a, b]`} and ${math`k`} lies strictly between ${math`f(a)`} and ${math`f(b)`}, then ${math`f(c) = k`} for some ${math`c`} with ${math`a < c < b`}.` },
     { kind: 'p', text: t`In plain words, the [[intermediate-value-theorem|intermediate value theorem]] says: a curve you can draw without lifting the pen cannot get from below a line to above it without crossing it. Polynomials are continuous. We use this theorem without proof; it is proved in IA Analysis.` },
@@ -358,7 +358,8 @@ export const curveSketching: TopicContent = {
         { label: t`Read off`, text: t`The minimum touches the axis, so the curve meets it at ${math`x = ${-2}`} and touches at ${math`x = ${1}`}: two distinct roots. Moving the curve up or down changes the count, as the theorem says.` },
       ],
     },
-    { kind: 'narrative', text: t`The same reasoning works for quartics. ${math`y = x^{${4}} - ${6}x^{${2}} + b`} is a W: a maximum at ${math`(${0}, b)`} and two minima at ${math`(\pm\sqrt{${3}}, b - ${9})`}. Slide it up and down and the number of crossings goes ${math`${2}, ${3}, ${4}, ${2}, ${0}`} as ${math`b`} passes ${0} and ${9}.` },
+    { kind: 'narrative', text: t`Back to the hook: ${math`y = x^{${3}} - ${27}x`} has ${math`\frac{dy}{dx} = ${3}x^{${2}} - ${27}`}, which is ${0} at ${math`x = \pm ${3}`}, giving a local maximum value ${54} at ${math`x = -${3}`} and a local minimum value ${math`-${54}`} at ${math`x = ${3}`}. By the theorem, ${math`x^{${3}} - ${27}x = k`} has three distinct real roots exactly when ${math`-${54} < k < ${54}`}.` },
+    { kind: 'narrative', text: t`The same reasoning works for quartics. ${math`y = x^{${4}} - ${8}x^{${2}} + b`} has ${math`\frac{dy}{dx} = ${4}x^{${3}} - ${16}x = ${4}x(x - ${2})(x + ${2})`}, so it is a W: a maximum at ${math`(${0}, b)`} and two minima at ${math`(\pm ${2}, b - ${16})`}. Slide it up and down and the number of crossings goes ${math`${2}, ${3}, ${4}, ${2}, ${0}`} as ${math`b`} rises through ${0} and ${16}.` },
     { kind: 'pitfall', claim: t`If both turning points of a cubic are above the axis, the cubic has no real root.`, counterexample: t`${math`y = x^{${3}} + ${3}x^{${2}} + ${1}`} has turning points ${math`(${-2}, ${5})`} and ${math`(${0}, ${1})`}, both above the axis, but it comes up from ${math`-\infty`} on the left, so it crosses once. Every cubic has at least one real root.` },
     { kind: 'takeaway', text: t`The roots of ${math`f(x) = k`} are meetings of the curve with a horizontal line: find the turning heights, and the line crosses each monotone piece at most once.` },
   ],

@@ -1,8 +1,8 @@
 /**
  * alg.partial-fractions: split a fraction such as 1/((x + 1)(x + 2)) into simpler fractions
  * by substituting values or equating coefficients, including a repeated factor, and use it
- * to sum a telescoping series. Sources: STEP Support Foundation Assignment 17 Q2(iii), (iv),
- * and the NST Maths Workbook A7. Coefficients are found by the cover-up rule in the
+ * to sum a telescoping series. Sources: STEP Support Foundation Assignment 17 Q2(iii) and
+ * the NST Maths Workbook A7. Q2(iv) is the first step of the gate Q2(iii), so it is not worked. Coefficients are found by the cover-up rule in the
  * solutions and checked by solving the linear system from equating coefficients.
  */
 import { auto, cite, same } from '../cambridge';
@@ -159,21 +159,25 @@ const telescope = generator<TelP>({
 
 // ---------------------------------------------------------------- Cambridge problems
 
-const a17iv = auto({
-  id: 'a17-q2-iv',
-  source: cite('step-f17', 'Q2(iv)'),
-  title: t`Two fractions from one`,
-  prompt: t`By setting ${math`x = ${0}`} and ${math`x = ${1}`} in turn, find ${math`a`} and ${math`b`} such that ${math`\frac{${1}}{x^{${2}} + ${3}x + ${2}} \equiv \frac{a}{x + ${1}} + \frac{b}{x + ${2}}`}.`,
-  answer: namedAnswer(['a', 'b'], [q(1), q(-1)], 'Multiply through by (x + 1)(x + 2), then substitute.'),
+const nstA7i = auto({
+  id: 'nst-a7-i',
+  source: cite('nst-workbook', 'Algebra, A7(i)'),
+  title: t`Two linear factors`,
+  prompt: t`Express ${math`\frac{${2}}{(x + ${1})(x - ${1})}`} in partial fractions as ${math`\frac{A}{x - ${1}} + \frac{B}{x + ${1}}`}. Give ${math`A`} and ${math`B`}.`,
+  answer: namedAnswer(AB, [q(1), q(-1)], 'Multiply through by (x + 1)(x - 1), then put x = 1 and x = -1.'),
   solution: [
-    t`${math`x^{${2}} + ${3}x + ${2} = (x + ${1})(x + ${2})`}. Multiply through: ${math`${1} \equiv a(x + ${2}) + b(x + ${1})`}.`,
-    t`${math`x = ${0}`}: ${math`${1} = ${2}a + b`}. ${math`x = ${1}`}: ${math`${1} = ${3}a + ${2}b`}. Subtracting twice the first from the second: ${math`-${1} = -a`}, so ${math`a = ${1}`}, ${math`b = -${1}`}.`,
-    t`(Faster: ${math`x = -${1}`} gives ${math`a = ${1}`} at once, and ${math`x = -${2}`} gives ${math`b = -${1}`}.)`,
+    t`Multiply both sides by ${math`(x + ${1})(x - ${1})`}: ${math`${2} \equiv A(x + ${1}) + B(x - ${1})`}, an identity of polynomials, so it holds at every ${math`x`}, even at ${math`x = \pm ${1}`}, where the fractions were undefined (as in the proof of the cover-up rule).`,
+    t`${math`x = ${1}`} makes the ${math`B`} term ${0}: ${math`${2} = ${2}A`}, so ${math`A = ${1}`}. ${math`x = -${1}`} makes the ${math`A`} term ${0}: ${math`${2} = -${2}B`}, so ${math`B = -${1}`}.`,
+    t`Check by adding back: ${math`\frac{${1}}{x - ${1}} - \frac{${1}}{x + ${1}} = \frac{(x + ${1}) - (x - ${1})}{(x - ${1})(x + ${1})} = \frac{${2}}{(x + ${1})(x - ${1})}`}.`,
   ],
-  reference: 'a = 1, b = -1',
-  verify: () => same('cover-up', twoAns({ m: 0, n: 1, r: -1, s: -2 }).map(str).join(','), '1,-1'),
-  misconceptions: [{ response: 'a = -1, b = 1', why: t`At ${math`x = -${1}`}: ${math`${1} = a \times ${1}`}, so ${math`a = ${1}`}.` }],
-  official: { source: cite('step-f17-hints', 'Q2(iv)'), answer: 'a = 1, b = -1', agrees: true },
+  reference: 'A = 1, B = -1',
+  verify: () => {
+    const f = (x: number): number => 2 / ((x + 1) * (x - 1));
+    const g = (x: number): number => 1 / (x - 1) - 1 / (x + 1);
+    for (const x of [0, 0.5, 3, -7]) if (Math.abs(f(x) - g(x)) > 1e-12) return `x = ${x}`;
+    return same('cover-up', twoAns({ m: 0, n: 2, r: 1, s: -1 }).map(str).join(','), '1,-1');
+  },
+  misconceptions: [{ response: 'A = -1, B = 1', why: t`At ${math`x = ${1}`}: ${math`${2} = A \times ${2}`}, so ${math`A = ${1}`}. Each coefficient comes from its own factor's root.` }],
 });
 
 const a17iiiN = auto({
@@ -259,14 +263,14 @@ export const partialFractions: TopicContent = {
   minutes: 20,
   lesson: [
     { kind: 'section', title: t`The idea` },
-    { kind: 'hook', text: t`Add up ${math`\frac{${1}}{${1} \times ${2}} + \frac{${1}}{${2} \times ${3}} + \cdots + \frac{${1}}{${99} \times ${100}}`}. It looks like a hundred fractions. In fact it is ${math`${1} - \frac{${1}}{${100}}`}, because each term splits as ${math`\frac{${1}}{r} - \frac{${1}}{r + ${1}}`} and almost everything cancels.` },
+    { kind: 'hook', text: t`Add up ${math`\frac{${1}}{${1} \times ${3}} + \frac{${1}}{${3} \times ${5}} + \cdots + \frac{${1}}{${99} \times ${101}}`}. It looks like fifty fractions. In fact it is ${math`\frac{${1}}{${2}}\left(${1} - \frac{${1}}{${101}}\right) = \frac{${50}}{${101}}`}, because each term splits as ${math`\frac{${1}}{${2}}\left(\frac{${1}}{${2}r - ${1}} - \frac{${1}}{${2}r + ${1}}\right)`} and almost everything cancels.` },
     { kind: 'narrative', text: t`Adding fractions is easy: find a common denominator. Partial fractions run that backwards, splitting one fraction with a factorised denominator into a sum of fractions with simpler denominators.` },
     { kind: 'section', title: t`Distinct linear factors` },
     {
       kind: 'definition',
       name: t`Partial fractions`,
       formal: t`If ${math`P`} is a polynomial of degree less than ${math`n`} and ${math`a_{${1}}, \ldots, a_{n}`} are distinct, the [[partial-fractions|partial fractions]] of ${math`\frac{P(x)}{(x - a_{${1}})\cdots(x - a_{n})}`} are the constants ${math`A_{i}`} with ${math`\frac{P(x)}{(x - a_{${1}})\cdots(x - a_{n})} \equiv \sum_{i} \frac{A_{i}}{x - a_{i}}`}.`,
-      plain: t`${math`\frac{${1}}{(x + ${1})(x + ${2})} = \frac{${1}}{x + ${1}} - \frac{${1}}{x + ${2}}`}: here ${math`A_{${1}} = ${1}`} and ${math`A_{${2}} = -${1}`}.`,
+      plain: t`${math`\frac{${3}}{(x - ${1})(x + ${2})} = \frac{${1}}{x - ${1}} - \frac{${1}}{x + ${2}}`}: here ${math`A_{${1}} = ${1}`} and ${math`A_{${2}} = -${1}`}. Check by adding: ${math`\frac{(x + ${2}) - (x - ${1})}{(x - ${1})(x + ${2})} = \frac{${3}}{(x - ${1})(x + ${2})}`}.`,
     },
     { kind: 'theorem', name: t`The cover-up rule`, statement: t`In the setting above, ${math`A_{i} = \frac{P(a_{i})}{\prod_{j \ne i}(a_{i} - a_{j})}`}: the value at ${math`x = a_{i}`} of the fraction with the factor ${math`x - a_{i}`} removed.` },
     {
@@ -279,15 +283,40 @@ export const partialFractions: TopicContent = {
       ],
     },
     { kind: 'narrative', text: t`That is the [[cover-up-rule|cover-up rule]]: to find the coefficient over ${math`x - a`}, cover that factor up and put ${math`x = a`} into the rest.` },
-    checkFrom(twoFactors, { m: 0, n: 1, r: -1, s: -2 }, t`Cover up ${math`x + ${1}`} and put ${math`x = -${1}`}: ${math`\frac{${1}}{${1}} = ${1}`}. Cover up ${math`x + ${2}`} and put ${math`x = -${2}`}: ${math`\frac{${1}}{-${1}} = -${1}`}.`),
-    { kind: 'pitfall', claim: t`${math`\frac{${4}x + ${1}}{(x + ${1})^{${2}}(x - ${2})} = \frac{A}{x - ${2}} + \frac{C}{(x + ${1})^{${2}}}`} for some constants.`, counterexample: t`Comparing ${math`x^{${2}}`} coefficients would force ${math`A = ${0}`}, but ${math`x = ${2}`} forces ${math`A = ${1}`}. A repeated factor needs both ${math`\frac{B}{x + ${1}}`} and ${math`\frac{C}{(x + ${1})^{${2}}}`}.` },
+    checkFrom(twoFactors, { m: 0, n: 3, r: 1, s: -2 }, t`Cover up ${math`x - ${1}`} and put ${math`x = ${1}`}: ${math`\frac{${3}}{${3}} = ${1}`}. Cover up ${math`x + ${2}`} and put ${math`x = -${2}`}: ${math`\frac{${3}}{-${3}} = -${1}`}.`),
+    { kind: 'section', title: t`A repeated factor` },
+    { kind: 'narrative', text: t`The cover-up rule needs distinct factors. What if the denominator is ${math`(x - ${1})^{${2}}(x + ${2})`}? A fraction over ${math`(x - ${1})^{${2}}`} alone cannot do the job, and neither can one over ${math`x - ${1}`} alone: you need both, one for each power of the repeated factor.` },
+    { kind: 'theorem', name: t`Partial fractions with a squared factor`, statement: t`Let ${math`a \ne b`} and let ${math`P`} be a polynomial of degree at most ${2}. Then there are constants ${math`A`}, ${math`B`}, ${math`C`} with ${math`\frac{P(x)}{(x - a)^{${2}}(x - b)} \equiv \frac{A}{x - b} + \frac{B}{x - a} + \frac{C}{(x - a)^{${2}}}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Choose A and C`, text: t`Let ${math`A = \frac{P(b)}{(b - a)^{${2}}}`} and ${math`C = \frac{P(a)}{a - b}`}.`, plain: t`Both denominators are non-zero because ${math`a \ne b`}.` },
+        { label: t`Look at what is left`, text: t`Let ${math`Q(x) = P(x) - A(x - a)^{${2}} - C(x - b)`}. Then ${math`Q(b) = P(b) - A(b - a)^{${2}} = ${0}`} and ${math`Q(a) = P(a) - C(a - b) = ${0}`}.` },
+        { label: t`Factorise it`, text: t`${math`Q`} has degree at most ${2} and roots ${math`a`} and ${math`b`}, so ${math`Q(x) = B(x - a)(x - b)`} for some constant ${math`B`}.`, why: { q: t`Why must ${math`Q`} have that form?`, a: t`By the factor theorem, ${math`Q(b) = ${0}`} gives ${math`Q(x) = (x - b)R(x)`} with ${math`R`} of degree at most ${1}. Then ${math`${0} = Q(a) = (a - b)R(a)`} and ${math`a - b \ne ${0}`}, so ${math`R(a) = ${0}`}, and a polynomial of degree at most ${1} that is ${0} at ${math`a`} is ${math`B(x - a)`} for a constant ${math`B`}, possibly ${0}.` } },
+        { label: t`Divide`, text: t`So ${math`P(x) \equiv A(x - a)^{${2}} + B(x - a)(x - b) + C(x - b)`}. Dividing by ${math`(x - a)^{${2}}(x - b)`} gives the three fractions.` },
+      ],
+    },
+    { kind: 'narrative', text: t`In practice: clear the denominator, then substitute the two roots, which find ${math`A`} and ${math`C`} as in the cover-up rule. No value of ${math`x`} removes the other two terms to leave ${math`B`} alone, so compare the ${math`x^{${2}}`} coefficients instead: on the right only ${math`A(x - a)^{${2}}`} and ${math`B(x - a)(x - b)`} have an ${math`x^{${2}}`} term, so that coefficient is ${math`A + B`}.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Set up`, text: t`Write ${math`\frac{${5}x + ${1}}{(x - ${1})^{${2}}(x + ${2})} \equiv \frac{A}{x + ${2}} + \frac{B}{x - ${1}} + \frac{C}{(x - ${1})^{${2}}}`}.` },
+        { label: t`Clear the denominator`, text: t`Multiply by ${math`(x - ${1})^{${2}}(x + ${2})`}: ${math`${5}x + ${1} \equiv A(x - ${1})^{${2}} + B(x - ${1})(x + ${2}) + C(x + ${2})`}.` },
+        { label: t`Put ${math`x = ${1}`}`, text: t`The ${math`A`} and ${math`B`} terms vanish: ${math`${6} = ${3}C`}, so ${math`C = ${2}`}.` },
+        { label: t`Put ${math`x = -${2}`}`, text: t`The ${math`B`} and ${math`C`} terms vanish: ${math`-${9} = ${9}A`}, so ${math`A = -${1}`}.` },
+        { label: t`Compare the squares`, text: t`The left side has no ${math`x^{${2}}`} term, so ${math`${0} = A + B`} and ${math`B = ${1}`}.` },
+        { label: t`Check`, text: t`At ${math`x = ${0}`}: the left is ${math`\frac{${1}}{${1} \times ${2}} = \frac{${1}}{${2}}`}, and the right is ${math`-\frac{${1}}{${2}} - ${1} + ${2} = \frac{${1}}{${2}}`}.`, plain: t`So ${math`\frac{${5}x + ${1}}{(x - ${1})^{${2}}(x + ${2})} = -\frac{${1}}{x + ${2}} + \frac{${1}}{x - ${1}} + \frac{${2}}{(x - ${1})^{${2}}}`}.` },
+      ],
+    },
+    { kind: 'pitfall', claim: t`${math`\frac{${5}x + ${1}}{(x - ${1})^{${2}}(x + ${2})} = \frac{A}{x + ${2}} + \frac{C}{(x - ${1})^{${2}}}`} for some constants.`, counterexample: t`Clearing the denominator would give ${math`${5}x + ${1} \equiv A(x - ${1})^{${2}} + C(x + ${2})`}. Comparing ${math`x^{${2}}`} coefficients forces ${math`A = ${0}`}, but ${math`x = -${2}`} forces ${math`-${9} = ${9}A`}, so ${math`A = -${1}`}. A repeated factor needs both ${math`\frac{B}{x - ${1}}`} and ${math`\frac{C}{(x - ${1})^{${2}}}`}.` },
     { kind: 'section', title: t`Telescoping sums` },
-    { kind: 'narrative', text: t`Now the hook: ${math`\frac{${1}}{r(r + ${1})} = \frac{${1}}{r} - \frac{${1}}{r + ${1}}`}. In the sum from ${math`r = ${1}`} to ${math`n`}, each ${math`-\frac{${1}}{r + ${1}}`} cancels the ${math`+\frac{${1}}{r + ${1}}`} of the next term. Only the first and last pieces survive: ${math`${1} - \frac{${1}}{n + ${1}} = \frac{n}{n + ${1}}`}.` },
-    checkFrom(telescope, { a: 2, b: 9, d: 1 }, t`${math`\frac{${1}}{${2}} - \frac{${1}}{${10}} = ${q(2, 5)}`}.`),
+    { kind: 'narrative', text: t`Now the hook. ${math`\frac{${1}}{${2}r - ${1}} - \frac{${1}}{${2}r + ${1}} = \frac{(${2}r + ${1}) - (${2}r - ${1})}{(${2}r - ${1})(${2}r + ${1})} = \frac{${2}}{(${2}r - ${1})(${2}r + ${1})}`}, so ${math`\frac{${1}}{(${2}r - ${1})(${2}r + ${1})} = \frac{${1}}{${2}}\left(\frac{${1}}{${2}r - ${1}} - \frac{${1}}{${2}r + ${1}}\right)`}. In the sum from ${math`r = ${1}`} to ${math`n`}, each ${math`-\frac{${1}}{${2}r + ${1}}`} cancels the first piece of the next term, because at ${math`r + ${1}`} that piece is ${math`\frac{${1}}{${2}(r + ${1}) - ${1}} = \frac{${1}}{${2}r + ${1}}`}. Only the first and last pieces survive: ${math`\frac{${1}}{${2}}\left(${1} - \frac{${1}}{${2}n + ${1}}\right) = \frac{n}{${2}n + ${1}}`}. With ${math`n = ${50}`} that is the hook's ${math`\frac{${50}}{${101}}`}.` },
+    checkFrom(telescope, { a: 2, b: 7, d: 2 }, t`${math`\frac{${2}}{r(r + ${2})} = \frac{${1}}{r} - \frac{${1}}{r + ${2}}`}, so two pieces survive at each end: ${math`\frac{${1}}{${2}} + \frac{${1}}{${3}} - \frac{${1}}{${8}} - \frac{${1}}{${9}} = ${q(43, 72)}`}.`),
     { kind: 'takeaway', text: t`Multiply out to a polynomial identity and substitute each root (cover-up); a repeated factor needs every power; and partial fractions make sums telescope.` },
   ],
   examples: [
-    withExaminer(workedCambridge(a17iv), t`The identity written with ${math`\equiv`}, the substitutions shown, and the values checked in the original.`),
+    withExaminer(workedCambridge(nstA7i), t`The identity written with ${math`\equiv`}, each root substituted, and the fractions added back as a check.`),
     worked(threeFactors, { r: -2, s: 0, u: 3, k: 6 }, t`Three factors by cover-up`),
     worked(telescope, { a: 1, b: 10, d: 2 }, t`A telescoping sum that skips`),
   ],
@@ -298,7 +327,8 @@ export const partialFractions: TopicContent = {
   gate: ['nst-a7-iii', 'a17-q2-iii-200', 'a17-q2-iii-n'],
   recall: [
     { front: t`State the cover-up rule.`, back: t`The coefficient over ${math`x - a`} is the rest of the fraction evaluated at ${math`x = a`}.` },
-    { front: t`Partial fractions for ${math`\frac{${1}}{r(r + ${1})}`}?`, back: t`${math`\frac{${1}}{r} - \frac{${1}}{r + ${1}}`}.` },
+    { front: t`Partial fractions for ${math`\frac{${1}}{(${2}r - ${1})(${2}r + ${1})}`}?`, back: t`${math`\frac{${1}}{${2}}\left(\frac{${1}}{${2}r - ${1}} - \frac{${1}}{${2}r + ${1}}\right)`}.` },
+    { front: t`Which fractions does a squared factor ${math`(x - a)^{${2}}`} in the denominator need?`, back: t`Both ${math`\frac{B}{x - a}`} and ${math`\frac{C}{(x - a)^{${2}}}`}. Find ${math`C`} by putting ${math`x = a`}, then the rest from the other roots and by comparing coefficients.` },
   ],
   proofOrder: [{
     title: t`Why the cover-up rule works`,

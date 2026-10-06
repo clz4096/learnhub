@@ -262,7 +262,9 @@ export const fpRecursion: TopicContent = {
     },
     checkFrom(linearRec, { a: 2, b: 1, c: 1, k: 3 }, t`Unfold to ${code`f ${0}`}, which is ${1}, then come back up: ${3}, ${7}, ${15}.`),
     { kind: 'section', title: t`Iteration: carry the answer with you` },
-    { kind: 'narrative', text: t`${code`npower`} leaves a pending multiplication at every level, and the computer must remember all of them, on its stack, until the base case is reached. For ${code`nsum ${10000}`} that is ten thousand pending additions, and the stack can overflow. FoCS asks: we all know the additions could be done as we go. How do we make the computer do that?` },
+    { kind: 'narrative', text: t`${code`npower`} leaves a pending multiplication at every level, and the computer must remember all of them, on its stack, until the base case is reached. FoCS's ${code`nsum`}, which adds ${math`${1} + ${2} + \cdots + n`}, has the same shape, with an addition pending at every level.` },
+    { kind: 'rule', text: [codeBlock(code`let rec nsum n =`, code`  if n = ${0} then ${0}`, code`  else n + nsum (n - ${1})`)] },
+    { kind: 'narrative', text: t`For ${code`nsum ${10000}`} that is ten thousand pending additions, and the stack can overflow. FoCS asks: we all know the additions could be done as we go. How do we make the computer do that?` },
     { kind: 'rule', text: [codeBlock(code`let rec summing n total =`, code`  if n = ${0} then total`, code`  else summing (n - ${1}) (n + total)`)] },
     {
       kind: 'definition',
@@ -280,7 +282,7 @@ export const fpRecursion: TopicContent = {
     },
     {
       kind: 'p',
-      text: t`FoCS gives a warning with the trick: "Never add an accumulator merely out of habit." It saves space, but it can make code harder to read, and for ${code`power`}, whose recursion is only about ${math`\log_{${2}} n`} deep, the gain is minute.`,
+      text: t`FoCS gives a warning with the trick: "Never add an accumulator merely out of habit." It saves space, but it can make code harder to read, and when the recursion is shallow there is little space to save: ${code`npower x ${10}`} is only ${11} calls deep.`,
     },
     { kind: 'section', title: t`Fibonacci, slow and fast` },
     { kind: 'narrative', text: t`The Fibonacci numbers ${fibOf(1)}, ${fibOf(2)}, ${fibOf(3)}, ${fibOf(4)}, ${fibOf(5)}, ${fibOf(6)}, and so on, each the sum of the two before, give the most famous slow recursion. ${code`fib n = fib (n - ${1}) + fib (n - ${2})`} is correct, but ${code`fib ${10}`} makes ${2 * fibOf(10) - 1} calls, and ${code`fib ${50}`} seems to hang.` },

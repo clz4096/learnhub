@@ -339,7 +339,7 @@ export const sineCosineRules: TopicContent = {
     checkFrom(cosineAngle, { a: 5, b: 7, c: 8 }, t`Subtract the square of the side opposite ${mC}, then divide by ${math`${2}ab`}.`),
     { kind: 'section', title: t`Area and the sine rule` },
     { kind: 'theorem', name: t`Area of a triangle`, statement: t`The area of triangle ${math`ABC`} is ${math`\frac{${1}}{${2}}ab\sin C = \frac{${1}}{${2}}bc\sin A = \frac{${1}}{${2}}ca\sin B`}.` },
-    { kind: 'p', text: t`Why: take ${math`CA = b`} as the base. In the coordinates above, with ${mC} at the origin and ${math`CB`} along the axis, the height of ${math`A`} above it is ${math`y = b\sin C`}, so the area is ${math`\frac{${1}}{${2}} \times a \times b\sin C`}. The other two forms come from relabelling the vertices.` },
+    { kind: 'p', text: t`Why: take ${math`CB = a`} as the base. In the coordinates above, with ${mC} at the origin and ${math`CB`} along the axis, the height of ${math`A`} above it is ${math`y = b\sin C`}, so the area is ${math`\frac{${1}}{${2}} \times a \times b\sin C`}. The other two forms come from relabelling the vertices.` },
     { kind: 'theorem', name: t`Sine rule`, statement: t`In any triangle ${math`ABC`}, ${math`\frac{a}{\sin A} = \frac{b}{\sin B} = \frac{c}{\sin C}`}.` },
     {
       kind: 'steps',
@@ -354,7 +354,7 @@ export const sineCosineRules: TopicContent = {
     { kind: 'section', title: t`Which rule, and where it breaks` },
     { kind: 'narrative', text: t`Use the cosine rule when you know the angle between two known sides, or all three sides. Use the [[sine-rule|sine rule]] when you know a side and the angle opposite it. Each formula has one case that catches people out.` },
     { kind: 'pitfall', claim: t`If ${math`\sin B`} is known, then the angle ${math`B`} is known.`, counterexample: t`${math`\sin ${30}^\circ = \sin ${150}^\circ = \frac{${1}}{${2}}`}. With ${math`a = ${4}`}, ${math`b = ${6}`}, and ${math`A = ${30}^\circ`}, the sine rule gives ${math`\sin B = \frac{${3}}{${4}}`}, and both an acute and an obtuse ${math`B`} fit: two different triangles. The cosine, unlike the sine, tells acute from obtuse.` },
-    { kind: 'pitfall', claim: t`In the cosine rule, ${mC} can be any angle of the triangle.`, counterexample: t`${mC} must be the angle between ${ma} and ${mb}, opposite ${mc}. For the triangle ${10}, ${9}, ${17}, putting the angle opposite ${17} into the formula for ${math`AB = ${10}`} gives a cosine of ${math`\frac{${9}^{${2}} + ${10}^{${2}} - ${17}^{${2}}}{${2} \times ${9} \times ${10}} = -\frac{${3}}{${5}}`}, the cosine of the wrong angle.` },
+    { kind: 'pitfall', claim: t`In the cosine rule, ${mC} can be any angle of the triangle.`, counterexample: t`${mC} must be the angle between ${ma} and ${mb}, opposite ${mc}. For the triangle with ${math`BC = ${4}`}, ${math`CA = ${7}`}, ${math`AB = ${6}`}, putting the angle opposite ${7} into the formula for ${math`AB = ${6}`} gives a cosine of ${math`\frac{${4}^{${2}} + ${6}^{${2}} - ${7}^{${2}}}{${2} \times ${4} \times ${6}} = ${q(1, 16)}`}, the cosine of the wrong angle. The angle at ${mC}, between the sides ${4} and ${7}, has ${math`\cos C = \frac{${4}^{${2}} + ${7}^{${2}} - ${6}^{${2}}}{${2} \times ${4} \times ${7}} = ${q(29, 56)}`}.` },
     { kind: 'takeaway', text: t`The cosine rule is Pythagoras corrected by ${math`${2}ab\cos C`}; the area is ${math`\frac{${1}}{${2}}ab\sin C`}, and comparing two forms of the area gives the sine rule.` },
   ],
   examples: [

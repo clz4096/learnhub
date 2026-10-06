@@ -7,7 +7,7 @@
  *
  * RB draw insert, run in OCaml 4.11.1 with the book's insert: D A T A S T R U C T U R E
  * gives root E, black height 3, 8 nodes, height 4. The `rbInsert` below is the same
- * algorithm in TypeScript, and the Cambridge problems' `verify` run it.
+ * algorithm in TypeScript. The drawing exercise is a gate, so no practice problem traces it.
  */
 import { auto, cite, same, supervision } from '../cambridge';
 import { int, sample } from '../math';
@@ -43,9 +43,6 @@ export function rbInsert<K>(x: K, s: RB<K>): RB<K> {
   return { ...t1, c: 'B' };
 }
 const rbBuild = <K>(xs: readonly K[]): RB<K> => xs.reduce<RB<K>>((tr, x) => rbInsert(x, tr), null);
-const blackHeight = <K>(tr: RB<K>): number => (tr === null ? 0 : (tr.c === 'B' ? 1 : 0) + blackHeight(tr.l));
-const rbSize = <K>(tr: RB<K>): number => (tr === null ? 0 : 1 + rbSize(tr.l) + rbSize(tr.r));
-const rbHeight = <K>(tr: RB<K>): number => (tr === null ? 0 : 1 + Math.max(rbHeight(tr.l), rbHeight(tr.r)));
 
 // ---------------------------------------------------------------- generators
 
@@ -135,38 +132,27 @@ const insGen = generator<InsP>({
 
 // ---------------------------------------------------------------- Cambridge problems
 
-const LETTERS = 'DATASTRUCTURE'.split('');
-const lettersTree = rbBuild(LETTERS);
-const drawInsert = auto({
-  id: 'cs3110-9-rb-draw-insert-height',
-  source: cite('cs3110-ex9', 'Exercise: RB draw insert', true),
-  title: t`Inserting D A T A S T R U C T U R E`,
-  prompt: t`Draw the red-black tree that results from inserting the characters ${ml`D A T A S T R U C T U R E`} into an empty tree with Okasaki's algorithm (a repeated character is already present and changes nothing). What is the black height of the result?`,
-  answer: { kind: 'exact', expected: String(blackHeight(lettersTree)) },
+// FoCS Exercise 7.1's keys, in its first order, which a plain binary search tree keeps lopsided.
+const NAMES = ['Alice', 'Tobias', 'Gerald', 'Lucy'];
+const namesRoot = (rbBuild(NAMES) as NonNullable<RB<string>>).k;
+const nameOptions: ChoiceOption[] = ['Alice', 'Gerald', 'Lucy', 'Tobias'].map((c) => ({ id: c, label: [ml`"${c}"`] }));
+const focs71rb = auto({
+  id: 'focs-7-1-red-black',
+  source: cite('focs-notes', 'Lecture 7, Exercise 7.1', true),
+  title: t`Exercise ${7}.${1}'s names in a red-black tree`,
+  prompt: t`FoCS Exercise ${7}.${1} inserts the keys ${ml`"Alice"`}, ${ml`"Tobias"`}, ${ml`"Gerald"`}, ${ml`"Lucy"`}, in that order, into an empty binary search tree, where ${ml`"Alice"`} stays at the root. Insert them instead into an empty red-black tree with Okasaki's algorithm. Which key is at the root?`,
+  answer: { kind: 'choice', options: nameOptions, correct: namesRoot },
   solution: [
-    t`The distinct letters are A, C, D, E, R, S, T, U: ${rbSize(lettersTree)} nodes. After D, A, T the tree is D black with A and T red below.`,
-    t`Each insertion that puts a red node under a red parent is repaired by ${ml`balance`}, and when a red reaches the root it is recoloured black, raising the black height by one.`,
-    t`The final tree has root E, with C above A and D on the left and S above R and T on the right, and U red below T. Every path has ${blackHeight(lettersTree)} black nodes, and the height is ${rbHeight(lettersTree)}.`,
+    t`Strings compare alphabetically: ${ml`"Alice" < "Gerald" < "Lucy" < "Tobias"`}.`,
+    t`${ml`"Alice"`} becomes the root, coloured black. ${ml`"Tobias"`} goes to its right, red, under a black parent: nothing to repair.`,
+    t`${ml`"Gerald"`} goes right of ${ml`"Alice"`} and left of ${ml`"Tobias"`}, red under red. The black ${ml`"Alice"`} now has a red right child with a red left child, so ${ml`balance`} lifts the middle key: ${ml`"Gerald"`}, red, with ${ml`"Alice"`} and ${ml`"Tobias"`} black below it. Colouring the root black gives black height ${2}.`,
+    t`${ml`"Lucy"`} goes right of ${ml`"Gerald"`} and left of the black ${ml`"Tobias"`}: red under black, nothing to repair. The root is ${ml`"${namesRoot}"`}.`,
   ],
-  reference: String(blackHeight(lettersTree)),
-  verify: () => same('black height, size, root', `${blackHeight(lettersTree)},${rbSize(lettersTree)},${(lettersTree as NonNullable<RB<string>>).k}`, '3,8,E'),
-  misconceptions: [{ response: String(rbHeight(lettersTree)), why: t`That is the height. Black height counts only the black nodes on a path; the red U does not count.` }],
+  reference: [namesRoot],
+  verify: () => same('the roots after each insertion', NAMES.map((_, i) => (rbBuild(NAMES.slice(0, i + 1)) as NonNullable<RB<string>>).k).join(' '), 'Alice Alice Gerald Gerald'),
+  misconceptions: [{ response: ['Alice'], why: t`That is the root of the plain binary search tree. In the red-black tree, inserting ${ml`"Gerald"`} sets off a rotation.` }],
 });
-const rootOptions: ChoiceOption[] = ['A', 'D', 'E', 'S', 'T'].map((c) => ({ id: c, label: [ml`${c}`] }));
-const drawInsertRoot = auto({
-  id: 'cs3110-9-rb-draw-insert-root',
-  source: cite('cs3110-ex9', 'Exercise: RB draw insert', true),
-  title: t`The root after D A T A S T R U C T U R E`,
-  prompt: t`In the same tree, after inserting ${ml`D A T A S T R U C T U R E`} with Okasaki's algorithm, which letter is at the root?`,
-  answer: { kind: 'choice', options: rootOptions, correct: (lettersTree as NonNullable<RB<string>>).k },
-  solution: [
-    t`D is the root for the first four insertions. Inserting S triggers rotations that make S the root, and it stays there until the last letter: inserting E sets off rotations that climb to the top and lift E to the root.`,
-    t`Trace the insertions one at a time and recolour the root black at each step: the root ends as E.`,
-  ],
-  reference: [(lettersTree as NonNullable<RB<string>>).k],
-  verify: () => same('the roots after each insertion', LETTERS.map((_, i) => (rbBuild(LETTERS.slice(0, i + 1)) as NonNullable<RB<string>>).k).join(''), 'DDDDSSSSSSSSE'),
-  misconceptions: [{ response: ['D'], why: t`D was the first root, but rotations move other keys up as the tree grows.` }],
-});
+
 const drawComplete = supervision({
   id: 'cs3110-9-rb-draw-complete',
   source: cite('cs3110-ex9', 'Exercise: RB draw complete'),
@@ -205,7 +191,7 @@ export const redBlackTrees: TopicContent = {
       kind: 'steps',
       proof: true,
       steps: [
-        { label: t`Lemma ${1}: ${math`h \le ${2}b`}`, text: t`A longest path has ${math`h`} nodes, ${math`b`} of them black by the global invariant. By the local invariant every red node on it is followed by a black one, so it has at most ${math`b`} red nodes. Hence ${math`h \le ${2}b`}.`, plain: t`Black, red, black, red: reds can at most double the length.` },
+        { label: t`Lemma ${1}: ${math`h \le ${2}b`}`, text: t`A longest path has ${math`h`} nodes, ${math`b`} of them black by the global invariant. Its first node is the root, which is black, so every red node on it has a parent on the path, and by the local invariant that parent is black. Different nodes on the path have different parents, so this matches each red node with its own black node: there are at most ${math`b`} red nodes. Hence ${math`h \le ${2}b`}.`, plain: t`Pair each red with the black just above it: reds can at most double the length.`, why: { q: t`Why not pair each red with the black node below it?`, a: t`The last node on a path may be red, with nothing below it. Every node but the root has a node above it, and the root is black, so looking upwards always works.` } },
         { label: t`Lemma ${2}: ${math`n \ge ${2}^{b} - ${1}`}`, text: t`Every path from the root has ${math`b`} black nodes, so the black nodes contain a perfect binary tree of height ${math`b`}, with ${math`${2}^{b} - ${1}`} nodes. Hence ${math`n \ge ${2}^{b} - ${1}`}.`, why: { q: t`Why do the black nodes contain a perfect tree?`, a: t`Keep the black nodes. Delete each red node with no children; replace each red node that has children by one of them, which must be black, and drop the other. Every path in what remains still has exactly ${math`b`} nodes, all black, so it is a perfect tree of height ${math`b`}, and it uses only nodes of the original tree.` } },
         { label: t`Rearrange lemma ${2}`, text: t`${math`${2}^{b} \le n + ${1}`}, so ${math`b \le \log_{${2}}(n + ${1})`}, and doubling, ${math`${2}b \le ${2}\log_{${2}}(n + ${1})`}.` },
         { label: t`Combine`, text: t`By lemma ${1}, ${math`h \le ${2}b \le ${2}\log_{${2}}(n + ${1})`}.` },
@@ -238,14 +224,14 @@ export const redBlackTrees: TopicContent = {
     { kind: 'takeaway', text: t`No red under red and equal black counts on every path force height at most ${math`${2}\log_{${2}}(n + ${1})`}, and insertion keeps them with local rotations.` },
   ],
   examples: [
-    { ...workedCambridge(drawInsert), examiner: t`The examiner wants each insertion drawn with its colours, each rotation identified, and the black height read off a complete path.` },
+    { ...workedCambridge(focs71rb), examiner: t`The examiner wants each insertion placed by comparing keys, the red-under-red case named, the rotation drawn, and the root recoloured.` },
     worked(minGen, { b: 4 }, t`The fewest nodes for a black height`),
     worked(insGen, { keys: [10, 20, 30, 15, 25] }, t`A rotation moves the middle key up`),
   ],
   generators: [boundGen, minGen, insGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['red-black-tree', 'black-height', 'rotation'],
-  cambridge: [drawInsertRoot, drawComplete, drawInsertSketch],
+  cambridge: [drawComplete, drawInsertSketch],
   gate: ['cs3110-9-rb-draw-complete', 'cs3110-9-rb-draw-insert'],
   recall: [
     { front: t`State the red-black invariants.`, back: t`Black root; no red node has a red child; every root-to-leaf path has the same number of black nodes.` },

@@ -1,8 +1,9 @@
 /**
  * fn.modulus: the modulus |x|; solve equations such as |2x| + |x - 1| = 3 by splitting at
  * the critical values, solve |x - a| < b, and sketch y = |f(x)|. Sources: STEP Support
- * Foundation Assignment 21 Q2(i) to (iii) and Assignment 5 Q2(iii), and the NST Maths
- * Workbook FC1. Every solution set is found again by the sign test or by testing every
+ * Foundation Assignment 21 Q2(i) to (iii) and Assignment 5 Q2(iii), the NST Maths Workbook
+ * FC1, and STEP Support STEP 2 Equations and Inequalities Q1(iii), the gate in place of
+ * Q2(ii), whose equation the worked example solves. Every solution set is found again by the sign test or by testing every
  * candidate in the original equation.
  */
 import { auto, cite, same, supervision } from '../cambridge';
@@ -201,6 +202,15 @@ const a21sketch = supervision({
   official: cite('step-f21-hints', 'Q2(ii)'),
 });
 
+const eqns1 = supervision({
+  id: 's2eqns-q1-iii',
+  source: cite('step-s2-eqns', 'Q1(iii) (1994 STEP II Q5(iii))'),
+  title: t`How many roots?`,
+  prompt: t`How many real roots does the equation ${math`|x - ${3}| + |x - ${1}| = c`} have? The answer may depend on the value of ${math`c`}: give reasons for your answer.`,
+  writeUp: 'explanation',
+  official: cite('step-s2-eqns-solutions', 'Q1(iii)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const modulus: TopicContent = {
@@ -211,13 +221,13 @@ export const modulus: TopicContent = {
   minutes: 20,
   lesson: [
     { kind: 'section', title: t`The idea` },
-    { kind: 'hook', text: t`Solve ${math`|${2}x| + |x - ${1}| = ${3}`}. Guessing finds ${math`x = ${q(4, 3)}`}. Is there another? And how would you know you had found them all?` },
+    { kind: 'hook', text: t`Solve ${math`|x + ${1}| + |${2}x - ${4}| = ${9}`}. Guessing finds ${math`x = ${4}`}, since ${math`${5} + ${4} = ${9}`}. Is there another? And how would you know you had found them all?` },
     { kind: 'narrative', text: t`The modulus is easy to define but awkward to manipulate, because its formula changes at ${0}. The cure is to split the number line at the points where each inside changes sign, and solve a plain linear equation on each piece.` },
     { kind: 'section', title: t`The modulus` },
     {
       kind: 'definition',
       name: t`Modulus`,
-      formal: t`For real ${math`x`}, the [[modulus|modulus]] is ${math`|x| = x`} if ${math`x \ge ${0}`} and ${math`|x| = -x`} if ${math`x < ${0}`}. Equivalently ${math`|x| = \sqrt{x^{${2}}}`}, and ${math`|x - a|`} is the distance from ${math`x`} to ${math`a`} on the number line.`,
+      formal: t`For real ${math`x`}, the [[modulus|modulus]] is ${math`|x| = x`} if ${math`x \ge ${0}`} and ${math`|x| = -x`} if ${math`x < ${0}`}. Then ${math`|x - a|`} is the distance from ${math`x`} to ${math`a`} on the number line.`,
       plain: t`Drop the sign: ${math`|${3}| = ${3}`} and ${math`|-${3}| = ${3}`}. And ${math`|x - ${2}| = ${5}`} asks for the points ${5} away from ${2}: ${7} and ${math`-${3}`}.`,
     },
     { kind: 'theorem', name: t`Modulus equations`, statement: t`For ${math`c \ge ${0}`}, ${math`|y| = c`} if and only if ${math`y = c`} or ${math`y = -c`}. For ${math`c > ${0}`}, ${math`|y| < c`} if and only if ${math`-c < y < c`}.` },
@@ -233,11 +243,11 @@ export const modulus: TopicContent = {
     checkFrom(absEquation, { a: 2, b: -3, c: 7 }, t`${math`${2}x - ${3} = ${7}`} gives ${5}; ${math`${2}x - ${3} = -${7}`} gives ${math`-${2}`}.`),
     { kind: 'pitfall', claim: t`${math`|x + ${2}| = ${3}`} has the solutions ${1} and ${math`-${1}`}.`, counterexample: t`${math`|-${1} + ${2}| = ${1}`}, not ${3}. The second case is ${math`x + ${2} = -${3}`}, giving ${math`x = -${5}`}.` },
     { kind: 'section', title: t`Several moduli: critical values` },
-    { kind: 'narrative', text: t`For ${math`|${2}x| + |x - ${1}|`}, the insides change sign at ${0} and at ${1}. These [[critical-value|critical values]] cut the line into three regions, and on each region every modulus has a fixed formula. Solve the resulting linear equation in each region, and keep a solution only if it lies in the region it came from.` },
-    checkFrom(twoModuli, { a: 0, b: 2, c: 4 }, t`For ${math`x < ${0}`}: ${math`-${2}x + ${2} = ${4}`}, ${math`x = -${1}`}; between, the sum is always ${2}; for ${math`x > ${2}`}: ${math`${2}x - ${2} = ${4}`}, ${math`x = ${3}`}.`),
-    { kind: 'pitfall', claim: t`In the region ${math`${0} \le x < ${1}`}, the equation ${math`${2}x - (x - ${1}) = ${3}`} gives a solution ${math`x = ${2}`}.`, counterexample: t`${2} is not in that region, and ${math`|${4}| + |${1}| = ${5} \ne ${3}`}. A case's solution counts only if it satisfies the case's condition.` },
+    { kind: 'narrative', text: t`For ${math`|x + ${1}| + |${2}x - ${4}|`}, the insides change sign at ${math`-${1}`} and at ${2}. These [[critical-value|critical values]] cut the line into three regions, and on each region every modulus has a fixed formula. Solve the resulting linear equation in each region, and keep a solution only if it lies in the region it came from.` },
+    checkFrom(twoModuli, { a: 0, b: 3, c: 5 }, t`For ${math`x < ${0}`}: ${math`-${2}x + ${3} = ${5}`}, ${math`x = -${1}`}; between, the sum is always ${3}; for ${math`x > ${3}`}: ${math`${2}x - ${3} = ${5}`}, ${math`x = ${4}`}.`),
+    { kind: 'pitfall', claim: t`In the region ${math`-${1} \le x < ${2}`}, the equation ${math`(x + ${1}) - (${2}x - ${4}) = ${9}`} gives a solution ${math`x = -${4}`}.`, counterexample: t`${math`-${4}`} is not in that region, and ${math`|-${3}| + |-${12}| = ${15} \ne ${9}`}. A case's solution counts only if it satisfies the case's condition.` },
     { kind: 'section', title: t`Sketching` },
-    { kind: 'narrative', text: t`To sketch ${math`y = |f(x)|`}, sketch ${math`y = f(x)`} and reflect every part below the ${math`x`}-axis in the axis. So ${math`y = |${2}x - ${3}|`} is a V with its point at ${math`(${q(3, 2)}, ${0})`}. This reflection trick does not work for sums such as ${math`|${2}x| + |x - ${1}|`}: for those, use the regions, where the graph is a straight line on each piece.` },
+    { kind: 'narrative', text: t`To sketch ${math`y = |f(x)|`}, sketch ${math`y = f(x)`} and reflect every part below the ${math`x`}-axis in the axis. So ${math`y = |${2}x + ${5}|`} is a V with its point at ${math`(-${q(5, 2)}, ${0})`}. This reflection trick does not work for sums such as ${math`|x + ${1}| + |${2}x - ${4}|`}: for those, use the regions, where the graph is a straight line on each piece.` },
     checkFrom(absInequality, { a: 2, b: 3, op: '<' }, t`Within ${3} of ${2}: ${math`-${1} < x < ${5}`}.`),
     { kind: 'takeaway', text: t`${math`|y| = c`} means ${math`y = \pm c`}; with several moduli, split at the critical values, solve on each region, and keep only solutions inside their region.` },
   ],
@@ -249,10 +259,10 @@ export const modulus: TopicContent = {
   generators: [absEquation, absInequality, twoModuli],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['modulus'],
-  cambridge: [a21i, a5iii, a21sketch],
-  gate: ['a5-q2-iii', 'a21-q2-ii'],
+  cambridge: [a21i, a5iii, a21sketch, eqns1],
+  gate: ['a5-q2-iii', 's2eqns-q1-iii'],
   recall: [
-    { front: t`Define ${math`|x|`}.`, back: t`${math`x`} if ${math`x \ge ${0}`}, ${math`-x`} if ${math`x < ${0}`}; also ${math`\sqrt{x^{${2}}}`}.` },
+    { front: t`Define ${math`|x|`}.`, back: t`${math`x`} if ${math`x \ge ${0}`}, ${math`-x`} if ${math`x < ${0}`}.` },
     { front: t`How do you solve an equation with several moduli?`, back: t`Split at the critical values, solve in each region, and keep only solutions in their own region.` },
   ],
   proofOrder: [{

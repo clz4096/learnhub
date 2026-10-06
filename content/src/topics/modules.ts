@@ -16,7 +16,7 @@ import { gcd, int, pick, sample } from '../math';
 import { ml, mlBlock } from '../ocaml-code';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { math, t } from '../rich';
-import { checkFrom, worked, workedProof, type TopicContent } from '../topic';
+import { checkFrom, quickCheck, worked, workedProof, type TopicContent } from '../topic';
 
 // ---------------------------------------------------------------- generators
 
@@ -274,8 +274,13 @@ export const modules: TopicContent = {
     checkFrom(stackTrace, { ops: [{ push: 4 }, { push: 9 }, 'pop', { push: 7 }, { push: 2 }, 'pop'] }, t`Pushes and pops act at the top: after the two pops the top is ${7}.`),
     { kind: 'section', title: t`Invariants the module keeps` },
     { kind: 'narrative', text: t`Hiding the representation does more than tidy things up. It lets a module promise something about every value it hands out, because no one else can make one.` },
-    { kind: 'definition', name: t`Representation invariant`, formal: t`A [[representation-invariant|representation invariant]] of a module is a property of its internal values that every operation may assume of its arguments and must establish for its results.`, plain: t`For fractions as pairs ${ml`(n, d)`}: "${ml`d > ${0}`} and ${math`\gcd(n, d) = ${1}`}". Then equal fractions have equal representations, so comparing them is easy.` },
-    checkFrom(fraction, { n: 6, d: -8 }, t`Divide by ${2} to get ${math`\frac{${3}}{${-4}}`}, then move the sign up: ${math`\frac{${-3}}{${4}}`}.`),
+    { kind: 'definition', name: t`Representation invariant`, formal: t`A [[representation-invariant|representation invariant]] of a module is a property of its internal values that every operation may assume of its arguments and must establish for its results.`, plain: t`For sets of ints kept as lists: "the list is strictly increasing". Then ${ml`[${1}; ${4}; ${9}]`} is a valid value, while ${ml`[${4}; ${1}; ${9}]`} and ${ml`[${1}; ${1}; ${4}]`} are not. Each set has exactly one representation, so two sets are equal exactly when their lists are, and a membership test can stop as soon as it passes the element it seeks.` },
+    quickCheck({
+      prompt: t`A module keeps sets of ints as strictly increasing lists, with the type abstract. Its ${ml`insert`} receives the set ${ml`[${2}; ${5}; ${8}]`} and the element ${5}. Which list must it return?`,
+      answer: { kind: 'choice', options: [{ id: 'same', label: [ml`[${2}; ${5}; ${8}]`] }, { id: 'dup', label: [ml`[${2}; ${5}; ${5}; ${8}]`] }, { id: 'front', label: [ml`[${5}; ${2}; ${5}; ${8}]`] }], correct: 'same' },
+      reference: ['same'],
+      why: t`${5} is already in the set, and a strictly increasing list has no repeats and no element out of order, so the list stays as it was.`,
+    }),
     { kind: 'pitfall', claim: t`Once sealed, ${ml`ListStack.empty = []`} is true, because inside the module ${ml`empty`} is ${ml`[]`}.`, counterexample: t`Outside the module the type ${ml`'a ListStack.t`} is abstract, so the comparison does not even type-check. That is the point: outside code cannot depend on the list.` },
     { kind: 'pitfall', claim: t`A structure must define exactly the names in its signature.`, counterexample: t`It must define at least those; it may define more, and the extra ones are simply hidden. Removing ${ml`add`} from a signature compiles and makes ${ml`add`} private.` },
     { kind: 'takeaway', text: t`A signature is the contract and the structure the implementation; make the type abstract and only the module's operations can touch its values.` },

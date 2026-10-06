@@ -178,26 +178,6 @@ const sixes = (k: number): Rational => {
   return q(c, 216);
 };
 
-const a19one = auto({
-  id: 'a19-q4-ii-one',
-  source: cite(F19, 'Assignment 19, Q4(ii)'),
-  title: t`Exactly one six`,
-  prompt: t`I am about to throw three fair dice. What is the probability of exactly one six?`,
-  answer: { kind: 'exact', expected: str(sixes(1)) },
-  solution: [
-    t`Let ${mX} be the number of sixes. The ${216} ordered rolls are equally likely.`,
-    t`Exactly one six: choose which die shows it (${3} ways), and the other two show any of ${5} non-sixes: ${math`${3} \times ${5} \times ${5} = ${75}`} rolls. These three cases are mutually exclusive.`,
-    t`So ${math`P(X = ${1}) = \frac{${75}}{${216}} = ${sixes(1)}`}. The whole distribution: ${math`P(X = ${0}) = \frac{${125}}{${216}}`}, ${math`P(X = ${1}) = \frac{${75}}{${216}}`}, ${math`P(X = ${2}) = \frac{${15}}{${216}}`}, ${math`P(X = ${3}) = \frac{${1}}{${216}}`}, which sum to ${1}.`,
-  ],
-  reference: '25/72',
-  verify: () => same('P(one six)', str(sixes(1)), '25/72'),
-  misconceptions: [
-    { response: str(q(25, 216)), why: t`That is one particular die being the six. Any of the ${3} dice can be the one: multiply by ${3}.` },
-    { response: '1/2', why: t`Adding ${math`\frac{${1}}{${6}}`} for each die counts rolls with two or three sixes too. Exactly one six needs the other two dice to miss.` },
-  ],
-  official: { source: cite('step-f19-hints', 'Assignment 19, Q4(ii)'), answer: '25/72', agrees: true },
-});
-
 const a19three = auto({
   id: 'a19-q4-ii-three',
   source: cite(F19, 'Assignment 19, Q4(ii)'),
@@ -229,6 +209,22 @@ function maryWins(m: number, j: number): Rational {
   }
   return q(win, 2 ** (m + j));
 }
+
+const ia11first = auto({
+  id: 'ia1-q11-two-one',
+  source: cite('ia-prob-sheet-1', 'Q11, first question'),
+  title: t`Two coins against one`,
+  prompt: t`Mary tosses two coins and John tosses one coin. What is the probability that Mary gets more heads than John?`,
+  answer: { kind: 'exact', expected: str(maryWins(2, 1)) },
+  solution: [
+    t`Let ${math`M`} and ${math`J`} be the numbers of heads. Mary's four equally likely outcomes HH, HT, TH, TT give ${math`M = ${2}, ${1}, ${1}, ${0}`}, so ${math`P(M = ${0}) = \frac{${1}}{${4}}`}, ${math`P(M = ${1}) = \frac{${2}}{${4}}`}, ${math`P(M = ${2}) = \frac{${1}}{${4}}`}. John's coin gives ${math`P(J = ${0}) = P(J = ${1}) = \frac{${1}}{${2}}`}.`,
+    t`Together the three coins have ${math`${4} \times ${2} = ${8}`} equally likely outcomes. Mary wins when ${math`(M, J)`} is ${math`(${1}, ${0})`}, in ${math`${2} \times ${1} = ${2}`} outcomes; ${math`(${2}, ${0})`}, in ${1}; or ${math`(${2}, ${1})`}, in ${1}.`,
+    t`So the probability is ${math`\frac{${2} + ${1} + ${1}}{${8}} = ${maryWins(2, 1)}`}.`,
+  ],
+  reference: str(maryWins(2, 1)),
+  verify: () => same('Mary 2 v John 1, listed', str(maryWins(2, 1)), '1/2'),
+  misconceptions: [{ response: '3/4', why: t`Ties go against Mary: she needs strictly more heads. Count the ${8} outcomes.` }],
+});
 
 const ia11 = auto({
   id: 'ia1-q11',
@@ -324,8 +320,18 @@ const gs516 = auto({
 
 const TWO_DICE = Array.from({ length: 11 }, (_, i) => i + 2).map((s) => q(6 - Math.abs(s - 7), 36));
 
+/** How many of the 36 ordered rolls of two dice show k sixes, for k = 0, 1, 2, by listing. */
+const TWO_SIXES = ((): [number, number, number] => {
+  const c = [0, 0, 0];
+  for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) {
+    const k = (a === 6 ? 1 : 0) + (b === 6 ? 1 : 0);
+    c[k] = (c[k] as number) + 1;
+  }
+  return c as [number, number, number];
+})();
+
 const claims: ProbabilityClaim[] = [
-  { what: 'exactly one six in three dice', exact: sixes(1), trial: (rng) => [die(rng), die(rng), die(rng)].filter((x) => x === 6).length === 1 },
+  { what: 'exactly one six in two dice', exact: q(TWO_SIXES[1], 36), trial: (rng) => [die(rng), die(rng)].filter((x) => x === 6).length === 1 },
   { what: 'two heads in three tosses', exact: q(3, 8), trial: (rng) => coin(rng) + coin(rng) + coin(rng) === 2 },
 ];
 
@@ -337,7 +343,7 @@ export const discreteDistributions: TopicContent = {
   minutes: 20,
   lesson: [
     { kind: 'section', title: t`A number that depends on chance` },
-    { kind: 'hook', text: t`Throw three dice and count the sixes. The answer is ${0}, ${1}, ${2} or ${3}, but these are far from equally likely: no sixes happens more than half the time, three sixes once in ${216} throws. A bet on the count is only fair if you know exactly how likely each value is.` },
+    { kind: 'hook', text: t`Throw two dice and count the sixes. The answer is ${0}, ${1} or ${2}, but these are far from equally likely: no sixes happens ${TWO_SIXES[0]} times in ${36}, two sixes once in ${36}. A bet on the count is only fair if you know exactly how likely each value is.` },
     {
       kind: 'definition',
       name: t`Discrete random variable, distribution`,
@@ -348,7 +354,7 @@ export const discreteDistributions: TopicContent = {
     { kind: 'theorem', name: t`Probabilities from the table`, statement: t`For any set ${math`A`} of values, ${math`P(X \in A) = \sum_{x_{i} \in A} P(X = x_{i})`}.` },
     { kind: 'p', text: t`Proof: the events ${math`X = x_{i}`} for ${math`x_{i} \in A`} are mutually exclusive, and ${math`X \in A`} happens exactly when one of them does, so their probabilities add. For the dice: ${math`P(S \ge ${10}) = \frac{${3} + ${2} + ${1}}{${36}} = \frac{${1}}{${6}}`}.` },
     { kind: 'section', title: t`Building a distribution` },
-    { kind: 'narrative', text: t`To find a distribution, list the equally likely outcomes, sort them by the value of ${mX}, and count. For three dice and ${mX} the number of sixes: ${math`X = ${0}`} needs every die to miss, ${math`${5}^{${3}} = ${125}`} rolls; ${math`X = ${1}`} needs one die to hit, ${3} choices of which, and two to miss, ${math`${3} \times ${25} = ${75}`}; then ${15} and ${1}. Check: ${math`${125} + ${75} + ${15} + ${1} = ${216}`}, so the probabilities sum to ${1}.` },
+    { kind: 'narrative', text: t`To find a distribution, list the equally likely outcomes, sort them by the value of ${mX}, and count. For two dice and ${mX} the number of sixes, there are ${math`${6} \times ${6} = ${36}`} equally likely ordered rolls. ${math`X = ${0}`} needs both dice to miss: ${math`${5} \times ${5} = ${TWO_SIXES[0]}`} rolls. ${math`X = ${1}`} needs one die to hit and the other to miss: ${2} choices of which die hits, times ${5} misses for the other, ${math`${2} \times ${5} = ${TWO_SIXES[1]}`} rolls. ${math`X = ${2}`} needs both to hit: ${TWO_SIXES[2]} roll. Check: ${math`${TWO_SIXES[0]} + ${TWO_SIXES[1]} + ${TWO_SIXES[2]} = ${36}`}, so the probabilities ${math`\frac{${TWO_SIXES[0]}}{${36}}, \frac{${TWO_SIXES[1]}}{${36}}, \frac{${TWO_SIXES[2]}}{${36}}`} sum to ${1}.` },
     checkFrom(kGen, { n: 4, sq: false }, t`${math`k(${1} + ${2} + ${3} + ${4}) = ${1}`}, so ${math`k = \frac{${1}}{${10}}`}.`),
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`The number of heads in three tosses is ${0}, ${1}, ${2} or ${3}, so each has probability ${math`\frac{${1}}{${4}}`}.`, counterexample: t`The equally likely outcomes are the ${8} sequences, not the ${4} values. One sequence gives ${0} heads, but three give ${1} head. Values of ${mX} are rarely equally likely.` },
@@ -356,7 +362,7 @@ export const discreteDistributions: TopicContent = {
     { kind: 'takeaway', text: t`A discrete distribution lists every value with its probability; the probabilities are non-negative and add to one, and sums of them give everything else.` },
   ],
   examples: [
-    workedCambridge(a19one),
+    workedCambridge(ia11first),
     worked(headsGen, { n: 4, k: 2 }, t`Two heads in four tosses`),
     worked(maxGen, { m: 4 }, t`The larger of two dice`),
   ],
@@ -374,12 +380,12 @@ export const discreteDistributions: TopicContent = {
   ],
   proofOrder: [
     {
-      title: t`The distribution of the number of sixes in three dice`,
+      title: t`The distribution of the number of sixes in two dice`,
       steps: [
-        t`List the ${216} equally likely ordered rolls.`,
+        t`List the ${36} equally likely ordered rolls.`,
         t`Count those with ${math`k`} sixes: choose which dice, then non-sixes for the rest.`,
-        t`This gives ${125}, ${75}, ${15}, ${1} rolls for ${math`k = ${0}, ${1}, ${2}, ${3}`}.`,
-        t`Divide by ${216}, and check the probabilities add to ${1}.`,
+        t`This gives ${TWO_SIXES[0]}, ${TWO_SIXES[1]}, ${TWO_SIXES[2]} rolls for ${math`k = ${0}, ${1}, ${2}`}.`,
+        t`Divide by ${36}, and check the probabilities add to ${1}.`,
       ],
     },
   ],

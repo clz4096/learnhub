@@ -400,7 +400,7 @@ export const amGm: TopicContent = {
   recall: [
     { front: t`State AM-GM for two numbers, with its hypotheses and equality case.`, back: t`For ${math`a, b \ge ${0}`}: ${math`\frac{a + b}{${2}} \ge \sqrt{ab}`}, with equality if and only if ${math`a = b`}.` },
     { front: t`What square proves AM-GM for two numbers?`, back: t`${math`(\sqrt{a} - \sqrt{b})^{${2}} \ge ${0}`}, which expands to ${math`a + b \ge ${2}\sqrt{ab}`}.` },
-    { front: t`How does the three-number case follow from the four-number case?`, back: t`Take ${math`s = \frac{p + q + r}{${3}}`} as the fourth number; then ${math`z \ge \sqrt[${4}]{pqrz}`} gives ${math`z^{${3}} \ge pqr`}.` },
+    { front: t`How does the three-number case follow from the four-number case?`, back: t`Let ${math`z = \frac{p + q + r}{${3}}`} and take ${math`s = z`} as the fourth number. The mean of ${math`p, q, r, z`} is ${math`z`}, so ${math`z \ge \sqrt[${4}]{pqrz}`}; raise to the fourth power and divide by ${math`z`}: ${math`z^{${3}} \ge pqr`}. (If ${math`z = ${0}`}, then ${math`p = q = r = ${0}`}.)` },
   ],
   proofOrder: [
     {

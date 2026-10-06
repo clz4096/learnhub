@@ -123,49 +123,6 @@ const mixGen = generator<MixP>({
 const F17 = 'step-f17';
 const F17H = 'step-f17-hints';
 
-const a17sq = auto({
-  id: 'a17-q3-squares',
-  source: cite(F17, 'Assignment 17, Q3'),
-  title: t`Squares by fitting a cubic`,
-  prompt: t`(${2003} STEP I, Question ${1}.) It is given that ${math`\sum_{r = -${1}}^{n} r^{${2}}`} can be written as ${math`pn^{${3}} + qn^{${2}} + rn + s`} for numbers ${math`p, q, r, s`}. By setting ${math`n = -${1}, ${0}, ${1}, ${2}`}, find them, and hence find ${math`\sum_{r = ${0}}^{n} r^{${2}}`} as a formula in ${mn}.`,
-  answer: { kind: 'expression', expected: 'n*(n + 1)*(2*n + 1)/6', variables: ['n'], domains: { n: { kind: 'integer', min: 0, max: 30 } } },
-  solution: [
-    t`The sums at ${math`n = -${1}, ${0}, ${1}, ${2}`} are ${1}, ${1}, ${2}, ${6} (for instance ${math`n = ${0}`}: ${math`(-${1})^{${2}} + ${0}^{${2}} = ${1}`}). So ${math`-p + q - r + s = ${1}`}, ${math`s = ${1}`}, ${math`p + q + r + s = ${2}`}, ${math`${8}p + ${4}q + ${2}r + s = ${6}`}.`,
-    t`Adding the first and third: ${math`${2}q + ${2}s = ${3}`}, so ${math`q = \frac{${1}}{${2}}`}. Then ${math`p + r = \frac{${1}}{${2}}`} and ${math`${8}p + ${2}r = ${3}`}, giving ${math`p = \frac{${1}}{${3}}`}, ${math`r = \frac{${1}}{${6}}`}.`,
-    t`Remove the ${math`r = -${1}`} term, which is ${1}: ${math`\sum_{r = ${0}}^{n} r^{${2}} = \frac{n^{${3}}}{${3}} + \frac{n^{${2}}}{${2}} + \frac{n}{${6}} = \frac{n}{${6}}(${2}n^{${2}} + ${3}n + ${1}) = \frac{n(n + ${1})(${2}n + ${1})}{${6}}`}.`,
-  ],
-  reference: 'n(n + 1)(2n + 1)/6',
-  verify: () => {
-    for (let n = 0; n <= 40; n++) { const e = same(`n = ${n}`, direct(0, n, (r) => r * r), S2(n)); if (e !== null) return e; }
-    return null;
-  },
-  misconceptions: [
-    { response: 'n^3/3 + n^2/2 + n/6 + 1', why: t`That still includes the ${math`r = -${1}`} term, ${math`(-${1})^{${2}} = ${1}`}. The sum from ${math`r = ${0}`} is one less.` },
-    { response: 'n*(n + 1)/2', why: t`That is the sum of ${mr}, not of ${math`r^{${2}}`}.` },
-  ],
-  official: { source: cite(F17H, 'Assignment 17, Q3'), answer: 'n(n + 1)(2n + 1)/6', agrees: true },
-});
-
-const a17cube = auto({
-  id: 'a17-q3-cubes',
-  source: cite(F17, 'Assignment 17, Q3'),
-  title: t`Cubes by fitting a quartic`,
-  prompt: t`(${2003} STEP I, Question ${1}, continued.) Given that ${math`\sum_{r = -${2}}^{n} r^{${3}}`} can be written as ${math`an^{${4}} + bn^{${3}} + cn^{${2}} + dn + e`}, find ${math`\sum_{r = ${0}}^{n} r^{${3}}`} as a formula in ${mn}, by choosing five values of ${mn}.`,
-  answer: { kind: 'expression', expected: 'n^2*(n + 1)^2/4', variables: ['n'], domains: { n: { kind: 'integer', min: 0, max: 30 } } },
-  solution: [
-    t`Use ${math`n = -${2}, -${1}, ${0}, ${1}, ${2}`}: the sums are ${math`-${8}, -${9}, -${9}, -${8}, ${0}`}. So ${math`e = -${9}`}; ${math`n = \pm ${1}`} give ${math`${2}a + ${2}c + ${2}e = -${17}`} and ${math`${2}b + ${2}d = ${1}`}; ${math`n = \pm ${2}`} give ${math`${32}a + ${8}c + ${2}e = -${8}`} and ${math`${16}b + ${4}d = ${8}`}.`,
-    t`Solving: ${math`b = \frac{${1}}{${2}}`}, ${math`d = ${0}`}, ${math`a = \frac{${1}}{${4}}`}, ${math`c = \frac{${1}}{${4}}`}.`,
-    t`The terms ${math`r = -${2}, -${1}`} contribute ${math`-${9}`}; remove them: ${math`\sum_{r = ${0}}^{n} r^{${3}} = \frac{n^{${4}}}{${4}} + \frac{n^{${3}}}{${2}} + \frac{n^{${2}}}{${4}} = \frac{n^{${2}}(n + ${1})^{${2}}}{${4}}`}.`,
-  ],
-  reference: 'n^2(n + 1)^2/4',
-  verify: () => {
-    for (let n = 0; n <= 40; n++) { const e = same(`n = ${n}`, direct(0, n, (r) => r ** 3), S3(n)); if (e !== null) return e; }
-    return null;
-  },
-  misconceptions: [{ response: 'n^4/4 + n^3/2 + n^2/4 - 9', why: t`That is the sum from ${math`r = -${2}`}. Add back the ${9} from ${math`(-${2})^{${3}} + (-${1})^{${3}}`}.` }],
-  official: { source: cite(F17H, 'Assignment 17, Q3'), answer: 'n^2(n + 1)^2/4', agrees: true },
-});
-
 const a17sup = supervision({
   id: 'a17-q3-proof',
   source: cite(F17, 'Assignment 17, Q3'),
@@ -182,6 +139,29 @@ const a20sup = supervision({
   prompt: t`Use induction to prove that ${math`\sum_{i = ${1}}^{n} i^{${3}} = \frac{${1}}{${4}}n^{${2}}(n + ${1})^{${2}}`} for ${math`n \ge ${1}`}. When you consider the case ${math`n = k + ${1}`}, write down what you are required to prove, and factorise rather than expand.`,
   writeUp: 'proof',
   official: cite('step-f20-hints', 'Assignment 20, Q2(b)'),
+});
+
+const nstSE1sq = auto({
+  id: 'nst-se1-squares',
+  source: cite('nst-workbook', 'Section 2, Series, SE1', true),
+  title: t`The sum of squares by differences`,
+  prompt: t`Sum the series ${math`\sum_{r = ${1}}^{n} r^{${2}}`}, as a formula in ${mn}, by adding up ${math`(r + ${1})^{${3}} - r^{${3}}`} from ${math`r = ${1}`} to ${mn} in two ways.`,
+  answer: { kind: 'expression', expected: 'n*(n + 1)*(2*n + 1)/6', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 30 } } },
+  solution: [
+    t`First way: the sum telescopes. Written out, it is ${math`(${2}^{${3}} - ${1}^{${3}}) + (${3}^{${3}} - ${2}^{${3}}) + \cdots + ((n + ${1})^{${3}} - n^{${3}})`}. Every cube except ${math`${1}^{${3}}`} and ${math`(n + ${1})^{${3}}`} appears once added and once subtracted, so the total is ${math`(n + ${1})^{${3}} - ${1}`}.`,
+    t`Second way: expand each term, ${math`(r + ${1})^{${3}} - r^{${3}} = ${3}r^{${2}} + ${3}r + ${1}`}, and add term by term: ${math`${3}\sum r^{${2}} + ${3} \cdot \frac{n(n + ${1})}{${2}} + n`}, since ${math`\sum_{r = ${1}}^{n} r = \frac{n(n + ${1})}{${2}}`} and ${math`n`} ones add to ${mn}.`,
+    t`The two ways agree, so ${math`${3}\sum r^{${2}} = (n + ${1})^{${3}} - ${1} - n - \frac{${3}n(n + ${1})}{${2}} = (n + ${1})^{${3}} - (n + ${1}) - \frac{${3}n(n + ${1})}{${2}}`}.`,
+    t`Take out the common factor ${math`n + ${1}`}: ${math`(n + ${1})\left((n + ${1})^{${2}} - ${1} - \frac{${3}n}{${2}}\right) = (n + ${1})\left(n^{${2}} + \frac{n}{${2}}\right) = \frac{n(n + ${1})(${2}n + ${1})}{${2}}`}. Divide by ${3}: ${math`\sum_{r = ${1}}^{n} r^{${2}} = \frac{n(n + ${1})(${2}n + ${1})}{${6}}`}.`,
+  ],
+  reference: 'n(n + 1)(2n + 1)/6',
+  verify: () => {
+    for (let n = 1; n <= 40; n++) {
+      const e = same(`n = ${n}`, direct(1, n, (r) => r * r), S2(n)) ?? same(`telescoped n = ${n}`, direct(1, n, (r) => (r + 1) ** 3 - r ** 3), (n + 1) ** 3 - 1);
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [{ response: 'n*(n + 1)/2', why: t`That is ${math`\sum r`}, which appears inside the working. Solve for ${math`\sum r^{${2}}`}.` }],
 });
 
 const nstSE1 = auto({
@@ -213,9 +193,18 @@ export const sumsOfPowers: TopicContent = {
   lesson: [
     { kind: 'section', title: t`Guess the shape, then fit it` },
     { kind: 'hook', text: t`${math`${1} + ${4} + ${9} + \cdots + ${100} = ${S2(10)}`}, and ${math`${1} + ${8} + ${27} + \cdots + ${1000} = ${S3(10)} = ${S1(10)}^{${2}}`}. The sum of the first ten cubes is the square of the sum of the first ten numbers. Coincidence?` },
-    { kind: 'narrative', text: t`Adding ${math`r`} up to ${mn} gives ${math`\frac{n(n + ${1})}{${2}}`}, a quadratic in ${mn}. Adding one more power seems to add one more degree. So guess that the [[sum-of-squares|sum of squares]] ${math`\sum_{r = ${1}}^{n} r^{${2}}`} is a cubic, ${math`pn^{${3}} + qn^{${2}} + rn + s`}, and find the four unknowns from four values of the sum. That is the method of the STEP question below.` },
+    { kind: 'narrative', text: t`Adding ${math`r`} up to ${mn} gives ${math`\frac{n(n + ${1})}{${2}}`}, a quadratic in ${mn}. Adding one more power seems to add one more degree. So guess that the [[sum-of-squares|sum of squares]] ${math`\sum_{r = ${1}}^{n} r^{${2}}`} is a cubic, ${math`pn^{${3}} + qn^{${2}} + rn + s`}, and find the four unknowns from four values of the sum. Here is the method on the simplest case, ${math`\sum_{r = ${1}}^{n} r`}, where you can check the answer you get.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Guess the shape`, text: t`Suppose ${math`\sum_{r = ${1}}^{n} r = an^{${2}} + bn + c`} for every ${math`n \ge ${0}`}, for some numbers ${math`a, b, c`}.`, plain: t`Three unknowns, so three values of the sum should pin them down.` },
+        { label: t`Use three values`, text: t`${math`n = ${0}`}: the sum is ${S1(0)}, so ${math`c = ${S1(0)}`}. ${math`n = ${1}`}: the sum is ${S1(1)}, so ${math`a + b + c = ${S1(1)}`}. ${math`n = ${2}`}: the sum is ${math`${1} + ${2} = ${S1(2)}`}, so ${math`${4}a + ${2}b + c = ${S1(2)}`}.`, why: { q: t`Why is the sum ${0} when ${math`n = ${0}`}?`, a: t`From ${math`r = ${1}`} to ${math`${0}`} there are no terms, and a sum of no terms is ${0}: adding nothing to a running total leaves it unchanged.` } },
+        { label: t`Solve`, text: t`With ${math`c = ${0}`}: ${math`a + b = ${1}`} and ${math`${4}a + ${2}b = ${3}`}. Subtract twice the first from the second: ${math`${2}a = ${1}`}, so ${math`a = \frac{${1}}{${2}}`}, and then ${math`b = ${1} - \frac{${1}}{${2}} = \frac{${1}}{${2}}`}.` },
+        { label: t`Read off`, text: t`${math`\sum_{r = ${1}}^{n} r = \frac{n^{${2}}}{${2}} + \frac{n}{${2}} = \frac{n(n + ${1})}{${2}}`}, the formula you already knew.` },
+      ],
+    },
     { kind: 'theorem', name: t`Sums of squares and cubes`, statement: t`For every integer ${math`n \ge ${1}`}, ${dmath`\sum_{r = ${1}}^{n} r^{${2}} = \frac{n(n + ${1})(${2}n + ${1})}{${6}}, \qquad \sum_{r = ${1}}^{n} r^{${3}} = \frac{n^{${2}}(n + ${1})^{${2}}}{${4}} = \left(\sum_{r = ${1}}^{n} r\right)^{${2}}.`}` },
-    { kind: 'p', text: t`Fitting: the sums for ${math`n = ${0}, ${1}, ${2}, ${3}`} are ${0}, ${1}, ${5}, ${14}. A cubic through those four points is unique, and ${math`\frac{n(n + ${1})(${2}n + ${1})}{${6}}`} passes through all four. But fitting assumed the answer is a cubic; that is why a proof is still needed. Here is one by induction.` },
+    { kind: 'p', text: t`For squares, the sums for ${math`n = ${0}, ${1}, ${2}, ${3}`} are ${S2(0)}, ${S2(1)}, ${S2(2)}, ${S2(3)}. A cubic through those four points is unique, and ${math`\frac{n(n + ${1})(${2}n + ${1})}{${6}}`} passes through all four. But fitting assumed the answer is a cubic; that is why a proof is still needed. Here is one by induction.` },
     {
       kind: 'steps',
       proof: true,
@@ -227,7 +216,7 @@ export const sumsOfPowers: TopicContent = {
         { label: t`Conclude`, text: t`True for ${math`n = ${1}`}, and true for ${math`k + ${1}`} whenever true for ${mk}; so true for all ${math`n \ge ${1}`}.` },
       ],
     },
-    { kind: 'p', text: t`A proof with no guessing: telescope ${math`(r + ${1})^{${3}} - r^{${3}} = ${3}r^{${2}} + ${3}r + ${1}`} from ${math`r = ${1}`} to ${mn}. The left side sums to ${math`(n + ${1})^{${3}} - ${1}`}, so ${math`${3}\sum r^{${2}} = (n + ${1})^{${3}} - ${1} - ${3}\cdot\frac{n(n + ${1})}{${2}} - n`}, which simplifies to the same formula.` },
+    { kind: 'p', text: t`A proof with no guessing: telescope ${math`(r + ${1})^{${3}} - r^{${3}} = ${3}r^{${2}} + ${3}r + ${1}`} from ${math`r = ${1}`} to ${mn}. The left side sums to ${math`(n + ${1})^{${3}} - ${1}`}, so ${math`${3}\sum r^{${2}} = (n + ${1})^{${3}} - ${1} - ${3}\cdot\frac{n(n + ${1})}{${2}} - n`}, which simplifies to the same formula. It is worked in full below.` },
     checkFrom(sqGen, { n: 10 }, t`${math`\frac{${10} \times ${11} \times ${21}}{${6}} = ${385}`}.`),
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`${math`\sum_{r = ${1}}^{n} r^{${2}} = \left(\sum_{r = ${1}}^{n} r\right)^{${2}}`}, just as for cubes.`, counterexample: t`For ${math`n = ${2}`}: ${math`${1} + ${4} = ${5}`}, but ${math`(${1} + ${2})^{${2}} = ${9}`}. Squaring a sum creates cross terms ${math`${2} \cdot ${1} \cdot ${2}`}; only for cubes do the totals coincide.` },
@@ -235,14 +224,14 @@ export const sumsOfPowers: TopicContent = {
     { kind: 'takeaway', text: t`${math`\sum r^{${2}} = \frac{n(n + ${1})(${2}n + ${1})}{${6}}`} and ${math`\sum r^{${3}} = \left(\frac{n(n + ${1})}{${2}}\right)^{${2}}`}: guess by fitting, then prove.` },
   ],
   examples: [
-    workedCambridge(a17sq),
+    workedCambridge(nstSE1sq),
     worked(rangeGen, { a: 11, b: 20, p: 2 }, t`Squares from ${11} to ${20}`),
     worked(mixGen, { c: 1 }, t`Splitting a sum`),
   ],
   generators: [sqGen, cubeGen, rangeGen, mixGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sum-of-squares'],
-  cambridge: [a17cube, a17sup, a20sup, nstSE1],
+  cambridge: [a17sup, a20sup, nstSE1],
   gate: ['a17-q3-proof', 'a20-q2-b'],
   recall: [
     { front: t`State the sum of the first ${mn} squares.`, back: t`${math`\frac{n(n + ${1})(${2}n + ${1})}{${6}}`}.` },

@@ -291,7 +291,7 @@ export const complexity: TopicContent = {
     { kind: 'table', caption: t`Recurrences from FoCS Lecture ${2}, with ${math`T(${1}) = ${1}`} or ${math`T(${0}) = ${1}`}`, head: [t`Recurrence`, t`Cost`, t`Example`], rows: [
       [[math`T(n + ${1}) = T(n) + ${1}`], [math`O(n)`], [ml`nsum`]],
       [[math`T(n + ${1}) = T(n) + n`], [math`O(n^{${2}})`], t`insertion sort`],
-      [[math`T(n) = T(n/${2}) + ${1}`], [math`O(\log n)`], [ml`power`]],
+      [[math`T(n) = T(n/${2}) + ${1}`], [math`O(\log n)`], t`binary search`],
       [[math`T(n) = ${2}T(n/${2}) + n`], [math`O(n \log n)`], t`mergesort`],
     ] },
     { kind: 'theorem', name: t`FoCS Exercise ${2}.${4}`, statement: t`If ${math`T(${1}) = ${1}`} and ${math`T(n) = ${2}T(n/${2}) + ${1}`} for ${math`n \ge ${2}`}, then ${math`T(n) = ${2}n - ${1}`} for every power of two ${math`n = ${2}^{k}`}, ${math`k \ge ${0}`}. So ${math`T(n) = O(n)`} on powers of two.` },

@@ -292,15 +292,15 @@ export const higherOrder: TopicContent = {
     },
     { kind: 'definition', name: t`Partial application`, formal: t`Applying a curried function to fewer arguments than it takes is [[partial-application|partial application]]; the result is a function of the arguments still missing.`, plain: t`${ml`fn ${1}`} is a partial application. So is ${ml`twice double`}: with ${ml`let quad = twice double`}, ${ml`quad`} is a function of type ${ml`int -> int`}, though no argument appears in its declaration.` },
     checkFrom(partialType, { k: 3, m: 1, cs: [4, 2, 7], name: 'f' }, t`Three ${ml`int`} arguments and one given: two remain, so two arrows.`),
-    { kind: 'pitfall', claim: t`${ml`square ${2} + ${2}`} is ${ml`square ${4}`}.`, counterexample: t`Application binds tighter than any operator, so it is ${ml`(square ${2}) + ${2}`}, which is ${square(2) + 2}. Write ${ml`square (${2} + ${2})`}, or ${ml`square @@ ${2} + ${2}`}, to get ${square(4)}.` },
+    { kind: 'pitfall', claim: t`With ${ml`let square x = x * x`}, ${ml`square ${2} + ${2}`} is ${ml`square ${4}`}.`, counterexample: t`Application binds tighter than any operator, so it is ${ml`(square ${2}) + ${2}`}, which is ${square(2) + 2}. Write ${ml`square (${2} + ${2})`} to get ${square(4)}. OCaml's standard library also has the operator ${ml`@@`}: ${ml`f @@ x`} is ${ml`f x`}, but ${ml`@@`} binds more loosely than ${ml`+`} and ${ml`*`}. So in ${ml`square @@ ${2} + ${2}`} the sum is formed first, and the value is ${square(2 + 2)} too.` },
     { kind: 'section', title: t`Reading a type` },
-    { kind: 'narrative', text: t`A higher-order type can look like a thicket of arrows. Read it from what the function does. FoCS Exercise ${8}.${1} asks about ${ml`let sw f x y = f y x`}. Work out its type one name at a time.` },
+    { kind: 'narrative', text: t`A higher-order type can look like a thicket of arrows. Read it from what the function does. Take ${ml`let on_pair f (x, y) = (f x, f y)`}, which applies one function to both halves of a pair, and work out its type one name at a time.` },
     {
       kind: 'steps',
       steps: [
-        { label: t`Name the unknowns`, text: t`Let ${ml`y : 'a`} and ${ml`x : 'b`}, since nothing constrains them yet.`, plain: t`${ml`'a`} and ${ml`'b`} are type variables: any types at all.` },
-        { label: t`Read the body`, text: t`${ml`f y x`} applies ${ml`f`} to ${ml`y`} then ${ml`x`}, so ${ml`f : 'a -> 'b -> 'c`} for some result type ${ml`'c`}.`, plain: t`${ml`f`} takes an ${ml`'a`} first, then a ${ml`'b`}.` },
-        { label: t`Assemble`, text: t`${ml`sw`} takes ${ml`f`}, then ${ml`x : 'b`}, then ${ml`y : 'a`}, and returns ${ml`'c`}.`, eq: [ml`sw : ('a -> 'b -> 'c) -> 'b -> 'a -> 'c`], plain: t`So ${ml`sw f`} is ${ml`f`} with its arguments swapped: ${ml`sw (-) ${2} ${10}`} is ${ml`(-) ${10} ${2}`}, which is ${10 - 2}.` },
+        { label: t`Name the unknowns`, text: t`Let ${ml`x : 'a`}, since nothing constrains it yet.`, plain: t`${ml`'a`} is a type variable: any type at all.` },
+        { label: t`Read the body`, text: t`${ml`f x`} applies ${ml`f`} to an ${ml`'a`}, so ${ml`f : 'a -> 'b`} for some result type ${ml`'b`}. Then ${ml`f y`} applies the same ${ml`f`} to ${ml`y`}, so ${ml`y : 'a`} as well.`, plain: t`One function is used on both halves, so both halves must have the type it accepts.` },
+        { label: t`Assemble`, text: t`${ml`on_pair`} takes ${ml`f`}, then the pair ${ml`(x, y) : 'a * 'a`}, and returns ${ml`(f x, f y) : 'b * 'b`}.`, eq: [ml`on_pair : ('a -> 'b) -> 'a * 'a -> 'b * 'b`], plain: t`So ${ml`on_pair (fun n -> n * ${2}) (${3}, ${10})`} is ${ml`(${3 * 2}, ${10 * 2})`}, and the partial application ${ml`on_pair String.length`} is a function of type ${ml`string * string -> int * int`}.` },
       ],
     },
     { kind: 'p', text: t`FoCS uses the same idea for a sorting function that takes its comparison as an argument: ${ml`insort (<=)`} sorts upwards and ${ml`insort (>=)`} downwards. One function, any ordering.` },
@@ -323,12 +323,12 @@ export const higherOrder: TopicContent = {
     { front: t`What is partial application?`, back: t`Applying a curried function to fewer arguments than it takes; the result is a function of the rest.` },
   ],
   proofOrder: [{
-    title: t`The type of ${ml`sw`}`,
+    title: t`The type of ${ml`on_pair`}`,
     steps: [
-      t`Give the unknown arguments type variables: ${ml`y : 'a`} and ${ml`x : 'b`}.`,
-      t`The body ${ml`f y x`} forces ${ml`f : 'a -> 'b -> 'c`}.`,
-      t`The arguments come in the order ${ml`f`}, ${ml`x`}, ${ml`y`}.`,
-      t`So ${ml`sw : ('a -> 'b -> 'c) -> 'b -> 'a -> 'c`}.`,
+      t`Give the first half of the pair a type variable: ${ml`x : 'a`}.`,
+      t`The body ${ml`f x`} forces ${ml`f : 'a -> 'b`}.`,
+      t`The body ${ml`f y`} then forces ${ml`y : 'a`}, so the pair has type ${ml`'a * 'a`}.`,
+      t`So ${ml`on_pair : ('a -> 'b) -> 'a * 'a -> 'b * 'b`}.`,
     ],
   }],
 };

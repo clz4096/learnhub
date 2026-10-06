@@ -213,7 +213,7 @@ export const symmetryIntegrals: TopicContent = {
         { label: t`Halve`, text: t`So ${math`I = \frac{a}{${2}}`}.` },
       ],
     },
-    { kind: 'p', text: t`This move, reflect and add, is the [[king-property|reflection trick]]. It also explains the hook (${math`f(x) = x^{${2}}`}, ${math`a = ${84}`}) and STEP ${1994}'s ${math`\int_{${0}}^{\frac{\pi}{${4}}} \ln(${1} + \tan\theta)\,d\theta`}, where the reflection turns ${math`\ln(${1} + \tan\theta)`} into ${math`\ln ${2} - \ln(${1} + \tan\varphi)`}.` },
+    { kind: 'p', text: t`This move, reflect and add, is the [[king-property|reflection trick]]. It explains the hook (${math`f(x) = x^{${2}}`}, ${math`a = ${84}`}). Reflection on its own helps too: it turns ${math`\int_{${0}}^{${1}} x(${1} - x)^{${9}}\,dx`}, which would need a long expansion, into ${math`\int_{${0}}^{${1}} (${1} - x)x^{${9}}\,dx = \int_{${0}}^{${1}} (x^{${9}} - x^{${10}})\,dx = \frac{${1}}{${10}} - \frac{${1}}{${11}} = ${q(1, 110)}`}.` },
     checkFrom(king, { shape: 'exp', n: 1, a: 6 }, t`Reflect and add: ${math`${2}I = ${6}`}, so ${math`I = ${3}`}.`),
     { kind: 'section', title: t`Odd and even` },
     { kind: 'narrative', text: t`The same idea on ${math`[-a, a]`}, reflecting ${math`x \mapsto -x`}: if ${math`f(-x) = -f(x)`} (an odd function, like ${math`x^{${3}}`}), the areas either side cancel and ${math`\int_{-a}^{a} f = ${0}`}; if ${math`f(-x) = f(x)`} (even, like ${math`x^{${2}}`}), ${math`\int_{-a}^{a} f = ${2}\int_{${0}}^{a} f`}.` },
