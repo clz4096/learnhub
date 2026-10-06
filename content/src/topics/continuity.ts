@@ -1,0 +1,216 @@
+/**
+ * prob.continuity: for increasing events, P(A_n) tends to the probability of their union;
+ * for decreasing events, to the probability of their intersection. From IA Probability
+ * Example Sheet 1 Q4(f) (prove it from the axioms) and Q6 (the events "A_n infinitely
+ * often" and "A_n eventually", which are limits of monotone sequences). The sheet has no
+ * official solutions; the numerical answers are checked by exact sums and by simulation.
+ */
+import type { Rng } from '@learnhub/mastery';
+import { auto, cite, same, supervision } from '../cambridge';
+import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
+import { generator, type Misconception } from '../problem';
+import { math, t, type Rich } from '../rich';
+import { worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
+
+const S1 = 'ia-prob-sheet-1' as const;
+const [mA, mn] = [math`A`, math`n`];
+const R = [q(1, 2), q(1, 3), q(2, 3), q(1, 4), q(3, 4), q(2, 5)];
+const pow = (r: Rational, e: number): Rational => { let out = q(1); for (let i = 0; i < e; i++) out = mul(out, r); return out; };
+const geo = (r: Rational, rng: Rng): number => { let k = 1; while (rng() < Number(r.num) / Number(r.den)) k++; return k; };
+const distinctFrom = (right: string, xs: readonly string[]): number => new Set(xs.filter((x) => x !== right)).size;
+/** Exact P(X in S) for X geometric on {1, 2, ...}, summing 4000 terms numerically and checking against the closed form. */
+const numeric = (r: Rational, f: (k: number) => boolean): number => { const x = Number(r.num) / Number(r.den); let s = 0; for (let k = 1; k < 4000; k++) if (f(k)) s += (1 - x) * x ** (k - 1); return s; };
+const geoIntro = (r: Rational): Rich => t`A coin shows heads with probability ${sub(q(1), r)} on each toss, independently, and ${math`X`} is the number of tosses up to and including the first head, so ${math`\mathbb{P}(X = k) = ${sub(q(1), r)} \cdot \left(${r}\right)^{k - ${1}}`}.`;
+
+// ---------------------------------------------------------------- the limit of an increasing sequence
+
+type IncKind = 'even' | 'odd' | 'three';
+interface IncP { r: Rational; kind: IncKind }
+const incVal = ({ r, kind }: IncP): Rational => (kind === 'even' ? q(r.num, r.num + r.den) : kind === 'odd' ? q(r.den, r.num + r.den) : q(r.num * r.num, r.num * r.num + r.num * r.den + r.den * r.den));
+const incF = (kind: IncKind) => (k: number): boolean => (kind === 'even' ? k % 2 === 0 : kind === 'odd' ? k % 2 === 1 : k % 3 === 0);
+const incMis = (p: IncP): string[] => [p.kind === 'three' ? '1/3' : '1/2', '1', str(p.kind === 'even' ? mul(sub(q(1), p.r), p.r) : p.kind === 'odd' ? sub(q(1), p.r) : mul(sub(q(1), p.r), mul(p.r, p.r)))];
+
+const increasingLimit = generator<IncP>({
+  id: 'increasing-limit',
+  skill: 'Find lim P(A_n) for increasing events as the probability of their union, by continuity.',
+  params: (rng) => {
+    for (;;) {
+      const p: IncP = { r: pick(rng, R), kind: pick(rng, ['even', 'odd', 'three'] as const) };
+      if (distinctFrom(str(incVal(p)), incMis(p)) >= 2) return p;
+    }
+  },
+  sane: () => null,
+  problem: (p) => {
+    const { r, kind } = p;
+    const An = kind === 'even' ? math`A_{n} = \{X \le ${2}n,\ X \text{ even}\}` : kind === 'odd' ? math`A_{n} = \{X \le ${2}n,\ X \text{ odd}\}` : math`A_{n} = \{X \le ${3}n,\ ${3} \mid X\}`;
+    const U = kind === 'even' ? t`${math`X`} is even` : kind === 'odd' ? t`${math`X`} is odd` : t`${math`X`} is a multiple of ${3}`;
+    return {
+      prompt: t`${geoIntro(r)} Let ${An}. Find ${math`\lim_{n \to \infty} \mathbb{P}(A_{n})`}.`,
+      answer: { kind: 'exact', expected: str(incVal(p)) },
+      solution: [
+        t`${math`A_{${1}} \subseteq A_{${2}} \subseteq \cdots`}, and their union is the event that ${U}. By continuity, ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcup_{n} A_{n}\right)`}.`,
+        t`That probability is a geometric series: ${incVal(p)}${kind === 'even' ? t`, which is ${math`\frac{r}{${1} + r}`} with ${math`r = ${r}`}` : kind === 'odd' ? t`, which is ${math`\frac{${1}}{${1} + r}`} with ${math`r = ${r}`}` : t`, which is ${math`\frac{r^{${2}}}{${1} + r + r^{${2}}}`} with ${math`r = ${r}`}`}.`,
+      ],
+    };
+  },
+  solve: ({ r, kind }) => {
+    const s = numeric(r, incF(kind));
+    for (let d = 1; d <= 400; d++) { const n = Math.round(s * d); if (Math.abs(n / d - s) < 1e-9) return str(q(n, d)); }
+    return 'none';
+  },
+  misconceptions: (p): Misconception[] => [
+    { response: p.kind === 'three' ? '1/3' : '1/2', why: t`The values of ${math`X`} are not equally likely: ${math`X = ${1}`} alone has probability ${sub(q(1), p.r)}. Add the masses.` },
+    { response: '1', why: t`The union of increasing events is not always the whole space: here it is the event that ${p.kind === 'even' ? t`${math`X`} is even` : p.kind === 'odd' ? t`${math`X`} is odd` : t`${math`X`} is a multiple of ${3}`}.` },
+    { response: incMis(p)[2] as string, why: t`That is ${math`\mathbb{P}(A_{${1}})`}. The limit is the probability of the union of all the ${math`A_{n}`}.` },
+  ],
+  trial: ({ r, kind }, rng) => incF(kind)(geo(r, rng)),
+});
+
+// ---------------------------------------------------------------- the limit of a decreasing sequence
+
+type DecKind = 'odd-or-late' | 'even-or-late';
+interface DecP { r: Rational; kind: DecKind }
+const decVal = ({ r, kind }: DecP): Rational => (kind === 'odd-or-late' ? q(r.den, r.num + r.den) : q(r.num, r.num + r.den));
+
+const decreasingLimit = generator<DecP>({
+  id: 'decreasing-limit',
+  skill: 'Find lim P(B_n) for decreasing events as the probability of their intersection, by continuity from above.',
+  params: (rng) => ({ r: pick(rng, R), kind: pick(rng, ['odd-or-late', 'even-or-late'] as const) }),
+  sane: () => null,
+  problem: (p) => {
+    const Bn = p.kind === 'odd-or-late' ? math`B_{n} = \{X \text{ odd}\} \cup \{X > n\}` : math`B_{n} = \{X \text{ even}\} \cup \{X > n\}`;
+    return {
+      prompt: t`${geoIntro(p.r)} Let ${Bn}. Find ${math`\lim_{n \to \infty} \mathbb{P}(B_{n})`}.`,
+      answer: { kind: 'exact', expected: str(decVal(p)) },
+      solution: [
+        t`${math`B_{${1}} \supseteq B_{${2}} \supseteq \cdots`}: as ${mn} grows, ${math`\{X > n\}`} shrinks. An outcome is in every ${math`B_{n}`} exactly when ${math`X`} is ${p.kind === 'odd-or-late' ? 'odd' : 'even'}, since ${math`X`} is finite.`,
+        t`By continuity from above, ${math`\mathbb{P}(B_{n}) \to \mathbb{P}\left(\bigcap_{n} B_{n}\right) = \mathbb{P}(X \text{ ${p.kind === 'odd-or-late' ? 'odd' : 'even'}}) = ${decVal(p)}`}.`,
+      ],
+    };
+  },
+  solve: ({ r, kind }) => {
+    const s = numeric(r, (k) => (kind === 'odd-or-late' ? k % 2 === 1 : k % 2 === 0));
+    for (let d = 1; d <= 400; d++) { const n = Math.round(s * d); if (Math.abs(n / d - s) < 1e-9) return str(q(n, d)); }
+    return 'none';
+  },
+  misconceptions: (p): Misconception[] => [
+    { response: '0', why: t`Decreasing events need not shrink to nothing: the outcomes with ${math`X`} ${p.kind === 'odd-or-late' ? 'odd' : 'even'} stay in every ${math`B_{n}`}.` },
+    { response: '1', why: t`${math`\mathbb{P}(B_{${1}})`} may be close to ${1}, but the events shrink. Find their intersection.` },
+    { response: '1/2', why: t`Odd and even values of ${math`X`} are not equally likely. Add the masses.` },
+  ],
+  trial: ({ r, kind }, rng) => { const k = geo(r, rng); return kind === 'odd-or-late' ? k % 2 === 1 : k % 2 === 0; },
+});
+
+// ---------------------------------------------------------------- a term of the sequence
+
+interface StepP { r: Rational; n: number }
+const stepVal = ({ r, n }: StepP): Rational => mul(q(r.num, r.num + r.den), sub(q(1), pow(r, 2 * n)));
+
+const finiteStep = generator<StepP>({
+  id: 'finite-step',
+  skill: 'Compute P(A_n) for one member of an increasing sequence of events, and see it approach the limit.',
+  params: (rng) => ({ r: pick(rng, R), n: int(rng, 1, 4) }),
+  sane: ({ n }) => (n >= 1 ? null : 'out of range'),
+  problem: (p) => {
+    const { r, n } = p;
+    return {
+      prompt: t`${geoIntro(r)} Let ${math`A_{n} = \{X \le ${2}n,\ X \text{ even}\}`}. Find ${math`\mathbb{P}(A_{${n}})`}.`,
+      answer: { kind: 'exact', expected: str(stepVal(p)) },
+      solution: [
+        t`${math`\mathbb{P}(A_{${n}}) = \sum_{j = ${1}}^{${n}} \mathbb{P}(X = ${2}j) = ${sub(q(1), r)} \left(r + r^{${3}} + \cdots + r^{${2 * n - 1}}\right)`} with ${math`r = ${r}`}, a finite geometric series.`,
+        t`It equals ${math`\frac{r}{${1} + r}\left(${1} - r^{${2 * n}}\right) = ${stepVal(p)}`}. As ${mn} grows it increases to ${math`\frac{r}{${1} + r} = ${q(r.num, r.num + r.den)}`}, the probability that ${math`X`} is even.`,
+      ],
+    };
+  },
+  solve: ({ r, n }) => {
+    // Add the masses of the even outcomes up to 2n one by one.
+    let s = q(0);
+    for (let j = 1; j <= n; j++) s = add(s, mul(sub(q(1), r), pow(r, 2 * j - 1)));
+    return str(s);
+  },
+  misconceptions: ({ r, n }): Misconception[] => [
+    { response: str(q(r.num, r.num + r.den)), why: t`That is the limit, the probability that ${math`X`} is even. ${math`A_{${n}}`} only includes even values up to ${2 * n}.` },
+    { response: str(mul(sub(q(1), r), pow(r, 2 * n - 1))), why: t`That is only the largest outcome, ${math`X = ${2 * n}`}. ${math`A_{${n}}`} contains every even value up to ${2 * n}.` },
+    { response: str(sub(q(1), pow(r, 2 * n))), why: t`That is ${math`\mathbb{P}(X \le ${2 * n})`}. Only the even values count.` },
+  ],
+  trial: ({ r, n }, rng) => { const k = geo(r, rng); return k <= 2 * n && k % 2 === 0; },
+});
+
+// ---------------------------------------------------------------- Cambridge problems
+
+const q4f = workedProof({
+  title: t`Continuity from the axioms`,
+  prompt: t`Example Sheet ${1}, Q${4}(f): show, starting from the definitions, that if ${math`A_{n} \subseteq A_{n + ${1}}`} for all ${mn}, then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcup_{n} A_{n}\right)`}.`,
+  steps: [
+    t`Make the events disjoint: ${math`B_{${1}} = A_{${1}}`} and ${math`B_{n} = A_{n} \setminus A_{n - ${1}}`} for ${math`n \ge ${2}`}. These are events, pairwise disjoint, with ${math`A_{n} = B_{${1}} \cup \cdots \cup B_{n}`} (as the sequence increases) and ${math`\bigcup_{n} A_{n} = \bigcup_{n} B_{n}`}.`,
+    t`By countable additivity, ${math`\mathbb{P}\left(\bigcup_{n} A_{n}\right) = \sum_{k = ${1}}^{\infty} \mathbb{P}(B_{k}) = \lim_{n \to \infty} \sum_{k = ${1}}^{n} \mathbb{P}(B_{k})`}, the limit of the partial sums.`,
+    t`By finite additivity, the ${mn}th partial sum is ${math`\mathbb{P}(B_{${1}} \cup \cdots \cup B_{n}) = \mathbb{P}(A_{n})`}. So ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcup_{n} A_{n}\right)`}.`,
+  ],
+  answer: t`For increasing events, ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcup_{n} A_{n}\right)`}.`,
+  source: cite(S1, 'Q4(f)'),
+});
+
+/** The alternating sequence: A_n = {X <= n} for even n, {X > n} for odd n. Whether outcome x is in A_n. */
+const inAlt = (x: number, n: number): boolean => (n % 2 === 0 ? x <= n : x > n);
+const q6alt = auto({
+  id: 'ia-q6-alternating',
+  source: cite(S1, 'Q6', true),
+  title: t`Infinitely often but not eventually`,
+  prompt: t`Toss a fair coin until the first head; ${math`X`} is the number of tosses. Let ${math`A_{n} = \{X \le n\}`} for even ${mn} and ${math`A_{n} = \{X > n\}`} for odd ${mn}. With Q${6}'s ${math`A = \{A_{n} \text{ infinitely often}\}`} and ${math`B = \{A_{n} \text{ for all sufficiently large } n\}`}, find ${math`\mathbb{P}(A)`} and ${math`\mathbb{P}(B)`}.`,
+  answer: { kind: 'table', cell: 'exact', columns: [t`event`, t`probability`], rows: [[t`${mA}, infinitely often`, null], [t`${math`B`}, eventually`, null]], expected: ['1', '0'] },
+  solution: [
+    t`Fix an outcome with ${math`X = x`}, a finite number. For every even ${math`n \ge x`} it is in ${math`A_{n}`}, and for every odd ${math`n \ge x`} it is not. So it is in ${math`A_{n}`} infinitely often, but not for all large ${mn}: ${math`A`} contains every outcome with ${math`X`} finite, and ${math`B`} none.`,
+    t`${math`X`} is finite with probability ${1}: ${math`\mathbb{P}(X \le n) = ${1} - ${2}^{-n} \to ${1}`}, by continuity. So ${math`\mathbb{P}(A) = ${1}`} and ${math`\mathbb{P}(B) = ${0}`}.`,
+  ],
+  reference: ['1', '0'],
+  verify: () => {
+    // For each x up to 60, look at n from 100 to 300: is x in some A_n (i.o.), and in all (eventually)?
+    const io = Array.from({ length: 60 }, (_, i) => i + 1).every((x) => Array.from({ length: 200 }, (_, j) => j + 100).some((n) => inAlt(x, n)));
+    const ev = Array.from({ length: 60 }, (_, i) => i + 1).some((x) => Array.from({ length: 200 }, (_, j) => j + 100).every((n) => inAlt(x, n)));
+    return same('membership for x up to 60 and n from 100 to 300', `${io},${ev}`, 'true,false');
+  },
+  misconceptions: [{ response: ['1', '1'], why: t`"Eventually" means for every large ${mn}; at odd ${mn} beyond ${math`X`} the outcome leaves ${math`A_{n}`}. So no outcome is eventually in it.` }],
+});
+
+const q6cont = supervision({
+  id: 'ia-q6-continuity',
+  source: cite(S1, 'Q6', true),
+  title: t`"Eventually" as a limit`,
+  prompt: t`With ${math`B = \bigcup_{n} \bigcap_{k \ge n} A_{k}`} as in Q${6}(a), show that the events ${math`C_{n} = \bigcap_{k \ge n} A_{k}`} increase with ${mn}, and deduce ${math`\mathbb{P}(B) = \lim_{n} \mathbb{P}(C_{n})`}. Then state and prove the dual for the decreasing events ${math`D_{n} = \bigcup_{k \ge n} A_{k}`}, by taking complements.`,
+  writeUp: 'proof',
+});
+const decreasingProof = supervision({
+  id: 'ia-q4-f-decreasing',
+  source: cite(S1, 'Q4(f)', true),
+  title: t`Continuity from above`,
+  prompt: t`Deduce from Q${4}(f) that if ${math`A_{n} \supseteq A_{n + ${1}}`} for all ${mn}, then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcap_{n} A_{n}\right)`}. Give an example of decreasing events with ${math`\bigcap_{n} A_{n} = \varnothing`} but every ${math`A_{n}`} nonempty, and explain why the probabilities still tend to ${0}.`,
+  writeUp: 'proof',
+});
+
+// ---------------------------------------------------------------- lesson
+
+const claims: ProbabilityClaim[] = [
+  { what: 'a fair coin: the first head comes on an even toss', exact: q(1, 3), trial: (rng) => geo(q(1, 2), rng) % 2 === 0 },
+];
+
+export const continuity: TopicContent = {
+  topicId: 'prob.continuity',
+  goal: t`Use continuity of probability: for increasing events ${math`\mathbb{P}(A_{n}) \to \mathbb{P}(\bigcup A_{n})`}, and for decreasing events ${math`\mathbb{P}(A_{n}) \to \mathbb{P}(\bigcap A_{n})`}.`,
+  lesson: [
+    { kind: 'p', text: t`Many events are limits: "a head eventually appears" is the union of "a head within ${mn} tosses" over all ${mn}. Continuity says the probability of the limit is the limit of the probabilities, provided the events move in one direction.` },
+    { kind: 'rule', text: t`[[continuity-of-probability|Continuity]]: if ${math`A_{${1}} \subseteq A_{${2}} \subseteq \cdots`} then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcup_{n} A_{n}\right)`}; if ${math`A_{${1}} \supseteq A_{${2}} \supseteq \cdots`} then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcap_{n} A_{n}\right)`}.` },
+    { kind: 'p', text: t`The proof (Sheet ${1} Q${4}(f)) cuts the increasing union into the disjoint pieces ${math`A_{n} \setminus A_{n - ${1}}`}; countable additivity makes ${math`\mathbb{P}(\bigcup A_{n})`} the sum of their probabilities, whose partial sums are the ${math`\mathbb{P}(A_{n})`}. The decreasing case follows by complements.` },
+    { kind: 'p', text: t`Example: toss a fair coin until the first head, at toss ${math`X`}. ${math`\mathbb{P}(X \le n) = ${1} - ${2}^{-n} \to ${1}`}, so a head eventually appears with probability ${1}. And with ${math`A_{n} = \{X \le ${2}n,\ X \text{ even}\}`}, increasing with union ${math`\{X \text{ even}\}`}, ${math`\mathbb{P}(A_{n}) = \frac{${1}}{${3}}(${1} - ${4}^{-n}) \to ${q(1, 3)}`}.` },
+    { kind: 'p', text: t`Q${6} builds limits of events that are not monotone from ones that are: "${math`A_{n}`} for all sufficiently large ${mn}" is ${math`\bigcup_{n} \bigcap_{k \ge n} A_{k}`}, an increasing union of decreasing intersections. Continuity applies to each layer.` },
+  ],
+  examples: [
+    q4f,
+    worked(increasingLimit, { r: q(1, 2), kind: 'even' }, t`The first head on an even toss, as a limit`),
+    worked(finiteStep, { r: q(1, 2), n: 2 }, t`One member of the sequence`),
+  ],
+  generators: [increasingLimit, decreasingLimit, finiteStep],
+  mastery: { correctInARow: 3, maxProblems: 10 },
+  terms: ['continuity-of-probability'],
+  claims,
+  cambridge: [q6alt, q6cont, decreasingProof],
+};

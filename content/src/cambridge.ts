@@ -39,6 +39,7 @@ export const CITED_DOCS = {
   'cst-dm-sols-2324-4': 'CST Discrete Mathematics Exercises 4, official solutions (2023-24)',
   bop: 'Book of Proof',
   'tmua-logic-proof': 'TMUA Notes on Logic and Proof',
+  'tripos-schedules': 'Mathematical Tripos schedules 2026-27',
 } as const;
 
 export type CitedDoc = keyof typeof CITED_DOCS;

@@ -34,7 +34,7 @@ describe('next in the book', () => {
     expect(ch === undefined ? null : chapterProgress(p, ch)).toMatchObject({ steps: 10, learned: 1 });
     const st = stepStates(p, T0);
     expect(st.get('pre.fractions')).toBe('mastered');
-    expect(st.get('prob.stirling-formula')).toBe('towrite');
+    expect(st.get('prob.poisson-distribution')).toBe('towrite');
     expect(st.get('pre.indices')).toBe('ready');
     expect(st.get('proof.direct')).toBe('locked');
   });

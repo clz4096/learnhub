@@ -593,3 +593,66 @@ In all: 18 worked Cambridge problems (two are cited proofs, Theorems 38 and 100)
 - `proof.cases` and `comb.repeated-arrangements` both use A6 Q3; the first five-digit problem (sum 43) is the worked example of proof by cases, and its count uses arrangements with repeats taught in the next topic but one. The lesson explains the count by choosing places, which needs only combinations.
 
 **Still unbuilt (30 mapped topics), in schedule order:** `comb.binomial-theorem-proof`, `proof.strong-induction`, `num.divisibility`, `prob.conditional-formula`, `num.division-theorem`, `prob.binomial-distribution`, `num.congruence`, `num.gcd`, `num.modular-arithmetic`, `num.euclid-algorithm`, `prob.sampling-models`, `num.modular-integers`, `num.modular-exponentiation`, `num.extended-euclid`, `num.euclid-theorem`, `num.diffie-hellman`, `prob.stirling-formula`, `num.modular-inverse`, `prob.axioms`, `num.fundamental-theorem`, `prob.axiom-consequences`, `num.prime-binomial`, `num.fermat-little`, `prob.inclusion-exclusion`, `prob.continuity`, `prob.conditional-probability`, `prob.subadditivity`, `prob.total-probability`, `prob.independence`, `prob.bayes-formula`.
+
+## Build step 5, batch 4 (2026-10-05)
+
+The last thirty topics the map cites sources for, in the engine's schedule order, built and checked as in batches 2 and 3. Every topic the map cites a source for now has a lesson. The content and its checks are the record; this section summarises them.
+
+**Order.** As before, the topics are the scheduled ones that cite a document of this batch and had no lesson; the order check now requires the mapped topics to be exactly batches 2 to 4, so it fails if a mapped topic is left out or the schedule moves. The 26 graph topics still without a lesson (for example `pre.remainders`, `prob.poisson-distribution`, `an.nonnegative-series`) cite no document of this batch.
+
+| order | topic | lesson and problems from | worked Cambridge | auto-checked | supervision |
+|---|---|---|---|---|---|
+| 1 | `comb.binomial-theorem-proof` | CST notes printed pages 271 to 278 (the proof, Pascal's rule by counting, the semiring remark); Book of Proof Chapter 10, exercise 23 | 1 | 2 | 2 |
+| 2 | `proof.strong-induction` | CST notes printed pages 283 to 294 (Proposition 96); Book of Proof 10.2 and Chapter 10, exercises 25, 32, 42; sheet 4.3.1 | 1 | 4 | 3 |
+| 3 | `num.divisibility` | CST notes printed pages 59, 83, 84, 98, 99 (Definition 12, Theorems 19, 23); STEP Support A12 Q1; sheet 1.2.1, 1.2.4, 1.2.6; Book of Proof Chapter 4, exercises 11, 20, Chapter 6, exercise 19 | 2 | 4 | 4 |
+| 4 | `prob.conditional-formula` | STEP Support A6 Q4(i), A12 Q3(ii), (iii), A19 Q4(i) | 1 | 3 | 2 |
+| 5 | `num.division-theorem` | CST notes printed pages 176 to 187; Book of Proof 1.9 and Chapter 7, exercise 28; sheet 2.1.3 | 1 | 2 | 3 |
+| 6 | `prob.binomial-distribution` | STEP Support A19 Q4(ii), A12 Q2(iv) | 1 | 3 | 1 |
+| 7 | `num.congruence` | CST notes printed page 60 (Definition 14, Example 15) and Proposition 24; Book of Proof 5.2 and Chapter 5, exercises 21, 32; sheet 2.1.1, 3.2.4, 3.2.10(b) | 1 | 2 | 4 |
+| 8 | `num.gcd` | CST notes printed pages 207 to 238 (Examples 68, 69, Key Lemma 72, Lemma 81); sheet 3.1.3, 3.2.1, 3.2.6; Book of Proof Chapter 5, exercise 31, Chapter 7, exercise 32 | 1 | 2 | 4 |
+| 9 | `num.modular-arithmetic` | Sheet 2.1.2, 2.2.2, 2.2.4; Book of Proof Chapter 5, exercise 17, Chapter 6, exercise 17 | 1 | 2 | 3 |
+| 10 | `num.euclid-algorithm` | CST notes printed pages 214 to 228 (Example 75, Theorem 79); sheet 3.1.2, 3.3.3, 4.2.3(d) | 1 | 2 | 3 |
+| 11 | `prob.sampling-models` | IA Sheet 1 Q12, Q13 | 1 | 2 | 2 |
+| 12 | `num.modular-integers` | CST notes printed pages 188 to 197 (Examples 60 to 62); Book of Proof 11.5, exercises 7, 8; sheet 2.1.4, 2.2.6 | 1 | 2 | 3 |
+| 13 | `num.modular-exponentiation` | Sheet 2.2.5; CST notes printed pages 131, 132 | 1 | 2 | 2 |
+| 14 | `num.extended-euclid` | CST notes printed pages 245 to 258 (Examples 87, 90, Theorems 88, 92); sheet 3.1.4, 3.1.5; Book of Proof Proposition 7.1 | 1 | 3 | 3 |
+| 15 | `num.euclid-theorem` | CST notes printed pages 238 to 243 (Theorem 83); sheet 3.1.6, 3.2.2, 3.2.7(c), 3.3.1; Book of Proof Chapter 7, exercise 29, and exercises 5, 6 for 11.5 | 2 | 2 | 4 |
+| 16 | `num.diffie-hellman` | CST notes printed pages 259 to 266 (Lemmas 94, 95), with small primes | 1 | 2 | 3 |
+| 17 | `prob.stirling-formula` | IA Sheet 1 Q3, Q14 | 1 | 1 | 3 |
+| 18 | `num.modular-inverse` | CST notes printed pages 244 and 258 (Corollaries 86, 93); sheet 2.2.6, 3.2.10 to 3.2.12 | 1 | 5 | 2 |
+| 19 | `prob.axioms` | IA Sheet 1 Q4(b), (c); the Faculty schedule | 1 | 1 | 2 |
+| 20 | `num.fundamental-theorem` | CST notes printed pages 208 and 291 to 305 (Examples 68, 98, 99, the Homework); Book of Proof 10.4 | 1 | 2 | 2 |
+| 21 | `prob.axiom-consequences` | IA Sheet 1 Q4(b), (d), (e) | 1 | 1 | 3 |
+| 22 | `num.prime-binomial` | CST notes printed pages 116 to 121, 242, 243 (Lemmas 27, 28, Proposition 29, Corollary 85); Book of Proof Chapter 4, exercise 21 | 2 | 1 | 2 |
+| 23 | `num.fermat-little` | CST notes printed pages 17, 125 to 132, 240, 280 to 282; sheet 2.2.7, 2.2.9, 3.2.8 | 2 | 1 | 4 |
+| 24 | `prob.inclusion-exclusion` | IA Sheet 1 Q7; the Faculty schedule | 1 | 1 | 2 |
+| 25 | `prob.continuity` | IA Sheet 1 Q4(f), Q6 | 1 | 1 | 2 |
+| 26 | `prob.conditional-probability` | IA Sheet 1 Q10 (adapted: it is set in `alg.proof-by-induction`); the Faculty schedule | 1 | 1 | 2 |
+| 27 | `prob.subadditivity` | IA Sheet 1 Q6(b), (c) | 1 | 1 | 2 |
+| 28 | `prob.total-probability` | IA Sheet 1 Q8(a), Q9 | 1 | 1 | 2 |
+| 29 | `prob.independence` | IA Sheet 1 Q11 (adapted: it is set in `prob.classical-probability`); the Faculty schedule | 1 | 0 | 2 |
+| 30 | `prob.bayes-formula` | IA Sheet 1 Q8(b), Q9 | 1 | 1 | 2 |
+
+In all: 34 worked Cambridge examples (24 are auto-checked problems, verified like practice; 10 are cited proofs, such as the notes' Theorem 83 and Sheet 1 Q4(d)), 57 auto-checked Cambridge problems for practice, and 78 for supervision. Each topic has three variant generators (1,000 seeds each, a reference solver, at least two misconceptions); 24 of the 90 have a Monte Carlo experiment, and 11 lesson claims are simulated too. A shared helper, `content/src/numbers.ts` (primes, factorisations, gcd and the notes' `egcd`, powers mod m), is pulled into the number theory chunks only.
+
+**Bundle.** Each new topic is its own chunk, 10.35 to 19.77 kB (3.74 to 6.51 kB gzipped), with the shared helper as a 1.21 kB chunk. The main bundle grows only by the catalog, glossary, and loader entries of the new topics: from 850.61 kB (256.73 kB gzipped) at the previous commit to 885.85 kB (266.64 kB gzipped).
+
+**Answers checked against official ones.** Every auto-checked answer is verified by code: brute force over every case (every committee, every queue of the raffle, every non-decreasing function, every pair of dice, every subset), exact arithmetic, or a second method (slow powers against repeated squaring, a population of counts against a formula, sequential Bayesian updating against the batch formula). Where an official answer exists it is recorded as printed and compared: the CST 2023-24 solutions to Exercises 1 to 4 (1.2.1, 2.1.3, 2.2.4 to 2.2.6, 3.1.2, 3.1.4, 3.2.6, 3.2.7(c), 3.2.10, 3.2.11, 4.2.3(d)), the CST notes' own examples (62, 68, 69, 75, 87, 90, 98, 99, Lemmas 27 and 28, the pirates answer, the Theorem of the Day sheets), the STEP Support hints to A6, A12, and A19, and Book of Proof's solutions and examples (1.9, 4.20, 5.2, 5.17, 6.17, 6.19, 7.32, 10.2, 10.25, 10.32, 11.5 exercises 5 and 7). That is 50 comparisons. **One disagrees, and it is recorded:** Example 98 of the CST notes (printed page 304, checked on the rendered page) prints 1224 = 2^2 · 3^2 · 17, but that product is 612; 1224 = 2^3 · 3^2 · 17. The computed exponent, 3, is right, and it agrees with the notes' own Example 68, which lists 24 divisors of 1224 (an exponent of 2 would give 18). Example 99's gcd(1224, 660) = 12 is unaffected, since 660 has 2^2. No official answers exist for IA Sheet 1 or the adapted variants; those rest on the code checks alone.
+
+**Source notes found while building.**
+
+- Sheet 3.2.12 (decision 11) was read from the rendered page: it asks for the inverse of [22^12001]_175, which the text extraction garbled to "2212001 175". The official solution reads it the same way (22 = 2 · 11). It is set for supervision as printed, and auto-checked in an adapted form that asks for the inverse itself: 22^12001 ≡ 22 (mod 175), whose inverse is 8. Sheet 3.2.10(c) is a system of two congruences, as the map supposed; the solution z ≡ 97 (mod 357) agrees with the official one.
+- The official solution to sheet 2.2.8 lists a case "n ≡ 4 (mod 5)" in a case analysis modulo 6; it means modulo 6. Exercise 2.2.8 is not set as an auto-checked problem, so nothing is compared with it.
+- Book of Proof's solution to Chapter 10, exercise 23 (the binomial theorem by induction) checks n = 1 and then assumes the theorem "for some n > 1", and it merges the two sums using C(n, -1) = 0 without saying so. The supervision problem asks the learner to spot both.
+- The CST notes number the binomial theorem Theorem 30 where it is stated (printed page 122) and Theorem 29 where it is proved (page 271). The 2023-24 solutions cite the older numbering (Corollary 75, Theorem 70, Lemma 63) for what the 2025-26 notes call Corollary 93, Theorem 88, and Lemma 81; the content uses the 2025-26 numbers.
+- The notes' Lemma 28 leaves "the missing argument" to the reader. The worked proof supplies it from Corollary 85, (p - m) C(p, m) = p C(p - 1, m), and Euclid's theorem.
+- IA Sheet 1 Q8 gives the class probabilities for all candidates without saying so; only that reading makes the readers' probabilities a distribution (7/40, 7/20, 13/40, 3/20), which the check confirms.
+- IA Sheet 1 Q10 and Q11 are already set in `alg.proof-by-induction` and `prob.classical-probability`, so `prob.conditional-probability` and `prob.independence` adapt them (sequences of draws from the Pólya urn; Mary's last coin as the independent event). The notes give no numbers for Diffie-Hellman; its problems use small primes, cited as adapted.
+- The Faculty schedules (`tripos-schedules`, already in the batch) are now citable, for the supervision problems that prove the schedule's own items (the countable case of the axioms, inclusion-exclusion, conditional probability, independence, Bayes's formula).
+
+**Tooling and test changes in this step.**
+
+- The content checks' probe for "a topic without a lesson" was `num.gcd`, which this batch writes; it is now `prob.poisson-distribution`.
+- Two app tests in `sims/mastery/src/model` use topics this batch writes as their example of a topic without a lesson, and fail until they are updated: `content.test.ts` line 47 (`num.gcd`) and `book.test.ts` line 37 (`prob.stirling-formula`, expected to be "to write"). Replacing each with `prob.poisson-distribution` fixes them. They were left alone because another change is in progress in `sims/mastery`.
+
+**Still unbuilt:** none of the mapped topics.
