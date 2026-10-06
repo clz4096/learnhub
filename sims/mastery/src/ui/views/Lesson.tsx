@@ -10,11 +10,15 @@
  * data (the engine's `ItemData`): practice when the learner moves on, a Cambridge answer
  * as soon as its result shows, since the worked solution is then seen.
  *
- * The stage and the practice run are kept for the tab (`lessonState`), so leaving a
- * lesson and coming back resumes it where it was.
+ * The place (section, furthest outline entry, stage, and practice run) and any write-up
+ * drafts are kept on the device and synced (`lessonState`), so leaving a lesson, closing
+ * the app, or opening it on another device resumes it where it was. A place that sync
+ * brings in while the lesson is open does not move the learner: the lesson offers to
+ * continue from it, and otherwise it applies the next time the lesson opens (unless the
+ * learner moves on here first, which then counts as the latest place).
  */
 import type { ComponentChildren } from 'preact';
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import {
   answerText, citationText, formalNumbers, grade, hasContent, lessonSections, plain, readAnswer, type Block, type CambridgeProblem, type MasteryRule, type QuickCheck,
   type SupervisionProblem, type TopicContent, type WorkedExample, type Why,
@@ -27,7 +31,8 @@ import { drillItemId, masteryOf, recordCambridgeAnswer, recordDrill, waitingCopi
 import { commit, now, progress } from '@/model/store';
 import { problemKey } from '@/model/supervision';
 import { CopyForSupervision, PasteResult } from '@/ui/Supervision';
-import { clearPlace, loadPlace, loadWriteUp, savePlace, saveWriteUp, type LessonStage } from '@/model/lessonState';
+import { learnerSynced } from '@/model/learnerChange';
+import { clearPlace, loadPlace, loadWriteUp, placeEntry, savePlace, saveWriteUp, type LessonPlace, type LessonStage } from '@/model/lessonState';
 import { answer, freshPractice, instanceAt, outcomeOf, type PracticeState } from '@/model/practice';
 import { ProblemCard, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
 import type { Route } from '@/model/route';
@@ -316,8 +321,8 @@ function Practice({ c, salt, initial, onChange, onEnd }: {
       {/* Said once, before the first problem, so it does not push every later problem down. */}
       {k === 0 && (
         <p class="small muted">
-          You can leave and come back: your place is kept while this tab is open. If the tab is closed, practice starts again
-          and the right-in-a-row count resets.
+          You can leave and come back, even after closing the app: your place and your right-in-a-row count are kept, and
+          sync, if you use it, carries them to your other devices.
         </p>
       )}
       <ProblemCard
@@ -364,7 +369,7 @@ function LastResult({ k }: { k: string }) {
 }
 
 /**
- * A problem whose answer is a write-up. The box keeps it for the tab; Copy for supervision
+ * A problem whose answer is a write-up. The box keeps it on the device and syncs it; Copy for supervision
  * copies it with the problem for a Claude Code session, and Paste result brings the mark back.
  */
 function SupervisionCard({ topicId, p }: { topicId: string; p: SupervisionProblem }) {
@@ -616,11 +621,39 @@ function LessonBody({ salt, onEnd, c, head, title }: LessonProps & { c: TopicCon
   const [at, setAt] = useState(() => outlineIndex(outline, saved?.stage ?? 'learn', saved?.section ?? 0));
   const [furthest, setFurthest] = useState(() => Math.max(saved?.furthest ?? 0, at));
   const [practice, setPractice] = useState<PracticeState>(saved?.practice ?? freshPractice());
+  // Remounts the practice run when a place from another device replaces it.
+  const [run, setRun] = useState(0);
+  // The stamp of the place this screen last read or wrote: a stored one newer than it came from sync.
+  const known = useRef(placeEntry(placeKey)?.updatedAt ?? -Infinity);
+  const [offer, setOffer] = useState<LessonPlace | null>(null);
   const entry = outline[at] ?? (outline[0] as OutlineEntry);
   const stage = entry.stage;
   const save = (i: number, ps: PracticeState, far: number): void => {
     const e = outline[i] ?? entry;
     savePlace(placeKey, { stage: e.stage, practice: ps, section: e.section, furthest: far });
+    known.current = placeEntry(placeKey)?.updatedAt ?? known.current;
+  };
+  // Sync wrote a merged copy: a newer place for this lesson is offered, never jumped to.
+  const synced = learnerSynced.value;
+  useEffect(() => {
+    const e = placeEntry(placeKey);
+    if (e === null || e.updatedAt <= known.current) return;
+    known.current = e.updatedAt;
+    const p = loadPlace(placeKey);
+    if (p === null) return;
+    const i = outlineIndex(outline, p.stage, p.section ?? 0);
+    const same = i === at && p.practice.attempts === practice.attempts && p.practice.results.every((x, j) => x === practice.results[j]);
+    setOffer(same ? null : p);
+  }, [synced, placeKey]);
+  const adopt = (p: LessonPlace): void => {
+    const i = outlineIndex(outline, p.stage, p.section ?? 0);
+    const far = Math.max(furthest, p.furthest ?? 0, i);
+    setOffer(null);
+    setAt(i);
+    setFurthest(far);
+    setPractice(p.practice);
+    setRun((n) => n + 1);
+    save(i, p.practice, far);
   };
   const goTo = (i: number): void => {
     const far = Math.max(furthest, i);
@@ -664,6 +697,15 @@ function LessonBody({ salt, onEnd, c, head, title }: LessonProps & { c: TopicCon
     <section class="page lesson" aria-label={title}>
       <Segments pos={pos} />
       {head(pos)}
+      {offer !== null && (
+        <div class="ds-note other-device" role="status">
+          <p>On your other device, this lesson is at <Rich text={(outline[outlineIndex(outline, offer.stage, offer.section ?? 0)] ?? entry).title} />.</p>
+          <div class="actions">
+            <button type="button" class="btn btn-primary" onClick={() => adopt(offer)}>Continue where you left off on your other device</button>
+            <button type="button" class="btn" onClick={() => setOffer(null)}>Stay here</button>
+          </div>
+        </div>
+      )}
       <div ref={topRef} tabIndex={-1} class="sec-anchor"><Rich as="h2" class="section-title" text={entry.title} /></div>
       {stage === 'learn' && section !== undefined && (
         <div class="lesson-body">
@@ -689,6 +731,7 @@ function LessonBody({ salt, onEnd, c, head, title }: LessonProps & { c: TopicCon
       {stage === 'cambridge' && <CambridgeStage c={c} passed={passed} onFinish={() => end({ passed: true })} onPractice={() => goStage('practice')} />}
       {stage === 'practice' && (
         <Practice
+          key={run}
           c={c}
           salt={salt}
           initial={practice}

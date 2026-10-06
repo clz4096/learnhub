@@ -3,6 +3,7 @@ import { canonicalJson, mulberry32, randInt, type Rng } from '@learnhub/mastery'
 import { COLLEGES, newCampaign, type Campaign, type CampaignRoute } from '@/model/campaign';
 import type { DayLog } from '@/model/dayLog';
 import type { LadderAttempt } from '@/model/ladder';
+import { DRAFT_TTL_MS, type LessonPlace, type PlaceEntry } from '@/model/lessonState';
 import { completeScene, emptyStory, isChoice, type StoryNumbers } from '@/model/story';
 import { SCENES } from '@/model/storyScenes';
 import { removeFromCampaign } from './campaign';
@@ -12,6 +13,7 @@ import {
 } from './envelope';
 import { plain } from './join';
 import { removeFromLadder } from './ladder';
+import { emptyLessonSync, emptyLessonValues, mergeLesson, type LessonSync } from './lesson';
 
 const T0 = Date.UTC(2026, 9, 6, 13);
 const MIN = 60_000;
@@ -30,8 +32,10 @@ const PAPERS = ['tmua-2023-p1', 'step-2024-s2', 'alevel-2023-m1'];
 const DATES = ['2026-10-04', '2026-10-05', '2026-10-06'];
 const WAKES = ['07:00', '08:30'];
 const FLAG_IDS = ['tmua-2023-p1@100', 'step-2024-s2/question/3@200'];
+const LESSON_KEYS = ['lesson-1-0.pre.fractions', 'learn-5.pre.ratio', '__proto__'];
+const STAGES = ['learn', 'examples', 'practice', 'cambridge'] as const;
 
-const empty = (): LearnerValues => ({ campaign: null, story: emptyStory(), day: {}, ladder: [], mixed: null, flags: {} });
+const empty = (): LearnerValues => ({ campaign: null, story: emptyStory(), day: {}, ladder: [], mixed: null, flags: {}, lesson: emptyLessonValues() });
 
 /** One device: its stored values and its envelope, changed only as the app changes them. */
 interface Device {
@@ -119,12 +123,17 @@ function ladderStep(rng: Rng, xs: readonly LadderAttempt[], at: number): { ladde
   return { ladder: out };
 }
 
+/** Sets a key as the app's records do, so "__proto__" is an ordinary key. */
+function setEntry<T>(o: Record<string, T>, k: string, v: T): void {
+  Object.defineProperty(o, k, { value: v, enumerable: true, writable: true, configurable: true });
+}
+
 /** One change of the kinds the app makes, saved and taken into the envelope at time `at`. */
 function step(rng: Rng, dev: Device): Device {
   const at = time(rng);
   const v: LearnerValues = plain(dev.v);
   let s = dev.s;
-  switch (randInt(rng, 0, 5)) {
+  switch (randInt(rng, 0, 6)) {
     case 0: {
       const r = campaignStep(rng, v.campaign, at);
       v.campaign = r.c;
@@ -158,6 +167,21 @@ function step(rng: Rng, dev: Device): Device {
       const items = Array.from({ length: 3 }, (_, i) => ({ topicId: 'pre.fractions', generatorId: 'g', id: `pre.fractions/q${i + n}`, seed: i }));
       const results = Array.from({ length: randInt(rng, 0, 3) }, () => rng() < 0.5);
       v.mixed = { day, items, results, done: results.length === 3 };
+      break;
+    }
+    case 5: {
+      // A place saved or cleared, or a write-up typed or emptied, stamped after the entry it replaces as the app does.
+      if (rng() < 0.6) {
+        const k = pick(rng, LESSON_KEYS);
+        const prev = v.lesson.places[k]?.updatedAt ?? -Infinity;
+        const results = Array.from({ length: randInt(rng, 0, 3) }, () => rng() < 0.6);
+        const place: LessonPlace | null = rng() < 0.3 ? null : { stage: pick(rng, STAGES), practice: { attempts: results.length, streak: 0, results }, section: randInt(rng, 0, 2), furthest: randInt(rng, 0, 4) };
+        setEntry(v.lesson.places, k, { updatedAt: Math.max(at, prev + 1), place });
+      } else {
+        const k = pick(rng, ['pre.ratio.q1', 'pre.ratio.q2']);
+        const prev = v.lesson.writeUps[k]?.updatedAt ?? -Infinity;
+        setEntry(v.lesson.writeUps, k, { updatedAt: Math.max(at, prev + 1), text: pick(rng, ['', 'Half.', 'Half of it.']) });
+      }
       break;
     }
     default: {
@@ -346,7 +370,87 @@ describe('the rules', () => {
   });
 });
 
+describe('lesson places and write-up drafts', () => {
+  const K = 'lesson-1-0.pre.fractions';
+  const at = (stage: LessonPlace['stage'], attempts = 0): LessonPlace => ({ stage, practice: { attempts, streak: attempts, results: Array<boolean>(attempts).fill(true) } });
+  const placed = (updatedAt: number, place: LessonPlace | null, from: LearnerState = emptyLearner()): LearnerState =>
+    dev((v) => { setEntry(v.lesson.places, K, { updatedAt, place }); }, updatedAt, from);
+  const placeOf = (s: LearnerState) => learnerValues(s).lesson.places[K];
+
+  it('the place saved last wins, whichever device it came from', () => {
+    const phone = placed(T0 + 5 * MIN, at('practice', 2));
+    const mac = placed(T0 + 2 * MIN, at('examples'));
+    expect(placeOf(mergeLearner(mac, phone))).toEqual({ updatedAt: T0 + 5 * MIN, place: at('practice', 2) });
+    expect(placeOf(mergeLearner(phone, mac))).toEqual({ updatedAt: T0 + 5 * MIN, place: at('practice', 2) });
+  });
+
+  it('a finished lesson beats an older place, and a tie; a place saved after the finish wins', () => {
+    const going = placed(T0 + 5 * MIN, at('practice', 2));
+    const done = placed(T0 + 6 * MIN, null);
+    expect(placeOf(mergeLearner(going, done))?.place).toBeNull();
+    const tie = placed(T0 + 6 * MIN, at('cambridge', 3));
+    expect(placeOf(mergeLearner(tie, done))?.place).toBeNull();
+    expect(placeOf(mergeLearner(done, tie))?.place).toBeNull();
+    const again = placed(T0 + 9 * MIN, at('learn'));
+    expect(placeOf(mergeLearner(done, again))?.place).toEqual(at('learn'));
+  });
+
+  it('two different places with one stamp settle the same way on both devices', () => {
+    const a = placed(T0, at('practice', 1));
+    const b = placed(T0, at('practice', 2));
+    eq(mergeLearner(a, b), mergeLearner(b, a));
+  });
+
+  it('write-ups: the later draft wins; emptying it later clears it everywhere', () => {
+    const typed = dev((v) => { setEntry(v.lesson.writeUps, 'pre.ratio.q1', { updatedAt: T0 + MIN, text: 'Half.' }); }, T0 + MIN);
+    const more = dev((v) => { setEntry(v.lesson.writeUps, 'pre.ratio.q1', { updatedAt: T0 + 2 * MIN, text: 'Half of it.' }); }, T0 + 2 * MIN, typed);
+    const emptied = dev((v) => { setEntry(v.lesson.writeUps, 'pre.ratio.q1', { updatedAt: T0 + 3 * MIN, text: '' }); }, T0 + 3 * MIN, typed);
+    expect(learnerValues(mergeLearner(typed, more)).lesson.writeUps['pre.ratio.q1']?.text).toBe('Half of it.');
+    expect(learnerValues(mergeLearner(more, emptied)).lesson.writeUps['pre.ratio.q1']?.text).toBe('');
+  });
+
+  it('entries older than 60 days leave the envelope, and a copy that still has them does not bring them back', () => {
+    const old = placed(T0, at('practice', 1));
+    const later = T0 + DRAFT_TTL_MS + MIN;
+    const swept = observeLearner(old, plain(learnerValues(old)), later);
+    expect(swept.lesson.horizon).toBe(later - DRAFT_TTL_MS);
+    expect(placeOf(swept)).toBeUndefined();
+    expect(placeOf(mergeLearner(old, swept))).toBeUndefined();
+    // Nothing old to drop: the horizon stays, so taking an envelope in again invents no change.
+    const recent = placed(later - MIN, at('learn'));
+    eq(observeLearner(recent, plain(learnerValues(recent)), later), recent);
+  });
+
+  it('cutting at a horizon commutes with the merge', () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      const [a, b, c] = randomTriple(seed).map((s) => s.lesson);
+      const cut = (s: LessonSync, h: number): LessonSync => mergeLesson(s, { ...emptyLessonSync(), horizon: h });
+      const h = T0 + randInt(mulberry32(seed), 0, 20) * MIN;
+      const m = (x: LessonSync, y: LessonSync): string => canonicalJson(mergeLesson(x, y));
+      expect(m(cut(a!, h), mergeLesson(b!, c!))).toBe(m(cut(mergeLesson(a!, b!), h), c!));
+      expect(m(cut(a!, h), b!)).toBe(m(a!, cut(b!, h)));
+    }
+  });
+});
+
 describe('old data and versions', () => {
+  it('an envelope from a build before lesson places reads as having none, and merges', () => {
+    const raw = JSON.parse(JSON.stringify(dev((v) => { v.flags = { 'p@1': ['Q1'] }; }, T0))) as Record<string, unknown>;
+    delete raw.lesson;
+    const r = parseLearner(raw);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.version).toBe(1);
+    expect(r.value.lesson).toEqual(emptyLessonSync());
+    const mine = dev((v) => { setEntry<PlaceEntry>(v.lesson.places, 'lesson-1-0.pre.fractions', { updatedAt: T0, place: { stage: 'learn', practice: { attempts: 0, streak: 0, results: [] } } }); }, T0);
+    const m = mergeLearner(mine, r.value);
+    expect(learnerValues(m).flags).toEqual({ 'p@1': ['Q1'] });
+    expect(Object.keys(learnerValues(m).lesson.places)).toEqual(['lesson-1-0.pre.fractions']);
+    eq(m, mergeLearner(r.value, mine));
+    // A lesson part that is not an object refuses the envelope, as any other part does.
+    expect(parseLearner({ ...raw, lesson: 'x' })).toMatchObject({ ok: false, error: expect.stringMatching(/lesson/) });
+  });
+
   it('data saved before sync tracked it gets default stamps: the campaign start, a paper\'s finish', () => {
     const c = newCampaign('cs', T0);
     c.college = 'wolfson';

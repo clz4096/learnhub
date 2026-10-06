@@ -7,10 +7,15 @@
  * choice and result was set, and what was removed. `mergeLearner` is the product of the
  * parts' merges, each a join (idempotent, commutative, associative), so devices end with
  * the same envelope whatever order their copies meet in. The rules are in each part's
- * file: campaign.ts, story.ts, day.ts, ladder.ts, current.ts.
+ * file: campaign.ts, story.ts, day.ts, ladder.ts, current.ts, lesson.ts.
  *
  * Older builds read the progress document and ignore the `learner` key (an unknown field
  * is a warning, not an error), so a row or a file with an envelope still opens there.
+ *
+ * Lesson places and write-up drafts (`lesson`) joined version 1 without a version bump: an
+ * envelope without them reads as having none, and a build before them reads the envelope
+ * and ignores the field (it reads parts by name), so neither side refuses the other. Such a
+ * build drops the field when it pushes; each device keeps its own copy and puts it back.
  */
 import type { Campaign } from '@/model/campaign';
 import type { DayLog } from '@/model/dayLog';
@@ -27,6 +32,7 @@ import {
 import { dayLogOf, emptyDaySync, mergeDay, normalizeDay, observeDay, parseDaySync, type DaySync } from './day';
 import { canonicalJson, isObj } from './join';
 import { emptyLadderSync, mergeLadder, normalizeLadder, observeLadder, parseLadderSync, type LadderSync } from './ladder';
+import { emptyLessonSync, lessonValuesOf, mergeLesson, normalizeLesson, observeLesson, parseLessonSync, type LessonSync, type LessonValues } from './lesson';
 import { emptyStorySync, mergeStory, normalizeStory, observeStory, parseStorySync, type StorySync } from './story';
 
 export const LEARNER_VERSION = 1;
@@ -39,6 +45,7 @@ export interface LearnerState {
   ladder: LadderSync;
   mixed: MixedSync;
   flags: FlagsSync;
+  lesson: LessonSync;
 }
 
 /** The parts as the app's stores keep them. */
@@ -49,21 +56,22 @@ export interface LearnerValues {
   ladder: LadderAttempt[];
   mixed: MixedSitting | null;
   flags: Record<string, string[]>;
+  lesson: LessonValues;
 }
 
-export const LEARNER_PARTS = ['campaign', 'story', 'day', 'ladder', 'mixed', 'flags'] as const;
+export const LEARNER_PARTS = ['campaign', 'story', 'day', 'ladder', 'mixed', 'flags', 'lesson'] as const;
 
 export function emptyLearner(): LearnerState {
   return {
     version: LEARNER_VERSION, campaign: emptyCampaignSync(), story: emptyStorySync(), day: emptyDaySync(),
-    ladder: emptyLadderSync(), mixed: emptyMixedSync(), flags: emptyFlagsSync(),
+    ladder: emptyLadderSync(), mixed: emptyMixedSync(), flags: emptyFlagsSync(), lesson: emptyLessonSync(),
   };
 }
 
 export function normalizeLearner(s: LearnerState): LearnerState {
   return {
     version: LEARNER_VERSION, campaign: normalizeCampaign(s.campaign), story: normalizeStory(s.story), day: normalizeDay(s.day),
-    ladder: normalizeLadder(s.ladder), mixed: s.mixed, flags: s.flags,
+    ladder: normalizeLadder(s.ladder), mixed: s.mixed, flags: s.flags, lesson: normalizeLesson(s.lesson),
   };
 }
 
@@ -77,6 +85,7 @@ export function mergeLearner(a: LearnerState, b: LearnerState): LearnerState {
     ladder: mergeLadder(a.ladder, b.ladder),
     mixed: mergeMixed(a.mixed, b.mixed),
     flags: mergeFlags(a.flags, b.flags),
+    lesson: mergeLesson(a.lesson, b.lesson),
   };
 }
 
@@ -103,6 +112,7 @@ export function observeLearner(s: LearnerState, v: LearnerValues, now: number): 
     ladder: observeLadder(s.ladder, v.ladder, now),
     mixed: observeMixed(s.mixed, v.mixed, now),
     flags: observeFlags(s.flags, v.flags, now),
+    lesson: observeLesson(s.lesson, v.lesson, now),
   };
 }
 
@@ -115,6 +125,7 @@ export function learnerValues(s: LearnerState): LearnerValues {
     ladder: s.ladder.attempts,
     mixed: s.mixed.value,
     flags: flagsOf(s.flags),
+    lesson: lessonValuesOf(s.lesson),
   };
 }
 
@@ -137,13 +148,14 @@ export function parseLearner(x: unknown): LearnerParse {
   const ladder = parseLadderSync(x.ladder);
   const mixed = parseMixedSync(x.mixed);
   const flags = parseFlagsSync(x.flags);
+  const lesson = parseLessonSync(x.lesson);
   const bad = [
     campaign === null && 'campaign', story === null && 'story', day === null && 'day', ladder === null && 'ladder',
-    mixed === null && 'mixed', flags === null && 'flags',
+    mixed === null && 'mixed', flags === null && 'flags', lesson === null && 'lesson',
   ].filter((p): p is string => p !== false);
   if (bad.length > 0) return { ok: false, error: `learner: unreadable ${bad.join(', ')}` };
   return {
     ok: true,
-    value: { version: LEARNER_VERSION, campaign: campaign!, story: story!, day: day!, ladder: ladder!, mixed: mixed!, flags: flags! },
+    value: { version: LEARNER_VERSION, campaign: campaign!, story: story!, day: day!, ladder: ladder!, mixed: mixed!, flags: flags!, lesson: lesson! },
   };
 }

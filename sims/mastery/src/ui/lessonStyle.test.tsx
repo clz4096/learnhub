@@ -23,6 +23,7 @@ const T0 = new Date(2026, 9, 5, 9, 0).getTime();
 beforeEach(async () => {
   Element.prototype.scrollTo ??= () => {};
   sessionStorage.clear();
+  localStorage.clear();
   setClock(() => T0);
   await init(new IDBFactory() as unknown as IdbFactoryLike);
   await commit(startLearner(T0, DEFAULT_COURSES, 60));
@@ -31,6 +32,7 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
   sessionStorage.clear();
+  localStorage.clear();
 });
 
 // Downloaded up front, so a lesson renders at once.
@@ -199,7 +201,7 @@ describe('the lesson header, its sections, and numbering', () => {
     expect(labels()).toEqual(['Theorem 2.1', 'Definition 2.2']);
     expect([...document.querySelectorAll('ol.outline li')].map((x) => x.getAttribute('class'))).toEqual(['done', 'cur', null, null, null]);
     expect(segs()).toEqual(['done', 'cur', null, null, null]);
-    // The place is kept for the tab, with the section.
+    // The place is kept, with the section.
     expect(loadPlace(`test.${TOPIC}`)).toMatchObject({ stage: 'learn', section: 1, furthest: 1 });
     fireEvent.click(screen.getByRole('button', { name: 'Next: worked examples' }));
     expect(document.querySelector('h2.section-title')?.textContent).toBe('Worked examples');

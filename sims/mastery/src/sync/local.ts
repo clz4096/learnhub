@@ -17,6 +17,7 @@ import { DAY_KEY, loadDays } from '@/model/dayLog';
 import { FLAG_KEY } from '@/model/flagsStore';
 import { LADDER_KEY, reloadLadder } from '@/model/ladderStore';
 import { learnerSynced, onLearnerChange, quietly, type LearnerChange } from '@/model/learnerChange';
+import { loadPlaces, loadWriteUps, settlePlaces, storeDrafts } from '@/model/lessonState';
 import { MIXED_KEY, loadMixed, saveMixed } from '@/model/mixedStore';
 import { now } from '@/model/store';
 import { parseStory } from '@/model/story';
@@ -66,6 +67,7 @@ export function storedValues(): LearnerValues {
     ladder: parseAttempts(readJson(LADDER_KEY)),
     mixed: loadMixed(),
     flags: parseStoredFlags(readJson(FLAG_KEY)),
+    lesson: { places: loadPlaces(), writeUps: loadWriteUps() },
   };
 }
 
@@ -149,6 +151,13 @@ export function applyLearner(s: LearnerState): void {
     }
     if (!same(before.flags, v.flags)) {
       writeJson(FLAG_KEY, v.flags);
+      wrote = true;
+    }
+    // Settled as the stored copy is, so a stale place the document shows finished is not
+    // written back (and counted as news) on every round.
+    const lesson = { places: settlePlaces(v.lesson.places), writeUps: v.lesson.writeUps };
+    if (!same(before.lesson, lesson)) {
+      storeDrafts(lesson.places, lesson.writeUps);
       wrote = true;
     }
   });

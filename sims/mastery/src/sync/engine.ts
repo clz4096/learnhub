@@ -30,8 +30,8 @@
  * the same moment can overwrite each other's push. Neither loses work: each keeps its
  * merged copy locally and pushes it again on its next round, which merges the other's.
  *
- * The learner envelope (campaign, story, day log, timed ladder, mixed review, flags:
- * sync/learner) rides in the same row, beside the progress document's fields, and is
+ * The learner envelope (campaign, story, day log, timed ladder, mixed review, flags, lesson
+ * places and write-up drafts: sync/learner) rides in the same row, beside the progress document's fields, and is
  * merged the same way (`mergeLearner`). An older build reads the row's progress and
  * ignores the envelope; when it pushes, its row has no envelope, and the next round of a
  * newer build puts the merged envelope back, since every device keeps its own copy.

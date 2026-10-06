@@ -204,6 +204,8 @@ One row per learner holds the progress document and, beside its fields under the
 | Timed ladder | `mastery.ladder.v1` | Attempts and their marks. |
 | Mixed review | `mastery.mixed.v1` | The day's blind mixed review: its plan and place. |
 | Timed-paper flags | `mastery.flags.v1` | Parts flagged during the running sitting or attempt. |
+| Lesson places | `mastery.lessonplace.v1` | Where you are in each unfinished lesson: section, furthest section reached, stage, and practice run. |
+| Write-up drafts | `mastery.writeup.v1` | Supervision write-ups typed but not yet sent. |
 
 The device keeps its copy of the envelope in `mastery.learner.v1`, updated on each save so
 every change is dated when it was made.
@@ -212,7 +214,8 @@ These stay on each device on purpose, as conveniences of one screen: the theme
 (`mastery.theme.v1`), the fold of the whole day on Today (`mastery.wholeday.v1`), the map's
 "all edges" switch, the palette's recent items (`mastery.recent.v1`), whether the tour has
 played (`mastery.tour.v1`), the last email used to sign in (`mastery.syncemail.v1`; never the
-password), a lesson's place within a tab (sessionStorage), and the catalog
+password), the problem salt of a lesson opened from the map (`mastery.learnsalt.v1`; a
+lesson begun on another device is found by its synced place instead), and the catalog
 summary (`learnhub.progress.mastery`), which is rebuilt from progress.
 
 ### Merging
@@ -236,6 +239,14 @@ whatever order the copies meet in.
 - **Mixed review**: the later day wins; on the same day, the later plan, then the copy
   further through it. A day finished on either device stays finished.
 - **Flags**: the later-started sitting's flags; for the same sitting, flags from both devices.
+- **Lesson places and write-up drafts**: per lesson (or per problem), the copy saved last
+  wins. Finishing a lesson clears its place, and the clear beats an older place from the
+  other device. A place saved before the lesson's last finish in the progress document is
+  never resumed. Places and drafts untouched for 60 days are dropped on every device.
+  If sync brings a newer place for the lesson you have open, the lesson stays where you
+  are and offers **Continue where you left off on your other device**; otherwise the newer
+  place applies the next time you open the lesson. Moving on in the open lesson first
+  makes that the latest place instead.
 - **Running clocks**: one paper or rung runs at a time on a device, and the Paper and Ladder
   screens refuse to start one while another runs. If both devices start one offline, both are
   kept after the merge, both running; the earlier shows first, and the other's clock has run

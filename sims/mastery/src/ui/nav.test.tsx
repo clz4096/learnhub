@@ -211,18 +211,18 @@ describe('a learner with a course', () => {
     expect(heading()).toBe(TODAY);
   });
 
-  it('leaving a lesson mid-practice keeps its place, and says the count resets if the tab closes', async () => {
+  it('leaving a lesson mid-practice keeps its place, and says it is kept after the app closes', async () => {
     await started();
     go({ view: 'task', index: 0 });
     render(<App />);
     toExamples();
     click('Next: practice');
-    expect(screen.getByText(/If the tab is closed, practice starts again/)).toBeTruthy();
+    expect(screen.getByText(/even after closing the app/)).toBeTruthy();
     click(/^Show me how/);
     click('Next problem');
     expect(screen.getByText(/^Problem 2\./)).toBeTruthy();
     // The note is said once, before the first problem.
-    expect(screen.queryByText(/If the tab is closed, practice starts again/)).toBeNull();
+    expect(screen.queryByText(/even after closing the app/)).toBeNull();
 
     click('Back to today');
     expect(location.hash).toBe('#/');

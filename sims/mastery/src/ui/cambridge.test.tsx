@@ -16,6 +16,7 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
   sessionStorage.clear();
+  localStorage.clear();
 });
 
 function cambridge(topicId: string, id: string): Instance {
@@ -171,7 +172,7 @@ describe('the Cambridge stage', () => {
     }
   });
 
-  it('a supervision problem has a write-up box kept for the tab, Copy for supervision, and Paste result', async () => {
+  it('a supervision problem has a write-up box kept on the device, Copy for supervision, and Paste result', async () => {
     await open('comb.pigeonhole');
     const box = screen.getAllByLabelText('Your write-up')[0] as HTMLTextAreaElement;
     fireEvent.input(box, { target: { value: 'Worst case: one odd sock of each colour.' } });

@@ -43,7 +43,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Type numbers as a whole number, a fraction such as 3/8 or 3÷8, or an exact decimal. Type expressions with ^ for powers, such as x^2 + 3x; a multiplication sign is optional, and √ and π work too.',
       'The line under the answer box shows how your answer was read, written as mathematics. The keys below it add symbols at the cursor, such as the fraction bar, powers, and roots. Enter checks the answer. If the answer cannot be read yet, nothing is graded: finish it and press Enter again. If it is read in a form the question does not ask for, such as a calculation where a single number is asked, you can edit it or check it anyway.',
       'A wrong answer is part of learning. The result shows your answer beside the correct one, names the likely slip when it can, gives the full worked solution, and says what the miss does to your progress. "Show me how" shows the solution too, and counts as a miss. If a lesson does not stick today, it comes back in another session.',
-      'You can leave a lesson and come back: your place is kept while this tab is open. If the tab is closed, practice starts again and the right-in-a-row count resets.',
+      'You can leave a lesson and come back, even after closing the app: your place and your right-in-a-row count are kept, and sync, if you use it, carries them to your other devices.',
     ],
   },
   {
