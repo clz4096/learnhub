@@ -22,6 +22,10 @@
  * on the page than IndexedDB. What limits the damage of a stolen token is row-level
  * security (one row of study progress) and Supabase's refresh token rotation.
  *
+ * Passwords: the engine passes a password straight to GoTrue and keeps no copy. It is not
+ * in the persisted state, the status, or any message, so it never reaches storage or the
+ * synced row.
+ *
  * One limit of the server write: the upsert replaces the row, so two devices pushing at
  * the same moment can overwrite each other's push. Neither loses work: each keeps its
  * merged copy locally and pushes it again on its next round, which merges the other's.
@@ -40,7 +44,7 @@ import { joinDoc, splitDoc } from './backup';
 import type { SyncConfig } from './config';
 import { isEmptyLearner, mergeLearner, parseLearner, sameLearner, type LearnerState } from './learner/envelope';
 import {
-  SyncHttpError, cleanCode, logout, pullRow, pushRow, refreshSession, requestLink, verifyCode,
+  SyncHttpError, cleanCode, logout, pullRow, pushRow, refreshSession, requestLink, signInWithPassword, updatePassword, verifyCode,
   type FetchLike, type FragmentResult, type Session,
 } from './supabase';
 
@@ -55,6 +59,10 @@ export const RETRY_MAX_MS = 5 * 60_000;
 export const REFRESH_EARLY_MS = 60_000;
 /** How long an emailed code works: Supabase's default "Email OTP Expiration", one hour. */
 export const CODE_TTL_MS = 3600_000;
+/** The shortest password the app sets. GoTrue's own minimum (6 by default) may be raised in the project. */
+export const MIN_PASSWORD_CHARS = 8;
+/** Said when the device has no connection, for the password forms. */
+export const OFFLINE_TEXT = 'No connection. Check that this device is online, then try again.';
 
 export type SyncPhase = 'signed-out' | 'idle' | 'syncing' | 'error';
 
@@ -234,11 +242,72 @@ export class SyncEngine {
     } catch (err) {
       return this.codeProblem(err, e);
     }
+    await this.adopt(session, e);
+    return null;
+  }
+
+  /** Keeps a new session as the link's redirect does, then runs the first round. */
+  private async adopt(session: Session, email: string): Promise<void> {
     this.codeSent = null;
     this.state.session = session;
     await this.persist();
-    this.emit({ phase: 'idle', email: session.email ?? e, message: null, linkSentTo: null, remoteErrors: [] });
+    this.emit({ phase: 'idle', email: session.email ?? email, message: null, linkSentTo: null, remoteErrors: [] });
     await this.syncNow();
+  }
+
+  /**
+   * Signs in with email and password, keeping the session as the other ways in do, then
+   * runs the first round. Resolves to an error message for the form, or null when signed in.
+   */
+  async signInWithPassword(email: string, password: string): Promise<string | null> {
+    const e = email.trim();
+    if (!EMAIL_RE.test(e)) return 'Enter an email address.';
+    if (password === '') return 'Enter your password.';
+    if (this.d.isOnline?.() === false) return OFFLINE_TEXT;
+    let session: Session;
+    try {
+      session = await signInWithPassword(this.d.config, this.d.fetch, e, password, this.d.now());
+    } catch (err) {
+      if (!(err instanceof SyncHttpError)) return `Could not sign in. ${errText(err)}`;
+      if (err.status === 0) return OFFLINE_TEXT;
+      if (err.status === 429) return 'Too many sign-in attempts for now. Wait a few minutes, then try again.';
+      if (err.code === 'email_not_confirmed') return 'This email address is not confirmed yet. Sign in with the emailed link or code instead.';
+      if (err.status === 400 && (err.code === null || err.code === 'invalid_credentials' || err.code === 'invalid_grant')) {
+        return 'Wrong email or password. Check both, or sign in with an emailed link or code and set a password there.';
+      }
+      return `Could not sign in. ${errText(err)}`;
+    }
+    await this.adopt(session, e);
+    return null;
+  }
+
+  /**
+   * Sets a password for the signed-in account, so another device (the Home Screen app) can
+   * sign in with it. Resolves to an error message for the form, or null when set.
+   */
+  async setPassword(password: string): Promise<string | null> {
+    if (this.state.session === null) return 'Sign in first, then set a password.';
+    if (password.length < MIN_PASSWORD_CHARS) return `Use at least ${MIN_PASSWORD_CHARS} characters.`;
+    if (this.d.isOnline?.() === false) return OFFLINE_TEXT;
+    try {
+      await this.authed((s) => updatePassword(this.d.config, this.d.fetch, s.accessToken, password));
+    } catch (err) {
+      if (err instanceof SessionExpired) {
+        await this.failed(err);
+        return 'Your sign-in has expired. Sign in again, then set the password.';
+      }
+      if (!(err instanceof SyncHttpError)) return `Could not set the password. ${errText(err)}`;
+      if (err.status === 0) return OFFLINE_TEXT;
+      if (err.status === 429) return 'Too many tries for now. Wait a few minutes, then try again.';
+      if (err.code === 'reauthentication_needed' || /reauthenticat/i.test(err.detail ?? '')) {
+        return 'Supabase wants a fresh sign-in first: sign out, sign in again, and set the password straight away, or turn off "Secure password change" in Supabase Auth settings.';
+      }
+      if (err.code === 'same_password') return 'That is already the password for this account.';
+      if (err.status === 422 || err.code === 'weak_password') {
+        return `That password is too weak${err.detail === null ? '' : ` (${err.detail.replace(/\.$/, '')})`}. Try a longer one.`;
+      }
+      return `Could not set the password. ${errText(err)}`;
+    }
     return null;
   }
 
@@ -344,7 +413,8 @@ export class SyncEngine {
     try {
       return await f(await this.fresh(false));
     } catch (e) {
-      if (e instanceof SyncHttpError && e.status === 401) return f(await this.fresh(true));
+      // GoTrue's /user answers an expired token with 403 `bad_jwt`; PostgREST with 401.
+      if (e instanceof SyncHttpError && (e.status === 401 || e.code === 'bad_jwt')) return f(await this.fresh(true));
       throw e;
     }
   }

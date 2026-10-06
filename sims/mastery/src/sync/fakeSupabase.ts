@@ -5,6 +5,12 @@
  * refuses a huge document, and the network can be cut. Each sign-in email carries a
  * one-time code: only the newest code for an address works, once, within the hour, and a
  * wrong code and an expired one get GoTrue's same answer (403, `otp_expired`).
+ *
+ * Passwords: a signed-in user sets one with PUT /auth/v1/user and signs in with the
+ * password grant. A wrong password and an unknown email get the same 400; a password under
+ * the project's minimum gets 422 `weak_password`; with "Secure password change" on, a
+ * session that began more than a day ago gets 400 `reauthentication_needed`, as GoTrue
+ * does when no reauthentication nonce is sent.
  */
 import type { FetchLike } from './supabase';
 
@@ -21,6 +27,8 @@ export const URL_BASE = 'https://testref.supabase.co';
 export const TABLE_LIMIT_BYTES = 2 * 1024 * 1024;
 /** GoTrue's default "Email OTP Expiration". */
 export const OTP_TTL_MS = 3600_000;
+/** GoTrue lets a session change the password without reauthentication for this long. */
+export const REAUTH_WINDOW_MS = 24 * 3600_000;
 
 export interface Row {
   user_id: string;
@@ -50,8 +58,16 @@ export class FakeSupabase {
   /** Runs before a request is handled, to interleave another device. */
   before: ((c: Call) => Promise<void>) | null = null;
   private readonly users = new Map<string, string>();
-  private readonly access = new Map<string, { sub: string; exp: number }>();
-  private readonly refresh = new Map<string, string>();
+  /** `start` is when the session began; a refresh keeps it, as GoTrue's session does. */
+  private readonly access = new Map<string, { sub: string; exp: number; start: number }>();
+  private readonly refresh = new Map<string, { sub: string; start: number }>();
+  private readonly passwords = new Map<string, string>();
+  /** The project's "Minimum password length" (GoTrue's default is 6). */
+  minPasswordLength = 6;
+  /** The project's "Secure password change" setting. */
+  securePasswordChange = false;
+  /** Answer a wrong password as older GoTrue did: `{ error: 'invalid_grant' }`. */
+  legacyGrantErrors = false;
   /** The newest code emailed to each address; sending again replaces it, as GoTrue does. */
   private readonly codes = new Map<string, { code: string; at: number }>();
   private serial = 0;
@@ -68,13 +84,13 @@ export class FakeSupabase {
     return id;
   }
 
-  private issue(sub: string, email: string): { access_token: string; refresh_token: string; expires_in: number; expires_at: number } {
+  private issue(sub: string, email: string, start = this.clock()): { access_token: string; refresh_token: string; expires_in: number; expires_at: number } {
     const n = ++this.serial;
     const exp = this.clock() + this.ttlMs;
     const access = fakeJwt({ sub, email, role: 'authenticated', exp: Math.floor(exp / 1000), n });
     const refresh = `rt-${n}`;
-    this.access.set(access, { sub, exp });
-    this.refresh.set(refresh, sub);
+    this.access.set(access, { sub, exp, start });
+    this.refresh.set(refresh, { sub, start });
     return { access_token: access, refresh_token: refresh, expires_in: Math.round(this.ttlMs / 1000), expires_at: Math.floor(exp / 1000) };
   }
 
@@ -102,6 +118,15 @@ export class FakeSupabase {
     return this.userFor(email);
   }
 
+  /** The account's password, as the server holds it (a real one keeps only a hash). */
+  passwordOf(email: string): string | undefined {
+    return this.passwords.get(email.toLowerCase());
+  }
+
+  private emailOf(sub: string): string {
+    return [...this.users].find(([, id]) => id === sub)?.[0] ?? '';
+  }
+
   readonly fetch: FetchLike = async (url, init = {}) => {
     const u = new URL(url);
     const headers = Object.fromEntries(Object.entries((init.headers ?? {}) as Record<string, string>).map(([k, v]) => [k.toLowerCase(), v]));
@@ -121,9 +146,13 @@ export class FakeSupabase {
   };
 
   private bearer(c: Call): string | null {
+    return this.session(c)?.sub ?? null;
+  }
+
+  private session(c: Call): { sub: string; start: number } | null {
     const token = c.headers.authorization?.replace(/^Bearer /, '') ?? '';
     const a = this.access.get(token);
-    return a === undefined || a.exp <= this.clock() ? null : a.sub;
+    return a === undefined || a.exp <= this.clock() ? null : a;
   }
 
   private handle(c: Call): Response {
@@ -153,11 +182,43 @@ export class FakeSupabase {
     }
     if (c.method === 'POST' && c.path === '/auth/v1/token' && c.query.get('grant_type') === 'refresh_token') {
       const old = String(body?.refresh_token);
-      const sub = this.refresh.get(old);
-      if (sub === undefined) return json(400, { error: 'invalid_grant', error_description: 'Invalid Refresh Token: Refresh Token Not Found' });
+      const r = this.refresh.get(old);
+      if (r === undefined) return json(400, { error: 'invalid_grant', error_description: 'Invalid Refresh Token: Refresh Token Not Found' });
       this.refresh.delete(old);
-      const email = [...this.users].find(([, id]) => id === sub)?.[0] ?? '';
+      const email = this.emailOf(r.sub);
+      return json(200, { ...this.issue(r.sub, email, r.start), token_type: 'bearer', user: { id: r.sub, email } });
+    }
+    if (c.method === 'POST' && c.path === '/auth/v1/token' && c.query.get('grant_type') === 'password') {
+      const email = typeof body?.email === 'string' ? body.email.toLowerCase() : '';
+      const known = this.passwords.get(email);
+      if (known === undefined || known !== body?.password) {
+        return this.legacyGrantErrors
+          ? json(400, { error: 'invalid_grant', error_description: 'Invalid login credentials' })
+          : json(400, { code: 400, error_code: 'invalid_credentials', msg: 'Invalid login credentials' });
+      }
+      const sub = this.userFor(email);
       return json(200, { ...this.issue(sub, email), token_type: 'bearer', user: { id: sub, email } });
+    }
+    if (c.method === 'PUT' && c.path === '/auth/v1/user') {
+      const sess = this.session(c);
+      if (sess === null) return json(403, { code: 403, error_code: 'bad_jwt', msg: 'invalid JWT: unable to parse or verify signature, token has invalid claims: token is expired' });
+      const password = body?.password;
+      if (typeof password !== 'string') return json(400, { code: 400, error_code: 'validation_failed', msg: 'Invalid request' });
+      if (this.securePasswordChange && this.clock() - sess.start > REAUTH_WINDOW_MS && typeof body?.nonce !== 'string') {
+        return json(400, { code: 400, error_code: 'reauthentication_needed', msg: 'Password update requires reauthentication' });
+      }
+      if (password.length < this.minPasswordLength) {
+        return json(422, {
+          code: 422, error_code: 'weak_password', msg: `Password should be at least ${this.minPasswordLength} characters.`,
+          weak_password: { reasons: ['length'] },
+        });
+      }
+      const email = this.emailOf(sess.sub).toLowerCase();
+      if (this.passwords.get(email) === password) {
+        return json(422, { code: 422, error_code: 'same_password', msg: 'New password should be different from the old password.' });
+      }
+      this.passwords.set(email, password);
+      return json(200, { id: sess.sub, email });
     }
     if (c.method === 'POST' && c.path === '/auth/v1/logout') return new Response(null, { status: 204 });
     if (c.path === '/rest/v1/learnhub_progress') {

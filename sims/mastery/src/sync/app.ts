@@ -23,7 +23,8 @@ export const syncStatus = signal<SyncStatus>({
 /**
  * True when the app runs from the Home Screen (iOS `navigator.standalone`, or the
  * standalone display mode elsewhere). Such an app keeps its storage apart from the
- * browser's, and the emailed link opens in the browser, so only the code signs it in.
+ * browser's, and the emailed link opens in the browser, so only a password or the code
+ * signs it in.
  */
 export function detectStandalone(): boolean {
   if (typeof navigator !== 'undefined' && (navigator as Navigator & { standalone?: boolean }).standalone === true) return true;
@@ -102,8 +103,49 @@ export function stopSync(): void {
   engine = null;
 }
 
-export const signIn = (email: string): Promise<string | null> => engine?.signIn(email) ?? Promise.resolve('Sync is not set up.');
-export const signInWithCode = (email: string, code: string): Promise<string | null> =>
-  engine?.signInWithCode(email, code) ?? Promise.resolve('Sync is not set up.');
+/**
+ * The last email this device signed in with or sent a sign-in email to, so the form can
+ * offer it again (and iOS Keychain can match it). Only the address is kept, never a password.
+ */
+export const LAST_EMAIL_KEY = 'mastery.syncemail.v1';
+
+export function rememberedEmail(): string {
+  try {
+    return typeof localStorage === 'undefined' ? '' : localStorage.getItem(LAST_EMAIL_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function rememberEmail(email: string): void {
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(LAST_EMAIL_KEY, email.trim());
+  } catch {
+    // Storage refused: the form starts empty next time.
+  }
+}
+
+/** Runs a sign-in step and remembers the address when it worked. */
+async function remembering(email: string, f: () => Promise<string | null>): Promise<string | null> {
+  const err = await f();
+  if (err === null) rememberEmail(email);
+  return err;
+}
+
+const OFF = (): Promise<string | null> => Promise.resolve('Sync is not set up.');
+
+export const signIn = (email: string): Promise<string | null> => {
+  const e = engine;
+  return e === null ? OFF() : remembering(email, () => e.signIn(email));
+};
+export const signInWithCode = (email: string, code: string): Promise<string | null> => {
+  const e = engine;
+  return e === null ? OFF() : remembering(email, () => e.signInWithCode(email, code));
+};
+export const signInWithPassword = (email: string, password: string): Promise<string | null> => {
+  const e = engine;
+  return e === null ? OFF() : remembering(email, () => e.signInWithPassword(email, password));
+};
+export const setPassword = (password: string): Promise<string | null> => engine?.setPassword(password) ?? OFF();
 export const signOut = (): Promise<void> => engine?.signOut() ?? Promise.resolve();
 export const syncNow = (): Promise<void> => engine?.syncNow() ?? Promise.resolve();

@@ -8,9 +8,9 @@ import { DEFAULT_COURSES, finishOpenPlacement, startLearner, withoutSelfReport }
 import { KNOWN_IDS } from '@/model/store';
 import { parseSyncConfig } from './config';
 import {
-  CODE_TTL_MS, DEBOUNCE_MS, MAX_SYNC_CHARS, RETRY_BASE_MS, SYNC_STATE_KEY, SyncEngine, type SyncStatus,
+  CODE_TTL_MS, DEBOUNCE_MS, MAX_SYNC_CHARS, OFFLINE_TEXT, RETRY_BASE_MS, SYNC_STATE_KEY, SyncEngine, type SyncStatus,
 } from './engine';
-import { ANON_KEY, FakeSupabase, URL_BASE } from './fakeSupabase';
+import { ANON_KEY, FakeSupabase, REAUTH_WINDOW_MS, URL_BASE } from './fakeSupabase';
 import { readAuthFragment } from './supabase';
 import { LEARNER_VERSION, emptyLearner, learnerValues, observeLearner, type LearnerState, type LearnerValues } from './learner/envelope';
 import { plain } from './learner/join';
@@ -276,6 +276,150 @@ describe('sign in by emailed code', () => {
     mac.online = true;
     expect(await mac.engine.signInWithCode(EMAIL, server.lastCode(EMAIL) ?? '')).toBeNull();
     expect(mac.status.phase).toBe('idle');
+  });
+});
+
+describe('passwords', () => {
+  const PW = 'correct horse 42';
+  const tokenCalls = (s: FakeSupabase) => s.calls.filter((c) => c.path === '/auth/v1/token' && c.query.get('grant_type') === 'password');
+  const userCalls = (s: FakeSupabase) => s.calls.filter((c) => c.path === '/auth/v1/user');
+  /** Everything a device keeps or reports: storage and every status it emitted. */
+  async function kept(d: Device): Promise<string> {
+    return `${(await d.storage.get(SYNC_STATE_KEY)) ?? ''}${JSON.stringify(d.statuses)}`;
+  }
+
+  it('the Mac sets a password; the Home Screen app signs in with it, keeps the session, and syncs', async () => {
+    const { clock, server } = setup();
+    const mac = new Device(server, clock, lesson('pre.fractions', T0)(started()));
+    await mac.signInByLink();
+    expect(await mac.engine.setPassword(PW)).toBeNull();
+    const put = userCalls(server)[0];
+    expect(put?.method).toBe('PUT');
+    expect(put?.headers.authorization).toMatch(/^Bearer /);
+    expect(put?.headers.apikey).toBe(ANON_KEY);
+    expect(JSON.parse(put?.body ?? '{}')).toEqual({ password: PW });
+    expect(server.passwordOf(EMAIL)).toBe(PW);
+    expect(mac.status.phase).toBe('idle');
+
+    const phone = new Device(server, clock, null);
+    await phone.engine.start(null);
+    expect(await phone.engine.signInWithPassword(` ${EMAIL} `, PW)).toBeNull();
+    const t = tokenCalls(server)[0];
+    expect(t?.method).toBe('POST');
+    expect(t?.headers.authorization).toBeUndefined();
+    expect(JSON.parse(t?.body ?? '{}')).toEqual({ email: EMAIL, password: PW });
+    expect(phone.status).toMatchObject({ phase: 'idle', email: EMAIL, linkSentTo: null, message: null, lastSyncedAt: T0 });
+    expect(phone.doc?.history).toHaveLength(1);
+    expect(JSON.parse((await phone.storage.get(SYNC_STATE_KEY)) ?? '{}').session.userId).toBe(server.userId(EMAIL));
+
+    // The password is in no storage, status, or synced row.
+    expect(await kept(mac)).not.toContain(PW);
+    expect(await kept(phone)).not.toContain(PW);
+    expect(JSON.stringify([...server.rows.values()])).not.toContain(PW);
+  });
+
+  it('checks the form before asking the server', async () => {
+    const { clock, server } = setup();
+    const d = new Device(server, clock, started());
+    await d.engine.start(null);
+    expect(await d.engine.signInWithPassword('', PW)).toBe('Enter an email address.');
+    expect(await d.engine.signInWithPassword(EMAIL, '')).toBe('Enter your password.');
+    expect(await d.engine.setPassword(PW)).toBe('Sign in first, then set a password.');
+    await d.signInByLink();
+    const before = server.calls.length;
+    expect(await d.engine.setPassword('seven77')).toBe('Use at least 8 characters.');
+    expect(server.calls.length).toBe(before);
+  });
+
+  it('a wrong password or unknown email, in the current and the older GoTrue answer, stays signed out', async () => {
+    const { clock, server } = setup();
+    const mac = new Device(server, clock, started());
+    await mac.signInByLink();
+    await mac.engine.setPassword(PW);
+    const phone = new Device(server, clock, started());
+    await phone.engine.start(null);
+    const wrong = 'Wrong email or password. Check both, or sign in with an emailed link or code and set a password there.';
+    expect(await phone.engine.signInWithPassword(EMAIL, 'not the password')).toBe(wrong);
+    expect(await phone.engine.signInWithPassword('nobody@example.com', PW)).toBe(wrong);
+    server.legacyGrantErrors = true;
+    expect(await phone.engine.signInWithPassword(EMAIL, 'not the password')).toBe(wrong);
+    expect(phone.status.phase).toBe('signed-out');
+    expect(JSON.parse((await phone.storage.get(SYNC_STATE_KEY)) ?? '{"session":null}').session).toBeNull();
+  });
+
+  it('a weak password and the same password get plain words', async () => {
+    const { clock, server } = setup();
+    const mac = new Device(server, clock, started());
+    await mac.signInByLink();
+    server.minPasswordLength = 12;
+    expect(await mac.engine.setPassword('eight888')).toBe('That password is too weak (Password should be at least 12 characters). Try a longer one.');
+    expect(server.passwordOf(EMAIL)).toBeUndefined();
+    expect(await mac.engine.setPassword(PW)).toBeNull();
+    expect(await mac.engine.setPassword(PW)).toBe('That is already the password for this account.');
+  });
+
+  it('with "Secure password change" on, an old session is told how to get past it; a fresh sign-in sets it', async () => {
+    const { clock, server } = setup();
+    server.securePasswordChange = true;
+    const mac = new Device(server, clock, started());
+    await mac.signInByLink();
+    clock.t += REAUTH_WINDOW_MS + 60_000;
+    const msg = await mac.engine.setPassword(PW);
+    expect(msg).toBe('Supabase wants a fresh sign-in first: sign out, sign in again, and set the password straight away, '
+      + 'or turn off "Secure password change" in Supabase Auth settings.');
+    expect(msg).not.toMatch(/[–—]/);
+    expect(server.passwordOf(EMAIL)).toBeUndefined();
+    expect(mac.status.phase).toBe('idle');
+
+    await mac.engine.signOut();
+    await mac.signInByLink();
+    expect(await mac.engine.setPassword(PW)).toBeNull();
+    expect(server.passwordOf(EMAIL)).toBe(PW);
+  });
+
+  it('an expired access token is renewed for the change; a revoked sign-in signs out and says so', async () => {
+    const { clock, server } = setup();
+    const mac = new Device(server, clock, started());
+    await mac.signInByLink();
+    server.expireAccessTokens();
+    expect(await mac.engine.setPassword(PW)).toBeNull();
+    expect(userCalls(server).map((c) => c.method)).toEqual(['PUT', 'PUT']);
+    expect(server.passwordOf(EMAIL)).toBe(PW);
+
+    server.expireAccessTokens();
+    server.revokeRefreshTokens();
+    expect(await mac.engine.setPassword('another one 7')).toBe('Your sign-in has expired. Sign in again, then set the password.');
+    expect(mac.status.phase).toBe('signed-out');
+  });
+
+  it('too many tries, no connection, and the browser offline', async () => {
+    const { clock, server } = setup();
+    const mac = new Device(server, clock, started());
+    await mac.signInByLink();
+    server.failures.push(429);
+    expect(await mac.engine.setPassword(PW)).toBe('Too many tries for now. Wait a few minutes, then try again.');
+    mac.online = false;
+    expect(await mac.engine.setPassword(PW)).toBe(OFFLINE_TEXT);
+    mac.online = true;
+    expect(await mac.engine.setPassword(PW)).toBeNull();
+
+    const phone = new Device(server, clock, started());
+    await phone.engine.start(null);
+    server.failures.push(429);
+    expect(await phone.engine.signInWithPassword(EMAIL, PW)).toBe('Too many sign-in attempts for now. Wait a few minutes, then try again.');
+    phone.online = false;
+    expect(await phone.engine.signInWithPassword(EMAIL, PW)).toBe(OFFLINE_TEXT);
+    phone.online = true;
+
+    let online = false;
+    phone.engine = phone.makeEngine({ isOnline: () => online });
+    await phone.engine.start(null);
+    const before = server.calls.length;
+    expect(await phone.engine.signInWithPassword(EMAIL, PW)).toBe(OFFLINE_TEXT);
+    expect(server.calls.length).toBe(before);
+    online = true;
+    expect(await phone.engine.signInWithPassword(EMAIL, PW)).toBeNull();
+    expect(phone.status.phase).toBe('idle');
   });
 });
 

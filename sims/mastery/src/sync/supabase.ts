@@ -5,6 +5,8 @@
  *   POST /auth/v1/otp                           email a sign-in link and a one-time code
  *   (redirect)  <page>#access_token=...         the session, read from the URL fragment
  *   POST /auth/v1/verify                        trade the emailed code for a session
+ *   POST /auth/v1/token?grant_type=password     sign in with email and password
+ *   PUT  /auth/v1/user                          set the signed-in user's password
  *   POST /auth/v1/token?grant_type=refresh_token  a fresh access token
  *   POST /auth/v1/logout?scope=local            end this device's session only
  *   GET  /rest/v1/learnhub_progress             the learner's row (row-level security)
@@ -18,6 +20,10 @@
  * The code exists for the Home Screen web app on iPhone: it keeps storage apart from
  * Safari, and the emailed link always opens in Safari, so the link can never sign the
  * Home Screen app in. The same email carries the code (`{{ .Token }}` in the template).
+ *
+ * The password is for the same reason: Supabase's built-in email sender cannot be made to
+ * carry the code, so the learner sets a password while signed in on one device and signs
+ * the Home Screen app in with it. The password goes only into these two request bodies.
  */
 import { jwtPayload, type SyncConfig } from './config';
 
@@ -34,7 +40,11 @@ export interface Session {
 
 /** A failed request. `retry` is true when trying again later may work (offline, overloaded, rate limited). */
 export class SyncHttpError extends Error {
-  constructor(message: string, readonly status: number, readonly retry: boolean, readonly code: string | null = null) {
+  constructor(
+    message: string, readonly status: number, readonly retry: boolean, readonly code: string | null = null,
+    /** The server's own words, without what the app was doing. */
+    readonly detail: string | null = null,
+  ) {
     super(message);
     this.name = 'SyncHttpError';
   }
@@ -58,7 +68,8 @@ async function errorOf(r: Response): Promise<{ text: string; code: string | null
   }
   const o = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
   const text = [o.msg, o.error_description, o.message, o.error].find((x) => typeof x === 'string' && x !== '') as string | undefined;
-  const code = [o.error_code, o.code].find((x) => typeof x === 'string') as string | undefined;
+  // `error` is the code in GoTrue's older OAuth-style answers (`invalid_grant`).
+  const code = [o.error_code, o.code, o.error].find((x) => typeof x === 'string') as string | undefined;
   return { text: text ?? `HTTP ${r.status}`, code: code ?? null };
 }
 
@@ -72,7 +83,7 @@ async function send(f: FetchLike, url: string, init: RequestInit, what: string):
   if (r.ok) return r;
   const { text, code } = await errorOf(r);
   const retry = r.status === 408 || r.status === 429 || r.status >= 500;
-  throw new SyncHttpError(`${what}: ${text}`, r.status, retry, code);
+  throw new SyncHttpError(`${what}: ${text}`, r.status, retry, code, text);
 }
 
 /** Emails a sign-in link that returns to `redirectTo`, which must be in the project's redirect allow list. */
@@ -108,15 +119,45 @@ export async function verifyCode(cfg: SyncConfig, f: FetchLike, email: string, c
     headers: headers(cfg, null, { 'Content-Type': 'application/json' }),
     body: JSON.stringify({ type: EMAIL_OTP_TYPE, email, token: code }),
   }, 'checking the code');
+  return sessionOf(r, 'checking the code', now);
+}
+
+/** The session in a token response from /verify or /token. */
+async function sessionOf(r: Response, what: string, now: number): Promise<Session> {
   let o: Record<string, unknown>;
   try {
     o = (await r.json()) as Record<string, unknown>;
   } catch {
-    throw new SyncHttpError('checking the code: the response was not JSON', r.status, true);
+    throw new SyncHttpError(`${what}: the response was not JSON`, r.status, true);
   }
   const s = sessionFrom(String(o.access_token ?? ''), String(o.refresh_token ?? ''), expiryOf(o.expires_at, o.expires_in, now));
-  if (s === null) throw new SyncHttpError('checking the code: the response held no usable session', r.status, false);
+  if (s === null) throw new SyncHttpError(`${what}: the response held no usable session`, r.status, false);
   return s;
+}
+
+/**
+ * Signs in with email and password. GoTrue answers a wrong password and an unknown email
+ * alike (400, `invalid_credentials`, or `invalid_grant` on older versions).
+ */
+export async function signInWithPassword(cfg: SyncConfig, f: FetchLike, email: string, password: string, now: number): Promise<Session> {
+  const r = await send(f, `${cfg.url}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: headers(cfg, null, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ email, password }),
+  }, 'signing in');
+  return sessionOf(r, 'signing in', now);
+}
+
+/**
+ * Sets the signed-in user's password. With "Secure password change" on, GoTrue refuses
+ * (400, `reauthentication_needed`) unless the session began within the last day.
+ */
+export async function updatePassword(cfg: SyncConfig, f: FetchLike, accessToken: string, password: string): Promise<void> {
+  await send(f, `${cfg.url}/auth/v1/user`, {
+    method: 'PUT',
+    headers: headers(cfg, accessToken, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ password }),
+  }, 'setting the password');
 }
 
 function sessionFrom(access: string, refresh: string, expiresAt: number): Session | null {

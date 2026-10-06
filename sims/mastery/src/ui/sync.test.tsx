@@ -7,7 +7,7 @@ import { DEFAULT_COURSES, startLearner } from '@/model/learner';
 import { route } from '@/model/route';
 import { commit, flush, init, loadState, progress, setClock } from '@/model/store';
 import { parseSyncConfig } from '@/sync/config';
-import { detectStandalone, standaloneApp, startSync, stopSync, syncSetup, syncStatus, takeAuthFragment } from '@/sync/app';
+import { LAST_EMAIL_KEY, detectStandalone, standaloneApp, startSync, stopSync, syncSetup, syncStatus, takeAuthFragment } from '@/sync/app';
 import { ANON_KEY, FakeSupabase, URL_BASE } from '@/sync/fakeSupabase';
 import { readAuthFragment } from '@/sync/supabase';
 import { STANDALONE_NOTE, SYNC_OFF_TEXT } from '@/ui/Sync';
@@ -220,5 +220,171 @@ describe('sign in with the emailed code', () => {
       window.matchMedia = mm;
       delete (nav as { standalone?: boolean }).standalone;
     }
+  });
+});
+
+describe('sign in with a password', () => {
+  const PW = 'correct horse 42';
+  const passwordBox = (): HTMLInputElement | null => document.querySelector<HTMLInputElement>('#sync-password');
+  /** Every key and value in localStorage. The engine tests check the sync state it keeps in IndexedDB. */
+  const stored = (): string => Object.keys(localStorage).map((k) => `${k}=${localStorage.getItem(k) ?? ''}`).join('\n');
+
+  async function signedInWithLink(server: FakeSupabase): Promise<void> {
+    syncSetup.value = ON;
+    await commit(startLearner(T0, DEFAULT_COURSES, 60));
+    await startSync(Promise.resolve(), readAuthFragment(server.magicLinkFragment(EMAIL), T0), { fetch: server.fetch as typeof fetch });
+  }
+
+  function setNewPassword(a: string, b: string): void {
+    fireEvent.input(screen.getByLabelText('New password (at least 8 characters)'), { target: { value: a } });
+    fireEvent.input(screen.getByLabelText('Confirm new password'), { target: { value: b } });
+    fireEvent.click(screen.getByRole('button', { name: 'Set password' }));
+  }
+  const pwProblem = (): string | null | undefined => document.querySelector('[data-sync-password-problem]')?.textContent;
+
+  it('signed in: sets a password, clears the fields, and keeps it nowhere', async () => {
+    const server = new FakeSupabase(() => T0);
+    await signedInWithLink(server);
+    render(<ProgressView />);
+    await waitFor(() => expect(document.querySelector('[data-sync-user]')).toBeTruthy());
+    expect(screen.getByText('Set a password for this account')).toBeTruthy();
+    const box = screen.getByLabelText('New password (at least 8 characters)') as HTMLInputElement;
+    expect(box.type).toBe('password');
+    expect(box.getAttribute('autocomplete')).toBe('new-password');
+    expect(screen.getByLabelText('Confirm new password').getAttribute('autocomplete')).toBe('new-password');
+    // The account's email rides in the form so Keychain files the password under it.
+    expect(document.querySelector<HTMLInputElement>('[data-sync-set-password] input[autocomplete="email"]')?.value).toBe(EMAIL);
+    fireEvent.click(screen.getByRole('button', { name: 'Show password' }));
+    expect(box.type).toBe('text');
+    fireEvent.click(screen.getByRole('button', { name: 'Hide password' }));
+    expect(box.type).toBe('password');
+
+    setNewPassword('short', 'short');
+    expect(pwProblem()).toBe('Use at least 8 characters.');
+    setNewPassword(PW, `${PW}x`);
+    expect(pwProblem()).toBe('The two passwords do not match.');
+    expect(server.calls.filter((c) => c.path === '/auth/v1/user')).toEqual([]);
+
+    setNewPassword(PW, PW);
+    await waitFor(() => expect(document.querySelector('[data-sync-password-set]')?.textContent).toBe(
+      'Password set. Use it with this email to sign in on your other devices.'));
+    expect(server.passwordOf(EMAIL)).toBe(PW);
+    expect((screen.getByLabelText('New password (at least 8 characters)') as HTMLInputElement).value).toBe('');
+    expect((screen.getByLabelText('Confirm new password') as HTMLInputElement).value).toBe('');
+    expect(stored()).not.toContain(PW);
+    expect(JSON.stringify(syncStatus.value)).not.toContain(PW);
+  });
+
+  it('signed in: a weak password and a needed reauthentication are explained', async () => {
+    let serverNow = T0;
+    const server = new FakeSupabase(() => serverNow);
+    await signedInWithLink(server);
+    render(<ProgressView />);
+    await waitFor(() => expect(document.querySelector('[data-sync-user]')).toBeTruthy());
+    server.minPasswordLength = 20;
+    setNewPassword(PW, PW);
+    await waitFor(() => expect(pwProblem()).toBe('That password is too weak (Password should be at least 20 characters). Try a longer one.'));
+
+    // "Secure password change" on, and the session two days old on the server.
+    server.minPasswordLength = 6;
+    server.securePasswordChange = true;
+    serverNow = T0 + 2 * 24 * 3600_000;
+    setNewPassword(PW, PW);
+    await waitFor(() => expect(pwProblem()).toMatch(/^Supabase wants a fresh sign-in first: .*turn off "Secure password change" in Supabase Auth settings\.$/));
+    expect(server.passwordOf(EMAIL)).toBeUndefined();
+    expect(document.querySelector('[data-sync-user]')).toBeTruthy();
+  });
+
+  it('signed out, Home Screen app: password first, then the emailed code; signs in and remembers only the email', async () => {
+    const server = new FakeSupabase(() => T0);
+    await signedInWithLink(server);
+    render(<ProgressView />);
+    await waitFor(() => expect(document.querySelector('[data-sync-user]')).toBeTruthy());
+    setNewPassword(PW, PW);
+    await waitFor(() => expect(server.passwordOf(EMAIL)).toBe(PW));
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+    await waitFor(() => expect(screen.getByLabelText('Email')).toBeTruthy());
+    cleanup();
+    localStorage.removeItem(LAST_EMAIL_KEY);
+
+    standaloneApp.value = true;
+    render(<Start />);
+    const email = screen.getByLabelText('Email') as HTMLInputElement;
+    const pw = passwordBox() as HTMLInputElement;
+    const codeButton = screen.getByRole('button', { name: 'Email me a code' });
+    expect(email.getAttribute('autocomplete')).toBe('email');
+    expect(pw.getAttribute('autocomplete')).toBe('current-password');
+    expect(pw.type).toBe('password');
+    // One form, so Keychain pairs them; the password comes before the code.
+    expect(email.form).toBe(pw.form);
+    expect(pw.compareDocumentPosition(codeButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(document.querySelector('[data-sync-or]')?.textContent).toBe('Or email me a code:');
+    expect(screen.getByLabelText('Enter the 6-digit code from the email')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Sign in with a password' })).toBeNull();
+    expect(document.body.textContent).not.toMatch(/[–—]/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show password' }));
+    expect(pw.type).toBe('text');
+    fireEvent.input(email, { target: { value: EMAIL } });
+    fireEvent.input(pw, { target: { value: 'not the password' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/^Wrong email or password\./));
+    expect(syncStatus.value.phase).toBe('signed-out');
+
+    fireEvent.input(pw, { target: { value: PW } });
+    fireEvent.submit(pw.form as HTMLFormElement);
+    await waitFor(() => expect(syncStatus.value.phase).not.toBe('signed-out'));
+    expect(syncStatus.value.email).toBe(EMAIL);
+    expect(server.calls.filter((c) => c.path === '/auth/v1/otp')).toEqual([]);
+    await waitFor(() => expect(syncStatus.value.lastSyncedAt).toBe(T0));
+
+    await waitFor(() => expect(localStorage.getItem(LAST_EMAIL_KEY)).toBe(EMAIL));
+    expect(stored()).not.toContain(PW);
+    expect(stored()).not.toContain('not the password');
+    expect(JSON.stringify(syncStatus.value)).not.toContain(PW);
+  });
+
+  it('signed out, in a browser: the link first, a password on request; the last email is filled in', async () => {
+    localStorage.setItem(LAST_EMAIL_KEY, EMAIL);
+    const server = new FakeSupabase(() => T0);
+    syncSetup.value = ON;
+    await commit(startLearner(T0, DEFAULT_COURSES, 60));
+    await startSync(Promise.resolve(), null, { fetch: server.fetch as typeof fetch });
+    render(<ProgressView />);
+    expect((screen.getByLabelText('Email') as HTMLInputElement).value).toBe(EMAIL);
+    expect(passwordBox()).toBeNull();
+    const link = screen.getByRole('button', { name: 'Email me a sign-in link' });
+    const ask = screen.getByRole('button', { name: 'Sign in with a password' });
+    expect(link.compareDocumentPosition(ask) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.click(ask);
+    const pw = passwordBox() as HTMLInputElement;
+    expect(pw.getAttribute('autocomplete')).toBe('current-password');
+    expect(link.compareDocumentPosition(pw) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    // Enter in the password box signs in with the password, not by link.
+    fireEvent.input(pw, { target: { value: PW } });
+    fireEvent.submit(pw.form as HTMLFormElement);
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/^Wrong email or password\./));
+    expect(server.emails).toEqual([]);
+    // The link still works from the same form.
+    fireEvent.click(link);
+    await waitFor(() => expect(server.emails).toEqual([{ email: EMAIL, redirectTo: `${location.origin}${location.pathname}` }]));
+  });
+
+  it('signed out: rate limits and no connection get plain words', async () => {
+    standaloneApp.value = true;
+    const server = new FakeSupabase(() => T0);
+    syncSetup.value = ON;
+    await commit(startLearner(T0, DEFAULT_COURSES, 60));
+    await startSync(Promise.resolve(), null, { fetch: server.fetch as typeof fetch });
+    render(<ProgressView />);
+    fireEvent.input(screen.getByLabelText('Email'), { target: { value: EMAIL } });
+    fireEvent.input(passwordBox() as HTMLInputElement, { target: { value: PW } });
+    server.failures.push(429);
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toBe('Too many sign-in attempts for now. Wait a few minutes, then try again.'));
+    server.online = false;
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toBe('No connection. Check that this device is online, then try again.'));
   });
 });

@@ -2,8 +2,8 @@
 
 *Written 2026-10-05. Updated 2026-10-06: sync carries the campaign, story, day log, timed
 ladder, mixed review, and timed-paper flags as well as progress; the table is unchanged.
-Sign-in also takes the one-time code from the email, for the iPhone Home Screen app (steps 3
-and 6).*
+Sign-in also takes the one-time code from the email, or an email and password set on a
+signed-in device, for the iPhone Home Screen app (steps 3 and 6).*
 
 Progress sync is built and tested but ships **off**: no config file is committed, so the live
 site behaves as before and the Progress page shows only "Sync between devices: not set up".
@@ -71,7 +71,15 @@ Under **Authentication**:
    digits and last one hour by default (**Sign In / Providers**, **Email**, **Email OTP
    Expiration** and **Email OTP Length**); the app accepts 6 to 10 digits. Each new email
    replaces the previous code, and a code works once.
-4. Leave **Allow new users to sign up** on for now: your first sign-in creates your user. You
+4. **Passwords** (optional, for the Home Screen app when the email has no code): the email
+   provider allows password sign-in by default. Under **Sign In / Providers**, **Email**:
+   - **Secure password change**: when on, Supabase refuses a password change from a sign-in
+     that began more than a day ago (it wants a reauthentication code the app does not send).
+     Either turn it off, or sign out and in again just before setting the password. The app
+     says which when it happens.
+   - **Minimum password length**: the app asks for at least 8 characters. If you raise the
+     minimum here, the app reports Supabase's rule when a password is too short.
+5. Leave **Allow new users to sign up** on for now: your first sign-in creates your user. You
    turn it off in step 7.
 
 Supabase's built-in email sender delivers only to members of the project's organization and
@@ -109,8 +117,8 @@ npm run preview -- --base /learnhub/
 ```
 
 Open `http://127.0.0.1:4173/learnhub/sims/mastery/#/progress`. The **Sync between devices**
-card should offer **Email me a sign-in link** and **Or enter the code from the email** instead
-of "not set up". If it still says not
+card should offer **Email me a sign-in link**, **Sign in with a password**, and **Or enter the
+code from the email** instead of "not set up". If it still says not
 set up, the text after it names the problem in the config file.
 
 Then commit and push:
@@ -136,10 +144,28 @@ Wait for the **Pages** workflow to finish.
 
 3. **Phone, Home Screen app**: a Home Screen web app on iPhone keeps its own storage, apart
    from Safari's, and links in Mail always open in Safari. So the link signs in Safari, not
-   the Home Screen app, which needs the code:
+   the Home Screen app, which needs a password or the code. A password is simpler, and
+   works when Supabase's built-in sender will not put the code in the email.
+
+   **With a password (no email involved):**
+   1. **Mac**, signed in: on **Progress**, under **Sync between devices**, open **Set a
+      password for this account**. Enter a password of at least 8 characters twice and select
+      **Set password**. Safari may offer to save it in Keychain; accept, and iCloud Keychain
+      offers it on the phone too. The app keeps no copy of the password.
+   2. On the phone, in Safari, open the address and select **Share**, then **Add to Home
+      Screen**.
+   3. Open learnhub from its Home Screen icon. The sync card (on Start, or on Progress) shows
+      **Email** and **Password** first. Enter both (iOS may fill them from Keychain) and select
+      **Sign in**. The app syncs at once and remembers the email for next time.
+
+   If setting the password says Supabase wants a fresh sign-in, either turn off **Secure
+   password change** (step 3.4), or sign out on the Mac, sign in again, and set the password
+   straight away.
+
+   **With the emailed code** (needs `{{ .Token }}` in the template, step 3.3):
    1. In Safari, open the address and select **Share**, then **Add to Home Screen**.
-   2. Open learnhub from its Home Screen icon. The sync card (on Start, or on Progress) says
-      the link cannot sign in this app and offers the code first.
+   2. Open learnhub from its Home Screen icon. The sync card says the link cannot sign in
+      this app and offers the code below the password.
    3. Enter your email and select **Email me a code**.
    4. Open Mail, copy the six-digit code (iOS may offer it above the keyboard), and switch
       back. Do not open the link.
@@ -185,7 +211,8 @@ every change is dated when it was made.
 These stay on each device on purpose, as conveniences of one screen: the theme
 (`mastery.theme.v1`), the fold of the whole day on Today (`mastery.wholeday.v1`), the map's
 "all edges" switch, the palette's recent items (`mastery.recent.v1`), whether the tour has
-played (`mastery.tour.v1`), a lesson's place within a tab (sessionStorage), and the catalog
+played (`mastery.tour.v1`), the last email used to sign in (`mastery.syncemail.v1`; never the
+password), a lesson's place within a tab (sessionStorage), and the catalog
 summary (`learnhub.progress.mastery`), which is rebuilt from progress.
 
 ### Merging
@@ -247,4 +274,8 @@ To remove the data too, run `drop table public.learnhub_progress;` in the SQL ed
 | "That code is wrong or has expired" | The app was reloaded since the email was sent, so it cannot tell which. Check the newest email, or send a new one. |
 | "Too many tries for now" | Supabase's limit on code checks. Wait a few minutes. |
 | The email has a link but no code | `{{ .Token }}` is missing from the template that sent it (step 3): Magic Link, or Confirm signup for a first sign-in. |
-| The link opened Safari and the Home Screen app is still signed out | Expected: use the code in the Home Screen app (step 6). |
+| The link opened Safari and the Home Screen app is still signed out | Expected: use a password or the code in the Home Screen app (step 6). |
+| "Wrong email or password" | A typo, or no password set for this email yet. Set one on a signed-in device (step 6). |
+| "Too many sign-in attempts for now" | Supabase's limit on password sign-ins. Wait a few minutes. |
+| "Supabase wants a fresh sign-in first" | **Secure password change** is on and the sign-in is over a day old. Turn it off (step 3.4), or sign out, sign in, and set the password at once. |
+| "That password is too weak" | Shorter than the project's **Minimum password length**, or missing characters it requires. |
