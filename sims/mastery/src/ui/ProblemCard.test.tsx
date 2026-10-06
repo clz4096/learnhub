@@ -220,6 +220,8 @@ describe('ProblemCard', () => {
 describe('every written problem', () => {
   // The preview gates grading now, so it must read every right answer cleanly: an
   // unreadable or noted right answer would block or question the learner for no reason.
+  // It reads every generator of every topic at 40 seeds: a few seconds alone, but past the
+  // 15 s default when the whole suite runs in parallel, so it has its own timeout.
   it('reads the reference answer with no note, and every misconception answer', () => {
     for (const c of TOPIC_CONTENT) {
       for (const g of c.generators) {
@@ -236,5 +238,5 @@ describe('every written problem', () => {
         }
       }
     }
-  });
+  }, 60_000);
 });

@@ -19,6 +19,7 @@ import type { Block, TopicContent } from './topic';
 import { CITED_DOCS, citationText, type Citation } from './cambridge';
 import { contentFor } from './all';
 import { CONTENT_IDS, TOPIC_LOADERS, catalogProblem, hasContent, loadTopicContent } from './index';
+import { BOOK_ORDER } from './book/book';
 
 const SEEDS = 1000;
 const DIGIT = /[0-9]/;
@@ -89,7 +90,7 @@ function checkRich(r: Rich, where: string): void {
   checkTex(r, where);
 }
 
-/** The first ten topics the engine schedules (gate 3), then the new topics of Cambridge batch 1, then batches 2, 3, and 4. */
+/** The first ten topics the engine schedules (gate 3), then the new topics of Cambridge batch 1, then batches 2 to 5. */
 const FIRST_TEN = 10;
 const BATCH_1_NEW = ['comb.pigeonhole', 'prob.bayes-two-events', 'prob.event-spaces'];
 /** The topics the batch 1 map cites sources for, in the order the engine schedules them. */
@@ -98,8 +99,15 @@ const BATCH_2 = ['pre.sample-spaces', 'logic.implication', 'pre.prime-factorisat
 const BATCH_3 = ['pre.two-way-tables', 'comb.binomial-theorem', 'logic.equivalences', 'proof.cases', 'logic.negating-quantifiers', 'proof.counterexample', 'proof.contradiction', 'comb.repeated-arrangements', 'alg.proof-by-induction', 'prob.counting-probability', 'proof.contrapositive', 'prob.independent-events', 'prob.inclusion-exclusion-three', 'proof.quantifier-patterns', 'prob.classical-probability', 'proof.infinitely-many-primes'];
 /** Batch 4: the remaining topics the batch 1 map cites sources for, in the same order. */
 const BATCH_4 = ['comb.binomial-theorem-proof', 'proof.strong-induction', 'num.divisibility', 'prob.conditional-formula', 'num.division-theorem', 'prob.binomial-distribution', 'num.congruence', 'num.gcd', 'num.modular-arithmetic', 'num.euclid-algorithm', 'prob.sampling-models', 'num.modular-integers', 'num.modular-exponentiation', 'num.extended-euclid', 'num.euclid-theorem', 'num.diffie-hellman', 'prob.stirling-formula', 'num.modular-inverse', 'prob.axioms', 'num.fundamental-theorem', 'prob.axiom-consequences', 'num.prime-binomial', 'num.fermat-little', 'prob.inclusion-exclusion', 'prob.continuity', 'prob.conditional-probability', 'prob.subadditivity', 'prob.total-probability', 'prob.independence', 'prob.bayes-formula'];
-/** A graph topic the batch 1 map cites no source for, so it has no lesson: the probe for "not written". */
-const UNWRITTEN = 'prob.poisson-distribution';
+/**
+ * Batch 5: the Part V topics of the batch 2 map (graph/reviews/cambridge-batch-2.md), with the
+ * chapter 4.5 topics they need, written by groups A to D. Part V topics are not course targets
+ * yet, so the engine does not schedule them; they are in book order (content/src/book/book.ts),
+ * which a check below confirms.
+ */
+const BATCH_5 = ['rv.expectation', 'rv.tail-sum', 'comb.restricted-arrangements', 'prob.first-step', 'pre.quadratic-equations', 'rv.variance', 'rv.pdf', 'rv.continuous-summaries', 'rv.cdf-method', 'prob.normal-distribution', 'prob.normal-approximation', 'rv.expectation-algebra', 'rv.indicators', 'alg.arithmetico-geometric', 'prob.point-mass-spaces', 'prob.geometric-distribution', 'prob.poisson-distribution', 'prob.poisson-binomial-limit', 'prob.poisson-rates', 'rv.random-variables', 'rv.expectation-general', 'rv.independence', 'rv.covariance', 'rv.conditional-expectation', 'gf.pgf', 'gf.random-sums', 'gf.combinatorial', 'alg.linear-recurrences', 'rw.gamblers-ruin', 'rw.absorption-time', 'bp.extinction', 'prob.exponential-distribution', 'rv.joint-densities', 'rv.transformations', 'prob.geometric-probability', 'rv.simulation', 'rv.bivariate-normal', 'ineq.markov-chebyshev', 'ineq.jensen', 'lim.weak-law', 'gf.mgf', 'lim.clt'];
+/** A graph topic neither map gives a source for, so it has no lesson: the probe for "not written". */
+const UNWRITTEN = 'prob.simpsons-paradox';
 
 /** Source ids of the batch, from the committed batch file; the manifest too when the local source cache exists. */
 const readBatch = (n: number) => (JSON.parse(readFileSync(new URL(`../../scripts/sources/batch-${n}.json`, import.meta.url), 'utf8')) as { sources: { id: string }[] }).sources.map((x) => x.id);
@@ -120,11 +128,11 @@ function checkCitation(cit: Citation, where: string): void {
 }
 
 describe('content topics', () => {
-  it('are the first ten topics, the new topics of Cambridge batch 1, and batches 2 to 4, each in the graph, each once', () => {
+  it('are the first ten topics, the new topics of Cambridge batch 1, and batches 2 to 5, each in the graph, each once', () => {
     const ids = TOPIC_CONTENT.map((c) => c.topicId);
-    expect(ids).toHaveLength(FIRST_TEN + BATCH_1_NEW.length + BATCH_2.length + BATCH_3.length + BATCH_4.length);
+    expect(ids).toHaveLength(FIRST_TEN + BATCH_1_NEW.length + BATCH_2.length + BATCH_3.length + BATCH_4.length + BATCH_5.length);
     expect(ids.slice(FIRST_TEN, FIRST_TEN + BATCH_1_NEW.length)).toEqual(BATCH_1_NEW);
-    expect(ids.slice(FIRST_TEN + BATCH_1_NEW.length)).toEqual([...BATCH_2, ...BATCH_3, ...BATCH_4]);
+    expect(ids.slice(FIRST_TEN + BATCH_1_NEW.length)).toEqual([...BATCH_2, ...BATCH_3, ...BATCH_4, ...BATCH_5]);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(graphIds.has(id), id).toBe(true);
     for (const id of ids) expect(contentFor(id)?.topicId).toBe(id);
@@ -166,9 +174,14 @@ describe('content topics', () => {
     expect(mapped).toEqual([...BATCH_2, ...BATCH_3, ...BATCH_4]);
   });
 
-  it('are all in the closure of the two courses', () => {
+  it('are all in the closure of the two courses, except Part V topics, which the book places', () => {
     const closure = coursesClosure(topics, [courseById('ia-probability'), courseById('cst-discrete-maths')]);
-    for (const c of TOPIC_CONTENT) expect(closure.has(c.topicId), c.topicId).toBe(true);
+    for (const c of TOPIC_CONTENT) expect(closure.has(c.topicId) || (BATCH_5.includes(c.topicId) && BOOK_ORDER.includes(c.topicId)), c.topicId).toBe(true);
+  });
+
+  it('batch 5 follows the book order', () => {
+    for (const id of BATCH_5) expect(BOOK_ORDER.includes(id), id).toBe(true);
+    expect([...BATCH_5].sort((a, b) => BOOK_ORDER.indexOf(a) - BOOK_ORDER.indexOf(b))).toEqual(BATCH_5);
   });
 
   for (const c of TOPIC_CONTENT) {

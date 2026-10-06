@@ -44,7 +44,7 @@ describe('the content store', () => {
       if (id === 'pre.indices') throw new Error('offline');
       return fractions;
     });
-    prefetchContent(['pre.fractions', 'pre.fractions', 'prob.poisson-distribution', 'pre.indices'], store);
+    prefetchContent(['pre.fractions', 'pre.fractions', 'prob.simpsons-paradox', 'pre.indices'], store);
     await new Promise((r) => setTimeout(r, 0));
     expect(asked).toEqual(['pre.fractions', 'pre.indices']);
     expect(store.loaded('pre.fractions')).toBe(fractions);

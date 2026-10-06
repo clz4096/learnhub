@@ -1,0 +1,320 @@
+/**
+ * rv.random-variables: a random variable is a function X: Ω → ℝ, and its distribution is
+ * P(X = x) = P({ω : X(ω) = x}). From the Faculty schedule ("Discrete random variables")
+ * and IA Probability Example Sheet 2 Q5(a), (b): on Ω = {0, 1}^3 with equally likely
+ * outcomes there are 70 Bernoulli(1/2) random variables and no Bernoulli(1/3) ones. The
+ * sheet has no official solutions; every count is checked by listing all 256 functions
+ * from Ω to {0, 1}.
+ */
+import { auto, cite, same, supervision } from '../cambridge';
+import { add, int, pick, q, str, type Rational } from '../math';
+import { generator, type Misconception } from '../problem';
+import { choose } from '../numbers';
+import { distinctFrom, draw, type Dist } from '../partv-c';
+import { computedTex, listOf, math, t, texOfRational, type Rich } from '../rich';
+import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+
+const S2 = 'ia-prob-sheet-2' as const;
+
+// ---------------------------------------------------------------- a distribution from Ω
+
+interface Experiment { name: Rich; size: number; outcome: (i: number) => readonly number[]; draw: (rng: () => number) => readonly number[] }
+interface Fn { name: Rich; f: (w: readonly number[]) => number; exp: number }
+const die = (rng: () => number): number => 1 + Math.floor(rng() * 6);
+const coin = (rng: () => number): number => (rng() < 0.5 ? 1 : 0);
+const EXPERIMENTS: readonly Experiment[] = [
+  { name: t`Two fair dice are thrown, so ${math`\Omega`} is the ${36} ordered pairs of faces.`, size: 36, outcome: (i) => [1 + (i % 6), 1 + Math.floor(i / 6)], draw: (rng) => [die(rng), die(rng)] },
+  { name: t`Three fair coins are tossed, so ${math`\Omega`} is the ${8} sequences of heads (${1}) and tails (${0}).`, size: 8, outcome: (i) => [i & 1, (i >> 1) & 1, (i >> 2) & 1], draw: (rng) => [coin(rng), coin(rng), coin(rng)] },
+  { name: t`Four fair coins are tossed, so ${math`\Omega`} is the ${16} sequences of heads (${1}) and tails (${0}).`, size: 16, outcome: (i) => [i & 1, (i >> 1) & 1, (i >> 2) & 1, (i >> 3) & 1], draw: (rng) => [coin(rng), coin(rng), coin(rng), coin(rng)] },
+];
+const longestRun = (w: readonly number[]): number => { let best = 0; let run = 0; for (const x of w) { run = x === 1 ? run + 1 : 0; best = Math.max(best, run); } return best; };
+const FNS: readonly Fn[] = [
+  { name: t`the total of the two faces`, f: (w) => (w[0] as number) + (w[1] as number), exp: 0 },
+  { name: t`the larger of the two faces`, f: (w) => Math.max(w[0] as number, w[1] as number), exp: 0 },
+  { name: t`the smaller of the two faces`, f: (w) => Math.min(w[0] as number, w[1] as number), exp: 0 },
+  { name: t`the absolute difference of the two faces`, f: (w) => Math.abs((w[0] as number) - (w[1] as number)), exp: 0 },
+  { name: t`the number of heads`, f: (w) => w.reduce((a, b) => a + b, 0), exp: 1 },
+  { name: t`the length of the longest run of heads`, f: longestRun, exp: 1 },
+  { name: t`the number of heads minus the number of tails`, f: (w) => 2 * w.reduce((a, b) => a + b, 0) - w.length, exp: 1 },
+  { name: t`the number of heads`, f: (w) => w.reduce((a, b) => a + b, 0), exp: 2 },
+  { name: t`the length of the longest run of heads`, f: longestRun, exp: 2 },
+  { name: t`the number of times a toss differs from the one before`, f: (w) => w.slice(1).filter((x, i) => x !== w[i]).length, exp: 2 },
+];
+interface DistP { fn: number; k: number }
+const omega = (e: Experiment): (readonly number[])[] => Array.from({ length: e.size }, (_, i) => e.outcome(i));
+const fnOf = (p: DistP): Fn => FNS[p.fn] as Fn;
+const expOf = (p: DistP): Experiment => EXPERIMENTS[fnOf(p).exp] as Experiment;
+const valuesOf = (p: DistP): number[] => [...new Set(omega(expOf(p)).map(fnOf(p).f))].sort((a, b) => a - b);
+const distVal = (p: DistP): Rational => q(omega(expOf(p)).filter((w) => fnOf(p).f(w) === p.k).length, expOf(p).size);
+function distMis(p: DistP): [Rational, Rich][] {
+  const e = expOf(p);
+  const f = fnOf(p).f;
+  const vals = valuesOf(p);
+  const atMost = q(omega(e).filter((w) => f(w) <= p.k).length, e.size);
+  const out: [Rational, Rich][] = [
+    [q(1, vals.length), t`${math`X`} takes ${vals.length} values, but they are not equally likely. Count the outcomes ${math`\omega`} with ${math`X(\omega) = ${p.k}`}.`],
+    [atMost, t`That is ${math`\mathbb{P}(X \le ${p.k})`}. The question asks for ${math`X = ${p.k}`} only.`],
+  ];
+  if (fnOf(p).exp === 0) {
+    // Unordered pairs: the 21 multisets of faces, wrongly treated as equally likely.
+    let hit = 0;
+    let all = 0;
+    for (let a = 1; a <= 6; a++) for (let b = a; b <= 6; b++) { all++; if (f([a, b]) === p.k) hit++; }
+    out.push([q(hit, all), t`The ${21} unordered pairs are not equally likely: a double such as ${math`(${3}, ${3})`} happens one way, a mixed pair two ways. Count in the ${36} ordered pairs.`]);
+  } else {
+    const hit = omega(e).filter((w) => f(w) === p.k).length;
+    out.push([q(hit, e.size * 2), t`${math`\Omega`} has ${e.size} equally likely outcomes, so divide the count ${hit} by ${e.size}.`]);
+  }
+  return out;
+}
+
+const distributionFromOmega = generator<DistP>({
+  id: 'distribution-from-omega',
+  skill: 'Find a value of the distribution of a random variable by counting the outcomes that map to it.',
+  params: (rng) => {
+    for (;;) {
+      const fn = int(rng, 0, FNS.length - 1);
+      const vals = valuesOf({ fn, k: 0 });
+      const p: DistP = { fn, k: pick(rng, vals) };
+      if (distVal(p).num > 0n && distinctFrom(str(distVal(p)), distMis(p).map(([x]) => str(x))) >= 2) return p;
+    }
+  },
+  sane: (p) => (valuesOf(p).includes(p.k) ? null : 'not a value of X'),
+  problem: (p) => {
+    const e = expOf(p);
+    const hits = omega(e).filter((w) => fnOf(p).f(w) === p.k).length;
+    return {
+      prompt: t`${e.name} Let ${math`X`} be ${fnOf(p).name}. Find ${math`\mathbb{P}(X = ${p.k})`}.`,
+      answer: { kind: 'exact', expected: str(distVal(p)) },
+      solution: [
+        t`${math`X`} is a function on ${math`\Omega`}, and ${math`\mathbb{P}(X = ${p.k}) = \mathbb{P}(\{\omega : X(\omega) = ${p.k}\})`}.`,
+        hits === 1
+          ? t`One of the ${e.size} equally likely outcomes has ${math`X(\omega) = ${p.k}`}, so the probability is ${distVal(p)}.`
+          : t`${hits} of the ${e.size} equally likely outcomes have ${math`X(\omega) = ${p.k}`}, so the probability is ${math`\frac{${hits}}{${e.size}} = ${distVal(p)}`}.`,
+      ],
+    };
+  },
+  solve: (p) => {
+    // Build the whole distribution of X outcome by outcome, then read off one value.
+    const e = expOf(p);
+    const pmf = new Map<number, Rational>();
+    for (let i = 0; i < e.size; i++) {
+      const x = fnOf(p).f(e.outcome(i));
+      pmf.set(x, add(pmf.get(x) ?? q(0), q(1, e.size)));
+    }
+    return str(pmf.get(p.k) ?? q(0));
+  },
+  misconceptions: (p): Misconception[] => distMis(p).map(([x, why]) => ({ response: str(x), why })),
+  trial: (p, rng) => fnOf(p).f(expOf(p).draw(rng)) === p.k,
+});
+
+// ---------------------------------------------------------------- counting Bernoulli variables
+
+interface CountP { n: number; k: number; d: number }
+const countVal = ({ n, k, d }: CountP): number => ((k * n) % d === 0 ? choose(n, (k * n) / d) : 0);
+function countMis({ n, k, d }: CountP): [number, Rich][] {
+  const near = Math.round((k * n) / d);
+  return [
+    [2 ** n, t`${2 ** n} is the number of all functions from ${math`\Omega`} to ${math`\{${0}, ${1}\}`}. Only those with ${math`\mathbb{P}(X = ${1}) = ${q(k, d)}`} count.`],
+    [n, t`A Bernoulli variable is fixed by the event ${math`\{X = ${1}\}`}, a set of outcomes, not a single outcome. Count the subsets of the right size.`],
+    [(k * n) % d === 0 ? choose(n, (k * n) / d) * 2 : choose(n, near), (k * n) % d === 0
+      ? t`${math`X`} and ${math`${1} - X`} are different random variables, but each is counted once when you count the events ${math`\{X = ${1}\}`}: do not double.`
+      : t`Each event has probability a multiple of ${q(1, n)}, and ${q(k, d)} is not one. Rounding is not allowed: there are none.`],
+  ];
+}
+
+const countBernoulli = generator<CountP>({
+  id: 'count-bernoulli',
+  skill: 'Count the Bernoulli random variables of a given parameter on a finite space of equally likely outcomes.',
+  params: (rng) => {
+    for (;;) {
+      const n = pick(rng, [4, 5, 6, 8, 9, 10, 12]);
+      const [k, d] = rng() < 0.75 ? (() => { const j = int(rng, 1, n - 1); const g = gcdN(j, n); return [j / g, n / g]; })() : pick(rng, [[1, 3], [2, 3], [1, 4], [3, 4], [1, 5], [2, 5], [1, 6]] as const);
+      const p: CountP = { n, k, d };
+      if (k < d && distinctFrom(String(countVal(p)), countMis(p).map(([x]) => String(x))) >= 2) return p;
+    }
+  },
+  sane: ({ n, k, d }) => (n <= 12 && k > 0 && k < d ? null : 'out of range'),
+  problem: (p) => {
+    const m = (p.k * p.n) / p.d;
+    return {
+      prompt: t`${math`\Omega = \{${1}, ${2}, \ldots, ${p.n}\}`} with equally likely outcomes. How many different Bernoulli random variables with parameter ${q(p.k, p.d)} can be defined on ${math`\Omega`}?`,
+      answer: { kind: 'exact', expected: String(countVal(p)) },
+      solution: Number.isInteger(m)
+        ? [
+          t`A Bernoulli variable takes values ${0} and ${1}, so it is fixed by the event ${math`\{X = ${1}\}`}, and needs ${math`\mathbb{P}(X = ${1}) = ${q(p.k, p.d)}`}.`,
+          t`Each outcome has probability ${q(1, p.n)}, so the event has ${m} outcomes. There are ${math`\binom{${p.n}}{${m}} = ${countVal(p)}`} such events.`,
+        ]
+        : [
+          t`Every event has probability a multiple of ${q(1, p.n)}, and ${q(p.k, p.d)} is not one, so no event has that probability.`,
+          t`So there are ${0} such random variables.`,
+        ],
+    };
+  },
+  solve: ({ n, k, d }) => {
+    // Every function from Ω to {0, 1}, as a bit mask, kept when exactly the right share of outcomes map to 1.
+    let c = 0;
+    for (let mask = 0; mask < 2 ** n; mask++) {
+      let ones = 0;
+      for (let i = 0; i < n; i++) if ((mask >> i) & 1) ones++;
+      if (ones * d === k * n) c++;
+    }
+    return String(c);
+  },
+  misconceptions: (p): Misconception[] => countMis(p).map(([x, why]) => ({ response: String(x), why })),
+});
+function gcdN(a: number, b: number): number { return b === 0 ? a : gcdN(b, a % b); }
+
+// ---------------------------------------------------------------- a function of a random variable
+
+type G = 'square' | 'abs' | 'shift-square';
+interface FunP { d: Dist; g: G; y: number }
+const gOf = (g: G) => (x: number): number => (g === 'square' ? x * x : g === 'abs' ? Math.abs(x) : (x - 1) * (x - 1));
+const gText = (g: G): Rich => (g === 'square' ? t`${math`Y = X^{${2}}`}` : g === 'abs' ? t`${math`Y = |X|`}` : t`${math`Y = (X - ${1})^{${2}}`}`);
+const DISTS: readonly Dist[] = [
+  { xs: [-2, -1, 0, 1, 2], ps: [q(1, 10), q(1, 5), q(1, 5), q(3, 10), q(1, 5)] },
+  { xs: [-2, -1, 0, 1, 2], ps: [q(1, 8), q(1, 4), q(1, 8), q(1, 8), q(3, 8)] },
+  { xs: [-1, 0, 1, 2, 3], ps: [q(1, 6), q(1, 6), q(1, 3), q(1, 4), q(1, 12)] },
+  { xs: [-3, -1, 1, 3], ps: [q(1, 5), q(1, 10), q(2, 5), q(3, 10)] },
+  { xs: [-2, 0, 1, 2, 4], ps: [q(1, 4), q(1, 8), q(1, 8), q(1, 4), q(1, 4)] },
+  { xs: [-1, 0, 1, 2, 3], ps: [q(1, 10), q(3, 10), q(1, 5), q(1, 5), q(1, 5)] },
+];
+const funVal = ({ d, g, y }: FunP): Rational => d.xs.reduce((acc, x, i) => (gOf(g)(x) === y ? add(acc, d.ps[i] as Rational) : acc), q(0));
+function funMis(p: FunP): [Rational, Rich][] {
+  const pre = p.d.xs.filter((x) => gOf(p.g)(x) === p.y);
+  const one = pre.length > 0 ? (p.d.ps[p.d.xs.indexOf(Math.max(...pre))] as Rational) : q(0);
+  const same = p.d.xs.includes(p.y) ? (p.d.ps[p.d.xs.indexOf(p.y)] as Rational) : q(0);
+  return [
+    [one, t`${math`Y = ${p.y}`} for more than one value of ${math`X`}: add the probabilities of every ${math`x`} with ${math`g(x) = ${p.y}`}.`],
+    [same, t`That is ${math`\mathbb{P}(X = ${p.y})`}. Find the values of ${math`X`} that ${gText(p.g)} sends to ${p.y}.`],
+  ];
+}
+
+const functionOfRv = generator<FunP>({
+  id: 'function-of-rv',
+  skill: 'Find the distribution of a function of a random variable by adding the probabilities of all the values that map to the same value.',
+  params: (rng) => {
+    for (;;) {
+      const d = pick(rng, DISTS);
+      const g = pick(rng, ['square', 'abs', 'shift-square'] as const);
+      const ys = [...new Set(d.xs.map(gOf(g)))].filter((y) => d.xs.filter((x) => gOf(g)(x) === y).length >= 2);
+      if (ys.length === 0) continue;
+      const p: FunP = { d, g, y: pick(rng, ys) };
+      if (distinctFrom(str(funVal(p)), funMis(p).map(([x]) => str(x))) >= 2) return p;
+    }
+  },
+  sane: ({ d }) => (d.xs.length === d.ps.length ? null : 'out of range'),
+  problem: (p) => {
+    const pre = p.d.xs.filter((x) => gOf(p.g)(x) === p.y);
+    return {
+      prompt: t`${math`X`} takes the values ${listOf(p.d.xs)} with probabilities ${computedTex(p.d.ps.map(texOfRational).join(', '))}, in that order. Let ${gText(p.g)}. Find ${math`\mathbb{P}(Y = ${p.y})`}.`,
+      answer: { kind: 'exact', expected: str(funVal(p)) },
+      solution: [
+        t`${math`Y = ${p.y}`} exactly when ${math`X`} is one of ${listOf(pre)}.`,
+        t`So ${math`\mathbb{P}(Y = ${p.y}) = ${computedTex(pre.map((x) => texOfRational(p.d.ps[p.d.xs.indexOf(x)] as Rational)).join(' + '))} = ${funVal(p)}`}.`,
+      ],
+    };
+  },
+  solve: (p) => {
+    // The distribution of Y, built value by value; then the one asked for.
+    const pmf = new Map<number, Rational>();
+    p.d.xs.forEach((x, i) => { const y = gOf(p.g)(x); pmf.set(y, add(pmf.get(y) ?? q(0), p.d.ps[i] as Rational)); });
+    return str(pmf.get(p.y) ?? q(0));
+  },
+  misconceptions: (p): Misconception[] => funMis(p).map(([x, why]) => ({ response: str(x), why })),
+  trial: (p, rng) => gOf(p.g)(draw(p.d, rng)) === p.y,
+});
+
+// ---------------------------------------------------------------- Cambridge problems
+
+/** How many functions from {0, 1}^3 (8 equally likely outcomes) to {0, 1} have P(X = 1) = target. */
+function bernoulliOnCube(target: Rational): number {
+  let c = 0;
+  for (let mask = 0; mask < 256; mask++) {
+    let ones = 0;
+    for (let i = 0; i < 8; i++) if ((mask >> i) & 1) ones++;
+    if (str(q(ones, 8)) === str(target)) c++;
+  }
+  return c;
+}
+const q5a = auto({
+  id: 'ia-s2-q5-a',
+  source: cite(S2, 'Q5(a)'),
+  title: t`Bernoulli variables with parameter ${q(1, 2)}`,
+  prompt: t`Consider the probability space ${math`\Omega = \{${0}, ${1}\}^{${3}}`} with equally likely outcomes. How many different Bernoulli random variables of parameter ${q(1, 2)} can be defined on ${math`\Omega`}?`,
+  answer: { kind: 'exact', expected: String(choose(8, 4)) },
+  solution: [
+    t`${math`\Omega`} has ${8} outcomes, each with probability ${q(1, 8)}. A Bernoulli variable ${math`X`} is fixed by the event ${math`\{X = ${1}\}`}: ${math`X`} is its indicator.`,
+    t`${math`\mathbb{P}(X = ${1}) = ${q(1, 2)}`} exactly when that event has ${4} outcomes, so there are ${math`\binom{${8}}{${4}} = ${choose(8, 4)}`} such variables.`,
+  ],
+  reference: String(choose(8, 4)),
+  verify: () => same('Bernoulli(1/2) functions on {0,1}^3', bernoulliOnCube(q(1, 2)), choose(8, 4)),
+  misconceptions: [
+    { response: String(2 ** 8), why: t`That counts every function from ${math`\Omega`} to ${math`\{${0}, ${1}\}`}. Only those with ${math`\mathbb{P}(X = ${1}) = ${q(1, 2)}`} count.` },
+    { response: String(choose(8, 4) / 2), why: t`${math`X`} and ${math`${1} - X`} are different random variables, even though one determines the other. Count both.` },
+  ],
+});
+const q5b = auto({
+  id: 'ia-s2-q5-b',
+  source: cite(S2, 'Q5(b)'),
+  title: t`Bernoulli variables with parameter ${q(1, 3)}`,
+  prompt: t`On ${math`\Omega = \{${0}, ${1}\}^{${3}}`} with equally likely outcomes, how many Bernoulli random variables of parameter ${q(1, 3)} can be defined?`,
+  answer: { kind: 'exact', expected: '0' },
+  solution: [
+    t`Every event of ${math`\Omega`} has probability a multiple of ${q(1, 8)}: ${math`\frac{k}{${8}}`} for ${math`k`} outcomes.`,
+    t`${math`\frac{k}{${8}} = ${q(1, 3)}`} would need ${math`${3}k = ${8}`}, which no whole number ${math`k`} solves. So there are none.`,
+  ],
+  reference: '0',
+  verify: () => same('Bernoulli(1/3) functions on {0,1}^3', bernoulliOnCube(q(1, 3)), 0),
+  misconceptions: [
+    { response: String(choose(8, 3)), why: t`Events of ${3} outcomes have probability ${q(3, 8)}, not ${q(1, 3)}. No event has probability exactly ${q(1, 3)}.` },
+    { response: String(choose(8, 2) + choose(8, 3)), why: t`No event has probability exactly ${q(1, 3)}; approximate values do not count.` },
+  ],
+});
+const quarter = auto({
+  id: 'ia-s2-q5-quarter',
+  source: cite(S2, 'Q5', true),
+  title: t`Bernoulli variables with parameter ${q(1, 4)}`,
+  prompt: t`On ${math`\Omega = \{${0}, ${1}\}^{${3}}`} with equally likely outcomes, how many Bernoulli random variables of parameter ${q(1, 4)} can be defined?`,
+  answer: { kind: 'exact', expected: String(choose(8, 2)) },
+  solution: [t`The event ${math`\{X = ${1}\}`} needs probability ${math`${q(1, 4)} = \frac{${2}}{${8}}`}, so ${2} of the ${8} outcomes: ${math`\binom{${8}}{${2}} = ${choose(8, 2)}`}.`],
+  reference: String(choose(8, 2)),
+  verify: () => same('Bernoulli(1/4) functions on {0,1}^3', bernoulliOnCube(q(1, 4)), choose(8, 2)),
+  misconceptions: [{ response: String(choose(8, 4)), why: t`That is the count for parameter ${q(1, 2)}. Parameter ${q(1, 4)} needs events of ${2} outcomes.` }],
+});
+const scheduleRv = supervision({
+  id: 'schedule-random-variables',
+  source: cite('tripos-schedules', 'IA Probability, Discrete random variables', true),
+  title: t`Functions of random variables`,
+  prompt: t`Let ${math`\Omega`} be countable with point masses ${math`p_{\omega}`}, and let ${math`X, Y`} be random variables on it. Show that ${math`X + Y`}, ${math`XY`}, and ${math`g(X)`} for any ${math`g: \mathbb{R} \to \mathbb{R}`} are random variables, and that ${math`\mathbb{P}(g(X) = y) = \sum_{x : g(x) = y} \mathbb{P}(X = x)`}. Give two different random variables on a fair die's ${math`\Omega`} with the same distribution. Does the distribution of ${math`X`} and of ${math`Y`} determine the distribution of ${math`X + Y`}?`,
+  writeUp: 'proof',
+});
+
+// ---------------------------------------------------------------- lesson
+
+const SUM_FOUR = q(3, 36);
+const claims: ProbabilityClaim[] = [
+  { what: 'two dice: the total is 4', exact: SUM_FOUR, trial: (rng) => die(rng) + die(rng) === 4 },
+];
+
+export const randomVariables: TopicContent = {
+  topicId: 'rv.random-variables',
+  goal: t`Treat a random variable as a function on ${math`\Omega`}, and find its distribution by adding the probabilities of the outcomes that give each value.`,
+  lesson: [
+    { kind: 'p', text: t`Often what matters about an outcome is a number: the total of two dice, the number of heads, the wait for a six. A random variable makes that number the object of study, while the probability still lives on ${math`\Omega`}.` },
+    { kind: 'rule', text: t`A [[random-variable|random variable]] on a countable probability space is a function ${math`X: \Omega \to \mathbb{R}`}. Its [[rv-distribution|distribution]] is ${math`\mathbb{P}(X = x) = \mathbb{P}(\{\omega \in \Omega : X(\omega) = x\})`} for each value ${math`x`}.` },
+    { kind: 'p', text: t`For two dice, ${math`\Omega`} is the ${36} ordered pairs and the total ${math`S(\omega)`} is a function on it. Three pairs give ${math`S = ${4}`}, namely ${math`(${1}, ${3})`}, ${math`(${2}, ${2})`}, ${math`(${3}, ${1})`}, so ${math`\mathbb{P}(S = ${4}) = ${SUM_FOUR}`}. The values of ${math`S`} are not equally likely even though the outcomes are.` },
+    { kind: 'p', text: t`The indicator of an event ${math`A`}, equal to ${1} on ${math`A`} and ${0} off it, is a Bernoulli random variable with parameter ${math`\mathbb{P}(A)`}, and every Bernoulli variable is an indicator. On ${math`\Omega = \{${0}, ${1}\}^{${3}}`} with equally likely outcomes, a Bernoulli variable of parameter ${q(1, 2)} is the indicator of a set of ${4} outcomes, so there are ${math`\binom{${8}}{${4}} = ${choose(8, 4)}`} of them; there is none of parameter ${q(1, 3)}, because every event has probability a multiple of ${q(1, 8)}.` },
+    { kind: 'p', text: t`A function of a random variable is a random variable: ${math`\mathbb{P}(g(X) = y) = \sum_{x : g(x) = y} \mathbb{P}(X = x)`}. Different random variables can share a distribution: on a fair die, the face ${math`X`} and ${math`${7} - X`} differ at every outcome but both are uniform on ${math`${1}, \ldots, ${6}`}.` },
+  ],
+  examples: [
+    workedCambridge(q5a),
+    worked(distributionFromOmega, { fn: 1, k: 4 }, t`The larger of two faces`),
+    worked(functionOfRv, { d: DISTS[0] as Dist, g: 'square', y: 4 }, t`Squaring a random variable`),
+  ],
+  generators: [distributionFromOmega, countBernoulli, functionOfRv],
+  mastery: { correctInARow: 3, maxProblems: 10 },
+  terms: ['random-variable', 'rv-distribution'],
+  claims,
+  cambridge: [q5b, quarter, scheduleRv],
+};

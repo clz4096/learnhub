@@ -2,7 +2,11 @@
  * Glossary: one entry per term the lessons mark as [[id|text]]. Definitions are one or two
  * plain sentences; examples use computed numbers like the lessons do.
  */
+import { PARTV_A_GLOSSARY } from './glossary-partv-a';
+import { PARTV_B_GLOSSARY } from './glossary-partv-b';
+import { GLOSSARY_PARTV_C } from './glossary-partv-c';
 import { factorial, q, sub } from './math';
+import { Phi } from './partv-d';
 import { factor, poly, times } from './poly';
 import { computedMath as cm, frac, ident, listOf, math, setOf, t, type Rich } from './rich';
 
@@ -100,6 +104,18 @@ const SB = 'prob.subadditivity';
 const TP = 'prob.total-probability';
 const IND = 'prob.independence';
 const BF = 'prob.bayes-formula';
+// Part V, group D
+const PD = 'prob.poisson-distribution';
+const PBL = 'prob.poisson-binomial-limit';
+const PR = 'prob.poisson-rates';
+const PGF = 'gf.pgf';
+const RS = 'gf.random-sums';
+const GCB = 'gf.combinatorial';
+const BPX = 'bp.extinction';
+const MGF = 'gf.mgf';
+const WL = 'lim.weak-law';
+const CLT = 'lim.clt';
+const s4 = (x: number): number => Number(x.toPrecision(4));
 
 export const GLOSSARY: readonly GlossaryEntry[] = [
   g(F, 'fraction', 'Fraction', t`A number of equal parts of a whole, written top over bottom.`, t`${frac(3, 4)} is three of four equal parts.`),
@@ -280,6 +296,28 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   g(IND, 'pairwise-independence', 'Pairwise independence', t`Each pair of the events is independent. It does not imply mutual independence: the triple may fail.`, t`Two fair coins: "first a head", "second a head", "they agree" are pairwise independent, but all three happen with probability ${q(1, 4)}, not ${q(1, 8)}.`, ['pairwise independent']),
   g(BF, 'bayes-formula', "Bayes's formula", t`For a partition ${math`B_{${1}}, B_{${2}}, \ldots`}: ${math`\mathbb{P}(B_{i} \mid A) = \mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i}) / \sum_{j} \mathbb{P}(A \mid B_{j})\mathbb{P}(B_{j})`}. It turns the chance of the evidence given each cause into the chance of each cause given the evidence.`, t`Urns chosen equally, urn ${1} with ${q(3, 4)} red, urn ${2} with ${q(1, 4)}: a red ball came from urn ${1} with probability ${math`\frac{${q(3, 8)}}{${q(3, 8)} + ${q(1, 8)}} = ${q(3, 4)}`}.`, ["Bayes' theorem", 'Bayes rule', 'inverse probability']),
   g(BF, 'prior-posterior', 'Prior and posterior', t`The prior probability of a cause is its probability before the evidence; the posterior is its conditional probability given the evidence, by Bayes's formula.`, t`A coin is biased with prior ${q(1, 2)}; after three heads, with heads probability ${q(3, 4)} if biased, the posterior is ${math`\frac{${27}}{${27} + ${8}} = ${q(27, 35)}`}.`, ['prior', 'posterior', 'updating']),
+  // Part V, group A (glossary-partv-a.ts)
+  ...PARTV_A_GLOSSARY,
+  // Part V, group B: continuous random variables (glossary-partv-b.ts)
+  ...PARTV_B_GLOSSARY,
+  // Part V, group C (glossary-partv-c.ts)
+  ...GLOSSARY_PARTV_C,
+  // Part V, group D
+  g(PD, 'poisson-distribution', 'Poisson distribution', t`${math`X \sim \text{Po}(\lambda)`} when ${math`P(X = k) = e^{-\lambda}\lambda^{k}/k!`} for ${math`k = ${0}, ${1}, ${2}, \ldots`}. It counts independent occurrences in an interval; its mean and its variance are both ${math`\lambda`}.`, t`With ${math`\lambda = ${2}`}, ${math`P(X = ${0}) = e^{-${2}} \approx ${s4(Math.exp(-2))}`}.`, ['Po(lambda)', 'Poisson']),
+  g(PBL, 'poisson-approximation', 'Poisson approximation to the binomial', t`For large ${mn} and small ${math`p`}, ${math`B(n, p)`} probabilities are close to those of ${math`\text{Po}(np)`}. Exactly: for fixed ${math`\lambda`} and ${math`k`}, ${math`P(B(n, \lambda/n) = k) \to e^{-\lambda}\lambda^{k}/k!`} as ${math`n \to \infty`}.`, t`For ${math`B(${100}, ${0.02})`}, ${math`P(X = ${0}) = ${0.98}^{${100}} \approx ${s4(0.98 ** 100)}`}, against ${math`e^{-${2}} \approx ${s4(Math.exp(-2))}`}.`, ['Poisson limit', 'law of small numbers']),
+  g(PR, 'poisson-rate', 'Poisson rate', t`Events occur at rate ${math`\lambda`} per unit of time, length, or area when the count in a region of size ${math`s`} is ${math`\text{Po}(\lambda s)`} and counts in disjoint regions are independent.`, t`Texts at ${3} an hour: in twenty minutes the count is ${math`\text{Po}(${1})`}, and none arrive with probability ${math`e^{-${1}} \approx ${s4(Math.exp(-1))}`}.`, ['rate', 'scaling a Poisson mean', 'Poisson process']),
+  g(PR, 'thinning', 'Thinning', t`Keep each of a ${math`\text{Po}(\lambda)`} number of points independently with probability ${math`p`}: the kept points are ${math`\text{Po}(\lambda p)`}, the others ${math`\text{Po}(\lambda(${1} - p))`}, and the two counts are independent.`, t`Misprints ${math`\text{Po}(${4})`}, each caught with probability ${q(3, 4)}: caught ${math`\text{Po}(${3})`}, missed ${math`\text{Po}(${1})`}.`, ['colouring', 'splitting a Poisson count']),
+  g(PGF, 'pgf', 'Probability generating function', t`For ${math`X`} with values ${math`${0}, ${1}, ${2}, \ldots`}: ${math`G_{X}(t) = E(t^{X}) = \sum_{k} P(X = k)t^{k}`}. It determines the distribution, ${math`G_{X}'(${1}) = E(X)`}, and ${math`G_{X + Y} = G_{X}G_{Y}`} for independent ${math`X`} and ${math`Y`}.`, t`A fair die has ${math`G(t) = \frac{t + t^{${2}} + \cdots + t^{${6}}}{${6}}`}, and ${math`G'(${1}) = \frac{${1} + ${2} + \cdots + ${6}}{${6}} = ${q(7, 2)}`}.`, ['pgf', 'generating function', 'G_X(t)']),
+  g(RS, 'random-sum', 'Random sum', t`${math`S_{N} = X_{${1}} + \cdots + X_{N}`} with ${math`N`} independent of the independent, identically distributed ${math`X_{i}`}: ${math`G_{S_{N}}(t) = G_{N}(G_{X}(t))`}, ${math`E(S_{N}) = E(N)E(X)`}, and ${math`\operatorname{Var}(S_{N}) = E(N)\operatorname{Var}(X) + \operatorname{Var}(N)E(X)^{${2}}`}.`, t`${math`N \sim \text{Po}(${4})`} and each ${math`X_{i}`} is ${0} or ${1} with probability ${q(1, 2)}: ${math`G_{S}(t) = e^{${4}((${1} + t)/${2} - ${1})} = e^{${2}(t - ${1})}`}, so ${math`S_{N} \sim \text{Po}(${2})`}.`, ['random sum formula', 'compound distribution']),
+  g(GCB, 'ordinary-generating-function', 'Generating function of a sequence', t`The power series ${math`\sum_{n} a_{n}x^{n}`}. When ${math`a_{n}`} counts selections of total ${mn}, independent choices multiply their generating functions, and the count is read off as a coefficient.`, t`Ways to pay ${4} pence with ${1}p and ${2}p coins: the coefficient of ${math`x^{${4}}`} in ${math`\frac{${1}}{(${1} - x)(${1} - x^{${2}})}`}, which is ${3}.`, ['coefficient extraction', 'counting generating function']),
+  g(BPX, 'branching-process', 'Branching process', t`Each individual of a generation has a random number of offspring, independently, with pgf ${math`G`}. The size ${math`Z_{n}`} of generation ${mn}, from one ancestor, has pgf ${math`G \circ G \circ \cdots \circ G`}, with ${mn} copies.`, t`Offspring ${0} or ${2}, each with probability ${q(1, 2)}: ${math`G(t) = \frac{${1} + t^{${2}}}{${2}}`}, so ${math`P(Z_{${2}} = ${0}) = G(G(${0})) = ${q(5, 8)}`}.`, ['Galton-Watson process', 'generation sizes']),
+  g(BPX, 'extinction-probability', 'Extinction probability', t`The probability that a branching process eventually dies out. It is the smallest root of ${math`t = G(t)`} in ${math`[${0}, ${1}]`}, and it is ${1} exactly when the mean number of offspring is at most ${1} (unless every individual has exactly one child).`, t`${math`G(t) = \frac{${1}}{${4}} + \frac{${1}}{${4}}t + \frac{${1}}{${2}}t^{${2}}`}: ${math`t = G(t)`} becomes ${math`(${2}t - ${1})(t - ${1}) = ${0}`}, so the extinction probability is ${q(1, 2)}.`, ['probability of extinction', 'dying out']),
+  g(MGF, 'mgf', 'Moment generating function', t`${math`M_{X}(\theta) = E(e^{\theta X})`}. When it is finite on an interval around ${0}, its derivatives at ${0} are the moments, ${math`M_{X}^{(k)}(${0}) = E(X^{k})`}, it determines the distribution, and ${math`M_{X + Y} = M_{X}M_{Y}`} for independent ${math`X`} and ${math`Y`}.`, t`${math`N(\mu, \sigma^{${2}})`} has ${math`M(\theta) = e^{\mu\theta + \sigma^{${2}}\theta^{${2}}/${2}}`}; ${math`\text{Po}(\lambda)`} has ${math`M(\theta) = e^{\lambda(e^{\theta} - ${1})}`}.`, ['mgf', 'moment generating function']),
+  g(MGF, 'chernoff-bound', 'Chernoff bound', t`${math`P(X \ge x) \le e^{-\theta x}M_{X}(\theta)`} for every ${math`\theta \ge ${0}`}, by Markov's inequality applied to ${math`e^{\theta X}`}; then choose the ${math`\theta`} that makes the bound smallest.`, t`For ${math`X \sim \text{Po}(${1})`}, the best bound on ${math`P(X \ge ${4})`} is ${math`e^{${3}}/${4}^{${4}} \approx ${s4(Math.exp(3) / 256)}`}; the true value is about ${s4(1 - Math.exp(-1) * (1 + 1 + 1 / 2 + 1 / 6))}.`, ['exponential Markov bound', 'Chernoff']),
+  g(MGF, 'continuity-theorem', 'Continuity theorem', t`If ${math`M_{X_{n}}(\theta) \to M_{X}(\theta)`} for every ${math`\theta`} in an interval around ${0}, then ${math`P(X_{n} \le x) \to P(X \le x)`} at every ${math`x`} where ${math`P(X \le x)`} is continuous in ${math`x`}. Stated without proof in the IA course.`, t`${math`B(n, \lambda/n)`} has ${math`M(\theta) = \left(${1} + \frac{\lambda(e^{\theta} - ${1})}{n}\right)^{n} \to e^{\lambda(e^{\theta} - ${1})}`}, the Poisson mgf.`, ['Levy continuity', 'convergence of mgfs']),
+  g(WL, 'weak-law', 'Weak law of large numbers', t`For independent, identically distributed ${math`X_{i}`} with mean ${math`\mu`} and finite variance, the sample mean ${math`\bar{X}_{n}`} satisfies ${math`P(|\bar{X}_{n} - \mu| > \varepsilon) \to ${0}`} for every ${math`\varepsilon > ${0}`}.`, t`For a fair die, Chebyshev gives ${math`P(|\bar{X}_{n} - ${q(7, 2)}| \ge ${q(1, 2)}) \le \frac{${q(35, 12)}}{n/${4}}`}, which is ${q(7, 60)} at ${math`n = ${100}`}.`, ['law of large numbers', 'WLLN']),
+  g(WL, 'convergence-in-probability', 'Convergence in probability', t`${math`Y_{n} \to c`} in probability when ${math`P(|Y_{n} - c| > \varepsilon) \to ${0}`} for every ${math`\varepsilon > ${0}`}.`, t`The proportion of heads in ${mn} fair tosses tends to ${q(1, 2)} in probability.`, ['in probability']),
+  g(CLT, 'central-limit-theorem', 'Central limit theorem', t`For independent, identically distributed ${math`X_{i}`} with mean ${math`\mu`} and variance ${math`\sigma^{${2}}`} in ${math`(${0}, \infty)`}: ${math`P\left(\frac{S_{n} - n\mu}{\sigma\sqrt{n}} \le x\right) \to \Phi(x)`} for every ${math`x`}.`, t`${100} fair tosses: ${math`P(S \le ${55}) \approx \Phi\left(\frac{${55} - ${50}}{${5}}\right) = \Phi(${1}) \approx ${s4(Phi(1))}`}.`, ['CLT', 'normal approximation for sums']),
 ];
 
 export function glossaryEntry(id: string): GlossaryEntry | undefined {

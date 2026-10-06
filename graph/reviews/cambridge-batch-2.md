@@ -351,3 +351,30 @@ Counts: Part V 38 sections in 6 chapters (37 ○, 1 ◇); Part IV gains 4 ○ in
 10. **Inference.** Confirm IB Statistics is out of this round, and Mixed Q7's estimate stays as calculus with a note.
 11. **AM-GM from batch 1** (Foundation A8 Q1): set it in `ineq.jensen` (a Tripos topic) as an elementary warm-up, or keep it out?
 12. **Areas.** Five new areas (`random-variables`, `continuous`, `generating-functions`, `random-processes`, `limit-theorems`), or fold them into two (`random-variables`, `limit-theorems`)?
+
+## Part V build (2026-10-05)
+
+Four groups built the 38 Part V sections and the four chapter 4.5 topics they need, each from commit e9d39a4, and were merged as one batch. The content and its checks are the record; this section summarises them.
+
+**Order.** Batch 5 is the 42 topics in book order (`content/src/book/book.ts`), not engine order: Part V is not a course target yet, so the engine does not schedule it. The content checks require `TOPIC_CONTENT`, `TOPIC_LOADERS`, and the catalog to list batch 5 in that order, and exempt batch 5 (and only batch 5) from the course-closure check. The "not written" probe moves from `prob.poisson-distribution`, which group D writes, to `prob.simpsons-paradox` (no source in either batch) in the content checks and in two app tests (`sims/mastery/src/model/content.test.ts`, `book.test.ts`).
+
+| group | topics | worked examples | auto-checked | supervision | generators | official comparisons |
+|---|---|---|---|---|---|---|
+| A: expectation, variance, indicators, first step, difference equations, random walks (5.1, 5.3, parts of 5.2 and 5.4) | 12 | 36 | 43 | 24 | 36 | 41, all agree |
+| B: continuous random variables (rest of 5.2, 5.5 less the bivariate normal) | 10 | 30 | 21 | 24 | 30 | 14, 13 agree |
+| C: 4.5 point masses and geometric; random variables, expectation, independence, covariance, conditional expectation (5.4); bivariate normal; Markov, Chebyshev, Jensen (5.6) | 10 | 30 | 16 | 23 | 30 | 2, all agree |
+| D: 4.5 Poisson topics; pgfs, random sums, counting gfs, extinction (5.4); weak law, mgfs, CLT (5.6) | 10 | 30 | 20 | 25 | 30 | 10, all agree |
+| total | 42 | 126 | 100 | 96 | 126 | 67, 66 agree |
+
+Auto-checked and supervision counts are the practice problems; worked examples include worked Cambridge problems. The glossary gains 79 entries (248 in all). Sheets 2 to 4 have no official solutions, so most of groups C and D rest on code checks alone: exact sums over every outcome, numerical integration, a second method, or simulation.
+
+**Recorded mismatches and source notes.**
+
+- STEP 3 Statistics solutions, Q4, E(T): the solutions print s(a + 1)/(Kay), a typesetting slip for s(a + 1)/(ka); the next line multiplies it by k(a + 1)/a and gets s((a + 1)/a)^2, which needs s(a + 1)/(ka). Recorded as the one disagreeing comparison (`rv.continuous-summaries`, `s3-q4-mean-time`); the computed answer is right.
+- The same solutions first print the density of T with (s + Ky) in the denominator, a slip for (s + ku); the later form, compared in `rv.cdf-method`, agrees.
+- Sheet 4 Q11 (`lim.clt`): the answer depends on the quantile, 1041 with the sheet's own z = 2.58 and 1037 with 2.5758. The prompt fixes z = 2.58 (question 6); the check confirms both values. Sheet 4 Q5 gives n = 7 either way.
+- Sheet 3 Q8(c) (`rw.absorption-time`): T is unbounded while part (a) assumes N bounded. The proof is set for supervision with the truncation step as the point (question 8); the mean times are auto-checked in adapted form.
+- The STEP 3 notes say the geometric distribution is not on the 2019 STEP specification; the IA schedule lists it (question 3).
+- `gf.combinatorial`, `rv.simulation`, and `prob.poisson-binomial-limit` have no numbered source problem; their problems adapt the schedule and notes (question 5). Sheet 3 Q10 is adapted to a concrete offspring pgf in `gf.random-sums`.
+
+**Merge changes.** `variance-of-sum` was defined by groups A and C; one entry remains, on `rv.expectation-algebra` (first in book order), worded with the covariance form and the independent case. `rv.covariance` still marks the term in its lesson but no longer lists it, since a topic lists only its own terms.
