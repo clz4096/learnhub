@@ -10,7 +10,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type AnswerSpec, type Misconception } from '../problem';
 import { dmath, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const pct = (x: number): Rational => q(x, 100);
 
@@ -306,14 +306,24 @@ const claims: ProbabilityClaim[] = [
   { what: 'P(woman | smoker) in STEP Support Assignment 6 Q4(i)', exact: smokers(false, true), trial: (rng) => conditionalTrial(rng, MEN, SMOKE_MEN, SMOKE_WOMEN, false, true) },
   { what: 'P(disease | positive) for Mathmotitus', exact: reverse(MATH_D, pct(99), pct(2)), trial: (rng) => conditionalTrial(rng, MATH_D, pct(99), pct(2), true, true) },
 ];
+/** The lesson's own screening test: 1 in 50 ill, sensitivity 90%, specificity 95%, over 5,000 people. */
+const LT = { per: 50, sens: 90, spec: 95, pop: 5000 };
+const LC = counts(LT.pop, q(1, LT.per), pct(LT.sens), pct(100 - LT.spec));
 
 export const bayesTwoEvents: TopicContent = {
   topicId: 'prob.bayes-two-events',
   goal: t`Reverse a conditional probability with a table of counts or a tree, and never confuse ${math`P(A \mid B)`} with ${math`P(B \mid A)`}.`,
+  objective: t`Turn ${math`P(B \mid A)`} into ${math`P(A \mid B)`} with a table of counts or a tree, and avoid confusing them.`,
+  why: t`It is the logic of medical tests and evidence in court, and the two-cause case of Bayes's formula.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`STEP Support Assignment ${6} asks: ${40}% of a population are men, ${50}% of the men smoke, and ${30}% of the women. Given that a person smokes, how likely is it to be a woman? The data give smoking given sex; the question asks sex given smoking. Reversing a conditional probability like this needs no new formula, only careful counting.` },
+    { kind: 'section', title: t`A very accurate test` },
+    { kind: 'hook', text: t`A disease affects ${0.1}% of people. A blood test is right for ${99}% of people who have it and ${98}% of people who don't. You test positive. How worried should you be? Instinct says about ${99}% worried. STEP Support Assignment ${6} shows the true answer is under ${5}%.` },
+    { kind: 'narrative', text: t`The test told you ${math`P(\text{positive} \mid \text{disease})`}: how often the ill test positive. You want ${math`P(\text{disease} \mid \text{positive})`}: how often the positive are ill. Same two events, opposite order, and the numbers can be wildly different. This lesson is about turning a conditional probability round correctly.` },
+    { kind: 'section', title: t`Count a population` },
+    { kind: 'narrative', text: t`Start with the assignment's gentler example. ${40}% of a population are men; ${50}% of the men smoke and ${30}% of the women do. Given that someone smokes, how likely is it to be a woman? The trick the assignment suggests: imagine ${100} actual people.` },
     {
-      kind: 'table', caption: t`The assignment's suggestion: model the population by ${100} people.`,
+      kind: 'table', caption: t`The population as ${100} people.`,
       head: [t``, t`smoker`, t`non-smoker`, t`total`],
       rows: [
         [t`men`, t`${smokeCounts[0]}`, t`${smokeCounts[1]}`, t`${40}`],
@@ -321,21 +331,66 @@ export const bayesTwoEvents: TopicContent = {
         [t`total`, t`${smokeCounts[0] + smokeCounts[2]}`, t`${smokeCounts[1] + smokeCounts[3]}`, t`${100}`],
       ],
     },
-    { kind: 'p', text: t`Given a smoker, keep only the smokers column: ${smokeCounts[2]} of its ${smokeCounts[0] + smokeCounts[2]} are women, so ${math`P(\text{woman} \mid \text{smoker}) = ${q(smokeCounts[2], smokeCounts[0] + smokeCounts[2])}`}. Compare ${math`P(\text{smoker} \mid \text{woman}) = ${SMOKE_WOMEN}`}: a different question, a different number.` },
-    { kind: 'rule', text: t`In symbols, the count over the column total is ${dmath`P(A \mid B) = \frac{P(A \cap B)}{P(B)} = \frac{P(B \mid A)\,P(A)}{P(B \mid A)\,P(A) + P(B \mid \text{not } A)\,P(\text{not } A)}.`} The top is the branch of the tree through ${math`A`} and ${math`B`}; the bottom adds every branch that ends in ${math`B`}.` },
-    { kind: 'p', text: t`Medical tests are the classic case. A test can be wrong two ways: a [[false-positive|false positive]] (positive, but no disease) or a false negative. Its [[sensitivity|sensitivity]] is ${math`P(\text{positive} \mid \text{disease})`}, the share of people with the disease it catches; its [[specificity|specificity]] is ${math`P(\text{negative} \mid \text{no disease})`}.` },
-    { kind: 'p', text: t`For "Mathmotitus" (${0.1}% of people have it; sensitivity ${99}%, specificity ${98}%), only ${math`\frac{${MC[0]}}{${MC[0] + MC[2]}} = ${reverse(MATH_D, pct(99), pct(2))}`} of people who test positive have it, under ${5}%. The healthy group is so much larger that its ${2}% of false positives outnumber the true ones.` },
-    { kind: 'p', text: t`Mistaking ${math`P(B \mid A)`} for ${math`P(A \mid B)`} has a name, the [[prosecutors-fallacy|prosecutor's fallacy]]: "the chance of this evidence if the accused is innocent is tiny" is not "the chance the accused is innocent, given this evidence, is tiny". A court needs the second.` },
+    { kind: 'p', text: t`Each row comes straight from the data: ${50}% of the ${40} men is ${smokeCounts[0]}, and ${30}% of the ${60} women is ${smokeCounts[2]}. Now "given a smoker" means: keep only the smokers column, ${smokeCounts[0] + smokeCounts[2]} people. ${smokeCounts[2]} of them are women, so ${math`P(\text{woman} \mid \text{smoker}) = \frac{${smokeCounts[2]}}{${smokeCounts[0] + smokeCounts[2]}} = ${q(smokeCounts[2], smokeCounts[0] + smokeCounts[2])}`}. Compare ${math`P(\text{smoker} \mid \text{woman}) = ${SMOKE_WOMEN}`}: the condition picks which total you divide by.` },
+    { kind: 'section', title: t`The formula behind the table` },
+    { kind: 'narrative', text: t`The table is a formula in disguise. Here it is, written for two events.` },
+    { kind: 'theorem', name: t`Reversing a conditional`, statement: t`Let ${math`A`} and ${math`B`} be events with ${math`${0} < P(A) < ${1}`} and ${math`P(B) > ${0}`}. Then ${dmath`P(A \mid B) = \frac{P(B \mid A)\,P(A)}{P(B \mid A)\,P(A) + P(B \mid A^{c})\,P(A^{c})}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Definition`, text: t`${math`P(A \mid B) = \frac{P(A \cap B)}{P(B)}`}.`, plain: t`In the table: the cell over the column total.` },
+        { label: t`The top`, text: t`${math`P(A \cap B) = P(B \mid A)\,P(A)`}, by the definition of ${math`P(B \mid A)`}, since ${math`P(A) > ${0}`}.`, plain: t`${50}% of the ${40}% who are men: the cell ${smokeCounts[0]}.` },
+        { label: t`The bottom`, text: t`${math`B`} is the disjoint union of ${math`A \cap B`} and ${math`A^{c} \cap B`}, so ${math`P(B) = P(B \mid A)P(A) + P(B \mid A^{c})P(A^{c})`}.`, plain: t`The column total is the sum of its two cells.`, why: { q: t`Why is ${math`P(A^{c} \cap B) = P(B \mid A^{c})P(A^{c})`}?`, a: t`The same rule as the top, applied to ${math`A^{c}`}; it needs ${math`P(A^{c}) > ${0}`}, which is why ${math`P(A) < ${1}`} is assumed.` } },
+        { label: t`Divide`, text: t`Substitute the top and bottom into the definition.` },
+      ],
+    },
+    { kind: 'p', text: t`On a tree, the first split is ${math`A`} or ${math`A^{c}`} and the second is ${math`B`} or not. The top of the formula is the one branch through ${math`A`} and ${math`B`}; the bottom adds every branch that ends in ${math`B`}.` },
+    { kind: 'section', title: t`Tests and false positives` },
+    {
+      kind: 'definition',
+      name: t`Sensitivity, specificity, false positive`,
+      formal: t`For a test for a condition ${math`D`}, the [[sensitivity|sensitivity]] is ${math`P(\text{positive} \mid D)`} and the [[specificity|specificity]] is ${math`P(\text{negative} \mid D^{c})`}. A [[false-positive|false positive]] is a positive result for someone without ${math`D`}; a false negative is a negative result for someone with it.`,
+      plain: t`Sensitivity: the share of ill people the test catches. Specificity: the share of healthy people it clears.`,
+    },
+    { kind: 'p', text: t`Take a screening test with sensitivity ${LT.sens}% and specificity ${LT.spec}%, for a condition affecting ${1} person in ${LT.per}. Imagine ${LT.pop} people: ${LT.pop / LT.per} are ill and ${LT.pop - LT.pop / LT.per} are not. Of the ill, ${LC[0]} test positive. Of the healthy, ${100 - LT.spec}% test positive: ${LC[2]} false positives. So of ${LC[0] + LC[2]} positives only ${LC[0]} are ill: ${math`\frac{${LC[0]}}{${LC[0] + LC[2]}} = ${q(LC[0], LC[0] + LC[2])}`}. The healthy group is so much bigger that even its small error rate swamps the true positives.` },
+    checkFrom(diagnostic, { per: 100, sens: 90, spec: 95 }, t`Of ${10000} people, ${100} are ill and ${90} of them test positive; ${5}% of the ${9900} healthy give ${495} false positives; ${math`\frac{${90}}{${90 + 495}} = ${q(90, 585)}`}.`),
+    {
+      kind: 'definition',
+      name: t`Prosecutor's fallacy`,
+      formal: t`The [[prosecutors-fallacy|prosecutor's fallacy]] is to treat ${math`P(E \mid I)`}, the probability of the evidence ${math`E`} if the accused is innocent, as if it were ${math`P(I \mid E)`}, the probability of innocence given the evidence.`,
+      plain: t`"A match this good happens to only one innocent person in a million" does not mean "there is only a one in a million chance the accused is innocent". In a city of millions, several innocent people would match.`,
+    },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`A test that is right ${99}% of the time gives a positive that is right ${99}% of the time.`, counterexample: t`With the screening test above, a positive is right only ${q(LC[0], LC[0] + LC[2])} of the time. The answer depends on how common the condition is, not only on the test.` },
+    { kind: 'pitfall', claim: t`${math`P(\text{smoker} \mid \text{woman}) = P(\text{woman} \mid \text{smoker})`}.`, counterexample: t`In the table they are ${SMOKE_WOMEN} and ${q(smokeCounts[2], smokeCounts[0] + smokeCounts[2])}: you divide ${smokeCounts[2]} by ${60} for one and by ${smokeCounts[0] + smokeCounts[2]} for the other.` },
+    { kind: 'takeaway', text: t`To reverse a conditional, count: restrict to the people the condition describes, and divide by their total, not by the other one.` },
   ],
   examples: [
-    workedCambridge(a6Table),
-    workedCambridge(a6d),
+    { ...workedCambridge(a6Table), examiner: t`The examiner looks for every cell computed from the right percentage of the right group, and totals that check.` },
+    { ...workedCambridge(a6d), examiner: t`The examiner looks for the restriction to smokers stated, and the given ${math`P(\text{smoker} \mid \text{woman})`} not mistaken for the answer.` },
     worked(diagnostic, { per: 200, sens: 95, spec: 96 }, t`A screening test`),
   ],
   generators: [diagnostic, groups, bayesTable],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['false-positive', 'sensitivity', 'specificity', 'prosecutors-fallacy'],
   cambridge: [a6abc, a6e, a6ii, a6discussion],
-  gate: ['a6-q4-i-abc', 'a6-q4-i-e', 'a6-q4-ii', 'a6-discussion'],
+  gate: ['a6-q4-ii', 'a6-discussion', 'a6-q4-i-e'],
   claims,
+  recall: [
+    { front: t`${math`P(A \mid B)`} in terms of ${math`P(B \mid A)`}, for two events.`, back: t`${math`\frac{P(B \mid A)P(A)}{P(B \mid A)P(A) + P(B \mid A^{c})P(A^{c})}`}.` },
+    { front: t`Sensitivity and specificity of a test.`, back: t`Sensitivity ${math`P(\text{positive} \mid D)`}; specificity ${math`P(\text{negative} \mid D^{c})`}.` },
+    { front: t`The prosecutor's fallacy.`, back: t`Confusing ${math`P(\text{evidence} \mid \text{innocent})`} with ${math`P(\text{innocent} \mid \text{evidence})`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Reversing a conditional`,
+      steps: [
+        t`By definition, ${math`P(A \mid B) = \frac{P(A \cap B)}{P(B)}`}.`,
+        t`The top is ${math`P(B \mid A)P(A)`}.`,
+        t`Split ${math`B`} into ${math`A \cap B`} and ${math`A^{c} \cap B`}: the bottom is ${math`P(B \mid A)P(A) + P(B \mid A^{c})P(A^{c})`}.`,
+        t`Substitute both into the definition.`,
+      ],
+    },
+  ],
 };

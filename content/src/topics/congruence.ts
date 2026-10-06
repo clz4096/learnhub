@@ -11,7 +11,7 @@ import { int, pick, sample } from '../math';
 import { gcd, mod } from '../numbers';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { join, math, paren, t, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mm, mk] = [math`m`, math`k`];
 const cong = (a: number, b: number, m: number): Span => math`${a} \equiv ${b} \pmod{${m}}`;
@@ -215,18 +215,51 @@ const bop532 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const DAYS = 100;
+
 export const congruence: TopicContent = {
   topicId: 'num.congruence',
   goal: t`Use ${math`a \equiv b \pmod{m}`}, defined as ${math`m \mid a - b`}, and its meaning: ${math`a`} and ${math`b`} leave the same remainder on division by ${mm}.`,
+  objective: t`Use ${math`a \equiv b \pmod{m}`}, meaning ${math`m`} divides ${math`a - b`}, and see why it means equal remainders.`,
+  why: t`Arithmetic that ignores multiples of ${mm}: the language of modular arithmetic, RSA, and Fermat's theorem.`,
+  minutes: 15,
   lesson: [
-    { kind: 'rule', text: t`Fix a positive integer ${mm}. Integers ${math`a`} and ${math`b`} are [[congruent-mod|congruent modulo]] ${mm}, written ${math`a \equiv b \pmod{m}`}, when ${math`m \mid (a - b)`}.` },
-    { kind: 'p', text: t`The CST notes' first examples: ${cong(18, 2, 4)}, ${cong(2, -2, 4)}, and ${cong(18, -2, 4)}; the differences are ${16}, ${4}, and ${20}. Congruence modulo ${2} is parity: ${math`n`} is even when ${math`n \equiv ${0} \pmod{${2}}`} and odd when ${math`n \equiv ${1} \pmod{${2}}`} (Proposition ${16}).` },
-    { kind: 'p', text: t`In practice ${math`a \equiv b \pmod{m}`} means ${math`a`} and ${math`b`} have the same remainder: if ${math`a = km + r`} and ${math`b = lm + r`}, then ${math`a - b = (k - l)m`}; and conversely. With negative numbers use the remainder from ${0} to ${math`m - ${1}`}: ${math`-${4}`} leaves ${mod(-4, 3)} on division by ${3}, the same as ${17}, so ${cong(17, -4, 3)}.` },
-    { kind: 'p', text: t`Each number is congruent to exactly one of ${math`${0}, ${1}, \ldots, m - ${1}`} (Proposition ${24} of the notes): if two of them, ${math`x`} and ${math`y`}, were congruent, then ${math`x - y`} would be a multiple of ${mm} strictly between ${math`-m`} and ${mm}, so ${0}.` },
-    { kind: 'p', text: t`Congruence behaves like equality: it is reflexive, symmetric, and transitive (exercise ${2}.${1}.${1}). One difference: you cannot always cancel. ${math`${2} \times ${3} \equiv ${2} \times ${1} \pmod{${4}}`}, yet ${math`${3} \not\equiv ${1} \pmod{${4}}`}. Cancelling ${mk} divides the modulus by ${math`\gcd(m, k)`} (exercise ${3}.${2}.${4}).` },
+    { kind: 'section', title: t`Clock arithmetic` },
+    { kind: 'hook', text: t`Today is Monday. What day is it in ${DAYS} days? You don't count them. ${DAYS} is ${Math.floor(DAYS / 7)} whole weeks and ${DAYS % 7} days more, and whole weeks change nothing, so it is ${DAYS % 7} days after Monday: Wednesday. As far as the weekday goes, ${DAYS} and ${DAYS % 7} are the same number. Can we make that precise?` },
+    { kind: 'narrative', text: t`Two numbers are "the same as far as the weekday goes" when they differ by a whole number of weeks, that is, when their difference is a multiple of ${7}. Replace ${7} by any modulus ${mm} and you have the definition.` },
+    { kind: 'section', title: t`The definition` },
+    {
+      kind: 'definition',
+      name: t`Congruence modulo m`,
+      formal: t`Let ${mm} be a positive integer. Integers ${math`a`} and ${math`b`} are [[congruent-mod|congruent modulo]] ${mm}, written ${math`a \equiv b \pmod{m}`}, if ${math`m \mid (a - b)`}, that is, if ${math`a - b = km`} for some ${math`k \in \mathbb{Z}`}.`,
+      plain: t`${math`a`} and ${math`b`} differ by a whole number of ${mm}s. The CST notes' Example ${15}: ${cong(18, 2, 4)}, since ${math`${18} - ${2} = ${16} = ${4} \times ${4}`}; and ${cong(2, -2, 4)}, since ${math`${2} - (-${2}) = ${4}`}.`,
+    },
+    { kind: 'p', text: t`Modulo ${2}, congruence is parity: ${math`n \equiv ${0} \pmod{${2}}`} says ${math`n`} is even, and ${math`n \equiv ${1} \pmod{${2}}`} says it is odd.` },
+    checkFrom(witnessK, { a: 30, b: 2, m: 7 }, t`${math`${30} - ${2} = ${28} = ${4} \times ${7}`}, so ${math`k = ${4}`}.`),
+    { kind: 'section', title: t`Same remainder` },
+    { kind: 'theorem', statement: t`Let ${mm} be a positive integer, and let ${math`a = qm + r`} and ${math`b = q'm + r'`} with ${math`q, q' \in \mathbb{Z}`} and ${math`${0} \le r, r' < m`}. Then ${math`a \equiv b \pmod{m}`} if and only if ${math`r = r'`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Subtract`, text: t`${math`a - b = (q - q')m + (r - r')`}.`, plain: t`Here ${math`r`} and ${math`r'`} are the remainders given by the division theorem.` },
+        { label: t`If the remainders agree`, text: t`If ${math`r = r'`}, then ${math`a - b = (q - q')m`}, so ${math`m \mid a - b`}.` },
+        { label: t`If ${math`m \mid a - b`}`, text: t`Then ${mm} divides ${math`(a - b) - (q - q')m = r - r'`}.`, why: { q: t`Why does ${mm} divide that difference?`, a: t`If ${mm} divides two integers, it divides their difference: ${math`km - jm = (k - j)m`}.` } },
+        { label: t`Squeeze`, text: t`But ${math`-m < r - r' < m`}, and the only multiple of ${mm} in that range is ${0}. So ${math`r = r'`}.`, plain: t`Two remainders both between ${0} and ${math`m - ${1}`} differ by less than ${mm}.` },
+      ],
+    },
+    { kind: 'p', text: t`So every integer is congruent to exactly one of ${math`${0}, ${1}, \ldots, m - ${1}`}, its remainder (Proposition ${24} of the notes). Negative numbers included: ${math`-${4} = (-${2}) \times ${3} + ${2}`}, so ${math`-${4}`} leaves remainder ${mod(-4, 3)} on division by ${3}, the same as ${17}, and ${cong(17, -4, 3)}.` },
+    { kind: 'section', title: t`Like equality, almost` },
+    { kind: 'theorem', statement: t`Congruence modulo ${mm} is reflexive, symmetric, and transitive: ${math`a \equiv a`}; if ${math`a \equiv b`} then ${math`b \equiv a`}; if ${math`a \equiv b`} and ${math`b \equiv c`} then ${math`a \equiv c`}, all modulo ${mm}.` },
+    { kind: 'p', text: t`Each part is a fact about divisibility; proving all three from the definition is supervision exercise ${2}.${1}.${1}, the gate problem for this topic. In one way congruence is not like equality: you cannot always cancel. ${math`${2} \times ${3} \equiv ${2} \times ${1} \pmod{${4}}`}, since ${math`${6} - ${2} = ${4}`}, yet ${math`${3} \not\equiv ${1} \pmod{${4}}`}. Cancelling a factor ${math`n`} divides the modulus by ${math`\gcd(m, n)`} (exercise ${3}.${2}.${4}).` },
+    checkFrom(cancelFactor, { m: 20, n: 6 }, t`${math`\gcd(${20}, ${6}) = ${2}`}, so the modulus becomes ${math`\frac{${20}}{${2}} = ${10}`}.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`The remainder of ${math`-${4}`} on division by ${3} is ${math`-${1}`}.`, counterexample: t`Remainders lie in ${math`${0}, \ldots, m - ${1}`}: ${math`-${4} = (-${2}) \times ${3} + ${2}`}, so the remainder is ${2}. (${math`-${4} \equiv -${1} \pmod{${3}}`} is true, but ${math`-${1}`} is not a remainder.)` },
+    { kind: 'pitfall', claim: t`If ${math`ka \equiv kb \pmod{m}`} and ${math`k \ne ${0}`}, then ${math`a \equiv b \pmod{m}`}.`, counterexample: t`${math`${2} \times ${3} \equiv ${2} \times ${1} \pmod{${4}}`}, but ${math`${3} \not\equiv ${1} \pmod{${4}}`}. Cancelling is safe only when ${math`\gcd(k, m) = ${1}`}.` },
+    { kind: 'takeaway', text: t`${math`a \equiv b \pmod{m}`} means ${mm} divides ${math`a - b`}, which is the same as equal remainders on division by ${mm}.` },
   ],
   examples: [
-    workedCambridge(notes15),
+    { ...workedCambridge(notes15), examiner: t`The examiner looks for each difference computed with its sign and written as ${4} times an integer.` },
     worked(witnessK, { a: 23, b: -5, m: 7 }, t`The witness for ${cong(23, -5, 7)}`),
     worked(cancelFactor, { m: 54, n: 12 }, t`Cancelling ${12} modulo ${54}`),
   ],
@@ -234,5 +267,21 @@ export const congruence: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['congruent-mod'],
   cambridge: [bop51, sheet324, sheet211, sheet324proof, bop521, bop532],
-  gate: ['sheet-3-2-10-b-reduce', 'sheet-2-1-1', 'sheet-3-2-4'],
+  gate: ['sheet-2-1-1', 'sheet-3-2-4', 'sheet-3-2-10-b-reduce'],
+  recall: [
+    { front: t`Define ${math`a \equiv b \pmod{m}`}.`, back: t`${math`m \mid (a - b)`}: ${math`a - b = km`} for some integer ${mk}.` },
+    { front: t`Congruence in terms of remainders.`, back: t`${math`a \equiv b \pmod{m}`} exactly when ${math`a`} and ${math`b`} leave the same remainder on division by ${mm}.` },
+    { front: t`When can you cancel ${mk} from ${math`ka \equiv kb \pmod{m}`}?`, back: t`When ${math`\gcd(k, m) = ${1}`}; in general the modulus becomes ${math`m / \gcd(m, k)`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Congruent numbers have the same remainder`,
+      steps: [
+        t`Write ${math`a = qm + r`} and ${math`b = q'm + r'`} with ${math`${0} \le r, r' < m`}.`,
+        t`If ${math`m \mid a - b`}, then ${mm} divides ${math`r - r' = (a - b) - (q - q')m`}.`,
+        t`But ${math`-m < r - r' < m`}.`,
+        t`The only multiple of ${mm} there is ${0}, so ${math`r = r'`}.`,
+      ],
+    },
+  ],
 };

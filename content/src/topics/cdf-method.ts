@@ -12,8 +12,8 @@ import { auto, cite, supervision } from '../cambridge';
 import { int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { integrateToInfinity, near, powQ, rootTex, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
-import { math, t, type Span } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, math, t, type Span } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mX, mY] = [math`X`, math`Y`];
 const S2 = 'step-s2-stats' as const;
@@ -332,20 +332,62 @@ const claims: ProbabilityClaim[] = [
   { what: 'P(X² ≤ 1) for X uniform on [-1, 2]', exact: q(2, 3), trial: (rng) => { const x = -1 + 3 * rng(); return x * x <= 1; } },
   { what: 'P(X² ≤ 1/4) for X uniform on [0, 1]', exact: q(1, 2), trial: (rng) => rng() ** 2 <= 0.25 },
 ];
+const QUARTER = q(1, 4);
+const HALF = q(1, 2);
 
 export const cdfMethod: TopicContent = {
   topicId: 'rv.cdf-method',
   goal: t`Find the density of ${math`Y = g(X)`} by writing ${math`F_{Y}(y) = P(g(X) \le y)`} as an event about ${mX}, using ${math`F_{X}`}, and differentiating.`,
+  objective: t`Find the density of ${math`g(X)`} by turning ${math`P(g(X) \le y)`} into an event about ${mX} and differentiating.`,
+  why: t`Most random variables are functions of simpler ones; this is the safe way to get their densities.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Knowing the density of ${mX}, what is the density of ${math`X^{${2}}`}, or of ${math`s/X`}? Densities do not transform by substitution alone, but probabilities do: ${math`P(Y \le y)`} is the probability of an event about ${mX}. This is the [[cdf-method|distribution function method]].` },
-    { kind: 'rule', text: t`To find ${math`f_{Y}`} for ${math`Y = g(X)`}: write ${math`F_{Y}(y) = P(g(X) \le y)`}, solve the inequality for ${mX}, express the result with ${math`F_{X}`}, then ${math`f_{Y}(y) = F_{Y}'(y)`}.` },
-    { kind: 'p', text: t`The STEP ${3} notes take ${math`Y = X^{${2}}`}: ${math`F_{Y}(y) = P(X^{${2}} \le y) = P(-\sqrt{y} \le X \le \sqrt{y}) = \int_{-\sqrt{y}}^{\sqrt{y}} f(t)\,dt`}. For ${mX} uniform on ${math`[${0}, ${1}]`} that is ${math`\sqrt{y}`}, so ${math`f_{Y}(y) = \frac{${1}}{${2}\sqrt{y}}`} on ${math`(${0}, ${1}]`}: a density may be unbounded. And ${math`P(X^{${2}} \le \tfrac{${1}}{${4}}) = P(X \le \tfrac{${1}}{${2}}) = ${q(1, 2)}`}. If ${mX} is uniform on ${math`[-${1}, ${2}]`}, both roots matter: ${math`P(X^{${2}} \le ${1}) = P(-${1} \le X \le ${1}) = ${q(2, 3)}`}.` },
-    { kind: 'p', text: t`A decreasing ${math`g`} turns the inequality over. For the travel time ${math`T = s/V`} of STEP ${3} Q${4}, ${math`T < t`} exactly when ${math`V > s/t`}, so ${math`F_{T}(t) = ${1} - F_{V}(s/t)`} and ${math`f_{T}(t) = f_{V}(s/t)\,\frac{s}{t^{${2}}}`}.` },
-    { kind: 'rule', text: t`For a strictly monotone ${math`g`} with inverse ${math`h`}: ${math`f_{Y}(y) = f_{X}(h(y))\,|h'(y)|`}. The factor ${math`|h'(y)|`} is the chain rule; forgetting it is the usual slip.` },
-    { kind: 'p', text: t`Sometimes the complement is the natural event. In STEP ${2} Q${4}, the distance ${mY} to the nearest supermarket is at least ${math`y`} exactly when a disc of radius ${math`y`} holds none, so ${math`P(Y \ge y) = e^{-k\pi y^{${2}}}`}, ${math`F_{Y}(y) = ${1} - e^{-k\pi y^{${2}}}`}, and ${math`f_{Y}(y) = ${2}\pi k y\,e^{-\pi k y^{${2}}}`}.` },
+    { kind: 'section', title: t`Is the square of a uniform uniform?` },
+    { kind: 'hook', text: t`Pick ${mX} uniformly from ${math`[${0}, ${1}]`} and square it. ${math`Y = X^{${2}}`} also lies in ${math`[${0}, ${1}]`}. Is it uniform too? Ask how often ${math`Y \le ${QUARTER}`}. That happens when ${math`X \le ${HALF}`}, which is half the time, not a quarter. Squaring piles the values up near ${0}. So what is the density of ${mY}?` },
+    { kind: 'narrative', text: t`Densities do not survive substitution: ${math`f_{X}`} at ${math`\sqrt{y}`} is not the density of ${mY}. But probabilities do survive, because ${math`\{Y \le y\}`} is an event about ${mX}. So go through probabilities: find the distribution function of ${mY}, then differentiate it.` },
+    { kind: 'section', title: t`The method` },
+    {
+      kind: 'definition',
+      name: t`Distribution function`,
+      formal: t`The distribution function of a random variable ${mX} is ${math`F_{X}(x) = P(X \le x)`} for ${math`x \in \mathbb{R}`}. If ${mX} has a density ${math`f_{X}`}, then ${math`F_{X}(x) = \int_{-\infty}^{x} f_{X}(t)\,dt`}, and ${math`f_{X}(x) = F_{X}'(x)`} wherever ${math`f_{X}`} is continuous.`,
+      plain: t`${math`F_{X}`} accumulates probability from the left; the density is its slope. For ${mX} uniform on ${math`[${0}, ${1}]`}, ${math`F_{X}(x) = x`} there.`,
+    },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Write the distribution function of ${mY}`, text: t`${math`F_{Y}(y) = P(g(X) \le y)`}.` },
+        { label: t`Solve the inequality for ${mX}`, text: t`Find the set of ${math`x`} with ${math`g(x) \le y`}, for example ${math`x \le h(y)`}, or an interval.`, plain: t`Watch for two roots, and for decreasing ${math`g`}, which turns the inequality over.` },
+        { label: t`Use ${math`F_{X}`}`, text: t`Write ${math`F_{Y}(y)`} with ${math`F_{X}`} or an integral of ${math`f_{X}`}.` },
+        { label: t`Differentiate`, text: t`${math`f_{Y}(y) = F_{Y}'(y)`}, with the chain rule.` },
+      ],
+    },
+    { kind: 'p', text: t`This is the [[cdf-method|distribution function method]]. For the hook: ${math`F_{Y}(y) = P(X^{${2}} \le y) = P(X \le \sqrt{y}) = \sqrt{y}`} for ${math`${0} \le y \le ${1}`}, since ${mX} is never negative. So ${math`f_{Y}(y) = \frac{${1}}{${2}\sqrt{y}}`} on ${math`(${0}, ${1}]`}. The density is unbounded near ${0}, and that is allowed: only its integral must be finite.` },
+    checkFrom(cdfOfPower, { j: 1, n: 2, r: HALF }, t`${math`Y \le ${QUARTER}`} exactly when ${math`X \le ${HALF}`}, and ${math`F_{X}(x) = x^{${2}}`}, so the answer is ${math`(${HALF})^{${2}} = ${QUARTER}`}.`),
+    { kind: 'section', title: t`Two roots` },
+    { kind: 'narrative', text: t`When ${mX} can be negative, ${math`X^{${2}} \le y`} has two sides: ${math`-\sqrt{y} \le X \le \sqrt{y}`}. Take ${mX} uniform on ${math`[-${1}, ${2}]`}, density ${q(1, 3)}.` },
+    { kind: 'p', text: t`For ${math`${0} \le y \le ${1}`} the whole interval ${math`[-\sqrt{y}, \sqrt{y}]`} lies in ${math`[-${1}, ${2}]`}, so ${math`F_{Y}(y) = \frac{${2}\sqrt{y}}{${3}}`}; in particular ${math`P(X^{${2}} \le ${1}) = ${q(2, 3)}`}. For ${math`${1} < y \le ${4}`} the left end is cut off at ${-1}, so ${math`F_{Y}(y) = \frac{\sqrt{y} + ${1}}{${3}}`}. Differentiating, ${math`f_{Y}(y) = \frac{${1}}{${3}\sqrt{y}}`} on ${math`(${0}, ${1})`} and ${math`\frac{${1}}{${6}\sqrt{y}}`} on ${math`(${1}, ${4})`}.`, why: { q: t`How can we check that density?`, a: t`Integrate it: ${math`\int_{${0}}^{${1}} \frac{dy}{${3}\sqrt{y}} = ${q(2, 3)}`} and ${math`\int_{${1}}^{${4}} \frac{dy}{${6}\sqrt{y}} = \frac{${2} \cdot ${2} - ${2}}{${6}} = ${q(1, 3)}`}, which add to ${1}.` } },
+    checkFrom(squareOfUniform, { c: 2, d: 3, r: q(3, 2) }, t`${math`X^{${2}} \le ${q(9, 4)}`} means ${math`-${q(3, 2)} \le X \le ${q(3, 2)}`}, an interval of length ${3} inside ${math`[-${2}, ${3}]`}, so the probability is ${q(3, 5)}.`),
+    { kind: 'section', title: t`Monotone transformations` },
+    { kind: 'theorem', statement: t`Let ${mX} have density ${math`f_{X}`}, and let ${math`g`} be strictly monotone and differentiable on the range of ${mX}, with inverse ${math`h`}. Then ${math`Y = g(X)`} has density ${dmath`f_{Y}(y) = f_{X}(h(y))\,|h'(y)|.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Increasing ${math`g`}`, text: t`${math`g(X) \le y`} exactly when ${math`X \le h(y)`}, so ${math`F_{Y}(y) = F_{X}(h(y))`}, and by the chain rule ${math`f_{Y}(y) = f_{X}(h(y))\,h'(y)`}, with ${math`h' > ${0}`}.` },
+        { label: t`Decreasing ${math`g`}`, text: t`${math`g(X) \le y`} exactly when ${math`X \ge h(y)`}, so ${math`F_{Y}(y) = ${1} - F_{X}(h(y))`}, and ${math`f_{Y}(y) = -f_{X}(h(y))\,h'(y)`}, with ${math`h' < ${0}`}.`, plain: t`Applying a decreasing function turns the inequality over.` },
+        { label: t`Both at once`, text: t`In either case ${math`f_{Y}(y) = f_{X}(h(y))\,|h'(y)|`}.` },
+      ],
+    },
+    { kind: 'p', text: t`Example: ${mX} uniform on ${math`[${1}, ${2}]`} and ${math`Y = \frac{${1}}{X}`}, which lies in ${math`[${HALF}, ${1}]`}. ${math`Y \le y`} exactly when ${math`X \ge \frac{${1}}{y}`}, so ${math`F_{Y}(y) = ${2} - \frac{${1}}{y}`} and ${math`f_{Y}(y) = \frac{${1}}{y^{${2}}}`}. The formula agrees: ${math`h(y) = \frac{${1}}{y}`}, ${math`|h'(y)| = \frac{${1}}{y^{${2}}}`}, and ${math`f_{X} = ${1}`}.` },
+    { kind: 'section', title: t`When the complement is easier` },
+    { kind: 'p', text: t`Sometimes ${math`P(Y > y)`} is the natural event. Let ${math`U_{${1}}, U_{${2}}`} be independent and uniform on ${math`[${0}, ${1}]`}, and ${math`Y = \min(U_{${1}}, U_{${2}})`}. The minimum exceeds ${math`y`} exactly when both do, so ${math`P(Y > y) = (${1} - y)^{${2}}`}, ${math`F_{Y}(y) = ${1} - (${1} - y)^{${2}}`}, and ${math`f_{Y}(y) = ${2}(${1} - y)`} on ${math`[${0}, ${1}]`}.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`The density of ${math`Y = g(X)`} is ${math`f_{X}(h(y))`}.`, counterexample: t`For ${mX} uniform on ${math`[${0}, ${1}]`} and ${math`Y = ${2}X`}, that gives ${1} on ${math`[${0}, ${2}]`}, which integrates to ${2}, not ${1}. The factor ${math`|h'(y)| = ${HALF}`} is missing.` },
+    { kind: 'pitfall', claim: t`${math`P(X^{${2}} \le y) = P(X \le \sqrt{y})`}.`, counterexample: t`For ${mX} uniform on ${math`[-${1}, ${1}]`}: ${math`P(X^{${2}} \le ${QUARTER}) = P(-${HALF} \le X \le ${HALF}) = ${HALF}`}, but ${math`P(X \le ${HALF}) = ${q(3, 4)}`}. The negative root counts too.` },
+    { kind: 'takeaway', text: t`Go through probabilities: ${math`F_{Y}(y) = P(g(X) \le y)`}, solve for ${mX} with care over roots and direction, then differentiate.` },
   ],
   examples: [
-    workedCambridge(q3),
+    { ...workedCambridge(q3), examiner: t`The examiner looks for ${math`F_{A}`} found first, using ${math`R \ge ${0}`}, and the chain rule factor when differentiating.` },
     worked(squareOfUniform, { c: 1, d: 3, r: q(3, 2) }, t`The square of a uniform variable`),
     worked(densityOfTransform, { lam: q(1), kind: 'square', c: 2, y: q(1, 4) }, t`The density of ${math`X^{${2}}`} for an exponential ${mX}`),
   ],
@@ -354,5 +396,21 @@ export const cdfMethod: TopicContent = {
   terms: ['cdf-method'],
   claims,
   cambridge: [q4cdf, q4t, q4tProof, squareRule],
-  gate: ['s2-q4-cdf', 's3-q4-density-t', 's3-q4-tail', 's3-notes-square'],
+  gate: ['s3-q4-density-t', 's3-notes-square', 's2-q4-cdf', 's3-q4-tail'],
+  recall: [
+    { front: t`The distribution function method for ${math`Y = g(X)`}.`, back: t`Write ${math`F_{Y}(y) = P(g(X) \le y)`}, solve for ${mX}, use ${math`F_{X}`}, then differentiate.` },
+    { front: t`The density of ${math`g(X)`} for strictly monotone ${math`g`} with inverse ${math`h`}.`, back: t`${math`f_{Y}(y) = f_{X}(h(y))\,|h'(y)|`}.` },
+    { front: t`${math`P(X^{${2}} \le y)`} for ${math`y \ge ${0}`}.`, back: t`${math`P(-\sqrt{y} \le X \le \sqrt{y})`}: both roots.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The density of a decreasing transformation`,
+      steps: [
+        t`${math`g(X) \le y`} exactly when ${math`X \ge h(y)`}, since ${math`g`} is decreasing.`,
+        t`So ${math`F_{Y}(y) = ${1} - F_{X}(h(y))`}.`,
+        t`Differentiate by the chain rule: ${math`f_{Y}(y) = -f_{X}(h(y))\,h'(y)`}.`,
+        t`Since ${math`h' < ${0}`}, this is ${math`f_{X}(h(y))\,|h'(y)|`}.`,
+      ],
+    },
+  ],
 };

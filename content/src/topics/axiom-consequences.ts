@@ -8,7 +8,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, sample, str, sub, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { join, math, t, type Rich, type Span } from '../rich';
-import { worked, workedProof, type TopicContent } from '../topic';
+import { checkFrom, worked, workedProof, type TopicContent } from '../topic';
 
 const S1 = 'ia-prob-sheet-1' as const;
 const [mA, mB, mO] = [math`A`, math`B`, math`\Omega`];
@@ -262,18 +262,62 @@ const boundsProof = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [hA, hB] = [q(7, 10), q(3, 5)];
+const HALFR = q(1, 2);
+
 export const axiomConsequences: TopicContent = {
   topicId: 'prob.axiom-consequences',
   goal: t`Prove the complement rule, monotonicity, and the addition rule for two events from the axioms, and use them to find and bound probabilities.`,
+  objective: t`Prove the complement, monotonicity, and addition rules from the axioms, and use them to bound probabilities.`,
+  why: t`These rules are the everyday tools of probability, and proving them is a first-sheet Cambridge exercise.`,
+  minutes: 15,
   lesson: [
-    { kind: 'p', text: t`The axioms say little: probabilities are at least ${0}, ${math`\mathbb{P}(\Omega) = ${1}`}, and probabilities of disjoint events add. Everything familiar follows, by splitting events into disjoint pieces. Example Sheet ${1} Q${4} asks for these proofs "starting from the definitions".` },
-    { kind: 'rule', text: t`For events ${mA} and ${mB}: ${math`\mathbb{P}(A^{c}) = ${1} - \mathbb{P}(A)`}; if ${math`A \subseteq B`} then ${math`\mathbb{P}(A) \le \mathbb{P}(B)`} ([[monotonicity|monotonicity]]); and ${math`\mathbb{P}(A \cup B) = \mathbb{P}(A) + \mathbb{P}(B) - \mathbb{P}(A \cap B)`}.` },
-    { kind: 'p', text: t`Each is one split. ${mO} is the disjoint union of ${mA} and ${math`A^{c}`}, so the complement rule. ${mB} is the disjoint union of ${mA} and ${math`B \setminus A`} when ${math`A \subseteq B`}, and the second piece has probability at least ${0}. ${math`A \cup B`} is the disjoint union of ${mA} and ${math`B \setminus A`}, and ${math`\mathbb{P}(B \setminus A) = \mathbb{P}(B) - \mathbb{P}(A \cap B)`}.` },
-    { kind: 'p', text: t`From ${math`\mathbb{P}(A)`}, ${math`\mathbb{P}(B)`}, and ${math`\mathbb{P}(A \cap B)`}, every event built from ${mA} and ${mB} follows. With ${math`\mathbb{P}(A) = ${q(1, 2)}`}, ${math`\mathbb{P}(B) = ${q(1, 3)}`}, ${math`\mathbb{P}(A \cap B) = ${q(1, 4)}`}: ${math`\mathbb{P}(A \cup B) = ${sub(add(q(1, 2), q(1, 3)), q(1, 4))}`}, neither has probability ${sub(q(1), sub(add(q(1, 2), q(1, 3)), q(1, 4)))}, and ${mB} without ${mA} has ${sub(q(1, 3), q(1, 4))}.` },
-    { kind: 'p', text: t`Without ${math`\mathbb{P}(A \cap B)`}, the rules still bound it: ${math`\max(${0}, \mathbb{P}(A) + \mathbb{P}(B) - ${1}) \le \mathbb{P}(A \cap B) \le \min(\mathbb{P}(A), \mathbb{P}(B))`}. With ${math`\mathbb{P}(A) = ${q(3, 4)}`} and ${math`\mathbb{P}(B) = ${q(2, 3)}`}, the overlap is between ${sub(add(q(3, 4), q(2, 3)), q(1))} and ${minR(q(3, 4), q(2, 3))}: two likely events must overlap.` },
+    { kind: 'section', title: t`Two likely events must overlap` },
+    { kind: 'hook', text: t`Tomorrow it rains with probability ${hA}, and your train is late with probability ${hB}. Must both happen with some positive probability? Yes: at least ${sub(add(hA, hB), q(1))}, whatever the weather does to trains. How can three bare axioms force that?` },
+    { kind: 'narrative', text: t`The axioms say only three things: probabilities are at least ${0}, ${math`\mathbb{P}(\Omega) = ${1}`}, and probabilities of disjoint events add. The one trick for getting more out of them is to cut an event into disjoint pieces, so that additivity applies. Every proof in this lesson is a single well-chosen cut.` },
+    { kind: 'section', title: t`Complements and subsets` },
+    { kind: 'theorem', name: t`Complement rule`, statement: t`For every event ${mA}, ${math`\mathbb{P}(A^{c}) = ${1} - \mathbb{P}(A)`}. In particular ${math`\mathbb{P}(A) \le ${1}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Cut ${mO}`, text: t`${math`\Omega = A \cup A^{c}`}, and ${math`A \cap A^{c} = \varnothing`}.`, plain: t`Every outcome is in ${mA} or not in ${mA}, and never both.` },
+        { label: t`Add`, text: t`By finite additivity and axiom (ii), ${math`${1} = \mathbb{P}(\Omega) = \mathbb{P}(A) + \mathbb{P}(A^{c})`}.` },
+        { label: t`Rearrange`, text: t`${math`\mathbb{P}(A^{c}) = ${1} - \mathbb{P}(A)`}. Since ${math`\mathbb{P}(A^{c}) \ge ${0}`} by axiom (i), ${math`\mathbb{P}(A) \le ${1}`}.` },
+      ],
+    },
+    {
+      kind: 'definition',
+      name: t`Difference of events`,
+      formal: t`For events ${mA} and ${mB}, ${math`B \setminus A = B \cap A^{c}`}, the outcomes in ${mB} but not in ${mA}.`,
+      plain: t`It is an event, since events are closed under complements and intersections. Rolling a die, with ${mB} even and ${mA} at most ${3}: ${math`B \setminus A = \{${4}, ${6}\}`}.`,
+    },
+    { kind: 'theorem', name: t`Monotonicity`, statement: t`If ${math`A \subseteq B`}, then ${math`\mathbb{P}(A) \le \mathbb{P}(B)`}, and ${math`\mathbb{P}(B \setminus A) = \mathbb{P}(B) - \mathbb{P}(A)`}.` },
+    { kind: 'p', text: t`This is [[monotonicity|monotonicity]]: a bigger event is at least as likely. The cut is ${math`B = A \cup (B \setminus A)`}, a disjoint union when ${math`A \subseteq B`}; additivity gives ${math`\mathbb{P}(B) = \mathbb{P}(A) + \mathbb{P}(B \setminus A)`}, and the last term is at least ${0}. The proof is written out in full as the first worked example below.` },
+    { kind: 'section', title: t`The addition rule` },
+    { kind: 'theorem', name: t`Addition rule`, statement: t`For any events ${mA} and ${mB}, ${math`\mathbb{P}(A \cup B) = \mathbb{P}(A) + \mathbb{P}(B) - \mathbb{P}(A \cap B)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Cut the union`, text: t`${math`A \cup B = A \cup (B \setminus A)`}, a disjoint union, so ${math`\mathbb{P}(A \cup B) = \mathbb{P}(A) + \mathbb{P}(B \setminus A)`}.`, plain: t`Take all of ${mA}, then add only the part of ${mB} not already counted.` },
+        { label: t`Cut ${mB}`, text: t`${math`B = (A \cap B) \cup (B \setminus A)`}, a disjoint union, so ${math`\mathbb{P}(B \setminus A) = \mathbb{P}(B) - \mathbb{P}(A \cap B)`}.`, plain: t`An outcome of ${mB} is either in ${mA} too or not.` },
+        { label: t`Substitute`, text: t`${math`\mathbb{P}(A \cup B) = \mathbb{P}(A) + \mathbb{P}(B) - \mathbb{P}(A \cap B)`}.`, plain: t`Adding ${math`\mathbb{P}(A)`} and ${math`\mathbb{P}(B)`} counts the overlap twice; subtract it once.` },
+      ],
+    },
+    { kind: 'p', text: t`So ${math`\mathbb{P}(A)`}, ${math`\mathbb{P}(B)`}, and ${math`\mathbb{P}(A \cap B)`} determine every event built from ${mA} and ${mB}. With ${math`\mathbb{P}(A) = ${q(1, 2)}`}, ${math`\mathbb{P}(B) = ${q(1, 3)}`}, ${math`\mathbb{P}(A \cap B) = ${q(1, 4)}`}: ${math`\mathbb{P}(A \cup B) = ${sub(add(q(1, 2), q(1, 3)), q(1, 4))}`}; neither happens with probability ${math`${1} - ${sub(add(q(1, 2), q(1, 3)), q(1, 4))} = ${sub(q(1), sub(add(q(1, 2), q(1, 3)), q(1, 4)))}`}; and ${mB} without ${mA} has ${math`${q(1, 3)} - ${q(1, 4)} = ${sub(q(1, 3), q(1, 4))}`}.` },
+    checkFrom(fromThree, { a: 5, b: 4, ab: 2, target: 'onlyA' }, t`${math`A \cap B^{c} = A \setminus B`}, and ${math`A = (A \cap B) \cup (A \setminus B)`}, so it has ${math`${q(5, 12)} - ${q(2, 12)} = ${sub(q(5, 12), q(2, 12))}`}.`),
+    { kind: 'section', title: t`Bounds without the overlap` },
+    { kind: 'theorem', name: t`Bounds for two events`, statement: t`For any events ${mA} and ${mB}, ${math`\max\big(${0}, \mathbb{P}(A) + \mathbb{P}(B) - ${1}\big) \le \mathbb{P}(A \cap B) \le \min\big(\mathbb{P}(A), \mathbb{P}(B)\big)`}.` },
+    { kind: 'p', text: t`The upper bound is monotonicity, since ${math`A \cap B`} sits inside ${mA} and inside ${mB}. The lower bound is the addition rule read backwards, with ${math`\mathbb{P}(A \cup B) \le ${1}`}. For the hook, ${math`${hA} + ${hB} - ${1} = ${sub(add(hA, hB), q(1))}`}. Writing the two directions out in full, and showing both bounds can be reached, is the gate problem for this topic.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`\mathbb{P}(A \cup B) = \mathbb{P}(A) + \mathbb{P}(B)`}.`, counterexample: t`Roll a fair die; ${mA} is even, ${mB} is at least ${4}. The right side is ${math`${HALFR} + ${HALFR} = ${1}`}, but ${math`A \cup B = \{${2}, ${4}, ${5}, ${6}\}`} has probability ${q(4, 6)}. Additivity needs disjoint events.` },
+    { kind: 'pitfall', claim: t`${math`\mathbb{P}(A \cap B) = \mathbb{P}(A)\mathbb{P}(B)`}.`, counterexample: t`On a fair die with ${mA} even and ${math`B = \{${2}\}`}: ${math`\mathbb{P}(A \cap B) = ${q(1, 6)}`}, but ${math`\mathbb{P}(A)\mathbb{P}(B) = ${mul(HALFR, q(1, 6))}`}. That product rule is for independent events only.` },
+    { kind: 'pitfall', claim: t`If ${mA} is a strictly smaller event than ${mB}, then ${math`\mathbb{P}(A) < \mathbb{P}(B)`}.`, counterexample: t`A coin with heads on both sides: ${math`A = \{H\}`} is strictly inside ${math`\Omega = \{H, T\}`}, yet both have probability ${1}. The extra piece ${math`B \setminus A`} may have probability ${0}.` },
+    { kind: 'takeaway', text: t`Cut events into disjoint pieces and add: that one move proves the complement rule, monotonicity, and the addition rule.` },
   ],
   examples: [
-    q4d,
+    { ...q4d, examiner: t`The examiner looks for ${math`A_{${2}}`} written as a disjoint union, the axiom that gives additivity named, and nonnegativity used for the last step.` },
     worked(fromThree, { a: 6, b: 4, ab: 3, target: 'neither' }, t`Neither event`),
     worked(bounds, { a: 9, b: 8, kind: 'cap-min' }, t`The least possible overlap`),
   ],
@@ -281,5 +325,21 @@ export const axiomConsequences: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['monotonicity'],
   cambridge: [q4e, q4b, q4eproof, boundsProof],
-  gate: ['ia-q4-e-numbers', 'ia-q4-b', 'ia-q4-e', 'ia-q4-bounds'],
+  gate: ['ia-q4-bounds', 'ia-q4-e', 'ia-q4-b'],
+  recall: [
+    { front: t`The complement rule.`, back: t`${math`\mathbb{P}(A^{c}) = ${1} - \mathbb{P}(A)`}, from ${math`\Omega = A \cup A^{c}`} disjoint.` },
+    { front: t`Monotonicity.`, back: t`If ${math`A \subseteq B`} then ${math`\mathbb{P}(A) \le \mathbb{P}(B)`}, since ${math`\mathbb{P}(B) = \mathbb{P}(A) + \mathbb{P}(B \setminus A)`}.` },
+    { front: t`The addition rule for two events.`, back: t`${math`\mathbb{P}(A \cup B) = \mathbb{P}(A) + \mathbb{P}(B) - \mathbb{P}(A \cap B)`}.` },
+    { front: t`Bounds on ${math`\mathbb{P}(A \cap B)`} from ${math`\mathbb{P}(A)`} and ${math`\mathbb{P}(B)`}.`, back: t`${math`\max(${0}, \mathbb{P}(A) + \mathbb{P}(B) - ${1}) \le \mathbb{P}(A \cap B) \le \min(\mathbb{P}(A), \mathbb{P}(B))`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The addition rule`,
+      steps: [
+        t`${math`A \cup B`} is the disjoint union of ${mA} and ${math`B \setminus A`}, so ${math`\mathbb{P}(A \cup B) = \mathbb{P}(A) + \mathbb{P}(B \setminus A)`}.`,
+        t`${mB} is the disjoint union of ${math`A \cap B`} and ${math`B \setminus A`}, so ${math`\mathbb{P}(B \setminus A) = \mathbb{P}(B) - \mathbb{P}(A \cap B)`}.`,
+        t`Substitute the second into the first.`,
+      ],
+    },
+  ],
 };

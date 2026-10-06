@@ -10,7 +10,7 @@ import { gcd, int, pick, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { poly } from '../poly';
 import { computedMath as cm, dmath, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, workedProof, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, workedProof, type TopicContent } from '../topic';
 
 const [mk, mn] = [math`k`, math`n`];
 const KINT = { k: { kind: 'integer' as const, min: -20, max: 20 } };
@@ -340,23 +340,96 @@ const a12ii = supervision({
 export const algebraicArgument: TopicContent = {
   topicId: 'pre.algebraic-argument',
   goal: t`Write even, odd, and consecutive integers in algebra, and use algebra to show a claim holds for all of them.`,
+  objective: t`Prove a claim about every even, odd, or consecutive integer by writing it in algebra.`,
+  why: t`Every proof about whole numbers starts here; next come direct proof and divisibility.`,
+  minutes: 15,
   lesson: [
-    { kind: 'p', text: t`Checking examples cannot show that something holds for every integer: there are infinitely many. Algebra can, by working with a general one. Book of Proof's definitions make this possible.` },
+    { kind: 'section', title: t`Infinitely many cases` },
+    { kind: 'hook', text: t`Square some odd numbers: ${3 ** 2}, ${5 ** 2}, ${7 ** 2}, ${9 ** 2}. All odd. Is the square of an odd number always odd? You could check a million examples and still not know about the next one, because there are infinitely many odd numbers. So how can a few lines of writing cover all of them?` },
+    { kind: 'narrative', text: t`The trick is to stop picking particular numbers. Instead, write down a general odd number, one letter that could stand for any of them, and do the algebra once. Whatever the algebra shows, it shows for every value the letter can take. To do that, we need the words "even" and "odd" in a form algebra can use.` },
+    { kind: 'section', title: t`Even, odd, consecutive` },
     {
-      kind: 'list', items: [
-        t`An integer ${mn} is even if ${math`n = ${2}k`} for some integer ${mk}, and odd if ${math`n = ${2}k + ${1}`} for some integer ${mk}.`,
-        t`Two integers have the same [[parity|parity]] if both are even or both are odd.`,
-        t`[[consecutive|Consecutive]] integers follow one another: ${math`n, n + ${1}, n + ${2}`}.`,
+      kind: 'definition',
+      name: t`Even and odd`,
+      formal: t`An integer ${mn} is even if ${math`n = ${2}k`} for some ${math`k \in \mathbb{Z}`}, and odd if ${math`n = ${2}k + ${1}`} for some ${math`k \in \mathbb{Z}`}.`,
+      plain: t`Even means "${2} times a whole number"; odd means "one more than that". (${math`\mathbb{Z}`} is the set of integers, the whole numbers with negatives included.) ${10} is even, since ${math`${10} = ${2} \times ${5}`}; ${7} is odd, since ${math`${7} = ${2} \times ${3} + ${1}`}.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Parity, consecutive integers`,
+      formal: t`Two integers have the same [[parity|parity]] if both are even or both are odd. The integers ${math`n, n + ${1}, \ldots, n + r`} are [[consecutive|consecutive]].`,
+      plain: t`${4} and ${10} have the same parity; ${4} and ${7} do not. ${8}, ${9}, ${10} are three consecutive integers: each is one more than the last.`,
+    },
+    { kind: 'p', text: t`Every integer is even or odd, and never both: dividing by ${2} leaves remainder ${0} or ${1}. So once you know a number is odd, you may write it as ${math`${2}k + ${1}`} and use that in algebra.`, why: { q: t`Why can't a number be both?`, a: t`If ${math`${2}k = ${2}j + ${1}`} for integers ${math`k`} and ${math`j`}, then ${math`${2}(k - j) = ${1}`}, so ${math`k - j = \frac{${1}}{${2}}`}, which is not an integer. That is impossible, since ${math`k - j`} is an integer.` } },
+    { kind: 'rule', text: t`To show an expression is even, write it as ${math`${2} \times (\text{an integer})`}. To show it is odd, write it as ${math`${2} \times (\text{an integer}) + ${1}`}. To show ${math`d`} divides it, write it as ${math`d \times (\text{an integer})`}.` },
+    { kind: 'section', title: t`An odd number squared` },
+    { kind: 'theorem', statement: t`If ${math`x`} is an odd integer, then ${math`x^{${2}}`} is odd.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        {
+          label: t`Name the odd number`,
+          text: t`Since ${math`x`} is odd, ${math`x = ${2}a + ${1}`} for some ${math`a \in \mathbb{Z}`}.`,
+          plain: t`This is the definition of odd, with a new letter ${math`a`}. If ${math`x`} were ${7}, ${math`a`} would be ${3}.`,
+        },
+        {
+          label: t`Square it`,
+          text: t`${math`x^{${2}} = (${2}a + ${1})^{${2}} = ${4}a^{${2}} + ${4}a + ${1}`}.`,
+          plain: t`Multiply out the brackets: ${math`(${2}a + ${1})(${2}a + ${1}) = ${4}a^{${2}} + ${2}a + ${2}a + ${1}`}.`,
+        },
+        {
+          label: t`Take out a ${2}`,
+          text: t`${math`${4}a^{${2}} + ${4}a + ${1} = ${2}(${2}a^{${2}} + ${2}a) + ${1}`}.`,
+          plain: t`The first two terms are both multiples of ${2}; the ${1} is left over.`,
+        },
+        {
+          label: t`Check the bracket is an integer`,
+          text: t`${math`b = ${2}a^{${2}} + ${2}a`} is an integer, since ${math`a`} is.`,
+          why: { q: t`Why is that an integer?`, a: t`Sums and products of integers are integers. ${math`a^{${2}}`} is ${math`a \times a`}, then multiply by ${2}, and add ${math`${2}a`}.` },
+        },
+        {
+          label: t`Conclude`,
+          text: t`So ${math`x^{${2}} = ${2}b + ${1}`} with ${math`b \in \mathbb{Z}`}, and ${math`x^{${2}}`} is odd by definition.`,
+          plain: t`At ${math`x = ${7}`}: ${math`a = ${3}`}, ${math`b = ${2 * 3 * 3 + 2 * 3}`}, and ${math`${2} \times ${2 * 3 * 3 + 2 * 3} + ${1} = ${7 * 7}`}, which is ${math`${7}^{${2}}`}.`,
+        },
       ],
     },
-    { kind: 'rule', text: t`To show an expression is even, write it as ${math`${2} \times (\text{an integer})`}; to show it is odd, as ${math`${2} \times (\text{an integer}) + ${1}`}. To show it is divisible by ${math`d`}, write it as ${math`d \times (\text{an integer})`}.` },
-    { kind: 'p', text: t`Example: if ${math`x`} is odd then ${math`x^{${2}}`} is odd. Write ${math`x = ${2}a + ${1}`}. Then ${dmath`x^{${2}} = ${4}a^{${2}} + ${4}a + ${1} = ${2}(${2}a^{${2}} + ${2}a) + ${1},`} and ${math`${2}a^{${2}} + ${2}a`} is an integer, so ${math`x^{${2}}`} is odd.` },
-    { kind: 'p', text: t`Use a new letter for each number. If ${math`x`} and ${math`y`} are both odd, write ${math`x = ${2}a + ${1}`} and ${math`y = ${2}b + ${1}`}: writing both as ${math`${2}a + ${1}`} would assume ${math`x = y`}.` },
-    { kind: 'p', text: t`Consecutive integers carry divisibility. Of two consecutive integers one is even; of three, one is a multiple of ${3}. The STEP hints use this: ${math`n^{${3}} - n = (n - ${1})n(n + ${1})`} is three consecutive integers, so it is divisible by ${2} and by ${3}, hence by ${6}.` },
-    { kind: 'p', text: t`Watch for false shortcuts. Two consecutive odd numbers need not include a multiple of ${3}: ${5} and ${7} do not. A claim about "one of them" needs a reason that always applies.` },
+    { kind: 'narrative', text: t`Notice the shape: start from the definition, do honest algebra, and finish by matching the definition again. The last step is the one beginners skip, and it is the one that proves the claim.` },
+    checkFrom(parity, { a: 3, b: 4, c: 'any' }, t`With ${math`n = ${2}k`} the expression is ${math`${2}(${2}k^{${2}} + ${3}k + ${2})`}, and with ${math`n = ${2}k + ${1}`} it is ${math`${2}(${2}k^{${2}} + ${5}k + ${4})`}: even both times.`),
+    { kind: 'section', title: t`A new letter for each number` },
+    { kind: 'theorem', statement: t`If ${math`x`} and ${math`y`} are odd integers, then ${math`xy`} is odd.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Name both numbers`, text: t`${math`x = ${2}a + ${1}`} and ${math`y = ${2}b + ${1}`} for some ${math`a, b \in \mathbb{Z}`}.`, plain: t`Two letters, because ${math`x`} and ${math`y`} may be different odd numbers: ${math`x = ${3}`} has ${math`a = ${1}`}, and ${math`y = ${9}`} has ${math`b = ${4}`}.` },
+        { label: t`Multiply`, text: t`${math`xy = ${4}ab + ${2}a + ${2}b + ${1} = ${2}(${2}ab + a + b) + ${1}`}.`, plain: t`Expand ${math`(${2}a + ${1})(${2}b + ${1})`} term by term, then take out the ${2}.` },
+        { label: t`Conclude`, text: t`${math`${2}ab + a + b \in \mathbb{Z}`}, so ${math`xy`} is odd.` },
+      ],
+    },
+    { kind: 'p', text: t`Writing both as ${math`${2}a + ${1}`} would quietly assume ${math`x = y`}, and then the proof would cover only squares.` },
+    { kind: 'section', title: t`Consecutive integers and divisibility` },
+    { kind: 'narrative', text: t`Consecutive integers carry divisibility for free. Of any two, one is even: ${8} and ${9}, or ${9} and ${10}. Of any three, one is a multiple of ${3}. Why must that be?` },
+    { kind: 'theorem', statement: t`Among any three consecutive integers ${math`n, n + ${1}, n + ${2}`}, exactly one is divisible by ${3}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Divide by ${3}`, text: t`Write ${math`n = ${3}q + r`} with ${math`q \in \mathbb{Z}`} and ${math`r \in \{${0}, ${1}, ${2}\}`}.`, plain: t`${math`r`} is the remainder when ${mn} is divided by ${3}. For ${math`n = ${11}`}: ${math`q = ${3}`}, ${math`r = ${2}`}.` },
+        { label: t`Find the multiple`, text: t`If ${math`r = ${0}`}, ${math`n = ${3}q`}. If ${math`r = ${2}`}, ${math`n + ${1} = ${3}(q + ${1})`}. If ${math`r = ${1}`}, ${math`n + ${2} = ${3}(q + ${1})`}.`, plain: t`Adding ${1} to a number moves its remainder on one, so the three remainders are ${0}, ${1}, ${2} in some order.` },
+        { label: t`Only one`, text: t`Two of the three differ by ${1} or ${2}, which ${3} does not divide, so no two are multiples of ${3}.`, why: { q: t`Why does that rule out two multiples?`, a: t`If ${3} divided both ${math`u`} and ${math`v`}, it would divide ${math`u - v`}, but ${math`u - v`} is ${math`\pm ${1}`} or ${math`\pm ${2}`}.` } },
+      ],
+    },
+    { kind: 'p', text: t`The STEP warm-up uses exactly this. A product of three consecutive integers, such as ${math`n(n + ${1})(n + ${2})`}, has an even factor and a factor divisible by ${3}, so it is divisible by ${2} and by ${3}, and so by ${6}.`, why: { q: t`Why do ${2} and ${3} together give ${6}?`, a: t`If ${math`N = ${2}m`} and ${3} divides ${math`N`}, then ${3} divides ${math`${2}m`}. The prime ${3} does not divide ${2}, so it divides ${math`m`}: ${math`m = ${3}j`}, and ${math`N = ${6}j`}.` } },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`If a formula works for the first forty cases, it works for all of them. For example, ${math`n^{${2}} + n + ${41}`} is prime for every ${math`n \ge ${0}`}.`, counterexample: t`It is prime for ${math`n = ${0}, \ldots, ${39}`}, but at ${math`n = ${40}`} it is ${40 * 40 + 40 + 41}, which is ${math`${41}^{${2}}`}. Examples suggest; only a general argument proves.` },
+    { kind: 'pitfall', claim: t`Any two consecutive odd numbers include a multiple of ${3}.`, counterexample: t`${5} and ${7} do not. Consecutive odd numbers differ by ${2}, not ${1}, so the remainder argument does not apply.` },
+    { kind: 'pitfall', claim: t`To prove "if ${math`x`} and ${math`y`} are even then ${math`x + y`} is even", write ${math`x = ${2}k`} and ${math`y = ${2}k`}.`, counterexample: t`That covers only ${math`x = y`}. The pair ${2} and ${4} is not of that form. Use ${math`x = ${2}a`} and ${math`y = ${2}b`}.` },
+    { kind: 'takeaway', text: t`Write the general number from the definition, with a new letter for each, do the algebra, and finish by matching the definition again.` },
   ],
   examples: [
-    workedCambridge(a12v),
+    { ...workedCambridge(a12v), examiner: t`The examiner looks for ${math`n = ${3}k + ${1}`} written down first, the full expansion, and the ${9} factored out with the bracket noted to be an integer.` },
     a12i,
     worked(writeTwoM, { a: 1, b: 1, r: 0 }, t`Is ${cm(poly([1, 1, 1], 'n'))} odd when ${mn} is even?`),
   ],
@@ -365,4 +438,20 @@ export const algebraicArgument: TopicContent = {
   terms: ['parity', 'consecutive'],
   cambridge: [bop41, bop43, bop45, bop42, bop44, a12ii],
   gate: ['a12-q1-ii-six'],
+  recall: [
+    { front: t`Define even and odd integers.`, back: t`${mn} is even if ${math`n = ${2}k`}, and odd if ${math`n = ${2}k + ${1}`}, for some ${math`k \in \mathbb{Z}`}.` },
+    { front: t`How do you show an expression is odd?`, back: t`Write it as ${math`${2} \times (\text{an integer}) + ${1}`}, and say why the bracket is an integer.` },
+    { front: t`What do three consecutive integers always contain?`, back: t`An even number and a multiple of ${3}, so their product is divisible by ${6}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`An odd number squared is odd`,
+      steps: [
+        t`Since ${math`x`} is odd, ${math`x = ${2}a + ${1}`} for some integer ${math`a`}.`,
+        t`Expand: ${math`x^{${2}} = ${4}a^{${2}} + ${4}a + ${1}`}.`,
+        t`Take out a ${2}: ${math`x^{${2}} = ${2}(${2}a^{${2}} + ${2}a) + ${1}`}.`,
+        t`${math`${2}a^{${2}} + ${2}a`} is an integer, so ${math`x^{${2}}`} is odd.`,
+      ],
+    },
+  ],
 };

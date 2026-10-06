@@ -10,7 +10,7 @@ import { add, div, int, mul, pick, q, sample, str, sub } from '../math';
 import { factor, poly, signed, times } from '../poly';
 import { generator, type Misconception } from '../problem';
 import { computedMath as cm, dmath, ident, listOf, math, paren, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const X = ['x'] as const;
 const XY = ['x', 'y'] as const;
@@ -439,32 +439,106 @@ const a7ShowGeneral = supervision({
 const ex = { a: 2, b: 3, c: 1, d: -4 };
 const exOut = times([ex.a, ex.b], [ex.c, ex.d]);
 const fx = { p: 2, r: 5 };
+const hk = { p: 3, r: -2, x: 5 };
+const hkVal = (hk.x + hk.p) * (hk.x + hk.r);
 
 export const algebraicManipulation: TopicContent = {
   topicId: 'pre.algebraic-manipulation',
   goal: t`Expand brackets, factorise quadratics, collect like terms, and cancel algebraic fractions.`,
+  objective: t`Expand, factorise, and simplify expressions, and tell an identity from an equation.`,
+  why: t`Every later argument is algebra; STEP uses identities to read off roots without a formula.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`An [[expression|expression]] combines numbers and letters, such as ${cm(`${poly([3, 0])} + ${term(2, 'y')}`)}. A number multiplying a letter is its [[coefficient|coefficient]]: in ${cm(poly([3, 0]))} the coefficient of ${mx} is ${3}.` },
-    { kind: 'p', text: t`[[like-terms|Like terms]] have exactly the same letters and powers. Only like terms combine: ${cm(`${term(5, 'x')} + ${term(2, 'x')}`)} is ${cm(poly([5 + 2, 0]))}, but ${cm(`${term(5, 'x')} + ${term(2, 'y')}`)} stays as it is.` },
-    { kind: 'p', text: t`An equation holds for some values of the letters; an [[identity|identity]] holds for every value, and is written with ${math`\equiv`}. STEP Support Assignment ${7} puts it this way: ${math`${3}x + ${3} \equiv ${3}(x + ${1})`} for every ${mx}, while ${math`${3}x + ${3} = ${6}`} holds only when ${math`x = ${1}`}. Expanding and factorising turn an expression into another one that is identical to it.` },
-    { kind: 'rule', text: t`To [[expand|expand]] a product of brackets, multiply every term of one bracket by every term of the other, then collect like terms.` },
-    { kind: 'p', text: t`For ${cm(`(${lin(ex.a, ex.b)})(${lin(ex.c, ex.d)})`)} the four products are ${cm(poly([ex.a * ex.c, 0, 0]))}, ${cm(poly([ex.a * ex.d, 0]))}, ${cm(poly([ex.b * ex.c, 0]))}, and ${ex.b * ex.d}. Collected, that is ${cm(poly(exOut))}.` },
-    { kind: 'p', text: t`A general check that the rule is right: ${ident('(a + b)(c + d)', 'ac + ad + bc + bd', ['a', 'b', 'c', 'd'])}.` },
-    { kind: 'rule', text: t`To [[factorise|factorise]] ${math`x^{${2}} + bx + c`}, find two numbers ${math`p`} and ${math`r`} that multiply to ${math`c`} and add to ${math`b`}. Then ${dmath`x^{${2}} + bx + c = (x + p)(x + r).`}` },
-    { kind: 'p', text: t`For ${cm(poly([1, fx.p + fx.r, fx.p * fx.r]))}: ${math`${fx.p} \times ${fx.r} = ${fx.p * fx.r}`} and ${math`${fx.p} + ${fx.r} = ${fx.p + fx.r}`}, so it is ${cm(`(${factor(fx.p)})(${factor(fx.r)})`)}. Expanding gives it back, which is always a good check.` },
-    { kind: 'p', text: t`An identity can be used by substituting values. If ${math`x^{${2}} + bx + c \equiv (x - \alpha)(x - \beta)`}, then ${math`x = ${0}`} gives ${math`c = \alpha\beta`}, and expanding gives ${math`b = -(\alpha + \beta)`}. So ${math`x^{${2}} - ${7}x + ${10}`} has roots that multiply to ${10} and add to ${7}: ${2} and ${5}. Choosing values that make most brackets vanish (often ${0}, ${1}, and ${-1}) is the trick of the STEP question in the same assignment.` },
-    { kind: 'p', text: t`An algebraic fraction simplifies by cancelling a common factor of top and bottom, never a single term. Factorise first: ${cm(`(${poly([1, fx.p + fx.r, fx.p * fx.r])})/(${factor(fx.p)})`)} is ${cm(factor(fx.r))}, but in ${cm(`(x + ${fx.p * fx.r})/x`)} the ${mx} cannot cancel, because ${mx} is a term of the top, not a factor.` },
+    { kind: 'section', title: t`Same thing, different clothes` },
+    { kind: 'hook', text: t`Is ${cm(`(${factor(hk.p)})(${factor(hk.r)})`)} the same as ${cm(poly(times([1, hk.p], [1, hk.r])))}? Try ${math`x = ${hk.x}`}: the first is ${math`${hk.x + hk.p} \times ${hk.x + hk.r} = ${hkVal}`}, and the second is ${math`${hk.x * hk.x} + ${hk.x} - ${6} = ${hk.x * hk.x + hk.x - 6}`}. They agree. But do they agree for every ${mx}? You cannot try them all.` },
+    { kind: 'narrative', text: t`You don't have to. Both expressions are built from the same few rules of arithmetic, and those rules let you turn one into the other step by step. If every step is a rule that holds for all numbers, the two agree for all numbers. This lesson is about those steps: expanding, factorising, and simplifying.` },
+    { kind: 'section', title: t`Expressions and identities` },
+    {
+      kind: 'definition',
+      name: t`Expression, coefficient, like terms`,
+      formal: t`An [[expression|expression]] is built from numbers and letters by adding, subtracting, multiplying, and dividing; its terms are the parts joined by ${math`+`} and ${math`-`}. In a term such as ${cm(poly([3, 0, 0]))}, the number ${3} is the [[coefficient|coefficient]]. Two terms are [[like-terms|like terms]] if they have exactly the same letters raised to the same powers.`,
+      plain: t`${cm(`${poly([3, 0, 0])} + ${term(2, 'y')}`)} has two terms. ${cm(poly([5, 0]))} and ${cm(poly([2, 0]))} are like terms; ${mx} and ${math`x^{${2}}`} are not.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Identity and equation`,
+      formal: t`An [[identity|identity]] ${math`A \equiv B`} states that ${math`A`} and ${math`B`} take the same value for every value of their letters. An equation ${math`A = B`} asks for the values of the letters at which they are equal.`,
+      plain: t`STEP Support Assignment ${7} puts it this way: ${math`${3}x + ${3} \equiv ${3}(x + ${1})`} is true for every ${mx}, while ${math`${3}x + ${3} = ${6}`} is true only when ${math`x = ${1}`}.`,
+    },
+    { kind: 'p', text: t`Only like terms combine, because ${math`${5}x + ${2}x = (${5} + ${2})x`} is the same multiplication done in a different order: ${cm(`${term(5, 'x')} + ${term(2, 'x')}`)} is ${cm(poly([5 + 2, 0]))}. But ${cm(`${term(5, 'x')} + ${term(2, 'y')}`)} stays as it is, since ${mx} and ${my} can be any two different numbers.` },
+    { kind: 'section', title: t`Expanding brackets` },
+    { kind: 'narrative', text: t`One rule does all the work. For any numbers ${math`a`}, ${math`b`}, and ${math`c`}, ${math`a(b + c) = ab + ac`}. Picture ${math`a`} rows of dots, each row holding ${math`b`} red dots and ${math`c`} blue ones: counted by rows that is ${math`a(b + c)`}, counted by colour it is ${math`ab + ac`}. This is the distributive law. Everything else follows from it.` },
+    { kind: 'theorem', name: t`Product of two brackets`, statement: t`For all numbers ${math`a, b, c, d`}, ${math`(a + b)(c + d) = ac + ad + bc + bd`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Treat one bracket as a single number`, text: t`Let ${math`s = a + b`}. Then ${math`(a + b)(c + d) = s(c + d) = sc + sd`}.`, plain: t`The distributive law, with ${math`s`} in place of ${math`a`}.` },
+        { label: t`Put the bracket back`, text: t`${math`sc + sd = (a + b)c + (a + b)d`}.` },
+        { label: t`Distribute again`, text: t`${math`(a + b)c = ac + bc`} and ${math`(a + b)d = ad + bd`}.`, why: { q: t`The bracket is on the left of ${math`c`} here. Does the law still apply?`, a: t`Yes: multiplication can be done in either order, so ${math`(a + b)c = c(a + b) = ca + cb`}.` } },
+        { label: t`Collect`, text: t`${math`(a + b)(c + d) = ac + ad + bc + bd`}.`, plain: t`Every term of the first bracket multiplies every term of the second: four products.` },
+      ],
+    },
+    { kind: 'p', text: t`To [[expand|expand]] a product of brackets is to multiply it out like this into a sum of terms, then collect like terms. For ${cm(`(${lin(ex.a, ex.b)})(${lin(ex.c, ex.d)})`)} the four products are ${cm(poly([ex.a * ex.c, 0, 0]))}, ${cm(poly([ex.a * ex.d, 0]))}, ${cm(poly([ex.b * ex.c, 0]))}, and ${ex.b * ex.d}. The two ${mx} terms are like terms: ${cm(`${poly([ex.a * ex.d, 0])} + ${poly([ex.b * ex.c, 0])}`)} is ${cm(poly([ex.a * ex.d + ex.b * ex.c, 0]))}. So the expansion is ${cm(poly(exOut))}.` },
+    { kind: 'p', text: t`Two special cases are worth knowing by sight. With ${math`c = a`} and ${math`d = b`}: ${ident('(a + b)^2', 'a^2 + 2ab + b^2', ['a', 'b'])}. With ${math`c = a`} and ${math`d = -b`}: the middle terms cancel, giving the difference of two squares, ${ident('(a - b)(a + b)', 'a^2 - b^2', ['a', 'b'])}.` },
+    checkFrom(expand, { a: 1, b: 4, c: 2, d: -3 }, t`The four products are ${cm(poly([2, 0, 0]))}, ${cm(poly([-3, 0]))}, ${cm(poly([8, 0]))}, and ${4 * -3}; the ${mx} terms collect to ${cm(poly([-3 + 8, 0]))}.`),
+    { kind: 'section', title: t`Factorising` },
+    { kind: 'narrative', text: t`Factorising runs expansion backwards: given ${cm(poly([1, fx.p + fx.r, fx.p * fx.r]))}, find the brackets that multiply to it. Why bother? Because a product is zero exactly when one of its factors is, so factors show you where an expression vanishes, and they cancel in fractions.` },
+    {
+      kind: 'definition',
+      name: t`Factorise`,
+      formal: t`To [[factorise|factorise]] an expression is to write it as a product of simpler expressions, its factors, that is identical to it.`,
+      plain: t`${math`${cm(poly([1, fx.p + fx.r, fx.p * fx.r]))} \equiv ${cm(`(${factor(fx.p)})(${factor(fx.r)})`)}`}, and ${math`n^{${3}} - n \equiv (n - ${1})n(n + ${1})`}.`,
+    },
+    { kind: 'theorem', name: t`Factorising a quadratic`, statement: t`If ${math`p`} and ${math`r`} are numbers with ${math`p + r = b`} and ${math`pr = c`}, then ${math`x^{${2}} + bx + c \equiv (x + p)(x + r)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Expand the brackets`, text: t`${math`(x + p)(x + r) = x^{${2}} + rx + px + pr`}.`, plain: t`The product of two brackets, from the theorem above.` },
+        { label: t`Collect the ${mx} terms`, text: t`${math`x^{${2}} + rx + px + pr = x^{${2}} + (p + r)x + pr`}.` },
+        { label: t`Use the two conditions`, text: t`With ${math`p + r = b`} and ${math`pr = c`}, this is ${math`x^{${2}} + bx + c`}, for every ${mx}.` },
+      ],
+    },
+    { kind: 'p', text: t`For ${cm(poly([1, fx.p + fx.r, fx.p * fx.r]))}, look for two numbers with product ${fx.p * fx.r} and sum ${fx.p + fx.r}: ${math`${fx.p} \times ${fx.r} = ${fx.p * fx.r}`} and ${math`${fx.p} + ${fx.r} = ${fx.p + fx.r}`}. So it is ${cm(`(${factor(fx.p)})(${factor(fx.r)})`)}. Expanding gives it back, which is always the check.` },
+    { kind: 'p', text: t`An identity can also be used by substituting values, because it holds at every one. If ${math`x^{${2}} + bx + c \equiv (x - \alpha)(x - \beta)`}, then putting ${math`x = ${0}`} gives ${math`c = \alpha\beta`}, and expanding gives ${math`b = -(\alpha + \beta)`}. Choosing values that make brackets vanish, often ${0}, ${1}, and ${-1}, is the trick of STEP Support Assignment ${7}.` },
+    { kind: 'section', title: t`Algebraic fractions` },
+    { kind: 'theorem', name: t`Cancelling`, statement: t`For expressions ${math`A`}, ${math`B`}, ${math`C`} with ${math`B \ne ${0}`} and ${math`C \ne ${0}`}, ${math`\frac{AC}{BC} = \frac{A}{B}`}.` },
+    { kind: 'p', text: t`The word that matters is factor: ${math`C`} must multiply the whole top and the whole bottom. So factorise first. ${cm(`(${poly([1, fx.p + fx.r, fx.p * fx.r])})/(${factor(fx.p)})`)} is ${cm(`((${factor(fx.p)})(${factor(fx.r)}))/(${factor(fx.p)})`)}, which is ${cm(factor(fx.r))} for ${math`x \ne ${-fx.p}`}.`, why: { q: t`Why exclude ${math`x = ${-fx.p}`}?`, a: t`There the bottom is ${0}, so the original fraction has no value at all, while ${cm(factor(fx.r))} does. The two agree everywhere else.` } },
+    { kind: 'p', text: t`To add or subtract fractions, put them over a common denominator first: ${math`\frac{${1}}{x - ${1}} - \frac{${1}}{x + ${1}} = \frac{(x + ${1}) - (x - ${1})}{(x - ${1})(x + ${1})} = \frac{${2}}{(x - ${1})(x + ${1})}`}. Each fraction is multiplied top and bottom by the bracket it lacks.` },
+    checkFrom(cancel, { p: -4, r: 6 }, t`The top factorises as ${cm(`(${factor(-4)})(${factor(6)})`)}; cancel the common factor ${cm(factor(-4))}.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`(x + y)^{${2}} = x^{${2}} + y^{${2}}`}.`, counterexample: t`At ${math`x = y = ${1}`} the left side is ${math`${2}^{${2}} = ${4}`} and the right side is ${2}. The cross terms ${math`${2}xy`} are missing.` },
+    { kind: 'pitfall', claim: t`${math`\frac{x + ${10}}{x} = ${10}`}, cancelling the ${mx}.`, counterexample: t`At ${math`x = ${5}`} the left side is ${math`\frac{${15}}{${5}} = ${3}`}, not ${10}. ${mx} is a term of the top, not a factor of it, so it cannot cancel.` },
+    { kind: 'pitfall', claim: t`Squaring both sides of an equation keeps exactly the same solutions.`, counterexample: t`${math`x = ${3}`} has one solution, but ${math`x^{${2}} = ${9}`} has two, ${3} and ${-3}. After squaring, check every answer in the original equation.` },
+    { kind: 'takeaway', text: t`Every step must be a rule true for all numbers: distribute to expand, find factors to factorise, and cancel only common factors.` },
   ],
   examples: [
     worked(expand, { a: 3, b: -2, c: 1, d: 5 }, t`Expanding two brackets`),
     worked(factorise, { p: -3, r: 7 }, t`Factorising a quadratic`),
-    workedCambridge(a12Factor),
-    workedCambridge(a7Pair),
+    { ...workedCambridge(a12Factor), examiner: t`The examiner looks for the factorisation taken all the way: the common factor ${math`n`} first, then the difference of two squares.` },
+    { ...workedCambridge(a7Pair), examiner: t`The examiner looks for the pair found from the product and the sum, and the roots read off with the right signs.` },
   ],
   generators: [expand, factorise, cancel, collect, vieta, cubic],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expression', 'coefficient', 'like-terms', 'identity', 'expand', 'factorise'],
   cambridge: [a7Three, a7Quart, a12FracA, a12FracB, tmuaQ, a7Show, a7ShowCubic, a7ShowGeneral],
-  gate: ['a7-q2-v', 'a7-q3', 'a12-q2-i-a', 'a12-q2-i-b', 'a7-q2-i-ii', 'a7-q2-iv', 'a7-q3-show'],
+  gate: ['a7-q3', 'a7-q2-v', 'a7-q3-show', 'a7-q2-iv', 'a7-q2-i-ii', 'a12-q2-i-b'],
+  recall: [
+    { front: t`What is the difference between an identity and an equation?`, back: t`An identity ${math`A \equiv B`} holds for every value of the letters; an equation ${math`A = B`} holds only for some, which you solve for.` },
+    { front: t`Expand ${math`(a + b)(c + d)`}.`, back: t`${math`ac + ad + bc + bd`}: every term of one bracket times every term of the other.` },
+    { front: t`The difference of two squares.`, back: t`${math`a^{${2}} - b^{${2}} \equiv (a - b)(a + b)`}.` },
+    { front: t`How do you factorise ${math`x^{${2}} + bx + c`}?`, back: t`Find ${math`p`} and ${math`r`} with ${math`p + r = b`} and ${math`pr = c`}; then it is ${math`(x + p)(x + r)`}.` },
+    { front: t`When may you cancel in a fraction?`, back: t`Only a factor common to the whole top and the whole bottom, and only where it is not zero.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Expanding two brackets`,
+      steps: [
+        t`Treat ${math`a + b`} as one number and distribute: ${math`(a + b)c + (a + b)d`}.`,
+        t`Distribute again: ${math`ac + bc + ad + bd`}.`,
+        t`Reorder the terms: ${math`ac + ad + bc + bd`}.`,
+      ],
+    },
+  ],
 };
-

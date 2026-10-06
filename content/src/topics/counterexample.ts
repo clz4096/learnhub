@@ -11,7 +11,7 @@ import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
 import { int, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mn, mx, my] = [math`n`, math`x`, math`y`];
 function isPrime(n: number): boolean {
@@ -421,20 +421,42 @@ const p2f = supervision({
 // ---------------------------------------------------------------- lesson
 
 const EULER = CLAIMS[0] as Claim;
+const EF = firstFail(EULER);
+const MERSENNE = 11;
 
 export const counterexample: TopicContent = {
   topicId: 'proof.counterexample',
   goal: t`Disprove a claim about every case with one [[counterexample|counterexample]], chosen so the claim really fails there, and checked.`,
+  objective: t`Disprove a claim about every case by finding one case where it fails, and checking it.`,
+  why: t`Half of "prove or disprove" questions are false; one checked counterexample settles them.`,
+  minutes: 10,
   lesson: [
-    { kind: 'p', text: t`To prove "every prime is odd" you need an argument that covers all primes. To [[disproof|disprove]] it you need one prime that is not odd. The TMUA notes: "${2} is a counterexample because ${2} is prime but it is even." One failure is enough, however many cases work.` },
-    { kind: 'p', text: t`Many cases working proves nothing. ${math`n^{${2}} + n + ${41}`} is prime for ${math`n = ${1}, ${2}, \ldots, ${firstFail(EULER) - 1}`}, and fails at ${math`n = ${firstFail(EULER)}`}: ${math`${firstFail(EULER)}^{${2}} + ${firstFail(EULER)} + ${41} = ${firstFail(EULER) ** 2 + firstFail(EULER) + 41} = ${41}^{${2}}`}.` },
-    { kind: 'rule', text: t`A counterexample to "for all ${mx}, if ${math`A(x)`} then ${math`B(x)`}" is a value of ${mx} that makes ${math`A(x)`} true and ${math`B(x)`} false. It is a witness for the negation, ${math`\exists x.\ A(x) \land \lnot B(x)`}.` },
-    { kind: 'p', text: t`The TMUA notes' example: "if ${math`x < y`} then ${math`x^{${2}} < y^{${2}}`}". We need ${math`x < y`} true and ${math`x^{${2}} < y^{${2}}`} false: ${math`x = -${2}`}, ${math`y = ${1}`}. A pair with ${math`x \ge y`} is no use: there the "if" part is false, and the statement holds.` },
-    { kind: 'p', text: t`The official solutions to the CST exercises add three habits. Sanity-check a "prove or disprove" with a few numbers before trying to prove it. Show that the counterexample is one: name it and check it against the statement, as "${math`k = m = n = ${2}`}: ${math`${2} \mid ${2}`}, yet ${math`${4} \nmid ${2}`}". And make sure it falls under the statement: for "${mn} larger than ${2} and not prime", ${7} is no use, being prime, and edge cases such as ${0} (a natural number in the CST notes) often do the job.` },
-    { kind: 'p', text: t`For "${math`A`} and ${math`B`}" a counterexample need only break one part; for "${math`A`} or ${math`B`}" it must break both; for "${math`A`} if and only if ${math`B`}" it must make one side true and the other false.` },
+    { kind: 'section', title: t`Forty successes, then a failure` },
+    { kind: 'hook', text: t`Is ${math`n^{${2}} + n + ${41}`} always prime? Try ${math`n = ${1}`}: ${1 + 1 + 41}, prime. ${math`n = ${2}`}: ${4 + 2 + 41}, prime. Keep going and it stays prime all the way to ${math`n = ${EF - 1}`}. Then at ${math`n = ${EF}`} it is ${EF * EF + EF + 41}, which is ${math`${41}^{${2}}`}. ${EF - 1} successes proved nothing; one failure settled it.` },
+    { kind: 'narrative', text: t`A claim about every case is fragile. To prove it you need an argument covering all cases at once. To kill it you need just one case where it fails, written down and checked. That case has a name.` },
+    { kind: 'section', title: t`What a counterexample is` },
+    {
+      kind: 'definition',
+      name: t`Counterexample`,
+      formal: t`A [[counterexample|counterexample]] to the statement ${math`\forall x.\ P(x)`} is a value ${math`x_{${0}}`} for which ${math`P(x_{${0}})`} is false. Exhibiting one is a [[disproof|disproof]] of the statement.`,
+      plain: t`"Every prime is odd" is disproved by ${2}, which is prime but even. It works because ${math`\lnot \forall x.\ P(x)`} is the same as ${math`\exists x.\ \lnot P(x)`}: to deny "always", find one exception.`,
+    },
+    { kind: 'theorem', statement: t`A value ${math`x_{${0}}`} is a counterexample to ${math`\forall x.\ (A(x) \Rightarrow B(x))`} exactly when ${math`A(x_{${0}})`} is true and ${math`B(x_{${0}})`} is false.` },
+    { kind: 'p', text: t`An implication ${math`A \Rightarrow B`} is false only when ${math`A`} is true and ${math`B`} is false; in the other three rows of its truth table it is true. So a value with ${math`A`} false can never be a counterexample: the statement makes no promise there.` },
+    { kind: 'p', text: t`Example: "if ${math`n`} is prime, then ${math`${2}^{n} - ${1}`} is prime". It holds for ${math`n = ${2}, ${3}, ${5}, ${7}`}. At ${math`n = ${MERSENNE}`}, which is prime, ${math`${2}^{${MERSENNE}} - ${1} = ${2 ** MERSENNE - 1} = ${23} \times ${89}`}. Hypothesis true, conclusion false: a counterexample.` },
+    checkFrom(conditional, { i: 4 }, t`Take ${mx} larger than ${my} but smaller in size, with ${my} negative: then ${math`x > y`} holds and ${math`x^{${2}} > y^{${2}}`} fails.`),
+    { kind: 'section', title: t`Compound statements` },
+    { kind: 'p', text: t`What must a counterexample break? For "${math`A`} and ${math`B`}", just one of the parts. For "${math`A`} or ${math`B`}", both parts. For "${math`A`} if and only if ${math`B`}", it must make one side true and the other false. Each is read off from when the compound is false.` },
+    checkFrom(anyFail, { i: 3 }, t`${math`${6}n - ${1}`} is prime for ${math`n = ${1}, ${2}, ${3}, ${4}, ${5}`}, but at ${math`n = ${6}`} it is ${35}, which is ${math`${5} \times ${7}`}.`),
+    { kind: 'section', title: t`Writing it up` },
+    { kind: 'p', text: t`The official solutions to the CST exercises insist on three habits. First, sanity-check a "prove or disprove" with a few small cases before trying to prove it: a false claim often fails early. Second, show that the counterexample is one: name the values and check them against the statement in full. Third, make sure it falls under the statement: for a claim about natural numbers "larger than ${2} and not prime", the number ${7} is no use, because it is prime. Edge cases such as ${0}, ${1}, ${2}, and negative numbers are often where claims fail.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`x = ${3}`}, ${math`y = ${2}`} is a counterexample to "if ${math`x < y`} then ${math`x^{${2}} < y^{${2}}`}", since ${math`x^{${2}} > y^{${2}}`}.`, counterexample: t`Here ${math`x < y`} is false, so the implication is true for these values. A counterexample needs ${math`x < y`} true too: ${math`x = -${2}`}, ${math`y = ${1}`}.` },
+    { kind: 'pitfall', claim: t`A claim checked for a hundred cases is true.`, counterexample: t`${math`n^{${2}} + n + ${41}`} passes ${EF - 1} cases in a row and fails at ${EF}. Only a proof covers every case.` },
+    { kind: 'takeaway', text: t`One checked case with the hypothesis true and the conclusion false disproves a "for all" claim; no number of successes proves one.` },
   ],
   examples: [
-    workedCambridge(tmuaExample),
+    { ...workedCambridge(tmuaExample), examiner: t`The examiner looks for values that make the hypothesis true and the conclusion false, both checked explicitly.` },
     worked(conditional, { i: 1 }, t`Equal squares`),
     worked(smallestFail, { i: 3 }, t`The first failure`),
   ],
@@ -442,5 +464,9 @@ export const counterexample: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['disproof'],
   cambridge: [sw111, sw125, sw129, sw221, p2a, p2b, p2c, p2d, p2e, p1, p2f],
-  gate: ['sw-1-1-1', 'sw-1-2-5', 'sw-1-2-9', 'sw-2-2-1'],
+  gate: ['sw-2-2-1', 'sw-1-2-9', 'sw-1-1-1', 'sw-1-2-5'],
+  recall: [
+    { front: t`A counterexample to ${math`\forall x.\ (A(x) \Rightarrow B(x))`}.`, back: t`A value with ${math`A`} true and ${math`B`} false.` },
+    { front: t`What must a counterexample to "${math`A`} or ${math`B`}" do?`, back: t`Make both ${math`A`} and ${math`B`} false.` },
+  ],
 };

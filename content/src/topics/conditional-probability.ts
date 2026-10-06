@@ -10,8 +10,8 @@ import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, factorial, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { join, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, join, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S1 = 'ia-prob-sheet-1' as const;
 const mB = math`B`;
@@ -274,19 +274,54 @@ const measure = supervision({
 
 const claims: ProbabilityClaim[] = [
   { what: 'Pólya urn: white, white, black', exact: q(1, 12), trial: (rng) => { let [x, y] = [1, 1]; for (const c of WWB) { const w = rng() < x / (x + y); if ((c === 'W') !== w) return false; if (w) x++; else y++; } return true; } },
+  { what: 'ace, ace, king as the first three cards', exact: q(2, 5525), trial: (rng) => { const s: number[] = []; while (s.length < 3) { const c = Math.floor(rng() * 52); if (!s.includes(c)) s.push(c); } return (s[0] as number) % 13 === 0 && (s[1] as number) % 13 === 0 && (s[2] as number) % 13 === 12; } },
 ];
+const AAK = mul(mul(q(4, 52), q(3, 51)), q(4, 50));
 
 export const conditionalProbability: TopicContent = {
   topicId: 'prob.conditional-probability',
   goal: t`Show that ${math`\mathbb{P}(\cdot \mid B)`} is a probability measure, and use the multiplication rule for several events along a sequence of steps.`,
+  objective: t`Show that conditioning on ${mB} gives a probability measure, and chain conditional probabilities along a process.`,
+  why: t`Every rule of probability then holds given ${mB}; processes such as urns and random walks are computed this way.`,
+  minutes: 20,
   lesson: [
-    { kind: 'rule', text: t`For an event ${mB} with ${math`\mathbb{P}(B) > ${0}`}, ${math`\mathbb{P}(A \mid B) = \mathbb{P}(A \cap B)/\mathbb{P}(B)`} defines a [[conditional-measure|probability measure]] ${math`A \mapsto \mathbb{P}(A \mid B)`}: it is nonnegative, gives ${mB} (and ${math`\Omega`}) probability ${1}, and is countably additive.` },
-    { kind: 'p', text: t`So every rule for probabilities holds for conditional ones with the same condition: ${math`\mathbb{P}(A^{c} \mid B) = ${1} - \mathbb{P}(A \mid B)`}, and disjoint events add. Given that two dice show different numbers, the total is ${7} or ${11} with probability ${math`\frac{${6}}{${30}} + \frac{${2}}{${30}} = ${q(8, 30)}`}.` },
-    { kind: 'rule', text: t`The multiplication rule for ${math`n`} events: ${math`\mathbb{P}(A_{${1}} \cap \cdots \cap A_{n}) = \mathbb{P}(A_{${1}})\,\mathbb{P}(A_{${2}} \mid A_{${1}}) \cdots \mathbb{P}(A_{n} \mid A_{${1}} \cap \cdots \cap A_{n - ${1}})`}, provided the conditioning events have positive probability. It follows by induction from the two-event rule.` },
-    { kind: 'p', text: t`It is the natural way to compute along a process where each step depends on the past. In Q${10}'s Pólya urn, starting with one white and one black ball, the draws white, white, black have probability ${math`\frac{${1}}{${2}} \cdot \frac{${2}}{${3}} \cdot \frac{${1}}{${4}} = ${q(1, 12)}`}, and so does every other order of two whites and a black: the urn's history is exchangeable.` },
+    { kind: 'section', title: t`Do the rules survive a peek?` },
+    { kind: 'hook', text: t`A card is drawn from a shuffled deck and you peek: it is a heart. Now the chance it is an ace or a court card is ${q(4, 13)}, and the chance it is not is ${q(9, 13)}. The complement rule still worked. Was that luck, or does every rule of probability survive once you condition on what you saw?` },
+    { kind: 'narrative', text: t`It is not luck. Conditioning on an event ${mB} builds a whole new probability measure, one that lives on ${mB}. Once we check that it satisfies the three axioms, every theorem proved from the axioms applies to it for free.` },
+    { kind: 'section', title: t`Conditioning gives a probability measure` },
+    { kind: 'theorem', statement: t`Let ${mB} be an event with ${math`\mathbb{P}(B) > ${0}`}, and define ${math`\mathbb{Q}(A) = \mathbb{P}(A \mid B) = \frac{\mathbb{P}(A \cap B)}{\mathbb{P}(B)}`} for every event ${math`A`}. Then ${math`\mathbb{Q}`} is a probability measure.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Nonnegative`, text: t`${math`\mathbb{P}(A \cap B) \ge ${0}`} and ${math`\mathbb{P}(B) > ${0}`}, so ${math`\mathbb{Q}(A) \ge ${0}`}.` },
+        { label: t`Total one`, text: t`${math`\mathbb{Q}(\Omega) = \frac{\mathbb{P}(\Omega \cap B)}{\mathbb{P}(B)} = \frac{\mathbb{P}(B)}{\mathbb{P}(B)} = ${1}`}.` },
+        { label: t`Intersect a disjoint union with ${mB}`, text: t`If ${math`A_{${1}}, A_{${2}}, \ldots`} are pairwise disjoint, then ${math`\left(\bigcup_{n} A_{n}\right) \cap B = \bigcup_{n} (A_{n} \cap B)`}, and the sets ${math`A_{n} \cap B`} are pairwise disjoint too.`, plain: t`Cutting each piece down to ${mB} cannot make two pieces overlap.` },
+        { label: t`Countable additivity`, text: t`So ${math`\mathbb{Q}\left(\bigcup_{n} A_{n}\right) = \frac{\sum_{n} \mathbb{P}(A_{n} \cap B)}{\mathbb{P}(B)} = \sum_{n} \mathbb{Q}(A_{n})`}, by countable additivity of ${math`\mathbb{P}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`So ${math`A \mapsto \mathbb{P}(A \mid B)`} is a [[conditional-measure|probability measure]], concentrated on ${mB}: ${math`\mathbb{Q}(B) = ${1}`}. Every consequence of the axioms holds given ${mB}: ${math`\mathbb{P}(A^{c} \mid B) = ${1} - \mathbb{P}(A \mid B)`}, monotonicity, and the addition rule ${math`\mathbb{P}(A \cup C \mid B) = \mathbb{P}(A \mid B) + \mathbb{P}(C \mid B) - \mathbb{P}(A \cap C \mid B)`}.` },
+    checkFrom(conditionalUnion, { j: 2, i: 6, k: 8 }, t`Given the first die is odd, ${18} pairs remain; ${3} total ${6} and ${2} total ${8}, and these are disjoint, so ${math`${q(3, 18)} + ${q(2, 18)} = ${q(5, 18)}`}.`),
+    { kind: 'section', title: t`Chaining along a process` },
+    { kind: 'theorem', name: t`Multiplication rule`, statement: t`If ${math`\mathbb{P}(A_{${1}} \cap \cdots \cap A_{n - ${1}}) > ${0}`}, then ${dmath`\mathbb{P}(A_{${1}} \cap \cdots \cap A_{n}) = \mathbb{P}(A_{${1}})\,\mathbb{P}(A_{${2}} \mid A_{${1}}) \cdots \mathbb{P}(A_{n} \mid A_{${1}} \cap \cdots \cap A_{n - ${1}}).`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The claim for each ${math`n`}`, text: t`Let ${math`P(n)`} be the statement for ${math`n`} events. ${math`P(${1})`} says ${math`\mathbb{P}(A_{${1}}) = \mathbb{P}(A_{${1}})`}.` },
+        { label: t`Split off the last event`, text: t`Let ${math`C = A_{${1}} \cap \cdots \cap A_{n}`}, with ${math`\mathbb{P}(C) > ${0}`}. By the definition of conditional probability, ${math`\mathbb{P}(C \cap A_{n + ${1}}) = \mathbb{P}(C)\,\mathbb{P}(A_{n + ${1}} \mid C)`}.` },
+        { label: t`Use the hypothesis`, text: t`Expand ${math`\mathbb{P}(C)`} by ${math`P(n)`}, which applies because ${math`A_{${1}} \cap \cdots \cap A_{n - ${1}}`} contains ${math`C`} and so has positive probability. That gives ${math`P(n + ${1})`}.` },
+      ],
+    },
+    { kind: 'p', text: t`The rule is how to compute along any process where each step depends on what came before. The first three cards dealt are ace, ace, king with probability ${math`\frac{${4}}{${52}} \times \frac{${3}}{${51}} \times \frac{${4}}{${50}} = ${AAK}`}: the second factor is conditional on the first card being an ace, the third on both. Example Sheet ${1} Q${10}'s Pólya urn, worked below, is the same idea with an urn that grows after every draw.` },
+    checkFrom(chainRule, { r: 3, b: 2, g: 1, seq: ['B', 'R', 'B'] }, t`${math`\frac{${2}}{${6}} \times \frac{${3}}{${5}} \times \frac{${1}}{${4}} = ${mul(mul(q(2, 6), q(3, 5)), q(1, 4))}`}: each factor counts what is left after the earlier draws.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`\mathbb{P}(A \mid B) + \mathbb{P}(A \mid B^{c}) = ${1}`}.`, counterexample: t`Two dice, ${math`A`} the total is ${7}, ${mB} the first die is even: both conditional probabilities are ${q(1, 6)}, so they add to ${q(1, 3)}. The measure is ${math`\mathbb{P}(\cdot \mid B)`} for a fixed ${mB}: it is additive in the event, not in the condition. What is true is ${math`\mathbb{P}(A \mid B) + \mathbb{P}(A^{c} \mid B) = ${1}`}.` },
+    { kind: 'pitfall', claim: t`In the multiplication rule the factors can be taken in any order without changing them.`, counterexample: t`The product's value does not depend on the order of the events, but each factor does: ${math`\mathbb{P}(A)\mathbb{P}(B \mid A)`} and ${math`\mathbb{P}(B)\mathbb{P}(A \mid B)`} are both ${math`\mathbb{P}(A \cap B)`}, with different factors. Each factor must be conditional on exactly the events before it.` },
+    { kind: 'takeaway', text: t`For ${math`\mathbb{P}(B) > ${0}`}, ${math`\mathbb{P}(\cdot \mid B)`} is a probability measure, so every rule holds given ${mB}; along a process, multiply each step's probability given the past.` },
   ],
   examples: [
-    workedCambridge(q10seq),
+    { ...workedCambridge(q10seq), examiner: t`The examiner looks for each factor stated as a conditional probability given the earlier draws, with the urn's contents at that moment.` },
     worked(chainRule, { r: 4, b: 3, g: 2, seq: ['R', 'B', 'R'] }, t`Red, blue, red`),
     worked(conditionalUnion, { j: 3, i: 7, k: 11 }, t`A total of ${7} or ${11}, given different dice`),
   ],
@@ -295,5 +330,20 @@ export const conditionalProbability: TopicContent = {
   terms: ['conditional-measure'],
   claims,
   cambridge: [q10third, exchange, measure],
-  gate: ['ia-q10-third-white', 'ia-q10-exchangeable'],
+  gate: ['ia-q10-exchangeable', 'ia-q10-third-white'],
+  recall: [
+    { front: t`What kind of object is ${math`A \mapsto \mathbb{P}(A \mid B)`}?`, back: t`A probability measure, for any ${mB} with ${math`\mathbb{P}(B) > ${0}`}, giving ${mB} probability ${1}.` },
+    { front: t`The multiplication rule for ${math`n`} events.`, back: t`${math`\mathbb{P}(A_{${1}} \cap \cdots \cap A_{n}) = \mathbb{P}(A_{${1}})\mathbb{P}(A_{${2}} \mid A_{${1}}) \cdots \mathbb{P}(A_{n} \mid A_{${1}} \cap \cdots \cap A_{n - ${1}})`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Countable additivity given ${mB}`,
+      steps: [
+        t`Take pairwise disjoint ${math`A_{${1}}, A_{${2}}, \ldots`}.`,
+        t`Then ${math`\left(\bigcup A_{n}\right) \cap B = \bigcup (A_{n} \cap B)`}, a disjoint union.`,
+        t`Countable additivity of ${math`\mathbb{P}`} gives ${math`\mathbb{P}\left(\bigcup A_{n} \cap B\right) = \sum \mathbb{P}(A_{n} \cap B)`}.`,
+        t`Divide by ${math`\mathbb{P}(B)`}: ${math`\mathbb{Q}\left(\bigcup A_{n}\right) = \sum \mathbb{Q}(A_{n})`}.`,
+      ],
+    },
+  ],
 };

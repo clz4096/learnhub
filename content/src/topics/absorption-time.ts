@@ -10,8 +10,8 @@
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { math, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { dmath, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 import { frogMean, meanSteps, rpow } from '../partv-a';
 
 const SH3 = 'ia-prob-sheet-3' as const;
@@ -269,15 +269,150 @@ const schedule = supervision({
 export const absorptionTime: TopicContent = {
   topicId: 'rw.absorption-time',
   goal: t`Find the expected duration of a random walk with absorbing barriers from the first-step equation ${math`m_{k} = ${1} + pm_{k + ${1}} + qm_{k - ${1}}`}.`,
+  objective: t`Find how long a random walk with absorbing barriers lasts on average, by a first-step equation.`,
+  why: t`Gambler's ruin says who wins; this says how long it takes, and leads to Wald's identity.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`A walk on ${math`${0}, ${1}, \ldots, N`} stepping up with probability ${math`p`} and down with ${math`q`} is absorbed at ${0} or ${math`N`}. Its [[expected-duration|expected duration]] ${math`m_{k}`} from ${math`k`} is the mean time to absorption.` },
-    { kind: 'rule', text: t`Conditioning on the first step, which takes one unit of time: ${math`m_{k} = ${1} + pm_{k + ${1}} + qm_{k - ${1}}`} for ${math`${0} < k < N`}, with ${math`m_{${0}} = m_{N} = ${0}`}.` },
-    { kind: 'p', text: t`It is the gambler's ruin equation with a constant term, so it needs a particular solution. For ${math`p = q`}, ${1} is a double root and the particular solution is ${math`-k^{${2}}`}: ${math`m_{k} = k(N - k)`}. A fair gambler with £${5} aiming for £${10} expects ${25} bets.` },
-    { kind: 'p', text: t`For ${math`p \ne q`}, ${1} is a simple root and the particular solution is ${math`\frac{k}{q - p}`}: ${math`m_{k} = \frac{k}{q - p} - \frac{N}{q - p} \cdot \frac{${1} - \rho^{k}}{${1} - \rho^{N}}`}, with ${math`\rho = \frac{q}{p}`}. The same method gives the frog's expected jumps in STEP ${3} Statistics Q${1}: ${math`u_{n} = ${1} + pu_{n - ${1}} + qu_{n - ${2}}`}, where the pond absorbs.` },
-    { kind: 'p', text: t`Example Sheet ${3} Q${8}(c) gives another route. For the walk from ${0} stopped at ${math`|S_{n}| = a`}, ${math`E(S_{T}) = \mu E(T)`} with ${math`\mu = p - q`}, so ${math`E(T) = \frac{E(S_{T})}{\mu}`} when ${math`\mu \ne ${0}`}. Proving it needs care: ${math`T`} is unbounded, so apply the bounded case to ${math`\min(T, m)`} and let ${math`m \to \infty`}. In the fair case ${math`E(T) = a^{${2}}`}.` },
+    { kind: 'section', title: t`How long does the game last?` },
+    { kind: 'hook', text: t`A gambler has £${5}. She bets £${1} at a time on a fair coin, and stops when she has £${10} or nothing. You already know she wins with probability ${q(5, 10)}. But how many bets does the game take, on average? You might guess about ${5}. The answer is ${5 * (10 - 5)}.` },
+    { kind: 'narrative', text: t`Why so many? Because a fair walk does not march towards a barrier. It wanders: up, down, down, up, often undoing its own progress. To find the true average we need a way to count all that wandering at once, and the trick is the same one that solved gambler's ruin: look at the first step only.` },
+    { kind: 'section', title: t`The first-step equation` },
+    { kind: 'narrative', text: t`First, pin down the objects. The walk lives on the whole numbers ${math`${0}, ${1}, \ldots, N`}. Each step is up one with probability ${math`p`} and down one with probability ${math`q = ${1} - p`}, independently of all other steps. When it reaches ${0} or ${math`N`} it stops for good.` },
+    {
+      kind: 'definition',
+      name: t`Absorption time, expected duration`,
+      formal: t`Let ${math`${0} < p < ${1}`}, ${math`q = ${1} - p`}, and let ${math`S_{n} = k + X_{${1}} + \cdots + X_{n}`}, where the ${math`X_{i}`} are independent with ${math`P(X_{i} = ${1}) = p`} and ${math`P(X_{i} = -${1}) = q`}, and ${math`${0} \le k \le N`}. The absorption time is ${math`T = \min\{n \ge ${0} : S_{n} \in \{${0}, N\}\}`}, and the [[expected-duration|expected duration]] from ${math`k`} is ${math`m_{k} = E_{k}(T)`}, the mean of ${math`T`} for the walk started at ${math`k`}.`,
+      plain: t`${math`T`} counts the steps until the walk first hits a barrier, and ${math`m_{k}`} is the average of that count when you start at ${math`k`}. The states ${0} and ${math`N`} are [[absorbing-barrier|absorbing barriers]]. For the gambler, ${math`k = ${5}`}, ${math`N = ${10}`}, and ${math`m_{${5}}`} is the average number of bets.`,
+    },
+    {
+      kind: 'theorem',
+      name: t`First-step equation for the duration`,
+      statement: t`Every ${math`m_{k}`} is finite, ${math`m_{${0}} = m_{N} = ${0}`}, and for ${math`${0} < k < N`}, ${dmath`m_{k} = ${1} + p\,m_{k + ${1}} + q\,m_{k - ${1}}.`}`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        {
+          label: t`The barriers`,
+          text: t`If ${math`k = ${0}`} or ${math`k = N`}, then ${math`S_{${0}}`} is already a barrier, so ${math`T = ${0}`} and ${math`m_{${0}} = m_{N} = ${0}`}.`,
+          plain: t`A walk that starts on a barrier takes no steps at all.`,
+        },
+        {
+          label: t`The duration is finite`,
+          text: t`In any ${math`N`} consecutive steps, all are up with probability ${math`p^{N} > ${0}`}, and a run of ${math`N`} up steps from anywhere in ${math`${0}, \ldots, N`} hits ${math`N`}. So ${math`P(T > jN) \le (${1} - p^{N})^{j}`}, and ${math`m_{k} = \sum_{n \ge ${0}} P(T > n) \le N \sum_{j \ge ${0}} (${1} - p^{N})^{j} = \frac{N}{p^{N}}`}.`,
+          plain: t`The walk gets a fresh chance to escape in every block of ${math`N`} steps, so a very long game is exponentially unlikely.`,
+          why: { q: t`Why is ${math`P(T > jN) \le (${1} - p^{N})^{j}`}?`, a: t`To survive ${math`jN`} steps, the walk must fail to make ${math`N`} up steps in a row in each of ${math`j`} separate blocks of ${math`N`} steps. The blocks use different steps, so they are independent, and each fails with probability at most ${math`${1} - p^{N}`}. The sum ${math`E(T) = \sum_{n \ge ${0}} P(T > n)`} is the tail sum formula for a random variable taking values ${math`${0}, ${1}, ${2}, \ldots`}; each block of ${math`N`} terms is at most ${math`N(${1} - p^{N})^{j}`}.` },
+        },
+        {
+          label: t`Condition on the first step`,
+          text: t`For ${math`${0} < k < N`}, by the law of total expectation, ${dmath`m_{k} = p\,E_{k}(T \mid X_{${1}} = ${1}) + q\,E_{k}(T \mid X_{${1}} = -${1}).`}`,
+          plain: t`Split the average by what the first step does, weighting each case by its probability.`,
+        },
+        {
+          label: t`Restart the walk`,
+          text: t`Given ${math`X_{${1}} = ${1}`}, the walk is at ${math`k + ${1}`} after one step, and from there it moves by ${math`X_{${2}}, X_{${3}}, \ldots`}, which are independent of ${math`X_{${1}}`}. So ${math`E_{k}(T \mid X_{${1}} = ${1}) = ${1} + m_{k + ${1}}`}, and likewise ${math`E_{k}(T \mid X_{${1}} = -${1}) = ${1} + m_{k - ${1}}`}.`,
+          plain: t`One step is already used, and the rest is a brand new walk from the new position.`,
+          why: { q: t`Why can't the walk have stopped already?`, a: t`Because ${math`${0} < k < N`}, the walk is not on a barrier at time ${0}, so ${math`T \ge ${1}`}: the first step is always taken. If ${math`k + ${1} = N`}, the restarted walk is on a barrier and ${math`m_{N} = ${0}`} adds nothing, which is right.` },
+        },
+        {
+          label: t`Substitute`,
+          text: t`${math`m_{k} = p(${1} + m_{k + ${1}}) + q(${1} + m_{k - ${1}}) = ${1} + p\,m_{k + ${1}} + q\,m_{k - ${1}}`}, since ${math`p + q = ${1}`}.`,
+          plain: t`The two copies of the used step add up to exactly one step.`,
+        },
+      ],
+    },
+    { kind: 'p', text: t`Compare it with the gambler's ruin equation ${math`h_{k} = p\,h_{k + ${1}} + q\,h_{k - ${1}}`}. The only new thing is the ${1} in front: each step costs one unit of time. That ${1} makes the equation inhomogeneous, so solving it needs a particular solution as well as the homogeneous ones.` },
+    { kind: 'section', title: t`Solving it: the fair walk` },
+    { kind: 'narrative', text: t`Take ${math`p = q = \frac{${1}}{${2}}`} first. The plan is the standard one for a linear recurrence: find every solution of the equation without the ${1}, find one solution with it, and add them.` },
+    {
+      kind: 'theorem',
+      name: t`Fair walk`,
+      statement: t`If ${math`p = q = \frac{${1}}{${2}}`}, then ${math`m_{k} = k(N - k)`} for ${math`${0} \le k \le N`}.`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        {
+          label: t`The homogeneous part`,
+          text: t`${math`u_{k} = \frac{${1}}{${2}}u_{k + ${1}} + \frac{${1}}{${2}}u_{k - ${1}}`} has auxiliary equation ${math`\frac{${1}}{${2}}\lambda^{${2}} - \lambda + \frac{${1}}{${2}} = ${0}`}, that is ${math`(\lambda - ${1})^{${2}} = ${0}`}: a double root ${math`\lambda = ${1}`}. So its solutions are ${math`u_{k} = A + Bk`}.`,
+          plain: t`Without the ${1}, any straight line in ${math`k`} works.`,
+        },
+        {
+          label: t`A particular solution`,
+          text: t`Constants and multiples of ${math`k`} solve the homogeneous equation, so they cannot produce the ${1}. Try ${math`Ck^{${2}}`}: ${math`\frac{${1}}{${2}}C(k + ${1})^{${2}} + \frac{${1}}{${2}}C(k - ${1})^{${2}} = C(k^{${2}} + ${1})`}, so we need ${math`Ck^{${2}} = ${1} + Ck^{${2}} + C`}, that is ${math`C = -${1}`}.`,
+          plain: t`Average ${math`(k + ${1})^{${2}}`} and ${math`(k - ${1})^{${2}}`}: the cross terms ${math`\pm ${2}k`} cancel and you get ${math`k^{${2}} + ${1}`}. (At ${math`k = ${3}`}: ${(3 + 1) ** 2} and ${(3 - 1) ** 2} average to ${3 ** 2 + 1}.)`,
+        },
+        {
+          label: t`The general solution`,
+          text: t`${math`m_{k} = A + Bk - k^{${2}}`}.`,
+          plain: t`A solution of the full equation plus any homogeneous solution is again a solution, and every solution has this form.`,
+          why: { q: t`Why does every solution have this form?`, a: t`If ${math`m`} and ${math`m'`} both solve the full equation, their difference solves the homogeneous one, so it is ${math`A + Bk`}. Take ${math`m' = -k^{${2}}`}.` },
+        },
+        {
+          label: t`Use the barriers`,
+          text: t`${math`m_{${0}} = ${0}`} gives ${math`A = ${0}`}. ${math`m_{N} = ${0}`} gives ${math`BN - N^{${2}} = ${0}`}, so ${math`B = N`}. Hence ${math`m_{k} = Nk - k^{${2}} = k(N - k)`}.`,
+          plain: t`For the gambler, ${math`m_{${5}} = ${5} \times ${10 - 5} = ${5 * (10 - 5)}`} bets.`,
+        },
+      ],
+    },
+    { kind: 'p', text: t`Read the answer: the product of the distances to the two barriers. Starting in the middle of a board of length ${math`N`}, the game lasts about ${math`\frac{N^{${2}}}{${4}}`} steps, the square of the distance, not the distance itself. That square is the signature of a fair random walk.` },
+    checkFrom(fairDuration, { k: 2, N: 7 }, t`The distances to the barriers are ${2} and ${7 - 2}, and the duration is their product, ${2 * (7 - 2)}.`),
+    { kind: 'section', title: t`Solving it: a biased walk` },
+    { kind: 'narrative', text: t`Now let ${math`p \ne q`}. The same plan works, but the homogeneous solutions change, and so does the particular solution we must try.` },
+    {
+      kind: 'theorem',
+      name: t`Biased walk`,
+      statement: t`If ${math`p \ne q`} and ${math`\rho = \frac{q}{p}`}, then for ${math`${0} \le k \le N`}, ${dmath`m_{k} = \frac{k}{q - p} - \frac{N}{q - p} \cdot \frac{${1} - \rho^{k}}{${1} - \rho^{N}}.`}`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        {
+          label: t`The homogeneous part`,
+          text: t`The auxiliary equation ${math`p\lambda^{${2}} - \lambda + q = ${0}`} factorises as ${math`(\lambda - ${1})(p\lambda - q) = ${0}`}, with roots ${1} and ${math`\rho = \frac{q}{p} \ne ${1}`}. So the homogeneous solutions are ${math`A + B\rho^{k}`}.`,
+          why: { q: t`Why does it factorise like that?`, a: t`Expand: ${math`(\lambda - ${1})(p\lambda - q) = p\lambda^{${2}} - (p + q)\lambda + q`}, and ${math`p + q = ${1}`}.` },
+        },
+        {
+          label: t`A particular solution`,
+          text: t`Constants are homogeneous solutions, so try ${math`Ck`}: ${math`Ck = ${1} + pC(k + ${1}) + qC(k - ${1}) = ${1} + Ck + C(p - q)`}. So ${math`C(q - p) = ${1}`} and ${math`C = \frac{${1}}{q - p}`}.`,
+          plain: t`A walk drifting towards ${0} at speed ${math`q - p`} per step covers distance ${math`k`} in about ${math`\frac{k}{q - p}`} steps: that is the particular solution.`,
+        },
+        {
+          label: t`The general solution`,
+          text: t`${math`m_{k} = \frac{k}{q - p} + A + B\rho^{k}`}.`,
+        },
+        {
+          label: t`Use the barriers`,
+          text: t`${math`m_{${0}} = ${0}`} gives ${math`A = -B`}. Then ${math`m_{N} = ${0}`} gives ${math`\frac{N}{q - p} + B(\rho^{N} - ${1}) = ${0}`}, so ${math`B = \frac{N}{(q - p)(${1} - \rho^{N})}`}.`,
+          why: { q: t`Why may we divide by ${math`${1} - \rho^{N}`}?`, a: t`Because ${math`\rho \ne ${1}`} and ${math`\rho > ${0}`}, so ${math`\rho^{N} \ne ${1}`}.` },
+        },
+        {
+          label: t`Put it together`,
+          text: t`${math`m_{k} = \frac{k}{q - p} + B(\rho^{k} - ${1}) = \frac{k}{q - p} - \frac{N}{q - p} \cdot \frac{${1} - \rho^{k}}{${1} - \rho^{N}}`}.`,
+          plain: t`The first term is the drift time; the second corrects for the walks that finish at ${math`N`} instead.`,
+        },
+      ],
+    },
+    { kind: 'p', text: t`A small case to trust it by. On ${math`${0}, ${1}, ${2}, ${3}`} with ${math`p = ${q(1, 3)}`}: ${math`\rho = ${2}`} and ${math`q - p = ${q(1, 3)}`}, so ${math`m_{${1}} = ${3} - ${9} \cdot \frac{${1} - ${2}}{${1} - ${8}} = ${duration(1, 3, q(1, 3))}`}. Directly, ${math`m_{${1}} = ${1} + \frac{${1}}{${3}}m_{${2}}`} and ${math`m_{${2}} = ${1} + \frac{${2}}{${3}}m_{${1}}`}; substituting gives ${math`\frac{${7}}{${9}}m_{${1}} = \frac{${4}}{${3}}`}, the same ${math`${duration(1, 3, q(1, 3))}`}.` },
+    { kind: 'section', title: t`A walk stopped at plus or minus a` },
+    { kind: 'narrative', text: t`Example Sheet ${3} Q${8}(c) starts the walk at ${0} and stops it at the first time ${math`T`} with ${math`|S_{n}| = a`}. Shift everything up by ${math`a`}: this is a walk from ${math`a`} on ${math`${0}, \ldots, ${2}a`}. So in the fair case ${math`E(T) = a(${2}a - a) = a^{${2}}`}, again the square of the distance.` },
+    {
+      kind: 'theorem',
+      name: t`Wald's identity, for this walk`,
+      statement: t`Let ${math`S_{${0}} = ${0}`}, let the steps have mean ${math`\mu = p - q`}, and let ${math`T = \min\{n : |S_{n}| = a\}`}. Then ${math`E(S_{T}) = \mu\,E(T)`}.`,
+    },
+    { kind: 'p', text: t`When ${math`\mu \ne ${0}`} this gives ${math`E(T) = \frac{E(S_{T})}{\mu}`}, and ${math`E(S_{T})`} needs only the chance of leaving at the top, which is gambler's ruin. The idea of the proof: ${math`S_{T} = \sum_{k \ge ${1}} X_{k} \mathbf{${1}}\{T \ge k\}`}, and whether ${math`T \ge k`} is decided by ${math`X_{${1}}, \ldots, X_{k - ${1}}`}, so it is independent of ${math`X_{k}`}. Proving it properly, with ${math`T`} unbounded, is the gate problem for this topic.`, why: { q: t`Why does the sum equal ${math`S_{T}`}?`, a: t`The indicator ${math`\mathbf{${1}}\{T \ge k\}`} is ${1} for ${math`k = ${1}, \ldots, T`} and ${0} after, so the sum keeps exactly the first ${math`T`} steps, which add up to ${math`S_{T}`}.` } },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`A fair walk from ${math`k`} takes about ${math`\min(k, N - k)`} steps, the distance to the nearer barrier.`, counterexample: t`From ${5} on ${math`${0}, \ldots, ${10}`} the nearer barrier is ${5} away, but ${math`m_{${5}} = ${5 * (10 - 5)}`}. The walk wanders, and the duration grows like the square of the distance.` },
+    { kind: 'pitfall', claim: t`${math`E(S_{T}) = \mu E(T)`} holds for any random time ${math`T`} at which the walk stops.`, counterexample: t`Start a fair walk at ${0} and stop at the first time ${math`T`} it reaches ${1}. It does reach ${1} with probability ${1}, by gambler's ruin, so ${math`S_{T} = ${1}`} and ${math`E(S_{T}) = ${1}`}, but ${math`\mu = ${0}`}. The identity fails because ${math`E(T) = \infty`}: ${math`T`} is at least the time to leave ${math`(-M, ${1})`}, whose mean is ${math`M \times ${1} = M`} for every ${math`M`}.` },
+    { kind: 'pitfall', claim: t`The boundary values are ${math`m_{${0}} = m_{N} = ${1}`}, since reaching a barrier takes a step.`, counterexample: t`${math`m_{k}`} counts steps from ${math`k`}. Starting on a barrier, no step is taken, so ${math`m_{${0}} = ${0}`}. The step that reaches the barrier is already counted by the ${1} in the equation for its neighbour.` },
+    { kind: 'takeaway', text: t`Condition on the first step and add ${1} for the time it takes; for a fair walk the answer is ${math`k(N - k)`}, the product of the distances.` },
   ],
   examples: [
-    workedCambridge(q8time),
+    { ...workedCambridge(q8time), examiner: t`The examiner looks for ${math`P(S_{T} = a)`} found by gambler's ruin, ${math`E(S_{T})`} built from it, and the division by ${math`\mu`} justified because ${math`p \ne \frac{${1}}{${2}}`}.` },
     worked(fairDuration, { k: 3, N: 8 }, t`A fair game from £${3} to £${8}`),
     worked(biasedDuration, { k: 2, N: 4, p: q(2, 3) }, t`A biased walk on ${math`${0}, \ldots, ${4}`}`),
   ],
@@ -285,5 +420,23 @@ export const absorptionTime: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expected-duration'],
   cambridge: [u2, u4, symmetric, wald, schedule],
-  gate: ['s3-q1-ii-u2', 's3-q1-u4', 'sheet3-q8c-symmetric', 'sheet3-q8c-wald'],
+  gate: ['sheet3-q8c-wald', 's3-q1-u4', 'sheet3-q8c-symmetric'],
+  recall: [
+    { front: t`The first-step equation for the expected duration ${math`m_{k}`} on ${math`${0}, \ldots, N`}.`, back: t`${math`m_{k} = ${1} + p\,m_{k + ${1}} + q\,m_{k - ${1}}`} for ${math`${0} < k < N`}, with ${math`m_{${0}} = m_{N} = ${0}`}.` },
+    { front: t`The expected duration of a fair walk from ${math`k`} on ${math`${0}, \ldots, N`}.`, back: t`${math`m_{k} = k(N - k)`}, the product of the distances to the barriers.` },
+    { front: t`The expected duration of a walk with ${math`p \ne q`}, ${math`\rho = \frac{q}{p}`}.`, back: t`${math`m_{k} = \frac{k}{q - p} - \frac{N}{q - p} \cdot \frac{${1} - \rho^{k}}{${1} - \rho^{N}}`}.` },
+    { front: t`Wald's identity for the walk from ${0} stopped at ${math`|S_{n}| = a`}.`, back: t`${math`E(S_{T}) = \mu E(T)`}, with ${math`\mu = p - q`}; in the fair case ${math`E(T) = a^{${2}}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`A fair walk lasts ${math`k(N - k)`} steps on average`,
+      steps: [
+        t`Condition on the first step: ${math`m_{k} = ${1} + \frac{${1}}{${2}}m_{k + ${1}} + \frac{${1}}{${2}}m_{k - ${1}}`}, with ${math`m_{${0}} = m_{N} = ${0}`}.`,
+        t`The homogeneous equation has a double root ${1}, so its solutions are ${math`A + Bk`}.`,
+        t`Try ${math`Ck^{${2}}`}: it gives ${math`C = -${1}`}, so ${math`m_{k} = A + Bk - k^{${2}}`}.`,
+        t`${math`m_{${0}} = ${0}`} gives ${math`A = ${0}`}, and ${math`m_{N} = ${0}`} gives ${math`B = N`}.`,
+        t`So ${math`m_{k} = k(N - k)`}.`,
+      ],
+    },
+  ],
 };

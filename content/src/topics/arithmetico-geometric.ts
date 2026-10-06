@@ -9,8 +9,8 @@
 import { auto, cite, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computedTex, math, t, texOfRational } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedTex, dmath, math, t, texOfRational } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 import { far, rpow, solveLinear } from '../partv-a';
 
 const S3 = 'step-s3-stats' as const;
@@ -295,19 +295,53 @@ const q2proofE = supervision({
 // ---------------------------------------------------------------- lesson
 
 const HALF = q(1, 2);
+const coin = div(HALF, mul(sub(q(1), HALF), sub(q(1), HALF)));
 
 export const arithmeticoGeometric: TopicContent = {
   topicId: 'alg.arithmetico-geometric',
   goal: t`Sum ${math`\sum n r^{n}`} and ${math`\sum (a + nd) r^{n}`} by multiplying by ${math`r`} and subtracting, or by differentiating the geometric series.`,
+  objective: t`Sum series like ${math`\sum (a + nd)r^{n}`} by subtracting ${math`r`} times the series, or by differentiating.`,
+  why: t`Expected waiting times are exactly these sums: they give the mean ${math`\frac{${1}}{p}`} of a geometric wait.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`An [[arithmetico-geometric-series|arithmetico-geometric series]] multiplies an arithmetic sequence by a geometric one: ${math`\sum (a + nd)r^{n}`}. Such sums give expectations, because ${math`E(X) = \sum n \, P(X = n)`} and waiting times have geometric probabilities.` },
-    { kind: 'rule', text: t`For ${math`|r| < ${1}`}: ${math`\sum_{n = ${0}}^{\infty} (a + nd)r^{n} = \frac{a}{${1} - r} + \frac{dr}{(${1} - r)^{${2}}}`}. In particular ${math`\sum_{n \ge ${1}} n r^{n - ${1}} = \frac{${1}}{(${1} - r)^{${2}}}`}.` },
-    { kind: 'p', text: t`The method, from STEP ${3} Statistics Q${2}: write ${math`S`} and ${math`rS`} with equal powers of ${math`r`} lined up. In ${math`S - rS`} each pair of terms leaves ${math`d r^{n}`}, a geometric series, plus the first term ${math`a`}. So ${math`(${1} - r)S = a + \frac{dr}{${1} - r}`}.` },
-    { kind: 'p', text: t`The other route is calculus: differentiate ${math`${1} + r + r^{${2}} + \cdots = \frac{${1}}{${1} - r}`} term by term to get ${math`${1} + ${2}r + ${3}r^{${2}} + \cdots = \frac{${1}}{(${1} - r)^{${2}}}`}. The STEP ${3} notes use it for the geometric distribution: ${math`E(X) = p(${1} + ${2}q + ${3}q^{${2}} + \cdots) = \frac{p}{p^{${2}}} = \frac{${1}}{p}`}. With ${math`p = ${HALF}`}, the expected number of tosses for a head is ${2}.` },
-    { kind: 'p', text: t`A finite sum works the same way, with a leftover last term: ${math`\sum_{k = ${1}}^{n} k r^{k} = \frac{r\left(${1} - (n + ${1})r^{n} + nr^{n + ${1}}\right)}{(${1} - r)^{${2}}}`}. For ${math`r = ${2}`}, ${math`n = ${3}`}: ${math`${2} + ${8} + ${24} = ${finSum(q(2), 3)}`}.` },
+    { kind: 'section', title: t`How long until a head?` },
+    { kind: 'hook', text: t`Toss a fair coin until it lands heads. The first head comes on toss ${math`n`} with probability ${math`(\frac{${1}}{${2}})^{n}`}, so the average number of tosses is ${math`${1} \cdot \frac{${1}}{${2}} + ${2} \cdot \frac{${1}}{${4}} + ${3} \cdot \frac{${1}}{${8}} + \cdots`}. Each term is a counting number times a power of a half. Does this add up to something finite, and what?` },
+    { kind: 'narrative', text: t`You know how to sum a geometric series, where each term is the last times ${math`r`}. Here the powers of ${math`r`} are multiplied by ${math`${1}, ${2}, ${3}, \ldots`}, which is not geometric. The idea is to make it geometric: shift the series by one place and subtract, so the growing factors cancel down to a constant.` },
+    { kind: 'section', title: t`Subtract r times the series` },
+    {
+      kind: 'definition',
+      name: t`Arithmetico-geometric series`,
+      formal: t`For real ${math`a`}, ${math`d`}, and ${math`r`}, the [[arithmetico-geometric-series|arithmetico-geometric series]] is ${math`\sum_{n = ${0}}^{\infty} (a + nd)r^{n}`}: the arithmetic sequence ${math`a, a + d, a + ${2}d, \ldots`} multiplied term by term by the geometric sequence ${math`${1}, r, r^{${2}}, \ldots`}.`,
+      plain: t`With ${math`a = ${0}`}, ${math`d = ${1}`}, ${math`r = \frac{${1}}{${2}}`}: ${math`${0} + \frac{${1}}{${2}} + \frac{${2}}{${4}} + \frac{${3}}{${8}} + \cdots`}, the coin sum above.`,
+    },
+    { kind: 'theorem', statement: t`If ${math`|r| < ${1}`}, the series converges and ${dmath`S = \sum_{n = ${0}}^{\infty} (a + nd)r^{n} = \frac{a}{${1} - r} + \frac{dr}{(${1} - r)^{${2}}}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`It converges`, text: t`The ratio of consecutive terms is ${math`\frac{a + (n + ${1})d}{a + nd} \, r \to r`} as ${math`n \to \infty`} (when ${math`d \ne ${0}`}, for ${math`n`} large enough that ${math`a + nd \ne ${0}`}), and ${math`|r| < ${1}`}, so by the ratio test the series converges absolutely. (When ${math`d = ${0}`} it is geometric.)`, plain: t`Far out, each term is roughly ${math`r`} times the last, so the tail behaves like a convergent geometric series.` },
+        { label: t`Line up ${math`S`} and ${math`rS`}`, text: t`${math`S = a + (a + d)r + (a + ${2}d)r^{${2}} + \cdots`} and ${math`rS = ar + (a + d)r^{${2}} + \cdots`}.`, plain: t`Multiplying by ${math`r`} moves every coefficient one power along.` },
+        { label: t`Subtract`, text: t`The coefficient of ${math`r^{n}`} in ${math`S - rS`} is ${math`(a + nd) - (a + (n - ${1})d) = d`} for ${math`n \ge ${1}`}, and ${math`a`} for ${math`n = ${0}`}. So ${math`(${1} - r)S = a + d(r + r^{${2}} + \cdots) = a + \frac{dr}{${1} - r}`}.`, why: { q: t`May we subtract two infinite series term by term?`, a: t`Yes, when both converge: the partial sums of ${math`S - rS`} are differences of partial sums, and the limit of a difference is the difference of the limits.` } },
+        { label: t`Divide by ${math`${1} - r`}`, text: t`${math`S = \frac{a}{${1} - r} + \frac{dr}{(${1} - r)^{${2}}}`}, which is allowed since ${math`r \ne ${1}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`For the coin, ${math`a = ${0}`}, ${math`d = ${1}`}, ${math`r = ${HALF}`}: ${math`S = \frac{\frac{${1}}{${2}}}{(\frac{${1}}{${2}})^{${2}}} = ${coin}`}. On average you wait ${coin} tosses for a head.` },
+    checkFrom(infiniteSum, { c: 2, d: 3, r: q(1, 3) }, t`${math`\frac{${2}}{${1} - \frac{${1}}{${3}}} + \frac{${3} \cdot \frac{${1}}{${3}}}{(${1} - \frac{${1}}{${3}})^{${2}}} = ${3} + \frac{${9}}{${4}} = ${add(q(3), q(9, 4))}`}.`),
+    { kind: 'section', title: t`The calculus route` },
+    { kind: 'narrative', text: t`There is a second way, used by the STEP ${3} topic notes. The factor ${math`n`} in ${math`n r^{n - ${1}}`} is what differentiation produces from ${math`r^{n}`}. So differentiate the geometric series.` },
+    { kind: 'theorem', statement: t`For ${math`|r| < ${1}`}, ${math`\sum_{n = ${1}}^{\infty} n r^{n - ${1}} = \frac{${1}}{(${1} - r)^{${2}}}`}.` },
+    { kind: 'p', text: t`Differentiate both sides of ${math`\sum_{n \ge ${0}} r^{n} = (${1} - r)^{-${1}}`}. On the right, the chain rule gives ${math`(${1} - r)^{-${2}}`}. On the left, a power series may be differentiated term by term inside its interval of convergence, a fact from analysis that we use here without proof, and ${math`r^{n}`} becomes ${math`n r^{n - ${1}}`}.` },
+    { kind: 'p', text: t`The notes use it for a geometric waiting time ${math`X`} with ${math`P(X = n) = q^{n - ${1}}p`}, where ${math`q = ${1} - p`}: ${math`E(X) = p\sum_{n \ge ${1}} n q^{n - ${1}} = \frac{p}{(${1} - q)^{${2}}} = \frac{${1}}{p}`}. Differentiating twice gives ${math`E(X^{${2}})`} in the same way.` },
+    { kind: 'section', title: t`Finite sums` },
+    { kind: 'p', text: t`Stopping at ${math`n`} terms, the subtraction leaves one extra term at the end: ${math`(${1} - r)\sum_{k = ${1}}^{n} k r^{k} = (r + r^{${2}} + \cdots + r^{n}) - n r^{n + ${1}}`}. Summing the geometric part and dividing by ${math`${1} - r`} gives ${dmath`\sum_{k = ${1}}^{n} k r^{k} = \frac{r\left(${1} - (n + ${1})r^{n} + n r^{n + ${1}}\right)}{(${1} - r)^{${2}}}, \quad r \ne ${1}.`} Here ${math`|r|`} may be any size, since the sum is finite. For ${math`r = ${2}`}, ${math`n = ${3}`}: ${math`${2} + ${8} + ${24} = ${finSum(q(2), 3)}`}, and the formula gives ${math`${2}(${1} - ${32} + ${48}) = ${finFormula({ r: q(2), n: 3 })}`}.` },
+    checkFrom(finiteSum, { r: q(3), n: 4 }, t`Directly, ${math`${3} + ${18} + ${81} + ${324} = ${finSum(q(3), 4)}`}, which the formula confirms.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`\sum_{n \ge ${1}} n r^{n} = \frac{${1}}{(${1} - r)^{${2}}}`}.`, counterexample: t`At ${math`r = ${HALF}`} the sum is ${coin}, not ${4}. The formula ${math`\frac{${1}}{(${1} - r)^{${2}}}`} is for ${math`\sum n r^{n - ${1}}`}; multiply by ${math`r`}.` },
+    { kind: 'pitfall', claim: t`The infinite formula holds for any ${math`r \ne ${1}`}.`, counterexample: t`At ${math`r = -${1}`}, ${math`a = ${0}`}, ${math`d = ${1}`} it would give ${math`\frac{-${1}}{${4}}`}, but the partial sums of ${math`-${1} + ${2} - ${3} + ${4} - \cdots`} are ${math`-${1}, ${1}, -${2}, ${2}, \ldots`}, which never settle. The step ${math`S - rS`} assumed ${math`S`} exists.` },
+    { kind: 'takeaway', text: t`Subtract ${math`r`} times the series to turn the arithmetic factor into a constant, then sum the geometric series that is left.` },
   ],
   examples: [
-    workedCambridge(q2s),
+    { ...workedCambridge(q2s), examiner: t`The examiner looks for ${math`S`} and ${math`rS`} lined up by powers, the geometric tail summed, and ${math`|r| < ${1}`} used.` },
     worked(infiniteSum, { c: 1, d: 2, r: q(1, 2) }, t`An arithmetico-geometric series with ratio ${HALF}`),
     worked(contest, { a: q(1, 2), b: q(1, 3) }, t`The length of a contest`),
   ],
@@ -315,5 +349,22 @@ export const arithmeticoGeometric: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arithmetico-geometric-series'],
   cambridge: [arthur, beta, contestMean, geomSecond, q2proofS, q2proofE],
-  gate: ['s3-q2-arthur', 's3-q2-beta', 's3-q2-contest-shots', 's3-notes-geometric-second-moment', 's3-q2-prove-series', 's3-q2-prove-contest'],
+  gate: ['s3-q2-contest-shots', 's3-q2-prove-contest', 's3-notes-geometric-second-moment', 's3-q2-arthur', 's3-q2-prove-series'],
+  recall: [
+    { front: t`${math`\sum_{n \ge ${0}} (a + nd)r^{n}`} for ${math`|r| < ${1}`}.`, back: t`${math`\frac{a}{${1} - r} + \frac{dr}{(${1} - r)^{${2}}}`}.` },
+    { front: t`${math`\sum_{n \ge ${1}} n r^{n - ${1}}`} for ${math`|r| < ${1}`}.`, back: t`${math`\frac{${1}}{(${1} - r)^{${2}}}`}, by differentiating the geometric series.` },
+    { front: t`The mean of a geometric waiting time with success probability ${math`p`}.`, back: t`${math`\frac{${1}}{p}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Summing ${math`\sum (a + nd)r^{n}`}`,
+      steps: [
+        t`The series converges since ${math`|r| < ${1}`}; call its sum ${math`S`}.`,
+        t`Write ${math`rS`} under ${math`S`} with equal powers of ${math`r`} lined up.`,
+        t`Subtract: ${math`(${1} - r)S = a + d(r + r^{${2}} + \cdots)`}.`,
+        t`Sum the geometric tail: ${math`(${1} - r)S = a + \frac{dr}{${1} - r}`}.`,
+        t`Divide by ${math`${1} - r`}.`,
+      ],
+    },
+  ],
 };

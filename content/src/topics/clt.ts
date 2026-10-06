@@ -13,8 +13,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { div, int, mul, pick, q, str, toFloat, type Rational } from '../math';
 import { dp, lnFact, Phi, PhiSimpson, poissonCdf } from '../partv-d';
 import { generator, type Misconception } from '../problem';
-import { listOf, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { dmath, listOf, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mS, mPhi] = [math`S_{n}`, math`\Phi`];
 const SH4 = 'ia-prob-sheet-4' as const;
@@ -284,21 +284,67 @@ const sketch = supervision({
 
 // ---------------------------------------------------------------- lesson
 
-const NS = [10, 100, 1000];
+/** The hook: at least 60 heads in 100 fair tosses, exactly and by the normal with a continuity correction. */
+const COIN = { n: 100, k: 60 };
+const coinExact = (() => {
+  let c = 1n;
+  let s = 0n;
+  for (let j = 0; j <= COIN.n; j++) {
+    if (j >= COIN.k) s += c;
+    c = (c * BigInt(COIN.n - j)) / BigInt(j + 1);
+  }
+  return Number((s * 10n ** 12n) / 2n ** BigInt(COIN.n)) / 1e12;
+})();
+const coinZ = (COIN.k - 0.5 - COIN.n / 2) / Math.sqrt(COIN.n / 4);
+const coinApprox = 1 - Phi(coinZ);
+/** A poll to within 0.1 with probability 0.9: n >= (1.645 / 0.2)^2. */
+const POLL = sizeOf({ e: 5, c: 0 });
 
 export const clt: TopicContent = {
   topicId: 'lim.clt',
   goal: t`State the central limit theorem, sketch its proof by moment generating functions, and use it to approximate sums and to size samples.`,
+  objective: t`State the central limit theorem, sketch its proof with mgfs, and use it for sums and sample sizes.`,
+  why: t`It explains why the normal curve is everywhere, and it is how every poll and experiment is sized.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The weak law says ${math`\bar{X}_{n} \to \mu`}. The next question is how far off it is: the error is of order ${math`\sigma/\sqrt{n}`}, and its shape, magnified by ${math`\sqrt{n}`}, is always the same normal curve.` },
-    { kind: 'rule', text: t`The [[central-limit-theorem|central limit theorem]]: if ${math`X_{${1}}, X_{${2}}, \ldots`} are independent and identically distributed with mean ${math`\mu`} and variance ${math`\sigma^{${2}} \in (${0}, \infty)`}, and ${math`S_{n} = X_{${1}} + \cdots + X_{n}`}, then for every ${math`x`}, ${math`P\left(\frac{S_{n} - n\mu}{\sigma\sqrt{n}} \le x\right) \to \Phi(x)`}.` },
-    { kind: 'p', text: t`The sketch of proof uses mgfs. Take ${math`\mu = ${0}`} and ${math`\sigma = ${1}`}, and suppose ${math`M(\theta) = E(e^{\theta X_{${1}}})`} is finite near ${0}, so ${math`M(\theta) = ${1} + \frac{\theta^{${2}}}{${2}} + o(\theta^{${2}})`}. Then ${math`E\left(e^{\theta S_{n}/\sqrt{n}}\right) = M(\theta/\sqrt{n})^{n} = \left(${1} + \frac{\theta^{${2}}}{${2}n} + o\left(\frac{${1}}{n}\right)\right)^{n} \to e^{\theta^{${2}}/${2}}`}, the mgf of ${math`N(${0}, ${1})`}, and the continuity theorem finishes.` },
-    { kind: 'p', text: t`Sampling (Sheet ${4} Q${11}): a sample proportion ${math`\hat{p}`} has standard deviation ${math`\sqrt{p(${1} - p)/n} \le ${1}/(${2}\sqrt{n})`}, so ${math`P(|\hat{p} - p| < \varepsilon) \gtrsim ${2}\Phi(${2}\varepsilon\sqrt{n}) - ${1}`}. For ${math`\varepsilon = ${0.04}`} and probability ${0.99}, ${math`n \ge (${2.58}/${0.08})^{${2}}`}: ${1041} voters, whatever ${math`p`} is.` },
-    { kind: 'p', text: t`A Poisson example (Sheet ${4} Q${13}): ${math`\text{Po}(n)`} is the sum of ${math`n`} independent ${math`\text{Po}(${1})`} variables, so ${math`P(\text{Po}(n) \le n) \to \Phi(${0}) = \tfrac{${1}}{${2}}`}. For ${math`n = ${NS[0] as number}, ${NS[1] as number}, ${NS[2] as number}`} it is about ${listOf(NS.map((n) => dp(poissonCdf(n, n), 3)))}.` },
-    { kind: 'p', text: t`And products: if ${math`X = \xi_{${1}}\cdots\xi_{n}`} with independent positive factors, ${math`\log X`} is a sum, nearly normal for large ${math`n`}, so ${math`X`} is nearly log-normal (Sheet ${4} Q${6}(b)).` },
+    { kind: 'section', title: t`The same curve every time` },
+    { kind: 'hook', text: t`Toss a fair coin ${COIN.n} times. What is the chance of at least ${COIN.k} heads? Exactly, it is a sum of ${COIN.n - COIN.k + 1} binomial terms, about ${dp(coinExact, 4)}. A normal curve, with one line of arithmetic, gives ${dp(coinApprox, 4)}. Why should a bell curve know anything about coins?` },
+    { kind: 'narrative', text: t`It is not special to coins. Add up many independent random quantities, dice, waiting times, measurement errors, and the total, once centred and scaled, always takes the same shape. The weak law of large numbers says the average settles at ${math`\mu`}. The central limit theorem describes the fluctuations around it: they are of size ${math`\sigma/\sqrt{n}`}, and their shape is normal.` },
+    { kind: 'section', title: t`The theorem` },
+    {
+      kind: 'definition',
+      name: t`Convergence in distribution`,
+      formal: t`Random variables ${math`Y_{${1}}, Y_{${2}}, \ldots`} converge in distribution to ${math`Y`} if ${math`P(Y_{n} \le x) \to P(Y \le x)`} for every ${math`x`} at which ${math`x \mapsto P(Y \le x)`} is continuous.`,
+      plain: t`The distribution functions get close, point by point. For a normal limit every ${math`x`} counts, since ${math`\Phi`} is continuous.`,
+    },
+    { kind: 'theorem', name: t`Central limit theorem`, statement: t`Let ${math`X_{${1}}, X_{${2}}, \ldots`} be independent and identically distributed with mean ${math`\mu`} and variance ${math`\sigma^{${2}}`}, where ${math`${0} < \sigma^{${2}} < \infty`}, and let ${math`S_{n} = X_{${1}} + \cdots + X_{n}`}. Then for every real ${math`x`}, ${dmath`P\left(\frac{S_{n} - n\mu}{\sigma\sqrt{n}} \le x\right) \to \Phi(x) \quad \text{as } n \to \infty.`}` },
+    { kind: 'p', text: t`This is the [[central-limit-theorem|central limit theorem]]. The fraction is ${mS} standardised: ${math`S_{n}`} has mean ${math`n\mu`} and standard deviation ${math`\sigma\sqrt{n}`}, so the fraction has mean ${0} and variance ${1} for every ${math`n`}. The theorem says its shape becomes ${math`N(${0}, ${1})`}.` },
+    { kind: 'section', title: t`A sketch of the proof` },
+    { kind: 'narrative', text: t`The Cambridge schedule asks for a sketch, under an extra assumption: the moment generating function ${math`M(\theta) = E(e^{\theta X_{${1}}})`} is finite for ${math`\theta`} near ${0}. The idea is that mgfs turn sums into products, and products into powers we can take limits of.` },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`Standardise`, text: t`Replace ${math`X_{i}`} by ${math`(X_{i} - \mu)/\sigma`}. Then ${math`\mu = ${0}`}, ${math`\sigma = ${1}`}, and we must show ${math`S_{n}/\sqrt{n}`} converges in distribution to ${math`N(${0}, ${1})`}.` },
+        { label: t`Sums become powers`, text: t`By independence, ${math`E\left(e^{\theta S_{n}/\sqrt{n}}\right) = \prod_{i = ${1}}^{n} E\left(e^{\theta X_{i}/\sqrt{n}}\right) = M\left(\theta/\sqrt{n}\right)^{n}`}.`, why: { q: t`Why does the expectation of the product split?`, a: t`The ${math`e^{\theta X_{i}/\sqrt{n}}`} are independent, and the expectation of a product of independent variables is the product of the expectations.` } },
+        { label: t`Expand near ${0}`, text: t`${math`M(s) = ${1} + s\,E(X_{${1}}) + \frac{s^{${2}}}{${2}}E(X_{${1}}^{${2}}) + o(s^{${2}}) = ${1} + \frac{s^{${2}}}{${2}} + o(s^{${2}})`}, since the mean is ${0} and the variance ${1}.` },
+        { label: t`Take the limit`, text: t`${math`M\left(\theta/\sqrt{n}\right)^{n} = \left(${1} + \frac{\theta^{${2}}}{${2}n} + o\left(\frac{${1}}{n}\right)\right)^{n} \to e^{\theta^{${2}}/${2}}`}.`, why: { q: t`Why does that power tend to an exponential?`, a: t`Take logarithms: ${math`n\log(${1} + a_{n}/n) \to a`} when ${math`a_{n} \to a`}, because ${math`\log(${1} + u) = u + O(u^{${2}})`}. Here ${math`a = \theta^{${2}}/${2}`}.` } },
+        { label: t`Recognise the limit`, text: t`${math`e^{\theta^{${2}}/${2}}`} is the mgf of ${math`N(${0}, ${1})`}. The continuity theorem for mgfs, quoted without proof in IA, turns convergence of mgfs into convergence in distribution.` },
+      ],
+    },
+    { kind: 'section', title: t`Using it for sums` },
+    { kind: 'p', text: t`For the coins: ${mS} counts heads, so ${math`\mu = \tfrac{${1}}{${2}}`}, ${math`\sigma = \tfrac{${1}}{${2}}`}, mean ${COIN.n / 2}, standard deviation ${math`\tfrac{${1}}{${2}}\sqrt{${COIN.n}} = ${Math.sqrt(COIN.n) / 2}`}. ${mS} takes whole values, so "at least ${COIN.k}" is "at least ${COIN.k - 0.5}" for the continuous normal: the continuity correction. Then ${math`z = \frac{${COIN.k - 0.5} - ${COIN.n / 2}}{${Math.sqrt(COIN.n) / 2}} = ${dp(coinZ, 2)}`}, and ${math`${1} - \Phi(${dp(coinZ, 2)}) \approx ${dp(coinApprox, 4)}`}.` },
+    checkFrom(standardise, { mu: 50, sigma: 10, n: 25, off: q(2) }, t`The mean of ${25} observations has standard deviation ${math`\frac{${10}}{\sqrt{${25}}} = ${2}`}, so ${math`z = \frac{${52} - ${50}}{${2}} = ${1}`}.`),
+    { kind: 'section', title: t`Sizing a sample` },
+    { kind: 'p', text: t`A poll estimates a proportion ${math`p`} by the sample proportion ${math`\hat{p}`}, the mean of ${math`n`} independent indicators. Its standard deviation is ${math`\sqrt{p(${1} - p)/n}`}, at most ${math`\frac{${1}}{${2}\sqrt{n}}`} since ${math`p(${1} - p) \le \tfrac{${1}}{${4}}`}. So the central limit theorem gives ${math`P(|\hat{p} - p| < \varepsilon) \approx ${2}\Phi\left(\frac{\varepsilon\sqrt{n}}{\sqrt{p(${1} - p)}}\right) - ${1} \ge ${2}\Phi(${2}\varepsilon\sqrt{n}) - ${1}`}, whatever ${math`p`} is.`, why: { q: t`Why is ${math`p(${1} - p)`} at most a quarter?`, a: t`${math`\tfrac{${1}}{${4}} - p(${1} - p) = (p - \tfrac{${1}}{${2}})^{${2}} \ge ${0}`}.` } },
+    { kind: 'p', text: t`To be within ${0.1} with probability ${0.9}, use ${math`\Phi(${1.645}) = ${0.95}`}: we need ${math`${2} \times ${0.1}\sqrt{n} \ge ${1.645}`}, so ${math`n \ge (${1.645}/${0.2})^{${2}} \approx ${dp(toFloat(POLL), 2)}`}, and ${ceilQ(POLL)} people suffice.` },
+    checkFrom(sampleSize, { e: 2, c: 1 }, t`${math`n \ge \left(\frac{${1.96}}{${2} \times ${0.03}}\right)^{${2}} \approx ${dp(toFloat(sizeOf({ e: 2, c: 1 })), 2)}`}, so round up to ${ceilQ(sizeOf({ e: 2, c: 1 }))}.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`The theorem holds for any independent, identically distributed variables.`, counterexample: t`It needs a finite variance. For the Cauchy density ${math`\frac{${1}}{\pi(${1} + x^{${2}})}`}, the average of ${math`n`} independent copies has the same Cauchy distribution for every ${math`n`}, so no rescaling makes it normal.` },
+    { kind: 'pitfall', claim: t`${mS} is approximately normal for any ${math`n`}.`, counterexample: t`The theorem is about the limit. For ${math`n = ${1}`} a fair die is uniform on six values, nothing like a bell. How large ${math`n`} must be depends on the distribution; skewed ones need more.` },
+    { kind: 'takeaway', text: t`Standardise the sum, ${math`\frac{S_{n} - n\mu}{\sigma\sqrt{n}}`}, and for large ${math`n`} its probabilities are those of ${math`N(${0}, ${1})`}.` },
   ],
   examples: [
-    workedCambridge(q11),
+    { ...workedCambridge(q11), examiner: t`The examiner looks for the worst case ${math`p = \tfrac{${1}}{${2}}`} justified, the inequality set up from ${math`\Phi`}, and ${math`n`} rounded up.` },
     worked(sumApprox, { d: 0, n: 100, off: 10, dir: 'least' }, t`A hundred dice`),
     worked(sampleSize, { e: 4, c: 1 }, t`A poll to within five points`),
   ],
@@ -306,5 +352,22 @@ export const clt: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['central-limit-theorem'],
   cambridge: [q5, q13value, q13proof, q6b, sketch],
-  gate: ['ia-s4-q5', 'ia-s4-q13-value', 'ia-s4-q13', 'ia-s4-q6-b'],
+  gate: ['ia-s4-q13', 'ia-s4-q6-b', 'ia-s4-q5'],
+  recall: [
+    { front: t`The central limit theorem.`, back: t`For i.i.d. ${math`X_{i}`} with mean ${math`\mu`} and variance ${math`\sigma^{${2}} \in (${0}, \infty)`}, ${math`P\left(\frac{S_{n} - n\mu}{\sigma\sqrt{n}} \le x\right) \to \Phi(x)`} for every ${math`x`}.` },
+    { front: t`The key step in the mgf sketch of the central limit theorem.`, back: t`${math`M(\theta/\sqrt{n})^{n} = \left(${1} + \frac{\theta^{${2}}}{${2}n} + o(\tfrac{${1}}{n})\right)^{n} \to e^{\theta^{${2}}/${2}}`}.` },
+    { front: t`The sample size for a proportion within ${math`\varepsilon`} with probability ${math`${2}\Phi(z) - ${1}`}.`, back: t`${math`n \ge \left(\frac{z}{${2}\varepsilon}\right)^{${2}}`}, using ${math`p(${1} - p) \le \tfrac{${1}}{${4}}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Sketch of the central limit theorem`,
+      steps: [
+        t`Standardise so that ${math`\mu = ${0}`} and ${math`\sigma = ${1}`}.`,
+        t`By independence, the mgf of ${math`S_{n}/\sqrt{n}`} is ${math`M(\theta/\sqrt{n})^{n}`}.`,
+        t`Expand: ${math`M(s) = ${1} + \frac{s^{${2}}}{${2}} + o(s^{${2}})`}.`,
+        t`So the mgf tends to ${math`e^{\theta^{${2}}/${2}}`}, the mgf of ${math`N(${0}, ${1})`}.`,
+        t`The continuity theorem gives convergence in distribution.`,
+      ],
+    },
+  ],
 };

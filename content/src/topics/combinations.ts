@@ -11,7 +11,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { factorial, int, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 /** C(n, k), exactly, by the multiplicative formula. */
 function choose(n: number, k: number): number {
@@ -341,22 +341,53 @@ const bop425 = supervision({
 // ---------------------------------------------------------------- lesson
 
 const L = { n: 5, r: 2 };
+const H = { n: 5, r: 3 };
 const claims: ProbabilityClaim[] = [
   { what: 'Sheet 1 Q1 with seven mice: P(both white chosen)', exact: q(choose(5, 2), choose(7, 4)), trial: (rng) => { const s = drawK(rng, 7, 4); return s.has(0) && s.has(1); } },
+  { what: 'two sweets from 9 red and 6 green are the same colour', exact: q(choose(9, 2) + choose(6, 2), choose(15, 2)), trial: (rng) => { const s = [...drawK(rng, 15, 2)]; return s.every((x) => x < 9) || s.every((x) => x >= 9); } },
 ];
 
 export const combinations: TopicContent = {
   topicId: 'comb.combinations',
   goal: t`Count unordered selections of ${math`r`} objects from ${mn} as ${math`\binom{n}{r} = \frac{n!}{r!\,(n - r)!}`}, and use them for probabilities of selections.`,
+  objective: t`Count selections where order does not matter with ${math`\binom{n}{r}`}, and use them for probabilities.`,
+  why: t`Binomial coefficients run through all of probability and the binomial theorem; this is where they come from.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`A [[combination|combination]] is a selection in which order does not matter: a committee, a hand of cards, a set of mice. Choosing ${L.r} of ${L.n} letters in order gives ${math`${L.n} \times ${L.n - 1} = ${perm(L.n, L.r)}`} ordered pairs, but AB and BA are the same selection, so there are ${math`\frac{${perm(L.n, L.r)}}{${2}} = ${choose(L.n, L.r)}`} selections.` },
-    { kind: 'rule', text: t`In general, ${math`n(n - ${1}) \cdots (n - r + ${1}) = \frac{n!}{(n - r)!}`} ordered choices, each selection counted ${math`r!`} times: ${dmath`\binom{n}{r} = \frac{n!}{r!\,(n - r)!},`} read "${mn} choose ${math`r`}", the [[binomial-coefficient|binomial coefficient]]. A level writes it ${math`{}^{n}C_{r}`}.` },
-    { kind: 'p', text: t`Useful values: ${math`\binom{n}{${0}} = \binom{n}{n} = ${1}`}, ${math`\binom{n}{${1}} = n`}, and ${math`\binom{n}{${2}} = \frac{n(n - ${1})}{${2}}`}, the number of pairs. Choosing which ${math`r`} to take is the same as choosing which ${math`n - r`} to leave, so ${math`\binom{n}{r} = \binom{n}{n - r}`}.` },
-    { kind: 'p', text: t`When every selection is equally likely, a probability is the number of favourable selections over ${binom('n', 'r')}. The STEP Support hints use this as their Method ${2} for the sweets: ${math`\frac{\binom{${9}}{${2}} + \binom{${6}}{${2}}}{\binom{${15}}{${2}}} = \frac{${choose(9, 2)} + ${choose(6, 2)}}{${choose(15, 2)}} = ${q(choose(9, 2) + choose(6, 2), choose(15, 2))}`}, the same as the tree.` },
-    { kind: 'p', text: t`Selections that must contain some things are counted by taking those first and choosing the rest from what is left. That is how the IA example sheet's first question, the litter of mice, turns into an equation for the size of the litter.` },
+    { kind: 'section', title: t`Order, then forget it` },
+    { kind: 'hook', text: t`Five friends, A, B, C, D, E, need a committee of three. How many committees are there? Picking a first member, then a second, then a third gives ${math`${H.n} \times ${H.n - 1} \times ${H.n - 2} = ${perm(H.n, H.r)}`}. But the committee ABC was picked as ABC, ACB, BAC, and so on. How many times is each committee counted?` },
+    { kind: 'narrative', text: t`Each committee of three can be listed in ${math`${3} \times ${2} \times ${1} = ${factorial(3)}`} orders, and every order was counted. So there are ${math`\frac{${perm(H.n, H.r)}}{${factorial(3)}} = ${choose(H.n, H.r)}`} committees. That trick, count in order and then divide out the orders, is the whole of this lesson.` },
+    {
+      kind: 'definition',
+      name: t`Combination, binomial coefficient`,
+      formal: t`For integers ${math`${0} \le r \le n`}, a [[combination|combination]] of ${math`r`} objects from ${mn} is an ${math`r`}-element subset of an ${mn}-element set. The [[binomial-coefficient|binomial coefficient]] ${binom('n', 'r')}, read "${mn} choose ${math`r`}", is the number of them.`,
+      plain: t`A selection where order does not matter: a committee, a hand of cards, a set of toppings. A level writes ${math`{}^{n}C_{r}`}. Here ${math`\binom{${H.n}}{${H.r}} = ${choose(H.n, H.r)}`}.`,
+    },
+    { kind: 'theorem', statement: t`For integers ${math`${0} \le r \le n`}, ${dmath`\binom{n}{r} = \frac{n!}{r!\,(n - r)!}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Count in order`, text: t`The number of ordered choices of ${math`r`} different objects from ${mn} is ${math`n(n - ${1}) \cdots (n - r + ${1}) = \frac{n!}{(n - r)!}`}.`, plain: t`${mn} choices for the first, ${math`n - ${1}`} for the second, and so on, ${math`r`} factors in all.` },
+        { label: t`Each selection appears ${math`r!`} times`, text: t`An ${math`r`}-element subset can be put in order in ${math`r!`} ways, and each of those is one of the ordered choices.` },
+        { label: t`So the counts are related`, text: t`${math`\frac{n!}{(n - r)!} = \binom{n}{r} \cdot r!`}.`, plain: t`Grouping the ordered choices by which subset they use gives ${binom('n', 'r')} groups of ${math`r!`} each.` },
+        { label: t`Divide`, text: t`${math`\binom{n}{r} = \frac{n!}{r!\,(n - r)!}`}.` },
+      ],
+    },
+    checkFrom(chooseGen, { n: 8, r: 3, what: 'books' }, t`In order, ${math`${8} \times ${7} \times ${6} = ${perm(8, 3)}`}; divide by ${math`${3}! = ${6}`} to get ${choose(8, 3)}.`),
+    { kind: 'section', title: t`Values worth knowing` },
+    { kind: 'p', text: t`${math`\binom{n}{${0}} = \binom{n}{n} = ${1}`}: one way to take nothing, one way to take everything (with ${math`${0}! = ${1}`}). ${math`\binom{n}{${1}} = n`}. ${math`\binom{n}{${2}} = \frac{n(n - ${1})}{${2}}`}, the number of pairs: ${L.n} people shake hands in ${math`\binom{${L.n}}{${2}} = ${choose(L.n, L.r)}`} pairs. And ${math`\binom{n}{r} = \binom{n}{n - r}`}, since choosing which ${math`r`} to take is choosing which ${math`n - r`} to leave.` },
+    { kind: 'section', title: t`Probabilities of selections` },
+    { kind: 'p', text: t`When a selection is made at random, every subset of the right size is equally likely, so a probability is a count of favourable selections over ${binom('n', 'r')}. STEP Support Assignment ${12}'s hints do this for two sweets drawn from ${9} red and ${6} green: both the same colour has probability ${dmath`\frac{\binom{${9}}{${2}} + \binom{${6}}{${2}}}{\binom{${15}}{${2}}} = \frac{${choose(9, 2)} + ${choose(6, 2)}}{${choose(15, 2)}} = ${q(choose(9, 2) + choose(6, 2), choose(15, 2))},`} the same as a tree diagram gives.` },
+    { kind: 'p', text: t`A selection that must contain a given object is counted by putting it in first and choosing the rest from what is left. Committees of ${3} from ${10} people that include Ana: Ana takes one place, and the other ${2} come from the other ${9}, so ${math`\binom{${9}}{${2}} = ${choose(9, 2)}`} of the ${math`\binom{${10}}{${3}} = ${choose(10, 3)}`} committees.` },
+    checkFrom(including, { n: 12, r: 4, m: 1 }, t`Ana fills one place; the other ${3} come from the other ${11}: ${math`\binom{${11}}{${3}} = ${choose(11, 3)}`}.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`A committee of ${2} from ${L.n} people can be chosen in ${math`${L.n} \times ${L.n - 1} = ${perm(L.n, L.r)}`} ways.`, counterexample: t`That counts AB and BA separately. As committees they are the same, so there are ${choose(L.n, L.r)}.` },
+    { kind: 'pitfall', claim: t`${math`\binom{n}{r} = \frac{n^{r}}{r!}`}.`, counterexample: t`For ${math`n = ${4}`}, ${math`r = ${2}`}: ${math`\frac{${16}}{${2}} = ${8}`}, but there are ${choose(4, 2)} pairs. Each choice must be different from the earlier ones: ${math`n(n - ${1})`}, not ${math`n^{${2}}`}.` },
+    { kind: 'takeaway', text: t`Count ordered choices, then divide by the ${math`r!`} orders of each selection: ${math`\binom{n}{r} = \frac{n!}{r!\,(n - r)!}`}.` },
   ],
   examples: [
-    workedCambridge(q1),
+    { ...workedCambridge(q1), examiner: t`The examiner looks for the two counts set up with binomial coefficients, the cancellation justified, and the root ${2} rejected for a reason.` },
     worked(chooseGen, { n: 10, r: 3, what: 'committee' }, t`A committee of three from ten`),
     worked(litter, { n: 8, w: 2, k: 3, e: 'no-white' }, t`No white mouse`),
   ],
@@ -366,4 +397,20 @@ export const combinations: TopicContent = {
   claims,
   cambridge: [q7a, q12, bop422, bop423, bop425],
   gate: ['q7-a', 'q12-check'],
+  recall: [
+    { front: t`${binom('n', 'r')} as factorials.`, back: t`${math`\frac{n!}{r!\,(n - r)!}`}: ordered choices ${math`\frac{n!}{(n - r)!}`}, divided by the ${math`r!`} orders.` },
+    { front: t`${math`\binom{n}{${2}}`}.`, back: t`${math`\frac{n(n - ${1})}{${2}}`}, the number of pairs.` },
+    { front: t`Selections of ${math`r`} from ${mn} that must include ${math`m`} given objects.`, back: t`${math`\binom{n - m}{r - m}`}: put them in, choose the rest from the others.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The formula for ${binom('n', 'r')}`,
+      steps: [
+        t`There are ${math`\frac{n!}{(n - r)!}`} ordered choices of ${math`r`} from ${mn}.`,
+        t`Each ${math`r`}-element subset appears as ${math`r!`} of them.`,
+        t`So ${math`\frac{n!}{(n - r)!} = \binom{n}{r}\,r!`}.`,
+        t`Divide by ${math`r!`}.`,
+      ],
+    },
+  ],
 };

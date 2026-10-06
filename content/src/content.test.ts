@@ -537,7 +537,8 @@ function styled(): TopicContent {
       { kind: 'section', title: t`Is root two a fraction?` },
       { kind: 'narrative', text: t`First, pin down exactly what a fraction is.` },
       { kind: 'p', text: t`Suppose it is one, and see what breaks.`, why: { q: t`Why may we suppose it?`, a: t`We are not claiming it; we are testing it.` } },
-      ...base.lesson,
+      // Only its prose: the real lesson has its own sections, hook, and takeaway, which must not land mid-lesson here.
+      ...base.lesson.filter((b) => b.kind === 'p' || b.kind === 'rule'),
       { kind: 'definition', name: t`Rational number`, formal: t`${math`x`} is rational if ${math`x = a/b`} for some integers ${math`a, b`} with ${math`b \neq ${0}`}.`, plain: t`A fraction of two whole numbers.` },
       { kind: 'theorem', name: t`Irrationality of root two`, statement: t`There are no integers ${math`a, b`} with ${math`a^{${2}} = ${2} b^{${2}}`} and ${math`b \neq ${0}`}.` },
       {

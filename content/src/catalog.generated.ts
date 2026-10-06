@@ -62,7 +62,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   "pre.algebraic-manipulation": [
     { id: "a7-q2-v", title: "Three integer roots", mode: "auto", gate: true },
     { id: "a7-q3", title: "The roots of a quartic", mode: "auto", gate: true },
-    { id: "a12-q2-i-a", title: "Two algebraic fractions", mode: "auto", gate: true },
+    { id: "a12-q2-i-a", title: "Two algebraic fractions", mode: "auto", gate: false },
     { id: "a12-q2-i-b", title: "Products and a sum of fractions", mode: "auto", gate: true },
     { id: "tmua-q", title: "Squaring both sides", mode: "auto", gate: false },
     { id: "a7-q2-i-ii", title: "Roots and coefficients without the formula", mode: "supervision", gate: true },
@@ -103,7 +103,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "notes-87-proof", title: "Prove the pigeonhole principle", mode: "supervision", gate: true },
   ],
   "prob.bayes-two-events": [
-    { id: "a6-q4-i-abc", title: "Joint, total, and conditional", mode: "auto", gate: true },
+    { id: "a6-q4-i-abc", title: "Joint, total, and conditional", mode: "auto", gate: false },
     { id: "a6-q4-i-e", title: "A man, given a non-smoker", mode: "auto", gate: true },
     { id: "a6-q4-ii", title: "How worried should you be?", mode: "auto", gate: true },
     { id: "a6-discussion", title: "Which probability matters?", mode: "supervision", gate: true },
@@ -257,8 +257,8 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   ],
   "comb.binomial-theorem": [
     { id: "cst-cor-33-p5", title: "The Freshman's Dream for 5", mode: "auto", gate: true },
-    { id: "cst-cor-31-2", title: "The coefficients add up to a power of 2", mode: "auto", gate: true },
-    { id: "cst-cor-32", title: "2^p modulo p", mode: "auto", gate: true },
+    { id: "cst-cor-31-2", title: "The coefficients add up to a power of 2", mode: "auto", gate: false },
+    { id: "cst-cor-32", title: "2^p modulo p", mode: "auto", gate: false },
     { id: "cst-cor-31-proof", title: "Corollary 31 from the theorem", mode: "supervision", gate: true },
     { id: "cst-cor-32-proof", title: "Why 2^p \\equiv 2 \\pmodp", mode: "supervision", gate: true },
   ],
@@ -313,7 +313,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "tmua-p-2-f", title: "Prime, or divisible by something smaller", mode: "supervision", gate: false },
   ],
   "proof.contradiction": [
-    { id: "sw-2-3-2-a", title: "The first repunits", mode: "auto", gate: true },
+    { id: "sw-2-3-2-a", title: "The first repunits", mode: "auto", gate: false },
     { id: "sw-2-3-2-base", title: "A square repunit in another base", mode: "auto", gate: true },
     { id: "bop-6-11", title: "No a, b with 18a + 6b = 1", mode: "auto", gate: false },
     { id: "bop-6-10", title: "No a, b with 21a + 30b = 1", mode: "auto", gate: false },
@@ -355,8 +355,8 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "bop-5-1", title: "n^2 even", mode: "auto", gate: false },
     { id: "bop-5-9", title: "3 and squares", mode: "auto", gate: false },
     { id: "bop-5-7", title: "Both even", mode: "auto", gate: false },
-    { id: "sw-1-1-2-verdict", title: "If x^2 + y = 13 and y ≠ 4", mode: "auto", gate: true },
-    { id: "sw-1-1-8-verdict", title: "mn even", mode: "auto", gate: true },
+    { id: "sw-1-1-2-verdict", title: "If x^2 + y = 13 and y ≠ 4", mode: "auto", gate: false },
+    { id: "sw-1-1-8-verdict", title: "mn even", mode: "auto", gate: false },
     { id: "bop-5-25", title: "2^n - 1 for a composite n", mode: "auto", gate: false },
     { id: "sw-1-1-2", title: "A partial contrapositive", mode: "supervision", gate: true },
     { id: "sw-1-1-8", title: "mn even means one factor is even", mode: "supervision", gate: true },
@@ -400,7 +400,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "bop-6-1-primes", title: "Book of Proof's version", mode: "supervision", gate: false },
   ],
   "comb.binomial-theorem-proof": [
-    { id: "notes-275-pascal-by-counting", title: "Pascal's rule by counting", mode: "auto", gate: true },
+    { id: "notes-275-pascal-by-counting", title: "Pascal's rule by counting", mode: "auto", gate: false },
     { id: "notes-274-unfold", title: "Unfolding the left-hand side", mode: "auto", gate: true },
     { id: "bop-10-23", title: "Book of Proof's version", mode: "supervision", gate: false },
     { id: "notes-278-semiring", title: "Where commutativity is used", mode: "supervision", gate: true },
@@ -427,7 +427,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   "prob.conditional-formula": [
     { id: "a19-q4-i-formula", title: "Three coins, by the formula", mode: "auto", gate: true },
     { id: "a12-q3-ii-121", title: "The raffle queue starts 1, 2, 1", mode: "auto", gate: true },
-    { id: "a12-q3-ii-11", title: "The raffle queue starts 1, 1", mode: "auto", gate: true },
+    { id: "a12-q3-ii-11", title: "The raffle queue starts 1, 1", mode: "auto", gate: false },
     { id: "a12-q3-iii", title: "Three people with £2 coins", mode: "supervision", gate: true },
     { id: "a6-q4-i-formula", title: "Both directions by the formula", mode: "supervision", gate: true },
   ],
@@ -532,7 +532,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "notes-244-corollary-86", title: "\\mathbbZ_p is a field", mode: "supervision", gate: false },
   ],
   "prob.axioms": [
-    { id: "ia-q4-countable-additivity", title: "Countable additivity with numbers", mode: "auto", gate: true },
+    { id: "ia-q4-countable-additivity", title: "Countable additivity with numbers", mode: "auto", gate: false },
     { id: "ia-q4-c", title: "Finite additivity from countable additivity", mode: "supervision", gate: true },
     { id: "schedule-countable-case", title: "Point masses give a probability measure", mode: "supervision", gate: false },
   ],
@@ -543,7 +543,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "bop-10-4-theorem-10-1", title: "Uniqueness by a smallest counterexample", mode: "supervision", gate: false },
   ],
   "prob.axiom-consequences": [
-    { id: "ia-q4-e-numbers", title: "The addition rule with numbers", mode: "auto", gate: true },
+    { id: "ia-q4-e-numbers", title: "The addition rule with numbers", mode: "auto", gate: false },
     { id: "ia-q4-b", title: "The complement rule", mode: "supervision", gate: true },
     { id: "ia-q4-e", title: "The addition rule for two events", mode: "supervision", gate: true },
     { id: "ia-q4-bounds", title: "The Bonferroni bounds for two events", mode: "supervision", gate: true },
@@ -694,7 +694,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   ],
   "alg.arithmetico-geometric": [
     { id: "s3-q2-arthur", title: "Arthur's expected number of shots", mode: "auto", gate: true },
-    { id: "s3-q2-beta", title: "Boadicea's chance of winning", mode: "auto", gate: true },
+    { id: "s3-q2-beta", title: "Boadicea's chance of winning", mode: "auto", gate: false },
     { id: "s3-q2-contest-shots", title: "The expected length of the contest", mode: "auto", gate: true },
     { id: "s3-notes-geometric-second-moment", title: "The geometric distribution: E(X^2)", mode: "auto", gate: true },
     { id: "s3-q2-prove-series", title: "Prove the formula for S", mode: "supervision", gate: true },
@@ -758,7 +758,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "schedule-correlation", title: "The correlation coefficient lies in [-1, 1]", mode: "supervision", gate: false },
   ],
   "rv.conditional-expectation": [
-    { id: "ia-s2-q6-sum", title: "The total of two Poissons", mode: "auto", gate: true },
+    { id: "ia-s2-q6-sum", title: "The total of two Poissons", mode: "auto", gate: false },
     { id: "ia-s3-q8-b", title: "The variance of a random sum", mode: "auto", gate: true },
     { id: "ia-s2-q6", title: "Two Poissons and their total", mode: "supervision", gate: true },
     { id: "ia-s3-q8-ab", title: "Random sums", mode: "supervision", gate: true },
@@ -795,7 +795,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "sheet3-q8c-finite", title: "The walk stops", mode: "supervision", gate: true },
   ],
   "rw.absorption-time": [
-    { id: "s3-q1-ii-u2", title: "The frog from one and a half metres", mode: "auto", gate: true },
+    { id: "s3-q1-ii-u2", title: "The frog from one and a half metres", mode: "auto", gate: false },
     { id: "s3-q1-u4", title: "The frog from three and a half metres", mode: "auto", gate: true },
     { id: "sheet3-q8c-symmetric", title: "The symmetric case", mode: "auto", gate: true },
     { id: "sheet3-q8c-wald", title: "E(S_T) = \\mu E(T), with care", mode: "supervision", gate: true },
@@ -869,7 +869,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   ],
   "lim.clt": [
     { id: "ia-s4-q5", title: "Within one standard deviation", mode: "auto", gate: true },
-    { id: "ia-s4-q13-value", title: "The Poisson sum at n = 100", mode: "auto", gate: true },
+    { id: "ia-s4-q13-value", title: "The Poisson sum at n = 100", mode: "auto", gate: false },
     { id: "ia-s4-q13", title: "A Poisson sum tends to a half", mode: "supervision", gate: true },
     { id: "ia-s4-q6-b", title: "Why products are log-normal", mode: "supervision", gate: true },
     { id: "schedule-clt", title: "A sketch of the proof", mode: "supervision", gate: false },

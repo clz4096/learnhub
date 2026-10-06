@@ -13,8 +13,8 @@ import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { powQ } from '../partv-d';
 import { generator, type Misconception } from '../problem';
-import { computedTex, listOf, math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { computedTex, dmath, listOf, math, t } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mx, mn] = [math`x`, math`n`];
 const SCHEDULE = cite('tripos-schedules', 'IA Probability, Discrete random variables: "Combinatorial applications of generating functions"', true);
@@ -319,7 +319,8 @@ const q3proof = supervision({
 
 // ---------------------------------------------------------------- lesson
 
-const CHANGE = waysGf([1, 2, 5], 10);
+const HOOK = { coins: [1, 2] as const, n: 6 };
+const HOOK_WAYS = waysGf(HOOK.coins, HOOK.n);
 const claims: ProbabilityClaim[] = [
   { what: 'three dice total ten', exact: diceVal({ d: 3, f: 6, s: 10 }), trial: (rng) => { let s = 0; for (let i = 0; i < 3; i++) s += 1 + Math.floor(rng() * 6); return s === 10; } },
 ];
@@ -327,16 +328,47 @@ const claims: ProbabilityClaim[] = [
 export const countingGf: TopicContent = {
   topicId: 'gf.combinatorial',
   goal: t`Count selections and partitions by reading coefficients of a product of power series.`,
+  objective: t`Count selections and partitions by multiplying power series and reading off a coefficient.`,
+  why: t`It turns counting into algebra; the same products are the pgfs of sums of independent variables.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`A pgf packs probabilities into a power series. The same trick packs counts: the [[ordinary-generating-function|generating function]] of ${math`a_{${0}}, a_{${1}}, a_{${2}}, \ldots`} is ${math`\sum_{n} a_{n}x^{n}`}. The Faculty schedule lists "combinatorial applications of generating functions" next to the probabilistic ones.` },
-    { kind: 'rule', text: t`If ${math`A(x)`} counts the ways to make each total with one choice and ${math`B(x)`} with another, independent choice, then ${math`A(x)B(x)`} counts the pairs by their combined total: the coefficient of ${math`x^{n}`} is ${math`\sum_{k} a_{k}b_{n - k}`}.` },
-    { kind: 'p', text: t`Coins: using any number of ${math`d`}-pence coins gives ${math`${1} + x^{d} + x^{${2}d} + \cdots = \frac{${1}}{${1} - x^{d}}`}. With ${1}p, ${2}p, and ${5}p coins, ${math`\frac{${1}}{(${1} - x)(${1} - x^{${2}})(${1} - x^{${5}})}`} has coefficient ${CHANGE} at ${math`x^{${10}}`}: ${CHANGE} ways to pay ${10}p.` },
-    { kind: 'p', text: t`Caps: shares of ${mn} sweets among ${math`k`} children with at most ${math`m`} each are counted by ${math`(${1} + x + \cdots + x^{m})^{k}`}. With no cap the factor is ${math`\frac{${1}}{${1} - x}`}, and ${math`(${1} - x)^{-k} = \sum_{n} \binom{n + k - ${1}}{k - ${1}}x^{n}`} is stars and bars again. The same series, with ${math`x = qt`}, is inside the negative binomial pgf of Sheet ${3} Q${5}.` },
-    { kind: 'p', text: t`Probabilities come out of counts: the total of ${3} dice has ${math`\left(\frac{x + \cdots + x^{${6}}}{${6}}\right)^{${3}}`} as its pgf, and the coefficient of ${math`x^{${10}}`} is ${diceVal({ d: 3, f: 6, s: 10 })}. Evaluating at ${math`x = -${1}`} separates even from odd: Sheet ${2} Q${3}'s ${math`P_{n} = \frac{${1}}{${2}}(${1} + (${1} - ${2}p)^{n})`} is ${math`\frac{G(${1}) + G(-${1})}{${2}}`} for ${math`G(t) = (q + pt)^{n}`}.` },
-    { kind: 'p', text: t`Partitions: ${math`\prod_{k \ge ${1}} (${1} + x^{k})`} counts partitions into distinct parts, and ${math`\prod_{k \text{ odd}} \frac{${1}}{${1} - x^{k}}`} partitions into odd parts. They are the same product, so the counts agree for every ${mn} (Euler); for ${math`n = ${N_PART}`} both are ${distinctParts(N_PART)}.` },
+    { kind: 'section', title: t`A machine for counting` },
+    { kind: 'hook', text: t`In how many ways can you pay ${HOOK.n}p with ${1}p and ${2}p coins? Count the ${2}p coins: ${0}, ${1}, ${2}, or ${3} of them, and ${1}p coins make up the rest: ${HOOK_WAYS} ways. Now add ${5}p coins and pay ${50}p, and listing by hand becomes miserable. Is there a way to let algebra do the bookkeeping?` },
+    { kind: 'narrative', text: t`Here is the idea. Write the possible amounts from ${2}p coins as powers of ${mx}: ${math`${1} + x^{${2}} + x^{${4}} + \cdots`}, one term per choice. Do the same for ${1}p coins, and multiply. Every term of the product is one way of choosing both, and its power of ${mx} is the total paid. So the coefficient of ${math`x^{${HOOK.n}}`} counts the ways to pay ${HOOK.n}p.` },
+    { kind: 'section', title: t`Generating functions` },
+    {
+      kind: 'definition',
+      name: t`Generating function`,
+      formal: t`The (ordinary) [[ordinary-generating-function|generating function]] of a sequence ${math`a_{${0}}, a_{${1}}, a_{${2}}, \ldots`} is the power series ${math`A(x) = \sum_{n \ge ${0}} a_{n}x^{n}`}, treated formally: we only ever read off coefficients.`,
+      plain: t`A clothes line on which the sequence is hung: ${math`a_{n}`} is the coefficient of ${math`x^{n}`}. The ways to use ${2}p coins are ${math`${1} + x^{${2}} + x^{${4}} + \cdots`}: one way to make each even amount, none for odd amounts.`,
+    },
+    { kind: 'theorem', name: t`The product rule`, statement: t`If ${math`a_{k}`} counts the ways to make ${math`k`} with one choice and ${math`b_{j}`} the ways to make ${math`j`} with a second, independent choice, then the number of ways to make a combined total ${math`n`} is the coefficient of ${math`x^{n}`} in ${math`A(x)B(x)`}, namely ${math`\sum_{k = ${0}}^{n} a_{k}b_{n - k}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Split by the first choice`, text: t`A pair of choices with total ${mn} has the first making some ${math`k`} between ${0} and ${mn}, and the second making ${math`n - k`}.` },
+        { label: t`Count each case`, text: t`For a given ${math`k`} there are ${math`a_{k}b_{n - k}`} such pairs, so there are ${math`\sum_{k} a_{k}b_{n - k}`} in all.` },
+        { label: t`Match the product`, text: t`Multiplying out ${math`\left(\sum_{k} a_{k}x^{k}\right)\left(\sum_{j} b_{j}x^{j}\right)`}, the terms in ${math`x^{n}`} are ${math`a_{k}x^{k} \cdot b_{n - k}x^{n - k}`}, with total coefficient ${math`\sum_{k} a_{k}b_{n - k}`}.` },
+      ],
+    },
+    { kind: 'section', title: t`Coins and shares` },
+    { kind: 'p', text: t`Any number of ${math`d`}p coins gives the geometric series ${math`${1} + x^{d} + x^{${2}d} + \cdots = \frac{${1}}{${1} - x^{d}}`}. So the ways to pay with ${1}p, ${2}p, and ${5}p coins are the coefficients of ${math`\frac{${1}}{(${1} - x)(${1} - x^{${2}})(${1} - x^{${5}})}`}. For ${HOOK.n}p with ${1}p and ${2}p alone, the coefficient of ${math`x^{${HOOK.n}}`} in ${math`\frac{${1}}{(${1} - x)(${1} - x^{${2}})}`} is ${HOOK_WAYS}, as counted by hand.` },
+    checkFrom(coins, { c: 3, n: 12 }, t`Use ${0}, ${3}, or ${6} of the ${2}p coins, with ${4}, ${2}, or ${0} of the ${3}p coins: ${waysGf([2, 3], 12)} ways, the coefficient of ${math`x^{${12}}`} in ${math`\frac{${1}}{(${1} - x^{${2}})(${1} - x^{${3}})}`}.`),
+    { kind: 'p', text: t`Shares with a cap: the ways to give ${mn} sweets to ${math`k`} children, at most ${math`m`} each, are the coefficient of ${math`x^{n}`} in ${math`(${1} + x + \cdots + x^{m})^{k}`}, one factor per child. With no cap each factor is ${math`\frac{${1}}{${1} - x}`}, and ${dmath`(${1} - x)^{-k} = \sum_{n \ge ${0}} \binom{n + k - ${1}}{k - ${1}}x^{n},`} which is stars and bars. Sheet ${3} Q${5}'s negative binomial pgf contains exactly this series.`, why: { q: t`Why is that coefficient ${math`\binom{n + k - ${1}}{k - ${1}}`}?`, a: t`It counts solutions of ${math`n_{${1}} + \cdots + n_{k} = n`} in non-negative integers. Write ${mn} stars in a row and insert ${math`k - ${1}`} bars to cut them into ${math`k`} groups: a solution is a choice of which ${math`k - ${1}`} of the ${math`n + k - ${1}`} positions are bars.` } },
+    checkFrom(bounded, { k: 3, m: 2, n: 4 }, t`The coefficient of ${math`x^{${4}}`} in ${math`(${1} + x + x^{${2}})^{${3}}`} is ${boundGf({ k: 3, m: 2, n: 4 })}: the shares ${math`(${2}, ${2}, ${0})`} in ${3} orders and ${math`(${2}, ${1}, ${1})`} in ${3} orders.`),
+    { kind: 'section', title: t`Probabilities and parity` },
+    { kind: 'p', text: t`Divide counts by the number of outcomes and the generating function becomes a pgf. The total of ${3} fair dice has pgf ${math`\left(\frac{x + \cdots + x^{${6}}}{${6}}\right)^{${3}}`}, and its coefficient of ${math`x^{${10}}`} is ${diceVal({ d: 3, f: 6, s: 10 })}.` },
+    { kind: 'p', text: t`Evaluating at ${math`x = -${1}`} separates even from odd: ${math`A(${1})`} adds every coefficient, ${math`A(-${1})`} adds the even ones and subtracts the odd ones, so the even coefficients sum to ${math`\frac{A(${1}) + A(-${1})}{${2}}`}. For subsets of an ${mn}-element set, ${math`A(x) = (${1} + x)^{n}`}: the subsets of even size number ${math`\frac{${2}^{n} + ${0}}{${2}} = ${2}^{n - ${1}}`}, for ${math`n \ge ${1}`}.` },
+    { kind: 'section', title: t`Partitions` },
+    { kind: 'p', text: t`A partition writes ${mn} as a sum of positive integers, ignoring order. Using each part ${math`k`} at most once gives the factor ${math`${1} + x^{k}`}, so ${math`\prod_{k \ge ${1}}(${1} + x^{k})`} counts partitions into distinct parts. Using only odd parts, as often as you like, gives ${math`\prod_{k \text{ odd}} \frac{${1}}{${1} - x^{k}}`}. Euler noticed these are the same product, so the counts agree for every ${mn}: for ${math`n = ${8}`} there are ${distinctParts(8)} of each.`, why: { q: t`Why are the two products equal?`, a: t`${math`${1} + x^{k} = \frac{${1} - x^{${2}k}}{${1} - x^{k}}`}. In the product over all ${math`k`}, every factor ${math`${1} - x^{${2}k}`} on top cancels the factor with exponent ${math`${2}k`} on the bottom, leaving only the odd exponents below.` } },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`The coefficient of ${math`x^{${4}}`} in ${math`(${1} + x + x^{${2}} + \cdots)^{${2}}`} counts the ways to split ${4} sweets into two piles, ignoring which pile is which.`, counterexample: t`It is ${5}: the ordered shares ${math`(${0}, ${4}), (${1}, ${3}), (${2}, ${2}), (${3}, ${1}), (${4}, ${0})`}. One factor per child means the children are told apart; unordered splits number ${3}.` },
+    { kind: 'pitfall', claim: t`For partitions into distinct parts, each part contributes ${math`\frac{${1}}{${1} - x^{k}}`}.`, counterexample: t`That allows a part to be used many times: it would count ${math`${1} + ${1} + ${1}`} as a partition of ${3}. Distinct parts need ${math`${1} + x^{k}`}: use it once or not at all.` },
+    { kind: 'takeaway', text: t`One factor per independent choice, one power of ${mx} per amount: the count you want is a coefficient of the product.` },
   ],
   examples: [
-    workedCambridge(q5coef),
+    { ...workedCambridge(q5coef), examiner: t`The examiner looks for the series coefficient identified, the factor ${math`(t/${2})^{${3}}`} accounted for, and agreement with the direct formula.` },
     worked(coins, { c: 1, n: 10 }, t`Paying ten pence`),
     worked(bounded, { k: 3, m: 3, n: 5 }, t`Five sweets, three children, at most three each`),
   ],
@@ -345,5 +377,21 @@ export const countingGf: TopicContent = {
   terms: ['ordinary-generating-function'],
   claims,
   cambridge: [q3even, euler, eulerProof, q3proof],
-  gate: ['ia-s2-q3-even', 'ia-s2-q3'],
+  gate: ['ia-s2-q3', 'ia-s2-q3-even'],
+  recall: [
+    { front: t`The product rule for generating functions.`, back: t`Independent choices multiply: the coefficient of ${math`x^{n}`} in ${math`A(x)B(x)`} is ${math`\sum_{k} a_{k}b_{n - k}`}.` },
+    { front: t`The generating function for any number of ${math`d`}p coins.`, back: t`${math`\frac{${1}}{${1} - x^{d}}`}.` },
+    { front: t`The coefficient of ${math`x^{n}`} in ${math`(${1} - x)^{-k}`}.`, back: t`${math`\binom{n + k - ${1}}{k - ${1}}`}, by stars and bars.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The product rule`,
+      steps: [
+        t`A pair of choices with total ${mn} has the first making ${math`k`} and the second ${math`n - k`}.`,
+        t`For each ${math`k`} there are ${math`a_{k}b_{n - k}`} such pairs.`,
+        t`So there are ${math`\sum_{k} a_{k}b_{n - k}`} in all.`,
+        t`That is the coefficient of ${math`x^{n}`} in ${math`A(x)B(x)`}.`,
+      ],
+    },
+  ],
 };

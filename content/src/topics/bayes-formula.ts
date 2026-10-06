@@ -10,8 +10,8 @@ import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S1 = 'ia-prob-sheet-1' as const;
 const distinctFrom = (right: string, xs: readonly string[]): number => new Set(xs.filter((x) => x !== right)).size;
@@ -260,19 +260,72 @@ const bayesProof = supervision({
 const claims: ProbabilityClaim[] = [
   { what: 'Q8(b): read the rubric, given class II-1', exact: q(7, 15), trial: (rng) => { for (;;) { const misread = rng() < 2 / 3; const ii1 = misread ? rng() < 0.2 : rng() < 0.35; if (ii1) return !misread; } } },
 ];
+const PREAD = sub(q(1), PMIS);
+const postRead = div(mul(readII1, PREAD), OVERALL[1] as Rational);
+// Two hypotheses about a coin: fair, or heads with probability 3/4; prior 1/2 each.
+const [fairH, biasH, coinPrior] = [q(1, 2), q(3, 4), q(1, 2)];
+const afterOne = div(mul(coinPrior, biasH), add(mul(coinPrior, biasH), mul(coinPrior, fairH)));
+const afterTwo = div(mul(afterOne, biasH), add(mul(afterOne, biasH), mul(sub(q(1), afterOne), fairH)));
+const atOnce = div(mul(biasH, biasH), add(mul(biasH, biasH), mul(fairH, fairH)));
+// A rare condition: prevalence 1/100, P(+ | D) = 9/10, P(+ | not D) = 1/10.
+const [prev, sens, fpos] = [q(1, 100), q(9, 10), q(1, 10)];
+const ppv = div(mul(prev, sens), add(mul(prev, sens), mul(sub(q(1), prev), fpos)));
 
 export const bayesFormula: TopicContent = {
   topicId: 'prob.bayes-formula',
   goal: t`Reverse conditional probabilities over a partition with Bayes's formula, ${math`\mathbb{P}(B_{i} \mid A) = \mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i}) / \sum_{j} \mathbb{P}(A \mid B_{j})\mathbb{P}(B_{j})`}.`,
+  objective: t`Find the probability of each possible cause, given the evidence, with Bayes's formula over a partition.`,
+  why: t`It is how evidence updates belief, from exam rubrics to medical tests; conditional expectation builds on it.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`The law of total probability runs from causes to evidence: knowing how likely the evidence is under each cause, it gives the chance of the evidence. Bayes's formula runs the other way: having seen the evidence, how likely is each cause?` },
-    { kind: 'rule', text: t`[[bayes-formula|Bayes's formula]]: for a partition ${math`B_{${1}}, B_{${2}}, \ldots`} with positive probabilities and an event ${math`A`} with ${math`\mathbb{P}(A) > ${0}`}, ${math`\mathbb{P}(B_{i} \mid A) = \frac{\mathbb{P}(A \mid B_{i})\,\mathbb{P}(B_{i})}{\sum_{j} \mathbb{P}(A \mid B_{j})\,\mathbb{P}(B_{j})}`}.` },
-    { kind: 'p', text: t`It is the definition of conditional probability, ${math`\mathbb{P}(B_{i} \cap A)/\mathbb{P}(A)`}, with the multiplication rule on top and total probability underneath. The ${math`\mathbb{P}(B_{i})`} are the [[prior-posterior|prior]] probabilities, before the evidence; the ${math`\mathbb{P}(B_{i} \mid A)`} are the posterior ones, after it.` },
-    { kind: 'p', text: t`Example Sheet ${1} Q${8}: ${q(2, 3)} of candidates misread the rubric, and class II-${1} holds ${q(1, 4)} of all candidates but only ${q(1, 5)} of misreaders, so ${readII1} of readers. A candidate in II-${1} read the rubric with probability ${math`\frac{${readII1} \times ${q(1, 3)}}{${q(1, 4)}} = ${q(7, 15)}`}: up from the prior ${q(1, 3)}, because readers do better.` },
-    { kind: 'p', text: t`Evidence accumulates: two votes the same way (Q${9}) make a never-changing member more likely than one vote would. With independent observations given each cause, the likelihood of the whole record goes into the formula, or equivalently each posterior becomes the prior for the next observation.` },
+    { kind: 'section', title: t`From evidence back to causes` },
+    { kind: 'hook', text: t`Example Sheet ${1} Q${8}: ${PMIS} of exam candidates misread the rubric. A candidate lands in class II-${1}. Did they read the rubric? Before you knew the class, the chance was ${PREAD}. Knowing it, the chance is ${postRead}. Where does the extra come from?` },
+    { kind: 'narrative', text: t`From the fact that readers do better: a II-${1} is more common among readers than among misreaders, so seeing one shifts belief towards "read". The law of total probability runs from causes to evidence. We want the reverse: having seen the evidence, how likely is each cause? Here is the formula that does it, and it is only three lines from the definitions.` },
+    { kind: 'section', title: t`Bayes's formula` },
+    {
+      kind: 'definition',
+      name: t`Partition`,
+      formal: t`Events ${math`B_{${1}}, B_{${2}}, \ldots`} (finitely or countably many) form a partition of ${math`\Omega`} if they are pairwise disjoint and ${math`\bigcup_{j} B_{j} = \Omega`}.`,
+      plain: t`Exactly one of them happens: the possible causes, with nothing left out and no overlap. Read and misread form a partition of the candidates.`,
+    },
+    { kind: 'theorem', name: t`Bayes's formula`, statement: t`Let ${math`B_{${1}}, B_{${2}}, \ldots`} be a partition with every ${math`\mathbb{P}(B_{j}) > ${0}`}, and let ${math`\mathbb{P}(A) > ${0}`}. Then for each ${math`i`}, ${dmath`\mathbb{P}(B_{i} \mid A) = \frac{\mathbb{P}(A \mid B_{i})\,\mathbb{P}(B_{i})}{\sum_{j} \mathbb{P}(A \mid B_{j})\,\mathbb{P}(B_{j})}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Start from the definition`, text: t`${math`\mathbb{P}(B_{i} \mid A) = \frac{\mathbb{P}(B_{i} \cap A)}{\mathbb{P}(A)}`}.`, plain: t`Conditioning on ${math`A`} means restricting to ${math`A`} and rescaling.` },
+        { label: t`The top: multiplication rule`, text: t`${math`\mathbb{P}(B_{i} \cap A) = \mathbb{P}(A \mid B_{i})\,\mathbb{P}(B_{i})`}, by the definition of ${math`\mathbb{P}(A \mid B_{i})`}, since ${math`\mathbb{P}(B_{i}) > ${0}`}.` },
+        { label: t`The bottom: total probability`, text: t`${math`A`} is the disjoint union of the events ${math`A \cap B_{j}`}, so by countable additivity ${math`\mathbb{P}(A) = \sum_{j} \mathbb{P}(A \cap B_{j}) = \sum_{j} \mathbb{P}(A \mid B_{j})\,\mathbb{P}(B_{j})`}.`, why: { q: t`Why are the pieces disjoint, and why do they make up ${math`A`}?`, a: t`The ${math`B_{j}`} do not overlap, so neither do the ${math`A \cap B_{j}`}; and every outcome of ${math`A`} lies in some ${math`B_{j}`}, since the ${math`B_{j}`} cover ${math`\Omega`}.` } },
+        { label: t`Divide`, text: t`Put the top over the bottom.` },
+      ],
+    },
+    {
+      kind: 'definition',
+      name: t`Prior and posterior`,
+      formal: t`In Bayes's formula, ${math`\mathbb{P}(B_{i})`} is the [[prior-posterior|prior]] probability of ${math`B_{i}`}, ${math`\mathbb{P}(A \mid B_{i})`} its likelihood, and ${math`\mathbb{P}(B_{i} \mid A)`} its posterior probability given ${math`A`}.`,
+      plain: t`Prior: belief before the evidence. Likelihood: how well each cause predicts the evidence. Posterior: belief after. In short, [[bayes-formula|Bayes's formula]] says the posterior is prior times likelihood, rescaled so the posteriors add to ${1}.`,
+    },
+    {
+      kind: 'table',
+      caption: t`The rubric question as a Bayes table: multiply across, then divide each product by the column total ${OVERALL[1] as Rational}.`,
+      head: [t`cause`, t`prior`, t`chance of II-${1}`, t`prior times chance`, t`posterior`],
+      rows: [
+        [t`read`, t`${PREAD}`, t`${readII1}`, t`${mul(PREAD, readII1)}`, t`${postRead}`],
+        [t`misread`, t`${PMIS}`, t`${MISREAD[1] as Rational}`, t`${mul(PMIS, MISREAD[1] as Rational)}`, t`${sub(q(1), postRead)}`],
+      ],
+    },
+    { kind: 'p', text: t`The chance of II-${1} for a reader, ${readII1}, comes from part (a) of the question: total probability says ${math`${OVERALL[1] as Rational} = ${MISREAD[1] as Rational} \times ${PMIS} + z \times ${PREAD}`}, so ${math`z = ${readII1}`}. The products add to ${math`${add(mul(PREAD, readII1), mul(PMIS, MISREAD[1] as Rational))}`}, which is ${math`\mathbb{P}(\text{II-}${1})`}, as it must.` },
+    checkFrom(whichUrn, { a: q(1, 2), r1: 3, n1: 5, r2: 1, n2: 4, red: true }, t`Prior times likelihood: ${math`${q(1, 2)} \times ${q(3, 5)} = ${q(3, 10)}`} for urn ${1} and ${math`${q(1, 2)} \times ${q(1, 4)} = ${q(1, 8)}`} for urn ${2}; so ${math`\frac{${q(3, 10)}}{${add(q(3, 10), q(1, 8))}} = ${div(q(3, 10), add(q(3, 10), q(1, 8)))}`}.`),
+    { kind: 'section', title: t`Evidence that accumulates` },
+    { kind: 'narrative', text: t`What if more evidence arrives? A coin is fair or lands heads with probability ${biasH}, each with prior ${coinPrior}. You toss it twice and see two heads. Suppose the tosses are independent given which coin it is.` },
+    { kind: 'p', text: t`All at once: the likelihood of two heads is ${math`(${biasH})^{${2}}`} for the biased coin and ${math`(${fairH})^{${2}}`} for the fair one, so the posterior for biased is ${math`\frac{${mul(biasH, biasH)}}{${mul(biasH, biasH)} + ${mul(fairH, fairH)}} = ${atOnce}`} (the equal priors cancel). One at a time: after the first head it is ${afterOne}; use that as the prior for the second head, and you get ${math`\frac{${afterOne} \times ${biasH}}{${afterOne} \times ${biasH} + ${sub(q(1), afterOne)} \times ${fairH}} = ${afterTwo}`}. The same answer: yesterday's posterior is today's prior.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`\mathbb{P}(B \mid A)`} and ${math`\mathbb{P}(A \mid B)`} are about the same.`, counterexample: t`A condition affects ${prev} of people; a test is positive for ${sens} of those with it and for ${fpos} of those without. A positive result gives ${math`\mathbb{P}(D \mid +) = \frac{${mul(prev, sens)}}{${mul(prev, sens)} + ${mul(sub(q(1), prev), fpos)}} = ${ppv}`}, far below ${math`\mathbb{P}(+ \mid D) = ${sens}`}. The small prior dominates.` },
+    { kind: 'pitfall', claim: t`The denominator only needs the causes you care about.`, counterexample: t`In the urn check above, dropping urn ${2} from the bottom would give ${math`\frac{${q(3, 10)}}{${q(3, 10)}} = ${1}`}: certainty from nothing. The bottom is ${math`\mathbb{P}(A)`}, a sum over the whole partition.` },
+    { kind: 'takeaway', text: t`Posterior is prior times likelihood, divided by the total over every cause.` },
   ],
   examples: [
-    workedCambridge(q8b),
+    { ...workedCambridge(q8b), examiner: t`The examiner looks for part (a)'s total probability used to find the reader's chance, then Bayes's formula with every term named.` },
     worked(threeCauses, { prior: [q(1, 2), q(1, 3), q(1, 6)], like: [q(1, 10), q(1, 2), q(9, 10)], i: 2 }, t`Three causes of an alarm`),
     worked(twoObservations, { prior: q(1, 2), bias: q(3, 4), k: 3 }, t`Three heads from a possibly biased coin`),
   ],
@@ -282,4 +335,20 @@ export const bayesFormula: TopicContent = {
   claims,
   cambridge: [q9, q9why, bayesProof],
   gate: ['ia-q9', 'ia-q9-explain'],
+  recall: [
+    { front: t`Bayes's formula for a partition ${math`B_{${1}}, B_{${2}}, \ldots`}.`, back: t`${math`\mathbb{P}(B_{i} \mid A) = \frac{\mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i})}{\sum_{j} \mathbb{P}(A \mid B_{j})\mathbb{P}(B_{j})}`}.` },
+    { front: t`Prior, likelihood, posterior.`, back: t`${math`\mathbb{P}(B_{i})`}, ${math`\mathbb{P}(A \mid B_{i})`}, ${math`\mathbb{P}(B_{i} \mid A)`}: posterior is proportional to prior times likelihood.` },
+    { front: t`Updating on two observations, independent given the cause.`, back: t`Use the product of the likelihoods, or update twice, using the first posterior as the second prior: the answers agree.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Bayes's formula`,
+      steps: [
+        t`By definition, ${math`\mathbb{P}(B_{i} \mid A) = \frac{\mathbb{P}(B_{i} \cap A)}{\mathbb{P}(A)}`}.`,
+        t`The multiplication rule gives ${math`\mathbb{P}(B_{i} \cap A) = \mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i})`}.`,
+        t`${math`A`} is the disjoint union of the ${math`A \cap B_{j}`}, so ${math`\mathbb{P}(A) = \sum_{j} \mathbb{P}(A \mid B_{j})\mathbb{P}(B_{j})`}.`,
+        t`Divide the second line by the third.`,
+      ],
+    },
+  ],
 };

@@ -11,9 +11,9 @@ import { int, pick } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, listOf, math, paren, t, type Span } from '../rich';
-import { worked, workedProof, type TopicContent } from '../topic';
+import { checkFrom, worked, workedProof, type TopicContent } from '../topic';
 
-const [mn, mk] = [math`n`, math`k`];
+const [mn, mk, mx, my] = [math`n`, math`k`, math`x`, math`y`];
 
 /** x^a y^b as LaTeX, with exponents 0 and 1 written the usual way. */
 function mono(a: number, b: number): Span {
@@ -233,21 +233,53 @@ const semiring = supervision({
 
 // ---------------------------------------------------------------- lesson
 
-const R = 3;
+const R = 4;
 
 export const binomialTheoremProof: TopicContent = {
   topicId: 'comb.binomial-theorem-proof',
   goal: t`Prove the binomial theorem by induction on ${mn}, shifting an index and using Pascal's rule in the inductive step.`,
+  objective: t`Prove the binomial theorem by induction, with an index shift and Pascal's rule in the inductive step.`,
+  why: t`A model induction whose step needs an extra fact; the same shape proves many sum formulas.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`The binomial theorem, ${hyp(mn)}, is stated early in the CST notes and proved later, as an example of the Principle of Induction. The proof is a model of an inductive step that does not go through by itself: it needs an extra fact, Pascal's rule.` },
-    { kind: 'rule', text: t`Let ${math`P(m)`} be ${hyp(math`m`)}. Base case: ${math`(x + y)^{${0}} = ${1} = \binom{${0}}{${0}}`}. Inductive step: assume ${math`P(n)`}, multiply both sides by ${math`(x + y)`}, and show the result is ${math`P(n + ${1})`}.` },
-    { kind: 'p', text: t`Multiplying by ${math`x + y`} gives two sums, ${math`\sum \binom{n}{k} x^{n - k + ${1}} y^{k}`} and ${math`\sum \binom{n}{k} x^{n - k} y^{k + ${1}}`}. To add them term by term, [[index-shift|shift the index]] of the second: with ${math`j = k + ${1}`} its terms are ${math`\binom{n}{j - ${1}} x^{n + ${1} - j} y^{j}`}, for ${math`j`} from ${1} to ${math`n + ${1}`}. Now the coefficient of ${math`x^{n + ${1} - k} y^{k}`} is ${math`\binom{n}{k} + \binom{n}{k - ${1}}`}, and [[pascals-rule|Pascal's rule]] makes it ${math`\binom{n + ${1}}{k}`}.` },
-    { kind: 'p', text: t`The end terms need care: ${math`x^{n + ${1}}`} comes only from the first sum and ${math`y^{n + ${1}}`} only from the second. The notes split them off; Book of Proof instead reads ${math`\binom{n}{-${1}}`} and ${math`\binom{n}{n + ${1}}`} as ${0}, which says the same thing.` },
-    { kind: 'p', text: t`With numbers: row ${R} of Pascal's triangle is ${listOf(expand(R))}. Multiplying by ${math`x`} keeps the row; multiplying by ${math`y`} moves it one place along; adding the two gives ${listOf(expand(R + 1))}, row ${R + 1}. Each entry is the sum of the two above it.` },
-    { kind: 'p', text: t`The proof uses only the laws of addition and multiplication, including ${math`xy = yx`} when collecting ${math`x^{n - k} y^{k} \cdot x`} into ${math`x^{n - k + ${1}} y^{k}`}. So, as the notes remark, the theorem holds in any commutative semiring: for integers mod ${math`m`}, or with ${math`y`} replaced by ${math`${2}y`} or ${math`-y`}.` },
+    { kind: 'section', title: t`Why should it hold for every n?` },
+    { kind: 'hook', text: t`Expand ${math`(x + y)^{${2}}`} and ${math`(x + y)^{${3}}`} and the coefficients are rows of Pascal's triangle: ${listOf(expand(2))} and ${listOf(expand(3))}. Will that still be true for ${math`(x + y)^{${100}}`}? You can't multiply it out to check. You need an argument that climbs from each power to the next.` },
+    { kind: 'narrative', text: t`That is what induction does: show the pattern at the bottom, and show that whenever it holds for one power it holds for the next. The interesting part here is the climb. Multiplying by ${math`x + y`} gives two sums that don't line up, and only after shifting one of them and using Pascal's rule do they collapse into the next row.` },
+    { kind: 'section', title: t`The statement` },
+    { kind: 'theorem', name: t`Binomial theorem`, statement: t`Let ${mx} and ${my} be elements of a commutative ring, such as real numbers. For every ${math`n \in \mathbb{N}`}, ${dmath`(x + y)^{n} = \sum_{k = ${0}}^{n} \binom{n}{k} x^{n - k} y^{k}.`}` },
+    {
+      kind: 'definition',
+      name: t`Index shift`,
+      formal: t`An [[index-shift|index shift]] rewrites ${math`\sum_{k = a}^{b} f(k)`} as ${math`\sum_{j = a + c}^{b + c} f(j - c)`}, by substituting ${math`j = k + c`}.`,
+      plain: t`Rename the counter so that two sums run over the same powers. ${math`\sum_{k = ${0}}^{${2}} y^{k + ${1}}`} and ${math`\sum_{j = ${1}}^{${3}} y^{j}`} are both ${math`y + y^{${2}} + y^{${3}}`}.`,
+    },
+    { kind: 'section', title: t`The proof` },
+    { kind: 'p', text: t`Let ${math`P(m)`} be the statement ${hyp(math`m`)}. We prove ${math`P(m)`} for every natural number ${math`m`} by induction on ${math`m`}, following the CST notes.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Base case`, text: t`${math`(x + y)^{${0}} = ${1}`}, and the sum for ${math`m = ${0}`} has the single term ${math`\binom{${0}}{${0}} x^{${0}} y^{${0}} = ${1}`}. So ${math`P(${0})`} holds.` },
+        { label: t`Assume ${math`P(n)`}`, text: t`Let ${math`n \in \mathbb{N}`} and assume ${hyp(mn)}.`, plain: t`This is the induction hypothesis, for this one ${mn}, not for every ${mn}.` },
+        { label: t`Multiply by ${math`x + y`}`, text: t`${math`(x + y)^{n + ${1}} = (x + y)^{n}(x + y) = \sum_{k = ${0}}^{n} \binom{n}{k} x^{n - k + ${1}} y^{k} + \sum_{k = ${0}}^{n} \binom{n}{k} x^{n - k} y^{k + ${1}}`}.`, plain: t`Multiply every term by ${mx}, then every term by ${my}, and use ${math`xy = yx`} to collect the powers.` },
+        { label: t`Shift the second sum`, text: t`With ${math`j = k + ${1}`}, the second sum is ${math`\sum_{j = ${1}}^{n + ${1}} \binom{n}{j - ${1}} x^{n + ${1} - j} y^{j}`}.`, plain: t`Now both sums are in powers ${math`x^{n + ${1} - k} y^{k}`}: rename ${math`j`} back to ${mk}.` },
+        { label: t`Split off the ends`, text: t`The first sum alone has ${math`k = ${0}`}, giving ${math`x^{n + ${1}}`}; the second alone has ${math`k = n + ${1}`}, giving ${math`y^{n + ${1}}`}. For ${math`${1} \le k \le n`} both sums contribute.` },
+        { label: t`Pascal's rule`, text: t`For ${math`${1} \le k \le n`}, the coefficient of ${math`x^{n + ${1} - k} y^{k}`} is ${math`\binom{n}{k} + \binom{n}{k - ${1}} = \binom{n + ${1}}{k}`}.`, why: { q: t`Where does that equality come from?`, a: t`[[pascals-rule|Pascal's rule]], proved by counting: a ${mk}-subset of ${math`n + ${1}`} objects either leaves out the last object, ${math`\binom{n}{k}`} ways, or contains it, ${math`\binom{n}{k - ${1}}`} ways.` } },
+        { label: t`Reassemble`, text: t`Since ${math`\binom{n + ${1}}{${0}} = \binom{n + ${1}}{n + ${1}} = ${1}`}, the end terms fit the same pattern, and ${math`(x + y)^{n + ${1}} = \sum_{k = ${0}}^{n + ${1}} \binom{n + ${1}}{k} x^{n + ${1} - k} y^{k}`}, which is ${math`P(n + ${1})`}.` },
+        { label: t`Conclude`, text: t`${math`P(${0})`} holds, and ${math`P(n)`} implies ${math`P(n + ${1})`} for every ${mn}, so by induction ${math`P(m)`} holds for every ${math`m \in \mathbb{N}`}.` },
+      ],
+    },
+    { kind: 'section', title: t`The step, with numbers` },
+    { kind: 'p', text: t`Watch the step from ${R} to ${R + 1}. Row ${R} is ${listOf(expand(R))}. Multiplying by ${mx} keeps the coefficients on the same powers of ${my}; multiplying by ${my} moves them one place along. Adding the two rows, ${listOf([...expand(R), 0])} and ${listOf([0, ...expand(R)])}, gives ${listOf(expand(R + 1))}, row ${R + 1}. The zeros at the ends are the split-off terms.` },
+    checkFrom(stepCoefficient, { n: 6, k: 2 }, t`${mx} times the ${math`\binom{${6}}{${2}}`} term and ${my} times the ${math`\binom{${6}}{${1}}`} term both give ${math`x^{${5}}y^{${2}}`}: ${math`${choose(6, 2)} + ${choose(6, 1)} = ${choose(7, 2)}`}.`),
+    { kind: 'p', text: t`The proof used only the laws of addition and multiplication, with ${math`xy = yx`} in the third step. So, as the notes remark, it holds in any commutative semiring: for integers modulo ${math`m`}, or with ${my} replaced by ${math`${2}y`} or ${math`-y`}.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`Starting the induction at ${math`n = ${1}`} proves the theorem for every natural number.`, counterexample: t`It proves it for ${math`n \ge ${1}`} only. The CST notes count ${0} as a natural number, so they check ${math`(x + y)^{${0}} = ${1}`} as the base case.` },
+    { kind: 'pitfall', claim: t`After shifting, the two sums can be added term by term from ${math`k = ${0}`} to ${math`n + ${1}`}.`, counterexample: t`For ${math`n = ${1}`}: the first sum is ${math`x^{${2}} + xy`} and the shifted second is ${math`xy + y^{${2}}`}. Adding term by term needs the first to have a ${math`y^{${2}}`} term and the second an ${math`x^{${2}}`} term, which they lack: split off the ends, or read the missing coefficients as ${0}.` },
+    { kind: 'takeaway', text: t`Multiply the hypothesis by ${math`x + y`}, shift one sum so the powers line up, split off the ends, and Pascal's rule finishes the step.` },
   ],
   examples: [
-    notesProof,
+    { ...notesProof, examiner: t`The examiner looks for ${math`P(m)`} defined, the base case checked, the hypothesis used once, the index shift written out, and the end terms handled.` },
     worked(stepCoefficient, { n: 4, k: 2 }, t`A coefficient in the step from ${4} to ${5}`),
     worked(evaluateSum, { n: 5, a: 3, b: -1 }, t`A binomial sum as one power`),
   ],
@@ -255,5 +287,21 @@ export const binomialTheoremProof: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['index-shift'],
   cambridge: [pascalCount, unfold, bop1023, semiring],
-  gate: ['notes-275-pascal-by-counting', 'notes-274-unfold', 'notes-278-semiring'],
+  gate: ['notes-278-semiring', 'notes-274-unfold'],
+  recall: [
+    { front: t`The binomial theorem.`, back: t`${hyp(mn)}, for ${mx}, ${my} in a commutative ring and ${math`n \in \mathbb{N}`}.` },
+    { front: t`The inductive step of the binomial theorem, in one line.`, back: t`Multiply ${math`P(n)`} by ${math`x + y`}, shift the second sum, split off the ends, and use ${math`\binom{n}{k} + \binom{n}{k - ${1}} = \binom{n + ${1}}{k}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The binomial theorem by induction`,
+      steps: [
+        t`Check ${math`P(${0})`}: ${math`(x + y)^{${0}} = ${1} = \binom{${0}}{${0}}`}.`,
+        t`Assume ${math`P(n)`} and multiply both sides by ${math`x + y`}, giving two sums.`,
+        t`Shift the index of the second sum so both are in powers ${math`x^{n + ${1} - k}y^{k}`}.`,
+        t`Split off ${math`x^{n + ${1}}`} and ${math`y^{n + ${1}}`}.`,
+        t`Combine the middle coefficients by Pascal's rule into ${math`\binom{n + ${1}}{k}`}, giving ${math`P(n + ${1})`}.`,
+      ],
+    },
+  ],
 };

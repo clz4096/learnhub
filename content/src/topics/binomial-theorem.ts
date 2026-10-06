@@ -11,7 +11,7 @@ import { int, pick, upTo } from '../math';
 import { poly } from '../poly';
 import { generator, type Misconception } from '../problem';
 import { computedMath, computedTex, dmath, listOf, math, paren, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mn, mk, mx, my] = [math`n`, math`k`, math`x`, math`y`];
 
@@ -249,16 +249,48 @@ const exRow = upTo(EXN + 1).map((i) => choose(EXN, i - 1));
 export const binomialTheorem: TopicContent = {
   topicId: 'comb.binomial-theorem',
   goal: t`Expand ${math`(x + y)^{n}`} with binomial coefficients, find any one coefficient, and read off sums such as ${math`\sum_{k} \binom{n}{k} = ${2}^{n}`}.`,
+  objective: t`Expand ${math`(x + y)^{n}`}, find any single coefficient, and get identities by substituting values.`,
+  why: t`It turns powers into counting; it gives ${math`${2}^{n}`} subsets, Fermat's little theorem, and generating functions.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Multiply out ${math`(x + y)^{${EXN}} = (x + y)(x + y)(x + y)(x + y)`}. Each term of the answer comes from choosing ${mx} or ${my} from every bracket. A term with ${math`y^{k}`} chooses ${my} from ${mk} of the ${EXN} brackets and ${mx} from the rest, so it is ${math`x^{${EXN} - k} y^{k}`}, and it appears once for each way of picking those ${mk} brackets: ${math`\binom{${EXN}}{k}`} times.` },
-    { kind: 'rule', text: t`The [[binomial-theorem|binomial theorem]] (Theorem ${30} of the CST notes): for every natural number ${mn}, ${dmath`(x + y)^{n} = \sum_{k=${0}}^{n} \binom{n}{k} x^{n - k} y^{k}.`}` },
-    { kind: 'p', text: t`For ${math`n = ${EXN}`} the coefficients are row ${EXN} of Pascal's triangle, ${listOf(exRow)}: ${math`(x + y)^{${EXN}} = x^{${EXN}} + ${exRow[1] as number}x^{${3}}y + ${exRow[2] as number}x^{${2}}y^{${2}} + ${exRow[3] as number}xy^{${3}} + y^{${EXN}}`}. Writing out every term like this is a [[binomial-expansion|binomial expansion]].` },
-    { kind: 'p', text: t`The theorem works for any ${mx} and ${my}, including numbers and multiples of a letter. To expand ${computedMath(`(${poly([2, -1])})^${3}`)}, take ${math`x \to ${2}x`} and ${math`y \to -${1}`}: the term with ${math`x^{${2}}`} is ${math`\binom{${3}}{${1}} (${2}x)^{${2}} (-${1})^{${1}} = ${choose(3, 1) * 2 ** 2 * -1}x^{${2}}`}. Keep each bracket whole, so the ${2} is squared and the sign is kept.` },
-    { kind: 'p', text: t`Choosing values gives identities. With ${math`x = ${1}`} and ${math`y = z`}, Corollary ${31} of the notes: ${math`(${1} + z)^{n} = \sum_{k} \binom{n}{k} z^{k}`}. With ${math`z = ${1}`}: ${math`${2}^{n} = \sum_{k} \binom{n}{k}`}, so the coefficients in row ${mn} add up to ${math`${2}^{n}`} (for ${math`n = ${EXN}`}: ${math`${computedTex(exRow.join(' + '))} = ${2 ** EXN}`}). That is also the number of subsets of ${mn} things, counted by size.` },
-    { kind: 'p', text: t`For a prime ${math`p`}, every middle coefficient ${math`\binom{p}{k}`} with ${math`${0} < k < p`} is a multiple of ${math`p`}. So ${math`(m + n)^{p}`} and ${math`m^{p} + n^{p}`} differ by a multiple of ${math`p`}: the notes call this the Freshman's Dream, since it is true only after taking remainders.` },
+    { kind: 'section', title: t`Choosing from brackets` },
+    { kind: 'hook', text: t`Multiply out ${math`(x + y)(x + y)(x + y)(x + y)`} completely, before collecting anything. You get ${2 ** EXN} products, one for each way of choosing ${mx} or ${my} from each of the ${EXN} brackets. How many of them equal ${math`x^{${2}}y^{${2}}`}? Not by expanding: by counting.` },
+    { kind: 'narrative', text: t`A product equals ${math`x^{${2}}y^{${2}}`} exactly when it took ${my} from ${2} of the brackets and ${mx} from the other ${2}. So the number of such products is the number of ways to choose which ${2} brackets supply the ${my}: ${math`\binom{${4}}{${2}} = ${choose(4, 2)}`}. The same reasoning works for every power and every ${mn}.` },
+    { kind: 'theorem', name: t`Binomial theorem`, statement: t`For all real (or complex) ${mx}, ${my} and every natural number ${mn}, ${dmath`(x + y)^{n} = \sum_{k=${0}}^{n} \binom{n}{k} x^{n - k} y^{k}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Expand without collecting`, text: t`By the distributive law, ${math`(x + y)^{n}`} is the sum of ${math`${2}^{n}`} products, one for each choice of ${mx} or ${my} from each of the ${mn} brackets.` },
+        { label: t`Read off each product`, text: t`A choice that takes ${my} from exactly ${mk} brackets gives the product ${math`x^{n - k} y^{k}`}.`, plain: t`Multiplication can be done in any order, so only the number of ${my}s matters, not which brackets they came from.` },
+        { label: t`Count the choices`, text: t`There are ${math`\binom{n}{k}`} ways to choose which ${mk} of the ${mn} brackets supply ${my}.` },
+        { label: t`Collect`, text: t`Grouping the products by ${mk} gives ${math`\sum_{k = ${0}}^{n} \binom{n}{k} x^{n - k} y^{k}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`This is the [[binomial-theorem|binomial theorem]], Theorem ${30} of the CST notes. The next topic proves it again by induction, the way the notes do. For ${math`n = ${EXN}`}, row ${EXN} of Pascal's triangle gives ${dmath`(x + y)^{${EXN}} = x^{${EXN}} + ${exRow[1] as number}x^{${3}}y + ${exRow[2] as number}x^{${2}}y^{${2}} + ${exRow[3] as number}xy^{${3}} + y^{${EXN}}.`}` },
+    { kind: 'section', title: t`One coefficient at a time` },
+    {
+      kind: 'definition',
+      name: t`Binomial expansion, general term`,
+      formal: t`The [[binomial-expansion|binomial expansion]] of ${math`(x + y)^{n}`} is the sum in the theorem; its term in ${math`y^{k}`}, ${math`\binom{n}{k} x^{n - k} y^{k}`}, is the general term.`,
+      plain: t`You rarely need the whole expansion: write the general term and pick the ${mk} you want.`,
+    },
+    { kind: 'p', text: t`The theorem holds for any ${mx} and ${my}, including multiples of a letter and negative numbers. In ${computedMath(`(${poly([2, -1])})^${3}`)}, put ${math`${2}x`} for ${mx} and ${math`-${1}`} for ${my}, keeping each bracket whole. The term in ${math`x^{${2}}`} has ${math`k = ${1}`}: ${math`\binom{${3}}{${1}} (${2}x)^{${2}} (-${1})^{${1}} = ${3} \times ${4}x^{${2}} \times (-${1}) = ${choose(3, 1) * 2 ** 2 * -1}x^{${2}}`}. The ${2} is squared with the ${mx}, and the sign comes from the odd power of ${math`-${1}`}.` },
+    checkFrom(coefficient, { a: 3, b: 1, n: 5, k: 2 }, t`The term is ${math`\binom{${5}}{${2}} (${3}x)^{${2}} \cdot ${1}^{${3}} = ${choose(5, 2)} \times ${9}x^{${2}}`}, coefficient ${choose(5, 2) * 9}.`),
+    { kind: 'section', title: t`Identities by substitution` },
+    { kind: 'narrative', text: t`Because the theorem holds for every ${mx} and ${my}, you can feed it values and read off facts about binomial coefficients.` },
+    { kind: 'p', text: t`With ${math`x = ${1}`}: ${math`(${1} + y)^{n} = \sum_{k} \binom{n}{k} y^{k}`}. With ${math`x = y = ${1}`}: ${math`${2}^{n} = \sum_{k} \binom{n}{k}`}, so row ${mn} adds to ${math`${2}^{n}`}; for ${math`n = ${EXN}`}, ${math`${computedTex(exRow.join(' + '))} = ${2 ** EXN}`}. With ${math`x = ${1}`}, ${math`y = -${1}`} and ${math`n \ge ${1}`}: ${math`${0} = \sum_{k} (-${1})^{k}\binom{n}{k}`}.` },
+    checkFrom(coefficientSum, { n: 4, t: 3 }, t`It is ${math`(${1} + ${3})^{${4}} = ${4 ** 4}`}, by the theorem with ${math`x = ${1}`}, ${math`y = ${3}`}.`),
+    { kind: 'section', title: t`Primes and the Freshman's Dream` },
+    { kind: 'theorem', statement: t`If ${math`p`} is prime and ${math`${0} < k < p`}, then ${math`p`} divides ${math`\binom{p}{k}`}.` },
+    { kind: 'p', text: t`So in ${math`(m + n)^{p}`} every term except ${math`m^{p}`} and ${math`n^{p}`} has a coefficient divisible by ${math`p`}: ${math`(m + n)^{p} \equiv m^{p} + n^{p} \pmod{p}`} for whole numbers ${math`m`} and ${math`n`}. The CST notes call this the Freshman's Dream, because the tempting ${math`(m + n)^{p} = m^{p} + n^{p}`} becomes true only after taking remainders.`, why: { q: t`Why does ${math`p`} divide ${math`\binom{p}{k}`}?`, a: t`${math`p! = \binom{p}{k} \, k! \, (p - k)!`}. The prime ${math`p`} divides the left side, but not ${math`k!\,(p - k)!`}, whose factors are all less than ${math`p`}. A prime dividing a product divides one of the factors, so ${math`p`} divides ${math`\binom{p}{k}`}.` } },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`(x + y)^{n} = x^{n} + y^{n}`}.`, counterexample: t`At ${math`x = y = ${1}`}, ${math`n = ${2}`}: the left side is ${4}, the right is ${2}. The middle terms ${math`\binom{n}{k}x^{n - k}y^{k}`} are missing.` },
+    { kind: 'pitfall', claim: t`The coefficient of ${math`x^{${2}}`} in ${computedMath(`(${poly([2, 1])})^${3}`)} is ${math`\binom{${3}}{${2}} = ${3}`}.`, counterexample: t`The term is ${math`\binom{${3}}{${2}}(${2}x)^{${2}} = ${12}x^{${2}}`}: the ${2} inside the bracket is squared too, so the coefficient is ${3 * 4}.` },
+    { kind: 'takeaway', text: t`The coefficient of ${math`x^{n - k}y^{k}`} in ${math`(x + y)^{n}`} counts the ways to pick ${mk} brackets for ${my}: ${math`\binom{n}{k}`}.` },
   ],
   examples: [
-    workedCambridge(dream3),
+    { ...workedCambridge(dream3), examiner: t`The examiner looks for the expansion by the binomial theorem and the middle coefficients identified as multiples of ${3}.` },
     worked(coefficient, { a: 2, b: -3, n: 5, k: 2 }, t`One coefficient`),
     worked(coefficientSum, { n: 5, t: 2 }, t`A sum of coefficients`),
   ],
@@ -266,5 +298,21 @@ export const binomialTheorem: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binomial-theorem', 'binomial-expansion'],
   cambridge: [dream5, rowAndSum, cor32, proveCor31, proveCor32],
-  gate: ['cst-cor-33-p5', 'cst-cor-31-2', 'cst-cor-32', 'cst-cor-31-proof', 'cst-cor-32-proof'],
+  gate: ['cst-cor-32-proof', 'cst-cor-31-proof', 'cst-cor-33-p5'],
+  recall: [
+    { front: t`The binomial theorem.`, back: t`${math`(x + y)^{n} = \sum_{k=${0}}^{n} \binom{n}{k} x^{n - k} y^{k}`}.` },
+    { front: t`The sum of the coefficients in row ${mn}.`, back: t`${math`\sum_{k} \binom{n}{k} = ${2}^{n}`}: put ${math`x = y = ${1}`}.` },
+    { front: t`The Freshman's Dream.`, back: t`For a prime ${math`p`}, ${math`(m + n)^{p} \equiv m^{p} + n^{p} \pmod{p}`}, since ${math`p`} divides every middle coefficient.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The binomial theorem by counting`,
+      steps: [
+        t`Expanding ${math`(x + y)^{n}`} without collecting gives one product for each choice of ${mx} or ${my} from every bracket.`,
+        t`A choice taking ${my} from exactly ${mk} brackets gives ${math`x^{n - k}y^{k}`}.`,
+        t`There are ${math`\binom{n}{k}`} such choices.`,
+        t`Collecting by ${mk} gives ${math`\sum_{k} \binom{n}{k}x^{n - k}y^{k}`}.`,
+      ],
+    },
+  ],
 };

@@ -11,7 +11,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { gcd, int, pick, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { listOf, math, t, type Rich } from '../rich';
-import { worked, workedProof, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedProof, workedCambridge, type TopicContent } from '../topic';
 
 const [ma, mb] = [math`a`, math`b`];
 const big = (v: { num: bigint; den: bigint } | undefined): number | null => (v === undefined || v.den !== 1n ? null : Number(v.num));
@@ -317,20 +317,71 @@ const bop7 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const r2 = math`\sqrt{${2}}`;
+
 export const contradiction: TopicContent = {
   topicId: 'proof.contradiction',
   goal: t`Prove a statement by assuming it is false and deducing something impossible, and recognise when a contradiction proof is the natural one.`,
+  objective: t`Prove a statement by assuming it is false and deducing something impossible.`,
+  why: t`The standard way to show something cannot exist; next, it proves there are infinitely many primes.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Some statements are hard to prove head on: "${math`\sqrt{${2}}`} is irrational" says what ${math`\sqrt{${2}}`} is not. [[proof-by-contradiction|Proof by contradiction]] turns this round: assume the statement is false, and show that this leads to something impossible.` },
-    { kind: 'rule', text: t`The CST notes' pattern. To prove ${math`P`}: write "We use proof by contradiction. So, suppose ${math`P`} is false." Deduce a logical [[contradiction|contradiction]]: some ${math`Q`} and also not ${math`Q`}. Write "This is a contradiction. Therefore, ${math`P`} must be true."` },
-    { kind: 'p', text: t`Why it works: the notes accept ${math`\lnot \lnot P \Leftrightarrow P`}. Showing ${math`\lnot P \Rightarrow \text{false}`} proves ${math`\lnot \lnot P`}, which is ${math`P`}. The TMUA notes give the shape: we want ${math`A`}; we assume not ${math`A`}; not ${math`A`} leads to two statements ${math`B`} and not ${math`B`}; they cannot both be true, so not ${math`A`} was false, and ${math`A`} is true.` },
-    { kind: 'p', text: t`The classic example (Theorem ${38} of the CST notes): suppose ${math`\sqrt{${2}} = \frac{a}{b}`} with ${ma} and ${mb} not both even. Then ${math`a^{${2}} = ${2}b^{${2}}`}, so ${ma} is even, ${math`a = ${2}k`}; then ${math`b^{${2}} = ${2}k^{${2}}`}, so ${mb} is even too. Both even: a contradiction.` },
-    { kind: 'p', text: t`What to assume is exactly the negation. For "there is no largest prime", assume there is one. For "for every ${math`n`}, ...", assume there is an ${math`n`} for which it fails. For "if ${math`P`} then ${math`Q`}", assume ${math`P`} and not ${math`Q`}: then the proof has two assumptions to work with, which is often why contradiction is easier than a direct proof.` },
-    { kind: 'p', text: t`Contradiction suits statements that say something does not exist: no integers with ${math`${18}a + ${6}b = ${1}`} (if there were, ${math`${1} = ${2}(${9}a + ${3}b)`} would be even), no largest prime, no fraction equal to ${math`\sqrt{${2}}`}. The notes warn that such proofs are often not constructive: they show something is impossible without telling you more.` },
+    { kind: 'section', title: t`A claim about what is not` },
+    { kind: 'hook', text: t`Here is a strange kind of claim: ${r2} is not a fraction. Notice what that sentence does. It doesn't tell you what ${r2} is; it tells you what it can never be. So how would you prove it? You can't check every fraction one by one, because there are infinitely many.` },
+    { kind: 'narrative', text: t`Here's a sneaky idea. Suppose, just for a moment, that ${r2} is a fraction. You're not claiming this is true; you're taking it for a walk to see where it goes. If the walk ends somewhere impossible, the supposition must have been false. Before the walk, we need the precise meaning of every word in the claim.` },
+    { kind: 'section', title: t`Is root two a fraction?` },
+    {
+      kind: 'definition',
+      name: t`Rational number`,
+      formal: t`A real number ${math`x`} is rational if ${math`x = \frac{a}{b}`} for some ${math`a, b \in \mathbb{Z}`} with ${math`b \ne ${0}`}. Otherwise ${math`x`} is irrational.`,
+      plain: t`A fraction: one whole number divided by another, like ${math`\frac{${7}}{${5}}`}. (${math`\mathbb{Z}`} means the whole numbers, negatives included.)`,
+    },
+    {
+      kind: 'definition',
+      name: t`Even and odd`,
+      formal: t`An integer ${math`n`} is even if ${math`n = ${2}k`} for some ${math`k \in \mathbb{Z}`}, and odd if ${math`n = ${2}k + ${1}`} for some ${math`k \in \mathbb{Z}`}.`,
+      plain: t`Even means "${2} times a whole number"; odd means one more than that. ${math`${10} = ${2} \times ${5}`} is even; ${math`${7} = ${2} \times ${3} + ${1}`} is odd.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Lowest terms`,
+      formal: t`A fraction ${math`\frac{a}{b}`} is in lowest terms if ${math`\gcd(a, b) = ${1}`}.`,
+      plain: t`${ma} and ${mb} share no common factor bigger than ${1}, so the fraction can't be simplified. ${math`\frac{${6}}{${4}}`} isn't; ${math`\frac{${3}}{${2}}`} is. Every fraction can be put in lowest terms by cancelling common factors.`,
+    },
+    { kind: 'theorem', statement: t`${r2} is irrational.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Pretend`, text: t`Suppose not: ${math`\sqrt{${2}} = \frac{a}{b}`} with ${math`a, b \in \mathbb{Z}`}, ${math`b \ne ${0}`}, and ${math`\gcd(a, b) = ${1}`}.`, plain: t`We pretend ${r2} is a fraction already simplified as far as it goes, and watch what breaks.` },
+        { label: t`Remove the square root`, text: t`${math`${2} = \frac{a^{${2}}}{b^{${2}}}`}, so ${math`a^{${2}} = ${2}b^{${2}}`}.`, plain: t`Square both sides: ${r2} squared is ${2}, and ${math`\frac{a}{b}`} squared is ${math`\frac{a^{${2}}}{b^{${2}}}`}. Then multiply both sides by ${math`b^{${2}}`}.` },
+        { label: t`So ${ma} is even`, text: t`${math`a^{${2}} = ${2}(b^{${2}})`} is even, hence ${ma} is even.`, why: { q: t`Why does ${math`a^{${2}}`} even force ${ma} even?`, a: t`If ${ma} were odd, ${math`a = ${2}m + ${1}`}, then ${math`a^{${2}} = ${4}m^{${2}} + ${4}m + ${1} = ${2}(${2}m^{${2}} + ${2}m) + ${1}`}, which is odd. In plain words: odd times odd is odd (${math`${3} \times ${3} = ${9}`}).` } },
+        { label: t`Name the half`, text: t`Write ${math`a = ${2}k`} with ${math`k \in \mathbb{Z}`}.`, plain: t`That's just the definition of even. If ${ma} were ${10}, ${math`k`} would be ${5}.` },
+        { label: t`Put it back`, text: t`${math`(${2}k)^{${2}} = ${2}b^{${2}}`}, that is ${math`${4}k^{${2}} = ${2}b^{${2}}`}, so ${math`b^{${2}} = ${2}k^{${2}}`}.`, plain: t`Halve both sides. By the same reasoning as before, ${mb} is even too.` },
+        { label: t`Contradiction`, text: t`${math`${2} \mid a`} and ${math`${2} \mid b`}, so ${math`\gcd(a, b) \ge ${2}`}, contradicting ${math`\gcd(a, b) = ${1}`}.`, plain: t`${ma} and ${mb} both divide by ${2}, but the first step said they share no common factor. Both can't be true, so the pretence was false.` },
+      ],
+    },
+    { kind: 'section', title: t`The method` },
+    {
+      kind: 'definition',
+      name: t`Proof by contradiction`,
+      formal: t`To prove a statement ${math`P`} by [[proof-by-contradiction|contradiction]], assume ${math`\lnot P`} and deduce a [[contradiction|contradiction]]: a statement ${math`Q`} together with ${math`\lnot Q`}. Then conclude ${math`P`}.`,
+      plain: t`Assume the opposite, follow it carefully, and arrive at something that cannot be true. Above, ${math`Q`} was "${math`\gcd(a, b) = ${1}`}".`,
+    },
+    { kind: 'p', text: t`Why is this allowed? A contradiction is never true, so if ${math`\lnot P`} implies one, ${math`\lnot P`} must be false; and if ${math`\lnot P`} is false, ${math`P`} is true. The CST notes give the write-up: "We use proof by contradiction. So, suppose ${math`P`} is false." Then the deduction, then "This is a contradiction. Therefore, ${math`P`} must be true."`, why: { q: t`Isn't this circular?`, a: t`No: nothing assumes ${math`P`}. The only assumption is ${math`\lnot P`}, and the argument shows that assumption is untenable.` } },
+    { kind: 'section', title: t`What exactly to assume` },
+    { kind: 'p', text: t`Assume exactly the negation, no more and no less. For "there is no largest prime", assume there is one. For "for every ${math`n`}, something holds", assume there is an ${math`n`} for which it fails. For "if ${math`P`} then ${math`Q`}", assume ${math`P`} and not ${math`Q`}: two assumptions to work with, which is often why contradiction is easier than a direct proof.` },
+    checkFrom(assume, { i: 2, order: 1 }, t`The negation of "there is no largest even number" is "there is a largest even number": assume that, and add ${2} to it.`),
+    { kind: 'p', text: t`Contradiction suits claims that something does not exist. There are no integers ${ma}, ${mb} with ${math`${18}a + ${6}b = ${1}`}: if there were, ${math`${1} = ${2}(${9}a + ${3}b)`} would be even. The CST notes warn that such proofs are often not constructive: they show something is impossible without producing anything.` },
+    checkFrom(noSolutions, { p: 10, q: 15, c: 7 }, t`${5} divides ${10} and ${15}, so it divides ${math`${10}a + ${15}b`} for all integers ${ma}, ${mb}, but not ${7}.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`To prove "if ${math`n^{${2}}`} is odd then ${math`n`} is odd" by contradiction, assume ${math`n`} is odd and ${math`n^{${2}}`} is odd.`, counterexample: t`That assumes the conclusion. The negation of "if ${math`P`} then ${math`Q`}" is "${math`P`} and not ${math`Q`}": assume ${math`n^{${2}}`} is odd and ${math`n`} is even.` },
+    { kind: 'pitfall', claim: t`The same proof shows ${math`\sqrt{${4}}`} is irrational: ${math`a^{${2}} = ${4}b^{${2}}`} makes ${math`${4} \mid a^{${2}}`}, so ${math`${4} \mid a`}.`, counterexample: t`${math`${4} \mid ${2}^{${2}}`} but ${math`${4} \nmid ${2}`}. The step "${math`${2} \mid a^{${2}}`} implies ${math`${2} \mid a`}" works because ${2} is prime; it fails for ${4}. Indeed ${math`\sqrt{${4}} = ${2}`}.` },
+    { kind: 'takeaway', text: t`To prove ${math`P`}, assume ${math`\lnot P`} exactly, follow it to something impossible, and conclude ${math`P`}.` },
   ],
   examples: [
-    theorem38,
-    workedCambridge(sw232mod4),
+    { ...theorem38, examiner: t`The examiner looks for the assumption stated as an assumption, the parity fact justified, and the contradiction named explicitly.` },
+    { ...workedCambridge(sw232mod4), examiner: t`The examiner looks for the remainder of a repunit on division by ${4}, the possible remainders of a square, and a clear final contradiction.` },
     worked(noSolutions, { p: 14, q: 21, c: 5 }, t`No integer solutions`),
     worked(assume, { i: 4, order: 2 }, t`What to assume`),
   ],
@@ -338,5 +389,22 @@ export const contradiction: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['proof-by-contradiction', 'contradiction'],
   cambridge: [sw232a, sw232base, bop11, bop10, sw232b, tmuaO1, tmuaO2, bop5, bop7],
-  gate: ['sw-2-3-2-a', 'sw-2-3-2-base', 'sw-2-3-2-b'],
+  gate: ['sw-2-3-2-b', 'sw-2-3-2-base'],
+  recall: [
+    { front: t`Proof by contradiction.`, back: t`Assume ${math`\lnot P`}, deduce some ${math`Q`} and ${math`\lnot Q`}, and conclude ${math`P`}.` },
+    { front: t`The negation to assume for "if ${math`P`} then ${math`Q`}".`, back: t`${math`P`} and not ${math`Q`}.` },
+    { front: t`Define a rational number.`, back: t`${math`x = \frac{a}{b}`} for some ${math`a, b \in \mathbb{Z}`} with ${math`b \ne ${0}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${r2} is irrational`,
+      steps: [
+        t`Suppose ${math`\sqrt{${2}} = \frac{a}{b}`} in lowest terms.`,
+        t`Square and clear the denominator: ${math`a^{${2}} = ${2}b^{${2}}`}.`,
+        t`So ${math`a^{${2}}`} is even, and hence ${ma} is even: ${math`a = ${2}k`}.`,
+        t`Substitute: ${math`b^{${2}} = ${2}k^{${2}}`}, so ${mb} is even too.`,
+        t`Both even contradicts lowest terms, so ${r2} is irrational.`,
+      ],
+    },
+  ],
 };

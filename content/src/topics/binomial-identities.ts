@@ -11,7 +11,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, listOf, math, t } from '../rich';
-import { worked, workedCambridge, workedProof, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, workedProof, type TopicContent } from '../topic';
 
 const [mn, mr, mk] = [math`n`, math`r`, math`k`];
 
@@ -311,16 +311,63 @@ const R = 6;
 export const binomialIdentities: TopicContent = {
   topicId: 'comb.binomial-identities',
   goal: t`Prove ${math`\binom{n}{r} = \binom{n}{n - r}`} and Pascal's rule, by algebra and by counting, and use them on Pascal's triangle.`,
+  objective: t`Prove symmetry and Pascal's rule two ways, by algebra and by counting the same set twice.`,
+  why: t`Pascal's rule is the inductive step of the binomial theorem, and counting twice is a method you will reuse.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Write the binomial coefficients in rows, row ${mn} holding ${math`\binom{n}{${0}}, \binom{n}{${1}}, \ldots, \binom{n}{n}`}: [[pascals-triangle|Pascal's triangle]]. Rows ${0} to ${R}:` },
+    { kind: 'section', title: t`Two coincidences` },
+    { kind: 'hook', text: t`A pizza place offers ${5} toppings. Choosing ${2} of them can be done in ${choose(5, 2)} ways. Choosing ${3} can also be done in ${choose(5, 3)} ways. Coincidence? And in the triangle below, every number is the sum of the two above it. Why should counting subsets have anything to do with adding?` },
+    { kind: 'narrative', text: t`Neither is a coincidence. Each has a proof by algebra, pushing factorials around, and a proof by counting, which explains why. The counting proofs are the ones worth remembering: they rest on one idea, count the same collection in two ways, and the two answers must agree.` },
+    { kind: 'section', title: t`Pascal's triangle` },
+    {
+      kind: 'definition',
+      name: t`Binomial coefficient`,
+      formal: t`For integers ${math`${0} \le r \le n`}, ${math`\binom{n}{r}`} is the number of ${mr}-element subsets of an ${mn}-element set, and ${math`\binom{n}{r} = \frac{n!}{r!\,(n - r)!}`}.`,
+      plain: t`The number of ways to choose ${mr} things from ${mn} when order does not matter. ${math`\binom{${5}}{${2}} = \frac{${5 * 4 * 3 * 2}}{${2} \times ${3 * 2}} = ${choose(5, 2)}`}.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Pascal's triangle`,
+      formal: t`[[pascals-triangle|Pascal's triangle]] has row ${mn} equal to ${math`\binom{n}{${0}}, \binom{n}{${1}}, \ldots, \binom{n}{n}`}, for ${math`n = ${0}, ${1}, ${2}, \ldots`}.`,
+      plain: t`Rows ${0} to ${R} are listed below. Row ${mn} has ${math`n + ${1}`} entries.`,
+    },
     { kind: 'list', items: upTo(R + 1).map((n) => t`${listOf(row(n - 1))}`) },
-    { kind: 'rule', text: t`Symmetry: ${math`\binom{n}{r} = \binom{n}{n - r}`}. [[pascals-rule|Pascal's rule]]: ${dmath`\binom{n + ${1}}{k} = \binom{n}{k} + \binom{n}{k - ${1}}, \qquad ${1} \le k \le n.`}` },
-    { kind: 'p', text: t`Each has two proofs. By algebra, from ${math`\binom{n}{r} = \frac{n!}{r!\,(n - r)!}`}: symmetry swaps ${math`r!`} and ${math`(n - r)!`}; Pascal's rule puts two fractions over a common denominator. By counting, a "combinatorial proof": count one set in two ways. Choosing ${mr} things to take is choosing ${math`n - r`} to leave; and ${mk}-element subsets of ${math`n + ${1}`} things either contain a fixed thing or not.` },
-    { kind: 'p', text: t`The CST notes meet Pascal's rule while proving the Binomial Theorem, ${math`(x + y)^{n} = \sum_{k = ${0}}^{n} \binom{n}{k} x^{n - k}y^{k}`}, by induction: the inductive step needs exactly this rule, which the notes leave as homework. Pascal's rule is also why the triangle can be built by adding: each entry is the sum of the two above it.` },
-    { kind: 'p', text: t`Row sums tell more stories. Row ${mn} adds to ${math`${2}^{n}`}, the number of subsets of ${mn} things. With alternating signs it adds to ${0}: put ${math`x = ${1}`}, ${math`y = ${-1}`} in the Binomial Theorem. Book of Proof's Chapter ${10} exercises prove many more, such as ${math`\sum k\binom{n}{k} = n \cdot ${2}^{n - ${1}}`}.` },
+    { kind: 'section', title: t`Symmetry` },
+    { kind: 'theorem', name: t`Symmetry`, statement: t`For integers ${math`${0} \le r \le n`}, ${math`\binom{n}{r} = \binom{n}{n - r}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`By algebra`, text: t`${math`\binom{n}{n - r} = \frac{n!}{(n - r)!\,(n - (n - r))!} = \frac{n!}{(n - r)!\,r!} = \binom{n}{r}`}.`, plain: t`Swap ${mr} for ${math`n - r`}: the two factorials on the bottom swap places.` },
+        { label: t`By counting`, text: t`Send each ${mr}-element subset ${math`S`} to its complement, the ${math`(n - r)`}-element set of things not in ${math`S`}. This pairs the ${mr}-subsets one to one with the ${math`(n - r)`}-subsets, so there are equally many.`, plain: t`Choosing ${2} toppings to take is the same as choosing ${3} to leave off.`, why: { q: t`Why is the pairing one to one?`, a: t`Taking the complement twice gives back the set you started with, so no two subsets share a complement and every ${math`(n - r)`}-subset is the complement of one ${mr}-subset.` } },
+      ],
+    },
+    { kind: 'section', title: t`Pascal's rule` },
+    { kind: 'theorem', name: t`Pascal's rule`, statement: t`For integers ${math`${1} \le k \le n`}, ${dmath`\binom{n + ${1}}{k} = \binom{n}{k} + \binom{n}{k - ${1}}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Name the set`, text: t`Let ${math`X`} have ${math`n + ${1}`} elements, and fix one of them, ${math`x`}. The left side counts the ${mk}-element subsets of ${math`X`}.`, plain: t`Think of ${math`n + ${1}`} people, one of them called Ada.` },
+        { label: t`Subsets without ${math`x`}`, text: t`These choose all ${mk} elements from the other ${mn}: there are ${math`\binom{n}{k}`}.` },
+        { label: t`Subsets with ${math`x`}`, text: t`These contain ${math`x`} and choose the remaining ${math`k - ${1}`} from the other ${mn}: there are ${math`\binom{n}{k - ${1}}`}.` },
+        { label: t`Add`, text: t`Every ${mk}-subset either contains ${math`x`} or not, and not both, so the two counts add to ${math`\binom{n + ${1}}{k}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`By algebra instead: put ${math`\frac{n!}{k!\,(n - k)!} + \frac{n!}{(k - ${1})!\,(n - k + ${1})!}`} over the common denominator ${math`k!\,(n - k + ${1})!`}. The top becomes ${math`n!\,\big((n - k + ${1}) + k\big) = (n + ${1})!`}, which gives ${math`\binom{n + ${1}}{k}`}. Both proofs appear in the first worked example below.`, why: { q: t`How does each fraction reach that denominator?`, a: t`Multiply the first top and bottom by ${math`n - k + ${1}`}, since ${math`(n - k + ${1})! = (n - k + ${1})(n - k)!`}; multiply the second by ${mk}, since ${math`k! = k\,(k - ${1})!`}.` } },
+    { kind: 'p', text: t`This is why [[pascals-rule|Pascal's rule]] builds the triangle. ${math`\binom{n}{k - ${1}}`} and ${math`\binom{n}{k}`} sit side by side in row ${mn}, and ${math`\binom{n + ${1}}{k}`} sits just below them: every entry is the sum of the two above. In row ${R}, ${math`${choose(R, 2)} + ${choose(R, 3)} = ${choose(R + 1, 3)}`}, which is ${math`\binom{${R + 1}}{${3}}`}.` },
+    checkFrom(pascalRule, { n: 8, r: 3 }, t`${math`\binom{${8}}{${3}} + \binom{${8}}{${4}} = ${choose(8, 3)} + ${choose(8, 4)} = ${choose(9, 4)} = \binom{${9}}{${4}}`}, one row down.`),
+    { kind: 'section', title: t`Row sums` },
+    { kind: 'theorem', statement: t`For every integer ${math`n \ge ${0}`}, ${math`\sum_{k = ${0}}^{n} \binom{n}{k} = ${2}^{n}`}; and for ${math`n \ge ${1}`}, the subsets of even size and of odd size are equally many.` },
+    { kind: 'p', text: t`Count the subsets of an ${mn}-element set two ways. By size: ${math`\binom{n}{${0}} + \binom{n}{${1}} + \cdots + \binom{n}{n}`}. By deciding, element by element, in or out: ${math`${2} \times ${2} \times \cdots \times ${2} = ${2}^{n}`}. For the second claim, fix an element ${math`x`} and toggle it: putting ${math`x`} in or taking it out changes the size by one, so it pairs even-size subsets with odd-size ones.` },
+    checkFrom(rowSum, { n: 5, kind: 'all' }, t`Row ${5} is ${listOf(row(5))}, which adds to ${math`${2}^{${5}} = ${2 ** 5}`}.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`\binom{n + ${1}}{k} = \binom{n}{k} + \binom{n}{k + ${1}}`}.`, counterexample: t`At ${math`n = ${4}`}, ${math`k = ${1}`}: the left side is ${choose(5, 1)}, the right is ${math`${choose(4, 1)} + ${choose(4, 2)} = ${choose(4, 1) + choose(4, 2)}`}. The two neighbours are ${math`k - ${1}`} and ${mk}.` },
+    { kind: 'pitfall', claim: t`The squares of row ${mn} add to ${math`(${2}^{n})^{${2}}`}.`, counterexample: t`Row ${2} is ${listOf(row(2))}; the squares add to ${row(2).reduce((s, x) => s + x * x, 0)}, not ${(2 ** 2) ** 2}. The true sum is ${math`\binom{${2}n}{n}`}, and ${math`\binom{${4}}{${2}} = ${choose(4, 2)}`}.` },
+    { kind: 'takeaway', text: t`Count one collection two ways: taking versus leaving gives symmetry, and with or without one fixed element gives Pascal's rule.` },
   ],
   examples: [
-    pascalProof,
+    { ...pascalProof, examiner: t`The examiner looks for the set being counted named, the split into two disjoint cases, and in the algebra a common denominator shown, not assumed.` },
     workedCambridge(bop1031),
     worked(pascalRule, { n: 7, r: 3 }, t`Two neighbours in row ${7}`),
   ],
@@ -329,4 +376,20 @@ export const binomialIdentities: TopicContent = {
   terms: ['pascals-triangle', 'pascals-rule'],
   cambridge: [bop1024, bop1040, bop1041, bop1035, bop1038, notesHomework2],
   gate: ['notes-280-homework-2'],
+  recall: [
+    { front: t`Symmetry of binomial coefficients.`, back: t`${math`\binom{n}{r} = \binom{n}{n - r}`}: taking ${mr} is leaving ${math`n - r`}.` },
+    { front: t`[[pascals-rule|Pascal's rule]].`, back: t`${math`\binom{n + ${1}}{k} = \binom{n}{k} + \binom{n}{k - ${1}}`}, for ${math`${1} \le k \le n`}.` },
+    { front: t`The sum of row ${mn} of Pascal's triangle.`, back: t`${math`${2}^{n}`}, the number of subsets of an ${mn}-element set.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Pascal's rule by counting`,
+      steps: [
+        t`Count the ${mk}-element subsets of a set of ${math`n + ${1}`}, with one element ${math`x`} fixed.`,
+        t`Those without ${math`x`} choose ${mk} from the other ${mn}: ${math`\binom{n}{k}`}.`,
+        t`Those with ${math`x`} choose ${math`k - ${1}`} more from the other ${mn}: ${math`\binom{n}{k - ${1}}`}.`,
+        t`Every subset is in exactly one case, so ${math`\binom{n + ${1}}{k} = \binom{n}{k} + \binom{n}{k - ${1}}`}.`,
+      ],
+    },
+  ],
 };

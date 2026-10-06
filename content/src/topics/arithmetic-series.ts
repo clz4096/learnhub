@@ -10,7 +10,7 @@ import { int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
 import { computedMath as cm, dmath, listOf, math, paren, t } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mn, mk, ma, md] = [math`n`, math`k`, math`a`, math`d`];
 const tri = (k: number): number => (k * (k + 1)) / 2;
@@ -223,19 +223,73 @@ const fProof = supervision({
 // ---------------------------------------------------------------- lesson
 
 const G = 100;
+const pit = { a: 3, d: 4, n: 10 };
 
 export const arithmeticSeries: TopicContent = {
   topicId: 'alg.arithmetic-series',
   goal: t`Find the ${mn}th term and the sum of the first ${mn} terms of an arithmetic sequence.`,
+  objective: t`Find any term of an arithmetic sequence and the sum of its first ${mn} terms.`,
+  why: t`Sums like ${math`${1} + ${2} + \cdots + n`} appear in counting and running-time arguments, starting with triangular numbers.`,
+  minutes: 15,
   lesson: [
-    { kind: 'p', text: t`An arithmetic sequence adds the same common difference ${md} each time, starting from a first term ${ma}: ${math`a, a + d, a + ${2}d, \ldots`}. Its ${mn}th term is ${math`a + (n - ${1})d`}, since reaching it takes ${math`n - ${1}`} steps.` },
-    { kind: 'p', text: t`An [[arithmetic-series|arithmetic series]] is the sum of such terms. The trick, often credited to the young Gauss: write the sum forwards and backwards and add. For ${math`${1} + ${2} + \cdots + ${G}`}, each of the ${G} columns adds to ${G + 1}, so twice the sum is ${math`${G} \times ${G + 1}`}, and the sum is ${(G * (G + 1)) / 2}.` },
-    { kind: 'rule', text: t`With first term ${ma}, last term ${math`l = a + (n - ${1})d`}, and ${mn} terms: ${dmath`S_n = \frac{n(a + l)}{${2}} = \frac{n}{${2}}\big(${2}a + (n - ${1})d\big) = \sum_{i = ${1}}^{n} \big(a + (i - ${1})d\big).`}` },
-    { kind: 'p', text: t`The triangular numbers of the CST supervision exercises are arithmetic series: ${math`t_k = ${0} + ${1} + \cdots + k = \frac{k(k + ${1})}{${2}}`}, so ${listOf(upTo(6).map((k) => tri(k - 1)))} and so on. Many facts about them come from this formula and a little algebra: for example ${math`${8}t_k + ${1} = (${2}k + ${1})^{${2}}`}, a square.` },
-    { kind: 'p', text: t`Euler noticed more (exercise ${math`${1}.${3}.${1}`}(e)): if ${mn} is triangular then so is ${math`${9}n + ${1}`}. With ${math`n = t_k`}, ${math`${9}t_k + ${1} = t_{${3}k + ${1}}`}. Finding the ${math`q`} with ${math`t_q`} equal to a given expression is a matter of completing the square in ${math`q(q + ${1})`}.` },
+    { kind: 'section', title: t`A hundred numbers in your head` },
+    { kind: 'hook', text: t`What is ${math`${1} + ${2} + ${3} + \cdots + ${G}`}? Adding one at a time takes ${G - 1} additions. There is a way to do it in one line, and the story goes that Gauss found it as a schoolboy. Before reading on, try pairing the first number with the last.` },
+    { kind: 'narrative', text: t`${1} and ${G} make ${G + 1}. So do ${2} and ${G - 1}, and ${3} and ${G - 2}. Every pair makes ${G + 1}, and there are ${G / 2} pairs, so the total is ${math`${G / 2} \times ${G + 1} = ${(G * (G + 1)) / 2}`}. What made this work is that the numbers go up by the same amount each time. Let's name that property and see how far the trick reaches.` },
+    { kind: 'section', title: t`Arithmetic sequences` },
+    {
+      kind: 'definition',
+      name: t`Arithmetic sequence`,
+      formal: t`A sequence ${math`(a_{n})_{n \ge ${1}}`} is arithmetic, with first term ${ma} and common difference ${md}, if ${math`a_{${1}} = a`} and ${math`a_{n + ${1}} = a_{n} + d`} for every ${math`n \ge ${1}`}.`,
+      plain: t`Start at ${ma} and keep adding the same number ${md}. With ${math`a = ${7}`} and ${math`d = ${5}`}: ${listOf([7, 12, 17, 22])}, and so on. ${md} may be negative: ${listOf([10, 7, 4, 1])} has ${math`d = ${-3}`}.`,
+    },
+    { kind: 'theorem', name: t`The ${mn}th term`, statement: t`If ${math`(a_{n})`} is arithmetic with first term ${ma} and common difference ${md}, then ${math`a_{n} = a + (n - ${1})d`} for every ${math`n \ge ${1}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Write the term as a sum of steps`, text: t`${math`a_{n} = a_{${1}} + (a_{${2}} - a_{${1}}) + (a_{${3}} - a_{${2}}) + \cdots + (a_{n} - a_{n - ${1}})`}.`, plain: t`Every term in between appears once with a plus and once with a minus, so they cancel and leave ${math`a_{n}`}.` },
+        { label: t`Each step is ${md}`, text: t`By the definition, each bracket ${math`a_{i + ${1}} - a_{i}`} equals ${md}, and there are ${math`n - ${1}`} brackets, one for each ${math`i = ${1}, \ldots, n - ${1}`}.` },
+        { label: t`Add them up`, text: t`${math`a_{n} = a + (n - ${1})d`}.`, plain: t`To get from the ${1}st term to the ${mn}th you take ${math`n - ${1}`} steps, not ${mn}: like the gaps between fence posts.` },
+      ],
+    },
+    checkFrom(nthTerm, { a: 5, d: 3, n: 20 }, t`From the ${1}st term to the ${20}th is ${20 - 1} steps of ${3}: ${math`${5} + ${20 - 1} \times ${3} = ${5 + 19 * 3}`}.`),
+    { kind: 'section', title: t`The sum: pair the ends` },
+    {
+      kind: 'definition',
+      name: t`Arithmetic series`,
+      formal: t`The [[arithmetic-series|arithmetic series]] of the sequence is ${math`S_{n} = a_{${1}} + a_{${2}} + \cdots + a_{n} = \sum_{i = ${1}}^{n} a_{i}`}, the sum of its first ${mn} terms.`,
+      plain: t`For ${listOf([7, 12, 17, 22])}, ${math`S_{${4}} = ${7 + 12 + 17 + 22}`}.`,
+    },
+    { kind: 'theorem', name: t`Sum of an arithmetic series`, statement: t`With last term ${math`l = a_{n} = a + (n - ${1})d`}, ${dmath`S_{n} = \frac{n(a + l)}{${2}} = \frac{n}{${2}}\big(${2}a + (n - ${1})d\big).`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Write it forwards and backwards`, text: t`${math`S_{n} = a_{${1}} + a_{${2}} + \cdots + a_{n}`} and ${math`S_{n} = a_{n} + a_{n - ${1}} + \cdots + a_{${1}}`}.`, plain: t`Same terms, opposite order, so the same total.` },
+        { label: t`Add in columns`, text: t`The ${math`i`}th column is ${math`a_{i} + a_{n + ${1} - i} = \big(a + (i - ${1})d\big) + \big(a + (n - i)d\big) = ${2}a + (n - ${1})d`}.`, plain: t`Moving one place in, the top term goes up by ${md} and the bottom term goes down by ${md}, so every column has the same total: first plus last, ${math`a + l`}.`, why: { q: t`Why is ${math`${2}a + (n - ${1})d`} the same as ${math`a + l`}?`, a: t`Because ${math`l = a + (n - ${1})d`}, so ${math`a + l = ${2}a + (n - ${1})d`}.` } },
+        { label: t`Count the columns`, text: t`There are ${mn} columns, so ${math`${2}S_{n} = n(a + l)`}.` },
+        { label: t`Halve`, text: t`${math`S_{n} = \frac{n(a + l)}{${2}}`}.`, plain: t`In words: the number of terms times the average of the first and last.` },
+      ],
+    },
+    { kind: 'p', text: t`Notice the proof never needed ${mn} to be even. With ${math`${1} + ${2} + ${3}`}, the middle column is ${math`${2} + ${2}`}: the middle term pairs with itself, and the formula still gives ${math`\frac{${3} \times ${4}}{${2}} = ${6}`}.` },
+    checkFrom(series, { a: 2, d: 3, n: 10 }, t`The last term is ${math`${2} + ${9} \times ${3} = ${2 + 9 * 3}`}, so the sum is ${math`\frac{${10} \times (${2} + ${2 + 9 * 3})}{${2}} = ${(10 * (2 + 29)) / 2}`}.`),
+    { kind: 'section', title: t`Triangular numbers` },
+    { kind: 'narrative', text: t`Stack dots in rows of ${1}, ${2}, ${3}, and so on, and you get triangles. The CST supervision exercises study these numbers, and every fact about them starts from the sum formula.` },
+    {
+      kind: 'definition',
+      name: t`Triangular number`,
+      formal: t`For a natural number ${mk}, the ${mk}th triangular number is ${math`t_{k} = ${0} + ${1} + \cdots + k`}. A natural number is triangular if it equals ${math`t_{k}`} for some ${mk}.`,
+      plain: t`${listOf(upTo(6).map((k) => tri(k - 1)))}, and so on: ${math`t_{${3}} = ${0} + ${1} + ${2} + ${3} = ${tri(3)}`}.`,
+    },
+    { kind: 'p', text: t`This is an arithmetic series with first term ${0}, last term ${mk}, and ${math`k + ${1}`} terms (count the ${0}), so ${math`t_{k} = \frac{(k + ${1})(${0} + k)}{${2}} = \frac{k(k + ${1})}{${2}}`}. With the formula, facts become algebra. For instance ${math`${8}t_{k} + ${1} = ${4}k^{${2}} + ${4}k + ${1} = (${2}k + ${1})^{${2}}`}: eight times a triangular number, plus one, is always a square.` },
+    { kind: 'p', text: t`To show an expression equals some ${math`t_{q}`}, aim for the shape ${math`\frac{q(q + ${1})}{${2}}`}: multiply by ${2} and complete the square in ${math`q^{${2}} + q`}. That is how Euler's map ${math`n \mapsto ${9}n + ${1}`}, worked below, sends triangular numbers to triangular numbers.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`The ${mn}th term is ${math`a + nd`}.`, counterexample: t`For ${listOf([pit.a, pit.a + pit.d, pit.a + 2 * pit.d])}, the ${pit.n}th term is ${math`${pit.a} + ${pit.n - 1} \times ${pit.d} = ${pit.a + (pit.n - 1) * pit.d}`}, not ${pit.a + pit.n * pit.d}. There are ${pit.n - 1} steps between ${pit.n} terms.` },
+    { kind: 'pitfall', claim: t`${math`${0} + ${1} + \cdots + k`} has ${mk} terms.`, counterexample: t`${math`${0} + ${1} + ${2} + ${3}`} has ${4} terms. Using ${mk} terms would give ${math`\frac{${3} \times ${3}}{${2}}`}, not ${tri(3)}. Count the terms by ${math`\frac{l - a}{d} + ${1}`}.` },
+    { kind: 'takeaway', text: t`An arithmetic sequence takes ${math`n - ${1}`} steps to reach its ${mn}th term, and its sum is the number of terms times the average of the first and last.` },
   ],
   examples: [
-    workedCambridge(e9),
+    { ...workedCambridge(e9), examiner: t`The examiner looks for the formula ${math`t_{k} = \frac{k(k + ${1})}{${2}}`} used, the square completed, and a natural number ${math`q`} named explicitly.` },
     worked(series, { a: 3, d: 4, n: 20 }, t`Twenty terms`),
     worked(howMany, { a: 7, d: 5, m: 31 }, t`Counting terms`),
   ],
@@ -243,5 +297,21 @@ export const arithmeticSeries: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arithmetic-series'],
   cambridge: [e25, e81, f, eProof, fProof],
-  gate: ['sw-1-3-1-e-25', 'sw-1-3-1-e-81', 'sw-1-3-1-f', 'sw-1-3-1-e', 'sw-1-3-1-f-proof'],
+  gate: ['sw-1-3-1-f-proof', 'sw-1-3-1-e', 'sw-1-3-1-f', 'sw-1-3-1-e-81', 'sw-1-3-1-e-25'],
+  recall: [
+    { front: t`The ${mn}th term of an arithmetic sequence with first term ${ma} and difference ${md}.`, back: t`${math`a_{n} = a + (n - ${1})d`}.` },
+    { front: t`The sum of the first ${mn} terms of an arithmetic sequence.`, back: t`${math`S_{n} = \frac{n(a + l)}{${2}} = \frac{n}{${2}}\big(${2}a + (n - ${1})d\big)`}, where ${math`l`} is the last term.` },
+    { front: t`The ${mk}th triangular number.`, back: t`${math`t_{k} = ${0} + ${1} + \cdots + k = \frac{k(k + ${1})}{${2}}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The sum of an arithmetic series`,
+      steps: [
+        t`Write ${math`S_{n}`} forwards, and again backwards underneath.`,
+        t`Each column adds to ${math`a_{i} + a_{n + ${1} - i} = ${2}a + (n - ${1})d = a + l`}.`,
+        t`There are ${mn} columns, so ${math`${2}S_{n} = n(a + l)`}.`,
+        t`Halve: ${math`S_{n} = \frac{n(a + l)}{${2}}`}.`,
+      ],
+    },
+  ],
 };

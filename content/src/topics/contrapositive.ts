@@ -12,7 +12,7 @@ import { int, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { equivalent } from '../logic';
 import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mn, mx] = [math`n`, math`x`];
 const TF = (b: boolean): string => (b ? 'T' : 'F');
@@ -377,20 +377,64 @@ const tmuaK3 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const [mP, mQ] = [math`P`, math`Q`];
+const TT: readonly [boolean, boolean][] = [[true, true], [true, false], [false, true], [false, false]];
+const imp = (a: boolean, b: boolean): boolean => !a || b;
+
 export const contrapositive: TopicContent = {
   topicId: 'proof.contrapositive',
   goal: t`Prove "if ${math`P`} then ${math`Q`}" by proving its contrapositive "if not ${math`Q`} then not ${math`P`}", and choose it when the negated statements are easier to work with.`,
+  objective: t`Prove "if ${mP} then ${mQ}" by proving "if not ${mQ} then not ${mP}", when that is easier.`,
+  why: t`Many statements are hard forwards and easy backwards; this is the standard way round them.`,
+  minutes: 15,
   lesson: [
-    { kind: 'p', text: t`The [[contrapositive|contrapositive]] of ${math`P \Rightarrow Q`} is ${math`\lnot Q \Rightarrow \lnot P`}. The CST notes prove each implies the other (Theorems ${37} and ${39}), so they are equivalent (Corollary ${40}). Using this equivalence to prove an implication is called [[proof-by-contrapositive|proof by contrapositive]].` },
-    { kind: 'rule', text: t`To prove "if ${math`P`} then ${math`Q`}": assume not ${math`Q`}, and deduce not ${math`P`}. That proves the contrapositive, and so the statement.` },
-    { kind: 'p', text: t`Why bother? Sometimes ${math`\lnot Q`} is much easier to start from than ${math`P`}. "If ${math`n^{${2}}`} is even, then ${mn} is even": starting from ${math`n^{${2}} = ${2}k`} leads nowhere, but the contrapositive "if ${mn} is odd, then ${math`n^{${2}}`} is odd" is a two-line calculation, ${math`(${2}a + ${1})^{${2}} = ${2}(${2}a^{${2}} + ${2}a) + ${1}`}. The CST notes prove Proposition ${42} this way.` },
-    { kind: 'p', text: t`The TMUA notes' example: "for any nonzero integer ${mx}, if ${math`x^{${3}}`} is odd then ${mx} is odd" becomes "if ${mx} is even then ${math`x^{${3}}`} is even": ${math`x = ${2}p`} gives ${math`x^{${3}} = ${2}(${4}p^{${3}})`}.` },
-    { kind: 'p', text: t`Negate carefully. With "and" or "or" in a part, De Morgan's laws apply: the contrapositive of "if ${math`ab`} and ${math`a + b`} are even, then ${math`a`} and ${math`b`} are even" is "if ${math`a`} or ${math`b`} is odd, then ${math`ab`} or ${math`a + b`} is odd". The official CST solutions point out the gain: an "or" goal, which needs cases, becomes an "and" assumption.` },
-    { kind: 'p', text: t`Do not confuse it with the converse ${math`Q \Rightarrow P`} or the inverse ${math`\lnot P \Rightarrow \lnot Q`}. Those two are equivalent to each other, not to the statement: "if ${mn} is a multiple of ${6}, then ${mn} is even" is true, while its converse "if ${mn} is even, then ${mn} is a multiple of ${6}" is false (${math`n = ${2}`}).` },
-    { kind: 'p', text: t`Contrapositive or contradiction? A contrapositive proof assumes not ${math`Q`} and has a definite goal, not ${math`P`}. A proof by contradiction assumes ${math`P`} and not ${math`Q`} and looks for any contradiction. When the contradiction found is "not ${math`P`}", it was really a contrapositive proof.` },
+    { kind: 'section', title: t`Stuck going forwards` },
+    { kind: 'hook', text: t`Prove: if ${math`n^{${2}}`} is even, then ${mn} is even. Try it directly. ${math`n^{${2}} = ${2}k`}, so ${math`n = \sqrt{${2}k}`}, and now what? A square root of an even number tells you nothing useful. The direct road is blocked. But there is another road to the same place.` },
+    { kind: 'narrative', text: t`Think about it the other way round. The statement says an even square never comes from an odd number. So it is enough to show that odd numbers always have odd squares, and that is a one-line calculation. Turning a statement round like this is always allowed, provided you turn it round the right way.` },
+    { kind: 'section', title: t`The contrapositive` },
+    {
+      kind: 'definition',
+      name: t`Contrapositive, converse, inverse`,
+      formal: t`For the implication ${math`P \Rightarrow Q`}, the [[contrapositive|contrapositive]] is ${math`\lnot Q \Rightarrow \lnot P`}, the converse is ${math`Q \Rightarrow P`}, and the inverse is ${math`\lnot P \Rightarrow \lnot Q`}.`,
+      plain: t`Contrapositive: swap the two parts and negate both. For "if it is raining, the ground is wet": the contrapositive is "if the ground is not wet, it is not raining"; the converse is "if the ground is wet, it is raining", a different claim.`,
+    },
+    { kind: 'theorem', statement: t`${math`P \Rightarrow Q`} and ${math`\lnot Q \Rightarrow \lnot P`} are logically equivalent: they have the same truth value for every truth value of ${mP} and ${mQ}.` },
+    {
+      kind: 'table', caption: t`An implication is false only when its hypothesis is true and its conclusion false. The two columns agree in every row.`,
+      head: [[mP], [mQ], [math`P \Rightarrow Q`], [math`\lnot Q \Rightarrow \lnot P`]],
+      rows: TT.map(([p, qq]) => [t`${p ? 'T' : 'F'}`, t`${qq ? 'T' : 'F'}`, t`${imp(p, qq) ? 'T' : 'F'}`, t`${imp(!qq, !p) ? 'T' : 'F'}`]),
+    },
+    { kind: 'p', text: t`In words: both say exactly that ${mP} true with ${mQ} false never happens. The CST notes prove each from the other (Theorems ${37} and ${39}, Corollary ${40}).` },
+    { kind: 'section', title: t`Proof by contrapositive` },
+    {
+      kind: 'definition',
+      name: t`Proof by contrapositive`,
+      formal: t`A [[proof-by-contrapositive|proof by contrapositive]] of ${math`P \Rightarrow Q`} assumes ${math`\lnot Q`} and deduces ${math`\lnot P`}.`,
+      plain: t`Prove the turned-round statement; by the theorem, that proves the original.`,
+    },
+    { kind: 'theorem', statement: t`For every integer ${mn}, if ${math`n^{${2}}`} is even, then ${mn} is even.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`State the contrapositive`, text: t`We prove: if ${mn} is not even, then ${math`n^{${2}}`} is not even. For integers, "not even" is "odd".`, plain: t`Swap the parts, negate both.` },
+        { label: t`Assume not ${mQ}`, text: t`Suppose ${mn} is odd: ${math`n = ${2}a + ${1}`} for some ${math`a \in \mathbb{Z}`}.`, plain: t`If ${mn} were ${7}, ${math`a`} would be ${3}.` },
+        { label: t`Compute`, text: t`${math`n^{${2}} = ${4}a^{${2}} + ${4}a + ${1} = ${2}(${2}a^{${2}} + ${2}a) + ${1}`}.` },
+        { label: t`Conclude not ${mP}`, text: t`${math`${2}a^{${2}} + ${2}a`} is an integer, so ${math`n^{${2}}`} is odd. This proves the contrapositive, and hence the statement.` },
+      ],
+    },
+    checkFrom(writeContrapositive, { i: 4, order: 1 }, t`Swap and negate both parts: "if ${math`n^{${2}} \le ${9}`}, then ${math`n \le ${3}`}".`),
+    { kind: 'section', title: t`Negating compound parts` },
+    { kind: 'p', text: t`When a part contains "and" or "or", negate it with De Morgan's laws: not (${math`A`} and ${math`B`}) is (not ${math`A`}) or (not ${math`B`}), and the other way round. Example: "if ${math`a + b \ge ${10}`}, then ${math`a \ge ${5}`} or ${math`b \ge ${5}`}". Its contrapositive is "if ${math`a < ${5}`} and ${math`b < ${5}`}, then ${math`a + b < ${10}`}", which is immediate by adding. The "or" in the goal, which would need cases, became an "and" you get to assume, a gain the official CST solutions point out.` },
+    checkFrom(withDeMorgan, { i: 5, order: 1 }, t`Negate both parts and swap: not "${math`xy`} positive" is ${math`xy \le ${0}`}, and not "both positive" is "${math`x \le ${0}`} or ${math`y \le ${0}`}".`),
+    { kind: 'p', text: t`Contrapositive or contradiction? A contrapositive proof assumes ${math`\lnot Q`} and has a definite target, ${math`\lnot P`}. A contradiction proof assumes ${math`P`} and ${math`\lnot Q`} and looks for anything impossible. If the impossible thing it finds is ${math`\lnot P`}, it was really a contrapositive proof, and is clearer written as one.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`An implication and its converse say the same thing.`, counterexample: t`"If ${mn} is a multiple of ${6}, then ${mn} is even" is true, but its converse "if ${mn} is even, then ${mn} is a multiple of ${6}" fails at ${math`n = ${2}`}.` },
+    { kind: 'pitfall', claim: t`The contrapositive of "if ${mn} is prime and ${math`n > ${2}`}, then ${mn} is odd" is "if ${mn} is even, then ${mn} is not prime and ${math`n \le ${2}`}".`, counterexample: t`That negates "and" wrongly. Take ${math`n = ${4}`}: it is even, but ${math`n \le ${2}`} is false. The right contrapositive ends "${mn} is not prime or ${math`n \le ${2}`}".` },
+    { kind: 'takeaway', text: t`To prove "if ${mP} then ${mQ}", you may assume not ${mQ} and prove not ${mP}, negating each part exactly.` },
   ],
   examples: [
-    workedCambridge(tmuaCube),
+    { ...workedCambridge(tmuaCube), examiner: t`The examiner looks for the contrapositive stated before the proof starts, and "not odd" turned into "even" explicitly.` },
     worked(writeContrapositive, { i: 3, order: 2 }, t`A contrapositive in words`),
     worked(fourStatements, { i: 1 }, t`Four related statements`),
   ],
@@ -398,5 +442,21 @@ export const contrapositive: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['proof-by-contrapositive'],
   cambridge: [bop1, bop9, bop7, sw112, sw118, bop25, sw112proof, sw118proof, corollary41, tmuaK3],
-  gate: ['sw-1-1-2-verdict', 'sw-1-1-8-verdict', 'sw-1-1-2', 'sw-1-1-8', 'cst-corollary-41'],
+  gate: ['cst-corollary-41', 'sw-1-1-8', 'sw-1-1-2'],
+  recall: [
+    { front: t`The contrapositive of ${math`P \Rightarrow Q`}.`, back: t`${math`\lnot Q \Rightarrow \lnot P`}, logically equivalent to it.` },
+    { front: t`The converse and the inverse of ${math`P \Rightarrow Q`}.`, back: t`Converse ${math`Q \Rightarrow P`}; inverse ${math`\lnot P \Rightarrow \lnot Q`}. They are equivalent to each other, not to the original.` },
+    { front: t`Proof by contrapositive.`, back: t`To prove ${math`P \Rightarrow Q`}, assume ${math`\lnot Q`} and deduce ${math`\lnot P`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`If ${math`n^{${2}}`} is even, then ${mn} is even`,
+      steps: [
+        t`Prove the contrapositive: if ${mn} is odd, then ${math`n^{${2}}`} is odd.`,
+        t`Suppose ${math`n = ${2}a + ${1}`} for an integer ${math`a`}.`,
+        t`Then ${math`n^{${2}} = ${2}(${2}a^{${2}} + ${2}a) + ${1}`}, which is odd.`,
+        t`The contrapositive holds, so the statement does.`,
+      ],
+    },
+  ],
 };

@@ -11,8 +11,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, expect, meanOf, variance, type Dist } from '../partv-c';
-import { computedTex, listOf, math, t, texOfRational, type Rich, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { computedTex, dmath, listOf, math, t, texOfRational, type Rich, type Span } from '../rich';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 import { choose } from '../numbers';
 
 const S2 = 'ia-prob-sheet-2' as const;
@@ -324,19 +324,55 @@ const scheduleTower = supervision({
 
 // ---------------------------------------------------------------- lesson
 
+const HOOK = mul(expect(DIE), q(1, 2));
+const CHECK_TAB: TabP = { xs: [0, 1, 2], ys: [0, 1], counts: [[2, 1], [1, 3], [1, 4]], total: 12, x: 2, y: 1 };
+
 export const conditionalExpectation: TopicContent = {
   topicId: 'rv.conditional-expectation',
   goal: t`Find the distribution of ${math`X`} given ${math`Y = y`}, its mean ${math`\mathbb{E}(X \mid Y = y)`}, and use the tower law ${math`\mathbb{E}(X) = \mathbb{E}(\mathbb{E}(X \mid Y))`}.`,
+  objective: t`Find conditional distributions and means, and compute expectations in stages with the tower law.`,
+  why: t`Splitting a hard expectation by a first stage is how random sums, random walks, and branching are solved.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`Learning the value of ${math`Y`} changes what to expect of ${math`X`}. Conditioning on an event gives a new probability measure, so every idea about distributions and means applies to it.` },
-    { kind: 'rule', text: t`The [[conditional-distribution|conditional distribution]] of ${math`X`} given ${math`Y = y`}, for ${math`\mathbb{P}(Y = y) > ${0}`}, is ${math`\mathbb{P}(X = x \mid Y = y) = \frac{\mathbb{P}(X = x, Y = y)}{\mathbb{P}(Y = y)}`}. Its mean is the [[conditional-expectation|conditional expectation]] ${math`\mathbb{E}(X \mid Y = y) = \sum_{x} x\,\mathbb{P}(X = x \mid Y = y)`}. Writing ${math`\psi(y)`} for it, the random variable ${math`\mathbb{E}(X \mid Y) = \psi(Y)`} is a function of ${math`Y`}.` },
-    { kind: 'rule', text: t`The [[tower-law|tower law]]: ${math`\mathbb{E}(\mathbb{E}(X \mid Y)) = \mathbb{E}(X)`}, that is, ${math`\mathbb{E}(X) = \sum_{y} \mathbb{E}(X \mid Y = y)\,\mathbb{P}(Y = y)`}. It is the law of total probability for means: split by the value of ${math`Y`}, then weight.` },
-    { kind: 'p', text: t`Sheet ${2} Q${6}: for independent Poissons with parameters ${math`\lambda`} and ${math`\mu`}, ${math`X + Y`} is Poisson with parameter ${math`\lambda + \mu`}, and given ${math`X + Y = n`}, ${math`X`} is binomial with parameters ${math`n`} and ${math`\lambda/(\lambda + \mu)`}. So ${math`\mathbb{E}(X \mid X + Y) = (X + Y)\frac{\lambda}{\lambda + \mu}`}. With ${math`\lambda = ${LAM}`}, ${math`\mu = ${MU}`}, ${math`\mathbb{P}(X = ${KK} \mid X + Y = ${NN}) = ${q6Val}`}.` },
-    { kind: 'p', text: t`Random sums (Sheet ${3} Q${8}): roll a die ${math`N`} times, ${math`N`} independent of the rolls. Given ${math`N = n`} the total has mean ${math`n\mu`}, so ${math`\mathbb{E}(S_{N}) = \mu\,\mathbb{E}(N)`}. The variance has two parts, the spread of the rolls and the spread of their number: ${math`\operatorname{var}(S_{N}) = \sigma^{${2}}\mathbb{E}(N) + \mu^{${2}}\operatorname{var}(N)`}.` },
-    { kind: 'p', text: t`Two rules make conditional expectations easy to handle: a function of ${math`Y`} acts like a constant, ${math`\mathbb{E}(g(Y)X \mid Y) = g(Y)\mathbb{E}(X \mid Y)`}; and if ${math`X`} is independent of ${math`Y`}, then ${math`\mathbb{E}(X \mid Y) = \mathbb{E}(X)`}.` },
+    { kind: 'section', title: t`Averaging in two stages` },
+    { kind: 'hook', text: t`Roll a die, then toss that many fair coins. How many heads do you expect? Listing every outcome would be painful: ${6} rolls, and up to ${2 ** 6} coin patterns for each. But if you knew the roll was ${math`n`}, you would expect ${math`\frac{n}{${2}}`} heads. Average that over the roll and the answer is ${math`\frac{${expect(DIE)}}{${2}} = ${HOOK}`}. Why is that allowed?` },
+    { kind: 'narrative', text: t`Because learning the value of one random variable gives a new probability measure, and an expectation can be computed under it and then averaged back out. To make that precise we need the conditional distribution, its mean, and one theorem, the tower law.` },
+    { kind: 'section', title: t`Conditional distribution and mean` },
+    {
+      kind: 'definition',
+      name: t`Conditional distribution`,
+      formal: t`Let ${math`X`} and ${math`Y`} be discrete random variables and ${math`\mathbb{P}(Y = y) > ${0}`}. The [[conditional-distribution|conditional distribution]] of ${math`X`} given ${math`Y = y`} is ${dmath`\mathbb{P}(X = x \mid Y = y) = \frac{\mathbb{P}(X = x, Y = y)}{\mathbb{P}(Y = y)}.`}`,
+      plain: t`Keep only the outcomes with ${math`Y = y`}, one column of the joint table, and rescale it so that it adds to ${1}.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Conditional expectation`,
+      formal: t`If ${math`\mathbb{E}|X| < \infty`}, the [[conditional-expectation|conditional expectation]] of ${math`X`} given ${math`Y = y`} is ${math`\psi(y) = \mathbb{E}(X \mid Y = y) = \sum_{x} x\,\mathbb{P}(X = x \mid Y = y)`}. The random variable ${math`\mathbb{E}(X \mid Y) = \psi(Y)`} is the conditional expectation of ${math`X`} given ${math`Y`}.`,
+      plain: t`${math`\mathbb{E}(X \mid Y = y)`} is a number for each ${math`y`}; ${math`\mathbb{E}(X \mid Y)`} is that number with ${math`Y`} plugged in, so it is random. In the hook, ${math`\mathbb{E}(\text{heads} \mid \text{roll} = n) = \frac{n}{${2}}`} and ${math`\mathbb{E}(\text{heads} \mid \text{roll}) = \frac{\text{roll}}{${2}}`}.`,
+    },
+    checkFrom(conditionalPmf, CHECK_TAB, t`${math`\mathbb{P}(Y = ${1}) = \frac{${1} + ${3} + ${4}}{${12}} = ${q(8, 12)}`}, and ${math`\frac{${q(4, 12)}}{${q(8, 12)}} = ${q(1, 2)}`}.`),
+    { kind: 'section', title: t`The tower law` },
+    { kind: 'theorem', name: t`Tower law`, statement: t`If ${math`\mathbb{E}|X| < \infty`}, then ${math`\mathbb{E}(\mathbb{E}(X \mid Y)) = \mathbb{E}(X)`}; that is, ${dmath`\mathbb{E}(X) = \sum_{y} \mathbb{E}(X \mid Y = y)\,\mathbb{P}(Y = y),`} the sum over the values ${math`y`} with ${math`\mathbb{P}(Y = y) > ${0}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Expand ${math`\psi`}`, text: t`${math`\mathbb{E}(\psi(Y)) = \sum_{y} \psi(y)\,\mathbb{P}(Y = y) = \sum_{y} \sum_{x} x\,\frac{\mathbb{P}(X = x, Y = y)}{\mathbb{P}(Y = y)}\,\mathbb{P}(Y = y)`}.`, plain: t`The expectation of a function of ${math`Y`}, then the definition of ${math`\psi`}.` },
+        { label: t`Cancel`, text: t`${math`= \sum_{y} \sum_{x} x\,\mathbb{P}(X = x, Y = y)`}.` },
+        { label: t`Swap the sums`, text: t`${math`= \sum_{x} x \sum_{y} \mathbb{P}(X = x, Y = y) = \sum_{x} x\,\mathbb{P}(X = x) = \mathbb{E}(X)`}.`, why: { q: t`Why may the order of summation be swapped?`, a: t`The double sum converges absolutely, since ${math`\sum_{x, y} |x|\,\mathbb{P}(X = x, Y = y) = \mathbb{E}|X| < \infty`}, and an absolutely convergent double series has the same sum in any order.` } },
+      ],
+    },
+    { kind: 'p', text: t`This is the [[tower-law|tower law]]: the law of total probability for means. Split by the value of ${math`Y`}, find the mean in each case, and weight by how likely each case is. Random sums are the classic use. If ${math`N`} is independent of ${math`X_{${1}}, X_{${2}}, \ldots`}, each with mean ${math`\mu`}, and ${math`S_{N} = X_{${1}} + \cdots + X_{N}`}, then ${math`\mathbb{E}(S_{N} \mid N = n) = n\mu`}, so ${math`\mathbb{E}(S_{N}) = \mathbb{E}(N\mu) = \mu\,\mathbb{E}(N)`}.`, why: { q: t`Where is the independence of ${math`N`} used?`, a: t`Given ${math`N = n`}, ${math`S_{N}`} is ${math`X_{${1}} + \cdots + X_{n}`}, and its conditional mean is ${math`n\mu`} only if conditioning on ${math`N = n`} leaves the distribution of the ${math`X_{i}`} unchanged.` } },
+    checkFrom(towerLaw, { n: N_DISTS[1] as Dist, stage: 'binomial', p: q(1, 2) }, t`${math`\mathbb{E}(X \mid N) = \frac{N}{${2}}`}, so ${math`\mathbb{E}(X) = \frac{\mathbb{E}(N)}{${2}} = \frac{${q(5, 2)}}{${2}} = ${q(5, 4)}`}.`),
+    { kind: 'section', title: t`Two working rules` },
+    { kind: 'p', text: t`Given ${math`Y`}, any function of ${math`Y`} is known, so it comes out like a constant: ${math`\mathbb{E}(g(Y)X \mid Y) = g(Y)\,\mathbb{E}(X \mid Y)`}. And if ${math`X`} is independent of ${math`Y`}, learning ${math`Y`} tells you nothing: ${math`\mathbb{E}(X \mid Y) = \mathbb{E}(X)`}.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`\mathbb{E}(f(N)) = f(\mathbb{E}(N))`}, so the tower law lets you plug in ${math`\mathbb{E}(N)`}.`, counterexample: t`With ${math`N`} equally likely to be ${1} or ${3}: ${math`\mathbb{E}(\tfrac{${1}}{N}) = \frac{${1}}{${2}}(${1} + \frac{${1}}{${3}}) = ${q(2, 3)}`}, but ${math`\frac{${1}}{\mathbb{E}(N)} = ${q(1, 2)}`}. The tower law averages ${math`\mathbb{E}(X \mid N)`} over ${math`N`}; plugging in works only when it is linear in ${math`N`}.` },
+    { kind: 'pitfall', claim: t`${math`\mathbb{E}(X \mid Y)`} is a number.`, counterexample: t`In the hook it is ${math`\frac{\text{roll}}{${2}}`}, which is one of ${math`${q(1, 2)}, ${1}, \ldots, ${3}`}, depending on the roll. Only its expectation, ${HOOK}, is a number.` },
+    { kind: 'takeaway', text: t`Condition on the first stage, find the mean in each case, then average over the first stage: ${math`\mathbb{E}(X) = \mathbb{E}(\mathbb{E}(X \mid Y))`}.` },
   ],
   examples: [
-    workedCambridge(q6),
+    { ...workedCambridge(q6), examiner: t`The examiner looks for the joint probability factorised by independence, ${math`X + Y`} shown Poisson by the binomial theorem, and the ratio simplified to a binomial.` },
     worked(conditionalMean, { xs: [0, 1, 2], ys: [0, 1], counts: [[3, 1], [2, 2], [1, 3]], total: 12, x: 0, y: 1 }, t`A mean given the value of ${math`Y`}`),
     worked(towerLaw, { n: N_DISTS[0] as Dist, stage: 'bernoulli-inverse', p: q(1, 2) }, t`The tower law where plugging in fails`),
   ],
@@ -344,5 +380,21 @@ export const conditionalExpectation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['conditional-distribution', 'conditional-expectation', 'tower-law'],
   cambridge: [q6sum, q8b, q6proof, q8proof, scheduleTower],
-  gate: ['ia-s2-q6-sum', 'ia-s3-q8-b', 'ia-s2-q6', 'ia-s3-q8-ab'],
+  gate: ['ia-s3-q8-ab', 'ia-s2-q6', 'ia-s3-q8-b'],
+  recall: [
+    { front: t`The conditional distribution of ${math`X`} given ${math`Y = y`}.`, back: t`${math`\mathbb{P}(X = x \mid Y = y) = \frac{\mathbb{P}(X = x, Y = y)}{\mathbb{P}(Y = y)}`}, for ${math`\mathbb{P}(Y = y) > ${0}`}.` },
+    { front: t`The tower law.`, back: t`${math`\mathbb{E}(X) = \mathbb{E}(\mathbb{E}(X \mid Y)) = \sum_{y} \mathbb{E}(X \mid Y = y)\mathbb{P}(Y = y)`}.` },
+    { front: t`The mean of a random sum ${math`S_{N}`}, ${math`N`} independent of the terms.`, back: t`${math`\mathbb{E}(S_{N}) = \mu\,\mathbb{E}(N)`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The tower law`,
+      steps: [
+        t`Write ${math`\mathbb{E}(\psi(Y)) = \sum_{y} \psi(y)\mathbb{P}(Y = y)`}.`,
+        t`Expand ${math`\psi(y)`} as ${math`\sum_{x} x\,\mathbb{P}(X = x, Y = y)/\mathbb{P}(Y = y)`} and cancel.`,
+        t`Swap the order of summation, allowed by absolute convergence.`,
+        t`The inner sum is ${math`\mathbb{P}(X = x)`}, leaving ${math`\mathbb{E}(X)`}.`,
+      ],
+    },
+  ],
 };

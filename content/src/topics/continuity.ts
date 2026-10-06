@@ -10,7 +10,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { math, t, type Rich } from '../rich';
-import { worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
+import { checkFrom, worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S1 = 'ia-prob-sheet-1' as const;
 const [mA, mn] = [math`A`, math`n`];
@@ -192,19 +192,50 @@ const decreasingProof = supervision({
 const claims: ProbabilityClaim[] = [
   { what: 'a fair coin: the first head comes on an even toss', exact: q(1, 3), trial: (rng) => geo(q(1, 2), rng) % 2 === 0 },
 ];
+const HALF = q(1, 2);
 
 export const continuity: TopicContent = {
   topicId: 'prob.continuity',
   goal: t`Use continuity of probability: for increasing events ${math`\mathbb{P}(A_{n}) \to \mathbb{P}(\bigcup A_{n})`}, and for decreasing events ${math`\mathbb{P}(A_{n}) \to \mathbb{P}(\bigcap A_{n})`}.`,
+  objective: t`Find the probability of a limit of events as the limit of their probabilities, for monotone sequences.`,
+  why: t`It turns "eventually" and "infinitely often" into numbers, and it underlies extinction and limit theorems.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Many events are limits: "a head eventually appears" is the union of "a head within ${mn} tosses" over all ${mn}. Continuity says the probability of the limit is the limit of the probabilities, provided the events move in one direction.` },
-    { kind: 'rule', text: t`[[continuity-of-probability|Continuity]]: if ${math`A_{${1}} \subseteq A_{${2}} \subseteq \cdots`} then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcup_{n} A_{n}\right)`}; if ${math`A_{${1}} \supseteq A_{${2}} \supseteq \cdots`} then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcap_{n} A_{n}\right)`}.` },
-    { kind: 'p', text: t`The proof (Sheet ${1} Q${4}(f)) cuts the increasing union into the disjoint pieces ${math`A_{n} \setminus A_{n - ${1}}`}; countable additivity makes ${math`\mathbb{P}(\bigcup A_{n})`} the sum of their probabilities, whose partial sums are the ${math`\mathbb{P}(A_{n})`}. The decreasing case follows by complements.` },
-    { kind: 'p', text: t`Example: toss a fair coin until the first head, at toss ${math`X`}. ${math`\mathbb{P}(X \le n) = ${1} - ${2}^{-n} \to ${1}`}, so a head eventually appears with probability ${1}. And with ${math`A_{n} = \{X \le ${2}n,\ X \text{ even}\}`}, increasing with union ${math`\{X \text{ even}\}`}, ${math`\mathbb{P}(A_{n}) = \frac{${1}}{${3}}(${1} - ${4}^{-n}) \to ${q(1, 3)}`}.` },
-    { kind: 'p', text: t`Q${6} builds limits of events that are not monotone from ones that are: "${math`A_{n}`} for all sufficiently large ${mn}" is ${math`\bigcup_{n} \bigcap_{k \ge n} A_{k}`}, an increasing union of decreasing intersections. Continuity applies to each layer.` },
+    { kind: 'section', title: t`Will a head ever come?` },
+    { kind: 'hook', text: t`Toss a fair coin again and again. The chance of at least one head in the first ${mn} tosses is ${math`${1} - ${2}^{-n}`}: ${HALF}, then ${q(3, 4)}, then ${q(7, 8)}, creeping towards ${1}. But "a head eventually comes" is one event, not a sequence. Is its probability really the limit, ${1}?` },
+    { kind: 'narrative', text: t`"A head eventually comes" is the union of the events "a head within ${mn} tosses", and those events grow with ${mn}. The axioms are about unions of disjoint events, so the plan is to slice a growing sequence into disjoint pieces and let countable additivity do the rest.` },
+    { kind: 'section', title: t`Monotone sequences of events` },
+    {
+      kind: 'definition',
+      name: t`Increasing and decreasing events`,
+      formal: t`Events ${math`A_{${1}}, A_{${2}}, \ldots`} are increasing if ${math`A_{n} \subseteq A_{n + ${1}}`} for every ${mn}, with limit ${math`\bigcup_{n} A_{n}`}; decreasing if ${math`A_{n} \supseteq A_{n + ${1}}`} for every ${mn}, with limit ${math`\bigcap_{n} A_{n}`}.`,
+      plain: t`Increasing events only gain outcomes, and their limit is everything they ever contain. With ${math`X`} the toss of the first head, the events ${math`\{X \le n\}`} increase, and their union is ${math`\{X \text{ finite}\}`}.`,
+    },
+    { kind: 'theorem', name: t`Continuity from below`, statement: t`If ${math`A_{${1}} \subseteq A_{${2}} \subseteq \cdots`}, then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcup_{n} A_{n}\right)`} as ${math`n \to \infty`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Slice into rings`, text: t`Let ${math`B_{${1}} = A_{${1}}`} and ${math`B_{n} = A_{n} \setminus A_{n - ${1}}`} for ${math`n \ge ${2}`}.`, plain: t`${math`B_{n}`} holds the outcomes that first appear at stage ${mn}, like the rings of a tree.` },
+        { label: t`Check the slices`, text: t`The ${math`B_{n}`} are pairwise disjoint events, ${math`A_{n} = B_{${1}} \cup \cdots \cup B_{n}`}, and ${math`\bigcup_{n} A_{n} = \bigcup_{n} B_{n}`}.`, why: { q: t`Why is ${math`A_{n}`} the union of the first ${mn} slices?`, a: t`An outcome of ${math`A_{n}`} has a first stage ${math`k \le n`} at which it appears, and it lies in ${math`B_{k}`}; because the sequence increases, it stays in every later ${math`A_{j}`}.` } },
+        { label: t`Countable additivity`, text: t`${math`\mathbb{P}\left(\bigcup_{n} A_{n}\right) = \sum_{k = ${1}}^{\infty} \mathbb{P}(B_{k}) = \lim_{n \to \infty} \sum_{k = ${1}}^{n} \mathbb{P}(B_{k})`}.`, plain: t`An infinite sum is, by definition, the limit of its partial sums.` },
+        { label: t`Finite additivity`, text: t`${math`\sum_{k = ${1}}^{n} \mathbb{P}(B_{k}) = \mathbb{P}(A_{n})`}, so ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcup_{n} A_{n}\right)`}.` },
+      ],
+    },
+    { kind: 'p', text: t`This is [[continuity-of-probability|continuity of probability]]. For the hook: ${math`\mathbb{P}(X \text{ finite}) = \lim (${1} - ${2}^{-n}) = ${1}`}, so a head comes eventually with probability ${1}. Another limit: ${math`A_{n} = \{X \le ${2}n,\ X \text{ even}\}`} increases to ${math`\{X \text{ even}\}`}, and ${math`\mathbb{P}(A_{n}) = \frac{${1}}{${4}} + \frac{${1}}{${16}} + \cdots + \frac{${1}}{${4}^{n}} = \frac{${1}}{${3}}(${1} - ${4}^{-n}) \to ${q(1, 3)}`}.` },
+    checkFrom(increasingLimit, { r: q(1, 3), kind: 'odd' }, t`The events increase to ${math`\{X \text{ odd}\}`}, whose probability is ${math`${q(2, 3)}\left(${1} + \frac{${1}}{${9}} + \frac{${1}}{${81}} + \cdots\right) = ${q(2, 3)} \cdot ${q(9, 8)} = ${q(3, 4)}`}.`),
+    { kind: 'theorem', name: t`Continuity from above`, statement: t`If ${math`A_{${1}} \supseteq A_{${2}} \supseteq \cdots`}, then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcap_{n} A_{n}\right)`} as ${math`n \to \infty`}.` },
+    { kind: 'p', text: t`It follows from continuity from below applied to the complements, which increase; writing that out is one of the gate problems. For example, ${math`B_{n} = \{X \text{ even}\} \cup \{X > n\}`} decreases to ${math`\{X \text{ even}\}`}, since ${math`X`} is finite.` },
+    checkFrom(decreasingLimit, { r: HALF, kind: 'even-or-late' }, t`The intersection is ${math`\{X \text{ even}\}`}, probability ${q(1, 3)} for a fair coin.`),
+    { kind: 'section', title: t`Infinitely often and eventually` },
+    { kind: 'p', text: t`Example Sheet ${1} Q${6} builds limits of any sequence from monotone ones. "${math`A_{n}`} for all sufficiently large ${mn}" is ${math`\bigcup_{n} \bigcap_{k \ge n} A_{k}`}: the intersections ${math`\bigcap_{k \ge n} A_{k}`} increase with ${mn}. "${math`A_{n}`} infinitely often" is ${math`\bigcap_{n} \bigcup_{k \ge n} A_{k}`}, where the unions decrease. Continuity applies to each layer.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`For any sequence of events, ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcup_{n} A_{n}\right)`}.`, counterexample: t`Toss a coin once; let ${math`A_{n}`} be "heads" for even ${mn} and "tails" for odd ${mn}. Every ${math`\mathbb{P}(A_{n}) = ${HALF}`}, but the union is certain. The theorem needs the events to increase.` },
+    { kind: 'pitfall', claim: t`If increasing events have a union of probability ${1}, one of them already has probability ${1}.`, counterexample: t`${math`\{X \le n\}`} increase to an event of probability ${1}, yet each has probability ${math`${1} - ${2}^{-n} < ${1}`}. Only the limit reaches ${1}.` },
+    { kind: 'takeaway', text: t`For events that only grow, or only shrink, the probability of the limit is the limit of the probabilities.` },
   ],
   examples: [
-    q4f,
+    { ...q4f, examiner: t`The examiner looks for the disjoint slices defined and checked, countable additivity named, and the partial sums identified with ${math`\mathbb{P}(A_{n})`}.` },
     worked(increasingLimit, { r: q(1, 2), kind: 'even' }, t`The first head on an even toss, as a limit`),
     worked(finiteStep, { r: q(1, 2), n: 2 }, t`One member of the sequence`),
   ],
@@ -213,5 +244,21 @@ export const continuity: TopicContent = {
   terms: ['continuity-of-probability'],
   claims,
   cambridge: [q6alt, q6cont, decreasingProof],
-  gate: ['ia-q6-alternating', 'ia-q6-continuity', 'ia-q4-f-decreasing'],
+  gate: ['ia-q6-continuity', 'ia-q4-f-decreasing', 'ia-q6-alternating'],
+  recall: [
+    { front: t`Continuity from below.`, back: t`If ${math`A_{n} \subseteq A_{n + ${1}}`} for all ${mn}, then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcup A_{n}\right)`}.` },
+    { front: t`Continuity from above.`, back: t`If ${math`A_{n} \supseteq A_{n + ${1}}`} for all ${mn}, then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcap A_{n}\right)`}.` },
+    { front: t`"${math`A_{n}`} eventually" as a set.`, back: t`${math`\bigcup_{n} \bigcap_{k \ge n} A_{k}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Continuity from below`,
+      steps: [
+        t`Slice: ${math`B_{${1}} = A_{${1}}`} and ${math`B_{n} = A_{n} \setminus A_{n - ${1}}`}.`,
+        t`The slices are disjoint, with ${math`A_{n} = B_{${1}} \cup \cdots \cup B_{n}`} and the same union as the ${math`A_{n}`}.`,
+        t`Countable additivity: ${math`\mathbb{P}\left(\bigcup A_{n}\right) = \lim_{n} \sum_{k \le n} \mathbb{P}(B_{k})`}.`,
+        t`Finite additivity: each partial sum is ${math`\mathbb{P}(A_{n})`}.`,
+      ],
+    },
+  ],
 };

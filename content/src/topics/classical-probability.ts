@@ -11,7 +11,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mn, mOmega] = [math`n`, math`\Omega`];
 const fl = (n: number, d: number): number => Math.floor(n / d);
@@ -313,35 +313,55 @@ const q2space = supervision({
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
+  { what: 'two fair dice total 7', exact: q(1, 6), trial: (rng: Rng) => 2 + Math.floor(rng() * 6) + Math.floor(rng() * 6) === 7 },
+  { what: 'two fair coins show exactly one head', exact: q(1, 2), trial: (rng: Rng) => (rng() < 0.5 ? 1 : 0) + (rng() < 0.5 ? 1 : 0) === 1 },
   {
-    what: 'two players of eight meet in the tournament', exact: q(1, 4),
-    trial: (rng: Rng) => {
-      // Random places for players 0 and 1 among 8, fair matches; do they meet?
-      const places = [0, 1, 2, 3, 4, 5, 6, 7];
-      for (let i = 7; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [places[i], places[j]] = [places[j] as number, places[i] as number]; }
-      const [x, y] = [places.indexOf(0), places.indexOf(1)];
-      for (let r = 1; r <= 3; r++) {
-        if ((x >> r) === (y >> r)) return true;
-        if (rng() < 0.5) return false;
-        if (rng() < 0.5) return false;
-      }
-      return false;
-    },
+    what: 'two cards dealt from a full deck are both red', exact: q(25, 102),
+    trial: (rng: Rng) => { const a = Math.floor(rng() * 52); let b = Math.floor(rng() * 51); if (b >= a) b++; return a < 26 && b < 26; },
   },
 ];
+const sevens = 6;
+const bothRed = q(26 * 25, 52 * 51);
 
 export const classicalProbability: TopicContent = {
   topicId: 'prob.classical-probability',
   goal: t`Model an experiment as a finite set of equally likely outcomes, with events as subsets, and compute ${math`P(A) = |A| / |\Omega|`} by counting.`,
+  objective: t`Model an experiment as equally likely outcomes, events as subsets, and find probabilities by counting.`,
+  why: t`IA Probability starts here, and choosing the right sample space is the skill every later question needs.`,
+  minutes: 15,
   lesson: [
-    { kind: 'p', text: t`IA Probability starts with classical probability. An experiment has a finite [[sample-space-classical|sample space]] ${mOmega}, the set of its possible outcomes, all equally likely. An event is a subset ${math`A \subseteq \Omega`}, and its probability is the share of the outcomes it contains.` },
-    { kind: 'rule', text: t`${dmath`P(A) = \frac{|A|}{|\Omega|}.`} Then ${math`P(\Omega) = ${1}`}, ${math`P(A^{c}) = ${1} - P(A)`}, and if ${math`A`} and ${math`B`} are disjoint, ${math`P(A \cup B) = P(A) + P(B)`}: they come from counting.` },
-    { kind: 'p', text: t`The work is in choosing ${mOmega} so that its outcomes really are equally likely. Two dice: the ${36} ordered pairs are; the ${11} totals are not. Halving a deck: the ${math`\binom{${52}}{${26}}`} choices of the first half are equally likely, so the chance of ${13} red cards in each half is ${math`\binom{${26}}{${13}}^{${2}} / \binom{${52}}{${26}} \approx ${Number(toFloat(deck).toFixed(4))}`}, much less than one half.` },
-    { kind: 'p', text: t`One space can serve several questions. The tournament question's hint: for two players chosen at random among ${math`${2}^{n}`}, take their places in the draw. They meet in the first round with probability ${math`\frac{${1}}{${2}^{n} - ${1}}`}, and in some round with probability ${math`\frac{${1}}{${2}^{n - ${1}}}`}, by counting the ${math`${2}^{n} - ${1}`} matches among all ${math`\binom{${2}^{n}}{${2}}`} pairs.` },
-    { kind: 'p', text: t`Mary tosses ${2} coins and John ${1}: of the ${8} equally likely outcomes, Mary has more heads in ${4}, so the probability is ${coins(2, 1)}. With ${3} coins against ${2} it is ${coins(3, 2)} again, which suggests a conjecture worth proving.` },
+    { kind: 'section', title: t`Three outcomes, or four?` },
+    { kind: 'hook', text: t`Toss two fair coins. You get no heads, one head, or two heads: three possibilities. So is the chance of exactly one head ${q(1, 3)}? Toss two coins a few hundred times and you will see one head about half the time. Where did the argument go wrong?` },
+    { kind: 'narrative', text: t`The three possibilities are not equally likely. Tell the coins apart, a penny and a dime, and there are four outcomes: HH, HT, TH, TT. These are equally likely, and two of them have one head. Counting works, but only when you count outcomes that really are equally likely. That choice is the whole art of classical probability.` },
+    { kind: 'section', title: t`Outcomes and events` },
+    {
+      kind: 'definition',
+      name: t`Classical probability`,
+      formal: t`A classical model of an experiment is a finite, nonempty [[sample-space-classical|sample space]] ${mOmega} of equally likely outcomes. An event is a subset ${math`A \subseteq \Omega`}, and its probability is ${dmath`P(A) = \frac{|A|}{|\Omega|},`} where ${math`|A|`} is the number of outcomes in ${math`A`}.`,
+      plain: t`List what can happen so that each item is equally likely; an event is a collection of items; its probability is the fraction of the list it takes up. Two coins: ${math`\Omega = \{HH, HT, TH, TT\}`}, and "one head" is ${math`\{HT, TH\}`}, probability ${q(2, 4)}.`,
+    },
+    { kind: 'theorem', statement: t`In a classical model, ${math`P(\Omega) = ${1}`}, ${math`P(A^{c}) = ${1} - P(A)`}, and if ${math`A \cap B = \varnothing`} then ${math`P(A \cup B) = P(A) + P(B)`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The whole space`, text: t`${math`P(\Omega) = \frac{|\Omega|}{|\Omega|} = ${1}`}.` },
+        { label: t`Disjoint events`, text: t`If ${math`A`} and ${math`B`} share no outcome, then ${math`|A \cup B| = |A| + |B|`}; divide by ${math`|\Omega|`}.`, plain: t`Counting two separate piles is counting each and adding.` },
+        { label: t`Complements`, text: t`${math`A`} and ${math`A^{c}`} are disjoint with union ${mOmega}, so ${math`P(A) + P(A^{c}) = ${1}`}.` },
+      ],
+    },
+    { kind: 'section', title: t`Choosing the sample space` },
+    { kind: 'p', text: t`Two dice: take ${mOmega} to be the ${36} ordered pairs (first die, second die). Each is equally likely. The ${11} possible totals are not: a total of ${2} needs ${math`(${1}, ${1})`}, but a total of ${7} comes from ${sevens} pairs, ${math`(${1}, ${6}), (${2}, ${5}), \ldots, (${6}, ${1})`}. So ${math`P(\text{total } ${7}) = \frac{${sevens}}{${36}} = ${q(sevens, 36)}`}.` },
+    checkFrom(largerDie, { k: 5, kind: 'min' }, t`The smaller score is at least ${5} in ${math`${2} \times ${2} = ${4}`} pairs and at least ${6} in ${1}, so it is exactly ${5} in ${3} of the ${36} pairs.`),
+    { kind: 'p', text: t`Counting is often done with binomial coefficients. Deal two cards from a shuffled deck of ${52}. Take ${mOmega} to be the ${math`\binom{${52}}{${2}} = ${52 * 51 / 2}`} equally likely pairs of cards. Both are red for ${math`\binom{${26}}{${2}} = ${26 * 25 / 2}`} of them, so ${math`P(\text{both red}) = \frac{${26 * 25 / 2}}{${52 * 51 / 2}} = ${bothRed}`}, a little under a quarter.`, why: { q: t`Why not count ordered deals instead?`, a: t`You may, as long as you are consistent: ${math`${52} \times ${51}`} ordered deals, of which ${math`${26} \times ${25}`} are both red, give the same ${bothRed}. Mixing ordered counts on top with unordered counts below is the error to avoid.` } },
+    { kind: 'p', text: t`One space can answer several questions. Example Sheet ${1} Q${2} chooses two players at random from a knock-out tournament of ${math`${2}^{n}`}; its hint is to fix one probability space for all three parts. The first worked example uses the players' places in the draw.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`With two coins, "no heads", "one head", and "two heads" each have probability ${q(1, 3)}.`, counterexample: t`"One head" is two of the four equally likely outcomes, ${math`\{HT, TH\}`}, so its probability is ${q(1, 2)}; the other two have ${q(1, 4)} each.` },
+    { kind: 'pitfall', claim: t`A total of ${2} and a total of ${7} with two dice are equally likely, being one total each.`, counterexample: t`Total ${2} is the single pair ${math`(${1}, ${1})`}, probability ${q(1, 36)}; total ${7} is ${sevens} pairs, probability ${q(sevens, 36)}.` },
+    { kind: 'takeaway', text: t`Choose outcomes that are truly equally likely, then a probability is a count over a count.` },
   ],
   examples: [
-    workedCambridge(q2a),
+    { ...workedCambridge(q2a), examiner: t`The examiner looks for the probability space stated, the symmetry that makes the second player's place uniform, and the count of other places.` },
     worked(butNot, { n: 100, a: 4, b: 6 }, t`Divisible by ${4} but not by ${6}`),
     worked(largerDie, { k: 4, kind: 'max' }, t`The larger of two dice`),
   ],
@@ -350,5 +370,19 @@ export const classicalProbability: TopicContent = {
   terms: ['sample-space-classical'],
   claims,
   cambridge: [q2b, q2c, q3, q11, q11proof, q2space],
-  gate: ['ia-q2-b', 'ia-q2-c', 'ia-q3', 'ia-q11', 'ia-q11-proof', 'ia-q2-space'],
+  gate: ['ia-q2-c', 'ia-q11-proof', 'ia-q3', 'ia-q2-b', 'ia-q11', 'ia-q2-space'],
+  recall: [
+    { front: t`Classical probability of an event ${math`A`}.`, back: t`${math`P(A) = \frac{|A|}{|\Omega|}`}, for a finite sample space of equally likely outcomes.` },
+    { front: t`The sample space for two dice.`, back: t`The ${36} ordered pairs, all equally likely; the totals are not equally likely.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The complement rule by counting`,
+      steps: [
+        t`${math`A`} and ${math`A^{c}`} share no outcome, so ${math`|A| + |A^{c}| = |\Omega|`}.`,
+        t`Divide by ${math`|\Omega|`}: ${math`P(A) + P(A^{c}) = ${1}`}.`,
+        t`Rearrange: ${math`P(A^{c}) = ${1} - P(A)`}.`,
+      ],
+    },
+  ],
 };

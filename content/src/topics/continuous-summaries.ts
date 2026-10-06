@@ -13,7 +13,7 @@ import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../mat
 import { bisect, integrateToInfinity, near, pw, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
 import { math, t } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mX, mf] = [math`X`, math`f`];
 const S2 = 'step-s2-stats' as const;
@@ -385,21 +385,63 @@ const exMedian = 2 * 0.5 ** (1 / 3);
 const P32 = q(27, 64);
 const claims: ProbabilityClaim[] = [
   { what: 'P(X ≤ 3/2) for the density 3x²/8 on [0, 2]', exact: P32, trial: (rng) => 2 * rng() ** (1 / 3) <= 1.5 },
+  { what: 'P(X ≤ median) = 1/2 for the density 3x²/8 on [0, 2]', exact: q(1, 2), trial: (rng) => 2 * rng() ** (1 / 3) <= 2 * 0.5 ** (1 / 3) },
 ];
 
 export const continuousSummaries: TopicContent = {
   topicId: 'rv.continuous-summaries',
   goal: t`Compute the mean, ${math`E(g(X))`}, the variance, the median, and the mode of a given density, by explicit integration.`,
+  objective: t`Compute the mean, variance, median, and mode of a density by integration.`,
+  why: t`Every continuous model is summarised this way; STEP statistics questions ask for all four.`,
+  minutes: 20,
   lesson: [
-    { kind: 'rule', text: t`For a density ${mf}: ${math`E(X) = \int_{-\infty}^{\infty} x\,f(x)\,dx`}, and for a function ${math`g`}, ${math`E(g(X)) = \int_{-\infty}^{\infty} g(x)\,f(x)\,dx`}. The variance is ${math`\operatorname{Var}(X) = E(X^{${2}}) - (E X)^{${2}}`}.` },
-    { kind: 'p', text: t`These are the discrete formulas with the sum replaced by an integral and ${math`P(X = x)`} by ${math`f(x)\,dx`}. Take ${math`f(x) = ${coef(EX)}\,x^{${2}}`} on ${math`[${0}, ${2}]`}: ${math`E(X) = \int_{${0}}^{${2}} ${coef(EX)}\,x^{${3}}\,dx = ${exMean}`}, ${math`E(X^{${2}}) = \int_{${0}}^{${2}} ${coef(EX)}\,x^{${4}}\,dx = ${exSecond}`}, and ${math`\operatorname{Var}(X) = ${exSecond} - ${mul(exMean, exMean)} = ${exVar}`}.` },
-    { kind: 'rule', text: t`The [[median-of-density|median]] ${math`m`} splits the area in half: ${math`F(m) = \int_{-\infty}^{m} f(x)\,dx = \tfrac{${1}}{${2}}`}. The [[mode-of-density|mode]] is where ${mf} is largest.` },
-    { kind: 'p', text: t`For the same density, ${math`F(m) = m^{${3}}/${8} = \tfrac{${1}}{${2}}`} gives ${math`m = \sqrt[${3}]{${4}} \approx ${Number(exMedian.toFixed(4))}`}, and ${mf} increases, so the mode is the end point ${2}. Mean ${exMean}, median ${Number(exMedian.toFixed(3))}, mode ${2}: the long tail is on the left, and it pulls the mean furthest. And ${math`P(X \le \tfrac{${3}}{${2}}) = \left(\tfrac{${3}}{${4}}\right)^{${3}} = ${P32}`}.` },
-    { kind: 'p', text: t`For a density made of pieces, first find which piece holds the median by adding the areas of the pieces in turn, then solve ${math`F(m) = \tfrac{${1}}{${2}}`} inside that piece. STEP ${2} Statistics Q${6} needs two cases for exactly this reason: the median is in the first step when that step's area is at least ${q(1, 2)}, and in the second otherwise.` },
-    { kind: 'p', text: t`On an infinite range the integrals are improper, and integration by parts usually does the work. For the distance ${math`R`} with density ${math`r e^{-r^{${2}}/${2}}`} (Sheet ${4} Q${9}), the mean is ${math`\sqrt{\pi/${2}} \approx ${Number(Math.sqrt(Math.PI / 2).toFixed(4))}`}, the median ${math`\sqrt{\ln ${4}} \approx ${Number(Math.sqrt(Math.log(4)).toFixed(4))}`}, and the mode ${1}. A mean need not exist at all: the Cauchy density ${math`\frac{a}{\pi(a^{${2}} + x^{${2}})}`} of Sheet ${4} Q${10} makes ${math`\int |x|\,f(x)\,dx`} infinite.` },
+    { kind: 'section', title: t`Three centres` },
+    { kind: 'hook', text: t`${mX} has density ${math`f(x) = ${coef(EX)}x^{${2}}`} on ${math`[${0}, ${2}]`}: values near ${2} are the most likely. Where is the centre of this distribution? Its balance point is ${exMean}. The point that splits the probability in half is about ${Number(exMedian.toFixed(3))}. The single most likely value is ${2}. Three honest answers, three different numbers.` },
+    { kind: 'narrative', text: t`Each answers a different question, and each has a precise definition. For a discrete variable you would sum over values; for a density, probability is spread continuously, so sums become integrals and ${math`P(X = x)`} becomes ${math`f(x)\,dx`}.` },
+    { kind: 'section', title: t`The mean and the variance` },
+    {
+      kind: 'definition',
+      name: t`Expectation of a continuous random variable`,
+      formal: t`If ${mX} has density ${mf} and ${math`\int_{-\infty}^{\infty} |x|\,f(x)\,dx < \infty`}, the expectation of ${mX} is ${math`E(X) = \int_{-\infty}^{\infty} x\,f(x)\,dx`}. For a function ${math`g`}, ${math`E(g(X)) = \int_{-\infty}^{\infty} g(x)\,f(x)\,dx`}, when ${math`\int |g(x)|\,f(x)\,dx < \infty`}.`,
+      plain: t`Weight each value by its density and add up. For the hook: ${math`E(X) = \int_{${0}}^{${2}} x \cdot ${coef(EX)}x^{${2}}\,dx = ${coef(EX)} \cdot \frac{${2}^{${4}}}{${4}} = ${exMean}`}.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Variance`,
+      formal: t`If ${math`E(X^{${2}}) < \infty`}, the variance of ${mX} is ${math`\operatorname{Var}(X) = E\big((X - \mu)^{${2}}\big)`}, where ${math`\mu = E(X)`}.`,
+      plain: t`The average squared distance from the mean: how spread out ${mX} is.`,
+    },
+    { kind: 'theorem', statement: t`If ${math`E(X^{${2}}) < \infty`}, then ${math`\operatorname{Var}(X) = E(X^{${2}}) - \big(E(X)\big)^{${2}}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Expand the square`, text: t`${math`\operatorname{Var}(X) = \int (x - \mu)^{${2}} f(x)\,dx = \int (x^{${2}} - ${2}\mu x + \mu^{${2}}) f(x)\,dx`}.` },
+        { label: t`Split the integral`, text: t`${math`= \int x^{${2}} f(x)\,dx - ${2}\mu \int x f(x)\,dx + \mu^{${2}} \int f(x)\,dx`}.`, plain: t`Integrals are linear, and ${math`\mu`} is a constant.` },
+        { label: t`Recognise each piece`, text: t`${math`= E(X^{${2}}) - ${2}\mu \cdot \mu + \mu^{${2}} \cdot ${1} = E(X^{${2}}) - \mu^{${2}}`}.`, plain: t`A density integrates to ${1}.` },
+      ],
+    },
+    { kind: 'p', text: t`For the hook: ${math`E(X^{${2}}) = \int_{${0}}^{${2}} ${coef(EX)}x^{${4}}\,dx = ${coef(EX)} \cdot \frac{${2}^{${5}}}{${5}} = ${exSecond}`}, so ${math`\operatorname{Var}(X) = ${exSecond} - \left(${exMean}\right)^{${2}} = ${exVar}`}.` },
+    checkFrom(powerMean, { n: 1, m: 3 }, t`${math`\int_{${0}}^{${3}} x \cdot \frac{${2}x}{${9}}\,dx = \frac{${2}}{${9}} \cdot \frac{${27}}{${3}} = ${2}`}.`),
+    { kind: 'section', title: t`The median and the mode` },
+    {
+      kind: 'definition',
+      name: t`Median and mode`,
+      formal: t`A [[median-of-density|median]] of ${mX} is a number ${math`m`} with ${math`F(m) = \int_{-\infty}^{m} f(x)\,dx = \tfrac{${1}}{${2}}`}. A [[mode-of-density|mode]] is a value of ${math`x`} at which ${mf} is largest.`,
+      plain: t`The median cuts the area under ${mf} into two halves; the mode is the peak. For the hook, ${math`F(m) = \frac{m^{${3}}}{${8}} = \frac{${1}}{${2}}`} gives ${math`m = \sqrt[${3}]{${4}} \approx ${Number(exMedian.toFixed(4))}`}, and ${mf} increases on ${math`[${0}, ${2}]`}, so the mode is the end point ${2}.`,
+    },
+    { kind: 'p', text: t`So mean ${exMean}, median ${Number(exMedian.toFixed(3))}, mode ${2}. The long tail is on the left, towards ${0}, and the mean, which feels every value in proportion to its size, is pulled furthest that way. And probabilities come from ${math`F`} too: ${math`P(X \le \tfrac{${3}}{${2}}) = \left(\tfrac{${3}}{${4}}\right)^{${3}} = ${P32}`}.` },
+    { kind: 'p', text: t`For a density made of pieces, first find which piece holds the median by adding the areas of the pieces in turn; then solve ${math`F(m) = \tfrac{${1}}{${2}}`} inside that piece. STEP ${2} Statistics Q${6} turns on exactly this: whether the first step's area reaches ${q(1, 2)}.` },
+    checkFrom(stepMedianGen, { k: q(1, 2), b: q(1, 2) }, t`The second step has area ${q(1, 4)}, so the first has ${q(3, 4)} and height ${q(3, 2)}; ${q(3, 4)} is at least ${q(1, 2)}, so the median solves ${math`${q(3, 2)}m = ${q(1, 2)}`}: ${math`m = ${q(1, 3)}`}.`),
+    { kind: 'section', title: t`Infinite ranges` },
+    { kind: 'p', text: t`On an infinite range the integrals are improper, and integration by parts does most of the work. For the exponential density ${math`\lambda e^{-\lambda x}`} on ${math`x \ge ${0}`}: ${math`E(X) = \int_{${0}}^{\infty} x\lambda e^{-\lambda x}\,dx = \left[-xe^{-\lambda x}\right]_{${0}}^{\infty} + \int_{${0}}^{\infty} e^{-\lambda x}\,dx = \frac{${1}}{\lambda}`}, while ${math`F(m) = ${1} - e^{-\lambda m} = \tfrac{${1}}{${2}}`} gives the median ${math`\frac{\ln ${2}}{\lambda}`}, smaller than the mean, and the mode is ${0}.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`E(X^{${2}}) = \big(E(X)\big)^{${2}}`}.`, counterexample: t`For the hook, ${math`E(X^{${2}}) = ${exSecond}`} but ${math`(E X)^{${2}} = ${mul(exMean, exMean)}`}. The difference is the variance, ${exVar}, which is never negative.` },
+    { kind: 'pitfall', claim: t`Every density has a mean.`, counterexample: t`The Cauchy density ${math`\frac{${1}}{\pi(${1} + x^{${2}})}`} has ${math`\int |x|\,f(x)\,dx = \infty`}: for large ${math`|x|`} the integrand is about ${math`\frac{${1}}{\pi|x|}`}, whose integral diverges. Its median, ${0}, exists.` },
+    { kind: 'takeaway', text: t`Mean and variance are integrals against ${mf}; the median solves ${math`F(m) = \tfrac{${1}}{${2}}`}; the mode is the peak of ${mf}.` },
   ],
   examples: [
-    workedCambridge(q2iii),
+    { ...workedCambridge(q2iii), examiner: t`The examiner looks for the piece that holds the median found first, then ${math`F(m) = \tfrac{${1}}{${2}}`} solved inside it.` },
     worked(powerVariance, EX, t`The variance of ${math`${coef(EX)}\,x^{${2}}`} on ${math`[${0}, ${2}]`}`),
     worked(stepMedianGen, { k: q(1, 4), b: q(2, 3) }, t`Which step holds the median`),
   ],
@@ -408,15 +450,21 @@ export const continuousSummaries: TopicContent = {
   terms: ['median-of-density', 'mode-of-density'],
   claims,
   cambridge: [q6median, q4mean, s3mean, s3time, q9median, q9mean, q4var, q6proofs, s3medians],
-  gate: [
-    's2-q6-ii',
-    's2-q4-mean',
-    's3-q4-mean-speed',
-    's3-q4-mean-time',
-    'ia4-q9-b-median',
-    'ia4-q9-b-mean',
-    's2-q4-variance',
-    's2-q6-i-iii',
-    's3-q4-medians',
+  gate: ['s3-q4-medians', 's2-q6-i-iii', 's2-q4-variance', 's3-q4-mean-time', 's2-q4-mean', 'ia4-q9-b-mean', 's3-q4-mean-speed', 's2-q6-ii', 'ia4-q9-b-median'],
+  recall: [
+    { front: t`${math`E(X)`} and ${math`E(g(X))`} for a density ${mf}.`, back: t`${math`\int x f(x)\,dx`} and ${math`\int g(x) f(x)\,dx`}, when the integrals converge absolutely.` },
+    { front: t`The variance shortcut.`, back: t`${math`\operatorname{Var}(X) = E(X^{${2}}) - (E X)^{${2}}`}.` },
+    { front: t`The median and the mode of a density.`, back: t`The median solves ${math`F(m) = \tfrac{${1}}{${2}}`}; the mode is where ${mf} is largest.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${math`\operatorname{Var}(X) = E(X^{${2}}) - \mu^{${2}}`}`,
+      steps: [
+        t`Write ${math`\operatorname{Var}(X) = \int (x - \mu)^{${2}} f(x)\,dx`}.`,
+        t`Expand: ${math`\int (x^{${2}} - ${2}\mu x + \mu^{${2}}) f(x)\,dx`}.`,
+        t`Split into ${math`E(X^{${2}}) - ${2}\mu E(X) + \mu^{${2}}`}, using ${math`\int f = ${1}`}.`,
+        t`Since ${math`E(X) = \mu`}, this is ${math`E(X^{${2}}) - \mu^{${2}}`}.`,
+      ],
+    },
   ],
 };

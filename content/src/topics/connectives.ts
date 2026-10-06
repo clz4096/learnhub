@@ -10,7 +10,7 @@ import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { generator, type AnswerSpec, type ChoiceOption, type Misconception } from '../problem';
 import { math, t, type Rich, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 type F =
   | { op: 'var'; v: 'P' | 'Q' | 'R' }
@@ -642,32 +642,55 @@ const ex = or(not(P), Q);
 export const connectives: TopicContent = {
   topicId: 'logic.connectives',
   goal: t`Combine statements with and, or, and not, write sentences in symbols, and work out the truth of the result with a truth table.`,
+  objective: t`Combine statements with and, or, and not, and find when the result is true with a truth table.`,
+  why: t`Every theorem is built from these three words; implication, quantifiers, and proof all come next.`,
+  minutes: 15,
   lesson: [
-    { kind: 'p', text: t`A [[statement|statement]] is a sentence that is either true or false, such as "${21} is divisible by ${3}". Whether it is true or false is its [[truth-value|truth value]]. Letters such as ${mP} and ${mQ} stand for statements.` },
-    { kind: 'p', text: t`A sentence with a variable, such as "${math`x`} is divisible by ${3}", is not yet a statement: it is true for some ${math`x`} and false for others. Book of Proof calls it an [[open-sentence|open sentence]]. It becomes a statement when ${math`x`} is given a value, or when it is true or false whatever ${math`x`} is: "${math`x`} is a multiple of ${7} or it is not" is a true statement.` },
+    { kind: 'section', title: t`Truth from structure` },
+    { kind: 'hook', text: t`Is "${math`x > ${3}`} and ${math`x < ${1}`}" ever true? Is "${mn} is even or ${mn} is not even" ever false? You can answer both without knowing anything about ${math`x`} or ${mn}: the answer comes from the words "and", "or", and "not". This lesson makes those three words precise.` },
+    { kind: 'narrative', text: t`In everyday speech these words are slippery. "Tea or coffee?" usually means one, not both. Mathematics cannot afford that, so each word gets an exact rule: given the truth of the parts, the rule says the truth of the whole. First, what counts as a part.` },
+    { kind: 'section', title: t`Statements` },
     {
-      kind: 'list',
-      items: [
-        t`"${mP} and ${mQ}", the [[conjunction|conjunction]], is true when both are true. It is written ${math`P \land Q`}.`,
-        t`"${mP} or ${mQ}", the [[disjunction|disjunction]], is true when at least one is true, including when both are. It is written ${math`P \lor Q`}.`,
-        t`"not ${mP}", the [[negation|negation]], is true exactly when ${mP} is false. It is written ${math`\lnot P`}.`,
-      ],
+      kind: 'definition',
+      name: t`Statement, truth value, open sentence`,
+      formal: t`A [[statement|statement]] is a sentence that is either true or false, but not both; which one is its [[truth-value|truth value]], T or F. A sentence containing a variable, true for some values and false for others, is an [[open-sentence|open sentence]].`,
+      plain: t`"${21} is divisible by ${3}" is a true statement. "${math`x`} is divisible by ${3}" is an open sentence: true for ${math`x = ${6}`}, false for ${math`x = ${7}`}. It becomes a statement once ${math`x`} has a value. Letters such as ${mP} and ${mQ} stand for statements.`,
+    },
+    { kind: 'section', title: t`And, or, not` },
+    {
+      kind: 'definition',
+      name: t`Conjunction, disjunction, negation`,
+      formal: t`For statements ${mP} and ${mQ}: the [[conjunction|conjunction]] ${math`P \land Q`} ("${mP} and ${mQ}") is true exactly when both are true; the [[disjunction|disjunction]] ${math`P \lor Q`} ("${mP} or ${mQ}") is true exactly when at least one is true; the [[negation|negation]] ${math`\lnot P`} ("not ${mP}") is true exactly when ${mP} is false.`,
+      plain: t`"Or" in mathematics always allows both: "${6} is even or ${6} is a multiple of ${3}" is true. Book of Proof writes ${math`\sim P`} for ${math`\lnot P`}.`,
     },
     {
-      kind: 'table', caption: t`A [[truth-table|truth table]] lists every combination of truth values, one per row.`,
+      kind: 'definition',
+      name: t`Truth table`,
+      formal: t`A [[truth-table|truth table]] for a compound statement lists one row for each assignment of truth values to its simple statements, and gives the value of the compound in each row.`,
+      plain: t`The three definitions above, written as one table:`,
+    },
+    {
+      kind: 'table', caption: t`The truth tables of and, or, and not.`,
       head: [[mP], [mQ], [math`P \land Q`], [math`P \lor Q`], [math`\lnot P`]],
       rows: two.map((r) => [yn(r.P), yn(r.Q), yn(r.P && r.Q), yn(r.P || r.Q), yn(!r.P)]),
     },
-    { kind: 'p', text: t`With ${2} statements there are ${two.length} rows; each extra statement doubles the count, so ${3} statements give ${math`${2}^{${3}} = ${2 ** 3}`} rows.` },
-    { kind: 'p', text: t`In everyday speech "or" often means one but not both ("tea or coffee?"). In mathematics "or" always allows both. Saying "one but not both" needs more words: ${math`(P \lor Q) \land \lnot (P \land Q)`}, "${mP} or ${mQ}, and not both".` },
-    { kind: 'p', text: t`Book of Proof writes ${math`\sim P`} for ${math`\lnot P`}; the TMUA notes write the words "and", "or", "not" in bold. They mean the same.` },
-    { kind: 'p', text: t`The CST notes put these to work in proofs. To prove "${mP} and ${mQ}", prove each. To use it, you may use either. To prove "${mP} or ${mQ}", prove one of them (or assume ${math`\lnot P`} and prove ${mQ}). To use "${mP} or ${mQ}", split into two cases, one for each.` },
-    { kind: 'p', text: t`${NOT} applies to what comes right after it. In ${formula(ex)}, ${NOT} flips ${mP} only, so read it as ${math`(\lnot P) \lor Q`}. To flip a whole compound, put it in brackets: ${formula(not(or(P, Q)))}.` },
+    { kind: 'theorem', statement: t`A truth table for a compound statement built from ${mn} different simple statements has ${math`${2}^{n}`} rows.` },
+    { kind: 'p', text: t`Each simple statement can be T or F, ${2} choices, and the choices are made independently, so by the product rule there are ${math`${2} \times \cdots \times ${2} = ${2}^{n}`} rows. With ${2} statements there are ${two.length}; a third doubles that to ${2 ** 3}.` },
+    checkFrom(tableSize, { n: 5, built: true }, t`Each of the ${5} statements is T or F, so ${math`${2}^{${5}} = ${2 ** 5}`} rows.`),
+    { kind: 'section', title: t`Reading a compound statement` },
+    { kind: 'p', text: t`${NOT} applies to what comes right after it. In ${formula(ex)}, ${NOT} flips ${mP} only: read it as ${math`(\lnot P) \lor Q`}. To flip a whole compound, use brackets: ${formula(not(or(P, Q)))}. Work out a compound one column at a time, inside out.` },
     {
       kind: 'table', caption: t`Working out ${formula(ex)} one column at a time.`,
       head: [[mP], [mQ], [math`\lnot P`], [formula(ex)]],
       rows: two.map((r) => [yn(r.P), yn(r.Q), yn(!r.P), yn(evalF(ex, r))]),
     },
+    checkFrom(countTrue, { i: 1 }, t`${formula(FORMULAS[1] as F)} is false only when ${mP} is false and ${mQ} is true, so it is true in ${trueRows(FORMULAS[1] as F).length} of the ${two.length} rows.`),
+    { kind: 'p', text: t`"One but not both", the everyday "or", needs more words: ${math`(P \lor Q) \land \lnot (P \land Q)`}. And the hook: "${math`x > ${3}`} and ${math`x < ${1}`}" is never true, because no ${math`x`} makes both parts true; "${mn} is even or not" is ${math`P \lor \lnot P`}, true in both rows of its table.` },
+    { kind: 'p', text: t`The CST notes use these rules in proofs. To prove ${math`P \land Q`}, prove each part. To prove ${math`P \lor Q`}, prove one of them, or assume ${math`\lnot P`} and prove ${mQ}. To use ${math`P \lor Q`}, split into two cases, one for each.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`"${mP} or ${mQ}" is false when both are true.`, counterexample: t`"${6} is even or ${6} is a multiple of ${3}" is true, and both parts are. Mathematical "or" is inclusive.` },
+    { kind: 'pitfall', claim: t`${math`\lnot (P \land Q)`} means the same as ${math`\lnot P \land \lnot Q`}.`, counterexample: t`Take ${mP} true and ${mQ} false. Then ${math`P \land Q`} is false, so ${math`\lnot (P \land Q)`} is true; but ${math`\lnot P`} is false, so ${math`\lnot P \land \lnot Q`} is false.` },
+    { kind: 'takeaway', text: t`"And" needs both, "or" needs at least one, "not" flips; a truth table checks every one of the ${math`${2}^{n}`} cases.` },
   ],
   examples: [
     worked(whichRows, { i: 2 }, t`When is ${math`\lnot (P \lor Q)`} true?`),
@@ -683,4 +706,9 @@ export const connectives: TopicContent = {
     bop25_5, bop25_8, bop26_4, bop26_9, bop26_13, tmuaC4, tmuaA2, tmuaB2, bop22_12,
   ],
   gate: [],
+  recall: [
+    { front: t`When is ${math`P \land Q`} true? ${math`P \lor Q`}? ${math`\lnot P`}?`, back: t`${math`P \land Q`}: both true. ${math`P \lor Q`}: at least one true. ${math`\lnot P`}: ${mP} false.` },
+    { front: t`The number of rows in a truth table for ${mn} statements.`, back: t`${math`${2}^{n}`}.` },
+    { front: t`What is an open sentence?`, back: t`A sentence with a variable, true for some values and false for others; not yet a statement.` },
+  ],
 };

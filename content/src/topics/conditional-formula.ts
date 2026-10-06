@@ -9,8 +9,8 @@ import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mA, mB] = [math`A`, math`B`];
 const die = (rng: Rng): number => 1 + Math.floor(rng() * 6);
@@ -340,20 +340,52 @@ const claims: ProbabilityClaim[] = [
     what: 'two dice: a total of 7 given at least one six', exact: q(2, 11),
     trial: (rng) => { for (;;) { const [x, y] = [die(rng), die(rng)]; if (x === 6 || y === 6) return x + y === 7; } },
   },
+  { what: 'two children, given at least one girl: both girls', exact: q(1, 3), trial: (rng) => { for (;;) { const [a, b] = [rng() < 0.5, rng() < 0.5]; if (a || b) return a && b; } } },
+  { what: 'two dice: a total of 8 given the first is even', exact: q(1, 6), trial: (rng) => { for (;;) { const [x, y] = [die(rng), die(rng)]; if (x % 2 === 0) return x + y === 8; } } },
+  { what: 'three cards from a deck are all hearts', exact: q(11, 850), trial: (rng) => { const s = new Set<number>(); while (s.size < 3) s.add(Math.floor(rng() * 52)); return [...s].every((c) => c < 13); } },
 ];
+const hearts = mul(mul(q(13, 52), q(12, 51)), q(11, 50));
 
 export const conditionalFormula: TopicContent = {
   topicId: 'prob.conditional-formula',
   goal: t`Compute a conditional probability as ${math`P(A \mid B) = P(A \cap B) / P(B)`}, and rearrange it as the multiplication rule to find the probability of a sequence of events.`,
+  objective: t`Compute ${math`P(A \mid B)`} from the formula, and use the multiplication rule along a sequence of events.`,
+  why: t`Conditioning is how new information enters a calculation; Bayes and independence are built on this formula.`,
+  minutes: 15,
   lesson: [
-    { kind: 'p', text: t`A table of counts answers "given ${mB}, how likely is ${mA}?" by restricting to the row or column for ${mB}. Dividing every count by the total turns the same calculation into a formula that works with probabilities alone.` },
-    { kind: 'rule', text: t`For ${math`P(B) > ${0}`}: ${math`P(A \mid B) = \frac{P(A \cap B)}{P(B)}`}. Rearranged, the [[multiplication-rule|multiplication rule]]: ${math`P(A \cap B) = P(A \mid B)\,P(B)`}.` },
-    { kind: 'p', text: t`The smokers of STEP Support Assignment ${6}: ${60}% of people are women and ${30}% of women smoke, so ${math`P(S \cap W) = ${q(60, 100)} \times ${q(30, 100)} = ${q(18, 100)}`} by the multiplication rule, and back again, ${math`P(S \mid W) = ${q(18, 100)} / ${q(60, 100)} = ${q(3, 10)}`}.` },
-    { kind: 'p', text: t`Two dice, given at least one six: ${11} of the ${36} pairs have a six, and ${2} of those total ${7}, so ${math`P(\text{total } ${7} \mid \text{a six}) = \frac{${2}/${36}}{${11}/${36}} = ${q(2, 11)}`}, not ${q(1, 6)}. The condition changes the sample space to the ${11} pairs.` },
-    { kind: 'p', text: t`The multiplication rule runs along a sequence: each factor is conditional on everything before it. In Assignment ${12}'s raffle queue, with ${math`m`} people holding £${1} and ${2} holding £${2}, the queue starts £${1}, £${2}, £${1} with probability ${math`\frac{m}{m + ${2}} \times \frac{${2}}{m + ${1}} \times \frac{m - ${1}}{m}`}: the denominators fall because each person leaves the queue.` },
+    { kind: 'section', title: t`New information changes the odds` },
+    { kind: 'hook', text: t`A family has two children, and you learn that at least one is a girl. What is the chance that both are? It is tempting to say ${q(1, 2)}, since the other child is a girl or a boy. The answer is ${q(1, 3)}. (Assume each child is a girl or a boy with equal chances, independently.)` },
+    { kind: 'narrative', text: t`List the equally likely families, older child first: GG, GB, BG, BB. "At least one girl" rules out BB and leaves three families, still equally likely. Only one of those three is GG. Learning something shrinks the sample space; the conditional probability is the share of what is left. Written with probabilities instead of counts, that becomes a formula.` },
+    { kind: 'section', title: t`The formula` },
+    {
+      kind: 'definition',
+      name: t`Conditional probability`,
+      formal: t`For events ${mA} and ${mB} with ${math`P(B) > ${0}`}, the conditional probability of ${mA} given ${mB} is ${dmath`P(A \mid B) = \frac{P(A \cap B)}{P(B)}.`}`,
+      plain: t`Restrict to the outcomes where ${mB} happens, and ask what share of that probability also has ${mA}. For the children: ${math`P(\text{GG} \mid \text{a girl}) = \frac{${q(1, 4)}}{${q(3, 4)}} = ${q(1, 3)}`}.`,
+    },
+    { kind: 'p', text: t`Two dice, given that the first is even: that leaves ${18} of the ${36} pairs. Of those, a total of ${8} needs ${math`(${2}, ${6})`}, ${math`(${4}, ${4})`}, or ${math`(${6}, ${2})`}, so ${math`P(\text{total } ${8} \mid \text{first even}) = \frac{${3}/${36}}{${18}/${36}} = ${q(3, 18)}`}. Without the information it was ${q(5, 36)}.` },
+    checkFrom(formulaAlgebra, { unknown: 'conditional', pb: q(2, 5), pab: q(1, 10) }, t`${math`P(A \mid B) = \frac{${q(1, 10)}}{${q(2, 5)}} = ${div(q(1, 10), q(2, 5))}`}.`),
+    { kind: 'section', title: t`The multiplication rule` },
+    { kind: 'narrative', text: t`Turn the formula round and it computes the probability that several things all happen, one after another.` },
+    { kind: 'theorem', name: t`Multiplication rule`, statement: t`If ${math`P(B) > ${0}`}, then ${math`P(A \cap B) = P(A \mid B)\,P(B)`}. More generally, if ${math`P(A_{${1}} \cap \cdots \cap A_{n - ${1}}) > ${0}`}, then ${dmath`P(A_{${1}} \cap \cdots \cap A_{n}) = P(A_{${1}})\,P(A_{${2}} \mid A_{${1}}) \cdots P(A_{n} \mid A_{${1}} \cap \cdots \cap A_{n - ${1}}).`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Two events`, text: t`Multiply both sides of the definition by ${math`P(B)`}.` },
+        { label: t`Write each factor as a quotient`, text: t`The right side of the general rule is ${math`P(A_{${1}}) \cdot \frac{P(A_{${1}} \cap A_{${2}})}{P(A_{${1}})} \cdot \frac{P(A_{${1}} \cap A_{${2}} \cap A_{${3}})}{P(A_{${1}} \cap A_{${2}})} \cdots \frac{P(A_{${1}} \cap \cdots \cap A_{n})}{P(A_{${1}} \cap \cdots \cap A_{n - ${1}})}`}.`, why: { q: t`Why is every denominator positive?`, a: t`Each is the probability of an intersection containing ${math`A_{${1}} \cap \cdots \cap A_{n - ${1}}`}, which has positive probability, and a bigger event is at least as likely.` } },
+        { label: t`Cancel`, text: t`Each numerator cancels the next denominator, leaving ${math`P(A_{${1}} \cap \cdots \cap A_{n})`}.` },
+      ],
+    },
+    { kind: 'p', text: t`This is the [[multiplication-rule|multiplication rule]]. Each factor is conditional on everything before it. Deal three cards from a shuffled deck: all three are hearts with probability ${math`\frac{${13}}{${52}} \times \frac{${12}}{${51}} \times \frac{${11}}{${50}} = ${hearts}`}. The numerators and denominators fall because each card dealt leaves the deck. STEP Support Assignment ${12}'s raffle queue is solved the same way, one person at a time.` },
+    checkFrom(draws, { r: 5, b: 3, kind: 'both' }, t`${math`\frac{${5}}{${8}} \times \frac{${4}}{${7}} = ${mul(q(5, 8), q(4, 7))}`}: after one red, ${4} of the ${7} left are red.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`${math`P(A \mid B) = P(A \cap B)`}.`, counterexample: t`For the children, ${math`P(\text{GG} \cap \text{a girl}) = ${q(1, 4)}`}, but ${math`P(\text{GG} \mid \text{a girl}) = ${q(1, 3)}`}. Dividing by ${math`P(B)`} rescales to the new, smaller sample space.` },
+    { kind: 'pitfall', claim: t`"At least one is a girl" and "the older is a girl" are the same information.`, counterexample: t`Given the older is a girl, the families left are GG and GB, so both are girls with probability ${q(1, 2)}, not ${q(1, 3)}. Different conditions keep different outcomes.` },
+    { kind: 'takeaway', text: t`To condition on ${mB}, restrict to ${mB} and divide by ${math`P(B)`}; to find "this and then that", multiply each probability given what came before.` },
   ],
   examples: [
-    workedCambridge(a6c),
+    { ...workedCambridge(a6c), examiner: t`The examiner looks for the joint probability from the multiplication rule and the division by ${math`P(W)`}, not ${math`P(S)`}.` },
     worked(diceGiven, { i: 0, j: 0 }, t`A total of ${7} given a six`),
     worked(draws, { r: 4, b: 3, kind: 'first-given-second' }, t`The first draw given the second`),
   ],
@@ -362,5 +394,20 @@ export const conditionalFormula: TopicContent = {
   terms: ['multiplication-rule'],
   claims,
   cambridge: [a19i, raffle121, raffle11, raffle3, smokersReverse],
-  gate: ['a19-q4-i-formula', 'a12-q3-ii-121', 'a12-q3-ii-11', 'a12-q3-iii', 'a6-q4-i-formula'],
+  gate: ['a12-q3-iii', 'a19-q4-i-formula', 'a12-q3-ii-121', 'a6-q4-i-formula'],
+  recall: [
+    { front: t`Conditional probability.`, back: t`${math`P(A \mid B) = \frac{P(A \cap B)}{P(B)}`}, for ${math`P(B) > ${0}`}.` },
+    { front: t`The multiplication rule for three events.`, back: t`${math`P(A \cap B \cap C) = P(A)\,P(B \mid A)\,P(C \mid A \cap B)`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The multiplication rule for three events`,
+      steps: [
+        t`Write ${math`P(A)P(B \mid A)P(C \mid A \cap B)`} with each conditional as a quotient.`,
+        t`It is ${math`P(A) \cdot \frac{P(A \cap B)}{P(A)} \cdot \frac{P(A \cap B \cap C)}{P(A \cap B)}`}.`,
+        t`Cancel ${math`P(A)`} and ${math`P(A \cap B)`}, both positive.`,
+        t`What is left is ${math`P(A \cap B \cap C)`}.`,
+      ],
+    },
+  ],
 };

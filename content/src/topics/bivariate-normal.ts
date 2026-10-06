@@ -13,8 +13,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, normal } from '../partv-c';
-import { computedTex, math, t, type Rich } from '../rich';
-import { worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
+import { computedTex, dmath, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const S4 = 'ia-prob-sheet-4' as const;
 const signed = (n: number, v: string, first: boolean): string => {
@@ -273,20 +273,61 @@ const claims: ProbabilityClaim[] = [
     },
   },
 ];
+const [mX, mY, mZ1, mZ2] = [math`X`, math`Y`, math`Z_{${1}}`, math`Z_{${2}}`];
 
 export const bivariateNormal: TopicContent = {
   topicId: 'rv.bivariate-normal',
   goal: t`Build the bivariate normal from independent standard normals, read off its correlation, and use the fact that jointly normal variables are independent exactly when uncorrelated.`,
+  objective: t`Build the bivariate normal from two independent standard normals and read off its correlation.`,
+  why: t`For jointly normal variables, zero correlation means independence; regression and statistics rest on that.`,
+  minutes: 25,
   lesson: [
-    { kind: 'p', text: t`The correlation coefficient measures how nearly linear the relation between two variables is. For one family, the bivariate normal, it says everything about their dependence: zero correlation means independence.` },
-    { kind: 'rule', text: t`A pair ${math`(X, Y)`} is [[bivariate-normal|bivariate normal]] if ${math`X = \mu_{X} + \sigma_{X}Z_{${1}}`} and ${math`Y = \mu_{Y} + \sigma_{Y}\left(\rho Z_{${1}} + \sqrt{${1} - \rho^{${2}}}\,Z_{${2}}\right)`} for independent ${math`Z_{${1}}, Z_{${2}} \sim N(${0}, ${1})`} and ${math`-${1} < \rho < ${1}`}. Then ${math`X \sim N(\mu_{X}, \sigma_{X}^{${2}})`}, ${math`Y \sim N(\mu_{Y}, \sigma_{Y}^{${2}})`}, and ${math`\operatorname{cov}(X, Y) = \rho\,\sigma_{X}\sigma_{Y}`}, so ${math`\rho`} is the correlation coefficient.` },
-    { kind: 'p', text: t`By the Jacobian of the map from ${math`(Z_{${1}}, Z_{${2}})`}, the joint density is ${math`f(x, y) = \frac{${1}}{${2}\pi\sigma_{X}\sigma_{Y}\sqrt{${1} - \rho^{${2}}}}\exp\left(-\frac{u^{${2}} - ${2}\rho uv + v^{${2}}}{${2}(${1} - \rho^{${2}})}\right)`}, with ${math`u = (x - \mu_{X})/\sigma_{X}`} and ${math`v = (y - \mu_{Y})/\sigma_{Y}`}. It is fixed by the two means, the two variances, and the covariance.` },
-    { kind: 'rule', text: t`For jointly normal variables, [[normal-independence|independent if and only if uncorrelated]]: at ${math`\rho = ${0}`} the density splits into a function of ${math`x`} times a function of ${math`y`}. More generally, linear combinations of independent normals are jointly normal, and two of them are independent exactly when their covariance is ${0} (Sheet ${4} Q${12}(b)).` },
-    { kind: 'p', text: t`Rotations preserve a pair of independent standard normals: ${math`U = X\cos\theta + Y\sin\theta`} and ${math`V = -X\sin\theta + Y\cos\theta`} are again independent ${math`N(${0}, ${1})`} (Q${7}), because the density ${math`\frac{${1}}{${2}\pi}e^{-(x^{${2}} + y^{${2}})/${2}}`} depends only on the distance from the origin. The same symmetry gives ${math`\mathbb{P}(X > ${0}, Y > ${0}) = \frac{${1}}{${4}} + \frac{\arcsin\rho}{${2}\pi}`} for a standard bivariate normal; at ${math`\rho = ${HALF}`} that is ${ORTHANT}.` },
-    { kind: 'p', text: t`Knowing ${math`X = x`} fixes ${math`Z_{${1}}`} and leaves ${math`Z_{${2}}`} alone, so ${math`\mathbb{E}(Y \mid X = x) = \mu_{Y} + \rho\frac{\sigma_{Y}}{\sigma_{X}}(x - \mu_{X})`}: a straight line, pulled toward ${math`\mu_{Y}`} when ${math`|\rho| < ${1}`}. Beware: two normal variables need not be jointly normal, and then zero correlation does not give independence.` },
+    { kind: 'section', title: t`When does zero correlation mean independence?` },
+    { kind: 'hook', text: t`Let ${mX} take the values ${-1}, ${0}, ${1} with equal chances, and let ${math`Y = X^{${2}}`}. Then ${math`\operatorname{cov}(X, Y) = \mathbb{E}(X^{${3}}) = ${0}`}, yet ${mY} is a function of ${mX}: they could hardly be more dependent. Covariance only sees straight-line relations. Is there a family of distributions where it sees everything?` },
+    { kind: 'narrative', text: t`There is, and it is the most important one: the normal. We will build pairs of normal variables out of two independent standard normals, mixing them in a controlled amount, and find that the amount of mixing is the correlation, and that no mixing means independence.` },
+    { kind: 'section', title: t`The correlation coefficient` },
+    {
+      kind: 'definition',
+      name: t`Correlation coefficient`,
+      formal: t`For random variables ${mX}, ${mY} with finite, nonzero variances, ${dmath`\rho(X, Y) = \frac{\operatorname{cov}(X, Y)}{\sqrt{\operatorname{var}(X)\operatorname{var}(Y)}}.`}`,
+      plain: t`Covariance with the units divided out. It does not change if you rescale ${mX} or ${mY} by positive constants, and it always lies between ${-1} and ${1}.`,
+    },
+    { kind: 'p', text: t`Why ${math`|\rho| \le ${1}`}? For every real ${math`t`}, ${math`${0} \le \operatorname{var}(Y - tX) = \operatorname{var}(Y) - ${2}t\operatorname{cov}(X, Y) + t^{${2}}\operatorname{var}(X)`}. A quadratic in ${math`t`} that is never negative has discriminant at most ${0}: ${math`\operatorname{cov}(X, Y)^{${2}} \le \operatorname{var}(X)\operatorname{var}(Y)`}.` },
+    { kind: 'section', title: t`Building the bivariate normal` },
+    {
+      kind: 'definition',
+      name: t`Bivariate normal`,
+      formal: t`Let ${mZ1}, ${mZ2} be independent ${math`N(${0}, ${1})`}, ${math`\sigma_{X}, \sigma_{Y} > ${0}`}, and ${math`-${1} < \rho < ${1}`}. The pair ${dmath`X = \mu_{X} + \sigma_{X}Z_{${1}}, \qquad Y = \mu_{Y} + \sigma_{Y}\left(\rho Z_{${1}} + \sqrt{${1} - \rho^{${2}}}\,Z_{${2}}\right)`} is [[bivariate-normal|bivariate normal]] with these parameters.`,
+      plain: t`${mX} is driven by ${mZ1} alone. ${mY} shares a fraction ${math`\rho`} of that same ${mZ1} and makes up the rest from an independent ${mZ2}. At ${math`\rho = ${0}`} they share nothing.`,
+    },
+    { kind: 'theorem', statement: t`For the pair above, ${math`X \sim N(\mu_{X}, \sigma_{X}^{${2}})`}, ${math`Y \sim N(\mu_{Y}, \sigma_{Y}^{${2}})`}, and ${math`\rho(X, Y) = \rho`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`The margin of ${mX}`, text: t`${mX} is a linear function of ${math`Z_{${1}} \sim N(${0}, ${1})`}, so ${math`X \sim N(\mu_{X}, \sigma_{X}^{${2}})`}.` },
+        { label: t`The margin of ${mY}`, text: t`${math`W = \rho Z_{${1}} + \sqrt{${1} - \rho^{${2}}}\,Z_{${2}}`} is a sum of independent normals, so it is normal, with mean ${0} and variance ${math`\rho^{${2}} + (${1} - \rho^{${2}}) = ${1}`}. Hence ${math`Y = \mu_{Y} + \sigma_{Y}W \sim N(\mu_{Y}, \sigma_{Y}^{${2}})`}.`, why: { q: t`Why is the variance ${math`\rho^{${2}} + (${1} - \rho^{${2}})`}?`, a: t`Variances of independent variables add, and ${math`\operatorname{var}(cZ) = c^{${2}}\operatorname{var}(Z)`}.` } },
+        { label: t`The covariance`, text: t`By bilinearity, ${math`\operatorname{cov}(X, Y) = \sigma_{X}\sigma_{Y}\left(\rho\operatorname{var}(Z_{${1}}) + \sqrt{${1} - \rho^{${2}}}\operatorname{cov}(Z_{${1}}, Z_{${2}})\right) = \rho\,\sigma_{X}\sigma_{Y}`}.`, plain: t`Constants shift nothing; the independent ${mZ2} contributes ${0}.` },
+        { label: t`Divide`, text: t`${math`\rho(X, Y) = \frac{\rho\,\sigma_{X}\sigma_{Y}}{\sigma_{X}\sigma_{Y}} = \rho`}.` },
+      ],
+    },
+    { kind: 'p', text: t`Changing variables from ${math`(Z_{${1}}, Z_{${2}})`} to ${math`(X, Y)`} and dividing by the Jacobian gives the joint density ${dmath`f(x, y) = \frac{${1}}{${2}\pi\sigma_{X}\sigma_{Y}\sqrt{${1} - \rho^{${2}}}}\exp\left(-\frac{u^{${2}} - ${2}\rho uv + v^{${2}}}{${2}(${1} - \rho^{${2}})}\right),`} where ${math`u = \frac{x - \mu_{X}}{\sigma_{X}}`} and ${math`v = \frac{y - \mu_{Y}}{\sigma_{Y}}`}. It depends only on the two means, the two variances, and ${math`\rho`}.` },
+    checkFrom(correlationOfConstruction, { s: 1, b: 5, c: 12, h: 13, neg: false }, t`${math`\operatorname{cov}(X, Y) = ${5}`} and ${math`\operatorname{var}(Y) = ${25} + ${144} = ${169}`}, so ${math`\rho = \frac{${5}}{${1} \cdot ${13}} = ${q(5, 13)}`}.`),
+    { kind: 'section', title: t`Uncorrelated means independent` },
+    { kind: 'theorem', name: t`Independence of jointly normal variables`, statement: t`If ${math`(X, Y)`} is bivariate normal, then ${mX} and ${mY} are independent if and only if ${math`\rho = ${0}`}.` },
+    { kind: 'p', text: t`One direction holds for any variables: independence gives ${math`\operatorname{cov}(X, Y) = ${0}`}. For the other, put ${math`\rho = ${0}`} in the construction: ${math`X = \mu_{X} + \sigma_{X}Z_{${1}}`} and ${math`Y = \mu_{Y} + \sigma_{Y}Z_{${2}}`}, functions of two independent variables, so independent. Equally, the density at ${math`\rho = ${0}`} splits into a function of ${math`x`} times a function of ${math`y`}. This is the fact that [[normal-independence|uncorrelated jointly normal variables are independent]].` },
+    { kind: 'p', text: t`More generally, linear combinations of the same independent normals are jointly normal, and two such combinations are independent exactly when their covariance is ${0} (Example Sheet ${4} Q${12}(b), worked below). The reason is symmetry: the density of independent standard normals depends only on the distance from the origin, so rotating the axes gives independent standard normals again.` },
+    { kind: 'section', title: t`Predicting one from the other` },
+    { kind: 'p', text: t`Knowing ${math`X = x`} fixes ${math`Z_{${1}} = \frac{x - \mu_{X}}{\sigma_{X}}`} and tells you nothing about ${mZ2}, whose mean is ${0}. So ${dmath`\mathbb{E}(Y \mid X = x) = \mu_{Y} + \rho\,\frac{\sigma_{Y}}{\sigma_{X}}(x - \mu_{X}),`} a straight line. When ${math`|\rho| < ${1}`}, it is pulled back towards ${math`\mu_{Y}`}: regression to the mean.` },
+    checkFrom(conditionalMean, { mx: 0, my: 10, sx: 2, sy: 4, rho: HALF, x: 3 }, t`${math`${10} + ${HALF} \cdot \frac{${4}}{${2}} \cdot ${3} = ${13}`}.`),
+    { kind: 'p', text: t`The same rotation symmetry gives ${math`\mathbb{P}(X > ${0}, Y > ${0}) = \frac{${1}}{${4}} + \frac{\arcsin\rho}{${2}\pi}`} for a standard bivariate normal: at ${math`\rho = ${HALF}`}, ${math`\arcsin\rho = \frac{\pi}{${6}}`}, and the probability is ${ORTHANT}.` },
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`If ${math`\operatorname{cov}(X, Y) = ${0}`}, then ${mX} and ${mY} are independent.`, counterexample: t`The hook: ${mX} uniform on ${math`\{-${1}, ${0}, ${1}\}`} and ${math`Y = X^{${2}}`} have covariance ${0}, but ${math`\mathbb{P}(X = ${0}, Y = ${1}) = ${0}`} while ${math`\mathbb{P}(X = ${0})\mathbb{P}(Y = ${1}) = ${mul(q(1, 3), q(2, 3))}`}.` },
+    { kind: 'pitfall', claim: t`Two normal variables are always jointly normal.`, counterexample: t`Take ${math`X \sim N(${0}, ${1})`} and a fair random sign ${math`S`} independent of it. ${math`Y = SX`} is ${math`N(${0}, ${1})`} too, and ${math`\operatorname{cov}(X, Y) = ${0}`}, but ${math`|Y| = |X|`}, so they are dependent. The pair is not bivariate normal: ${math`X + Y`} is ${0} with probability ${HALF}.` },
+    { kind: 'takeaway', text: t`Build ${mY} from a share ${math`\rho`} of ${mX}'s normal plus an independent one; for jointly normal variables, zero correlation is independence.` },
   ],
   examples: [
-    q12bWorked,
+    { ...q12bWorked, examiner: t`The examiner looks for the easy direction stated, joint normality justified, and the rotation argument with its Jacobian of ${1}.` },
     worked(correlationOfConstruction, { s: 2, b: 3, c: 4, h: 5, neg: false }, t`Reading the correlation off the construction`),
     worked(conditionalMean, { mx: 170, my: 70, sx: 10, sy: 8, rho: q(1, 2), x: 180 }, t`Predicting ${math`Y`} from ${math`X`}`),
   ],
@@ -295,5 +336,22 @@ export const bivariateNormal: TopicContent = {
   terms: ['bivariate-normal', 'normal-independence'],
   claims,
   cambridge: [q12b, q7, q7proof, scheduleBivariate],
-  gate: ['ia-s4-q12-b-coefficient', 'ia-s4-q7-correlation', 'ia-s4-q7'],
+  gate: ['ia-s4-q7', 'ia-s4-q12-b-coefficient', 'ia-s4-q7-correlation'],
+  recall: [
+    { front: t`The correlation coefficient.`, back: t`${math`\rho(X, Y) = \frac{\operatorname{cov}(X, Y)}{\sqrt{\operatorname{var}(X)\operatorname{var}(Y)}}`}, between ${-1} and ${1}.` },
+    { front: t`The bivariate normal from independent ${math`Z_{${1}}, Z_{${2}} \sim N(${0}, ${1})`}.`, back: t`${math`X = \mu_{X} + \sigma_{X}Z_{${1}}`}, ${math`Y = \mu_{Y} + \sigma_{Y}(\rho Z_{${1}} + \sqrt{${1} - \rho^{${2}}}Z_{${2}})`}.` },
+    { front: t`When are jointly normal ${mX}, ${mY} independent?`, back: t`Exactly when ${math`\rho = ${0}`}.` },
+    { front: t`${math`\mathbb{E}(Y \mid X = x)`} for a bivariate normal.`, back: t`${math`\mu_{Y} + \rho\frac{\sigma_{Y}}{\sigma_{X}}(x - \mu_{X})`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The correlation of the construction is ${math`\rho`}`,
+      steps: [
+        t`${mX} is a linear function of ${mZ1}, so it is ${math`N(\mu_{X}, \sigma_{X}^{${2}})`}.`,
+        t`${math`\rho Z_{${1}} + \sqrt{${1} - \rho^{${2}}}Z_{${2}}`} is normal with variance ${math`\rho^{${2}} + ${1} - \rho^{${2}} = ${1}`}, so ${mY} is ${math`N(\mu_{Y}, \sigma_{Y}^{${2}})`}.`,
+        t`By bilinearity and independence, ${math`\operatorname{cov}(X, Y) = \rho\sigma_{X}\sigma_{Y}`}.`,
+        t`Dividing by ${math`\sigma_{X}\sigma_{Y}`} gives ${math`\rho(X, Y) = \rho`}.`,
+      ],
+    },
+  ],
 };

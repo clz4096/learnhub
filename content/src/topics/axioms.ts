@@ -10,7 +10,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, mul, pick, q, sample, str, sub, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { join, math, t, type Rich, type Span } from '../rich';
-import { worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
+import { checkFrom, worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mO, mP] = [math`\Omega`, math`\mathbb{P}`];
 const S1 = 'ia-prob-sheet-1' as const;
@@ -241,19 +241,60 @@ const countableCase = supervision({
 const claims: ProbabilityClaim[] = [
   { what: 'first success on an even toss, r = 1/2', exact: q(1, 3), trial: (rng) => geoSample(q(1, 2), rng) % 2 === 0 },
 ];
+const HALF = q(1, 2);
 
 export const axioms: TopicContent = {
   topicId: 'prob.axioms',
   goal: t`State the axioms of probability, including countable additivity, and use them to define and compute probabilities on a countable sample space.`,
+  objective: t`State the three axioms of probability and build probabilities on a countable sample space from them.`,
+  why: t`Every rule of probability is proved from these three; they also handle infinitely many outcomes.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Classical probability needs finitely many equally likely outcomes. The number of tosses until the first head has infinitely many outcomes, none equally likely. The axioms say what any probability must satisfy, so such models can be built and reasoned about.` },
-    { kind: 'rule', text: t`A [[probability-measure|probability measure]] on events ${math`\mathcal{F}`} of ${mO}: ${math`\mathbb{P}(A) \ge ${0}`} for every event; ${math`\mathbb{P}(\Omega) = ${1}`}; and [[countable-additivity|countable additivity]]: for pairwise disjoint events ${math`A_{${1}}, A_{${2}}, \ldots`}, ${math`\mathbb{P}\left(\bigcup_{n} A_{n}\right) = \sum_{n} \mathbb{P}(A_{n})`}.` },
-    { kind: 'p', text: t`The countable case: if ${mO} is countable, every probability measure on all subsets is given by point masses ${math`p_{\omega} = \mathbb{P}(\{\omega\}) \ge ${0}`} with ${math`\sum_{\omega} p_{\omega} = ${1}`}, and then ${math`\mathbb{P}(A) = \sum_{\omega \in A} p_{\omega}`}, because ${math`A`} is the disjoint union of its single outcomes.` },
-    { kind: 'p', text: t`Example: ${math`p_{k} = (${1} - r) r^{k - ${1}}`} on ${math`\{${1}, ${2}, \ldots\}`}, the toss of the first success. The masses add to ${1} (a geometric series), and with ${math`r = ${q(1, 2)}`}, the first success comes on an even toss with probability ${math`\frac{r}{${1} + r} = ${q(1, 3)}`}, not ${q(1, 2)}.` },
-    { kind: 'p', text: t`The first consequences use only the three axioms. ${math`\mathbb{P}(\varnothing) = ${0}`}: the sequence ${math`\varnothing, \varnothing, \ldots`} is disjoint with union ${math`\varnothing`}, so ${math`\mathbb{P}(\varnothing)`} equals an infinite sum of copies of itself. Then finite additivity follows by padding with ${math`\varnothing`}. Sheet ${1} Q${4} asks for exactly these proofs.` },
+    { kind: 'section', title: t`When counting stops working` },
+    { kind: 'hook', text: t`Toss a fair coin until the first head. The head comes on toss ${math`k`} with probability ${math`\frac{${1}}{${2}^{k}}`}, for ${math`k = ${1}, ${2}, ${3}, \ldots`}. What is the chance it comes on an even-numbered toss? Half the numbers are even, so ${HALF}? It is ${q(1, 3)}.` },
+    { kind: 'narrative', text: t`Classical probability counts equally likely outcomes, and here neither condition holds: there are infinitely many outcomes, and toss ${1} is far likelier than toss ${10}. We need rules that say what any probability must obey, whatever the outcomes. Cambridge takes three such rules, the axioms, and derives everything else from them.` },
+    { kind: 'section', title: t`The three axioms` },
+    {
+      kind: 'definition',
+      name: t`Probability measure`,
+      formal: t`Let ${mO} be a sample space and ${math`\mathcal{F}`} a collection of subsets of ${mO}, the events, containing ${mO} and closed under complements and countable unions. A [[probability-measure|probability measure]] is a function ${math`\mathbb{P} : \mathcal{F} \to \mathbb{R}`} with (i) ${math`\mathbb{P}(A) \ge ${0}`} for every ${math`A \in \mathcal{F}`}; (ii) ${math`\mathbb{P}(\Omega) = ${1}`}; (iii) [[countable-additivity|countable additivity]]: if ${math`A_{${1}}, A_{${2}}, \ldots \in \mathcal{F}`} are pairwise disjoint, then ${math`\mathbb{P}\left(\bigcup_{n \ge ${1}} A_{n}\right) = \sum_{n \ge ${1}} \mathbb{P}(A_{n})`}.`,
+      plain: t`Probabilities are never negative, something certainly happens, and for events that cannot happen together, the chance one of them happens is the sum of their chances, even for an infinite list. Pairwise disjoint means no two share an outcome. When ${mO} is countable, we usually take every subset as an event.`,
+    },
+    { kind: 'p', text: t`Why insist on infinite lists in (iii)? Because the event "the first head comes on an even toss" is the union of infinitely many outcomes ${math`\{${2}\}, \{${4}\}, \{${6}\}, \ldots`}. A rule for two events at a time could never reach it.` },
+    { kind: 'section', title: t`First consequences` },
+    { kind: 'theorem', statement: t`${math`\mathbb{P}(\varnothing) = ${0}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`A list of empty sets`, text: t`Take ${math`A_{n} = \varnothing`} for every ${math`n \ge ${1}`}. They are pairwise disjoint, and their union is ${math`\varnothing`}.`, plain: t`Two empty sets share no outcome, since they have none.` },
+        { label: t`Apply countable additivity`, text: t`${math`\mathbb{P}(\varnothing) = \sum_{n \ge ${1}} \mathbb{P}(\varnothing)`}.` },
+        { label: t`Only zero works`, text: t`Let ${math`x = \mathbb{P}(\varnothing) \ge ${0}`}. If ${math`x > ${0}`}, the partial sums ${math`nx`} grow without bound, so the series diverges and cannot equal ${math`x`}. Hence ${math`x = ${0}`}.` },
+      ],
+    },
+    { kind: 'theorem', name: t`Finite additivity`, statement: t`If ${math`A_{${1}}, \ldots, A_{m}`} are pairwise disjoint events, then ${math`\mathbb{P}(A_{${1}} \cup \cdots \cup A_{m}) = \mathbb{P}(A_{${1}}) + \cdots + \mathbb{P}(A_{m})`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Pad the list`, text: t`Set ${math`A_{n} = \varnothing`} for ${math`n > m`}. The infinite list is still pairwise disjoint, and its union is ${math`A_{${1}} \cup \cdots \cup A_{m}`}.` },
+        { label: t`Apply countable additivity`, text: t`${math`\mathbb{P}\left(\bigcup_{n = ${1}}^{m} A_{n}\right) = \sum_{n = ${1}}^{m} \mathbb{P}(A_{n}) + \sum_{n > m} \mathbb{P}(\varnothing)`}.` },
+        { label: t`Drop the padding`, text: t`Each ${math`\mathbb{P}(\varnothing) = ${0}`}, by the theorem above, so the second sum is ${0}.`, plain: t`This is why ${math`\mathbb{P}(\varnothing) = ${0}`} had to come first.` },
+      ],
+    },
+    { kind: 'section', title: t`Countable sample spaces` },
+    { kind: 'narrative', text: t`On a countable ${mO}, such as ${math`\{${1}, ${2}, ${3}, \ldots\}`}, the axioms reduce to something concrete: give each outcome a weight, and add weights.` },
+    { kind: 'theorem', name: t`Point masses`, statement: t`Let ${mO} be countable and every subset an event. If ${math`p_{\omega} \ge ${0}`} and ${math`\sum_{\omega \in \Omega} p_{\omega} = ${1}`}, then ${math`\mathbb{P}(A) = \sum_{\omega \in A} p_{\omega}`} is a probability measure. Conversely, every probability measure on ${mO} is of this form, with ${math`p_{\omega} = \mathbb{P}(\{\omega\})`}.` },
+    { kind: 'p', text: t`The converse is one line: ${math`A`} is the disjoint union of its countably many single outcomes ${math`\{\omega\}`}, so countable additivity gives ${math`\mathbb{P}(A) = \sum_{\omega \in A} \mathbb{P}(\{\omega\})`}. For the forward direction, (i) and (ii) are immediate, and (iii) says that adding the weights of a disjoint union piece by piece gives the same total as adding them all at once.`, why: { q: t`Why may the weights be added in any grouping?`, a: t`A series of nonnegative terms has the same sum, finite or infinite, however its terms are ordered or grouped. That fails for series with mixed signs, which is one reason the masses must be nonnegative.` } },
+    { kind: 'p', text: t`Back to the hook. The first success, with failure probability ${math`r`} on each toss, has ${math`p_{k} = (${1} - r)r^{k - ${1}}`}; the masses add to ${math`(${1} - r) \cdot \frac{${1}}{${1} - r} = ${1}`}. The even tosses have total mass ${math`(${1} - r)(r + r^{${3}} + r^{${5}} + \cdots) = (${1} - r)\frac{r}{${1} - r^{${2}}} = \frac{r}{${1} + r}`}, which is ${q(1, 3)} at ${math`r = ${HALF}`}.`, why: { q: t`Where does ${math`\frac{r}{${1} - r^{${2}}}`} come from?`, a: t`${math`r + r^{${3}} + r^{${5}} + \cdots`} is geometric with first term ${math`r`} and ratio ${math`r^{${2}}`}, and ${math`${1} - r^{${2}} = (${1} - r)(${1} + r)`}.` } },
+    checkFrom(normalise, { i: 4 }, t`Without ${math`c`} the masses add to ${q(3, 4)}, so ${math`c = ${q(4, 3)}`} makes the total ${1}.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`Point masses that add to ${1} always define a probability.`, counterexample: t`${math`p_{${1}} = ${q(3, 2)}`} and ${math`p_{${2}} = -${HALF}`} add to ${1}, but ${math`\mathbb{P}(\{${2}\}) < ${0}`} breaks axiom (i).` },
+    { kind: 'pitfall', claim: t`You can pick a whole number uniformly at random from ${math`\{${1}, ${2}, ${3}, \ldots\}`}.`, counterexample: t`Equal masses ${math`p_{n} = c`} add to ${0} if ${math`c = ${0}`} and to ${math`\infty`} if ${math`c > ${0}`}, never to ${1}. Countable additivity rules it out.` },
+    { kind: 'takeaway', text: t`A probability is nonnegative, gives ${mO} probability ${1}, and adds over any countable list of disjoint events; on a countable space it is just point masses adding to ${1}.` },
   ],
   examples: [
-    q4bEmpty,
+    { ...q4bEmpty, examiner: t`The examiner looks for the definition stated, countable additivity applied to a disjoint list, and the case ${math`\mathbb{P}(\varnothing) > ${0}`} ruled out explicitly.` },
     worked(normalise, { i: 3 }, t`Point masses ${math`\frac{c}{n(n + ${1})}`}`),
     worked(geometricEvents, { r: q(1, 2), kind: 'even', n: 2 }, t`First success on an even toss`),
   ],
@@ -262,5 +303,21 @@ export const axioms: TopicContent = {
   terms: ['probability-measure', 'countable-additivity'],
   claims,
   cambridge: [disjointHalves, q4c, countableCase],
-  gate: ['ia-q4-countable-additivity', 'ia-q4-c'],
+  gate: ['ia-q4-c'],
+  recall: [
+    { front: t`The three axioms of a probability measure.`, back: t`${math`\mathbb{P}(A) \ge ${0}`}; ${math`\mathbb{P}(\Omega) = ${1}`}; for pairwise disjoint ${math`A_{${1}}, A_{${2}}, \ldots`}, ${math`\mathbb{P}\left(\bigcup A_{n}\right) = \sum \mathbb{P}(A_{n})`}.` },
+    { front: t`A probability measure on a countable ${mO}, in terms of point masses.`, back: t`${math`\mathbb{P}(A) = \sum_{\omega \in A} p_{\omega}`}, with ${math`p_{\omega} \ge ${0}`} and ${math`\sum_{\omega} p_{\omega} = ${1}`}.` },
+    { front: t`Why is ${math`\mathbb{P}(\varnothing) = ${0}`}?`, back: t`Countable additivity on ${math`\varnothing, \varnothing, \ldots`} makes ${math`\mathbb{P}(\varnothing)`} an infinite sum of copies of itself.` },
+  ],
+  proofOrder: [
+    {
+      title: t`${math`\mathbb{P}(\varnothing) = ${0}`} from the axioms`,
+      steps: [
+        t`Take ${math`A_{n} = \varnothing`} for every ${math`n`}: pairwise disjoint, with union ${math`\varnothing`}.`,
+        t`Countable additivity gives ${math`\mathbb{P}(\varnothing) = \sum_{n} \mathbb{P}(\varnothing)`}.`,
+        t`A positive value would make the right side infinite.`,
+        t`Since ${math`\mathbb{P}(\varnothing) \ge ${0}`}, it must be ${0}.`,
+      ],
+    },
+  ],
 };

@@ -10,7 +10,7 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { int, pick, q, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, setOf, t, type Rich, type Span } from '../rich';
-import { worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mA, mB, mw] = [math`A`, math`B`, math`\omega`];
 const OMEGA = [1, 2, 3, 4, 5, 6] as const;
@@ -304,16 +304,55 @@ const ioWords = supervision({
 export const countableUnions: TopicContent = {
   topicId: 'sets.countable-unions',
   goal: t`Work with unions and intersections of a sequence of sets, and with the points that lie in ${math`A_n`} infinitely often or for all large ${math`n`}.`,
+  objective: t`Work with unions and intersections of a whole sequence of sets, and with "infinitely often" and "eventually".`,
+  why: t`Probability's axioms are about sequences of events; continuity and limit theorems are built on these sets.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Probability needs sets built from a whole sequence ${math`A_{${1}}, A_{${2}}, A_{${3}}, \ldots`}, not just two sets at a time. A set is [[countable|countable]] if its elements can be listed as a sequence: ${math`\mathbb{N}`}, ${math`\mathbb{Z}`} (as ${math`${0}, ${1}, ${-1}, ${2}, ${-2}, \ldots`}), and even ${math`\mathbb{Q}`} are countable; the real numbers are not.` },
-    { kind: 'rule', text: t`${dmath`\bigcup_{n = ${1}}^{\infty} A_n = \{\omega : \omega \in A_n \text{ for some } n\}, \qquad \bigcap_{n = ${1}}^{\infty} A_n = \{\omega : \omega \in A_n \text{ for every } n\}.`}` },
-    { kind: 'p', text: t`De Morgan's laws hold for sequences too: a point is outside every ${math`A_n`} exactly when it is in no ${math`A_n`}, so ${math`\left(\bigcup_n A_n\right)^{c} = \bigcap_n A_n^{c}`}, and likewise ${math`\left(\bigcap_n A_n\right)^{c} = \bigcup_n A_n^{c}`}.` },
-    { kind: 'p', text: t`Intervals show how limits behave at the ends. ${math`\bigcap_{n} \left[${0}, ${1} + \frac{${1}}{n}\right] = [${0}, ${1}]`}: the point ${1} is in every interval, and any point beyond it drops out eventually. But ${math`\bigcup_{n} \left[${0}, ${1} - \frac{${1}}{n}\right] = [${0}, ${1})`}: every point below ${1} gets in eventually, yet ${1} itself never does. A union of closed intervals need not be closed.` },
-    { kind: 'p', text: t`IA Probability Example Sheet ${1}, question ${6}, uses two sets built from the whole sequence: the points in ${math`A_n`} [[infinitely-often|infinitely often]] (for every ${math`N`}, in some ${math`A_n`} with ${math`n \ge N`}), and the points in ${math`A_n`} for all sufficiently large ${math`n`} (from some ${math`N`} on, in every ${math`A_n`}). Each is a countable union of countable intersections, or the other way round, which the sheet asks you to prove.` },
-    { kind: 'p', text: t`The order of "for every" and "there exists" is the whole difference. If ${math`A_n`} is the even numbers for even ${mn} and the odd numbers for odd ${mn}, every point is in ${math`A_n`} infinitely often, yet none is in ${math`A_n`} for all large ${mn}.` },
+    { kind: 'section', title: t`Infinitely many sets at once` },
+    { kind: 'hook', text: t`Toss a coin for ever, and let ${math`A_n`} be "toss ${mn} is heads". "At least one head" is ${math`A_{${1}}`} or ${math`A_{${2}}`} or ${math`A_{${3}}`} or so on, without end. "Heads infinitely often" is subtler still: no single toss decides it. How do we even write such events down?` },
+    { kind: 'narrative', text: t`With unions and intersections of a whole sequence of sets, and with two sets built from them that IA Probability uses constantly: the points that keep coming back, and the points that eventually stay. Each is defined by "for some" and "for every", and the order of those words is everything.` },
+    { kind: 'section', title: t`Countable sets` },
+    {
+      kind: 'definition',
+      name: t`Countable set`,
+      formal: t`A set is [[countable|countable]] if it is finite or its elements can be listed as a sequence ${math`x_{${1}}, x_{${2}}, x_{${3}}, \ldots`} in which every element appears.`,
+      plain: t`${math`\mathbb{N}`} is countable, and so is ${math`\mathbb{Z}`}: list it as ${math`${0}, ${1}, -${1}, ${2}, -${2}, \ldots`}. Even ${math`\mathbb{Q}`} is countable, though that takes a cleverer listing; ${math`\mathbb{R}`} is not.`,
+    },
+    {
+      kind: 'definition',
+      name: t`Countable union and intersection`,
+      formal: t`For sets ${math`A_{${1}}, A_{${2}}, \ldots`}, ${dmath`\bigcup_{n = ${1}}^{\infty} A_n = \{\omega : \omega \in A_n \text{ for some } n\}, \qquad \bigcap_{n = ${1}}^{\infty} A_n = \{\omega : \omega \in A_n \text{ for every } n\}.`}`,
+      plain: t`The union holds everything that is in at least one of the sets; the intersection holds what is in all of them. For the coin: "at least one head" is ${math`\bigcup A_n`}, "all heads" is ${math`\bigcap A_n`}.`,
+    },
+    { kind: 'p', text: t`Intervals show what can happen at the ends. ${math`\bigcup_{n} \left[${0}, ${1} - \frac{${1}}{n}\right] = [${0}, ${1})`}: every point below ${1} gets in once ${math`\frac{${1}}{n}`} is small enough, but ${1} itself is in none of them. A union of closed intervals need not be closed.`, why: { q: t`Why is a point such as ${q(99, 100)} in the union?`, a: t`It lies in ${math`\left[${0}, ${1} - \frac{${1}}{n}\right]`} as soon as ${math`\frac{${1}}{n} \le \frac{${1}}{${100}}`}, for example at ${math`n = ${100}`}. Being in one of the sets is enough.` } },
+    checkFrom(intervals, { i: 1, a: 0, b: 2 }, t`Each endpoint, ${0} and ${2}, lies inside every ${math`I_n`}, and any point outside ${math`[${0}, ${2}]`} drops out once ${math`\frac{${1}}{n}`} is smaller than its distance from the interval. Open intervals can intersect to a closed one.`),
+    { kind: 'theorem', name: t`De Morgan's laws for sequences`, statement: t`For subsets ${math`A_{${1}}, A_{${2}}, \ldots`} of ${math`\Omega`}, ${math`\left(\bigcup_{n} A_n\right)^{c} = \bigcap_{n} A_n^{c}`} and ${math`\left(\bigcap_{n} A_n\right)^{c} = \bigcup_{n} A_n^{c}`}.` },
+    { kind: 'p', text: t`In words: not being in any of the sets is the same as being outside each of them. The proof shows each side is a subset of the other by following a single point ${mw}; writing it out is one of the gate problems for this topic. For the coin: "no head at all" is "tails on every toss".` },
+    { kind: 'section', title: t`Infinitely often and eventually` },
+    {
+      kind: 'definition',
+      name: t`Infinitely often, eventually`,
+      formal: t`A point ${mw} is in ${math`A_n`} [[infinitely-often|infinitely often]] if for every ${math`N`} there is an ${math`n \ge N`} with ${math`\omega \in A_n`}. It is in ${math`A_n`} for all sufficiently large ${mn} (eventually) if there is an ${math`N`} with ${math`\omega \in A_n`} for every ${math`n \ge N`}.`,
+      plain: t`Infinitely often: however far along you look, ${mw} turns up again. Eventually: from some point on, ${mw} never leaves. Example Sheet ${1} Q${6} calls these two sets ${mA} and ${mB}.`,
+    },
+    { kind: 'theorem', statement: t`Every point that is in ${math`A_n`} eventually is in ${math`A_n`} infinitely often.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Use eventually`, text: t`There is an ${math`N_{${0}}`} with ${math`\omega \in A_n`} for every ${math`n \ge N_{${0}}`}.` },
+        { label: t`Meet any challenge`, text: t`Given any ${math`N`}, take ${math`n = \max(N, N_{${0}})`}. Then ${math`n \ge N`} and ${math`n \ge N_{${0}}`}, so ${math`\omega \in A_n`}.`, plain: t`Whatever starting point you name, go past both it and ${math`N_{${0}}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`The converse fails. On ${math`\Omega = \{${1}, \ldots, ${6}\}`}, let ${math`A_n = \{\omega : \omega \le r_n\}`}, where ${math`r_n`} is the remainder of ${mn} on division by ${4}. The points ${1}, ${2}, ${3} turn up whenever ${math`r_n = ${3}`}, so infinitely often; but every fourth set is empty, so no point is in ${math`A_n`} eventually.` },
+    checkFrom(ioEventually, { f: 'mod4', ask: 'io' }, t`${math`r_n`} takes the value ${3} again and again, and then ${1}, ${2}, ${3} are all in ${math`A_n`}; ${4}, ${5}, ${6} never are.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`A union of closed intervals is closed.`, counterexample: t`${math`\bigcup_{n} \left[${0}, ${1} - \frac{${1}}{n}\right] = [${0}, ${1})`}: the endpoint ${1} is in none of the intervals.` },
+    { kind: 'pitfall', claim: t`"Infinitely often" and "eventually" mean the same.`, counterexample: t`In the example above, ${1} is in ${math`A_n`} infinitely often but not eventually: it leaves every time ${math`r_n = ${0}`}. Swapping "for every" and "there exists" changes the set.` },
+    { kind: 'takeaway', text: t`A union asks "in some set", an intersection "in every set"; infinitely often is "for every ${math`N`} there is a later ${mn}", eventually is "there is an ${math`N`} after which always".` },
   ],
   examples: [
-    workedCambridge(q6divA),
+    { ...workedCambridge(q6divA), examiner: t`The examiner looks for membership of ${math`A_n`} unwound into a statement about ${mn}, and infinitely many ${mn} exhibited for each point.` },
     worked(intervals, { i: 3, a: 0, b: 1 }, t`A union of closed intervals`),
     worked(windowSets, { N: 4, d: 5, op: 'intersection' }, t`An intersection of overlapping sets`),
   ],
@@ -321,5 +360,21 @@ export const countableUnions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['countable', 'infinitely-often'],
   cambridge: [q6divB, q6parity, q6fixed, deMorgan, ioWords],
-  gate: ['q6-divides-b', 'q6-parity-b', 'q6-fixed-a', 'q4-de-morgan', 'q6-words'],
+  gate: ['q4-de-morgan', 'q6-words', 'q6-divides-b', 'q6-fixed-a', 'q6-parity-b'],
+  recall: [
+    { front: t`${math`\bigcup_{n} A_n`} and ${math`\bigcap_{n} A_n`}.`, back: t`The points in ${math`A_n`} for some ${mn}; the points in ${math`A_n`} for every ${mn}.` },
+    { front: t`De Morgan for a sequence.`, back: t`${math`\left(\bigcup A_n\right)^{c} = \bigcap A_n^{c}`} and ${math`\left(\bigcap A_n\right)^{c} = \bigcup A_n^{c}`}.` },
+    { front: t`${mw} is in ${math`A_n`} infinitely often; eventually.`, back: t`For every ${math`N`} there is ${math`n \ge N`} with ${math`\omega \in A_n`}; there is ${math`N`} with ${math`\omega \in A_n`} for all ${math`n \ge N`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`Eventually implies infinitely often`,
+      steps: [
+        t`Suppose ${math`\omega \in A_n`} for every ${math`n \ge N_{${0}}`}.`,
+        t`Let ${math`N`} be any natural number.`,
+        t`Take ${math`n = \max(N, N_{${0}})`}, so ${math`n \ge N`} and ${math`\omega \in A_n`}.`,
+        t`Since ${math`N`} was arbitrary, ${mw} is in ${math`A_n`} infinitely often.`,
+      ],
+    },
+  ],
 };

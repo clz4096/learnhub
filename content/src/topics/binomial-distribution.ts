@@ -10,8 +10,8 @@ import { auto, cite, same, supervision } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { join, listOf, math, t, type Rich } from '../rich';
-import { worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
+import { dmath, join, listOf, math, t, type Rich } from '../rich';
+import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mn, mk, mp] = [math`n`, math`k`, math`p`];
 const pow = (r: Rational, e: number): Rational => { let out = q(1); for (let i = 0; i < e; i++) out = mul(out, r); return out; };
@@ -228,19 +228,49 @@ const a19why = supervision({
 const claims: ProbabilityClaim[] = [
   { what: 'exactly two sixes in four dice', exact: pmf(4, 2, SIX), trial: (rng) => successes(4, SIX, rng) === 2 },
 ];
+const FIVE6 = q(5, 6);
+const oneOrder = mul(pow(SIX, 2), pow(FIVE6, 2));
 
 export const binomialDistribution: TopicContent = {
   topicId: 'prob.binomial-distribution',
   goal: t`Recognise ${mn} independent trials with the same chance of success, and compute probabilities for the number of successes with ${math`P(X = k) = \binom{n}{k} p^{k}(${1} - p)^{n - k}`}.`,
+  objective: t`Recognise a binomial count and compute its probabilities with ${math`\binom{n}{k}p^{k}(${1} - p)^{n - k}`}.`,
+  why: t`The binomial is the first named distribution; the Poisson and normal approximations grow out of it.`,
+  minutes: 20,
   lesson: [
-    { kind: 'p', text: t`Throw three dice and count the sixes. Each die is a [[bernoulli-trial|trial]] that succeeds (a six) or fails; the dice do not affect one another; and the chance of success, ${SIX}, is the same for each.` },
-    { kind: 'rule', text: t`The [[binomial-distribution|binomial distribution]]: if ${mn} independent trials each succeed with probability ${mp}, the number of successes ${math`X \sim B(n, p)`} has ${math`P(X = k) = \binom{n}{k} p^{k} (${1} - p)^{n - k}`} for ${math`k = ${0}, ${1}, \ldots, n`}.` },
-    { kind: 'p', text: t`Two factors, two reasons. One particular order of ${mk} successes and ${math`n - k`} failures has probability ${math`p^{k}(${1} - p)^{n - k}`}, multiplying by independence. And there are ${math`\binom{n}{k}`} orders, one for each choice of which trials succeed, all with the same probability.` },
-    { kind: 'p', text: t`For three dice, STEP Support Assignment ${19}'s hints write the terms: no sixes ${math`\left(${q(5, 6)}\right)^{${3}} = \frac{${125}}{${216}}`}, one six ${math`${3} \times ${SIX} \times \left(${q(5, 6)}\right)^{${2}} = \frac{${75}}{${216}}`}, two sixes ${math`\frac{${15}}{${216}}`}, three sixes ${math`\frac{${1}}{${216}}`}. They add to ${1}, as the binomial theorem promises: ${math`(p + (${1} - p))^{n} = ${1}`}.` },
-    { kind: 'p', text: t`For "at least" questions, add the terms, or use the complement when it is shorter. At least one success: ${math`${1} - (${1} - p)^{n}`}. With three children each bringing goggles with probability ${GOG}, that is ${math`${1} - \left(${q(3, 4)}\right)^{${3}} = ${sub(q(1), pmf(3, 0, GOG))}`}.` },
+    { kind: 'section', title: t`Counting sixes` },
+    { kind: 'hook', text: t`Throw four fair dice. What is the chance of exactly two sixes? Two sixes then two non-sixes has probability ${math`(\frac{${1}}{${6}})^{${2}}(\frac{${5}}{${6}})^{${2}} = ${oneOrder}`}. But that is only one way it can happen. How many ways are there, and are they all equally likely?` },
+    { kind: 'narrative', text: t`The sixes could be on dice ${1} and ${2}, or ${1} and ${3}, and so on: one way for each choice of which two dice show a six. Each way has the same probability, because only the number of sixes and non-sixes matters, not their order. So the answer is the number of ways times ${oneOrder}. This pattern, the same for coins, seeds, and free throws, is the binomial distribution.` },
+    { kind: 'section', title: t`Trials and the binomial` },
+    {
+      kind: 'definition',
+      name: t`Bernoulli trial, binomial distribution`,
+      formal: t`A [[bernoulli-trial|Bernoulli trial]] is an experiment with two outcomes, success with probability ${mp} and failure with probability ${math`${1} - p`}. If ${math`X`} counts the successes in ${mn} independent Bernoulli trials, each with the same ${mp}, then ${math`X`} has the [[binomial-distribution|binomial distribution]], written ${math`X \sim B(n, p)`}.`,
+      plain: t`Three things must hold: a fixed number of trials ${mn}, trials that do not affect each other, and the same chance ${mp} every time. The number of sixes in four dice is ${math`B(${4}, ${SIX})`}.`,
+    },
+    { kind: 'theorem', statement: t`If ${math`X \sim B(n, p)`}, then for ${math`k = ${0}, ${1}, \ldots, n`}, ${dmath`P(X = k) = \binom{n}{k} p^{k} (${1} - p)^{n - k}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`One order`, text: t`Fix a set ${math`S`} of ${mk} trials. The event "exactly the trials in ${math`S`} succeed" has probability ${math`p^{k}(${1} - p)^{n - k}`}.`, plain: t`By independence, multiply: ${mp} for each of the ${mk} successes and ${math`${1} - p`} for each of the ${math`n - k`} failures.` },
+        { label: t`Count the orders`, text: t`There are ${math`\binom{n}{k}`} sets ${math`S`} of ${mk} trials out of ${mn}.`, plain: t`Choosing which trials succeed is choosing ${mk} things from ${mn}. For two sixes in four dice, ${math`\binom{${4}}{${2}} = ${choose(4, 2)}`}.` },
+        { label: t`The orders are disjoint`, text: t`For different sets ${math`S`} the events are disjoint, and ${math`\{X = k\}`} is their union.`, plain: t`A run of results has exactly one set of successful trials.` },
+        { label: t`Add`, text: t`${math`P(X = k) = \binom{n}{k} p^{k}(${1} - p)^{n - k}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`So two sixes in four dice: ${math`${choose(4, 2)} \times ${oneOrder} = ${pmf(4, 2, SIX)}`}. And the probabilities add to ${1}, as they must: by the binomial theorem, ${math`\sum_{k = ${0}}^{n} \binom{n}{k} p^{k}(${1} - p)^{n - k} = (p + (${1} - p))^{n} = ${1}`}.` },
+    checkFrom(exactlyK, { c: 3, n: 4, k: 1 }, t`${math`\binom{${4}}{${1}} \times ${q(1, 3)} \times (${q(2, 3)})^{${3}} = ${4} \times ${mul(q(1, 3), pow(q(2, 3), 3))} = ${pmf(4, 1, q(1, 3))}`}.`),
+    { kind: 'section', title: t`At least, at most` },
+    { kind: 'p', text: t`"At least ${mk}" and "at most ${mk}" are unions of the disjoint events ${math`\{X = j\}`}, so add their probabilities. When the complement has fewer terms, use it instead. The most useful case: ${dmath`P(X \ge ${1}) = ${1} - P(X = ${0}) = ${1} - (${1} - p)^{n}.`} At least one six in four dice: ${math`${1} - (${FIVE6})^{${4}} = ${sub(q(1), pow(FIVE6, 4))}`}, just over a half.` },
+    checkFrom(atLeastOne, { c: 4, n: 3 }, t`None germinate with probability ${math`(${q(3, 5)})^{${3}} = ${pow(q(3, 5), 3)}`}, so at least one does with ${math`${1} - ${pow(q(3, 5), 3)} = ${sub(q(1), pow(q(3, 5), 3))}`}.`),
+    { kind: 'section', title: t`Where it breaks` },
+    { kind: 'pitfall', claim: t`The number of red balls in two draws from a bag is binomial.`, counterexample: t`Draw two balls without replacement from a bag of ${2} red and ${2} blue. Both red has probability ${math`\frac{${2}}{${4}} \times \frac{${1}}{${3}} = ${q(1, 6)}`}, but ${math`B(${2}, ${q(1, 2)})`} would give ${q(1, 4)}. The draws are not independent: the first changes the second.` },
+    { kind: 'pitfall', claim: t`${math`P(X = k) = p^{k}(${1} - p)^{n - k}`}.`, counterexample: t`That is one order. For two sixes in four dice it gives ${oneOrder}, but there are ${choose(4, 2)} orders, so the answer is ${pmf(4, 2, SIX)}.` },
+    { kind: 'takeaway', text: t`Fixed ${mn}, independent trials, the same ${mp}: then ${math`P(X = k)`} is the number of orders, ${math`\binom{n}{k}`}, times the probability of one order.` },
   ],
   examples: [
-    workedCambridge(a19one),
+    { ...workedCambridge(a19one), examiner: t`The examiner looks for the trials, the success, and ${mp} named, and the factor ${3} explained as the choice of which die shows the six.` },
     worked(exactlyK, { c: 1, n: 5, k: 2 }, t`Two heads in five tosses`),
     worked(atLeast, { c: 0, n: 4, k: 2, dir: 'least' }, t`At least two sixes in four throws`),
   ],
@@ -249,5 +279,21 @@ export const binomialDistribution: TopicContent = {
   terms: ['bernoulli-trial', 'binomial-distribution'],
   claims,
   cambridge: [a19two, a12two, a12dist, a19why],
-  gate: ['a19-q4-ii-at-least-two', 'a12-q2-iv-two', 'a12-q2-iv-distribution', 'a19-q4-ii-why-binomial'],
+  gate: ['a12-q2-iv-distribution', 'a19-q4-ii-why-binomial', 'a19-q4-ii-at-least-two', 'a12-q2-iv-two'],
+  recall: [
+    { front: t`When is a count binomial?`, back: t`A fixed number ${mn} of independent trials, each a success with the same probability ${mp}.` },
+    { front: t`${math`P(X = k)`} for ${math`X \sim B(n, p)`}.`, back: t`${math`\binom{n}{k} p^{k}(${1} - p)^{n - k}`}.` },
+    { front: t`${math`P(X \ge ${1})`} for ${math`X \sim B(n, p)`}.`, back: t`${math`${1} - (${1} - p)^{n}`}.` },
+  ],
+  proofOrder: [
+    {
+      title: t`The binomial formula`,
+      steps: [
+        t`One particular set of ${mk} successful trials has probability ${math`p^{k}(${1} - p)^{n - k}`}, by independence.`,
+        t`There are ${math`\binom{n}{k}`} such sets.`,
+        t`The events for different sets are disjoint, and their union is ${math`\{X = k\}`}.`,
+        t`Adding, ${math`P(X = k) = \binom{n}{k}p^{k}(${1} - p)^{n - k}`}.`,
+      ],
+    },
+  ],
 };
