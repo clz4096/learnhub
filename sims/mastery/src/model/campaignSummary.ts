@@ -15,6 +15,9 @@ import {
 import { closureTopics } from './courses';
 import { planDate, type FixedBlock } from './day';
 import type { DayLog } from './dayLog';
+import { RUNG_NAMES, activeAttempt, rungMinutes, rungSets, type LadderAttempt } from './ladder';
+import { ladderNext, partName } from './ladderNext';
+import { readiness } from './readiness';
 
 export interface CourseInputs extends ActInputs, StatInputs {
   lessonMinutesLeft: number;
@@ -86,22 +89,50 @@ export const DRILL_MINUTES = 30;
 
 /**
  * The campaign's fixed blocks for the planner on a date: today only (later days are not
- * known yet). The open act's next timed paper, unless a paper was already sat that day,
- * and the daily timed drill while its effect is in force.
+ * known yet). Campaign timed work goes through the timed ladder (ladder.ts): the block is
+ * the next rung that is open on the exam of the open act's next timed paper, on that paper
+ * when it has a set left on the rung. Nothing is scheduled until the exam's topics are
+ * ready (readiness.ts): before then the day is lessons, practice, and review. A sitting or
+ * rung already running is shown as it is; none is added once timed work finished that day.
+ * The daily timed drill, while its effect is in force, also waits for readiness.
  */
-export function campaignFixed(adm: Admissions, c: Campaign, p: Progress, date: string, today: string): FixedBlock[] {
+export function campaignFixed(
+  adm: Admissions, c: Campaign, p: Progress, date: string, today: string, attempts: readonly LadderAttempt[] = [],
+): FixedBlock[] {
   if (date !== today) return [];
   const { timed, effects } = campaignPlanInputs(adm, c, p);
   const out: FixedBlock[] = [];
   const running = c.sittings.find((s) => s.finishedAt === null);
-  const satToday = c.sittings.some((s) => s.finishedAt !== null && planDate(s.finishedAt) === date);
+  const rung = activeAttempt(attempts);
+  const satToday = c.sittings.some((s) => s.finishedAt !== null && planDate(s.finishedAt) === date)
+    || attempts.some((a) => a.finishedAt !== null && planDate(a.finishedAt) === date);
+  const paper = timed === null ? undefined : adm.registryPaper(timed.paperIds[0] as string);
+  const exam = paper?.exam ?? null;
+  const ready = exam === null ? null : readiness(p, exam);
   if (running !== undefined) {
-    const paper = adm.registryPaper(running.paperId);
-    if (paper !== undefined) out.push({ minutes: paper.duration_minutes, title: `Timed paper: ${paperName(paper)}`, detail: 'Running now, no pause', to: { view: 'paper', paperId: paper.id } });
-  } else if (timed !== null && !satToday) {
-    out.push({ minutes: timed.minutes, title: `Timed paper: ${timed.title}`, detail: 'From the campaign, to the clock', to: { view: 'paper', paperId: timed.paperIds[0] as string } });
+    const sat = adm.registryPaper(running.paperId);
+    if (sat !== undefined) out.push({ minutes: sat.duration_minutes, title: `Timed paper: ${paperName(sat)}`, detail: 'Running now, no pause', to: { view: 'paper', paperId: sat.id } });
+  } else if (rung !== undefined) {
+    const on = adm.registryPaper(rung.paperId);
+    if (on !== undefined) {
+      out.push({ minutes: Math.round(rungMinutes(on, rung.rung)), title: `Timed ladder: ${partName(on, rung.rung, rung.questions)}`, detail: 'Running now, no pause', to: { view: 'ladder', exam: on.exam } });
+    }
+  } else if (timed !== null && paper !== undefined && exam !== null && ready !== null && !satToday) {
+    const n = ladderNext(adm, c, attempts, exam, ready);
+    if (n !== null && n.state === 'sit') {
+      if (n.rung === 'full') {
+        out.push({ minutes: timed.minutes, title: `Timed ladder: ${timed.title}`, detail: `${RUNG_NAMES.full}, from the campaign, to the clock`, to: { view: 'paper', paperId: paper.id } });
+      } else {
+        // The campaign's own paper when it still has a set on this rung; else the ladder's choice.
+        const used = new Set(attempts.filter((a) => a.rung === n.rung && a.paperId === paper.id).map((a) => a.questions.join(',')));
+        const set = rungSets(paper, n.rung).find((q) => !used.has(q.join(',')));
+        const title = set === undefined ? n.title : partName(paper, n.rung, set);
+        const minutes = set === undefined ? n.minutes ?? 0 : rungMinutes(paper, n.rung);
+        out.push({ minutes: Math.round(minutes), title: `Timed ladder: ${title}`, detail: `${RUNG_NAMES[n.rung]}, from the campaign, to the clock`, to: { view: 'ladder', exam } });
+      }
+    }
   }
-  if (effects.some((e) => e.id === 'timed-drill')) {
+  if (effects.some((e) => e.id === 'timed-drill') && readiness(p, exam ?? 'STEP').ready) {
     out.push({ minutes: DRILL_MINUTES, title: 'Timed drill', detail: 'One past-paper question to the clock (Under time is below 40)' });
   }
   return out;

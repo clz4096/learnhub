@@ -8,7 +8,7 @@ import { useEffect, useState } from 'preact/hooks';
 import type { RegistryPaper } from '@learnhub/content/admissions';
 import {
   STEP_COUNTED, STEP_MARKS_PER_QUESTION, STEP_QUESTIONS, TMUA_OPTIONS, TMUA_QUESTIONS,
-  acts, activeSitting, currentAct, finishSitting, paperLink, paperName, recordMarks, sittingScore, sourceUrls, startSitting, stepTotal, timeLeft,
+  acts, activeSitting, currentAct, finishSitting, paperLink, paperName, recordMarks, sittingScore, sourceUrls, startSitting, stepTotal,
   type Admissions, type Campaign, type Sitting,
 } from '@/model/campaign';
 import { paperPacket } from '@/model/campaignPackets';
@@ -142,19 +142,41 @@ function saveFlags(sittingId: string, flags: readonly string[]): void {
  * source in mono, a large timer, the parts flagged to come back to, and two actions.
  */
 function TimedPaper({ paper, s }: { paper: RegistryPaper; s: Sitting }) {
+  return (
+    <TimedScreen
+      paper={paper} title={paperName(paper)} flagsId={s.id} startedAt={s.startedAt} totalMs={paper.duration_minutes * 60_000}
+      onFinish={() => update((x) => finishSitting(x, s.id, now()))}
+    />
+  );
+}
+
+/**
+ * The timed screen for any timed work on a paper: a whole paper sat in the campaign, or a
+ * rung of the timed ladder (part of a paper, at the paper's pace). `flagsId` names the
+ * attempt the flags belong to; `onFinish` stops the clock.
+ */
+export function TimedScreen({ paper, title, eyebrow, flagsId, startedAt, totalMs, onFinish }: {
+  paper: RegistryPaper;
+  title: string;
+  /** Defaults to "STEP · 2025 · STEP 2". */
+  eyebrow?: string;
+  flagsId: string;
+  startedAt: number;
+  totalMs: number;
+  onFinish: () => void;
+}) {
   const [, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(id);
   }, []);
-  const [flags, setFlags] = useState(() => loadFlags(s.id));
+  const [flags, setFlags] = useState(() => loadFlags(flagsId));
   const [adding, setAdding] = useState(false);
   const [part, setPart] = useState('');
-  const left = timeLeft(paper, s, now());
-  const total = paper.duration_minutes * 60_000;
+  const left = startedAt + totalMs - now();
   const over = left <= 0;
   const link = paperLink(paper);
-  const setAll = (xs: string[]): void => { setFlags(xs); saveFlags(s.id, xs); };
+  const setAll = (xs: string[]): void => { setFlags(xs); saveFlags(flagsId, xs); };
   const add = (): void => {
     const x = part.trim();
     if (x !== '' && !flags.includes(x)) setAll([...flags, x]);
@@ -163,12 +185,12 @@ function TimedPaper({ paper, s }: { paper: RegistryPaper; s: Sitting }) {
   };
   return (
     <section class="ds-page ds-timed" aria-labelledby="paper-title">
-      <div class="ds-eyebrow">{paper.exam} · {paper.year} · {paper.paper}</div>
-      <h1 id="paper-title" class="ds-h1">{paperName(paper)}</h1>
+      <div class="ds-eyebrow">{eyebrow ?? `${paper.exam} · ${paper.year} · ${paper.paper}`}</div>
+      <h1 id="paper-title" class="ds-h1">{title}</h1>
       <div class={`ds-big${over ? ' over' : ''}`} role="timer" aria-live="off" aria-label={over ? `Time is up, ${clock(-left)} over` : `${clock(left)} left`}>
         {over ? `+${clock(-left)}` : clock(left)}
       </div>
-      <p class="ds-meta ds-center">{over ? 'time is up · put the pen down and finish' : `remaining of ${clock(total)}`}</p>
+      <p class="ds-meta ds-center">{over ? 'time is up · put the pen down and finish' : `remaining of ${clock(totalMs)}`}</p>
       <div class="ds-flags">
         <span class="ds-eyebrow">Flagged to come back to</span>
         <div>
@@ -192,9 +214,9 @@ function TimedPaper({ paper, s }: { paper: RegistryPaper; s: Sitting }) {
             Open the paper <span aria-hidden="true">↗</span><span class="visually-hidden">(opens in a new tab{link.file === undefined ? '' : `; open ${link.file} inside the zip`})</span>
           </a>
         )}
-        <button type="button" class="ds-btn wide" onClick={() => { update((x) => finishSitting(x, s.id, now())); setAll([]); }}>Finish and mark</button>
+        <button type="button" class="ds-btn wide" onClick={() => { onFinish(); setAll([]); }}>Finish and mark</button>
       </div>
-      <p class="c-tiny">Started {new Date(s.startedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}. No pause; leaving this screen does not stop the clock.</p>
+      <p class="c-tiny">Started {new Date(startedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}. No pause; leaving this screen does not stop the clock.</p>
     </section>
   );
 }

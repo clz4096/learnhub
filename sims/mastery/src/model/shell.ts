@@ -27,27 +27,31 @@ export const TABS: readonly Tab[] = [
 /** The tab a route sits under. */
 export function tabOf(r: Route): TabId {
   switch (r.view) {
-    case 'today': case 'start': case 'task': case 'problem': case 'gym': return 'today';
+    case 'today': case 'start': case 'task': case 'problem': case 'gym': case 'mixed': return 'today';
     case 'learn': case 'book': case 'chapter': case 'map': return 'course';
-    case 'campaign': case 'papers': case 'paper': case 'report': case 'letters': return 'admission';
+    case 'campaign': case 'papers': case 'paper': case 'ladder': case 'report': case 'letters': return 'admission';
     case 'story': return 'story';
     case 'progress': case 'glossary': return 'you';
   }
 }
 
 /** What a focus-mode screen is, for its bar; null when the route is not in focus mode. */
-export type FocusKind = 'lesson' | 'gym' | 'paper';
+export type FocusKind = 'lesson' | 'gym' | 'paper' | 'mixed';
 
 /**
- * Focus mode: a lesson, review, quiz, or problem; the gym; a past paper while its clock
- * runs. `timedPaperId` is the paper whose sitting is running, if any. A paper that is not
- * running (its rules, its marking) is an ordinary Admission screen.
+ * Focus mode: a lesson, review, quiz, or problem; blind mixed review; the gym; a past
+ * paper while its clock runs, and an exam's ladder while one of its rungs runs.
+ * `timedPaperId` is the paper whose sitting is running, if any; `timedLadder` the exam
+ * whose ladder attempt is running, if any. A paper or ladder with no clock running (its
+ * rules, its marking) is an ordinary Admission screen.
  */
-export function focusOf(r: Route, timedPaperId: string | null): FocusKind | null {
+export function focusOf(r: Route, timedPaperId: string | null, timedLadder: string | null = null): FocusKind | null {
   switch (r.view) {
     case 'task': case 'learn': case 'problem': return 'lesson';
+    case 'mixed': return 'mixed';
     case 'gym': return 'gym';
     case 'paper': return r.paperId === timedPaperId ? 'paper' : null;
+    case 'ladder': return r.exam === timedLadder ? 'paper' : null;
     default: return null;
   }
 }
@@ -63,6 +67,7 @@ export function naturalParent(r: Route, chapterOf: (topicId: string) => string |
       return ch !== undefined ? { view: 'chapter', chapterId: ch } : { view: 'map', topicId: r.topicId };
     }
     case 'paper': return { view: 'campaign' };
+    case 'ladder': return { view: 'papers' };
     default: return { view: 'today' };
   }
 }

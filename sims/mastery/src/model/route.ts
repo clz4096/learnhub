@@ -13,6 +13,8 @@
  *   #/glossary    every term; #/glossary/<id> at one entry
  *   #/campaign    the Cambridge Entry campaign; #/paper/<id> one past paper in exam mode
  *   #/papers      the campaign's past papers (Admission's Papers tab)
+ *   #/ladder/<exam>  the timed ladder for step, tmua, or a-level (under Papers); its clock runs here
+ *   #/mixed       blind mixed review: interleaved problems, the topic hidden until answered
  *   #/gym         gym mode: recall cards, proof orders, drills, and listening
  *   #/report      the results report
  *   #/letters     the campaign's letters
@@ -24,6 +26,7 @@
  * before a course is chosen) shows the Start step instead; see App.
  */
 import { signal } from '@preact/signals';
+import type { Exam } from './ladder';
 
 export type Route =
   | { view: 'today' }
@@ -40,12 +43,19 @@ export type Route =
   | { view: 'campaign' }
   | { view: 'paper'; paperId: string }
   | { view: 'papers' }
+  | { view: 'ladder'; exam: Exam }
+  | { view: 'mixed' }
   | { view: 'gym' }
   | { view: 'report' }
   | { view: 'letters' }
   | { view: 'story' };
 
 const ID = /^[a-z0-9.-]+$/;
+
+/** Each exam's name in a URL: #/ladder/a-level. */
+export const EXAM_SLUGS: Readonly<Record<Exam, string>> = { STEP: 'step', TMUA: 'tmua', 'A level': 'a-level' };
+const examOfSlug = (slug: string | undefined): Exam | undefined =>
+  (Object.keys(EXAM_SLUGS) as Exam[]).find((e) => EXAM_SLUGS[e] === slug);
 
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, '').split('/').filter((x) => x !== '').map(decodeURIComponent);
@@ -68,6 +78,11 @@ export function parseRoute(hash: string): Route {
     case 'campaign': return { view: 'campaign' };
     case 'paper': return id === null ? { view: 'campaign' } : { view: 'paper', paperId: id };
     case 'papers': return { view: 'papers' };
+    case 'ladder': {
+      const exam = examOfSlug(arg);
+      return exam === undefined ? { view: 'papers' } : { view: 'ladder', exam };
+    }
+    case 'mixed': return { view: 'mixed' };
     case 'gym': return { view: 'gym' };
     case 'report': return { view: 'report' };
     case 'letters': return { view: 'letters' };
@@ -91,6 +106,8 @@ export function hrefOf(r: Route): string {
     case 'campaign': return '#/campaign';
     case 'paper': return `#/paper/${encodeURIComponent(r.paperId)}`;
     case 'papers': return '#/papers';
+    case 'ladder': return `#/ladder/${EXAM_SLUGS[r.exam]}`;
+    case 'mixed': return '#/mixed';
     case 'gym': return '#/gym';
     case 'report': return '#/report';
     case 'letters': return '#/letters';

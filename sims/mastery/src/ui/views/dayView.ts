@@ -9,8 +9,10 @@
 import type { Progress } from '@learnhub/mastery';
 import { CORE, fillBlocks, parseClock, planDate, planMinute, sunsetMinutes, tickedMinutes, weekOf, weekdayOf, addDays, type DayPlan, type FixedBlock, type Slot } from '@/model/day';
 import { planOf, type DayEntry, type DayLog } from '@/model/dayLog';
-import { REDO_MINUTES, dayItems, type DayItem } from '@/model/dayQueue';
+import { dayItems, type DayItem } from '@/model/dayQueue';
 import { localDay } from '@/model/learner';
+import { mixedDoneOn } from '@/model/mixedReview';
+import { loadMixed } from '@/model/mixedStore';
 
 export const DEFAULT_WAKE = '09:00';
 export const WEEK_TARGET_HOURS = 36;
@@ -49,24 +51,27 @@ export const fillMinutes = (plan: DayPlan): number =>
 
 const cache = new WeakMap<Progress, Map<string, { at: number; items: DayItem[] }>>();
 
-/** `dayItems`, computed once per document, budget, and day; `at` is when it was first planned. */
+/** `dayItems`, computed once per document, budget, day, and whether the mixed review is done; `at` is when it was first planned. */
 export function cachedItems(p: Progress, t: number, budget: number): { at: number; items: DayItem[] } {
   let m = cache.get(p);
   if (m === undefined) {
     m = new Map();
     cache.set(p, m);
   }
-  const key = `${budget}|${localDay(t)}`;
+  const day = localDay(t);
+  const mixedDone = mixedDoneOn(loadMixed(), day);
+  const key = `${budget}|${day}|${mixedDone ? 1 : 0}`;
   const hit = m.get(key);
   if (hit !== undefined) return hit;
-  const q = { at: t, items: dayItems(p, t, budget) };
+  const q = { at: t, items: dayItems(p, t, budget, mixedDone) };
   m.set(key, q);
   return q;
 }
 
-/** The queue fills the day's study minutes, less redos. */
+/** The queue fills the day's study minutes, less redos and the mixed review. */
 export function budgetFor(p: Progress, plan: DayPlan, t: number): number {
-  return Math.max(0, fillMinutes(plan) - dayItems(p, t).filter((x) => x.kind === 'redo').length * REDO_MINUTES);
+  const fixedItems = dayItems(p, t).filter((x) => x.kind === 'redo' || x.kind === 'mixed').reduce((a, x) => a + x.minutes, 0);
+  return Math.max(0, fillMinutes(plan) - fixedItems);
 }
 
 export function dayView(p: Progress, log: DayLog, date: string, t: number, fixedFor: (date: string) => readonly FixedBlock[]): DayView {

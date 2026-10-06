@@ -205,13 +205,13 @@ describe('Begin the day', () => {
     render(<DayPlanner p={p} fixed={(d) => (d === '2026-10-05' ? [{ minutes: 180, title: 'STEP II, 2019', to: { view: 'progress' } }] : [])} />);
     const first = timeline().querySelector('li.study') as HTMLElement;
     expect(first.textContent).toContain('9:45 am');
-    expect(first.textContent).toContain('Timed paper · 180 min');
+    expect(first.textContent).toContain('Timed work · 180 min');
     const link = first.querySelector('a[href="#/progress"]') as HTMLAnchorElement;
     expect(link.textContent).toContain('STEP II, 2019');
-    expect(screen.getByRole('button', { name: 'Mark the 9:45 am timed paper block done' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Mark the 9:45 am timed work block done' })).toBeTruthy();
     const queue = document.querySelector('.d-queue') as HTMLElement;
     expect(queue.querySelector('li')?.textContent).toContain('STEP II, 2019');
-    expect(queue.querySelector('li')?.textContent).toContain('Timed paper, 180 min, at 9:45 am');
+    expect(queue.querySelector('li')?.textContent).toContain('Timed work, 180 min, at 9:45 am');
     // The paper counts as core: the full six hours still fit, so the line says when they end.
     expect((document.querySelector('.d-lbl') as HTMLElement).textContent).toMatch(/done by \d{1,2}:\d{2} (am|pm)/);
   });

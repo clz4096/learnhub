@@ -23,8 +23,9 @@ import { planMore } from '@/model/learner';
 import { go, hrefOf, type Route } from '@/model/route';
 import { commit, now } from '@/model/store';
 import { DEFAULT_WAKE, WEEK_TARGET_HOURS, budgetFor, dayView, weekMinutes, type Next } from '@/ui/views/dayView';
+import type { LadderSuggestion } from '@/ui/ladderShared';
 
-const KIND: Record<DayItem['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz', redo: 'Supervision redo' };
+const KIND: Record<DayItem['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz', redo: 'Supervision redo', mixed: 'Blind mixed review' };
 const BAR_MAX_HOURS = 8;
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 /** Up next shows this many items until Show all. */
@@ -38,10 +39,11 @@ const longDate = (date: string, o: Intl.DateTimeFormatOptions): string =>
 const hours = (m: number): string => (m / 60).toFixed(1);
 const PLURAL: Record<DayItem['kind'], [string, string]> = {
   lesson: ['new lesson', 'new lessons'], review: ['review', 'reviews'], quiz: ['quiz', 'quizzes'], redo: ['supervision redo', 'supervision redos'],
+  mixed: ['mixed review', 'mixed reviews'],
 };
 /** What a block holds, in a few words: "4 new lessons, 1 quiz". */
 function kinds(items: readonly DayItem[]): string {
-  return (['lesson', 'review', 'quiz', 'redo'] as const)
+  return (['lesson', 'review', 'mixed', 'quiz', 'redo'] as const)
     .map((k) => [k, items.filter((x) => x.kind === k).length] as const)
     .filter(([, n]) => n > 0)
     .map(([k, n]) => `${n} ${PLURAL[k][n === 1 ? 0 : 1]}`)
@@ -52,7 +54,7 @@ function kinds(items: readonly DayItem[]): string {
 export const dayTitle = (date: string): string => longDate(date, { weekday: 'long' });
 
 function slotLabel(s: Slot): string {
-  if (s.fixed !== undefined) return 'Timed paper';
+  if (s.fixed !== undefined) return 'Timed work';
   if (s.kind === 'study') return s.heavy ? 'Core study' : 'Core study, light';
   if (s.kind === 'optional') return 'Optional';
   if (s.kind === 'gym') return 'Gym';
@@ -116,8 +118,10 @@ const CHECK = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4L1
  * default. `log` and `onLog`, when given, share the day log with Today's header, so a new
  * wake time or a tick shows there at once; without them the planner keeps its own.
  */
-export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog }: {
+export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog, ladder = null }: {
   p: Progress; fixed?: (date: string) => readonly FixedBlock[]; log?: DayLog; onLog?: (f: (l: DayLog) => DayLog) => void;
+  /** The timed ladder's next step, offered under Up next today; not a queue item, so not counted in "to do". */
+  ladder?: LadderSuggestion | null;
 }) {
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -314,7 +318,7 @@ export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog }: {
               <ol class="ruled d-queue">
                 {shown.map((n) => {
                   if ('paper' in n) {
-                    const body = <><span class="d-qt">{n.paper.title}</span><small>Timed paper, {n.paper.end - n.paper.start} min, at {fmtLong(n.paper.start)}</small></>;
+                    const body = <><span class="d-qt">{n.paper.title}</span><small>Timed work, {n.paper.end - n.paper.start} min, at {fmtLong(n.paper.start)}</small></>;
                     return (
                       <li key={`paper-${n.paper.start}`}>
                         {n.paper.fixed?.to !== undefined ? <RouteLink to={n.paper.fixed.to} cls="d-qlink">{body}</RouteLink> : <div class="d-qlink">{body}</div>}
@@ -333,6 +337,16 @@ export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog }: {
                 })}
               </ol>
             )}
+          {isToday && ladder !== null && (
+            <ol class="ruled d-ladder" aria-label="On the timed ladder">
+              <li>
+                <RouteLink to={ladder.to} cls="d-qlink">
+                  <span class="d-qt">{ladder.title}</span>
+                  <small>{ladder.detail}</small>
+                </RouteLink>
+              </li>
+            </ol>
+          )}
           {upNext.length > UP_NEXT && (
             <button type="button" class="d-text" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
               {showAll ? 'Show fewer' : `Show all ${upNext.length}`}

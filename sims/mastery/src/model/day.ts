@@ -382,7 +382,8 @@ export function clockValue(m: number): string {
 
 // ---------------------------------------------------------------- filling the blocks
 
-export type ItemKind = 'lesson' | 'review' | 'quiz' | 'redo';
+/** `mixed`: the day's blind mixed review (mixedReview.ts), a review block of its own. */
+export type ItemKind = 'lesson' | 'review' | 'quiz' | 'redo' | 'mixed';
 
 export interface Fillable {
   kind: ItemKind;
@@ -396,18 +397,19 @@ export interface Block {
 }
 
 const HEAVY_ORDER: readonly ItemKind[] = ['lesson', 'redo', 'quiz'];
-const LIGHT_ORDER: readonly ItemKind[] = ['review', 'quiz', 'redo'];
+const LIGHT_ORDER: readonly ItemKind[] = ['review', 'mixed', 'quiz', 'redo'];
 
 /**
  * Puts the queue into the day's study blocks, keeping each kind's order. Full core blocks
  * take new lessons, then redos and quizzes, from the earliest block on; light blocks and
- * optional time take reviews, then quizzes and redos. What is left (reviews on a day with
- * no light block, say) then goes to the first block with room, core before optional.
+ * optional time take reviews, then the mixed review, then quizzes and redos. What is left
+ * (reviews on a day with no light block, say) then goes to the first block with room, core
+ * before optional.
  * A block takes items while they fit; an empty block takes one item even if it is longer.
  * `left` holds what fits nowhere.
  */
 export function fillBlocks<T extends Fillable>(blocks: readonly Block[], items: readonly T[]): { filled: T[][]; left: T[] } {
-  const queue = new Map<ItemKind, T[]>((['lesson', 'review', 'quiz', 'redo'] as const).map((k) => [k, items.filter((x) => x.kind === k)]));
+  const queue = new Map<ItemKind, T[]>((['lesson', 'review', 'mixed', 'quiz', 'redo'] as const).map((k) => [k, items.filter((x) => x.kind === k)]));
   const filled: T[][] = blocks.map(() => []);
   const used: number[] = blocks.map(() => 0);
   const take = (i: number, kinds: readonly ItemKind[]): void => {
@@ -423,7 +425,7 @@ export function fillBlocks<T extends Fillable>(blocks: readonly Block[], items: 
     }
   };
   blocks.forEach((b, i) => take(i, b.heavy ? HEAVY_ORDER : LIGHT_ORDER));
-  const rest: readonly ItemKind[] = ['lesson', 'redo', 'quiz', 'review'];
+  const rest: readonly ItemKind[] = ['lesson', 'redo', 'quiz', 'review', 'mixed'];
   const order = [...blocks.keys()].sort((a, b) => Number((blocks[a] as Block).optional) - Number((blocks[b] as Block).optional) || a - b);
   for (const i of order) take(i, rest);
   return { filled, left: [...queue.values()].flat() };

@@ -25,7 +25,7 @@ function OutcomeBody({ adm, c }: { adm: Admissions; c: Campaign | null }) {
     <section class="outcome" aria-labelledby="outcome-title">
       <h2 id="outcome-title">Predicted results</h2>
       <p class="small muted">
-        From timed full and half papers only, placed on the real grade boundaries. The range is where your level most likely is
+        From timed full and half papers only, set against the real grade boundaries. The range is where your level most likely is
         (80 percent), from how much your papers vary; it narrows as more papers agree.
       </p>
       {list.length === 0

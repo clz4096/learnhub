@@ -63,3 +63,12 @@ export function saveLadder(next: LadderAttempt[]): boolean {
     return false;
   }
 }
+
+let loadedFor: Admissions | null = null;
+
+/** Reads storage once for a registry: for screens that only show the ladder (Today, the palette); a screen that changes it calls `loadLadder`. */
+export function ensureLadder(adm: Admissions): void {
+  if (loadedFor === adm) return;
+  loadedFor = adm;
+  loadLadder(adm);
+}

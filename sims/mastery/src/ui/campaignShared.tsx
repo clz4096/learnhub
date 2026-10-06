@@ -11,6 +11,7 @@ import type { Projection } from '@/model/campaignCalendar';
 import { campaignFixed, type Summary } from '@/model/campaignSummary';
 import { campaign, saveCampaign } from '@/model/campaignStore';
 import { planDate, type FixedBlock } from '@/model/day';
+import { ladder } from '@/model/ladderStore';
 import { go, hrefOf, type Route } from '@/model/route';
 import { now, progress } from '@/model/store';
 
@@ -143,7 +144,7 @@ export function campaignFixedFor(date: string): readonly FixedBlock[] {
     void loadAdmissions();
     return [];
   }
-  return campaignFixed(adm, c, p, date, planDate(now()));
+  return campaignFixed(adm, c, p, date, planDate(now()), ladder.value);
 }
 
 /** Files the letters a summary says are due, once each, whichever screen shows it first. */

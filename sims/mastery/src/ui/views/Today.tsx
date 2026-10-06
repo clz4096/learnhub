@@ -5,8 +5,9 @@
  * sit in a quiet side column.
  *
  * Below, folded under "The whole day", the full planner (Begin the day: wake time,
- * timeline, ticks, replan, Up next, week, Shabbat, another day) and today's session from
- * `planSession`, stored for the day so a reload shows the same tasks. Each task says why
+ * timeline, ticks, replan, Up next with the timed ladder's next step, week, Shabbat,
+ * another day) and today's session from `planSession`, stored for the day so a reload
+ * shows the same tasks. Each task says why
  * it is there; below the session, supervision redos and Paste result.
  */
 import { useEffect, useState } from 'preact/hooks';
@@ -26,14 +27,16 @@ import { commit, now, progress } from '@/model/store';
 import { sceneById } from '@/model/storyScenes';
 import { playing, story } from '@/model/storyStore';
 import { SupervisionToday } from '@/ui/Supervision';
-import { campaignFixedFor } from '@/ui/campaignShared';
+import { admissions, campaignFixedFor, loadAdmissions } from '@/ui/campaignShared';
+import { campaignUnlockLine, ladderSuggestion } from '@/ui/ladderShared';
+import { ensureLadder } from '@/model/ladderStore';
 import { ContinueReading } from '@/ui/views/Book';
 import { DayPlanner } from '@/ui/views/DayPlanner';
 import { WEEK_TARGET_HOURS, dayView, shabbatOf, streakDays, weekMinutes, type DayView } from '@/ui/views/dayView';
 import { stageOf } from '@/ui/views/stages';
 
 const KIND: Record<SessionTask['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz' };
-const ITEM_KIND: Record<DayItem['kind'], string> = { lesson: 'Lesson', review: 'Review', quiz: 'Quiz', redo: 'Supervision redo' };
+const ITEM_KIND: Record<DayItem['kind'], string> = { lesson: 'Lesson', review: 'Review', quiz: 'Quiz', redo: 'Supervision redo', mixed: 'Blind mixed review' };
 const OPEN_KEY = 'mastery.wholeday.v1';
 
 function taskTitle(t: SessionTask): string {
@@ -110,7 +113,7 @@ function chapterOfItem(p: Progress, x: DayItem): string | null {
 /** What a block holds, as a card: its first open item, the gym, a timed paper, or a meal. */
 function cardOf(p: Progress, v: DayView, s: Slot): Card | null {
   const len = s.end - s.start;
-  if (s.fixed !== undefined) return { slot: s, title: s.title, meta: `Timed paper · ${len} min`, to: s.fixed.to ?? null, forecast: false };
+  if (s.fixed !== undefined) return { slot: s, title: s.title, meta: `Timed work · ${len} min`, to: s.fixed.to ?? null, forecast: false };
   if (s.kind === 'gym') return { slot: s, title: 'Gym', meta: `gym mode · ${len} min`, to: { view: 'gym' }, forecast: false };
   if (s.kind === 'meal') return { slot: s, title: s.title, meta: `${len} min`, to: null, forecast: false };
   if (s.kind === 'study' || s.kind === 'optional') {
@@ -157,6 +160,8 @@ function Header({ p, v, log }: { p: Progress; v: DayView; log: DayLog }) {
   const sh = shabbatOf(v.date);
   const streak = streakDays(p, log, t, campaignFixedFor);
   const isCur = nowSlot !== null && v.cur === nowSlot;
+  // Before the campaign's exam topics are ready no paper is planned; say what unlocks the first timed question.
+  const unlock = campaignUnlockLine();
   return (
     <div class="ds-split">
       <div>
@@ -191,6 +196,7 @@ function Header({ p, v, log }: { p: Progress; v: DayView; log: DayLog }) {
               </>
             )}
         </section>
+        {unlock !== null && <p class="ds-note ds-unlock">{unlock}</p>}
         {ready !== undefined && (
           <button type="button" class="ds-sceneline" onClick={() => { playing.value = { id: ready.id, auto: false }; }}>
             <span class="ds-dot" aria-hidden="true" />
@@ -210,7 +216,7 @@ function Header({ p, v, log }: { p: Progress; v: DayView; log: DayLog }) {
                   const items = v.fill.get(s) ?? [];
                   const title = c?.title ?? (s.kind === 'optional' ? 'Light study' : 'Study');
                   const sub = s.kind === 'meal' ? '' : s.kind === 'study' || s.kind === 'optional'
-                    ? (s.fixed !== undefined ? `timed paper · ${len} min` : `${items.length === 0 ? 'nothing planned yet' : `${items.length} ${items.length === 1 ? 'item' : 'items'}`} · ${len} min`)
+                    ? (s.fixed !== undefined ? `timed work · ${len} min` : `${items.length === 0 ? 'nothing planned yet' : `${items.length} ${items.length === 1 ? 'item' : 'items'}`} · ${len} min`)
                     : c?.meta ?? '';
                   const body = (
                     <>
@@ -264,6 +270,12 @@ export function Today() {
   useEffect(() => prefetchContent([...planned, ...redoTopics]), [[...planned, ...redoTopics].join()]);
   const [log, setLog] = useState<DayLog>(loadDays);
   const [open, setOpen] = useState(openStored);
+  // The timed ladder's next step for Up next needs the paper registry and the stored attempts.
+  const adm = admissions.value;
+  useEffect(() => {
+    if (adm === null) void loadAdmissions();
+    else ensureLadder(adm);
+  }, [adm]);
   // The header follows the clock; the planner has its own 30-second tick.
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -272,7 +284,7 @@ export function Today() {
   }, []);
 
   if (p === null) return <p class="page">Planning today.</p>;
-  const planner = <DayPlanner p={p} fixed={campaignFixedFor} log={log} onLog={setLog} />;
+  const planner = <DayPlanner p={p} fixed={campaignFixedFor} log={log} onLog={setLog} ladder={ladderSuggestion()} />;
   if (p.session === null || p.session.day !== today) return <section class="ds-page">{planner}<p class="page">Planning today.</p></section>;
   const s = p.session;
   const time = sessionTime(s);

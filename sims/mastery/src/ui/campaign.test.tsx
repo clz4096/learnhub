@@ -17,6 +17,7 @@ import { go, hrefOf, parseRoute, route, type Route } from '@/model/route';
 import { commit, flush, init, setClock } from '@/model/store';
 import { App } from '@/ui/App';
 import { clock } from '@/ui/views/Paper';
+import { readyFor } from '@/test/ready';
 
 const T0 = new Date(2026, 9, 5, 9, 0).getTime();
 let t = T0;
@@ -200,11 +201,23 @@ describe('exam mode', () => {
 });
 
 describe('the day planner', () => {
-  it('shows the campaign\'s next timed paper on Today, linked to exam mode', async () => {
+  it('a new learner gets no timed paper on Today, only what unlocks the first timed question', async () => {
     saveCampaign(newCampaign('cs', T0));
     render(<App />);
-    const links = await screen.findAllByRole('link', { name: /Timed paper: 9MA0\/01 June 2024/ });
-    for (const l of links) expect(l.getAttribute('href')).toBe('#/paper/edx-9ma0-1-2024');
+    await screen.findAllByText(/^First timed A level question unlocks after \d+ more topics mastered/);
+    expect(document.querySelector('.ds-unlock')?.textContent).toMatch(/^First timed A level question unlocks after 57 more topics mastered \(57 of the 95 in its syllabus\)\.$/);
+    await flush();
+    expect(screen.queryAllByRole('link', { name: /Timed (paper|ladder):/ })).toEqual([]);
+    expect(document.querySelector('a[href^="#/paper/"]')).toBeNull();
+  });
+
+  it('with the topics mastered, Today holds the one-question rung, linked to the ladder', async () => {
+    await commit(ensureSession(readyFor(startLearner(T0 - 30 * 86_400_000, DEFAULT_COURSES, 60), 'A level', T0), T0));
+    saveCampaign(newCampaign('cs', T0));
+    render(<App />);
+    const links = await screen.findAllByRole('link', { name: /Timed ladder: 9MA0\/01 June 2024: .*, question 1/ });
+    for (const l of links) expect(l.getAttribute('href')).toBe('#/ladder/a-level');
+    expect(screen.queryByText(/^First timed .* question unlocks/)).toBeNull();
   });
 });
 

@@ -1,7 +1,7 @@
 /**
  * The day planner's queue: today's session tasks (new lessons, reviews, quizzes, in the
- * session's order), then more of the same planned for the day's study minutes, then
- * supervision redos due today. Done items stay in the queue, so finishing one never moves
+ * session's order), then more of the same planned for the day's study minutes, then the
+ * day's blind mixed review once three topics are mastered, then supervision redos due today. Done items stay in the queue, so finishing one never moves
  * the others between blocks.
  *
  * The session is planned for the learner's daily budget (60 minutes by default); the day
@@ -16,6 +16,7 @@ import type { Fillable } from './day';
 import { titleOf } from './courses';
 import { catalogTitle } from './supervision';
 import { completeLesson, completeQuiz, completeReview, ensureSession, localDay, planMore, topicOfKey } from './learner';
+import { MIXED_MINUTES, mixedReady } from './mixedReview';
 import type { Route } from './route';
 
 /** A redo has no planned length; this is an assumption for packing it into a block. */
@@ -92,11 +93,15 @@ export function replanDayTasks(p: Progress, now: number, budget: number): Progre
   return { ...base, updatedAt: now, session: { ...s, tasks: project(kept, now, budget) } };
 }
 
+/** The planner's title for the day's mixed review. */
+export const MIXED_TITLE = 'Review: mixed';
+
 /**
  * The queue: today's session tasks, then with a `budget` the forecast for that many
- * minutes, then redos due or done today.
+ * minutes, then the mixed review when there is enough mastered to mix (`mixedDone`: it
+ * was finished today), then redos due or done today.
  */
-export function dayItems(p: Progress, now: number, budget = 0): DayItem[] {
+export function dayItems(p: Progress, now: number, budget = 0, mixedDone = false): DayItem[] {
   const today = localDay(now);
   const own = p.session !== null && p.session.day === today ? p.session.tasks : [];
   const tasks = budget > 0 ? dayTasks(p, now, budget) : own;
@@ -105,6 +110,7 @@ export function dayItems(p: Progress, now: number, budget = 0): DayItem[] {
     title: t.kind === 'quiz' ? `Quiz: ${t.topicIds.map(titleOf).join(', ')}` : titleOf(t.topicIds[0] as string),
     to: { view: 'task', index: i }, done: t.done, forecast: i >= own.length,
   }));
+  if (mixedReady(p)) items.push({ key: 'mixed', kind: 'mixed', minutes: MIXED_MINUTES, title: MIXED_TITLE, to: { view: 'mixed' }, done: mixedDone, forecast: false });
   const dayStart = new Date(`${today}T00:00`).getTime();
   const dayEnd = new Date(`${localDay(dayStart + 36 * 3600 * 1000)}T00:00`).getTime();
   for (const d of p.redos) {

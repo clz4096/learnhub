@@ -322,19 +322,67 @@ describe('packets', () => {
 });
 
 describe('the planner\'s fixed blocks', () => {
-  it('puts the next timed paper on today only, none once a paper was sat today, and the drill while Under time is below 40', async () => {
-    const { campaignFixed, DRILL_MINUTES } = await import('./campaignSummary');
+  it('a new learner who has studied nothing gets no timed paper and no drill, on any day', async () => {
+    const { campaignFixed } = await import('./campaignSummary');
     const { startLearner, DEFAULT_COURSES } = await import('./learner');
     const { planDate } = await import('./day');
     const p = startLearner(T0, DEFAULT_COURSES, 60);
     const today = planDate(T0);
     const c = newCampaign('maths', T0);
-    expect(campaignFixed(adm, c, p, today, today)).toEqual([
-      { minutes: 120, title: 'Timed paper: 9MA0/01 June 2024', detail: 'From the campaign, to the clock', to: { view: 'paper', paperId: 'edx-9ma0-1-2024' } },
-    ]);
+    expect(campaignFixed(adm, c, p, today, today)).toEqual([]);
+    // Under time below 40 brings the drill only once the topics are ready.
+    expect(campaignFixed(adm, sit(c, 'edx-9ma0-1-2024', { total: 10 }), p, today, today)).toEqual([]);
+  });
+
+  it('with the topics mastered: the one-question rung on the campaign\'s paper, today only, none once timed work was done today', async () => {
+    const { campaignFixed } = await import('./campaignSummary');
+    const { startLearner, DEFAULT_COURSES } = await import('./learner');
+    const { planDate } = await import('./day');
+    const { readyFor } = await import('@/test/ready');
+    const p = readyFor(startLearner(T0 - 30 * 86_400_000, DEFAULT_COURSES, 60), 'A level', T0);
+    const today = planDate(T0);
+    const c = newCampaign('maths', T0);
+    const [block, ...rest] = campaignFixed(adm, c, p, today, today);
+    expect(rest).toEqual([]);
+    expect(block?.title).toMatch(/^Timed ladder: 9MA0\/01 June 2024: .*, question 1$/);
+    expect(block).toMatchObject({ detail: 'One question, from the campaign, to the clock', to: { view: 'ladder', exam: 'A level' } });
     expect(campaignFixed(adm, c, p, '2026-10-06', today)).toEqual([]);
+    const { finishAttempt, startAttempt } = await import('./ladder');
+    let list = startAttempt(adm, [], 'edx-9ma0-1-2024', 'question', [1], T0);
+    list = finishAttempt(list, list[0]!.id, T0 + 5 * 60_000);
+    expect(campaignFixed(adm, c, p, today, today, list)).toEqual([]);
+    // A rung already running is the block, whatever the day.
+    const running = startAttempt(adm, [], 'edx-9ma0-1-2024', 'question', [2], T0);
+    expect(campaignFixed(adm, c, p, today, today, running)[0]).toMatchObject({ title: expect.stringMatching(/, question 2$/), detail: 'Running now, no pause' });
+  });
+
+  it('the full paper only after the ladder opens it; the drill once ready', async () => {
+    const { campaignFixed, DRILL_MINUTES } = await import('./campaignSummary');
+    const { startLearner, DEFAULT_COURSES } = await import('./learner');
+    const { planDate } = await import('./day');
+    const { readyFor } = await import('@/test/ready');
+    const { finishAttempt, recordAttemptMarks, rungSets, startAttempt } = await import('./ladder');
+    const p = readyFor(startLearner(T0 - 30 * 86_400_000, DEFAULT_COURSES, 60), 'A level', T0);
+    const today = planDate(T0 + 3 * 86_400_000);
+    const c = newCampaign('maths', T0);
+    const paper = adm.registryPaper('edx-9ma0-1-2024')!;
+    let list: import('./ladder').LadderAttempt[] = [];
+    const part = (rung: 'question' | 'half', qs: number[], at: number, total: number, outOf: number): void => {
+      list = startAttempt(adm, list, paper.id, rung, qs, at);
+      const id = list.at(-1)!.id;
+      list = recordAttemptMarks(adm, finishAttempt(list, id, at + 5 * 60_000), id, { total, outOf });
+    };
+    part('question', [1], T0, 9, 10);
+    part('question', [2], T0 + 3_600_000, 9, 10);
+    const half = campaignFixed(adm, c, p, today, today, list);
+    expect(half).toHaveLength(1);
+    expect(half[0]?.title).toMatch(/^Timed ladder: 9MA0\/01 June 2024: .*, questions /);
+    expect(half[0]?.detail).toBe('Half a paper, from the campaign, to the clock');
+    part('half', rungSets(paper, 'half')[0]!, T0 + 7_200_000, 50, 50);
+    expect(campaignFixed(adm, c, p, today, today, list)).toEqual([
+      { minutes: 120, title: 'Timed ladder: 9MA0/01 June 2024', detail: 'The full paper, from the campaign, to the clock', to: { view: 'paper', paperId: 'edx-9ma0-1-2024' } },
+    ]);
     const low = sit(c, 'edx-9ma0-1-2024', { total: 10 });
-    const blocks = campaignFixed(adm, low, p, today, today);
-    expect(blocks.map((b) => [b.title, b.minutes])).toEqual([['Timed drill', DRILL_MINUTES]]);
+    expect(campaignFixed(adm, low, p, planDate(T0), planDate(T0), list).map((b) => [b.title, b.minutes])).toEqual([['Timed drill', DRILL_MINUTES]]);
   });
 });

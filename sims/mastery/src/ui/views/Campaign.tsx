@@ -20,6 +20,7 @@ import { summarize, type Summary } from '@/model/campaignSummary';
 import { loadDays } from '@/model/dayLog';
 import { go, route, type Route } from '@/model/route';
 import { now } from '@/model/store';
+import { LadderLinks } from '@/ui/views/Ladder';
 import { AppLink, CopyBlock, ROMAN, WithAdmissions, entryLine, longDay, shortStamp, useDeliverLetters } from '@/ui/campaignShared';
 
 const update = (f: (c: CampaignState) => CampaignState): void => {
@@ -124,10 +125,12 @@ const ADMISSION_TABS: readonly { label: string; to: Route }[] = [
 /** Acts, Papers, Results, and Letters: the Admission tab's own tabs. */
 export function AdmissionTabs() {
   const v = route.value.view;
+  // The timed ladder sits under Papers.
+  const on = (to: Route): boolean => v === to.view || (to.view === 'papers' && v === 'ladder');
   return (
     <nav class="ds-subtabs" aria-label="Admission">
       {ADMISSION_TABS.map((t) => (
-        <AppLink key={t.label} to={t.to} class={v === t.to.view ? 'on' : undefined} aria-current={v === t.to.view ? 'page' : undefined}>{t.label}</AppLink>
+        <AppLink key={t.label} to={t.to} class={on(t.to) ? 'on' : undefined} aria-current={on(t.to) ? 'page' : undefined}>{t.label}</AppLink>
       ))}
     </nav>
   );
@@ -378,6 +381,7 @@ export function PapersView({ p }: { p: Progress }) {
         <section class="camp ds-admission" aria-labelledby="camp-title">
           <AdmissionHead s={s} c={c} />
           <AdmissionTabs />
+          <LadderLinks adm={adm} />
           <PapersSection adm={adm} />
         </section>
       );

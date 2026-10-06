@@ -18,6 +18,7 @@ import { progress } from '@/model/store';
 import { setTheme, theme, type Theme } from '@/model/theme';
 import { admissions, loadAdmissions } from '@/ui/campaignShared';
 import { trapTab } from '@/ui/help/focus';
+import { ladderRoute } from '@/ui/ladderShared';
 import { helpOpen } from '@/ui/help/state';
 import { loadRecent, paletteOpen } from '@/ui/shell/state';
 
@@ -49,6 +50,8 @@ function actions(): Action[] {
     a('today', 'Begin the day', '1', () => go({ view: 'today' })),
     a('gym', 'Start the gym', 'G', () => go({ view: 'gym' })),
     a('timed', 'Start a timed paper', 'T', () => go(timedPaperRoute())),
+    a('ladder', 'Climb the timed ladder', '', () => go(ladderRoute())),
+    a('mixed', 'Start a mixed review', '', () => go({ view: 'mixed' })),
     a('glossary', 'Open the glossary', '', () => go({ view: 'glossary', termId: null })),
     a('help', 'Help', '', () => { helpOpen.value = true; }),
     a('theme', 'Switch the theme', '', cycleTheme),

@@ -9,6 +9,7 @@
  * into the campaign's own fields.
  */
 import type { RegistryPaper } from '@learnhub/content/admissions';
+import { countedOf, rungMinutes, RUNG_NAMES, type LadderAttempt } from './ladder';
 import {
   INTERVIEW_MAX, INTERVIEW_PASS, ROUTE_NAMES, SHAPE_NAMES, STEP_COUNTED, STEP_MARKS_PER_QUESTION, STEP_QUESTIONS,
   collegeOf, paperLink, paperName, sourceUrls,
@@ -105,5 +106,55 @@ export function interviewPacket(c: Campaign, shape: InterviewShape, copiedAt: nu
     'END LEARNHUB INTERVIEW RESULT',
     '',
     INTERVIEW_END,
+  ].join('\n');
+}
+
+/** "question 3", "questions 1 to 10", "questions 1 to 12": the offered questions in words. */
+export function questionsText(questions: readonly number[]): string {
+  if (questions.length === 1) return `question ${questions[0]}`;
+  return `questions ${questions[0]} to ${questions[questions.length - 1]}`;
+}
+
+/** The block "Copy for supervision" copies for a finished STEP or A level ladder attempt: only the questions it offered. */
+export function ladderPacket(paper: RegistryPaper, a: LadderAttempt): string {
+  if (paper.exam === 'TMUA') throw new Error('ladderPacket: TMUA questions are checked by the app');
+  const qp = paperLink(paper);
+  const ms = sourceUrls(paper, 'mark_scheme');
+  const took = a.finishedAt === null ? null : Math.round((a.finishedAt - a.startedAt) / 60_000);
+  const step = paper.exam === 'STEP';
+  const k = countedOf(paper, a.rung);
+  const marking = step
+    ? `Mark every question I attempted out of ${STEP_MARKS_PER_QUESTION}, against the official mark scheme. The best ${k} count, so this is out of ${k * STEP_MARKS_PER_QUESTION}.`
+    : `Mark ${questionsText(a.questions)} against the official mark scheme, as a ${paper.board} examiner would. Give the total, and what those questions are worth on the mark scheme.`;
+  const result = step
+    ? [...a.questions.map((q) => `Q${q}: <mark out of ${STEP_MARKS_PER_QUESTION}, or - if not attempted>`), `BEST ${k}: <total out of ${k * STEP_MARKS_PER_QUESTION}>`]
+    : ['TOTAL: <whole number>', `OUT OF: <the marks ${questionsText(a.questions)} carry, at most ${paper.total_marks}>`];
+  return [
+    PAPER_HEADER,
+    `PAPER: ${paper.id}`,
+    `TITLE: ${paperName(paper)}${paper.code === undefined ? '' : ` (${paper.board} ${paper.code})`}`,
+    `PART: ${RUNG_NAMES[a.rung]}, ${questionsText(a.questions)}${step && a.rung === 'half' ? `, best ${k} count` : ''}`,
+    `QUESTION PAPER: ${qp === null ? 'not published' : link(qp)}`,
+    ...ms.map((m) => `MARK SCHEME (for the supervisor only): ${link(m)}`),
+    `TIME ALLOWED: ${Math.round(rungMinutes(paper, a.rung))} minutes`,
+    `SAT: started ${stamp(a.startedAt)}${took === null ? '' : `, finished after ${took} minutes`}`,
+    '',
+    '--- MY SCRIPT ---',
+    'My handwritten answers are attached as photos, in question order.',
+    '',
+    '--- INSTRUCTIONS FOR THE SUPERVISOR ---',
+    '1. You are my examiner for this part of a past paper, sat timed under exam conditions.',
+    `2. ${marking}`,
+    '3. Credit correct reasoning and clear writing, not only final answers. Do not give full solutions to questions I did not attempt.',
+    '4. For each question I attempted, say in one line where the marks were lost.',
+    '5. Then print the result block below inside a code block, filled in, and nothing after it.',
+    '',
+    '--- RESULT FORMAT ---',
+    'LEARNHUB PAPER RESULT',
+    `PAPER: ${paper.id}`,
+    ...result,
+    'END LEARNHUB PAPER RESULT',
+    '',
+    PAPER_END,
   ].join('\n');
 }

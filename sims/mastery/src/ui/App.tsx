@@ -4,8 +4,9 @@
  * arms and the title, the tabs with their number keys (1 to 5), and the search button.
  * Cmd+K (Ctrl+K) opens the command palette anywhere.
  *
- * Focus mode: a lesson (or review, quiz, or problem), the gym, and a past paper while its
- * clock runs hide the tabs behind a thin bar with one way back. Escape, or that bar's back
+ * Focus mode: a lesson (or review, quiz, or problem), blind mixed review, the gym, and a
+ * past paper or ladder rung while its clock runs hide the tabs behind a thin bar with one
+ * way back. Escape, or that bar's back
  * button, returns to the screen the learner came from (after a reload, the screen the
  * focus screen belongs to). Leaving keeps a lesson's place, as before.
  *
@@ -22,6 +23,8 @@ import type { ComponentChildren } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { activeSitting } from '@/model/campaign';
 import { campaign } from '@/model/campaignStore';
+import { runningExam } from '@/model/ladderNext';
+import { ladder } from '@/model/ladderStore';
 import { placeOf } from '@learnhub/content/book';
 import { go, hrefOf, listen, route, type Route } from '@/model/route';
 import {
@@ -44,6 +47,9 @@ import { ProblemView } from '@/ui/views/Lesson';
 import { Today } from '@/ui/views/Today';
 import { CampaignView, PapersView } from '@/ui/views/Campaign';
 import { PaperView } from '@/ui/views/Paper';
+import { LadderView } from '@/ui/views/Ladder';
+import { MixedReviewView } from '@/ui/views/MixedReview';
+import { admissions } from '@/ui/campaignShared';
 import { ReportView } from '@/ui/views/Report';
 import { LettersView } from '@/ui/views/Letters';
 import { StoryView } from '@/ui/views/Story';
@@ -103,13 +109,18 @@ function View({ r }: { r: Route }) {
     case 'campaign': return progress.value === null ? <Today /> : <CampaignView p={progress.value} />;
     case 'papers': return progress.value === null ? <Today /> : <PapersView p={progress.value} />;
     case 'paper': return <PaperView key={r.paperId} paperId={r.paperId} />;
+    case 'ladder': return <LadderView key={r.exam} exam={r.exam} />;
+    case 'mixed': return <MixedReviewView />;
     case 'report': return progress.value === null ? <Today /> : <ReportView p={progress.value} />;
     case 'letters': return progress.value === null ? <Today /> : <LettersView p={progress.value} />;
     case 'story': return progress.value === null ? <Today /> : <StoryView p={progress.value} />;
   }
 }
 
-const FOCUS_LABEL: Readonly<Record<FocusKind, string>> = { lesson: '', gym: 'gym · REP ×0.5', paper: 'timed · no hints' };
+const FOCUS_LABEL: Readonly<Record<FocusKind, string>> = { lesson: '', gym: 'gym · REP ×0.5', paper: 'timed · no hints', mixed: 'mixed review · topic hidden' };
+
+/** The exam whose ladder rung is running, if any, for focus mode. */
+const ladderRunning = (): string | null => runningExam(admissions.value, ladder.value);
 
 /** Leaves a focus screen for where the learner came from. */
 export function exitFocus(): void {
@@ -145,7 +156,7 @@ export function App() {
   const setUp = p !== null && p.courses.length > 0;
   const ready = loadState.value === 'ready';
   const running = campaign.value === null ? undefined : activeSitting(campaign.value);
-  const focus = setUp ? focusOf(r, running?.paperId ?? null) : null;
+  const focus = setUp ? focusOf(r, running?.paperId ?? null, ladderRunning()) : null;
 
   // Declared before the tour's auto start, so arriving at Today closes nothing it opens.
   const href = hrefOf(r);
@@ -196,7 +207,7 @@ export function App() {
       const doc = progress.peek();
       if (doc === null || doc.courses.length === 0) return;
       const c = campaign.peek();
-      const inFocus = focusOf(route.peek(), c === null ? null : activeSitting(c)?.paperId ?? null) !== null;
+      const inFocus = focusOf(route.peek(), c === null ? null : activeSitting(c)?.paperId ?? null, runningExam(admissions.peek(), ladder.peek())) !== null;
       if (e.key === 'Escape') {
         if (inFocus && !isTyping(e.target)) { e.preventDefault(); exitFocus(); }
         return;
