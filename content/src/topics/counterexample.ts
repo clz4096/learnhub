@@ -464,7 +464,7 @@ export const counterexample: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['disproof'],
   cambridge: [sw111, sw125, sw129, sw221, p2a, p2b, p2c, p2d, p2e, p1, p2f],
-  gate: ['sw-2-2-1', 'sw-1-2-9', 'sw-1-1-1', 'sw-1-2-5'],
+  gate: ['sw-2-2-1', 'sw-1-1-1', 'sw-1-2-9', 'sw-1-2-5'],
   recall: [
     { front: t`A counterexample to ${math`\forall x.\ (A(x) \Rightarrow B(x))`}.`, back: t`A value with ${math`A`} true and ${math`B`} false.` },
     { front: t`What must a counterexample to "${math`A`} or ${math`B`}" do?`, back: t`Make both ${math`A`} and ${math`B`} false.` },

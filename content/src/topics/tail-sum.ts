@@ -302,8 +302,9 @@ export const tailSum: TopicContent = {
   terms: ['tail-sum-formula'],
   claims,
   cambridge: [q2tail, q2min, q2proof],
-  // Best first: defining E(X) and proving the formula, then the least mean, then the tail.
-  gate: ['mixed-q2-proof', 'mixed-q2-least', 'mixed-q2-tail'],
+  // Best first: defining E(X) and proving the formula, then the tail. The least mean is 3, small
+  // enough to guess, so it does not gate.
+  gate: ['mixed-q2-proof', 'mixed-q2-tail'],
   recall: [
     { front: t`State the tail-sum formula.`, back: t`For ${mX} with values ${0}, ${1}, ${2}, and so on, ${math`E(X) = \sum_{n \ge ${1}} P(X \ge n)`}.` },
     { front: t`Why is the tail-sum formula true?`, back: t`Write ${math`k\,P(X = k)`} as ${math`k`} copies in rows ${1} to ${math`k`}; row ${math`n`} adds up to ${math`P(X \ge n)`}.` },

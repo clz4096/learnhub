@@ -411,7 +411,7 @@ export const geometricSumToInfinity: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['partial-sum', 'sum-to-infinity'],
   cambridge: [a14q3iii, a18q4, a14q2iiConj, a03q1iii, a24q4i, a03q1ii],
-  gate: ['a14-q3-iii', 'a18-q4-iv'],
+  gate: ['a18-q4-iv', 'a14-q3-iii'],
   recall: [
     { front: t`When does ${math`\sum_{k \ge ${0}} ar^{k}`} converge, and to what (with ${math`a \neq ${0}`})?`, back: t`Exactly when ${math`|r| < ${1}`}; its sum is ${math`\frac{a}{${1} - r}`}.` },
     { front: t`What does it mean for ${math`\sum u_{k}`} to converge to ${mS}?`, back: t`The partial sums ${math`S_{n} = u_{${0}} + \cdots + u_{n - ${1}}`} tend to ${mS} as ${math`n \to \infty`}.` },

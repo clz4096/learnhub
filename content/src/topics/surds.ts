@@ -412,7 +412,7 @@ export const surds: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['surd', 'conjugate', 'rationalise-denominator'],
   cambridge: [simplest, threeTerms, hidden, conjugates, geometric, local1858, largeX],
-  gate: ['a1-q1-iii', 'a1-q1-iv', 'a14-q2-ii', 'a2-q1-iii'],
+  gate: ['a2-q1-iii', 'a14-q2-ii', 'a1-q1-iv', 'a1-q1-iii'],
   recall: [
     { front: t`State the rule for the square root of a product.`, back: t`For ${math`a, b \ge ${0}`}: ${math`\sqrt{ab} = \sqrt{a}\sqrt{b}`}. There is no such rule for a sum.` },
     { front: t`How do you rationalise ${math`\frac{${1}}{p + q\sqrt{n}}`}?`, back: t`Multiply the top and bottom by the conjugate ${math`p - q\sqrt{n}`}; the bottom becomes ${math`p^{${2}} - q^{${2}}n`}.` },

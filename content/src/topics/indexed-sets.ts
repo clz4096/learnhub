@@ -473,7 +473,7 @@ export const indexedSets: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['indexed-family', 'index-set'],
   cambridge: [sw515u, sw515i, sw526, b181b, b185, b189, b1811],
-  gate: ['sw-5-1-5-union', 'sw-5-2-6'],
+  gate: ['sw-5-2-6'],
   recall: [
     { front: t`Define ${math`\bigcup_{\alpha \in I} A_{\alpha}`} and ${math`\bigcap_{\alpha \in I} A_{\alpha}`}.`, back: t`The ${mx} in ${math`A_{\alpha}`} for some ${math`\alpha \in I`}; the ${mx} in ${math`A_{\alpha}`} for every ${math`\alpha \in I`}.` },
     { front: t`What is ${math`\bigcap_{n \in \mathbb{N}} (${0}, \tfrac{${1}}{n})`}, and why?`, back: t`${math`\varnothing`}: a positive ${mx} is not in ${math`(${0}, \tfrac{${1}}{n})`} once ${math`n > \tfrac{${1}}{x}`}.` },

@@ -243,7 +243,7 @@ export const sumsOfPowers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sum-of-squares'],
   cambridge: [a17cube, a17sup, a20sup, nstSE1],
-  gate: ['a17-q3-cubes', 'a17-q3-proof'],
+  gate: ['a17-q3-proof', 'a20-q2-b'],
   recall: [
     { front: t`State the sum of the first ${mn} squares.`, back: t`${math`\frac{n(n + ${1})(${2}n + ${1})}{${6}}`}.` },
     { front: t`State the sum of the first ${mn} cubes.`, back: t`${math`\frac{n^{${2}}(n + ${1})^{${2}}}{${4}}`}, the square of ${math`${1} + \cdots + n`}.` },

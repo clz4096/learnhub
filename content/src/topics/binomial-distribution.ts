@@ -279,7 +279,7 @@ export const binomialDistribution: TopicContent = {
   terms: ['bernoulli-trial', 'binomial-distribution'],
   claims,
   cambridge: [a19two, a12two, a12dist, a19why],
-  gate: ['a12-q2-iv-distribution', 'a19-q4-ii-why-binomial', 'a19-q4-ii-at-least-two', 'a12-q2-iv-two'],
+  gate: ['a19-q4-ii-why-binomial', 'a19-q4-ii-at-least-two', 'a12-q2-iv-distribution'],
   recall: [
     { front: t`When is a count binomial?`, back: t`A fixed number ${mn} of independent trials, each a success with the same probability ${mp}.` },
     { front: t`${math`P(X = k)`} for ${math`X \sim B(n, p)`}.`, back: t`${math`\binom{n}{k} p^{k}(${1} - p)^{n - k}`}.` },

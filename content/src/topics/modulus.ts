@@ -250,7 +250,7 @@ export const modulus: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['modulus'],
   cambridge: [a21i, a5iii, a21sketch],
-  gate: ['a5-q2-iii', 'a21-q2-ii', 'a21-q2-i'],
+  gate: ['a5-q2-iii', 'a21-q2-ii'],
   recall: [
     { front: t`Define ${math`|x|`}.`, back: t`${math`x`} if ${math`x \ge ${0}`}, ${math`-x`} if ${math`x < ${0}`}; also ${math`\sqrt{x^{${2}}}`}.` },
     { front: t`How do you solve an equation with several moduli?`, back: t`Split at the critical values, solve in each region, and keep only solutions in their own region.` },

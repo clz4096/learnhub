@@ -254,7 +254,7 @@ export const convexity: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['concave-function', 'tangent-below'],
   cambridge: [switchQ, quarticQ, sketchQ],
-  gate: ['a13-q1-iii', 'a13-q1'],
+  gate: ['a13-q1', 'a13-q1-iii'],
   recall: [
     { front: t`Define a convex function on an interval.`, back: t`${math`f(tx + (${1} - t)y) \le tf(x) + (${1} - t)f(y)`} for all ${math`x, y`} in it and ${math`t \in [${0}, ${1}]`}: chords lie above.` },
     { front: t`How do you test convexity with derivatives?`, back: t`${math`f'' \ge ${0}`} on the interval gives convex; ${math`f'' \le ${0}`} gives concave.` },

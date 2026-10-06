@@ -302,7 +302,7 @@ export const differentiationRules: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['product-rule-calculus', 'chain-rule'],
   cambridge: [xex, lnSquare, dwdp, turnP, productProof, chainProof, tanProof],
-  gate: ['s2-q3-turn', 's2-q3-derivative', 'a22-q1'],
+  gate: ['s2-q3-turn'],
   recall: [
     { front: t`State the product rule.`, back: t`${math`(uv)' = u'v + uv'`}.` },
     { front: t`State the chain rule.`, back: t`${math`(f \circ g)'(x) = f'(g(x))g'(x)`}, or ${math`\frac{dy}{dx} = \frac{dy}{du}\frac{du}{dx}`}.` },

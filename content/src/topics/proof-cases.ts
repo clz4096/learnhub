@@ -423,9 +423,9 @@ export const proofCases: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exhaustive-cases', 'without-loss-of-generality'],
   cambridge: [a6ii, lemma26, odd8, bop14, bop15, bop44, sw223, sw128, sw231, sw327, bop16],
-  // Best first: the STEP count, then the supervision proofs from hardest to easiest. The
+  // Best first: the two hardest supervision proofs, the STEP count, then the easier proofs. The
   // auto-checked remainders (0 or 1; 1 for odd squares mod 8) can be guessed, so they do not gate.
-  gate: ['a6-q3-ii', 'sw-2-3-1', 'sw-3-2-7', 'sw-1-2-8', 'sw-2-2-3'],
+  gate: ['sw-2-3-1', 'sw-3-2-7', 'a6-q3-ii', 'sw-1-2-8', 'sw-2-2-3'],
   recall: [
     { front: t`State proof by cases.`, back: t`If ${math`P_{${1}}, \ldots, P_{k}`} are exhaustive and each ${math`P_{i}`} implies ${mQ}, then ${mQ} holds.` },
     { front: t`What does it mean for cases to be exhaustive?`, back: t`At least one of them always holds: ${math`P_{${1}} \lor \cdots \lor P_{k}`}.` },

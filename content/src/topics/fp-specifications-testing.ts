@@ -378,7 +378,7 @@ export const fpSpecificationsTesting: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['specification', 'precondition', 'postcondition', 'black-box-testing', 'glass-box-testing'],
   cambridge: [qcAvg, productTest, polySpec],
-  gate: ['cs3110-ex8-qcheck-avg', 'cs3110-ex8-poly-spec', 'cs3110-ex3-product-test'],
+  gate: ['cs3110-ex8-poly-spec', 'cs3110-ex3-product-test', 'cs3110-ex8-qcheck-avg'],
   recall: [
     { front: t`What are a precondition and a postcondition?`, back: t`The precondition (Requires) is what the client guarantees about the inputs; the postcondition (Returns, Raises) is what the function guarantees about the result when the precondition holds.` },
     { front: t`Black-box against glass-box testing?`, back: t`Black-box tests come from the specification (typical and boundary cases); glass-box tests come from the code (every path, branch, base case, and raise).` },

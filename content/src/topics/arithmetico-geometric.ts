@@ -349,7 +349,7 @@ export const arithmeticoGeometric: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arithmetico-geometric-series'],
   cambridge: [arthur, beta, contestMean, geomSecond, q2proofS, q2proofE],
-  gate: ['s3-q2-contest-shots', 's3-q2-prove-contest', 's3-notes-geometric-second-moment', 's3-q2-arthur', 's3-q2-prove-series'],
+  gate: ['s3-q2-prove-series', 's3-q2-prove-contest', 's3-q2-contest-shots', 's3-notes-geometric-second-moment'],
   recall: [
     { front: t`${math`\sum_{n \ge ${0}} (a + nd)r^{n}`} for ${math`|r| < ${1}`}.`, back: t`${math`\frac{a}{${1} - r} + \frac{dr}{(${1} - r)^{${2}}}`}.` },
     { front: t`${math`\sum_{n \ge ${1}} n r^{n - ${1}}`} for ${math`|r| < ${1}`}.`, back: t`${math`\frac{${1}}{(${1} - r)^{${2}}}`}, by differentiating the geometric series.` },

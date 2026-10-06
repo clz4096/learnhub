@@ -285,7 +285,7 @@ export const loci: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['locus'],
   cambridge: [a19q3i, a19q3],
-  gate: ['a19-q3-i', 'a19-q3-ii'],
+  gate: ['a19-q3-ii', 'a19-q3-i'],
   recall: [
     { front: t`What is the locus of points equidistant from ${math`P`} and ${math`Q`}?`, back: t`The perpendicular bisector of ${math`PQ`}: the line through the midpoint at right angles to ${math`PQ`}.` },
     { front: t`What is the locus ${math`AP = k \cdot BP`} for ${math`k \neq ${1}`}?`, back: t`A circle, the circle of Apollonius, with its centre on ${math`AB`}.` },

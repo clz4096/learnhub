@@ -483,7 +483,7 @@ export const subsetsTopic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['subset', 'power-set'],
   cambridge: [cstPowers, cstPowersProof, cstPartialOrder, b1314, b1413, b1415, b1416, b1418, b1419, b1420],
-  gate: ['sw-5-2-2', 'sw-5-2-2-proof'],
+  gate: ['sw-5-2-2-proof'],
   recall: [
     { front: t`Define ${math`A \subseteq B`}.`, back: t`Every element of ${mA} is an element of ${mB}: ${math`\forall x\,(x \in A \implies x \in B)`}.` },
     { front: t`Define the power set ${math`\mathcal{P}(A)`}, and give its size when ${math`|A| = n`}.`, back: t`${math`\mathcal{P}(A) = \{X : X \subseteq A\}`}; it has ${math`${2}^{n}`} elements.` },

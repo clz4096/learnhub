@@ -323,7 +323,7 @@ export const doubleAngle: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['double-angle-formula'],
   cambridge: [a16sin3, a23tan, a23q2iv, a25q2v],
-  gate: ['a16-q2-ii-sin3a', 'a23-q3-tan2alpha', 'a25-q2-v'],
+  gate: ['a25-q2-v'],
   recall: [
     { front: t`State the double angle formulae for sine and cosine.`, back: t`${math`\sin ${2}A = ${2}\sin A\cos A`}; ${math`\cos ${2}A = \cos^{${2}} A - \sin^{${2}} A = ${2}\cos^{${2}} A - ${1} = ${1} - ${2}\sin^{${2}} A`}.` },
     { front: t`State ${math`\tan ${2}A`}.`, back: t`${math`\frac{${2}\tan A}{${1} - \tan^{${2}} A}`}, where defined.` },

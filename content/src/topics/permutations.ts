@@ -310,7 +310,7 @@ export const permutations: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['permutation'],
   cambridge: [ia12, ia12proof, a6q2],
-  gate: ['ia1-q12', 'ia1-q12-check'],
+  gate: ['ia1-q12-check', 'ia1-q12'],
   recall: [
     { front: t`What is ${math`P(n, r)`}, and what does it count?`, back: t`${math`\frac{n!}{(n - r)!} = n(n - ${1})\cdots(n - r + ${1})`}: ordered selections of ${mr} different objects from ${mn}.` },
     { front: t`How are ${math`P(n, r)`} and ${math`\binom{n}{r}`} related?`, back: t`${math`P(n, r) = r!\binom{n}{r}`}: choose the objects, then order them.` },

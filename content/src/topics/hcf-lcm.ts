@@ -219,7 +219,8 @@ export const hcfLcm: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hcf', 'lcm'],
   cambridge: [a10lcm],
-  gate: ['a10-q2-iii-lcm'],
+  // No gate: the one approved problem (the LCM from given factorisations) is a single step.
+  gate: [],
   recall: [
     { front: t`HCF and LCM from prime factorisations?`, back: t`HCF: the lower power of each prime. LCM: the higher power.` },
     { front: t`How are the HCF and LCM of ${math`a`} and ${math`b`} related?`, back: t`${math`\text{HCF}(a, b) \times \text{LCM}(a, b) = ab`}.` },

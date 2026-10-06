@@ -371,7 +371,7 @@ export const curveSketching: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['intermediate-value-theorem', 'end-behaviour'],
   cambridge: [whichThree, sketchFRoots, step2012, step2015, step2015full, step2012full, step1993],
-  gate: ['a22-q4-k-one', 'a22-q4', 'a13-q3', 'a9-q3'],
+  gate: ['a22-q4', 'a9-q3', 'a13-q3'],
   recall: [
     { front: t`State the intermediate value theorem.`, back: t`If ${math`f`} is continuous on ${math`[a, b]`} and ${math`k`} is strictly between ${math`f(a)`} and ${math`f(b)`}, then ${math`f(c) = k`} for some ${math`c`} in ${math`(a, b)`}.` },
     { front: t`A cubic with positive leading coefficient has turning values ${math`M > m`}. How many roots has ${math`f(x) = k`}?`, back: t`Three if ${math`m < k < M`}; two if ${math`k = m`} or ${math`k = M`}; one otherwise.` },

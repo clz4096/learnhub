@@ -378,9 +378,9 @@ export const randomVariables: TopicContent = {
   terms: ['random-variable', 'rv-distribution'],
   claims,
   cambridge: [q5b, quarter, scheduleRv],
-  // The parameter one quarter needs the count of events of two outcomes; parameter one third
-  // needs the argument that there are none. The schedule write-up is not from a gate document.
-  gate: ['ia-s2-q5-quarter', 'ia-s2-q5-b'],
+  // The parameter one quarter needs the count of events of two outcomes. Parameter one third has the
+  // answer 0, which can be guessed. The schedule write-up is not from a gate document.
+  gate: ['ia-s2-q5-quarter'],
   recall: [
     { front: t`Define a random variable on a countable probability space.`, back: t`A function ${math`X: \Omega \to \mathbb{R}`}.` },
     { front: t`Define the distribution of ${mX}.`, back: t`${math`\mathbb{P}(X = x) = \mathbb{P}(\{\omega : X(\omega) = x\})`} for each value ${math`x`}.` },

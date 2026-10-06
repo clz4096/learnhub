@@ -284,7 +284,7 @@ export const standardIntegrals: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['log-integral'],
   cambridge: [e4t, sin2t, xcos, lnln, stQ, ijQ],
-  gate: ['a24-q1-i-c', 'a25-q4-ii-c'],
+  gate: ['a25-q4-ii-c', 'a24-q1-i-c'],
   recall: [
     { front: t`What are ${math`\int \sin kx\,dx`} and ${math`\int \cos kx\,dx`}?`, back: t`${math`-\frac{\cos kx}{k} + c`} and ${math`\frac{\sin kx}{k} + c`}.` },
     { front: t`What is ${math`\int \frac{f'(x)}{f(x)}\,dx`}?`, back: t`${math`\ln|f(x)| + c`}, on an interval where ${math`f \ne ${0}`}.` },

@@ -230,7 +230,7 @@ export const symmetryIntegrals: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['king-property'],
   cambridge: [lnTan, zeroQ, cosRatio, stepFull],
-  gate: ['a25-q3-i', 'a25-q3'],
+  gate: ['a25-q3', 'a25-q3-i'],
   recall: [
     { front: t`What is ${math`\int_{${0}}^{a} \frac{f(x)}{f(x) + f(a - x)}\,dx`}?`, back: t`${math`\frac{a}{${2}}`}, when the denominator is never ${0}: reflect and add.` },
     { front: t`What is the reflection identity?`, back: t`${math`\int_{${0}}^{a} f(x)\,dx = \int_{${0}}^{a} f(a - x)\,dx`}.` },

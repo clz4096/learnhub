@@ -324,7 +324,7 @@ export const polynomialRegions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sign-diagram', 'region-test-point'],
   cambridge: [a4q3i, nstA5ii, a4q2iii, a4q3iiLines, step1995, a4q2iv],
-  gate: ['a4-q3', 'a4-q3-i', 'nst-a5-ii'],
+  gate: ['a4-q3'],
   recall: [
     { front: t`Where does a factorised polynomial change sign?`, back: t`At each root of odd multiplicity; not at a root of even multiplicity.` },
     { front: t`How do you shade where a product of linear factors in ${math`x, y`} is positive?`, back: t`Draw the lines where each factor is ${0}, then test one point in each region.` },

@@ -362,7 +362,7 @@ export const radiansAndGraphs: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['radian', 'unit-circle', 'period'],
   cambridge: [a22zero, g2perim, g2area, fc4],
-  gate: ['a22-q3-iv', 'nst-g2-i', 'nst-fc4'],
+  gate: ['nst-fc4', 'a22-q3-iv'],
   recall: [
     { front: t`Define a radian.`, back: t`The angle at the centre of a circle whose arc equals the radius; ${math`\pi`} radians is ${math`${180}^\circ`}.` },
     { front: t`State the arc length and sector area for an angle ${mth} in radians.`, back: t`Arc ${math`r\theta`}; area ${math`\frac{${1}}{${2}}r^{${2}}\theta`}.` },

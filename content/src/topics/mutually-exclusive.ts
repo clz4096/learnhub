@@ -313,7 +313,7 @@ export const mutuallyExclusive: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['mutually-exclusive', 'exhaustive-events'],
   cambridge: [a12q3i, a12q3ii, a12q2],
-  gate: ['a12-q3-i', 'a12-q3-ii'],
+  gate: ['a12-q3-ii', 'a12-q3-i'],
   recall: [
     { front: t`When is ${math`P(A \text{ or } B) = P(A) + P(B)`}?`, back: t`When ${mA} and ${mB} are mutually exclusive: they cannot both happen.` },
     { front: t`What do the probabilities of an exhaustive set of mutually exclusive events add to?`, back: t`${1}. So ${math`P(\text{not } A) = ${1} - P(A)`}.` },

@@ -326,7 +326,7 @@ export const complexNumbers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['complex-number', 'complex-conjugate', 'modulus-complex', 'argument-complex'],
   cambridge: [a2iv, a14iv, c1ii],
-  gate: ['a2-q1-iv', 'a14-q1-iv', 'nst-c1-ii'],
+  gate: ['a14-q1-iv', 'a2-q1-iv'],
   recall: [
     { front: t`How do you divide by a complex number?`, back: t`Multiply top and bottom by the conjugate of the bottom, making the bottom ${math`|w|^{${2}}`}, a real number.` },
     { front: t`What are the roots of a real quadratic with negative discriminant?`, back: t`The conjugate pair ${math`\frac{-b \pm i\sqrt{${4}ac - b^{${2}}}}{${2}a}`}.` },

@@ -415,7 +415,7 @@ export const fpTrees: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binary-tree', 'tree-traversal'],
   cambridge: [ftreeInorder, depthEx, shapeEx, focs62, focs76],
-  gate: ['focs-6-3-inorder', 'cs3110-ex3-depth', 'focs-7-6'],
+  gate: ['focs-7-6', 'cs3110-ex3-shape'],
   recall: [
     { front: t`State the relation between ${code`leaves`} and ${code`count`}.`, back: t`${math`\mathrm{leaves}(t) = \mathrm{count}(t) + ${1}`} for every tree, by induction on the tree.` },
     { front: t`How many labels can a tree of depth ${math`d`} hold?`, back: t`At most ${math`${2}^{d} - ${1}`}, reached by the complete tree.` },

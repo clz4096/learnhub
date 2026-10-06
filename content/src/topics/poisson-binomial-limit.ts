@@ -296,8 +296,9 @@ export const poissonBinomialLimit: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['poisson-approximation'],
   cambridge: [notesAtMost, notesVar, general, when],
-  // The explanation the notes call for, then the approximation in use. The variance substitution is one line, and the general limit is from the schedule, not a Cambridge problem sheet.
-  gate: ['s2-notes-when', 's2-notes-approx'],
+  // The explanation the notes call for. The faulty-items estimate is one Poisson probability with
+  // np put in, the variance substitution is one line, and the general limit is from the schedule.
+  gate: ['s2-notes-when'],
   recall: [
     { front: t`State the Poisson limit of the binomial.`, back: t`For fixed ${ml} and ${mk}, ${math`P(B(n, \lambda/n) = k) \to e^{-\lambda}\lambda^{k}/k!`}.` },
     { front: t`When does ${math`\text{Po}(np)`} approximate ${math`B(n, p)`} well?`, back: t`When ${mn} is large and ${math`p`} is small: the means agree, and the variances differ by the factor ${math`${1} - p`}.` },

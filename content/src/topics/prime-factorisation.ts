@@ -404,8 +404,8 @@ export const primeFactorisation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['prime-number', 'prime-factorisation', 'index-form'],
   cambridge: [a12sets, a12imam, a12rabbi, a12explain],
-  // The puzzle's final answer first; it needs every earlier step.
-  gate: ['a12-q4-rabbi', 'a12-q4-imam', 'a12-q4-explain', 'a12-q4-sets'],
+  // The written reasoning first, then the puzzle's answers, which need every earlier step, then the count.
+  gate: ['a12-q4-explain', 'a12-q4-rabbi', 'a12-q4-imam', 'a12-q4-sets'],
   recall: [
     { front: t`Define a prime number.`, back: t`An integer greater than ${1} whose only positive divisors are ${1} and itself.` },
     { front: t`Why does every integer above ${1} have a prime factorisation?`, back: t`A smallest exception would not be prime, so it splits into two smaller factors, each a product of primes: a contradiction.` },

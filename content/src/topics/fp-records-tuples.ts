@@ -338,7 +338,7 @@ export const fpRecordsTuples: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['tuple', 'record-type'],
   cambridge: [pokerecord, dateBefore, focs43, focs46],
-  gate: ['cs3110-ex3-pokerecord', 'cs3110-ex3-date-before', 'focs-4-3'],
+  gate: ['focs-4-3', 'cs3110-ex3-date-before', 'focs-4-6'],
   recall: [
     { front: t`What is the type of a tuple ${code`(e${1}, e${2})`}?`, back: t`The product type ${math`\tau_{${1}} * \tau_{${2}}`} of the components' types, in order.` },
     { front: t`What does ${code`{ r with f = v }`} do?`, back: t`It builds a new record equal to ${code`r`} except in field ${code`f`}; ${code`r`} itself is unchanged.` },

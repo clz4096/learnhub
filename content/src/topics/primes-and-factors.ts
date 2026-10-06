@@ -243,7 +243,7 @@ export const primesAndFactors: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['factor', 'multiple', 'composite-number'],
   cambridge: [a10q3ia, a10q3iii, a10q3ib],
-  gate: ['a10-q3-i-a', 'a10-q3-iii', 'a10-q3-i-b'],
+  gate: ['a10-q3-i-b', 'a10-q3-iii', 'a10-q3-i-a'],
   recall: [
     { front: t`Define a prime number.`, back: t`An integer ${math`p \ge ${2}`} whose only positive factors are ${1} and ${math`p`}.` },
     { front: t`Which divisors must you try to test ${math`n`} for primality?`, back: t`The primes up to ${math`\sqrt{n}`}: a composite ${math`n`} has a prime factor that small.` },

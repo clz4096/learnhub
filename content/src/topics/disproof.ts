@@ -393,7 +393,7 @@ export const disproof: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['disproof-of-existence'],
   cambridge: [sw115, sw115proof, b921, b930, b920, b92],
-  gate: ['sw-1-1-5', 'sw-1-1-5-proof'],
+  gate: ['sw-1-1-5-proof'],
   recall: [
     { front: t`What is the negation of ${math`\exists x \in S,\ P(x)`}?`, back: t`${math`\forall x \in S,\ \neg P(x)`}.` },
     { front: t`How do you disprove a statement ${mP} by contradiction?`, back: t`Assume ${mP} is true and deduce a contradiction.` },

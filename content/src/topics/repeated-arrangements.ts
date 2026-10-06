@@ -333,10 +333,10 @@ export const repeatedArrangements: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['repeated-letter'],
   cambridge: [a6q2ii, a6q2iii, a6q2v, a6q5iii, lillian, general],
-  // Best first: Lillian's "show carefully" write-up, MISSISSIPPI, the three names with several
-  // repeats, then the five names. Anna (four letters) is too slight to gate. The general
-  // formula comes from the hints, not a gate document.
-  gate: ['a6-q2-iv', 'a6-q2-v', 'a6-q2-iii', 'a6-q2-ii'],
+  // Best first: Lillian's "show carefully" write-up, MISSISSIPPI, then the three names with several
+  // repeats. The five names with one repeat each and Anna are one division each, too slight to gate.
+  // The general formula comes from the hints, not a gate document.
+  gate: ['a6-q2-iv', 'a6-q2-v', 'a6-q2-iii'],
   recall: [
     { front: t`How many arrangements of ${mn} objects with ${math`r_{${1}}, \ldots, r_{k}`} identical copies of each kind?`, back: t`${math`\frac{n!}{r_{${1}}! \times \cdots \times r_{k}!}`}.` },
     { front: t`Why divide by ${math`r_{i}!`}?`, back: t`Labelling the copies counts each word once for every order of the labels within each kind.` },

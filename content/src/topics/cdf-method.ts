@@ -396,7 +396,7 @@ export const cdfMethod: TopicContent = {
   terms: ['cdf-method'],
   claims,
   cambridge: [q4cdf, q4t, q4tProof, squareRule],
-  gate: ['s3-q4-density-t', 's3-notes-square', 's2-q4-cdf', 's3-q4-tail'],
+  gate: ['s3-notes-square', 's3-q4-tail', 's3-q4-density-t', 's2-q4-cdf'],
   recall: [
     { front: t`The distribution function method for ${math`Y = g(X)`}.`, back: t`Write ${math`F_{Y}(y) = P(g(X) \le y)`}, solve for ${mX}, use ${math`F_{X}`}, then differentiate.` },
     { front: t`The density of ${math`g(X)`} for strictly monotone ${math`g`} with inverse ${math`h`}.`, back: t`${math`f_{Y}(y) = f_{X}(h(y))\,|h'(y)|`}.` },

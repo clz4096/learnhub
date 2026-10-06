@@ -557,19 +557,43 @@ describe('lesson header sentences', () => {
 
 describe('the Cambridge gate', () => {
   /**
-   * Mastery needs one gate problem per topic (decision of 2026-10-05). For now a topic
-   * without one is a warning, not a failure, so existing content passes; such a topic
-   * cannot be mastered until a Cambridge-standard problem is written for it.
+   * Topics with no Cambridge-standard problem to gate on yet: they cannot be mastered until one
+   * is written. Explicit, so a new gap fails here and a filled one is taken off the list.
    */
-  it('lists the topics with no gate problem (a warning for now)', () => {
+  const NO_GATE: ReadonlySet<string> = new Set([
+    'calc.improper-integrals',
+    'comb.factorial',
+    'ineq.am-gm',
+    'logic.connectives',
+    'logic.nested-quantifiers',
+    'pre.hcf-lcm',
+    'pre.probability-scale',
+    'pre.set-notation',
+    'rv.simulation',
+    'trig.right-triangle',
+  ]);
+
+  it('only the known topics have no gate problem', () => {
     const lacking = TOPIC_CONTENT.filter((c) => c.gate.length === 0).map((c) => c.topicId);
-    if (lacking.length > 0) console.warn(`Topics with no Cambridge gate problem (${lacking.length}): ${lacking.join(', ')}`);
-    expect(lacking.length).toBeLessThan(TOPIC_CONTENT.length);
+    expect(new Set(lacking)).toEqual(NO_GATE);
+  });
+
+  it('every gate problem is one of the topic\'s problems from a gate document', () => {
+    for (const c of TOPIC_CONTENT) {
+      expect(new Set(c.gate).size, `${c.topicId} repeats a gate id`).toBe(c.gate.length);
+      for (const id of c.gate) {
+        const p = c.cambridge.find((q) => q.id === id);
+        expect(p, `${c.topicId}/${id} is not in its cambridge list`).toBeDefined();
+        expect(GATE_DOCS.has(p?.source.doc ?? ''), `${c.topicId}/${id} cites ${p?.source.doc}, not a gate document`).toBe(true);
+      }
+    }
   });
 
   it('the default gate is the problems from a Cambridge-standard document', () => {
     expect(GATE_DOCS.has('bop')).toBe(false);
     expect(GATE_DOCS.has('tmua-logic-proof')).toBe(false);
+    expect(GATE_DOCS.has('cs3110-book')).toBe(false);
+    expect(GATE_DOCS.has('step-f01-hints')).toBe(false);
     for (const d of GATE_DOCS) expect(Object.hasOwn(CITED_DOCS, d), d).toBe(true);
     const c = contentFor('proof.contradiction') as TopicContent;
     expect(gateCandidates(c.cambridge).every((id) => GATE_DOCS.has(c.cambridge.find((p) => p.id === id)?.source.doc ?? ''))).toBe(true);

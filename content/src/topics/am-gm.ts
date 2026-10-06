@@ -300,7 +300,9 @@ export const amGm: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arithmetic-mean', 'geometric-mean'],
   cambridge: [a8q1ii, a8q1iii, a8q1, a8eq],
-  gate: ['a8-q1-ii', 'a8-q1-iii'],
+  // No gate: the lesson proves the two-, four-, and three-number cases, which are all the approved
+  // problems (Assignment 8 Q1); a fresh Cambridge-standard problem is needed.
+  gate: [],
   recall: [
     { front: t`State AM-GM for two numbers, with its hypotheses and equality case.`, back: t`For ${math`a, b \ge ${0}`}: ${math`\frac{a + b}{${2}} \ge \sqrt{ab}`}, with equality if and only if ${math`a = b`}.` },
     { front: t`What square proves AM-GM for two numbers?`, back: t`${math`(\sqrt{a} - \sqrt{b})^{${2}} \ge ${0}`}, which expands to ${math`a + b \ge ${2}\sqrt{ab}`}.` },

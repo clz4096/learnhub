@@ -303,7 +303,7 @@ export const circles: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['circle-equation'],
   cambridge: [a23incircle, a23q3i],
-  gate: ['a23-q3-ii', 'a23-q3-i'],
+  gate: ['a23-q3-i', 'a23-q3-ii'],
   recall: [
     { front: t`State the equation of the circle with centre ${math`(a, b)`} and radius ${math`r`}.`, back: t`${math`(x - a)^{${2}} + (y - b)^{${2}} = r^{${2}}`}.` },
     { front: t`How do you find the centre and radius of ${math`x^{${2}} + y^{${2}} + Dx + Ey + F = ${0}`}?`, back: t`Complete the square: centre ${math`\left(-\frac{D}{${2}}, -\frac{E}{${2}}\right)`}, radius squared ${math`\frac{D^{${2}}}{${4}} + \frac{E^{${2}}}{${4}} - F`}, which must be positive.` },

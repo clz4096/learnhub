@@ -229,7 +229,7 @@ export const expAndLn: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exponential-function', 'natural-logarithm', 'laws-of-logarithms'],
   cambridge: [fc5iii, fc5ii],
-  gate: ['nst-fc5-iii', 'nst-fc5-ii'],
+  gate: ['nst-fc5-iii'],
   recall: [
     { front: t`Define ${math`\ln x`}.`, back: t`For ${math`x > ${0}`}, the unique ${math`y`} with ${math`e^{y} = x`}.` },
     { front: t`State the laws of logarithms.`, back: t`${math`\ln(ab) = \ln a + \ln b`}, ${math`\ln\frac{a}{b} = \ln a - \ln b`}, ${math`\ln(a^{k}) = k\ln a`}.` },

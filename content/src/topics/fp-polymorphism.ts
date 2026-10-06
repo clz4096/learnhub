@@ -318,7 +318,7 @@ export const fpPolymorphism: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['type-variable', 'polymorphic-type', 'most-general-type'],
   cambridge: [polyF, polyG, polyI, focs34],
-  gate: ['cs3110-ex2-poly-types-g', 'cs3110-ex2-poly-types-i', 'focs-3-4'],
+  gate: ['focs-3-4'],
   recall: [
     { front: t`What is an instance of a polymorphic type?`, back: t`The type with each type variable replaced by a type, the same type at every occurrence of the same variable.` },
     { front: t`What is a most general type of ${math`e`}?`, back: t`A type of ${math`e`} of which every type of ${math`e`} is an instance; OCaml's inference finds it.` },

@@ -457,9 +457,10 @@ export const productRule: TopicContent = {
   ],
   generators: [menu, codes, wholeNumbers, weighings, bachet],
   cambridge: [a7Five, a7TwoPans, a7Forty, a7ThreeWays, a7Unique, a7Bound, a7Bound3],
-  // Best first: the two counting bounds (proofs), the three-way count, then the constructions
-  // whose check is a subset count. Q4(ii)(a) (the weights 1 and 3) is too slight to gate.
-  gate: ['a7-q4-ii-b-show', 'a7-q4-i-c-show', 'a7-q4-ii-b-count', 'a7-q4-i-a', 'a7-q4-ii-c', 'a7-q4-i-b'],
+  // Best first: the two counting bounds (proofs), the unique three-weight choice, then the four
+  // weights to 40. The 3^n count and the powers of two to 31 are one step each, and Q4(ii)(a) (the
+  // weights 1 and 3) is too slight to gate.
+  gate: ['a7-q4-ii-b-show', 'a7-q4-i-c-show', 'a7-q4-i-a', 'a7-q4-ii-c'],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['product-rule', 'outcome'],
   recall: [

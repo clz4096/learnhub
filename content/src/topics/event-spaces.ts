@@ -286,8 +286,8 @@ export const eventSpaces: TopicContent = {
   terms: ['sigma-algebra', 'partition'],
   cambridge: [q4def, q4aSecond, q6b],
   // Q6(b) first: it needs the limit events built from countable unions and intersections. Then Q4(a)'s
-  // finite case and Q4's definitions, a proof and a statement from the same sheet.
-  gate: ['q6-b-event', 'q4-a-finite', 'q4-definitions'],
+  // finite case. Q4's definitions are recall, not a test, so they do not gate.
+  gate: ['q6-b-event', 'q4-a-finite'],
   recall: [
     { front: t`Define a sigma-algebra on ${mO}.`, back: t`A collection ${mF} of subsets with ${math`\Omega \in \mathcal{F}`}, closed under complements and under countable unions.` },
     { front: t`Why is ${math`\varnothing`} an event?`, back: t`${math`\varnothing = \Omega^{c}`}, and complements of events are events.` },

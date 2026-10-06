@@ -295,7 +295,7 @@ export const partialFractions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['partial-fractions', 'cover-up-rule'],
   cambridge: [a17iiiN, a17iii200, nstA7ii, nstA7iii],
-  gate: ['a17-q2-iii-200', 'nst-a7-iii', 'a17-q2-iii-n'],
+  gate: ['nst-a7-iii', 'a17-q2-iii-200', 'a17-q2-iii-n'],
   recall: [
     { front: t`State the cover-up rule.`, back: t`The coefficient over ${math`x - a`} is the rest of the fraction evaluated at ${math`x = a`}.` },
     { front: t`Partial fractions for ${math`\frac{${1}}{r(r + ${1})}`}?`, back: t`${math`\frac{${1}}{r} - \frac{${1}}{r + ${1}}`}.` },

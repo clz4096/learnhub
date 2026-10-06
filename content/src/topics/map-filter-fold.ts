@@ -309,7 +309,7 @@ export const mapFilterFold: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['map-functional', 'filter-functional', 'fold'],
   cambridge: [sco5, existsEx, mapComposition, matrixMultiply, focs83, focs84],
-  gate: ['focs-8-3', 'cs3110-4-map-composition'],
+  gate: ['cs3110-4-matrix-multiply', 'focs-8-3'],
   recall: [
     { front: t`What does ${ml`map f [x${1}; ...; xn]`} return?`, back: t`${ml`[f x${1}; ...; f xn]`}.` },
     { front: t`State ${ml`fold_left`} and ${ml`fold_right`} on ${ml`[x${1}; ...; xn]`}.`, back: t`${ml`f (... (f a x${1}) ...) xn`} and ${ml`f x${1} (... (f xn a) ...)`}.` },

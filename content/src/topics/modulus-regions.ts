@@ -269,7 +269,7 @@ export const modulusRegions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['boundary-curve'],
   cambridge: [a21points, step1999, a21ivv],
-  gate: ['a21-q3', 'a21-q3-iii-points', 'a21-q2-iv-v'],
+  gate: ['a21-q3', 'a21-q2-iv-v'],
   recall: [
     { front: t`What shape is ${math`|x| + |y| \le k`}?`, back: t`A square standing on a corner, vertices ${math`(\pm k, ${0})`}, ${math`(${0}, \pm k)`}, area ${math`${2}k^{${2}}`}.` },
     { front: t`How do you sketch a region defined by moduli?`, back: t`Draw the critical lines, find the boundary in each piece, then test a point in each region.` },

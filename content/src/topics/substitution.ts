@@ -242,7 +242,7 @@ export const substitution: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['substitution'],
   cambridge: [fracQ, rootQ, tanSubQ, statsQ],
-  gate: ['a25-q3-tan', 's3-q4'],
+  gate: ['a25-q3-tan'],
   recall: [
     { front: t`State integration by substitution.`, back: t`${math`\int_{\alpha}^{\beta} f(g(u))g'(u)\,du = \int_{g(\alpha)}^{g(\beta)} f(x)\,dx`}.` },
     { front: t`What three things change in a substitution?`, back: t`The integrand, ${math`dx`} (to ${math`g'(u)\,du`}), and the limits.` },

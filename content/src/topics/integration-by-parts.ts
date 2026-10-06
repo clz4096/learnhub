@@ -287,7 +287,7 @@ export const integrationByParts: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['integration-by-parts'],
   cambridge: [xExpQ, lnQ, step1998, step1998full, nstI2],
-  gate: ['a24-q3-i3', 'a24-q3'],
+  gate: ['a24-q3', 'a24-q3-i3'],
   recall: [
     { front: t`State integration by parts.`, back: t`${math`\int_{a}^{b} uv'\,dx = \left[uv\right]_{a}^{b} - \int_{a}^{b} u'v\,dx`}.` },
     { front: t`What is ${math`\int \ln x\,dx`}?`, back: t`${math`x\ln x - x + c`}, by parts with ${math`u = \ln x`}, ${math`v' = ${1}`}.` },

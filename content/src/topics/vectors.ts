@@ -252,7 +252,7 @@ export const vectors: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['vector', 'scalar-product'],
   cambridge: [v1ii, a5angle],
-  gate: ['nst-v1-ii', 'a5-q3-ii-scalar'],
+  gate: ['a5-q3-ii-scalar'],
   recall: [
     { front: t`Define the scalar product and state its geometric meaning.`, back: t`${math`\mathbf{a} \cdot \mathbf{b} = a_{${1}}b_{${1}} + a_{${2}}b_{${2}} + a_{${3}}b_{${3}} = |\mathbf{a}||\mathbf{b}|\cos\theta`}.` },
     { front: t`When are two nonzero vectors perpendicular?`, back: t`Exactly when their scalar product is ${0}.` },

@@ -330,7 +330,7 @@ export const conditionalProbability: TopicContent = {
   terms: ['conditional-measure'],
   claims,
   cambridge: [q10third, exchange, measure],
-  gate: ['ia-q10-exchangeable', 'ia-q10-third-white'],
+  gate: ['ia-q10-exchangeable'],
   recall: [
     { front: t`What kind of object is ${math`A \mapsto \mathbb{P}(A \mid B)`}?`, back: t`A probability measure, for any ${mB} with ${math`\mathbb{P}(B) > ${0}`}, giving ${mB} probability ${1}.` },
     { front: t`The multiplication rule for ${math`n`} events.`, back: t`${math`\mathbb{P}(A_{${1}} \cap \cdots \cap A_{n}) = \mathbb{P}(A_{${1}})\mathbb{P}(A_{${2}} \mid A_{${1}}) \cdots \mathbb{P}(A_{n} \mid A_{${1}} \cap \cdots \cap A_{n - ${1}})`}.` },

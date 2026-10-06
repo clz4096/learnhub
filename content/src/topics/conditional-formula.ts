@@ -394,7 +394,7 @@ export const conditionalFormula: TopicContent = {
   terms: ['multiplication-rule'],
   claims,
   cambridge: [a19i, raffle121, raffle11, raffle3, smokersReverse],
-  gate: ['a12-q3-iii', 'a19-q4-i-formula', 'a12-q3-ii-121', 'a6-q4-i-formula'],
+  gate: ['a12-q3-iii', 'a6-q4-i-formula', 'a19-q4-i-formula', 'a12-q3-ii-121'],
   recall: [
     { front: t`Conditional probability.`, back: t`${math`P(A \mid B) = \frac{P(A \cap B)}{P(B)}`}, for ${math`P(B) > ${0}`}.` },
     { front: t`The multiplication rule for three events.`, back: t`${math`P(A \cap B \cap C) = P(A)\,P(B \mid A)\,P(C \mid A \cap B)`}.` },

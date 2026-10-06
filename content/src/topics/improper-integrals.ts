@@ -255,7 +255,9 @@ export const improperIntegrals: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['improper-integral'],
   cambridge: [varY, nstLimit, nstIN2],
-  gate: ['s2-q4-variance', 'nst-in2'],
+  // No gate: IN2 (n! as an integral) is worked in the lesson, and STEP 2 Q4's variance needs
+  // densities and variance, later topics; the I2(i) limit is one step.
+  gate: [],
   recall: [
     { front: t`Define ${math`\int_{a}^{\infty} f(x)\,dx`}.`, back: t`${math`\lim_{R \to \infty}\int_{a}^{R} f(x)\,dx`}, when the limit exists.` },
     { front: t`When does ${math`\int_{${1}}^{\infty} x^{-p}\,dx`} converge?`, back: t`Exactly when ${math`p > ${1}`}; then it is ${math`\frac{${1}}{p - ${1}}`}.` },

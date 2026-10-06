@@ -337,7 +337,7 @@ export const recurrenceSequences: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['recurrence-relation', 'fixed-point', 'periodic-sequence'],
   cambridge: [a15q3c, a15q3sup, a11, a15ii, a15iii],
-  gate: ['a15-q3-i-c', 'a15-q3-i'],
+  gate: ['a15-q3-i', 'a15-q3-i-c'],
   recall: [
     { front: t`If ${math`u_{n + ${1}} = f(u_{n})`} and ${math`u_{n} \to l`}, what equation does ${ml} satisfy, and why?`, back: t`${math`l = f(l)`}: both ${math`u_{n + ${1}}`} and ${math`f(u_{n})`} tend to it.` },
     { front: t`What makes a sequence periodic with period ${math`p`}?`, back: t`${math`u_{n + p} = u_{n}`} for all ${mn}, with ${math`p`} the smallest such positive integer.` },

@@ -237,7 +237,7 @@ export const rationalInequalities: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['rational-inequality'],
   cambridge: [a7a, a18iii],
-  gate: ['a18-q2-iii', 'a7-q1-ii-a'],
+  gate: ['a18-q2-iii'],
   recall: [
     { front: t`Why multiply a rational inequality by ${math`Q(x)^{${2}}`} rather than ${math`Q(x)`}?`, back: t`${math`Q(x)^{${2}}`} is positive wherever the inequality makes sense, so the direction is kept.` },
     { front: t`Which critical values never belong to the answer?`, back: t`The zeros of the denominator, where the expression is undefined.` },

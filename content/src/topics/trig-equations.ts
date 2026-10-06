@@ -365,7 +365,7 @@ export const trigEquations: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['solution-set'],
   cambridge: [a16cubic, a16q3ii, t8, t1, t7],
-  gate: ['a16-q3-iii', 'a16-q3-ii', 'nst-t8'],
+  gate: ['a16-q3-ii', 'a16-q3-iii', 'nst-t8'],
   recall: [
     { front: t`How do you solve ${math`\sin nx = c`} on ${math`[${0}, ${2}\pi)`}?`, back: t`Solve ${math`\sin u = c`} for ${math`u = nx`} over ${math`[${0}, ${2}n\pi)`}, then divide by ${math`n`}.` },
     { front: t`Why factorise instead of dividing?`, back: t`Dividing by something that can be ${0} loses the solutions where it is ${0}; a product is ${0} exactly when a factor is.` },

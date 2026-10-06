@@ -380,9 +380,9 @@ export const quantifierPatterns: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arbitrary-element', 'unique-existence'],
   cambridge: [sw117, bop717, bop712, bop720, bop426, sw117proof, sw114proof, bop426proof],
-  // Best first: the existence and uniqueness proof, then the existence write-up, then the
-  // auto-checked unique y (solving gives the witness).
-  gate: ['sw-1-1-7-proof', 'sw-1-1-4-proof', 'sw-1-1-7'],
+  // Best first: the existence and uniqueness proof, then the existence write-up. The auto-checked
+  // unique y is one line of algebra, so it does not gate.
+  gate: ['sw-1-1-7-proof', 'sw-1-1-4-proof'],
   recall: [
     { front: t`How do you prove ${math`\forall x \in S.\ P(x)`}?`, back: t`Let ${mx} be an arbitrary element of ${mS} and prove ${math`P(x)`} using only ${math`x \in S`}.` },
     { front: t`How do you prove ${math`\exists x \in S.\ P(x)`}?`, back: t`Give a witness ${math`w \in S`} and prove ${math`P(w)`}.` },

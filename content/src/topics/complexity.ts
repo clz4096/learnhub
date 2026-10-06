@@ -321,7 +321,7 @@ export const complexity: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['big-o', 'cost-recurrence'],
   cambridge: [focs22exp, focs24value, focs24proof, focs23, focs21],
-  gate: ['focs-2-4', 'focs-2-3'],
+  gate: ['focs-2-3', 'focs-2-1'],
   recall: [
     { front: t`Define ${math`f(n) = O(g(n))`}.`, back: t`There are ${math`c > ${0}`} and ${math`n_{${0}}`} with ${math`|f(n)| \le c|g(n)|`} for all ${math`n \ge n_{${0}}`}.` },
     { front: t`Costs of ${math`T(n) = T(n/${2}) + ${1}`} and ${math`T(n) = ${2}T(n/${2}) + n`}?`, back: t`${math`O(\log n)`} and ${math`O(n \log n)`}.` },

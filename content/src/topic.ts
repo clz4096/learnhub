@@ -220,15 +220,22 @@ export function lessonSections(lesson: readonly Block[]): LessonSection[] {
 }
 
 /**
- * The documents whose problems are of Cambridge standard: STEP (with the STEP topic notes),
- * the IA Probability sheets, and the CST Discrete Mathematics exercises. Book of Proof and
- * the TMUA notes are good practice but easier; the schedules state a course, not problems.
+ * The documents whose problems are of Cambridge standard, so the only sources of gate problems:
+ * every STEP Support assignment (1 to 25; not their hints), the STEP statistics questions and
+ * topic notes, the IA Probability sheets, the CST Discrete Mathematics notes and exercises, the
+ * NST Mathematics Workbook, the Foundations of Computer Science notes, and the CS3110 chapter
+ * exercises. Book of Proof and the TMUA notes are good practice but easier; the schedules state
+ * a course, not problems; the CS3110 book's prose is a reference, not an exercise sheet.
  */
 export const GATE_DOCS: ReadonlySet<string> = new Set([
-  'step-f05', 'step-f06', 'step-f07', 'step-f08', 'step-f12', 'step-f19',
+  'step-f01', 'step-f02', 'step-f03', 'step-f04', 'step-f05', 'step-f06', 'step-f07', 'step-f08', 'step-f09',
+  'step-f10', 'step-f11', 'step-f12', 'step-f13', 'step-f14', 'step-f15', 'step-f16', 'step-f17', 'step-f18',
+  'step-f19', 'step-f20', 'step-f21', 'step-f22', 'step-f23', 'step-f24', 'step-f25',
+  'step-mixed-stats1', 'step-s2-stats', 'step-s2-stats-notes', 'step-s3-stats', 'step-s3-stats-notes',
   'ia-prob-sheet-1', 'ia-prob-sheet-2', 'ia-prob-sheet-3', 'ia-prob-sheet-4',
   'cst-dm-notes', 'cst-dm-sw1',
-  'step-mixed-stats1', 'step-s2-stats', 'step-s2-stats-notes', 'step-s3-stats', 'step-s3-stats-notes',
+  'nst-workbook', 'focs-notes',
+  'cs3110-ex2', 'cs3110-ex3', 'cs3110-ex4', 'cs3110-ex5', 'cs3110-ex8', 'cs3110-ex9',
 ]);
 
 /** The ids of a topic's Cambridge problems from a Cambridge-standard document (`GATE_DOCS`): the default gate. */

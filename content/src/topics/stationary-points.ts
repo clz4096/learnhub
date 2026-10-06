@@ -351,7 +351,7 @@ export const stationaryPoints: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['stationary-point', 'local-maximum'],
   cambridge: [minusTurns, whichMax, nstD1, nstD1iii, sketchQ],
-  gate: ['a7-q1-i-minus', 'a7-q1-i'],
+  gate: ['a7-q1-i'],
   recall: [
     { front: t`What is a stationary point?`, back: t`A point where ${math`f'(a) = ${0}`}: the tangent is horizontal.` },
     { front: t`State the second derivative test.`, back: t`If ${math`f'(a) = ${0}`}: ${math`f''(a) < ${0}`} gives a local maximum, ${math`f''(a) > ${0}`} a local minimum, and ${math`f''(a) = ${0}`} no conclusion.` },

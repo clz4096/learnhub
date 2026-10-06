@@ -306,7 +306,7 @@ export const fpRecursion: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['recursive-function', 'tail-recursion', 'accumulator'],
   cambridge: [fib30, focs21],
-  gate: ['cs3110-ex2-fib', 'focs-2-1'],
+  gate: ['focs-2-1'],
   recall: [
     { front: t`What makes a recursive function terminate?`, back: t`A base case with no recursive call, and recursive calls on arguments that move towards it, such as ${code`n - ${1}`} from ${code`n > ${0}`}.` },
     { front: t`What is a tail recursive function?`, back: t`One whose recursive calls are all tail calls: nothing is left to do after the call returns, so no work is pending on the stack.` },

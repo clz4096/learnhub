@@ -383,9 +383,9 @@ export const probabilityScale: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['probability', 'event', 'equally-likely', 'complement-event'],
   cambridge: [a12Mint, a12Goggles],
-  // The goggles question is the better test: it asks about one child among three and the
-  // learner must see the other two do not matter. The mints are a direct count.
-  gate: ['a12-q2-iv-b', 'a12-q2-ii-first'],
+  // No gate: both approved problems are one-step (the goggles chance is given in the question,
+  // the mints a direct count), so neither is a Cambridge-standard test.
+  gate: [],
   recall: [
     { front: t`With equally likely outcomes, what is ${math`P(A)`}?`, back: t`${math`P(A) = \frac{\lvert A \rvert}{\lvert \Omega \rvert}`}: the number of outcomes in ${mA} over the number of outcomes there are.` },
     { front: t`What does "at random" mean?`, back: t`Every item has the same probability of being picked as any other.` },

@@ -493,10 +493,10 @@ export const proofByInduction: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['induction', 'base-case', 'induction-hypothesis'],
   cambridge: [fibII, fibIII, bop9, tromino, polygon, polyaQ, bop13, sw412, sw422, sw411, polyaProof],
-  // Best first: the full induction proofs (tiling, Bernoulli, the Polya urn, polygons), then
-  // the Polya answer and the Fibonacci conjectures. The tile count and the polygon's 180
-  // degrees are arithmetic, not induction, so they do not gate.
-  gate: ['sw-4-1-2', 'sw-4-2-2', 'ia-q10-proof', 'sw-4-1-1', 'ia-q10', 'sw-4-2-3-g-iii', 'sw-4-2-3-g-ii'],
+  // The full induction proofs: tiling, Bernoulli, the Polya urn, polygons. The Polya answer and the
+  // Fibonacci conjectures can be found from small cases without induction, and the tile count and the
+  // polygon's 180 degrees are arithmetic, so they do not gate.
+  gate: ['sw-4-1-2', 'sw-4-2-2', 'ia-q10-proof', 'sw-4-1-1'],
   recall: [
     { front: t`State the Principle of Induction.`, back: t`If ${math`P(${0})`} holds and ${mPk} implies ${mPk1} for every ${math`k \in \mathbb{N}`}, then ${math`P(n)`} holds for every ${math`n \in \mathbb{N}`}.` },
     { front: t`What are the base case, the inductive step and the induction hypothesis?`, back: t`Base case: prove ${math`P(${0})`}. Step: for arbitrary ${mk}, assume ${mPk} (the hypothesis) and deduce ${mPk1}.` },

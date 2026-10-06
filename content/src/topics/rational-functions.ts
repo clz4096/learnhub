@@ -294,7 +294,7 @@ export const rationalFunctions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['rational-function', 'asymptote'],
   cambridge: [turnsQ, horizQ, sumQ, crossQ, sketchAll],
-  gate: ['a18-q1-iv', 'a18-q1'],
+  gate: ['a18-q1'],
   recall: [
     { front: t`What is an asymptote ${math`y = mx + k`}?`, back: t`A line with ${math`f(x) - (mx + k) \to ${0}`} as ${math`x \to \infty`} or ${math`x \to -\infty`}.` },
     { front: t`How do you find the asymptote of ${math`\frac{p}{q}`} far out?`, back: t`Divide: ${math`\frac{p}{q} = s + \frac{r}{q}`} with ${math`\deg r < \deg q`}; then ${math`y = s(x)`}.` },

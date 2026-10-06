@@ -263,7 +263,7 @@ export const coordinates3d: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['space-coordinates', 'tetrahedron'],
   cambridge: [a5q3vol, a5q3area, a5q3d],
-  gate: ['a5-q3-area', 'a5-q3-distance'],
+  gate: ['a5-q3-distance', 'a5-q3-area'],
   recall: [
     { front: t`State the distance formula in three dimensions.`, back: t`${math`PQ^{${2}} = (x_{${2}} - x_{${1}})^{${2}} + (y_{${2}} - y_{${1}})^{${2}} + (z_{${2}} - z_{${1}})^{${2}}`}, by Pythagoras twice.` },
     { front: t`What is the volume of a pyramid?`, back: t`${math`\frac{${1}}{${3}}`} of base area times perpendicular height.` },

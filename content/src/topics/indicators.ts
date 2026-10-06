@@ -461,8 +461,9 @@ export const indicators: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['indicator-variable', 'record'],
   cambridge: [q3xk, q3iib, sheetQ9, sheetQ10, sheetQ12mean, sheetQ12var, q9proof, q10proof, q12proof],
-  // Multi-step problems first; the plug-in numbers of Q9 and Q12 are drill, and dropped.
-  gate: ['s3-q3-ii-b', 'sheet2-q12', 'sheet2-q10', 'sheet2-q10-hoops', 's3-q3-i-xk', 'sheet2-q9'],
+  // Multi-step problems first, the proofs before the computed answers; the plug-in numbers of Q9 and
+  // Q12 are drill, and dropped.
+  gate: ['sheet2-q12', 'sheet2-q10', 's3-q3-ii-b', 'sheet2-q9', 's3-q3-i-xk', 'sheet2-q10-hoops'],
   recall: [
     { front: t`The mean of an indicator.`, back: t`${math`E(I_{A}) = P(A)`}.` },
     { front: t`The mean of a count ${math`N = \sum I_{A_{i}}`}.`, back: t`${math`E(N) = \sum P(A_{i})`}, with or without independence.` },

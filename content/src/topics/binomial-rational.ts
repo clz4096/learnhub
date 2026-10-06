@@ -300,7 +300,7 @@ export const binomialRational: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binomial-series'],
   cambridge: [a20k, ss5iii, ss5ii, ss5sup],
-  gate: ['a20-q1-iii', 'nst-ss5-iii'],
+  gate: ['nst-ss5-iii'],
   recall: [
     { front: t`State the binomial series for rational ${mn}, with its range.`, back: t`${math`(${1} + x)^{n} = ${1} + nx + \frac{n(n - ${1})}{${2}!}x^{${2}} + \cdots`}, valid for ${math`|x| < ${1}`}.` },
     { front: t`Where is the expansion of ${math`(a + bx)^{n}`} valid?`, back: t`For ${math`\left|\frac{bx}{a}\right| < ${1}`}, after writing it as ${math`a^{n}(${1} + \frac{b}{a}x)^{n}`}.` },

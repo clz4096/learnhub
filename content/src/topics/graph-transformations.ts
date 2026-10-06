@@ -315,7 +315,7 @@ export const graphTransformations: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['translation'],
   cambridge: [downSix, evenQ, zerosQ, reciprocalQ, nstFC2, sketchQ],
-  gate: ['a13-q2-ii-c', 'a22-q3-iv-c', 'a13-q2-ii'],
+  gate: ['a13-q2-ii'],
   recall: [
     { front: t`What does ${math`y = f(x + c)`} do to the graph of ${math`f`}?`, back: t`Translates it by ${math`c`} to the left.` },
     { front: t`What does ${math`y = f(ax)`} do?`, back: t`Stretches it parallel to the ${math`x`} axis by factor ${math`\frac{${1}}{a}`}.` },

@@ -312,7 +312,7 @@ export const fpFunctions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ocaml-function', 'function-type', 'function-application'],
   cambridge: [rms, average, focs14],
-  gate: ['cs3110-ex2-rms', 'cs3110-ex2-average', 'focs-1-4'],
+  gate: ['focs-1-4', 'cs3110-ex2-average'],
   recall: [
     { front: t`What does ${code`let f x y = e`} abbreviate?`, back: t`${code`let f = fun x -> (fun y -> e)`}: a function that returns a function.` },
     { front: t`How do ${code`->`} and application group?`, back: t`The arrow groups to the right, ${code`a -> b -> c`} is ${code`a -> (b -> c)`}; application groups to the left, ${code`f x y`} is ${code`(f x) y`}.` },

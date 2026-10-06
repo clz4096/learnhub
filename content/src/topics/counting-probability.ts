@@ -358,9 +358,9 @@ export const countingProbability: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['favourable-outcome'],
   cambridge: [q3ii, q3iii, twoMints, q3iiShow, q3general],
-  // The raffle question, STEP I 2011 Q12: the hardest case first, then the written justification of
-  // n equal to 2, its answer, and the Discussion. The sweets question is a one-line count, left out.
-  gate: ['a12-q3-iii', 'a12-q3-ii-show', 'a12-q3-ii', 'a12-q3-discussion'],
+  // The raffle question, STEP I 2011 Q12: the written justification of n equal to 2 first, then the
+  // hardest case, its n = 2 answer, and the Discussion. The sweets question is a one-line count, left out.
+  gate: ['a12-q3-ii-show', 'a12-q3-iii', 'a12-q3-ii', 'a12-q3-discussion'],
   recall: [
     { front: t`Probability by counting?`, back: t`For equally likely outcomes, ${math`P(A) = \frac{|A|}{|\Omega|}`}.` },
     { front: t`Ordered or unordered: does it matter?`, back: t`No, if both counts use the same convention: each unordered selection of ${mk} gives ${math`k!`} ordered ones, which cancel.` },

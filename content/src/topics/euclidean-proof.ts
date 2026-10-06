@@ -282,7 +282,7 @@ export const euclideanProof: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['congruent-triangles', 'isosceles-triangle', 'circle-chord'],
   cambridge: [a1q4, a21q4, a16q4, a9q4, a21q4ii],
-  gate: ['a1-q4', 'a21-q4', 'a16-q4'],
+  gate: ['a9-q4', 'a21-q4-ii', 'a16-q4', 'a21-q4'],
   recall: [
     { front: t`State the SSS and SAS congruence tests.`, back: t`Three pairs of equal sides, or two pairs of equal sides with the angles between them equal, make two triangles congruent.` },
     { front: t`What can you say about the base angles of an isosceles triangle?`, back: t`They are equal: if ${math`AB = BC`} then ${math`\angle BAC = \angle BCA`}, by congruence with the midpoint of ${math`AC`}.` },

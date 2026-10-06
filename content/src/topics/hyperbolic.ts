@@ -273,7 +273,7 @@ export const hyperbolic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hyperbolic-functions'],
   cambridge: [secondQ, coshDeriv, identities, nstH],
-  gate: ['a21-q1-iii', 'a21-q1-i'],
+  gate: ['a21-q1-iii'],
   recall: [
     { front: t`Define ${math`\cosh x`} and ${math`\sinh x`}.`, back: t`${math`\cosh x = \frac{e^{x} + e^{-x}}{${2}}`}, ${math`\sinh x = \frac{e^{x} - e^{-x}}{${2}}`}.` },
     { front: t`What is ${math`\cosh^{${2}} x - \sinh^{${2}} x`}?`, back: t`${1}, for every ${math`x`}.` },

@@ -496,10 +496,10 @@ export const firstStep: TopicContent = {
   terms: ['first-step-analysis'],
   claims,
   cambridge: [q12i, q12ii, q13i, q13ii, s2q3i, darts, s2q3proof, evenSuccesses],
-  // STEP 2 Statistics Q3(i) first (a game with internal states), then the four-player race, Sheet 2 Q3's
-  // recurrence, the two-player race, the darts, and Q12(ii). Left out: Q12(i), a single geometric sum, and
-  // the comparison of Q3(i), which is algebra on the answer rather than first-step analysis.
-  gate: ['s2-q3-i-w', 'mixed-q13-ii', 'sheet2-q3', 'mixed-q13-i', 'sheet2-q4-darts', 'mixed-q12-ii'],
+  // Best first: Sheet 2 Q3's recurrence, STEP 2 Statistics Q3(i) (a game with internal states), the
+  // four-player race, the darts, and the two-player race. Left out: Q12(i), a single geometric sum;
+  // Q12(ii), whose answer 1/2 can be guessed; and the comparison of Q3(i), which is algebra on the answer.
+  gate: ['sheet2-q3', 's2-q3-i-w', 'mixed-q13-ii', 'sheet2-q4-darts', 'mixed-q13-i'],
   recall: [
     { front: t`What is first-step analysis?`, back: t`The law of total probability over the first step, with unknowns for the chance from each situation reached; then solve.` },
     { front: t`Rounds decided for A with probability ${ma}, for B with ${mb}, else repeat: A's chance?`, back: t`${math`\frac{a}{a + b}`}.` },

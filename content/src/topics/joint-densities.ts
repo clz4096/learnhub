@@ -332,8 +332,8 @@ export const jointDensities: TopicContent = {
   terms: ['joint-density', 'marginal-density'],
   claims,
   cambridge: [q4race, q1general, triangle],
-  // Both are the sheet's own questions: Q4 in general, then the general meeting problem as a write-up.
-  gate: ['ia4-q4-race', 'ia4-q1-general'],
+  // Both are the sheet's own questions: the general meeting problem as a write-up first, then Q4 in general.
+  gate: ['ia4-q1-general', 'ia4-q4-race'],
   recall: [
     { front: t`What makes ${math`f`} a joint density of ${mX}, ${mY}?`, back: t`${math`f \ge ${0}`}, total integral ${1}, and ${math`P((X, Y) \in A) = \iint_{A} f`} for regions ${math`A`}.` },
     { front: t`The marginal density of ${mX}.`, back: t`${math`f_{X}(x) = \int_{-\infty}^{\infty} f(x, y)\,dy`}.` },

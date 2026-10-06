@@ -240,7 +240,7 @@ export const factorisations: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['difference-of-two-squares', 'sum-of-cubes'],
   cambridge: [a2i, a14six, a10ii, a14q1],
-  gate: ['a14-q1', 'a14-q1-ii-b', 'a10-q4-ii'],
+  gate: ['a14-q1-ii-b', 'a10-q4-ii'],
   recall: [
     { front: t`${math`a^{${3}} - b^{${3}} = \ ?`}`, back: t`${math`(a - b)(a^{${2}} + ab + b^{${2}})`}.` },
     { front: t`${math`a^{${3}} + b^{${3}} = \ ?`}`, back: t`${math`(a + b)(a^{${2}} - ab + b^{${2}})`}.` },

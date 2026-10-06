@@ -272,7 +272,7 @@ export const implicitDifferentiation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['implicit-differentiation'],
   cambridge: [d5, ax, xx, writeUp],
-  gate: ['nst-d5', 'nst-d3-iv', 'nst-d4-d5'],
+  gate: ['nst-d4-d5', 'nst-d3-iv', 'nst-d5'],
   recall: [
     { front: t`What is ${math`\frac{d}{dx}g(y)`} when ${math`y`} depends on ${math`x`}?`, back: t`${math`g'(y)\frac{dy}{dx}`}, by the chain rule.` },
     { front: t`How do you find ${math`\frac{dy}{dx}`} for a parametric curve?`, back: t`${math`\frac{dy/dt}{dx/dt}`}, where ${math`\frac{dx}{dt} \ne ${0}`}.` },

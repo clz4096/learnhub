@@ -379,9 +379,9 @@ export const varianceTopic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['variance', 'standard-deviation'],
   cambridge: [q1A, q1var, tenDice, q1bounds, shortcutProof],
-  // Best first: the bounds on the mean from the variance (STEP 2, 2003), the variance itself,
-  // the shortcut proved, then the normalising constant. Ten dice is np(1 - p) with numbers in.
-  gate: ['s2-q1-bounds', 's2-q1-var', 's2-notes-shortcut', 's2-q1-a'],
+  // Best first: the bounds on the mean from the variance (STEP 2, 2003), the shortcut proved, then the
+  // variance itself. The normalising constant is one step, and ten dice is np(1 - p) with numbers in.
+  gate: ['s2-q1-bounds', 's2-notes-shortcut', 's2-q1-var'],
   recall: [
     { front: t`Define the variance.`, back: t`${math`\mathrm{Var}(X) = E\big((X - \mu)^{${2}}\big)`}, with ${math`\mu = E(X)`}.` },
     { front: t`The shortcut for the variance?`, back: t`${math`E(X^{${2}}) - E(X)^{${2}}`}: the mean of the squares minus the square of the mean.` },

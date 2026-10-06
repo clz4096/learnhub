@@ -400,7 +400,7 @@ export const fpVariants: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['variant-type', 'constructor', 'option-type'],
   cambridge: [matchingII, quadrant, safeHdTl, focs61],
-  gate: ['cs3110-ex3-quadrant', 'cs3110-ex3-matching-ii', 'cs3110-ex3-safe-hd-tl'],
+  gate: ['cs3110-ex3-safe-hd-tl'],
   recall: [
     { front: t`What are the values of a variant type ${code`type t = C${1} of t${1} | ... | Cn of tn`}?`, back: t`Exactly the ${code`Ci v`} with ${code`v : ti`} (or ${code`Ci`} alone for a constant constructor); different constructors give different values.` },
     { front: t`What is ${code`'a option`}?`, back: t`${code`type 'a option = None | Some of 'a`}: no value, or one value of type ${code`'a`}.` },

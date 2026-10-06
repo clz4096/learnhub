@@ -227,7 +227,7 @@ export const separableOdes: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['separable-equation', 'ode-particular-solution'],
   cambridge: [de1Value, de1Write],
-  gate: ['nst-de1-value', 'nst-de1-write'],
+  gate: ['nst-de1-write', 'nst-de1-value'],
   recall: [
     { front: t`How do you solve ${math`\frac{dy}{dx} = f(x)g(y)`}?`, back: t`${math`\int \frac{dy}{g(y)} = \int f(x)\,dx + C`}, then fix ${math`C`}; also check constant solutions where ${math`g(y) = ${0}`}.` },
     { front: t`Solve ${math`\frac{dy}{dx} = ky`}.`, back: t`${math`y = Ae^{kx}`}, with ${math`A = y(${0})`}.` },

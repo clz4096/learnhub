@@ -345,8 +345,9 @@ export const inclusionExclusionThree: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inclusion-exclusion'],
   cambridge: [iaQ5bAny, iaQ5aNum, iaQ5a, derive],
-  // The sheet's own proof first; the plug-in with numbers is drill, not a Cambridge-standard test.
-  gate: ['ia-q5-a', 'ia-q5-b-any', 'ia-q5-three'],
+  // The sheet's two proofs first, then the count to 500; the plug-in with numbers is drill, not a
+  // Cambridge-standard test.
+  gate: ['ia-q5-a', 'ia-q5-three', 'ia-q5-b-any'],
   recall: [
     { front: t`State inclusion-exclusion for three events.`, back: t`${math`\mathbb{P}(A \cup B \cup C) = \sum \mathbb{P}(A) - \sum \mathbb{P}(A \cap B) + \mathbb{P}(A \cap B \cap C)`}: singles, minus pairs, plus the triple.` },
     { front: t`Why is the triple added back?`, back: t`An outcome in all three is added ${3} times by the singles and removed ${3} times by the pairs; the triple counts it once.` },

@@ -339,9 +339,9 @@ export const sequences: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sequence', 'term', 'term-to-term', 'position-to-term', 'arithmetic-sequence', 'common-difference', 'triangular-number'],
   cambridge: [sw131b, sw131c, sw131d],
-  // Best first: the two proofs (triangular exactly when 8n + 1 is square; consecutive
-  // triangular numbers add to a square), then the formula for the kth triangular number.
-  gate: ['sw-1-3-1-c', 'sw-1-3-1-d', 'sw-1-3-1-b'],
+  // The two proofs (triangular exactly when 8n + 1 is square; consecutive triangular numbers add to a
+  // square). The formula for the kth triangular number is recall, so it does not gate.
+  gate: ['sw-1-3-1-c', 'sw-1-3-1-d'],
   recall: [
     { front: t`Term-to-term rule versus position-to-term rule?`, back: t`Term-to-term gives ${math`u_{n + ${1}}`} from ${math`u_{n}`}; position-to-term gives ${math`u_{n}`} from ${mn}.` },
     { front: t`When is a sequence arithmetic?`, back: t`When ${math`u_{n + ${1}} - u_{n} = d`}, the same ${md}, for every ${mn}.` },

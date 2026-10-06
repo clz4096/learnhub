@@ -255,7 +255,7 @@ export const definiteIntegrals: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['definite-integral', 'antiderivative'],
   cambridge: [stepB, stepBroot, stepFull],
-  gate: ['a18-q3-i', 'a18-q3'],
+  gate: ['a18-q3', 'a18-q3-i'],
   recall: [
     { front: t`State the fundamental theorem of calculus.`, back: t`If ${math`f`} is continuous on ${math`[a, b]`}, ${math`\frac{d}{dx}\int_{a}^{x} f(t)\,dt = f(x)`}, and ${math`\int_{a}^{b} f = F(b) - F(a)`} for any antiderivative ${math`F`}.` },
     { front: t`What is ${math`\int x^{n}\,dx`}?`, back: t`${math`\frac{x^{n + ${1}}}{n + ${1}}`} plus a constant, for ${math`n \ne -${1}`}.` },

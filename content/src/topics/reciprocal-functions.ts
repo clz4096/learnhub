@@ -294,7 +294,7 @@ export const reciprocalFunctions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['reciprocal-trig'],
   cambridge: [a25iii, t3, t2, a24b],
-  gate: ['a25-q2-iii', 'nst-t3-iii', 'nst-t2'],
+  gate: ['nst-t2', 'nst-t3-iii'],
   recall: [
     { front: t`Define ${math`\sec`}, ${math`\csc`}, and ${math`\cot`}.`, back: t`${math`\frac{${1}}{\cos}`}, ${math`\frac{${1}}{\sin}`}, and ${math`\frac{\cos}{\sin}`}.` },
     { front: t`State the identities for ${math`\sec^{${2}}`} and ${math`\csc^{${2}}`}.`, back: t`${math`\sec^{${2}}\theta = ${1} + \tan^{${2}}\theta`}; ${math`\csc^{${2}}\theta = ${1} + \cot^{${2}}\theta`}.` },

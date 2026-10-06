@@ -523,7 +523,7 @@ export const algebraicManipulation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expression', 'coefficient', 'like-terms', 'identity', 'expand', 'factorise'],
   cambridge: [a7Three, a7Quart, a12FracA, a12FracB, tmuaQ, a7Show, a7ShowCubic, a7ShowGeneral],
-  gate: ['a7-q3', 'a7-q2-v', 'a7-q3-show', 'a7-q2-iv', 'a7-q2-i-ii', 'a12-q2-i-b'],
+  gate: ['a7-q3-show', 'a7-q3', 'a7-q2-iv', 'a7-q2-i-ii', 'a7-q2-v', 'a12-q2-i-b'],
   recall: [
     { front: t`What is the difference between an identity and an equation?`, back: t`An identity ${math`A \equiv B`} holds for every value of the letters; an equation ${math`A = B`} holds only for some, which you solve for.` },
     { front: t`Expand ${math`(a + b)(c + d)`}.`, back: t`${math`ac + ad + bc + bd`}: every term of one bracket times every term of the other.` },

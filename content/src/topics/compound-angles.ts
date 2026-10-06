@@ -370,7 +370,7 @@ export const compoundAngles: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['compound-angle-formula'],
   cambridge: [a10q1i, a16q3, a25tan, a10sin15, a16cos75],
-  gate: ['a10-q1-i', 'a16-q3-i', 'a25-q2-i'],
+  gate: ['a16-q3-i'],
   recall: [
     { front: t`State ${math`\sin(\alpha \pm \beta)`} and ${math`\cos(\alpha \pm \beta)`}.`, back: t`${math`\sin\alpha\cos\beta \pm \cos\alpha\sin\beta`}; ${math`\cos\alpha\cos\beta \mp \sin\alpha\sin\beta`}.` },
     { front: t`State ${math`\tan(\alpha + \beta)`}.`, back: t`${math`\frac{\tan\alpha + \tan\beta}{${1} - \tan\alpha\tan\beta}`}.` },

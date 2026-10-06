@@ -322,7 +322,7 @@ export const derivatives: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['derivative', 'differentiable'],
   cambridge: [solveQuad, turningY, rootCount, sketch],
-  gate: ['a9-q2-ii-e', 'a9-q2-ii'],
+  gate: ['a9-q2-ii'],
   recall: [
     { front: t`Define the derivative ${math`f'(a)`}.`, back: t`${math`f'(a) = \lim_{h \to ${0}} \frac{f(a + h) - f(a)}{h}`}, when the limit exists.` },
     { front: t`State the power rule.`, back: t`${math`\frac{d}{dx} x^{n} = nx^{n - ${1}}`}.` },

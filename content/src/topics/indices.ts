@@ -301,7 +301,7 @@ export const indices: TopicContent = {
   terms: ['power', 'base', 'index', 'zero-index', 'negative-index', 'fractional-index'],
   cambridge: [sw123verdict, sw123witness, a12Q1iii],
   // The STEP proof first; the true or false verdict is dropped, since a guess passes it half the time.
-  gate: ['a12-q1-iii', 'sw-1-2-3-witness'],
+  gate: ['a12-q1-iii'],
   recall: [
     { front: t`The three laws of indices.`, back: t`${math`x^{m}x^{n} = x^{m + n}`}, ${math`(x^{m})^{n} = x^{mn}`}, ${math`x^{m}/x^{n} = x^{m - n}`}.` },
     { front: t`What are ${math`x^{${0}}`} and ${math`x^{-n}`}, for ${math`x \ne ${0}`}?`, back: t`${math`x^{${0}} = ${1}`} and ${math`x^{-n} = ${1}/x^{n}`}: the only values that keep the laws true.` },

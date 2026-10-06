@@ -364,7 +364,7 @@ export const intersections: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['intersection-point', 'tangent-line'],
   cambridge: [a8q3pts, a8q3, a8q2iv, a23c, a23iii],
-  gate: ['a8-q3-points', 'a8-q3', 'a8-q2-iv'],
+  gate: ['a8-q3', 'a8-q3-points', 'a8-q2-iv'],
   recall: [
     { front: t`How do you find where a line meets a curve?`, back: t`Substitute the line into the curve, solve the one-variable equation, and find the other coordinate from the line.` },
     { front: t`How does the discriminant tell crossing, touching, and missing apart?`, back: t`For a line and a circle: positive gives two points, zero one (a tangent), negative none.` },

@@ -344,7 +344,7 @@ export const linearQuadraticInequalities: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inequality', 'critical-value'],
   cambridge: [a4q2i, a22q3i, nstA5, step2005],
-  gate: ['a1-q3', 'a22-q3-i', 'a4-q2-i'],
+  gate: ['a1-q3'],
   recall: [
     { front: t`When does multiplying an inequality reverse it?`, back: t`When the multiplier is negative. If you do not know its sign, do not multiply by it.` },
     { front: t`For ${math`a > ${0}`} and roots ${math`\alpha < \beta`}, where is ${math`a(x - \alpha)(x - \beta) < ${0}`}?`, back: t`Strictly between the roots: ${math`\alpha < x < \beta`}.` },

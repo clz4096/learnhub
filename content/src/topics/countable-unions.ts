@@ -360,7 +360,7 @@ export const countableUnions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['countable', 'infinitely-often'],
   cambridge: [q6divB, q6parity, q6fixed, deMorgan, ioWords],
-  gate: ['q4-de-morgan', 'q6-words', 'q6-divides-b', 'q6-fixed-a', 'q6-parity-b'],
+  gate: ['q4-de-morgan', 'q6-words'],
   recall: [
     { front: t`${math`\bigcup_{n} A_n`} and ${math`\bigcap_{n} A_n`}.`, back: t`The points in ${math`A_n`} for some ${mn}; the points in ${math`A_n`} for every ${mn}.` },
     { front: t`De Morgan for a sequence.`, back: t`${math`\left(\bigcup A_n\right)^{c} = \bigcap A_n^{c}`} and ${math`\left(\bigcap A_n\right)^{c} = \bigcup A_n^{c}`}.` },

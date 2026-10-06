@@ -507,8 +507,9 @@ export const negatingQuantifiers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['negation-of-quantifier'],
   cambridge: [bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12],
-  // The CST proof first, then its witness. The multiple-choice negation is dropped (a guess passes one time in four), and the Book of Proof items are not Cambridge standard.
-  gate: ['sw-1-1-5', 'sw-1-1-5-witness'],
+  // The CST proof only. Its witness (x = 0, y = 1) is guessed at once, and the multiple-choice
+  // negation can be guessed, so neither gates; the Book of Proof items are not Cambridge standard.
+  gate: ['sw-1-1-5'],
   recall: [
     { front: t`Negate ${math`\forall x.\ P(x)`}.`, back: t`${math`\exists x.\ \lnot P(x)`}: at least one ${mx} fails.` },
     { front: t`Negate ${math`\exists x.\ P(x)`}.`, back: t`${math`\forall x.\ \lnot P(x)`}: every ${mx} fails.` },

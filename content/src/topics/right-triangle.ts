@@ -265,7 +265,8 @@ export const rightTriangle: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hypotenuse'],
   cambridge: [a5q1i],
-  gate: ['a5-q1-i'],
+  // No gate: the one approved problem (Assignment 5 Q1(i)) is the lesson's own proof.
+  gate: [],
   recall: [
     { front: t`Define ${math`\sin \theta`}, ${math`\cos \theta`}, ${math`\tan \theta`} for an acute angle of a right triangle.`, back: t`Opposite over hypotenuse, adjacent over hypotenuse, and opposite over adjacent.` },
     { front: t`State the Pythagorean identity and its proof in one line.`, back: t`${math`\cos^{${2}} \theta + \sin^{${2}} \theta = ${1}`}: divide ${math`a^{${2}} + b^{${2}} = c^{${2}}`} by ${math`c^{${2}}`}.` },

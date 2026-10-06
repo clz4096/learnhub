@@ -233,7 +233,7 @@ export const smallAngles: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['small-angle-approximation'],
   cambridge: [a19q1, ss6],
-  gate: ['a19-q1', 'nst-ss6'],
+  gate: ['nst-ss6'],
   recall: [
     { front: t`State the small angle approximations.`, back: t`For small ${mth} in radians: ${math`\sin\theta \approx \theta`}, ${math`\tan\theta \approx \theta`}, ${math`\cos\theta \approx ${1} - \frac{\theta^{${2}}}{${2}}`}.` },
     { front: t`Which areas prove ${math`\sin\theta < \theta < \tan\theta`}?`, back: t`The triangle inside the sector inside the tangent triangle: ${math`\frac{${1}}{${2}}r^{${2}}\sin\theta < \frac{${1}}{${2}}r^{${2}}\theta < \frac{${1}}{${2}}r^{${2}}\tan\theta`}.` },

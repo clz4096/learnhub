@@ -346,7 +346,7 @@ export const straightLines: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['gradient', 'perpendicular-gradients', 'distance-formula'],
   cambridge: [a19q2i, a19q2iii, a19q2iv, a2q2iii],
-  gate: ['a2-q2-iii', 'a19-q2-iii', 'a19-q2-iv'],
+  gate: ['a2-q2-iii', 'a19-q2-iii'],
   recall: [
     { front: t`The line through ${math`(x_{${1}}, y_{${1}})`} with gradient ${math`m`}?`, back: t`${math`y - y_{${1}} = m(x - x_{${1}})`}.` },
     { front: t`When are two lines perpendicular?`, back: t`When their gradients multiply to ${math`-${1}`} (or one is vertical and the other horizontal).` },

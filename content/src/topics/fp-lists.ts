@@ -416,7 +416,7 @@ export const fpLists: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ocaml-list', 'cons', 'pattern-matching'],
   cambridge: [listExpr, takeDrop, focs32],
-  gate: ['cs3110-ex3-take-drop', 'cs3110-ex3-list-expressions', 'focs-3-2'],
+  gate: ['focs-3-2'],
   recall: [
     { front: t`What are the two ways to build a list?`, back: t`${code`[]`}, the empty list, and ${code`x :: xs`}, an element on the front of a list of the same type.` },
     { front: t`How many conses does ${code`xs @ ys`} make?`, back: t`One per element of ${code`xs`}: it copies the left list and shares the right.` },

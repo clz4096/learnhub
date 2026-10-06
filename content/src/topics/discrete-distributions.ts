@@ -300,7 +300,7 @@ export const discreteDistributions: TopicContent = {
   terms: ['distribution-table'],
   claims,
   cambridge: [ia11, a19bet, a19three, ia11sup],
-  gate: ['ia1-q11', 'a19-q4-ii-bet'],
+  gate: ['a19-q4-ii-bet'],
   recall: [
     { front: t`What two conditions make ${math`p_{${1}}, p_{${2}}, \ldots`} a probability distribution?`, back: t`Each ${math`p_{i} \ge ${0}`}, and ${math`\sum p_{i} = ${1}`}.` },
     { front: t`How do you find ${math`P(X \in A)`} from a distribution?`, back: t`Add ${math`P(X = x)`} over the values ${mx} in ${math`A`}.` },

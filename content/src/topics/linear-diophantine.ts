@@ -259,7 +259,7 @@ export const linearDiophantine: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['diophantine-equation', 'particular-solution'],
   cambridge: [coins, a19q2v, bananasProof],
-  gate: ['a3-q4', 'a19-q2-v', 'a13-wd'],
+  gate: ['a13-wd', 'a19-q2-v'],
   recall: [
     { front: t`All integer solutions of ${math`ax + by = c`}, given one ${math`(x_{${0}}, y_{${0}})`} and no common factor of ${math`a, b`}?`, back: t`${math`x = x_{${0}} + bk`}, ${math`y = y_{${0}} - ak`}, for every integer ${math`k`}.` },
     { front: t`How do you solve ${math`xy + py + qx = r`} in integers?`, back: t`Add ${math`pq`}: ${math`(x + p)(y + q) = r + pq`}, then list the factor pairs.` },

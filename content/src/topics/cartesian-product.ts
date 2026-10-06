@@ -424,7 +424,7 @@ export const cartesianProduct: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ordered-pair', 'cartesian-product'],
   cambridge: [sw524, sw524Proof, sw514, b125, b127, b128, b816],
-  gate: ['sw-5-2-4', 'sw-5-2-4-proof'],
+  gate: ['sw-5-2-4-proof'],
   recall: [
     { front: t`When is ${math`(a, b) = (c, d)`}?`, back: t`Exactly when ${math`a = c`} and ${math`b = d`}.` },
     { front: t`Define ${math`A \times B`} and give its size.`, back: t`${math`\{(a, b) : a \in A, b \in B\}`}, with ${math`|A| \cdot |B|`} elements.` },

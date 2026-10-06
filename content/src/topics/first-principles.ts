@@ -290,7 +290,7 @@ export const firstPrinciples: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['difference-quotient'],
   cambridge: [invRootQ, nstD2, triangleQ, triangleProof, sinProof],
-  gate: ['a20-q4-cube', 'a20-q4', 'a20-q1-i'],
+  gate: ['a20-q4', 'a20-q4-cube'],
   recall: [
     { front: t`What are the two small-angle limits?`, back: t`${math`\frac{\sin h}{h} \to ${1}`} and ${math`\frac{\cos h - ${1}}{h} \to ${0}`} as ${math`h \to ${0}`}, in radians.` },
     { front: t`How do you differentiate ${math`\sqrt{x}`} from first principles?`, back: t`Multiply the quotient by the conjugate ${math`\sqrt{x + h} + \sqrt{x}`}, cancel ${math`h`}, and let ${math`h \to ${0}`}: ${math`\frac{${1}}{${2}\sqrt{x}}`}.` },

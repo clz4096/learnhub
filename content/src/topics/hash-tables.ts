@@ -273,7 +273,7 @@ export const hashTables: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hash-function', 'hash-table', 'load-factor'],
   cambridge: [loadFactor, resize33, relaxRi, probing],
-  gate: ['cs3110-9-relax-ri', 'cs3110-9-resize'],
+  gate: ['cs3110-9-linear-probing', 'cs3110-9-relax-ri'],
   recall: [
     { front: t`What is the load factor of a hash table?`, back: t`Bindings divided by buckets, ${math`\alpha = n/m`}: the average bucket length.` },
     { front: t`What must a hash function satisfy for find to work?`, back: t`Equal keys get equal hash values, so find looks in the bucket where insert put the key.` },

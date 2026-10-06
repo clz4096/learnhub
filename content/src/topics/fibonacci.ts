@@ -294,7 +294,7 @@ export const fibonacci: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fibonacci-numbers', 'golden-ratio'],
   cambridge: [a14i, a20sup, a14ii, a20f7],
-  gate: ['a14-q3-i', 'a20-q3-addition'],
+  gate: ['a20-q3-addition'],
   recall: [
     { front: t`State Cassini's identity.`, back: t`${math`F_{n + ${1}}F_{n - ${1}} - F_{n}^{${2}} = (-${1})^{n}`} for ${math`n \ge ${1}`}.` },
     { front: t`State Binet's formula, and where ${math`\varphi`}, ${math`\psi`} come from.`, back: t`${math`F_{n} = \frac{\varphi^{n} - \psi^{n}}{\sqrt{${5}}}`}, with ${math`\varphi, \psi = \frac{${1} \pm \sqrt{${5}}}{${2}}`} the roots of ${math`x^{${2}} = x + ${1}`}.` },

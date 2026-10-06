@@ -304,7 +304,7 @@ export const sequenceLimits: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['limit-of-sequence', 'divergent-sequence'],
   cambridge: [a15q3, a15q3sup, a15c, a15iv],
-  gate: ['a15-q3-ii', 'a15-q3-ii-proof'],
+  gate: ['a15-q3-ii-proof', 'a15-q3-ii'],
   recall: [
     { front: t`Define ${math`x_{n} \to a`}.`, back: t`${math`\forall \varepsilon > ${0}\ \exists N\ \forall n \ge N:\ |x_{n} - a| < \varepsilon`}.` },
     { front: t`For which ${math`r`} does ${math`r^{n}`} converge, and to what?`, back: t`For ${math`|r| < ${1}`}, to ${0}; for ${math`r = ${1}`}, to ${1}; otherwise it diverges.` },

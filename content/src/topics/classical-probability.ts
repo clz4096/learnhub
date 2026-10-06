@@ -370,7 +370,7 @@ export const classicalProbability: TopicContent = {
   terms: ['sample-space-classical'],
   claims,
   cambridge: [q2b, q2c, q3, q11, q11proof, q2space],
-  gate: ['ia-q2-c', 'ia-q11-proof', 'ia-q3', 'ia-q2-b', 'ia-q11', 'ia-q2-space'],
+  gate: ['ia-q11-proof', 'ia-q2-c', 'ia-q3', 'ia-q2-b', 'ia-q2-space', 'ia-q11'],
   recall: [
     { front: t`Classical probability of an event ${math`A`}.`, back: t`${math`P(A) = \frac{|A|}{|\Omega|}`}, for a finite sample space of equally likely outcomes.` },
     { front: t`The sample space for two dice.`, back: t`The ${36} ordered pairs, all equally likely; the totals are not equally likely.` },

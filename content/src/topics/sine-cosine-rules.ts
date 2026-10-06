@@ -366,7 +366,7 @@ export const sineCosineRules: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['cosine-rule', 'sine-rule'],
   cambridge: [a5alt, a5q1ii, a9q1, a20q5, g1ii],
-  gate: ['a5-q2-i-altitudes', 'a5-q1-ii', 'a20-q5'],
+  gate: ['a20-q5', 'a5-q2-i-altitudes'],
   recall: [
     { front: t`State the cosine rule.`, back: t`${math`c^{${2}} = a^{${2}} + b^{${2}} - ${2}ab\cos C`}, with ${mC} the angle between ${ma} and ${mb}.` },
     { front: t`State the sine rule and the area formula.`, back: t`${math`\frac{a}{\sin A} = \frac{b}{\sin B} = \frac{c}{\sin C}`}; area ${math`\frac{${1}}{${2}}ab\sin C`}.` },

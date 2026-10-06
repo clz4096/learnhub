@@ -267,7 +267,7 @@ export const congruence: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['congruent-mod'],
   cambridge: [bop51, sheet324, sheet211, sheet324proof, bop521, bop532],
-  gate: ['sheet-2-1-1', 'sheet-3-2-4', 'sheet-3-2-10-b-reduce'],
+  gate: ['sheet-2-1-1', 'sheet-3-2-4'],
   recall: [
     { front: t`Define ${math`a \equiv b \pmod{m}`}.`, back: t`${math`m \mid (a - b)`}: ${math`a - b = km`} for some integer ${mk}.` },
     { front: t`Congruence in terms of remainders.`, back: t`${math`a \equiv b \pmod{m}`} exactly when ${math`a`} and ${math`b`} leave the same remainder on division by ${mm}.` },

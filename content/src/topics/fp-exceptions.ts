@@ -349,7 +349,7 @@ export const fpExceptions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exception', 'exception-handler'],
   cambridge: [listMax, listMaxString, focs65],
-  gate: ['cs3110-ex3-list-max-exn', 'cs3110-ex3-list-max-exn-string', 'focs-6-5'],
+  gate: ['focs-6-5', 'cs3110-ex3-list-max-exn-string', 'cs3110-ex3-list-max-exn'],
   recall: [
     { front: t`What does ${code`raise e`} do, and what is its type?`, back: t`It abandons the current computation and passes the exception ${code`e`} outwards; it has every type, since it returns no value.` },
     { front: t`Which handler catches an exception?`, back: t`The most recently entered ${code`try`} that is still active and has a case matching the exception; unmatched exceptions pass further out.` },

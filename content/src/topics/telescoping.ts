@@ -316,7 +316,7 @@ export const telescoping: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['method-of-differences', 'product-notation'],
   cambridge: [a24q3, a24q3sup, a17n, a15prod, a24sq],
-  gate: ['a24-q3', 'a24-q3-proof'],
+  gate: ['a24-q3-proof', 'a24-q3'],
   recall: [
     { front: t`What is ${math`\sum_{r = ${1}}^{n} (f(r) - f(r - ${1}))`}?`, back: t`${math`f(n) - f(${0})`}: everything else cancels.` },
     { front: t`Write ${math`\frac{${1}}{r(r + ${1})}`} as a difference.`, back: t`${math`\frac{${1}}{r} - \frac{${1}}{r + ${1}}`}, so ${math`\sum_{r = ${1}}^{n} \frac{${1}}{r(r + ${1})} = \frac{n}{n + ${1}}`}.` },
