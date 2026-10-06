@@ -20,6 +20,19 @@ export const syncStatus = signal<SyncStatus>({
   phase: 'signed-out', email: null, lastSyncedAt: null, pending: false, linkSentTo: null, message: null, remoteErrors: [],
 });
 
+/**
+ * True when the app runs from the Home Screen (iOS `navigator.standalone`, or the
+ * standalone display mode elsewhere). Such an app keeps its storage apart from the
+ * browser's, and the emailed link opens in the browser, so only the code signs it in.
+ */
+export function detectStandalone(): boolean {
+  if (typeof navigator !== 'undefined' && (navigator as Navigator & { standalone?: boolean }).standalone === true) return true;
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches;
+}
+
+/** Read once at load; tests replace it. */
+export const standaloneApp = signal<boolean>(detectStandalone());
+
 let engine: SyncEngine | null = null;
 let unlisten: (() => void) | null = null;
 
@@ -90,5 +103,7 @@ export function stopSync(): void {
 }
 
 export const signIn = (email: string): Promise<string | null> => engine?.signIn(email) ?? Promise.resolve('Sync is not set up.');
+export const signInWithCode = (email: string, code: string): Promise<string | null> =>
+  engine?.signInWithCode(email, code) ?? Promise.resolve('Sync is not set up.');
 export const signOut = (): Promise<void> => engine?.signOut() ?? Promise.resolve();
 export const syncNow = (): Promise<void> => engine?.syncNow() ?? Promise.resolve();

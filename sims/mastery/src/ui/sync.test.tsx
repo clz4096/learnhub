@@ -7,10 +7,10 @@ import { DEFAULT_COURSES, startLearner } from '@/model/learner';
 import { route } from '@/model/route';
 import { commit, flush, init, loadState, progress, setClock } from '@/model/store';
 import { parseSyncConfig } from '@/sync/config';
-import { startSync, stopSync, syncSetup, syncStatus, takeAuthFragment } from '@/sync/app';
+import { detectStandalone, standaloneApp, startSync, stopSync, syncSetup, syncStatus, takeAuthFragment } from '@/sync/app';
 import { ANON_KEY, FakeSupabase, URL_BASE } from '@/sync/fakeSupabase';
 import { readAuthFragment } from '@/sync/supabase';
-import { SYNC_OFF_TEXT } from '@/ui/Sync';
+import { STANDALONE_NOTE, SYNC_OFF_TEXT } from '@/ui/Sync';
 import { ProgressView } from '@/ui/views/ProgressView';
 import { Start } from '@/ui/views/Start';
 
@@ -24,6 +24,7 @@ beforeEach(async () => {
   setClock(() => T0);
   // Whatever config the build carries, each test says which it wants.
   syncSetup.value = OFF;
+  standaloneApp.value = false;
   syncStatus.value = { phase: 'signed-out', email: null, lastSyncedAt: null, pending: false, linkSentTo: null, message: null, remoteErrors: [] };
   await init(new IDBFactory() as unknown as IdbFactoryLike);
 });
@@ -131,5 +132,93 @@ describe('sync switched on', () => {
     loadState.value = 'error';
     await startSync(Promise.resolve(), null, { fetch: f });
     expect(f).not.toHaveBeenCalled();
+  });
+});
+
+describe('sign in with the emailed code', () => {
+  async function signedOutWith(server: FakeSupabase): Promise<void> {
+    syncSetup.value = ON;
+    await commit(startLearner(T0, DEFAULT_COURSES, 60));
+    await startSync(Promise.resolve(), null, { fetch: server.fetch as typeof fetch });
+  }
+  const codeBox = (): HTMLElement | null => screen.queryByLabelText('Enter the 6-digit code from the email');
+
+  it('in a browser: the link comes first, with the code offered beside it', async () => {
+    const server = new FakeSupabase(() => T0);
+    await signedOutWith(server);
+    render(<ProgressView />);
+    expect(document.querySelector('[data-sync-standalone]')).toBeNull();
+    expect(codeBox()).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Or enter the code from the email' }));
+    expect(codeBox()).toBeTruthy();
+  });
+
+  it('in a browser: after the email is sent, the code box opens and signs in', async () => {
+    const server = new FakeSupabase(() => T0);
+    await signedOutWith(server);
+    render(<ProgressView />);
+    fireEvent.input(screen.getByLabelText('Email'), { target: { value: EMAIL } });
+    fireEvent.click(screen.getByRole('button', { name: 'Email me a sign-in link' }));
+    await waitFor(() => expect(document.querySelector('[data-sync-sent]')?.textContent).toBe(
+      `Sign-in link sent to ${EMAIL}. Open it on this device to finish signing in, or enter the code from the email.`));
+    fireEvent.input(codeBox() as HTMLElement, { target: { value: server.lastCode(EMAIL) } });
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in with code' }));
+    await waitFor(() => expect(document.querySelector('[data-sync-user]')?.textContent).toBe(`Signed in as ${EMAIL}.`));
+    await waitFor(() => expect(server.rows.size).toBe(1));
+  });
+
+  it('a wrong code shows a plain message and keeps the form', async () => {
+    const server = new FakeSupabase(() => T0);
+    await signedOutWith(server);
+    render(<ProgressView />);
+    fireEvent.input(screen.getByLabelText('Email'), { target: { value: EMAIL } });
+    fireEvent.click(screen.getByRole('button', { name: 'Email me a sign-in link' }));
+    await waitFor(() => expect(codeBox()).toBeTruthy());
+    fireEvent.input(codeBox() as HTMLElement, { target: { value: server.lastCode(EMAIL) === '000000' ? '111111' : '000000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in with code' }));
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/^That code is not right\./));
+    expect(codeBox()).toBeTruthy();
+    expect(document.querySelector('[data-sync-user]')).toBeNull();
+  });
+
+  it('in the Home Screen app: the code comes first, and it says why the link will not work', async () => {
+    standaloneApp.value = true;
+    const server = new FakeSupabase(() => T0);
+    syncSetup.value = ON;
+    render(<Start />);
+    await startSync(Promise.resolve(), null, { fetch: server.fetch as typeof fetch });
+    expect(document.querySelector('[data-sync-standalone]')?.textContent).toBe(STANDALONE_NOTE);
+    expect(STANDALONE_NOTE).toMatch(/link in the email opens Safari, which keeps its own storage, so the link cannot sign in this app/);
+    expect(codeBox()).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Email me a sign-in link' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Or enter the code from the email' })).toBeNull();
+    expect(document.body.textContent).not.toMatch(/[\u2013\u2014]/);
+
+    fireEvent.input(screen.getByLabelText('Email'), { target: { value: EMAIL } });
+    fireEvent.click(screen.getByRole('button', { name: 'Email me a code' }));
+    await waitFor(() => expect(document.querySelector('[data-sync-sent]')?.textContent).toBe(`Code sent to ${EMAIL}. Enter it below.`));
+    // The same request as the link: one email carries both.
+    expect(server.calls.map((c) => c.path)).toEqual(['/auth/v1/otp']);
+    fireEvent.input(codeBox() as HTMLElement, { target: { value: server.lastCode(EMAIL) } });
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in with code' }));
+    await waitFor(() => expect(syncStatus.value.phase).not.toBe('signed-out'));
+    expect(syncStatus.value.email).toBe(EMAIL);
+  });
+
+  it('detects the Home Screen app by navigator.standalone or the standalone display mode', () => {
+    const nav = navigator as Navigator & { standalone?: boolean };
+    const mm = window.matchMedia;
+    try {
+      window.matchMedia = ((q: string) => ({ matches: false, media: q })) as unknown as typeof window.matchMedia;
+      expect(detectStandalone()).toBe(false);
+      Object.defineProperty(nav, 'standalone', { value: true, configurable: true });
+      expect(detectStandalone()).toBe(true);
+      Object.defineProperty(nav, 'standalone', { value: undefined, configurable: true });
+      window.matchMedia = ((q: string) => ({ matches: q === '(display-mode: standalone)', media: q })) as unknown as typeof window.matchMedia;
+      expect(detectStandalone()).toBe(true);
+    } finally {
+      window.matchMedia = mm;
+      delete (nav as { standalone?: boolean }).standalone;
+    }
   });
 });

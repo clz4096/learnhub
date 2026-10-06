@@ -1,7 +1,9 @@
 # Switching on progress sync between devices
 
 *Written 2026-10-05. Updated 2026-10-06: sync carries the campaign, story, day log, timed
-ladder, mixed review, and timed-paper flags as well as progress; the table is unchanged.*
+ladder, mixed review, and timed-paper flags as well as progress; the table is unchanged.
+Sign-in also takes the one-time code from the email, for the iPhone Home Screen app (steps 3
+and 6).*
 
 Progress sync is built and tested but ships **off**: no config file is committed, so the live
 site behaves as before and the Progress page shows only "Sync between devices: not set up".
@@ -51,11 +53,29 @@ Under **Authentication**:
      - `http://127.0.0.1:4173/**` (local preview of the built site, `npm run preview`)
 2. **Sign In / Providers**, under **Email**: make sure the email provider is enabled. Magic
    links need nothing else.
-3. Leave **Allow new users to sign up** on for now: your first sign-in creates your user. You
+3. **Emails** (on older dashboards, **Email Templates**): add the one-time code to the
+   templates, so each sign-in email carries a code beside the link. The Home Screen app on
+   the iPhone can sign in only with the code (see step 6).
+   - Open **Magic Link** and add this line to the message body, below the link:
+
+     ```html
+     <p>Or enter this code in the app: <strong>{{ .Token }}</strong></p>
+     ```
+
+   - Add the same line to **Confirm signup**. Supabase sends that template instead of Magic
+     Link the first time an address signs in, before its user exists.
+   - Select **Save** on each.
+
+   The app checks the code with `POST /auth/v1/verify` and `type: "email"`, the type GoTrue
+   uses for every emailed code (`magiclink` is its older, deprecated name). Codes are six
+   digits and last one hour by default (**Sign In / Providers**, **Email**, **Email OTP
+   Expiration** and **Email OTP Length**); the app accepts 6 to 10 digits. Each new email
+   replaces the previous code, and a code works once.
+4. Leave **Allow new users to sign up** on for now: your first sign-in creates your user. You
    turn it off in step 7.
 
 Supabase's built-in email sender delivers only to members of the project's organization and
-sends a few emails an hour. That is enough for one learner on two devices. If a link does not
+sends a few emails an hour. That is enough for one learner on two devices. If an email does not
 arrive, check spam, then wait before asking again.
 
 ## 4. Add the config file
@@ -89,7 +109,8 @@ npm run preview -- --base /learnhub/
 ```
 
 Open `http://127.0.0.1:4173/learnhub/sims/mastery/#/progress`. The **Sync between devices**
-card should offer **Email me a sign-in link** instead of "not set up". If it still says not
+card should offer **Email me a sign-in link** and **Or enter the code from the email** instead
+of "not set up". If it still says not
 set up, the text after it names the problem in the config file.
 
 Then commit and push:
@@ -112,6 +133,24 @@ Wait for the **Pages** workflow to finish.
    now has the same **Sync between devices** card: sign in there (no need to choose a course
    first). Open the link **on the phone**. The phone downloads the Mac's progress and goes to
    Today.
+
+3. **Phone, Home Screen app**: a Home Screen web app on iPhone keeps its own storage, apart
+   from Safari's, and links in Mail always open in Safari. So the link signs in Safari, not
+   the Home Screen app, which needs the code:
+   1. In Safari, open the address and select **Share**, then **Add to Home Screen**.
+   2. Open learnhub from its Home Screen icon. The sync card (on Start, or on Progress) says
+      the link cannot sign in this app and offers the code first.
+   3. Enter your email and select **Email me a code**.
+   4. Open Mail, copy the six-digit code (iOS may offer it above the keyboard), and switch
+      back. Do not open the link.
+   5. Enter the code under **Enter the 6-digit code from the email** and select **Sign in
+      with code**.
+
+   If iOS reloaded the app while you were in Mail, the email box is empty again: type your
+   email again and use the code you already have. A new email would replace it.
+
+   Safari and the Home Screen app are two devices as far as sync is concerned. Each signs in
+   once and both stay in step.
 
 From then on, each device syncs when it opens, a moment after each lesson, review, quiz, or
 supervision import, and when it comes back online. **Sync now** forces a round.
@@ -203,3 +242,9 @@ To remove the data too, run `drop table public.learnhub_progress;` in the SQL ed
 | "The learnhub_progress table may be missing" | Step 2 was not run on this project. |
 | "Your sign-in has expired" | The device was signed out on the server. Sign in again. |
 | "Too many sign-in emails for now" | The email rate limit. Wait, then try again. |
+| "That code is not right" | A typo, or an older email's code: each new email replaces the code. Use the newest email. |
+| "That code has expired" | The code is over an hour old. Send a new email. |
+| "That code is wrong or has expired" | The app was reloaded since the email was sent, so it cannot tell which. Check the newest email, or send a new one. |
+| "Too many tries for now" | Supabase's limit on code checks. Wait a few minutes. |
+| The email has a link but no code | `{{ .Token }}` is missing from the template that sent it (step 3): Magic Link, or Confirm signup for a first sign-in. |
+| The link opened Safari and the Home Screen app is still signed out | Expected: use the code in the Home Screen app (step 6). |

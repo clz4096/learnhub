@@ -2,8 +2,9 @@
  * The few Supabase endpoints sync uses, over plain fetch: no client library, so no new
  * runtime dependency and nothing here the app does not need.
  *
- *   POST /auth/v1/otp                           email a magic sign-in link
+ *   POST /auth/v1/otp                           email a sign-in link and a one-time code
  *   (redirect)  <page>#access_token=...         the session, read from the URL fragment
+ *   POST /auth/v1/verify                        trade the emailed code for a session
  *   POST /auth/v1/token?grant_type=refresh_token  a fresh access token
  *   POST /auth/v1/logout?scope=local            end this device's session only
  *   GET  /rest/v1/learnhub_progress             the learner's row (row-level security)
@@ -13,6 +14,10 @@
  * link to the browser that asked for it, and the learner may ask on the Mac and open the
  * mail on the phone. The fragment never reaches a server (GitHub Pages sees no part of
  * it), and the app removes it from the address bar and history as soon as it loads.
+ *
+ * The code exists for the Home Screen web app on iPhone: it keeps storage apart from
+ * Safari, and the emailed link always opens in Safari, so the link can never sign the
+ * Home Screen app in. The same email carries the code (`{{ .Token }}` in the template).
  */
 import { jwtPayload, type SyncConfig } from './config';
 
@@ -77,6 +82,41 @@ export async function requestLink(cfg: SyncConfig, f: FetchLike, email: string, 
     headers: headers(cfg, null, { 'Content-Type': 'application/json' }),
     body: JSON.stringify({ email, create_user: true }),
   }, 'sending the sign-in link');
+}
+
+/**
+ * The `type` sent to /auth/v1/verify for an emailed code. GoTrue accepts `email` for the
+ * code of a magic link and of a sign-up confirmation alike (it checks both tokens);
+ * `magiclink` and `signup` are older, deprecated names for the same codes.
+ */
+export const EMAIL_OTP_TYPE = 'email';
+
+/** The code as typed, without spaces or dashes; GoTrue sends 6 digits by default and up to 10 when configured. */
+export function cleanCode(code: string): string | null {
+  const c = code.replace(/[\s-]/g, '');
+  return /^\d{6,10}$/.test(c) ? c : null;
+}
+
+/**
+ * Trades the emailed one-time code for a session. A wrong code and an expired one get the
+ * same answer from GoTrue (403, `otp_expired`), so the caller cannot tell them apart from
+ * the response alone.
+ */
+export async function verifyCode(cfg: SyncConfig, f: FetchLike, email: string, code: string, now: number): Promise<Session> {
+  const r = await send(f, `${cfg.url}/auth/v1/verify`, {
+    method: 'POST',
+    headers: headers(cfg, null, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ type: EMAIL_OTP_TYPE, email, token: code }),
+  }, 'checking the code');
+  let o: Record<string, unknown>;
+  try {
+    o = (await r.json()) as Record<string, unknown>;
+  } catch {
+    throw new SyncHttpError('checking the code: the response was not JSON', r.status, true);
+  }
+  const s = sessionFrom(String(o.access_token ?? ''), String(o.refresh_token ?? ''), expiryOf(o.expires_at, o.expires_in, now));
+  if (s === null) throw new SyncHttpError('checking the code: the response held no usable session', r.status, false);
+  return s;
 }
 
 function sessionFrom(access: string, refresh: string, expiresAt: number): Session | null {

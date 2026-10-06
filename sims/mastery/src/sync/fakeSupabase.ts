@@ -2,7 +2,9 @@
  * A fake Supabase for tests: the auth and REST endpoints sync calls, with the behaviour
  * that matters to it. Access tokens expire, refresh tokens rotate (an old one is refused),
  * row-level security lets a token read and write only its own row, the table's size check
- * refuses a huge document, and the network can be cut.
+ * refuses a huge document, and the network can be cut. Each sign-in email carries a
+ * one-time code: only the newest code for an address works, once, within the hour, and a
+ * wrong code and an expired one get GoTrue's same answer (403, `otp_expired`).
  */
 import type { FetchLike } from './supabase';
 
@@ -17,6 +19,8 @@ export const ANON_KEY = fakeJwt({ iss: 'supabase', ref: 'testref', role: 'anon' 
 export const SERVICE_KEY = fakeJwt({ iss: 'supabase', ref: 'testref', role: 'service_role' });
 export const URL_BASE = 'https://testref.supabase.co';
 export const TABLE_LIMIT_BYTES = 2 * 1024 * 1024;
+/** GoTrue's default "Email OTP Expiration". */
+export const OTP_TTL_MS = 3600_000;
 
 export interface Row {
   user_id: string;
@@ -48,7 +52,10 @@ export class FakeSupabase {
   private readonly users = new Map<string, string>();
   private readonly access = new Map<string, { sub: string; exp: number }>();
   private readonly refresh = new Map<string, string>();
+  /** The newest code emailed to each address; sending again replaces it, as GoTrue does. */
+  private readonly codes = new Map<string, { code: string; at: number }>();
   private serial = 0;
+  private codeSerial = 0;
 
   constructor(private readonly clock: () => number, private readonly ttlMs = 3600_000) {}
 
@@ -75,6 +82,11 @@ export class FakeSupabase {
   magicLinkFragment(email: string): string {
     const t = this.issue(this.userFor(email), email);
     return `#access_token=${t.access_token}&expires_at=${t.expires_at}&expires_in=${t.expires_in}&refresh_token=${t.refresh_token}&token_type=bearer&type=magiclink`;
+  }
+
+  /** The code in the newest sign-in email to this address, as the learner would read it. */
+  lastCode(email: string): string | undefined {
+    return this.codes.get(email.toLowerCase())?.code;
   }
 
   /** Ends every access token now, as if an hour passed on the server. */
@@ -118,7 +130,26 @@ export class FakeSupabase {
     const body = c.body === null ? null : (JSON.parse(c.body) as Record<string, unknown>);
     if (c.method === 'POST' && c.path === '/auth/v1/otp') {
       this.emails.push({ email: String(body?.email), redirectTo: c.query.get('redirect_to') });
+      const code = String(100000 + ((++this.codeSerial * 271_829) % 900_000));
+      this.codes.set(String(body?.email).toLowerCase(), { code, at: this.clock() });
       return json(200, {});
+    }
+    if (c.method === 'POST' && c.path === '/auth/v1/verify') {
+      // GoTrue takes `email` for an emailed code, and still the older `magiclink` name.
+      if (body?.type !== 'email' && body?.type !== 'magiclink') {
+        return json(400, { code: 400, error_code: 'validation_failed', msg: 'Verify requires a verification type' });
+      }
+      if (typeof body.email !== 'string' || typeof body.token !== 'string') {
+        return json(400, { code: 400, error_code: 'validation_failed', msg: 'Only an email address or phone number should be provided on verify' });
+      }
+      const email = body.email.toLowerCase();
+      const sent = this.codes.get(email);
+      if (sent === undefined || sent.code !== body.token || this.clock() - sent.at >= OTP_TTL_MS) {
+        return json(403, { code: 403, error_code: 'otp_expired', msg: 'Token has expired or is invalid' });
+      }
+      this.codes.delete(email);
+      const sub = this.userFor(body.email);
+      return json(200, { ...this.issue(sub, body.email), token_type: 'bearer', user: { id: sub, email: body.email } });
     }
     if (c.method === 'POST' && c.path === '/auth/v1/token' && c.query.get('grant_type') === 'refresh_token') {
       const old = String(body?.refresh_token);

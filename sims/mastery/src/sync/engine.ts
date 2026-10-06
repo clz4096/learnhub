@@ -40,7 +40,7 @@ import { joinDoc, splitDoc } from './backup';
 import type { SyncConfig } from './config';
 import { isEmptyLearner, mergeLearner, parseLearner, sameLearner, type LearnerState } from './learner/envelope';
 import {
-  SyncHttpError, logout, pullRow, pushRow, refreshSession, requestLink,
+  SyncHttpError, cleanCode, logout, pullRow, pushRow, refreshSession, requestLink, verifyCode,
   type FetchLike, type FragmentResult, type Session,
 } from './supabase';
 
@@ -53,6 +53,8 @@ export const RETRY_BASE_MS = 2000;
 export const RETRY_MAX_MS = 5 * 60_000;
 /** Renew the access token this long before it expires. */
 export const REFRESH_EARLY_MS = 60_000;
+/** How long an emailed code works: Supabase's default "Email OTP Expiration", one hour. */
+export const CODE_TTL_MS = 3600_000;
 
 export type SyncPhase = 'signed-out' | 'idle' | 'syncing' | 'error';
 
@@ -63,7 +65,7 @@ export interface SyncStatus {
   lastSyncedAt: number | null;
   /** This device has changes the server may not have yet. */
   pending: boolean;
-  /** A sign-in link was sent to this address and not used yet. */
+  /** A sign-in email (link and code) was sent to this address and not used yet. */
   linkSentTo: string | null;
   /** What went wrong, in words for the learner. */
   message: string | null;
@@ -148,6 +150,8 @@ export class SyncEngine {
   /** Counts the learner's changes, so a round knows whether one arrived while it ran. */
   private changes = 0;
   private stopped = false;
+  /** The last sign-in email this engine sent, to tell an expired code from a mistyped one. */
+  private codeSent: { email: string; at: number } | null = null;
 
   constructor(private readonly d: SyncDeps) {}
 
@@ -209,8 +213,44 @@ export class SyncEngine {
       const rate = err instanceof SyncHttpError && err.status === 429;
       return rate ? 'Too many sign-in emails for now. Wait a while, then try again.' : `Could not send the link. ${errText(err)}`;
     }
+    this.codeSent = { email: e.toLowerCase(), at: this.d.now() };
     this.emit({ linkSentTo: e, message: null });
     return null;
+  }
+
+  /**
+   * Signs in with the one-time code from the sign-in email, keeping the session as the
+   * link's redirect does, then runs the first round. Resolves to an error message for the
+   * form, or null when signed in.
+   */
+  async signInWithCode(email: string, code: string): Promise<string | null> {
+    const e = email.trim();
+    if (!EMAIL_RE.test(e)) return 'Enter the email address the code was sent to.';
+    const c = cleanCode(code);
+    if (c === null) return 'Enter the 6-digit code from the email.';
+    let session: Session;
+    try {
+      session = await verifyCode(this.d.config, this.d.fetch, e, c, this.d.now());
+    } catch (err) {
+      return this.codeProblem(err, e);
+    }
+    this.codeSent = null;
+    this.state.session = session;
+    await this.persist();
+    this.emit({ phase: 'idle', email: session.email ?? e, message: null, linkSentTo: null, remoteErrors: [] });
+    await this.syncNow();
+    return null;
+  }
+
+  /** Words for a refused code. GoTrue answers a wrong code and an expired one alike, so the time since sending decides. */
+  private codeProblem(err: unknown, email: string): string {
+    if (err instanceof SyncHttpError && err.status === 429) return 'Too many tries for now. Wait a few minutes, then try again.';
+    const refused = err instanceof SyncHttpError && (err.code === 'otp_expired' || err.status === 403);
+    if (!refused) return `Could not sign in with the code. ${errText(err)}`;
+    const sent = this.codeSent?.email === email.toLowerCase() ? this.codeSent.at : null;
+    if (sent !== null && this.d.now() - sent >= CODE_TTL_MS) return 'That code has expired. Send a new email and use the new code.';
+    if (sent !== null) return 'That code is not right. Check it against the newest email: each new email replaces the code before it.';
+    return 'That code is wrong or has expired. Check it against the newest email, or send a new one.';
   }
 
   /** Signs this device out. Local progress stays. */

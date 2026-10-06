@@ -8,7 +8,7 @@ import { DEFAULT_COURSES, finishOpenPlacement, startLearner, withoutSelfReport }
 import { KNOWN_IDS } from '@/model/store';
 import { parseSyncConfig } from './config';
 import {
-  DEBOUNCE_MS, MAX_SYNC_CHARS, RETRY_BASE_MS, SYNC_STATE_KEY, SyncEngine, type SyncStatus,
+  CODE_TTL_MS, DEBOUNCE_MS, MAX_SYNC_CHARS, RETRY_BASE_MS, SYNC_STATE_KEY, SyncEngine, type SyncStatus,
 } from './engine';
 import { ANON_KEY, FakeSupabase, URL_BASE } from './fakeSupabase';
 import { readAuthFragment } from './supabase';
@@ -191,6 +191,91 @@ describe('sign in by email link', () => {
     mac.change(lesson('pre.fractions', T0 + 5));
     await clock.advance(DEBOUNCE_MS * 2);
     expect(server.calls.filter((c) => c.path.startsWith('/rest/'))).toHaveLength(2);
+  });
+});
+
+describe('sign in by emailed code', () => {
+  const verifies = (s: FakeSupabase) => s.calls.filter((c) => c.path === '/auth/v1/verify');
+
+  it('the code from the same email signs in, keeps the session as the link does, and works once', async () => {
+    const { clock, server } = setup();
+    const phone = new Device(server, clock, started());
+    await phone.engine.start(null);
+    expect(await phone.engine.signIn(EMAIL)).toBeNull();
+    const code = server.lastCode(EMAIL) ?? '';
+    expect(code).toMatch(/^\d{6}$/);
+
+    // Typed with a space, as the email may group it.
+    expect(await phone.engine.signInWithCode(` ${EMAIL} `, `${code.slice(0, 3)} ${code.slice(3)}`)).toBeNull();
+    const v = verifies(server)[0];
+    expect(v?.method).toBe('POST');
+    expect(v?.headers.apikey).toBe(ANON_KEY);
+    expect(v?.headers.authorization).toBeUndefined();
+    expect(JSON.parse(v?.body ?? '{}')).toEqual({ type: 'email', email: EMAIL, token: code });
+    expect(phone.status).toMatchObject({ phase: 'idle', email: EMAIL, linkSentTo: null, message: null, lastSyncedAt: T0 });
+    expect(sameProgress(server.rows.get(server.userId(EMAIL))?.doc as Progress, phone.doc as Progress)).toBe(true);
+
+    phone.engine.stop();
+    phone.engine = phone.makeEngine();
+    await phone.engine.start(null);
+    expect(phone.status).toMatchObject({ phase: 'idle', email: EMAIL });
+    expect(JSON.parse((await phone.storage.get(SYNC_STATE_KEY)) ?? '{}').session.userId).toBe(server.userId(EMAIL));
+
+    // Spent: the same code is refused on another device.
+    const other = new Device(server, clock, started());
+    await other.engine.start(null);
+    expect(await other.engine.signInWithCode(EMAIL, code)).toMatch(/wrong or has expired/);
+  });
+
+  it('checks the form before asking the server', async () => {
+    const { clock, server } = setup();
+    const mac = new Device(server, clock, started());
+    await mac.engine.start(null);
+    expect(await mac.engine.signInWithCode('', '123456')).toBe('Enter the email address the code was sent to.');
+    expect(await mac.engine.signInWithCode(EMAIL, '12345')).toBe('Enter the 6-digit code from the email.');
+    expect(await mac.engine.signInWithCode(EMAIL, 'abcdef')).toBe('Enter the 6-digit code from the email.');
+    expect(server.calls).toEqual([]);
+  });
+
+  it('a wrong code, an expired one, and a replaced one each get plain words, and stay signed out', async () => {
+    const { clock, server } = setup();
+    const mac = new Device(server, clock, started());
+    await mac.engine.start(null);
+    await mac.engine.signIn(EMAIL);
+    const first = server.lastCode(EMAIL) ?? '';
+    const wrong = first === '000000' ? '111111' : '000000';
+    expect(await mac.engine.signInWithCode(EMAIL, wrong)).toBe(
+      'That code is not right. Check it against the newest email: each new email replaces the code before it.');
+    expect(mac.status.phase).toBe('signed-out');
+
+    // A second email replaces the first code.
+    await mac.engine.signIn(EMAIL);
+    expect(server.lastCode(EMAIL)).not.toBe(first);
+    expect(await mac.engine.signInWithCode(EMAIL, first)).toMatch(/^That code is not right/);
+
+    clock.t += CODE_TTL_MS;
+    expect(await mac.engine.signInWithCode(EMAIL, server.lastCode(EMAIL) ?? '')).toBe('That code has expired. Send a new email and use the new code.');
+    expect(mac.status.phase).toBe('signed-out');
+    expect(JSON.parse((await mac.storage.get(SYNC_STATE_KEY)) ?? '{"session":null}').session).toBeNull();
+
+    // After a reload this engine never sent the email, so it cannot say which.
+    mac.engine = mac.makeEngine();
+    await mac.engine.start(null);
+    expect(await mac.engine.signInWithCode(EMAIL, '123456')).toBe('That code is wrong or has expired. Check it against the newest email, or send a new one.');
+  });
+
+  it('too many tries, and no connection', async () => {
+    const { clock, server } = setup();
+    const mac = new Device(server, clock, started());
+    await mac.engine.start(null);
+    await mac.engine.signIn(EMAIL);
+    server.failures.push(429);
+    expect(await mac.engine.signInWithCode(EMAIL, server.lastCode(EMAIL) ?? '')).toBe('Too many tries for now. Wait a few minutes, then try again.');
+    mac.online = false;
+    expect(await mac.engine.signInWithCode(EMAIL, server.lastCode(EMAIL) ?? '')).toMatch(/^Could not sign in with the code\. checking the code: no connection/);
+    mac.online = true;
+    expect(await mac.engine.signInWithCode(EMAIL, server.lastCode(EMAIL) ?? '')).toBeNull();
+    expect(mac.status.phase).toBe('idle');
   });
 });
 
