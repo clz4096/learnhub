@@ -389,9 +389,9 @@ export const geometricDistribution: TopicContent = {
   terms: ['geometric-distribution', 'geometric-memoryless'],
   claims,
   cambridge: withUses([firstSix, varianceNotes, coupon, negBin], {
-    'ia-s2-q11-coupons': { sections: ['The mean wait', 'Waits add up'], note: t`The expected wait for a full set as a sum of geometric waits`, needs: ['rv.expectation-algebra'] },
+    'ia-s2-q11-coupons': { sections: ['The mean wait', 'Waits add up'], note: t`The expected wait for a full set as a sum of geometric waits` },
     'ia-s3-q5-sum-of-geometrics': { sections: ['Waits add up'], note: t`The wait for the a-th success as a sum of geometric waits` },
-    's3-notes-variance': { sections: ['The mean wait'], note: t`A variance by differentiating a geometric series`, needs: ['rv.variance'] },
+    's3-notes-variance': { sections: ['The mean wait'], note: t`A variance by differentiating a geometric series` },
   }),
   // The IA sheets first: the coupon collector and the negative binomial, both sums of geometric waits.
   // Then the variance from the STEP notes. The first six on roll four is one product, left out.

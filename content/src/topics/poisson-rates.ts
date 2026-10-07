@@ -404,7 +404,7 @@ export const poissonRates: TopicContent = {
   claims,
   cambridge: withUses([q5Sum, q4None, q7a, q5George, q4Rest, q6, q7b], {
     'ia-s2-q7-b': { sections: ['Given the total, and thinning'], note: t`Thinning a Poisson count into two independent ones` },
-    's2-q4-nearest': { sections: ['Rates'], note: t`The distance to the nearest point: its density, mean, and variance`, needs: ['rv.pdf', 'rv.continuous-summaries', 'calc.integration-by-parts'] },
+    's2-q4-nearest': { sections: ['Rates'], note: t`The distance to the nearest point: its density, mean, and variance` },
     'ia-s2-q6': { sections: ['Independent Poisson counts add', 'Given the total, and thinning'], note: t`The sum of Poissons and one count given the total` },
     's2-q5-george': { sections: ['Rates'], note: t`A waiting time from a Poisson rate, and a quadratic in its exponential` },
     'ia-s2-q7-a': { sections: ['Independent Poisson counts add'], note: t`The page of the second misprint` },

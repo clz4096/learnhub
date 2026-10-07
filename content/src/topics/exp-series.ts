@@ -255,7 +255,7 @@ export const expSeries: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exponential-series'],
   cambridge: withUses([xexSeries, productQ], {
-    'a22-q2-iv': { sections: ['Its own derivative'], note: t`Index laws from the series, by the product rule`, needs: ['calc.differentiation-rules'] },
+    'a22-q2-iv': { sections: ['Its own derivative'], note: t`Index laws from the series, by the product rule` },
     'a22-q2-iii-series': { sections: ['Its own derivative'], note: t`Differentiating a series term by term` },
   }),
   gate: ['a22-q2-iv', 'a22-q2-iii-series'],

@@ -423,7 +423,7 @@ export const restrictedArrangements: TopicContent = {
     'mixed-q4-ii': { sections: ['Kept apart: use the gaps'], note: t`All three apart by choosing gaps` },
     'mixed-q4-i': { sections: ['Kept together: glue them'], note: t`All three together by gluing them into one` },
     'mixed-q5-ii': { sections: ['Kept together: glue them'], note: t`All together, by gluing` },
-    'mixed-q3-v-why': { sections: ['Kept together: glue them'], note: t`Why two "together" probabilities do not multiply`, needs: ['prob.conditional-formula'] },
+    'mixed-q3-v-why': { sections: ['Kept together: glue them'], note: t`Why two "together" probabilities do not multiply` },
     'mixed-q5-i': { sections: ['At the ends: fill them first'], note: t`Filling the ends first` },
     'mixed-q3-v': { sections: ['Kept together: glue them'], note: t`Two groups each kept together` },
     'mixed-q3-iv': { sections: ['Kept together: glue them'], note: t`One group kept together` },

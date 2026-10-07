@@ -312,7 +312,7 @@ export const euclidAlgorithm: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['euclids-algorithm'],
   cambridge: withUses([notes75, sheet423d, sheet333, theorem79, sheet423dproof], {
-    'sheet-4-2-3-d-proof': { sections: ['How fast'], note: t`Fibonacci inputs, by induction on the steps`, needs: ['alg.fibonacci'] },
+    'sheet-4-2-3-d-proof': { sections: ['How fast'], note: t`Fibonacci inputs, by induction on the steps` },
     'notes-224-theorem-79-bound': { sections: ['How fast'], note: t`The second number halves every two steps` },
     'sheet-3-3-3': { sections: ['Why it is right'], note: t`Why the subtractive algorithm keeps the common divisors and stops` },
   }),

@@ -9,7 +9,7 @@ export const furtherAlgebra: Topic[] = [
     summary: 'Add, multiply, and divide $x + iy$, use the modulus and argument, and find complex roots such as those of $x^4 + 1 = 0$.',
     level: 'a-level',
     area: 'further-algebra',
-    prereqs: ['pre.quadratic-equations', 'trig.compound-angles', 'trig.radians-and-graphs'],
+    prereqs: ['pre.quadratic-equations', 'trig.radians-and-graphs'],
     encompasses: { 'pre.quadratic-equations': 0.4, 'trig.compound-angles': 0.4, 'trig.radians-and-graphs': 0.4 },
     sources: [{ doc: STEP, course: 'STEP Mathematics 2', section: M2_COMPLEX, note: 'Spec: "Add, subtract, multiply, and divide complex numbers in the form x + iy" and "Convert between the Cartesian form and the modulus-argument form".', verified: true }],
     estMinutes: 25,

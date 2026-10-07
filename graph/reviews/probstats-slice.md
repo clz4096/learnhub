@@ -520,6 +520,29 @@ On a wrong answer, the test moves down that probe's ancestors, halfway down the 
 
 If every probe is correct, the test moves up to the Tripos entry points: `an.epsilon-limit` (the analysis chain), `prob.classical-probability`, and then `prob.axioms`, `prob.stirling-log`, and `prob.conditional-probability`.
 
+### Update (2026-10-06): the gatefit prerequisites
+
+The gate-fit audit of 2026-10-06 added prerequisites so that every gate problem needs only its own lesson and what it builds on. Five of them bring 28 more topics into the IA Probability closure, which is now 90 topics (1,590 lesson minutes): `prob.point-mass-spaces` builds on `num.fundamental-theorem` and `prob.independence` (its gate is Euler's product formula, which needs unique factorisation; 20 of the 28 come in this way), `prob.geometric-distribution` on `rv.expectation-algebra`, `sets.countable-unions` on `logic.quantifiers`, `alg.geometric-sum-to-infinity` on `alg.surds`, and `an.exp-series` on `calc.differentiation-rules`. The entry points are now these 14, with 55 topics at or below STEP:
+
+| order | probe | level | topics credited if correct |
+|---|---|---|---|
+| 1 | `rv.expectation-algebra` | step | 22 |
+| 2 | `prob.poisson-distribution` | step | 18 |
+| 3 | `comb.binomial-identities` | step | 12 |
+| 4 | `alg.fibonacci` | step | 12 |
+| 5 | `an.exp-limit` | step | 11 |
+| 6 | `prob.binomial-distribution` | a-level | 10 |
+| 7 | `prob.bayes-two-events` | step | 9 |
+| 8 | `prob.counting-probability` | step | 8 |
+| 9 | `proof.counterexample` | a-level | 8 |
+| 10 | `prob.inclusion-exclusion-three` | step | 6 |
+| 11 | `calc.integration-by-parts` | a-level | 6 |
+| 12 | `comb.repeated-arrangements` | step | 5 |
+| 13 | `pre.hcf-lcm` | pre-a-level | 4 |
+| 14 | `sets.comprehension` | a-level | 2 |
+
+`comb.binomial-theorem` and `alg.proof-by-induction` are no longer entry points: `comb.binomial-identities` now builds on both. The default placement budget for the course is `placementBudget(90) = max(30, ceil(90 / 2)) = 45`, up from 31; measured on 500 truthful random learners it places everyone exactly with at most 37 questions (`graph/src/placement.test.ts`). The simulation runs for 120 days instead of 60, since at 60 days some seeds had not finished the larger slice (`graph/SIMULATION.md`).
+
 ## External checks
 
 From the STEP Support Programme Foundation module list (step.maths.org/assignments/foundation, read 2026-10-04):

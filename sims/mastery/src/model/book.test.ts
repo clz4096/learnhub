@@ -23,9 +23,10 @@ describe('next in the book', () => {
     // Surds open Assignment 1 after indices (graph/reviews/cambridge-prep.md); their lesson is written in Preparation group A.
     expect(next?.step.topicId).toBe('alg.surds');
     expect(next?.section.title).toMatch(/^Assignment 1:/);
-    // The frontier is limited to the chosen courses' closure, which surds are not in.
+    // The frontier is limited to the chosen courses' closure. Surds are in it since the gatefit
+    // prerequisites (2026-10-06): the sum to infinity builds on them.
     const front = bookFrontier(p);
-    expect(front[0]).toBe('pre.sequences');
+    expect(front[0]).toBe('alg.surds');
     expect([...front].sort((a, b) => bookIndex(a) - bookIndex(b))).toEqual(front);
     for (const id of front) expect(hasContent(id)).toBe(true);
   });
@@ -47,7 +48,7 @@ describe("Today's new lessons follow the book", () => {
   it('plans lessons in book order', () => {
     const p = ensureSession(learn(fresh(), 'pre.fractions', 'pre.indices', 'pre.algebraic-manipulation'), T0 + 1);
     const lessons = (p.session?.tasks ?? []).filter((t) => t.kind === 'lesson').map((t) => t.topicIds[0] as string);
-    expect(lessons[0]).toBe('pre.sequences');
+    expect(lessons[0]).toBe('alg.surds');
     expect([...lessons].sort((a, b) => bookIndex(a) - bookIndex(b))).toEqual(lessons);
   });
 

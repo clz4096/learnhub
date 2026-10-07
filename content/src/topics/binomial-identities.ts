@@ -450,7 +450,7 @@ export const binomialIdentities: TopicContent = {
   terms: ['pascals-triangle', 'pascals-rule'],
   cambridge: withUses([bop1024, bop1040, bop1041, bop1035, bop1038, notesHomework2, ns2q3, gs329, gs3213], {
     'ns2-q3': { sections: ["Pascal's rule", 'Row sums'], note: t`Proving two identities by counting each side` },
-    'notes-280-homework-2': { sections: ["Pascal's rule"], note: t`The inductive step of the binomial theorem with Pascal's rule`, needs: ['comb.binomial-theorem', 'alg.proof-by-induction'] },
+    'notes-280-homework-2': { sections: ["Pascal's rule"], note: t`The inductive step of the binomial theorem with Pascal's rule` },
     'gs-3-2-13': { sections: ['Symmetry'], note: t`The middle binomial coefficient is the largest` },
   }),
   // The IA sheet's two identities by counting first; the Pascal's rule homework and the middle of a

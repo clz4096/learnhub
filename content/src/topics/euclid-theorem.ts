@@ -308,7 +308,7 @@ export const euclidTheorem: TopicContent = {
   terms: ['coprime', 'euclids-lemma'],
   cambridge: withUses([bop1155, bop1156, sheet316, sheet322, sheet331, bop729], {
     'sheet-3-3-1': { sections: ['When can you cancel?'], note: t`Cancelling by the gcd to reach a coprime pair` },
-    'sheet-3-1-6': { sections: ['Primes'], note: t`Square roots of one modulo a prime`, needs: ['num.congruence'] },
+    'sheet-3-1-6': { sections: ['Primes'], note: t`Square roots of one modulo a prime` },
     'sheet-3-2-2': { sections: ['When can you cancel?', 'What it unlocks'], note: t`Coprime divisors multiply, with a counterexample otherwise` },
   }),
   // 3.3.1 first: it needs the theorem used with a reduction to the coprime case, not just quoted.

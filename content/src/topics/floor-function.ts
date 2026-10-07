@@ -321,8 +321,8 @@ export const floorFunction: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['floor-function', 'step-function'],
   cambridge: withUses([a3q2iv, a3q2v, a3q3ii, step2004], {
-    'a3-q3': { sections: ['The definition', 'The staircase and its area'], note: t`Areas under step graphs as sums, including a geometric sum`, needs: ['alg.geometric-series'] },
-    'a3-q3-ii': { sections: ['The staircase and its area'], note: t`The area under a step graph as a geometric sum`, needs: ['alg.geometric-series'] },
+    'a3-q3': { sections: ['The definition', 'The staircase and its area'], note: t`Areas under step graphs as sums, including a geometric sum` },
+    'a3-q3-ii': { sections: ['The staircase and its area'], note: t`The area under a step graph as a geometric sum` },
     'a3-q2-v': { sections: ['The definition', 'The staircase and its area'], note: t`Sketching a product with the floor function and adding the areas piece by piece` },
   }),
   gate: ['a3-q3', 'a3-q3-ii', 'a3-q2-v'],

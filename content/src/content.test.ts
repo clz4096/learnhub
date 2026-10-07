@@ -301,9 +301,14 @@ describe('content topics', () => {
     }
     expect(seen.slice(0, 10)).toEqual(TOPIC_CONTENT.slice(0, FIRST_TEN).map((c) => c.topicId));
     // Batches 2 to 4: the scheduled topics that cite a source of the batch 1 map (graph/reviews/cambridge-batch-1.md) and had no lesson, first first.
+    // They were written in the order the engine scheduled them then. The gatefit prerequisites
+    // (2026-10-06) brought Preparation topics into the closure, so the schedule now interleaves
+    // these with the batches and reorders the batches: the set is checked, not the order.
     const before = new Set([...TOPIC_CONTENT.slice(0, FIRST_TEN).map((c) => c.topicId), ...BATCH_1_NEW]);
     const mapped = seen.filter((id) => !before.has(id) && (topics.find((tp) => tp.id === id)?.sources ?? []).some((s) => batchIds.has(s.doc)));
-    expect(mapped).toEqual([...BATCH_2, ...BATCH_3, ...BATCH_4]);
+    const batches = [...BATCH_2, ...BATCH_3, ...BATCH_4];
+    expect(mapped.filter((id) => batches.includes(id)).sort()).toEqual([...batches].sort());
+    expect(mapped.filter((id) => !batches.includes(id)).sort()).toEqual(['alg.fibonacci', 'alg.simultaneous-equations', 'alg.surds', 'rv.expectation']);
   });
 
   it('are all in the closure of the two courses, except Part V and Preparation topics, which the book places', () => {
@@ -607,11 +612,12 @@ describe('what each Cambridge problem draws on', () => {
     return out;
   };
   /**
-   * Topics whose gate still needs a topic later in the book (gatefit audit, 2026-10-06): no
-   * fitting Cambridge-standard problem is on file. Explicit, so a new misfit fails here and a
-   * fixed one is taken off the list.
+   * Topics whose gate still needs a topic later in the book. The three of the gatefit audit
+   * (2026-10-06) are fixed: comb.permutations and an.sequence-limits have new gates, and
+   * geom.circles teaches touching and the double angle itself. Explicit, so a new misfit fails
+   * here and a fixed one is taken off the list.
    */
-  const GATE_NEEDS_LATER: ReadonlySet<string> = new Set(['comb.permutations', 'geom.circles', 'an.sequence-limits']);
+  const GATE_NEEDS_LATER: ReadonlySet<string> = new Set([]);
 
   it('every gate problem says what it draws on, from at least one section of its lesson', () => {
     for (const c of TOPIC_CONTENT) {

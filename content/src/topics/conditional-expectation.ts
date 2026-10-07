@@ -381,7 +381,7 @@ export const conditionalExpectation: TopicContent = {
   terms: ['conditional-distribution', 'conditional-expectation', 'tower-law'],
   cambridge: withUses([q6sum, q8b, q6proof, q8proof, scheduleTower], {
     'ia-s3-q8-ab': { sections: ['The tower law', 'Two working rules'], note: t`The mean and variance of a random sum by conditioning` },
-    'ia-s2-q6': { sections: ['Conditional distribution and mean'], note: t`A conditional distribution given a total`, needs: ['prob.poisson-distribution', 'comb.binomial-theorem'] },
+    'ia-s2-q6': { sections: ['Conditional distribution and mean'], note: t`A conditional distribution given a total` },
     'ia-s3-q8-b': { sections: ['Two working rules'], note: t`The variance of a random sum` },
   }),
   gate: ['ia-s3-q8-ab', 'ia-s2-q6', 'ia-s3-q8-b'],

@@ -226,7 +226,8 @@ describe('what a Cambridge problem draws on', () => {
     const gate = uses('a6-q1-i-general');
     const sigma = within(gate).getByRole('link', { name: 'Sigma notation' });
     expect(sigma.getAttribute('href')).toMatch(/^#\/learn\/alg\.sigma-notation/);
-    expect(within(gate).getByRole('link', { name: 'Fractions and ratios' })).toBeTruthy();
+    // Fractions come through sigma notation since the gatefit prerequisites (2026-10-06), so only the direct prerequisite is linked.
+    expect(within(gate).queryByRole('link', { name: 'Fractions and ratios' })).toBeNull();
     expect(within(gate).queryByText('Also needs')).toBeNull();
     const practice = uses('a24-q3');
     expect(within(practice).getByText('Also needs')).toBeTruthy();

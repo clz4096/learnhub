@@ -496,7 +496,7 @@ export const firstStep: TopicContent = {
   terms: ['first-step-analysis'],
   claims,
   cambridge: withUses([q12i, q12ii, q13i, q13ii, s2q3i, darts, s2q3proof, evenSuccesses], {
-    'sheet2-q3': { sections: ['An equation instead of a sum'], note: t`A recurrence by conditioning on the first trial, and a second proof by the binomial theorem`, needs: ['comb.binomial-theorem'] },
+    'sheet2-q3': { sections: ['An equation instead of a sum'], note: t`A recurrence by conditioning on the first trial, and a second proof by the binomial theorem` },
     's2-q3-i-w': { sections: ['An equation instead of a sum', 'When the experiment remembers'], note: t`Conditioning on the first game of a match` },
     'mixed-q13-ii': { sections: ['When the experiment remembers'], note: t`Winning probabilities in a sequence game by first steps` },
     'sheet2-q4-darts': { sections: ['An equation instead of a sum'], note: t`Conditioning on the first round of alternate throws` },

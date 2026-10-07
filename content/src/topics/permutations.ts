@@ -3,10 +3,12 @@
  * STEP Support Assignment 6 (its "Arrangements Examples", Q5: Claire's 6!, and Stuart's
  * 6 x 5 x 4 x 3 = 360, which places four different letters in six positions) and the STEP
  * specification's "use n! and nCr in the context of permutations and combinations". The
- * problems are Assignment 6, Q2(i) (checked against the hints) and IA Probability Example
- * Sheet 1, Q12 (n balls into n boxes, exactly one box empty), checked by brute force.
+ * problems are Grinstead and Snell, Section 3.1, Exercise 12 (concert programs, counted by
+ * listing every ordered choice of three pieces) and Assignment 6, Q2(i) (checked against the
+ * hints). IA Probability Example Sheet 1, Q12 needs a binomial coefficient and a probability,
+ * so it is in comb.combinations.
  */
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { factorial, int, pick } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t } from '../rich';
@@ -214,51 +216,56 @@ const a6q2 = auto({
   official: { source: cite('step-f06-hints', 'Assignment 6, Q2(i)'), answer: '5040', agrees: true },
 });
 
-/** Exactly one of n boxes empty when n balls are tossed independently and uniformly, by listing all n^n outcomes. */
-function oneEmptyBrute(n: number): number {
-  let hits = 0;
-  const total = n ** n;
-  for (let code = 0; code < total; code++) {
-    let x = code;
-    const used = new Array<number>(n).fill(0);
-    for (let b = 0; b < n; b++) { used[x % n] = (used[x % n] as number) + 1; x = Math.floor(x / n); }
-    if (used.filter((u) => u === 0).length === 1) hits++;
+/** Grinstead and Snell 3.1.12: 30 Haydn symphonies, 15 modern works, 9 Beethoven symphonies. */
+const REP = { haydn: 30, modern: 15, beethoven: 9 };
+const ALL_PIECES = REP.haydn + REP.modern + REP.beethoven;
+const FIXED = REP.haydn * REP.modern * REP.beethoven;
+const PROGRAMMES = [FIXED, FIXED * factorial(3), perm(ALL_PIECES, 3)];
+
+/** The three counts by listing every ordered choice of three different pieces. */
+function programmesBrute(): number[] {
+  const cat = [...Array(REP.haydn).fill(0), ...Array(REP.modern).fill(1), ...Array(REP.beethoven).fill(2)] as number[];
+  let inOrder = 0;
+  let oneEach = 0;
+  let any = 0;
+  for (let i = 0; i < cat.length; i++) {
+    for (let j = 0; j < cat.length; j++) {
+      if (j === i) continue;
+      for (let k = 0; k < cat.length; k++) {
+        if (k === i || k === j) continue;
+        any++;
+        const [a, b, c] = [cat[i], cat[j], cat[k]] as [number, number, number];
+        if (new Set([a, b, c]).size === 3) oneEach++;
+        if (a === 0 && b === 1 && c === 2) inOrder++;
+      }
+    }
   }
-  return hits / total;
+  return [inOrder, oneEach, any];
 }
 
-const ia12 = auto({
-  id: 'ia1-q12',
-  source: cite('ia-prob-sheet-1', 'Q12'),
-  title: t`Exactly one empty box`,
-  prompt: t`Suppose that ${mn} balls are tossed independently and at random into ${mn} boxes, where ${math`n \ge ${2}`}. What is the probability that exactly one box is empty? Give a formula in ${mn}; you may write ${math`\binom{n}{${2}}`} as C(n, ${2}) and type ${math`n!`} with an exclamation mark, as on a calculator.`,
-  answer: { kind: 'expression', expected: 'choose(n, 2) * factorial(n) / n^n', variables: ['n'], domains: { n: { kind: 'integer', min: 2, max: 9 } }, binomial: true },
-  solution: [
-    t`All ${math`n^{n}`} ways of placing the balls (ball ${1} to some box, ball ${2} to some box, ...) are equally likely.`,
-    t`Exactly one box empty means: one box is empty, one box holds two balls, and every other box holds one. Choose the empty box: ${mn} ways. Choose the box with two: ${math`n - ${1}`} ways. Choose which two balls share it: ${math`\binom{n}{${2}}`} ways.`,
-    t`The remaining ${math`n - ${2}`} balls go one each into the remaining ${math`n - ${2}`} boxes, in order: ${math`(n - ${2})!`} ways.`,
-    t`So the count is ${math`n(n - ${1})\binom{n}{${2}}(n - ${2})! = \binom{n}{${2}}\,n!`}, and the probability is ${dmath`\frac{\binom{n}{${2}}\,n!}{n^{n}}.`} Check: ${math`n = ${2}`} gives ${math`\frac{${1} \times ${2}}{${4}} = \frac{${1}}{${2}}`} (both balls in the same box), and ${math`n = ${3}`} gives ${math`\frac{${3} \times ${6}}{${27}} = \frac{${2}}{${3}}`}.`,
-  ],
-  reference: 'C(n, 2) n!/n^n',
-  verify: () => {
-    for (let n = 2; n <= 6; n++) {
-      const formula = (choose(n, 2) * factorial(n)) / n ** n;
-      if (Math.abs(formula - oneEmptyBrute(n)) > 1e-12) return `n = ${n}: formula ${formula}, brute force ${oneEmptyBrute(n)}`;
-    }
-    return null;
+const gs3112 = auto({
+  id: 'gs-3-1-12',
+  source: cite('gs-ch3', 'Section 3.1, Exercise 12 (page 89)'),
+  title: t`Concert programs`,
+  prompt: t`A symphony orchestra has in its repertoire ${REP.haydn} Haydn symphonies, ${REP.modern} modern works, and ${REP.beethoven} Beethoven symphonies. Its program always consists of a Haydn symphony followed by a modern work, and then a Beethoven symphony. (a) How many different programs can it play? (b) How many different programs are there if the three pieces can be played in any order? (c) How many different three-piece programs are there if more than one piece from the same category can be played and they can be played in any order? (A program plays three different pieces, one after another.)`,
+  answer: {
+    kind: 'table', cell: 'exact',
+    columns: [t`Part`, t`Number of programs`],
+    rows: [[t`(a)`, null], [t`(b)`, null], [t`(c)`, null]],
+    expected: PROGRAMMES.map(String),
   },
-  misconceptions: [
-    { response: 'n * choose(n, 2) * factorial(n - 2) / n^n', why: t`Choosing the empty box and then the doubled box are two separate choices: ${mn} and then ${math`n - ${1}`}. You have left out one of them.` },
-    { response: 'factorial(n) / n^n', why: t`That is the probability that no box is empty. Exactly one empty box means one box gets two balls.` },
+  solution: [
+    t`(a) Fill the three places in turn: ${REP.haydn} choices of Haydn symphony, then ${REP.modern} of modern work, then ${REP.beethoven} of Beethoven symphony. By the product rule, ${math`${REP.haydn} \times ${REP.modern} \times ${REP.beethoven} = ${FIXED}`}.`,
+    t`(b) A program is now a choice of one piece from each category, ${FIXED} ways as in (a), together with an order of those three pieces, ${math`${3}! = ${factorial(3)}`} ways. Different choices or different orders give different programs, so there are ${math`${FIXED} \times ${factorial(3)} = ${PROGRAMMES[1] as number}`}.`,
+    t`(c) Now any three different pieces of the ${ALL_PIECES}, in order: an ordered selection of ${3} from ${ALL_PIECES}, ${math`P(${ALL_PIECES}, ${3}) = ${ALL_PIECES} \times ${ALL_PIECES - 1} \times ${ALL_PIECES - 2} = ${PROGRAMMES[2] as number}`}.`,
   ],
-});
-
-const ia12proof = supervision({
-  id: 'ia1-q12-check',
-  source: cite('ia-prob-sheet-1', 'Q12'),
-  title: t`Check the small cases`,
-  prompt: t`Derive the probability that exactly one box is empty when ${mn} balls are tossed independently and at random into ${mn} boxes, explaining each factor in your count. Check your answer for ${math`n = ${2}`} and ${math`n = ${3}`} directly, by listing outcomes.`,
-  writeUp: 'proof',
+  reference: PROGRAMMES.map(String),
+  verify: () => same('programs (a), (b), (c) by listing', programmesBrute().join(', '), PROGRAMMES.join(', ')),
+  misconceptions: [
+    { response: [String(FIXED), String(FIXED), String(PROGRAMMES[2])], why: t`In (b) the same three pieces can be played in ${math`${3}! = ${factorial(3)}`} orders, and each order is a different program.` },
+    { response: [String(FIXED), String(PROGRAMMES[1]), String(ALL_PIECES ** 3)], why: t`${math`${ALL_PIECES}^{${3}}`} lets one piece be played twice. Once a piece is chosen it cannot be chosen again: ${ALL_PIECES}, then ${ALL_PIECES - 1}, then ${ALL_PIECES - 2} choices.` },
+    { response: [String(FIXED), String(PROGRAMMES[1]), String(choose(ALL_PIECES, 3))], why: t`That counts sets of three pieces. A program has an order, so each set gives ${math`${3}! = ${factorial(3)}`} programs.` },
+  ],
 });
 
 // ---------------------------------------------------------------- lesson
@@ -309,11 +316,10 @@ export const permutations: TopicContent = {
   generators: [permGen, wordGen, fixGen, inclGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['permutation'],
-  cambridge: withUses([ia12, ia12proof, a6q2], {
-    'ia1-q12-check': { sections: ['Ordered choices'], note: t`Counting placements with exactly one empty box`, needs: ['comb.combinations', 'pre.probability-scale'] },
-    'ia1-q12': { sections: ['Ordered choices'], note: t`Counting placements with exactly one empty box`, needs: ['comb.combinations', 'pre.probability-scale'] },
+  cambridge: withUses([gs3112, a6q2], {
+    'gs-3-1-12': { sections: ['Ordered choices', 'Order or no order'], note: t`Ordered programs, first in a fixed order of categories, then in any order` },
   }),
-  gate: ['ia1-q12-check', 'ia1-q12'],
+  gate: ['gs-3-1-12'],
   recall: [
     { front: t`What is ${math`P(n, r)`}, and what does it count?`, back: t`${math`\frac{n!}{(n - r)!} = n(n - ${1})\cdots(n - r + ${1})`}: ordered selections of ${mr} different objects from ${mn}.` },
     { front: t`How are ${math`P(n, r)`} and ${math`\binom{n}{r}`} related?`, back: t`${math`P(n, r) = r!\binom{n}{r}`}: choose the objects, then order them.` },

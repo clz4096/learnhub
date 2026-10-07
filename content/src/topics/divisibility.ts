@@ -440,7 +440,7 @@ export const divisibility: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['divides'],
   cambridge: withUses([sheet121a, sheet121b, bop619, bop420, sheet124, sheet126, bop411, a12q1iv], {
-    'a12-q1-iv': { sections: ['Whole families at once'], note: t`A divisibility claim for every power, and a counterexample to a tempting argument`, needs: ['pre.remainders'] },
+    'a12-q1-iv': { sections: ['Whole families at once'], note: t`A divisibility claim for every power, and a counterexample to a tempting argument` },
     'sheet-1-2-6': { sections: ['Proofs find the witness'], note: t`Proving divisibility facts from the definition, then combining them` },
     'sheet-1-2-4': { sections: ['Proofs find the witness'], note: t`Naming the witness in a transitivity proof` },
   }),

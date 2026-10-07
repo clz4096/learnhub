@@ -394,7 +394,7 @@ export const amGm: TopicContent = {
   terms: ['arithmetic-mean', 'geometric-mean'],
   cambridge: withUses([db14q5, db08q3, db12q1, db14q5ii, db12q1m, a8q1ii, a8q1iii, a8q1, a8eq], {
     'step14-q5': { sections: ['Four numbers, then three'], note: t`A cubic inequality by three-term AM-GM, then a maximum` },
-    'step08-q3': { sections: ['Four numbers, then three'], note: t`A bound by AM-GM, then a proof by contradiction`, needs: ['proof.contradiction'] },
+    'step08-q3': { sections: ['Four numbers, then three'], note: t`A bound by AM-GM, then a proof by contradiction` },
     'step12-q1': { sections: ['Two kinds of average'], note: t`Minimising a sum by two-term AM-GM` },
     'step14-q5-ii': { sections: ['Four numbers, then three'], note: t`The greatest product under a line, by AM-GM` },
   }),

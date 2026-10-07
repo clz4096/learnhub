@@ -194,6 +194,8 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   "comb.combinations": [
     { id: "q7-a", title: "Two given people on the committee", mode: "auto", gate: true },
     { id: "q12-check", title: "Balls in boxes, small cases", mode: "auto", gate: true },
+    { id: "ia1-q12", title: "Exactly one empty box", mode: "auto", gate: true },
+    { id: "ia1-q12-check", title: "Exactly one empty box, derived", mode: "supervision", gate: true },
     { id: "bop-4-22", title: "n^2 from binomial coefficients", mode: "auto", gate: false },
     { id: "bop-4-23", title: "C(2n, n) is even", mode: "supervision", gate: false },
     { id: "bop-4-25", title: "Choosing in two stages", mode: "supervision", gate: false },
@@ -1274,8 +1276,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "b10-13", title: "6 | n^3 - n", mode: "supervision", gate: false },
   ],
   "comb.permutations": [
-    { id: "ia1-q12", title: "Exactly one empty box", mode: "auto", gate: true },
-    { id: "ia1-q12-check", title: "Check the small cases", mode: "supervision", gate: true },
+    { id: "gs-3-1-12", title: "Concert programs", mode: "auto", gate: true },
     { id: "a6-q2-i", title: "Charlie's letters", mode: "auto", gate: false },
   ],
   "pre.mutually-exclusive": [
@@ -1308,14 +1309,16 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a20-q3-f7", title: "The first Fibonacci numbers", mode: "auto", gate: false },
   ],
   "an.sequence-limits": [
-    { id: "a15-q3-ii", title: "The limit when k = 37", mode: "auto", gate: true },
-    { id: "a15-q3-ii-proof", title: "Why the limit is 36", mode: "supervision", gate: true },
+    { id: "nst-ss4", title: "Powers of a fixed number", mode: "supervision", gate: true },
+    { id: "nst-ss4-cases", title: "Powers of a fixed number, case by case", mode: "auto", gate: true },
     { id: "a15-q2-i-c", title: "A slowly settling sequence", mode: "auto", gate: false },
     { id: "a15-q2-iv", title: "A machine for √(2)", mode: "auto", gate: false },
   ],
   "alg.recurrence-sequences": [
     { id: "a15-q3-i-c", title: "Period four", mode: "auto", gate: true },
     { id: "a15-q3-i", title: "Constant, period two, period four", mode: "supervision", gate: true },
+    { id: "a15-q3-ii", title: "The limit when k = 37", mode: "auto", gate: true },
+    { id: "a15-q3-ii-proof", title: "Why the limit is 36", mode: "supervision", gate: true },
     { id: "a11-q1-i", title: "The first triangular number over 100", mode: "auto", gate: false },
     { id: "a15-q2-ii", title: "A two-term rule", mode: "auto", gate: false },
     { id: "a15-q2-iii", title: "When does the third term return?", mode: "auto", gate: false },

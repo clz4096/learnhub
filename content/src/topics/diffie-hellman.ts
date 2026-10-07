@@ -285,8 +285,8 @@ export const diffieHellman: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['diffie-hellman', 'discrete-logarithm'],
   cambridge: withUses([lemma94, threePass, lemma94proof, safety, rsa], {
-    'notes-264-lemma-94-proof': { sections: ['Why both get the same key'], note: t`Why decryption undoes encryption, by Fermat's little theorem`, needs: ['num.fermat-little', 'num.extended-euclid'] },
-    'notes-266-rsa': { sections: ['Why both get the same key'], note: t`The RSA identity modulo two primes`, needs: ['num.fermat-little', 'num.extended-euclid'] },
+    'notes-264-lemma-94-proof': { sections: ['Why both get the same key'], note: t`Why decryption undoes encryption, by Fermat's little theorem` },
+    'notes-266-rsa': { sections: ['Why both get the same key'], note: t`The RSA identity modulo two primes` },
     'notes-265-key-exchange': { sections: ['A secret in public', 'Why both get the same key'], note: t`Following a key exchange through its messages` },
     'notes-261-safety': { sections: ['Why it is safe'], note: t`What an eavesdropper sees and why it is hard` },
   }),

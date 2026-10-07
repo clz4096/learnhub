@@ -365,7 +365,7 @@ export const trigEquations: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['solution-set'],
   cambridge: withUses([a16cubic, a16q3ii, t8, t1, t7], {
-    'a16-q3-ii': { sections: ['Three patterns', 'A STEP equation'], note: t`A triple angle root of a cubic, then the other two roots`, needs: ['alg.polynomials'] },
+    'a16-q3-ii': { sections: ['Three patterns', 'A STEP equation'], note: t`A triple angle root of a cubic, then the other two roots` },
     'a16-q3-iii': { sections: ['A STEP equation'], note: t`Solving a cubic by a triple angle` },
     'nst-t8': { sections: ['Three patterns'], note: t`A trigonometric equation by sum-to-product, every solution in range` },
   }),

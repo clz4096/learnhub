@@ -415,7 +415,7 @@ export const expectation: TopicContent = {
   terms: ['expectation', 'fair-game'],
   cambridge: withUses([q1b, a19, s2q3ii, q4iii, s3u3, s2q3iii, poissonMean], {
     'mixed-q4-iii': { sections: ['The long-run average'], note: t`An expectation from a distribution given in parts` },
-    's2-notes-poisson-mean': { sections: ['A formula for a whole family'], note: t`The mean of the Poisson distribution from the exponential series`, needs: ['an.exp-series'] },
+    's2-notes-poisson-mean': { sections: ['A formula for a whole family'], note: t`The mean of the Poisson distribution from the exponential series` },
     's3-q1-ii-u3': { sections: ['The long-run average'], note: t`An expected number of jumps by conditioning on the first jump`, needs: ['prob.first-step'] },
     's2-q3-ii-fair-stake': { sections: ['Fair stakes'], note: t`A stake that makes the expected gain zero` },
     's2-q3-iii-p-zero': { sections: ['Fair stakes'], note: t`Why no stake changes a game decided in advance` },

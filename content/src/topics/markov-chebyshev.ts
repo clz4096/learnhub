@@ -312,9 +312,9 @@ export const markovChebyshev: TopicContent = {
   terms: ['markov-inequality', 'chebyshev-inequality'],
   claims,
   cambridge: withUses([q3a, q2proof, q3proof, scheduleProof], {
-    'ia-s3-q3-a': { sections: ["Markov's inequality"], note: t`Optimising an exponential Markov bound for a Poisson tail`, needs: ['prob.poisson-distribution'] },
+    'ia-s3-q3-a': { sections: ["Markov's inequality"], note: t`Optimising an exponential Markov bound for a Poisson tail` },
     'ia-s3-q2': { sections: ["Markov's inequality", "Chebyshev's inequality"], note: t`Two more forms of Markov's inequality` },
-    'ia-s3-q3-a-value': { sections: ["Markov's inequality"], note: t`A numerical exponential bound for a Poisson tail`, needs: ['prob.poisson-distribution'] },
+    'ia-s3-q3-a-value': { sections: ["Markov's inequality"], note: t`A numerical exponential bound for a Poisson tail` },
   }),
   // The two write-ups first, then the Chernoff bound with numbers, which still needs the optimisation over the exponent.
   gate: ['ia-s3-q3-a', 'ia-s3-q2', 'ia-s3-q3-a-value'],

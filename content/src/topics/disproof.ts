@@ -387,7 +387,7 @@ export const disproof: TopicContent = {
   terms: ['disproof-of-existence'],
   cambridge: withUses([sw115proof, b921, b930, b920, b92, ns2q7ii], {
     'sw-1-1-5-proof': { sections: ['Disproving "there exists"', 'Mixed quantifiers'], note: t`Proving one statement and disproving the other through its negation` },
-    'ns2-q7-ii': { sections: ['Disproof by contradiction'], note: t`Showing no integers work by a common factor of the coefficients`, needs: ['pre.prime-factorisation'] },
+    'ns2-q7-ii': { sections: ['Disproof by contradiction'], note: t`Showing no integers work by a common factor of the coefficients` },
   }),
   gate: ['sw-1-1-5-proof', 'ns2-q7-ii'],
   recall: [

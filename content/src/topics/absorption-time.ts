@@ -420,7 +420,7 @@ export const absorptionTime: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expected-duration'],
   cambridge: withUses([u2, u4, symmetric, wald, schedule], {
-    'sheet3-q8c-wald': { sections: ['A walk stopped at plus or minus a'], note: t`The mean position at a stopping time, with care`, needs: ['gf.random-sums'] },
+    'sheet3-q8c-wald': { sections: ['A walk stopped at plus or minus a'], note: t`The mean position at a stopping time, with care` },
     's3-q1-u4': { sections: ['The first-step equation'], note: t`An expected number of jumps from a recurrence` },
     'sheet3-q8c-symmetric': { sections: ['Solving it: the fair walk', 'A walk stopped at plus or minus a'], note: t`The mean time for a fair walk to reach a level` },
   }),

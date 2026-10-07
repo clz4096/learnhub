@@ -290,7 +290,7 @@ export const firstPrinciples: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['difference-quotient'],
   cambridge: withUses([invRootQ, nstD2, triangleQ, triangleProof, sinProof], {
-    'a20-q4': { sections: ['Back to the definition'], note: t`Showing an operator with the product rule is the derivative`, needs: ['alg.proof-by-induction'] },
+    'a20-q4': { sections: ['Back to the definition'], note: t`Showing an operator with the product rule is the derivative` },
     'a20-q4-cube': { sections: ['Back to the definition'], note: t`Applying the product rule to a cube` },
   }),
   gate: ['a20-q4', 'a20-q4-cube'],

@@ -8,12 +8,31 @@ import { topics } from './topics';
 import { BATCH_2_NEW_TOPICS } from './topics/cambridge-batch-2';
 import { PREP_NEW_TOPICS } from './topics/cambridge-prep';
 
-/** Topics outside both courses: batch 2's Part V and toolkit, and the Preparation map's new topics. */
-const NOT_TARGETS: readonly string[] = [...BATCH_2_NEW_TOPICS, ...PREP_NEW_TOPICS];
+/**
+ * Topics of batch 2 and the Preparation map that the gatefit prerequisites (2026-10-06) made
+ * ancestors of a course target: none is a target itself.
+ */
+const GATEFIT_ANCESTORS: readonly string[] = [
+  'alg.fibonacci', 'alg.simultaneous-equations', 'alg.surds', 'calc.differentiation-rules', 'mat.matrices', 'pre.quadratic-equations',
+  'rv.expectation', 'rv.expectation-algebra', 'rv.variance',
+];
+/** Topics outside both courses: batch 2's Part V and toolkit, and the Preparation map's new topics, but those ancestors. */
+const NOT_TARGETS: readonly string[] = [...BATCH_2_NEW_TOPICS, ...PREP_NEW_TOPICS].filter((id) => !GATEFIT_ANCESTORS.includes(id));
 
 const byId = new Map(topics.map((t) => [t.id, t]));
 const ia = courseById('ia-probability');
 const dm = courseById('cst-discrete-maths');
+/** Every topic `id` builds on, directly or through others. */
+function ancestorsOf(id: string): Set<string> {
+  const out = new Set<string>();
+  const todo = [...(byId.get(id)?.prereqs ?? [])];
+  for (let x = todo.pop(); x !== undefined; x = todo.pop()) {
+    if (out.has(x)) continue;
+    out.add(x);
+    todo.push(...(byId.get(x)?.prereqs ?? []));
+  }
+  return out;
+}
 const cites = (t: Topic, doc: string, course: string, section?: string): boolean =>
   t.sources.some((s) => s.doc === doc && s.course === course && (section === undefined || s.section === section));
 
@@ -81,20 +100,30 @@ describe('the two courses share foundations', () => {
   it('overlap on exactly the shared foundations', () => {
     const shared = [...A].filter((id) => D.has(id)).sort();
     expect(shared).toEqual([
-      'alg.arithmetic-series', 'alg.proof-by-induction', 'alg.sigma-notation',
-      'comb.binomial-identities', 'comb.binomial-theorem', 'comb.combinations', 'comb.factorial',
-      'pre.algebraic-manipulation', 'pre.fractions', 'pre.indices', 'pre.product-rule', 'pre.sequences', 'pre.set-notation',
+      'alg.arithmetic-series', 'alg.fibonacci', 'alg.geometric-series', 'alg.geometric-sum-to-infinity', 'alg.proof-by-induction',
+      'alg.sigma-notation', 'alg.surds', 'comb.binomial-identities', 'comb.binomial-theorem', 'comb.combinations', 'comb.factorial',
+      'logic.connectives', 'logic.implication', 'logic.quantifiers', 'num.congruence', 'num.divisibility', 'num.division-theorem',
+      'num.euclid-algorithm', 'num.euclid-theorem', 'num.fundamental-theorem', 'num.gcd', 'num.number-systems', 'pre.algebraic-argument',
+      'pre.algebraic-manipulation', 'pre.fractions', 'pre.hcf-lcm', 'pre.indices', 'pre.prime-factorisation', 'pre.primes-and-factors',
+      'pre.product-rule', 'pre.quadratic-equations', 'pre.remainders', 'pre.sequences', 'pre.set-notation', 'proof.counterexample',
+      'proof.direct', 'proof.quantifier-patterns', 'proof.strong-induction', 'sets.comprehension',
     ]);
-    for (const id of shared) expect(LEVELS.indexOf(byId.get(id)?.level as Topic['level'])).toBeLessThanOrEqual(LEVELS.indexOf('step'));
+    // The shared Tripos topics are the number theory and proof that unique factorisation needs:
+    // IA Probability reaches them through prob.point-mass-spaces (the gatefit prerequisites, 2026-10-06).
+    const tripos = shared.filter((id) => byId.get(id)?.level === 'tripos-ia');
+    for (const id of tripos) expect(ancestorsOf('num.fundamental-theorem').has(id) || id === 'num.fundamental-theorem', id).toBe(true);
+    for (const id of shared.filter((x) => !tripos.includes(x))) expect(LEVELS.indexOf(byId.get(id)?.level as Topic['level'])).toBeLessThanOrEqual(LEVELS.indexOf('step'));
   });
 
   it('together cover the whole graph but batch 2 and the Preparation topics, each topic once', () => {
     // Batch 2's topics are not course targets yet (IA_PROB_PART_V in sources.ts); the
-    // Preparation topics belong to no course (graph/reviews/cambridge-prep.md).
+    // Preparation topics belong to no course (graph/reviews/cambridge-prep.md). Nine of them
+    // are ancestors of a target since the gatefit prerequisites (GATEFIT_ANCESTORS).
     const union = new Set([...A, ...D]);
     expect(topics.map((t) => t.id).filter((id) => !union.has(id)).sort()).toEqual([...NOT_TARGETS].sort());
+    for (const id of GATEFIT_ANCESTORS) expect(union.has(id), id).toBe(true);
     expect(union.size).toBe(topics.length - NOT_TARGETS.length);
-    expect(A.size + D.size - union.size).toBe(13);
+    expect(A.size + D.size - union.size).toBe(39);
   });
 });
 
@@ -114,8 +143,9 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
     const pg = placementGraph(topics, { targets: courseTargets(topics, dm) });
     const low = new Set(pg.topics.filter((t) => LEVELS.indexOf(t.level) <= LEVELS.indexOf('step')).map((t) => t.id));
     expect(new Set(pg.entries.flatMap((id) => [id, ...(pg.anc.get(id) ?? [])]))).toEqual(low);
-    // 28 since batch 1 added comb.pigeonhole (STEP level).
-    expect(low.size).toBe(28);
+    // 28 since batch 1 added comb.pigeonhole (STEP level); 35 since the gatefit prerequisites
+    // (2026-10-06) added the Fibonacci numbers and series under Euclid's algorithm, and the matrices under the binomial theorem proof.
+    expect(low.size).toBe(35);
     expect(pg.entries).toHaveLength(9);
   });
 
@@ -123,7 +153,8 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
     expect(g.order.length).toBe(topics.length - NOT_TARGETS.length);
   });
 
-  // Measured on the 101-topic graph of batch 1: split needs at most 41 questions for these learners, entry-points at most 42.
+  // Measured on the 110-topic union of the gatefit prerequisites (2026-10-06): split needs at most 41 questions
+  // for these learners, entry-points at most 43.
   for (const [strategy, most] of [['split', 42], ['entry-points', 45]] as [PlacementStrategy, number][]) {
     for (const [name, knows] of profiles) {
       it(`${strategy}: a truthful learner who knows ${name} is placed exactly within ${most} questions`, () => {
@@ -136,15 +167,16 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
   }
 
   // Measured (review call 12): 100% exact at 40 questions, 45% at a fixed 30. The default
-  // budget scales with the closure, ceil(101 / 2) = 51 here (batch 1 added three topics), so it places everyone exactly.
-  it('the default budget for both courses is 51', () => {
-    expect(placementBudget(g.order.length)).toBe(51);
+  // budget scales with the closure, ceil(110 / 2) = 55 here (the gatefit prerequisites added nine
+  // topics), so it places everyone exactly.
+  it('the default budget for both courses is 55', () => {
+    expect(placementBudget(g.order.length)).toBe(55);
   });
 
-  it('split places every truthful random learner exactly within the default budget, using at most 42 questions', () => {
+  it('split places every truthful random learner exactly within the default budget, using at most 46 questions', () => {
     const m = measurePlacement(topics, { learners: 500, errorRate: 0, budget: placementBudget(g.order.length), strategy: 'split', seed: 1, targets });
     expect(m.exact).toBe(1);
-    expect(m.maxQuestions).toBeLessThanOrEqual(42);
+    expect(m.maxQuestions).toBeLessThanOrEqual(46);
   });
 
   it('even at the old fixed 30 it never over-places', () => {
@@ -152,8 +184,8 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
     expect(m.meanOverPlaced).toBe(0);
   });
 
-  it('is max(30, ceil(n / 2)) for one course: 31 for IA Probability (62 topics), 30 for Discrete Mathematics (52)', () => {
-    expect(placementBudget(placementGraph(topics, { targets: courseTargets(topics, ia) }).order.length)).toBe(31);
+  it('is max(30, ceil(n / 2)) for one course: 45 for IA Probability (90 topics), 30 for Discrete Mathematics (59)', () => {
+    expect(placementBudget(placementGraph(topics, { targets: courseTargets(topics, ia) }).order.length)).toBe(45);
     expect(placementBudget(placementGraph(topics, { targets: courseTargets(topics, dm) }).order.length)).toBe(30);
   });
 });

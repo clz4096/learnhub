@@ -421,9 +421,9 @@ export const mgf: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['mgf', 'continuity-theorem', 'chernoff-bound'],
   cambridge: withUses([q6var, q3beta, q2b, q3, continuity], {
-    'ia-s3-q3': { sections: ['Limits and tails'], note: t`A Poisson tail bounded by the generating function and estimated by Stirling`, needs: ['prob.poisson-distribution', 'prob.stirling-formula'] },
-    'ia-s4-q6-a-variance': { sections: ['Moments from derivatives'], note: t`The log-normal variance from the normal generating function`, needs: ['prob.normal-distribution'] },
-    'ia-s3-q2-b': { sections: ['Limits and tails'], note: t`The exponential Markov bound`, needs: ['ineq.markov-chebyshev'] },
+    'ia-s3-q3': { sections: ['Limits and tails'], note: t`A Poisson tail bounded by the generating function and estimated by Stirling` },
+    'ia-s4-q6-a-variance': { sections: ['Moments from derivatives'], note: t`The log-normal variance from the normal generating function` },
+    'ia-s3-q2-b': { sections: ['Limits and tails'], note: t`The exponential Markov bound` },
   }),
   // The full sheet question first. The best beta is dropped: the Chernoff drill walks through that same optimisation.
   gate: ['ia-s3-q3', 'ia-s4-q6-a-variance', 'ia-s3-q2-b'],

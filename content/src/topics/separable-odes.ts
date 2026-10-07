@@ -227,7 +227,7 @@ export const separableOdes: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['separable-equation', 'ode-particular-solution'],
   cambridge: withUses([de1Value, de1Write], {
-    'nst-de1-write': { sections: ['An equation for a function'], note: t`Separating, integrating by partial fractions, and the constant solutions`, needs: ['alg.partial-fractions'] },
+    'nst-de1-write': { sections: ['An equation for a function'], note: t`Separating, integrating by partial fractions, and the constant solutions` },
     'nst-de1-value': { sections: ['An equation for a function'], note: t`Reading a value from the solution` },
   }),
   gate: ['nst-de1-write', 'nst-de1-value'],

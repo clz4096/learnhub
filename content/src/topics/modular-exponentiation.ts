@@ -260,7 +260,7 @@ export const modularExponentiation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['repeated-squaring'],
   cambridge: withUses([totd341, btw341, sheet225why, costWhy], {
-    'sheet-2-2-5-flt': { sections: ['Squaring instead of counting'], note: t`A power modulo a composite by known congruences, and why Fermat is not contradicted`, needs: ['num.fermat-little'] },
+    'sheet-2-2-5-flt': { sections: ['Squaring instead of counting'], note: t`A power modulo a composite by known congruences, and why Fermat is not contradicted` },
     'squaring-cost': { sections: ['Why it is fast'], note: t`Why repeated squaring needs few multiplications` },
     'notes-131-btw-witness': { sections: ['Squaring instead of counting'], note: t`A witness that a number is composite` },
   }),

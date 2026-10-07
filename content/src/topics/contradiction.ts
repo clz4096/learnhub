@@ -389,7 +389,7 @@ export const contradiction: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['proof-by-contradiction', 'contradiction'],
   cambridge: withUses([sw232a, sw232base, bop11, bop10, sw232b, tmuaO1, tmuaO2, bop5, bop7], {
-    'sw-2-3-2-b': { sections: ['The method', 'What exactly to assume'], note: t`Contradiction from the remainders of squares on division by four`, needs: ['pre.remainders'] },
+    'sw-2-3-2-b': { sections: ['The method', 'What exactly to assume'], note: t`Contradiction from the remainders of squares on division by four` },
     'sw-2-3-2-base': { sections: ['The method'], note: t`Searching other bases for a square repunit` },
   }),
   gate: ['sw-2-3-2-b', 'sw-2-3-2-base'],

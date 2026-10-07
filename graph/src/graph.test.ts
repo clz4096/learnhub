@@ -89,13 +89,24 @@ describe('the probstats slice (IA Probability)', () => {
   const ia = courseById('ia-probability');
   const probstats = coursesTopics(topics, [ia]);
 
-  it('is the reviewed 60 topics plus the two of Cambridge batch 1, in the reviewed order', () => {
+  it('is the reviewed 60 topics, the two of Cambridge batch 1, and the 28 of the gatefit prerequisites, in the reviewed order', () => {
     // The order keeps SIMULATION.md stable; see topics/index.ts. Batch 1 added
     // prob.bayes-two-events and prob.event-spaces (graph/reviews/cambridge-batch-1.md, changes 2 and 3).
-    expect(probstats).toHaveLength(62);
-    expect(probstats.map((t) => t.id)).toEqual(expect.arrayContaining(['prob.bayes-two-events', 'prob.event-spaces']));
-    expect(probstats.map((t) => t.id).slice(0, 3)).toEqual(['pre.fractions', 'pre.algebraic-manipulation', 'pre.indices']);
-    expect(probstats[probstats.length - 1]?.id).toBe('prob.simpsons-paradox');
+    // The gatefit prerequisites (2026-10-06, graph/reviews/probstats-slice.md) brought 28 ancestors in,
+    // 20 of them through prob.point-mass-spaces, whose gate needs unique factorisation.
+    const GATEFIT = new Set([
+      'alg.fibonacci', 'alg.surds', 'calc.differentiation-rules', 'logic.connectives', 'logic.implication', 'logic.quantifiers',
+      'num.congruence', 'num.divisibility', 'num.division-theorem', 'num.euclid-algorithm', 'num.euclid-theorem', 'num.fundamental-theorem',
+      'num.gcd', 'num.number-systems', 'pre.algebraic-argument', 'pre.hcf-lcm', 'pre.prime-factorisation', 'pre.primes-and-factors',
+      'pre.quadratic-equations', 'pre.remainders', 'proof.counterexample', 'proof.direct', 'proof.quantifier-patterns', 'proof.strong-induction',
+      'rv.expectation', 'rv.expectation-algebra', 'rv.variance', 'sets.comprehension',
+    ]);
+    expect(probstats).toHaveLength(90);
+    const reviewed = probstats.filter((t) => !GATEFIT.has(t.id));
+    expect(reviewed).toHaveLength(62);
+    expect(reviewed.map((t) => t.id)).toEqual(expect.arrayContaining(['prob.bayes-two-events', 'prob.event-spaces']));
+    expect(reviewed.map((t) => t.id).slice(0, 3)).toEqual(['pre.fractions', 'pre.algebraic-manipulation', 'pre.indices']);
+    expect(reviewed[reviewed.length - 1]?.id).toBe('prob.simpsons-paradox');
     for (const t of probstats) expect(LEVELS.indexOf(t.level)).toBeLessThanOrEqual(LEVELS.indexOf('tripos-ia'));
   });
 
@@ -174,7 +185,8 @@ describe('Cambridge batch 2 citations', () => {
 
   it('leave both course target sets as they were', () => {
     // Part V cites the IA Probability schedule under its own course name (IA_PROB_PART_V)
-    // until the course is widened; the probstats slice above still has 62 topics.
+    // until the course is widened. Three of its STEP topics are in the probstats slice above
+    // only as ancestors, through the gatefit prerequisites.
     const dm = courseById('cst-discrete-maths');
     for (const t of topics.filter((x) => ['random-variables', 'continuous', 'generating-functions', 'random-processes', 'limit-theorems'].includes(x.area))) {
       expect(courseTargets(topics, courseById('ia-probability')), t.id).not.toContain(t.id);
@@ -220,11 +232,18 @@ describe('Preparation citations (Stage A, graph/reviews/cambridge-prep.md)', () 
       expect(byId.has(id), id).toBe(true);
       expect(byId.get(id)?.sources.some((s) => s.doc in CAMBRIDGE_COURSE), id).toBe(true);
     }
-    // No new topic is a course target or an ancestor of one, so the probstats slice and the
-    // two-course runs are unchanged.
+    // No new topic is a course target. The gatefit prerequisites (2026-10-06) made four of them
+    // ancestors of one: alg.surds (for the sum to infinity) and alg.fibonacci (for Euclid's
+    // algorithm) in both courses, and in Discrete Mathematics also mat.matrices and
+    // alg.simultaneous-equations (for the binomial theorem proof over semirings).
+    const ancestorsOnly: Readonly<Record<string, readonly string[]>> = {
+      'ia-probability': ['alg.fibonacci', 'alg.surds'],
+      'cst-discrete-maths': ['alg.fibonacci', 'alg.simultaneous-equations', 'alg.surds', 'mat.matrices'],
+    };
     for (const c of COURSES) {
       const closure = coursesClosure(topics, [c]);
-      for (const id of PREP_NEW_TOPICS) expect(closure.has(id), `${c.id}: ${id}`).toBe(false);
+      expect(PREP_NEW_TOPICS.filter((id) => closure.has(id)).sort(), c.id).toEqual(ancestorsOnly[c.id]);
+      for (const id of PREP_NEW_TOPICS) expect(courseTargets(topics, c), `${c.id}: ${id}`).not.toContain(id);
     }
   });
 });

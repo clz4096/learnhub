@@ -26,7 +26,7 @@ export const proof: Topic[] = [
     summary: 'Prove a statement by a chain of deductions from the assumptions to the conclusion, found first in scratch work.',
     level: 'a-level',
     area: 'proof',
-    prereqs: ['logic.implication', 'pre.algebraic-argument'],
+    prereqs: ['logic.implication', 'pre.algebraic-argument', 'pre.remainders'],
     encompasses: { 'pre.algebraic-argument': 0.6, 'logic.implication': 0.5 },
     sources: [
       { doc: STEP, course: 'STEP Mathematics 1', section: M1_PROOF, note: 'Spec: "proof by deduction".', verified: true },
@@ -94,7 +94,7 @@ export const proof: Topic[] = [
     summary: 'Prove Euclid\'s result: from any finite list of primes, build a number that none of them divides.',
     level: 'a-level',
     area: 'proof',
-    prereqs: ['proof.contradiction', 'pre.prime-factorisation', 'pre.remainders'],
+    prereqs: ['proof.contradiction', 'pre.prime-factorisation'],
     encompasses: { 'proof.contradiction': 0.6, 'pre.prime-factorisation': 0.4, 'pre.remainders': 0.3 },
     sources: [
       { doc: STEP, course: 'STEP Mathematics 1', section: M1_PROOF, note: 'Spec: "the infinity of primes", as an example of proof by contradiction.', verified: true },
@@ -108,7 +108,7 @@ export const proof: Topic[] = [
     summary: 'Prove $P \\Rightarrow Q$ by proving the equivalent statement $\\lnot Q \\Rightarrow \\lnot P$.',
     level: 'tripos-ia',
     area: 'proof',
-    prereqs: ['logic.equivalences', 'proof.direct'],
+    prereqs: ['logic.equivalences', 'proof.direct', 'num.number-systems'],
     encompasses: { 'proof.direct': 0.5, 'logic.equivalences': 0.4 },
     sources: [{
       doc: CST,
@@ -171,7 +171,7 @@ export const proof: Topic[] = [
     summary: 'Disprove $\\exists x\\, P(x)$ by proving $\\forall x\\, \\lnot P(x)$, and disprove a statement by contradiction.',
     level: 'tripos-ia',
     area: 'proof',
-    prereqs: ['proof.counterexample', 'logic.negating-quantifiers'],
+    prereqs: ['proof.counterexample', 'logic.negating-quantifiers', 'pre.prime-factorisation'],
     encompasses: { 'proof.counterexample': 0.5, 'logic.negating-quantifiers': 0.5 },
     sources: [{ doc: 'bop', course: CAMBRIDGE_COURSE.bop, section: 'Chapter 9, Sections 9.2 and 9.3', note: 'Disproving existence statements; disproof by contradiction.', verified: true }],
     estMinutes: 15,

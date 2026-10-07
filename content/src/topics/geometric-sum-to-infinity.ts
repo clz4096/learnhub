@@ -412,7 +412,7 @@ export const geometricSumToInfinity: TopicContent = {
   terms: ['partial-sum', 'sum-to-infinity'],
   cambridge: withUses([a14q3iii, a18q4, a14q2iiConj, a03q1iii, a24q4i, a03q1ii], {
     'a18-q4-iv': { sections: ['Partial sums', 'The sum to infinity'], note: t`Finding the ratio from a geometric picture, then the limit of the area` },
-    'a14-q3-iii': { sections: ['The sum to infinity'], note: t`Splitting into two geometric series and simplifying surds`, needs: ['alg.surds'] },
+    'a14-q3-iii': { sections: ['The sum to infinity'], note: t`Splitting into two geometric series and simplifying surds` },
   }),
   gate: ['a18-q4-iv', 'a14-q3-iii'],
   recall: [

@@ -381,7 +381,7 @@ export const varianceTopic: TopicContent = {
   cambridge: withUses([q1A, q1var, tenDice, q1bounds, shortcutProof], {
     's2-q1-bounds': { sections: ['The definition'], note: t`Using that a variance is positive to bound a mean` },
     's2-notes-shortcut': { sections: ['The definition', 'A quicker formula'], note: t`Expanding the definition into the quicker formula` },
-    's2-q1-var': { sections: ['A quicker formula'], note: t`A variance from the exponential series`, needs: ['an.exp-series'] },
+    's2-q1-var': { sections: ['A quicker formula'], note: t`A variance from the exponential series` },
   }),
   // Best first: the bounds on the mean from the variance (STEP 2, 2003), the shortcut proved, then the
   // variance itself. The normalising constant is one step, and ten dice is np(1 - p) with numbers in.

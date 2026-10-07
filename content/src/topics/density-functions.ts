@@ -361,7 +361,7 @@ export const densityFunctions: TopicContent = {
   claims,
   cambridge: withUses([q2a, q2b, q2bk, q2sketch, q6stem], {
     's2-q6-stem': { sections: ['Probability as area', 'Fixing the constant'], note: t`Total area one forces the heights of a step density` },
-    's2-q2-ii-b': { sections: ['Fixing the constant'], note: t`Fixing constants by continuity and total area, integrating a logarithm`, needs: ['calc.integration-by-parts'] },
+    's2-q2-ii-b': { sections: ['Fixing the constant'], note: t`Fixing constants by continuity and total area, integrating a logarithm` },
     's2-q2-ii-b-in-k': { sections: ['Fixing the constant'], note: t`A constant from continuity of the density` },
     's2-q2-i': { sections: ['Probability as area'], note: t`Sketching a density made of pieces that must meet` },
   }),

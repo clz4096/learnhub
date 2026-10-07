@@ -350,9 +350,9 @@ export const arithmeticoGeometric: TopicContent = {
   terms: ['arithmetico-geometric-series'],
   cambridge: withUses([arthur, beta, contestMean, geomSecond, q2proofS, q2proofE], {
     's3-q2-prove-series': { sections: ['Subtract r times the series'], note: t`Summing by subtracting r times the series` },
-    's3-q2-prove-contest': { sections: ['Subtract r times the series'], note: t`An expected number of shots split by who wins`, needs: ['rv.expectation'] },
-    's3-q2-contest-shots': { sections: ['Subtract r times the series'], note: t`An expected number of shots`, needs: ['rv.expectation'] },
-    's3-notes-geometric-second-moment': { sections: ['The calculus route'], note: t`A second moment by differentiating a geometric series twice`, needs: ['rv.expectation'] },
+    's3-q2-prove-contest': { sections: ['Subtract r times the series'], note: t`An expected number of shots split by who wins` },
+    's3-q2-contest-shots': { sections: ['Subtract r times the series'], note: t`An expected number of shots` },
+    's3-notes-geometric-second-moment': { sections: ['The calculus route'], note: t`A second moment by differentiating a geometric series twice` },
   }),
   gate: ['s3-q2-prove-series', 's3-q2-prove-contest', 's3-q2-contest-shots', 's3-notes-geometric-second-moment'],
   recall: [

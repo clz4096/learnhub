@@ -452,10 +452,10 @@ export const continuousSummaries: TopicContent = {
   cambridge: withUses([q6median, q4mean, s3mean, s3time, q9median, q9mean, q4var, q6proofs, s3medians], {
     's3-q4-medians': { sections: ['The median and the mode'], note: t`A median by a substitution, and why medians and means behave differently` },
     's2-q6-i-iii': { sections: ['The mean and the variance', 'The median and the mode'], note: t`The mean and median of a step density` },
-    's2-q4-variance': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A variance over an infinite range, integrating by parts`, needs: ['calc.integration-by-parts'] },
+    's2-q4-variance': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A variance over an infinite range, integrating by parts` },
     's3-q4-mean-time': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A mean from a given integral` },
-    's2-q4-mean': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A mean over an infinite range, integrating by parts`, needs: ['calc.integration-by-parts'] },
-    'ia4-q9-b-mean': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A mean over an infinite range, integrating by parts`, needs: ['calc.integration-by-parts'] },
+    's2-q4-mean': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A mean over an infinite range, integrating by parts` },
+    'ia4-q9-b-mean': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A mean over an infinite range, integrating by parts` },
     's3-q4-mean-speed': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A mean from a given integral` },
     's2-q6-ii': { sections: ['The median and the mode'], note: t`The median of a step density` },
     'ia4-q9-b-median': { sections: ['The median and the mode'], note: t`A median by solving for half the area` },

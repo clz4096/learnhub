@@ -287,7 +287,7 @@ export const binomialTheoremProof: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['index-shift'],
   cambridge: withUses([pascalCount, unfold, bop1023, semiring], {
-    'notes-278-semiring': { sections: ['The proof', 'Where it breaks'], note: t`Where the proof uses commutativity, and a matrix example`, needs: ['mat.matrices'] },
+    'notes-278-semiring': { sections: ['The proof', 'Where it breaks'], note: t`Where the proof uses commutativity, and a matrix example` },
     'notes-274-unfold': { sections: ['The step, with numbers'], note: t`The coefficients in the unfolded inductive step` },
   }),
   gate: ['notes-278-semiring', 'notes-274-unfold'],

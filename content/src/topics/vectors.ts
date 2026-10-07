@@ -359,7 +359,7 @@ export const vectors: TopicContent = {
   cambridge: withUses([damtpQ7, vec2, vec1, vec2cos, vec1cos, v1ii, a5angle], {
     'damtp-vm1-q7': { sections: ['The scalar product'], note: t`Concurrent altitudes by scalar products` },
     's2vec-q2': { sections: ['The scalar product'], note: t`Reflections written with scalar products` },
-    's2vec-q1': { sections: ['The scalar product'], note: t`Lines at a given angle to two others`, needs: ['trig.radians-and-graphs'] },
+    's2vec-q1': { sections: ['The scalar product'], note: t`Lines at a given angle to two others` },
     'a5-q3-ii-scalar': { sections: ['The scalar product'], note: t`An angle in a tetrahedron by the scalar product` },
     's2vec-q2-cos': { sections: ['The scalar product'], note: t`Two reflections and the angle that makes a midpoint` },
   }),

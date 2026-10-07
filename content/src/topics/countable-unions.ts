@@ -361,7 +361,7 @@ export const countableUnions: TopicContent = {
   terms: ['countable', 'infinitely-often'],
   cambridge: withUses([q6divB, q6parity, q6fixed, deMorgan, ioWords], {
     'q4-de-morgan': { sections: ['Infinitely many sets at once'], note: t`De Morgan's law for a sequence of sets` },
-    'q6-words': { sections: ['Infinitely often and eventually'], note: t`"Infinitely often" and "eventually" in quantifiers`, needs: ['logic.quantifiers'] },
+    'q6-words': { sections: ['Infinitely often and eventually'], note: t`"Infinitely often" and "eventually" in quantifiers` },
   }),
   gate: ['q4-de-morgan', 'q6-words'],
   recall: [

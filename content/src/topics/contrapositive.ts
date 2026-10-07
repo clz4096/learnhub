@@ -442,7 +442,7 @@ export const contrapositive: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['proof-by-contrapositive'],
   cambridge: withUses([bop1, bop9, bop7, sw112, sw118, bop25, sw112proof, sw118proof, corollary41, tmuaK3], {
-    'cst-corollary-41': { sections: ['The contrapositive', 'Proof by contrapositive'], note: t`Stating and proving the contrapositive about irrational numbers`, needs: ['num.number-systems'] },
+    'cst-corollary-41': { sections: ['The contrapositive', 'Proof by contrapositive'], note: t`Stating and proving the contrapositive about irrational numbers` },
     'sw-1-1-8': { sections: ['Proof by contrapositive', 'Negating compound parts'], note: t`The contrapositive of an implication with an "or", by De Morgan's law` },
     'sw-1-1-2': { sections: ['Proof by contrapositive', 'Negating compound parts'], note: t`Taking the contrapositive of only part of a statement` },
   }),

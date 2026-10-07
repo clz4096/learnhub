@@ -254,7 +254,7 @@ export const convexity: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['concave-function', 'tangent-below'],
   cambridge: withUses([switchQ, quarticQ, sketchQ], {
-    'a13-q1': { sections: ['The second derivative'], note: t`Second derivatives, concavity, and a sketch with stationary points`, needs: ['calc.stationary-points'] },
+    'a13-q1': { sections: ['The second derivative'], note: t`Second derivatives, concavity, and a sketch with stationary points` },
     'a13-q1-iii': { sections: ['The second derivative'], note: t`Where the second derivative is negative` },
   }),
   gate: ['a13-q1', 'a13-q1-iii'],

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  DEFAULT_PLACEMENT_OPTIONS, classify, frontier, isAncestorClosed, isDescendantClosed, measurePlacement,
+  DEFAULT_PLACEMENT_OPTIONS, classify, frontier, graphBudget, isAncestorClosed, isDescendantClosed, measurePlacement,
   mulberry32, nextProbe, placementGraph, placementResult, randomKnownSet, runPlacement,
   type PlacementAnswer, type PlacementStrategy, type Topic,
 } from '@learnhub/mastery';
@@ -74,14 +74,18 @@ describe('entry points on the probstats graph', () => {
   // From reviews/probstats-slice.md, "Placement test entry points", with the topics
   // each correct answer credits (the probe plus its ancestors). Batch 1 put
   // prob.bayes-two-events above prob.conditional-formula, so it is the entry point there.
+  // The gatefit prerequisites (2026-10-06) made rv.expectation-algebra, alg.fibonacci,
+  // proof.counterexample, pre.hcf-lcm, and sets.comprehension entry points, and put
+  // comb.binomial-theorem and alg.proof-by-induction below new ones.
   const review: [string, number][] = [
-    ['prob.poisson-distribution', 15], ['prob.binomial-distribution', 10], ['prob.counting-probability', 8],
-    ['prob.bayes-two-events', 9], ['comb.binomial-theorem', 7], ['an.exp-limit', 7],
-    ['calc.integration-by-parts', 6], ['prob.inclusion-exclusion-three', 6], ['comb.binomial-identities', 6],
-    ['alg.proof-by-induction', 5], ['comb.repeated-arrangements', 5],
+    ['rv.expectation-algebra', 22], ['prob.poisson-distribution', 18], ['comb.binomial-identities', 12],
+    ['alg.fibonacci', 12], ['an.exp-limit', 11], ['prob.binomial-distribution', 10],
+    ['prob.bayes-two-events', 9], ['prob.counting-probability', 8], ['proof.counterexample', 8],
+    ['prob.inclusion-exclusion-three', 6], ['calc.integration-by-parts', 6], ['comb.repeated-arrangements', 5],
+    ['pre.hcf-lcm', 4], ['sets.comprehension', 2],
   ];
 
-  it('are the 11 topics REVIEW.md lists, largest credit first', () => {
+  it('are the 14 topics REVIEW.md lists, largest credit first', () => {
     expect(new Set(g.entries)).toEqual(new Set(review.map(([id]) => id)));
     const credited = g.entries.map((id) => (g.anc.get(id)?.size ?? 0) + 1);
     expect([...credited].sort((a, b) => b - a)).toEqual(credited);
@@ -96,9 +100,9 @@ describe('entry points on the probstats graph', () => {
 
   it('the entry-points strategy opens at the first entry point and searches down after a miss', () => {
     const opts = { strategy: 'entry-points' as const };
-    expect(nextProbe(g, [], opts)).toBe('prob.poisson-distribution');
-    const after = nextProbe(g, [A('prob.poisson-distribution', false)], opts) as string;
-    expect(g.anc.get('prob.poisson-distribution')?.has(after)).toBe(true);
+    expect(nextProbe(g, [], opts)).toBe('rv.expectation-algebra');
+    const after = nextProbe(g, [A('rv.expectation-algebra', false)], opts) as string;
+    expect(g.anc.get('rv.expectation-algebra')?.has(after)).toBe(true);
   });
 
   it('a miss at the bottom of a branch reaches the pre-A-level roots', () => {
@@ -110,6 +114,9 @@ describe('entry points on the probstats graph', () => {
 
 describe('simulated learners on the probstats graph', { timeout: 60_000 }, () => {
   const g = placementGraph(probstats);
+  // The default budget scales with the slice: max(30, ceil(90 / 2)) = 45 since the gatefit
+  // prerequisites (2026-10-06); it was 31 for 62 topics.
+  const budget = graphBudget(g);
   const profiles: [string, (t: Topic) => boolean][] = [
     ['nothing', () => false],
     ['pre-A-level only', (t) => t.level === 'pre-a-level'],
@@ -124,7 +131,7 @@ describe('simulated learners on the probstats graph', { timeout: 60_000 }, () =>
         const known = new Set(probstats.filter(knows).map((t) => t.id));
         const { result } = runPlacement(g, (id) => known.has(id), 0, { strategy });
         expect(new Set(result.mastered)).toEqual(known);
-        expect(result.questions).toBeLessThanOrEqual(DEFAULT_PLACEMENT_OPTIONS.budget);
+        expect(result.questions).toBeLessThanOrEqual(budget);
       });
     }
   }
@@ -142,19 +149,21 @@ describe('simulated learners on the probstats graph', { timeout: 60_000 }, () =>
     }
   });
 
+  // Measured: at most 37 questions on 90 topics, so the default 45 places everyone exactly.
   it('every truthful random learner is placed exactly within the default budget', () => {
+    expect(budget).toBe(45);
     for (const seed of [1, 2]) {
-      const m = measurePlacement(probstats, { learners: 500, errorRate: 0, budget: DEFAULT_PLACEMENT_OPTIONS.budget, strategy: 'split', seed });
+      const m = measurePlacement(probstats, { learners: 500, errorRate: 0, budget, strategy: 'split', seed });
       expect(m.exact).toBe(1);
-      expect(m.maxQuestions).toBeLessThanOrEqual(DEFAULT_PLACEMENT_OPTIONS.budget);
+      expect(m.maxQuestions).toBeLessThanOrEqual(37);
     }
   });
 
-  // Measured 89% on 60 topics, 84% on the 62 of batch 1: the shortfall is all under-placement,
-  // because unclassified topics count as unknown.
-  it('at a budget of 25, split places at least 80% exactly and never over-places', () => {
+  // Measured 89% on 60 topics, 84% on the 62 of batch 1, 43% on the 90 of the gatefit
+  // prerequisites: the shortfall is all under-placement, because unclassified topics count as unknown.
+  it('at a budget of 25, split places at least 40% exactly and never over-places', () => {
     const m = measurePlacement(probstats, { learners: 500, errorRate: 0, budget: 25, strategy: 'split', seed: 1 });
-    expect(m.exact).toBeGreaterThanOrEqual(0.8);
+    expect(m.exact).toBeGreaterThanOrEqual(0.4);
     expect(m.meanOverPlaced).toBe(0);
     expect(m.maxQuestions).toBeLessThanOrEqual(25);
   });
@@ -165,18 +174,20 @@ describe('simulated learners on the probstats graph', { timeout: 60_000 }, () =>
     expect(split.exact).toBeGreaterThan(entry.exact);
   });
 
-  // With error rate e and about 22 questions, a run with no wrong answer has probability
-  // (1 - e)^22: 32% at e = 5%. So exactness drops; the bound is on how far off it is.
+  // With error rate e and about 29 questions, a run with no wrong answer has probability
+  // (1 - e)^29: 23% at e = 5%. So exactness drops; the bound is on how far off it is.
+  // Measured on 90 topics at the default 45: 3.03 wrong and 1.36 over-placed at 5%, 5.95 and
+  // 2.97 at 10% (on 62 topics at 30 the bounds were 3 and 1.5, 5 and 2.5).
   it('with a 5% error rate, misplacement stays bounded', () => {
-    const m = measurePlacement(probstats, { learners: 500, errorRate: 0.05, budget: DEFAULT_PLACEMENT_OPTIONS.budget, strategy: 'split', seed: 1 });
-    expect(m.meanWrong).toBeLessThanOrEqual(3);
+    const m = measurePlacement(probstats, { learners: 500, errorRate: 0.05, budget, strategy: 'split', seed: 1 });
+    expect(m.meanWrong).toBeLessThanOrEqual(3.5);
     expect(m.meanOverPlaced).toBeLessThanOrEqual(1.5);
-    expect(m.maxQuestions).toBeLessThanOrEqual(DEFAULT_PLACEMENT_OPTIONS.budget);
+    expect(m.maxQuestions).toBeLessThanOrEqual(budget);
   });
 
   it('with a 10% error rate, misplacement stays bounded', () => {
-    const m = measurePlacement(probstats, { learners: 500, errorRate: 0.1, budget: DEFAULT_PLACEMENT_OPTIONS.budget, strategy: 'split', seed: 1 });
-    expect(m.meanWrong).toBeLessThanOrEqual(5);
-    expect(m.meanOverPlaced).toBeLessThanOrEqual(2.5);
+    const m = measurePlacement(probstats, { learners: 500, errorRate: 0.1, budget, strategy: 'split', seed: 1 });
+    expect(m.meanWrong).toBeLessThanOrEqual(6.5);
+    expect(m.meanOverPlaced).toBeLessThanOrEqual(3.5);
   });
 });

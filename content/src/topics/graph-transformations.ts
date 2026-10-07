@@ -315,7 +315,7 @@ export const graphTransformations: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['translation'],
   cambridge: withUses([downSix, evenQ, zerosQ, reciprocalQ, nstFC2, sketchQ], {
-    'a13-q2-ii': { sections: ['Moving a graph', 'Counting roots by sliding'], note: t`Translating a cubic and counting roots as it slides`, needs: ['calc.stationary-points'] },
+    'a13-q2-ii': { sections: ['Moving a graph', 'Counting roots by sliding'], note: t`Translating a cubic and counting roots as it slides` },
   }),
   gate: ['a13-q2-ii'],
   recall: [

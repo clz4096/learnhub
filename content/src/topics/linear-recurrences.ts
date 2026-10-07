@@ -398,8 +398,8 @@ export const linearRecurrences: TopicContent = {
   terms: ['difference-equation', 'auxiliary-equation'],
   cambridge: withUses([frog, slotLimit, frogExplain, slotDerive, theory], {
     's3-q1-iii-closed-form': { sections: ['A constant term'], note: t`Fitting a closed form with a constant term` },
-    's3-q1-iii-explain': { sections: ['A constant term'], note: t`Reading off the growth and explaining it by the mean jump`, needs: ['rv.expectation'] },
-    'sheet3-q11-derive': { sections: ['First order'], note: t`Deriving a recurrence by conditioning on the last turn`, needs: ['prob.total-probability'] },
+    's3-q1-iii-explain': { sections: ['A constant term'], note: t`Reading off the growth and explaining it by the mean jump` },
+    'sheet3-q11-derive': { sections: ['First order'], note: t`Deriving a recurrence by conditioning on the last turn` },
   }),
   // The STEP frog first. The slot machine's limit is dropped: the worked example's closed form gives it at once.
   gate: ['s3-q1-iii-closed-form', 's3-q1-iii-explain', 'sheet3-q11-derive'],

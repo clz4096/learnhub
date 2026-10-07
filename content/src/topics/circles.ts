@@ -3,10 +3,12 @@
  * from (a, b), and finding the centre and radius by completing the square. Follows STEP
  * Support Foundation Assignment 8 Q2(i) (the circle on the diameter from (1, 5) to
  * (-5, 13), with the official answer from the hints) and Assignment 23 Q3 (2009 STEP I Q8:
- * the circles touching y = 0 and 3y = 4x, and the incircle of a 3, 4, 5 triangle).
+ * the circles touching y = 0 and 3y = 4x, and the incircle of a 3, 4, 5 triangle). For that
+ * question the lesson teaches when a line touches a circle (a repeated root) and the tangent
+ * of a double angle, proved by reflecting a point in a line; its examples use other numbers.
  */
 import { auto, cite, supervision, withUses } from '../cambridge';
-import { int, pick, q, str } from '../math';
+import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedMath, dmath, math, paren, t } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
@@ -260,12 +262,53 @@ const a23q3i = supervision({
 const EX = { a: 3, b: -1, r: 4 };
 const NOT = { D: 2, E: 4, F: 10 };
 
+// When a line touches a circle: x^2 + y^2 = r2 and y = m x + c. Substituting gives
+// (1 + m^2) x^2 + 2mc x + (c^2 - r2) = 0, with discriminant 4((1 + m^2) r2 - c^2).
+const TAN = { r2: 5, m: 2 };
+const tanA = 1 + TAN.m ** 2;
+const tanB = 2 * TAN.m;
+const tanDiscConst = 4 * tanA * TAN.r2;
+const tanDiscC2 = tanB ** 2 - 4 * tanA;
+const tanC2 = tanDiscConst / -tanDiscC2;
+const tanC = Math.sqrt(tanC2);
+const tanX = -(tanB * tanC) / (2 * tanA);
+const tanY = TAN.m * tanX + tanC;
+
+// Twice an angle: tan(alpha) = 1/3, the circle with centre (6, 2) and radius 2.
+const dblM = q(1, 3);
+const dblM2 = mul(dblM, dblM);
+const dblTop = mul(q(2), dblM);
+const dblBottom = sub(q(1), dblM2);
+const dblG = div(dblTop, dblBottom);
+const DBL = { cx: 6, cy: 2, r: 2 };
+// Substituting y = g x into (x - cx)^2 + (y - cy)^2 = r^2: A x^2 + B x + C = 0, then clearing
+// the denominator of A to get whole coefficients.
+const dblA = add(q(1), mul(dblG, dblG));
+const dblB = sub(q(-2 * DBL.cx), mul(q(2 * DBL.cy), dblG));
+const dblC = q(DBL.cx ** 2 + DBL.cy ** 2 - DBL.r ** 2);
+const dblScale = Number(dblA.den);
+const whole = (x: Rational): number => {
+  const y = mul(x, q(dblScale));
+  if (y.den !== 1n) throw new Error('circles: the scaled coefficient is not whole');
+  return Number(y.num);
+};
+const [dA, dB, dC] = [whole(dblA), whole(dblB), whole(dblC)];
+const dblDisc = dB ** 2 - 4 * dA * dC;
+const dblX = q(-dB, 2 * dA);
+const dblY = mul(dblG, dblX);
+const square = (x: Rational): Rational => mul(x, x);
+const dblCheck = add(square(sub(dblX, q(DBL.cx))), square(sub(dblY, q(DBL.cy))));
+const dblG2 = mul(dblG, dblG);
+const dbl2gcy = mul(q(2 * DBL.cy), dblG);
+const dblXc = sub(dblX, q(DBL.cx));
+const dblYc = sub(dblY, q(DBL.cy));
+
 export const circles: TopicContent = {
   topicId: 'geom.circles',
-  goal: t`Write a circle as ${math`(x - a)^{${2}} + (y - b)^{${2}} = r^{${2}}`}, and find its centre and radius by completing the square.`,
-  objective: t`Write the equation of a circle, and find its centre and radius by completing the square.`,
+  goal: t`Write a circle as ${math`(x - a)^{${2}} + (y - b)^{${2}} = r^{${2}}`}, find its centre and radius by completing the square, and tell when a line touches it.`,
+  objective: t`Write the equation of a circle, find its centre and radius, and tell when a line touches it.`,
   why: t`Circles are the first curves beyond lines; STEP asks where they meet lines and each other, which comes next.`,
-  minutes: 20,
+  minutes: 30,
   lesson: [
     { kind: 'section', title: t`A circle as an equation` },
     { kind: 'hook', text: t`A circle is the simplest curve there is: every point the same distance from the centre. Can you turn that sentence into an equation in ${math`x`} and ${math`y`}? And if someone hands you ${computedMath(`${circleText(-6, 2, -6)} = ${0}`)}, can you tell that it is a circle, and find its centre?` },
@@ -288,11 +331,49 @@ export const circles: TopicContent = {
     },
     { kind: 'p', text: t`For the hook's equation: ${math`x^{${2}} - ${6}x = (x - ${3})^{${2}} - ${9}`} and ${math`y^{${2}} + ${2}y = (y + ${1})^{${2}} - ${1}`}, so it is ${math`(x - ${3})^{${2}} + (y + ${1})^{${2}} = ${6} + ${9} + ${1} = ${16}`}: centre ${math`(${3}, -${1})`}, radius ${4}.` },
     checkFrom(centreRadius, { a: 2, b: -5, r: 3 }, t`Halve the coefficients of ${math`x`} and ${math`y`} and change their signs for the centre; the radius squared is what remains on the right.`),
+    { kind: 'section', title: t`When a line touches a circle` },
+    { kind: 'narrative', text: t`A line and a circle can meet in two points, in one, or not at all. The middle case is special: the line just grazes the circle. STEP asks for it all the time, so we want a test you can do with algebra, not by eye.` },
+    {
+      kind: 'definition',
+      name: t`Touching`,
+      formal: t`A line [[tangent-line|touches]] a circle, or is a tangent to it, if the line and the circle have exactly one point in common.`,
+      plain: t`One meeting point, no more. The line ${math`y = ${EX.b + EX.r}`} touches the circle with centre ${math`(${EX.a}, ${EX.b})`} and radius ${EX.r} at its top point, ${math`(${EX.a}, ${EX.b + EX.r})`}.`,
+    },
+    { kind: 'theorem', name: t`A test for touching`, statement: t`Let a circle have centre ${math`(a, b)`} and radius ${math`r > ${0}`}. Substituting ${math`y = mx + c`} into ${math`(x - a)^{${2}} + (y - b)^{${2}} = r^{${2}}`} gives a quadratic equation in ${math`x`} whose ${math`x^{${2}}`} coefficient is ${math`${1} + m^{${2}}`}; the line ${math`y = mx + c`} touches the circle if and only if this quadratic has discriminant ${0}. The line ${math`y = k`} touches the circle if and only if ${math`|k - b| = r`}, and the line ${math`x = h`} touches it if and only if ${math`|h - a| = r`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Meeting points are roots`, text: t`A point ${math`(x, y)`} is on both exactly when ${math`y = mx + c`} and ${math`(x - a)^{${2}} + (mx + c - b)^{${2}} = r^{${2}}`}. So each meeting point gives a root ${math`x`} of the second equation, and each real root gives exactly one meeting point, ${math`(x, mx + c)`}.`, plain: t`On the line, ${math`y`} is fixed by ${math`x`}, so counting meeting points is counting real roots.` },
+        { label: t`It is a quadratic`, text: t`Expanding, the ${math`x^{${2}}`} terms are ${math`x^{${2}} + m^{${2}}x^{${2}}`}, so the equation is ${math`(${1} + m^{${2}})x^{${2}} + Bx + C = ${0}`} for some numbers ${math`B`} and ${math`C`}. Its leading coefficient ${math`${1} + m^{${2}}`} is at least ${1}, never ${0}.` },
+        { label: t`One point, one root`, text: t`The line touches the circle exactly when there is one meeting point, so exactly when the quadratic has exactly one real root, which is exactly when its discriminant ${math`B^{${2}} - ${4}(${1} + m^{${2}})C`} is ${0}.`, why: { q: t`Why does the discriminant count the roots?`, a: t`By the quadratic formula, ${math`Ax^{${2}} + Bx + C = ${0}`} with ${math`A \neq ${0}`} has roots ${math`\frac{-B \pm \sqrt{B^{${2}} - ${4}AC}}{${2}A}`}: two different real roots when ${math`B^{${2}} - ${4}AC`} is positive, one repeated root when it is ${0}, and none when it is negative. Here ${math`A = ${1} + m^{${2}}`}.` } },
+        { label: t`Lines parallel to an axis`, text: t`For ${math`y = k`} the equation is ${math`(x - a)^{${2}} = r^{${2}} - (k - b)^{${2}}`}. A square equals a positive number for two values of ${math`x`}, equals ${0} only for ${math`x = a`}, and is never negative. So there is exactly one meeting point if and only if ${math`(k - b)^{${2}} = r^{${2}}`}, that is ${math`|k - b| = r`}. Swapping the roles of ${math`x`} and ${math`y`} gives the test for ${math`x = h`}.`, plain: t`${math`|k - b|`} is the distance from the centre to the line: a line parallel to an axis touches the circle when it is exactly one radius from the centre.` },
+      ],
+    },
+    { kind: 'p', text: t`For example, which lines ${math`y = ${TAN.m}x + c`} touch the circle ${math`x^{${2}} + y^{${2}} = ${TAN.r2}`}? Substitute: ${math`x^{${2}} + (${TAN.m}x + c)^{${2}} = ${TAN.r2}`}. Expand the bracket, ${math`(${TAN.m}x + c)^{${2}} = ${TAN.m ** 2}x^{${2}} + ${tanB}cx + c^{${2}}`}, and collect terms: ${math`${tanA}x^{${2}} + ${tanB}cx + c^{${2}} - ${TAN.r2} = ${0}`}. The discriminant is ${math`(${tanB}c)^{${2}} - ${4} \times ${tanA} \times (c^{${2}} - ${TAN.r2}) = ${tanB ** 2}c^{${2}} - ${4 * tanA}c^{${2}} + ${tanDiscConst} = ${tanDiscConst} - ${-tanDiscC2}c^{${2}}`}. It is ${0} when ${math`c^{${2}} = ${tanC2}`}, so ${math`c = ${tanC}`} or ${math`c = -${tanC}`}. With ${math`c = ${tanC}`} the quadratic is ${math`${tanA}x^{${2}} + ${tanB * tanC}x + ${tanC2 - TAN.r2} = ${0}`}; divide by ${tanA}: ${math`x^{${2}} + ${(tanB * tanC) / tanA}x + ${(tanC2 - TAN.r2) / tanA} = (x + ${-tanX})^{${2}} = ${0}`}, so ${math`x = ${tanX}`} and ${math`y = ${TAN.m} \times (${tanX}) + ${tanC} = ${tanY}`}. Check: ${math`(${tanX})^{${2}} + ${tanY}^{${2}} = ${tanX ** 2} + ${tanY ** 2} = ${TAN.r2}`}.` },
+    { kind: 'section', title: t`Twice an angle` },
+    { kind: 'narrative', text: t`STEP likes circles squeezed into the corner between two lines through the origin. Here is the picture to hold. A circle touches the ${math`x`}-axis, and its centre ${math`M`} lies on a line through the origin ${math`O`} at angle ${math`\alpha`} to the ${math`x`}-axis. Then it also touches the line through ${math`O`} at angle ${math`${2}\alpha`}.` },
+    { kind: 'p', text: t`Why: reflect everything in the line ${math`OM`}. The circle goes to itself, because its centre is on the mirror and reflection keeps every distance. The ${math`x`}-axis goes to the line through ${math`O`} at angle ${math`${2}\alpha`}, because reflection keeps the angle to the mirror, ${math`\alpha`}, but puts it on the other side. So the one meeting point of the circle with the ${math`x`}-axis becomes one meeting point with the new line.`, why: { q: t`Why exactly one, and not more?`, a: t`Reflecting is undone by reflecting again. If the new line met the circle in two points, reflecting back would give two meeting points with the ${math`x`}-axis, and there is only one.` } },
+    { kind: 'narrative', text: t`To use this you need the gradient of the line at angle ${math`${2}\alpha`}. For an angle ${math`\theta`} between ${math`${0}^{\circ}`} and ${math`${90}^{\circ}`}, the line through ${math`O`} at angle ${math`\theta`} has gradient ${math`\tan\theta`}: it passes through ${math`(${1}, \tan\theta)`}, the top of a right triangle with base ${1} and angle ${math`\theta`} at ${math`O`}. So the question is: given ${math`\tan\alpha`}, what is ${math`\tan ${2}\alpha`}? It is not ${math`${2}\tan\alpha`}.` },
+    { kind: 'theorem', name: t`Tangent of a double angle`, statement: t`If ${math`${0}^{\circ} < \alpha < ${45}^{\circ}`}, then ${dmath`\tan ${2}\alpha = \frac{${2}\tan\alpha}{${1} - \tan^{${2}}\alpha}.`}` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Reflect a point of the axis`, text: t`Let ${math`m = \tan\alpha`}, so the mirror ${math`L`} is ${math`y = mx`}, and reflect ${math`P = (${1}, ${0})`} in ${math`L`} to get ${math`P'`}. As above, ${math`OP'`} is at angle ${math`${2}\alpha`}, and ${math`${2}\alpha < ${90}^{\circ}`}, so the gradient of ${math`OP'`} is ${math`\tan ${2}\alpha`}.`, plain: t`Since ${math`${0}^{\circ} < \alpha < ${45}^{\circ}`}, the gradient ${math`m`} is between ${0} and ${1}.` },
+        { label: t`Find the foot of the perpendicular`, text: t`The line through ${math`P`} perpendicular to ${math`L`} has gradient ${math`-\frac{${1}}{m}`}, so it is ${math`y = -\frac{x - ${1}}{m}`}. It meets ${math`L`} where ${math`mx = -\frac{x - ${1}}{m}`}. Multiply by ${math`m`}: ${math`m^{${2}}x = -x + ${1}`}, so ${math`(${1} + m^{${2}})x = ${1}`}. Call the meeting point ${math`F`}: ${math`F = \left(\frac{${1}}{${1} + m^{${2}}}, \frac{m}{${1} + m^{${2}}}\right)`}.`, why: { q: t`Why ${math`-\frac{${1}}{m}`}?`, a: t`Perpendicular gradients multiply to ${math`-${1}`}, and ${math`m \neq ${0}`}. With ${math`m = ${dblM}`}, the perpendicular gradient is ${math`${div(q(-1), dblM)}`}.` } },
+        { label: t`Double the step to F`, text: t`The mirror is the perpendicular bisector of ${math`PP'`}, so ${math`F`} is the midpoint of ${math`P`} and ${math`P'`}, and ${math`P' = ${2}F - P`}. Its coordinates are ${math`\frac{${2}}{${1} + m^{${2}}} - ${1} = \frac{${1} - m^{${2}}}{${1} + m^{${2}}}`} and ${math`\frac{${2}m}{${1} + m^{${2}}}`}.`, plain: t`Going from ${math`P`} to ${math`F`} and the same again lands on ${math`P'`}. And ${math`\frac{${2}}{${1} + m^{${2}}} - ${1} = \frac{${2} - (${1} + m^{${2}})}{${1} + m^{${2}}}`}.` },
+        { label: t`Read off the gradient`, text: t`The gradient of ${math`OP'`} is its ${math`y`}-coordinate over its ${math`x`}-coordinate: ${math`\frac{${2}m}{${1} + m^{${2}}} \div \frac{${1} - m^{${2}}}{${1} + m^{${2}}} = \frac{${2}m}{${1} - m^{${2}}}`}, the factors ${math`${1} + m^{${2}}`} cancelling. Since ${math`m < ${1}`}, the bottom ${math`${1} - m^{${2}}`} is not ${0}. So ${math`\tan ${2}\alpha = \frac{${2}\tan\alpha}{${1} - \tan^{${2}}\alpha}`}.` },
+      ],
+    },
+    { kind: 'p', text: t`Try it with ${math`\tan\alpha = ${dblM}`}: ${math`\tan ${2}\alpha = \frac{${2} \times ${dblM}}{${1} - ${dblM2}} = \frac{${dblTop}}{${dblBottom}} = ${dblTop} \times ${div(q(1), dblBottom)} = ${dblG}`}, since dividing by ${math`${dblBottom}`} is multiplying by ${math`${div(q(1), dblBottom)}`}. Now take the circle with centre ${math`(${DBL.cx}, ${DBL.cy})`} and radius ${DBL.r}. It touches ${math`y = ${0}`}, since ${math`|${DBL.cy} - ${0}| = ${DBL.r}`}. Its centre is on ${math`y = ${dblM}x`}, the line at angle ${math`\alpha`}. So it also touches ${math`y = ${dblG}x`}, the line at angle ${math`${2}\alpha`}.` },
+    { kind: 'p', text: t`Check with the test for touching. Substitute ${math`y = ${dblG}x`} into ${math`(x - ${DBL.cx})^{${2}} + (y - ${DBL.cy})^{${2}} = ${DBL.r ** 2}`} and expand both brackets: ${math`x^{${2}} - ${2 * DBL.cx}x + ${DBL.cx ** 2} + ${dblG2}x^{${2}} - ${dbl2gcy}x + ${DBL.cy ** 2} = ${DBL.r ** 2}`}. Collect terms, using ${math`${1} + ${dblG2} = ${dblA}`}, ${math`${2 * DBL.cx} + ${dbl2gcy} = ${sub(q(0), dblB)}`}, and ${math`${DBL.cx ** 2} + ${DBL.cy ** 2} - ${DBL.r ** 2} = ${dblC}`}: ${math`${dblA}x^{${2}} - ${sub(q(0), dblB)}x + ${dblC} = ${0}`}. Then multiply by ${dblScale} to clear the fraction: ${math`${dA}x^{${2}} ${dB < 0 ? '-' : '+'} ${Math.abs(dB)}x + ${dC} = ${0}`}. The discriminant is ${math`${dB ** 2} - ${4} \times ${dA} \times ${dC} = ${dblDisc}`}, so the line touches the circle. The repeated root is ${math`x = \frac{${-dB}}{${2} \times ${dA}} = ${dblX}`}, and then ${math`y = ${dblG} \times ${dblX} = ${dblY}`}. Indeed ${math`\left(${dblX} - ${DBL.cx}\right)^{${2}} + \left(${dblY} - ${DBL.cy}\right)^{${2}} = \left(${dblXc}\right)^{${2}} + \left(${dblYc}\right)^{${2}} = ${square(dblXc)} + ${square(dblYc)} = ${dblCheck}`}, the radius squared.` },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`Every equation ${math`x^{${2}} + y^{${2}} + Dx + Ey + F = ${0}`} is a circle.`, counterexample: t`${computedMath(`${circleText(NOT.D, NOT.E, NOT.F)} = ${0}`)} becomes ${math`(x + ${1})^{${2}} + (y + ${2})^{${2}} = ${1} + ${4} - ${10} = -${5}`}. A sum of squares is never negative, so no point satisfies it.` },
     { kind: 'pitfall', claim: t`The centre of ${math`(x + ${2})^{${2}} + (y - ${9})^{${2}} = ${25}`} is ${math`(${2}, -${9})`}.`, counterexample: t`The bracket is ${math`x - a`}, so ${math`x + ${2}`} means ${math`a = -${2}`}: the centre is ${math`(-${2}, ${9})`}. Check: ${math`(-${2}, ${9})`} makes both brackets ${0}.` },
     { kind: 'pitfall', claim: t`${math`${2}x^{${2}} + ${2}y^{${2}} - ${8}x = ${0}`} has radius ${math`\sqrt{${8}}`}, completing the square as it stands.`, counterexample: t`Divide by ${2} first, so the squares have coefficient ${1}: ${math`x^{${2}} + y^{${2}} - ${4}x = ${0}`}, which is ${math`(x - ${2})^{${2}} + y^{${2}} = ${4}`}, radius ${2}.` },
-    { kind: 'takeaway', text: t`A circle is ${math`(x - a)^{${2}} + (y - b)^{${2}} = r^{${2}}`}; complete the square in ${math`x`} and in ${math`y`} to find the centre and radius.` },
+    { kind: 'pitfall', claim: t`Doubling an angle doubles its tangent: if ${math`\tan\alpha = ${dblM}`}, then ${math`\tan ${2}\alpha = ${mul(q(2), dblM)}`}.`, counterexample: t`The formula gives ${math`\tan ${2}\alpha = ${dblG}`}, not ${math`${mul(q(2), dblM)}`}. The line at angle ${math`${2}\alpha`} is steeper than twice the gradient, because ${math`${1} - \tan^{${2}}\alpha`} is less than ${1}.` },
+    { kind: 'takeaway', text: t`A circle is ${math`(x - a)^{${2}} + (y - b)^{${2}} = r^{${2}}`}; complete the square to find its centre and radius, and a line touches it when substitution gives a repeated root.` },
   ],
   examples: [
     workedCambridge(a8q2i),
@@ -303,12 +384,14 @@ export const circles: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['circle-equation'],
   cambridge: withUses([a23incircle, a23q3i], {
-    'a23-q3-i': { sections: ['A circle as an equation'], note: t`A circle touching two lines, with a double angle`, needs: ['trig.double-angle', 'geom.intersections'] },
-    'a23-q3-ii': { sections: ['A circle as an equation', 'Completing the square'], note: t`Finding the circle that touches three lines`, needs: ['geom.intersections'] },
+    'a23-q3-i': { sections: ['A circle as an equation', 'When a line touches a circle', 'Twice an angle'], note: t`A circle touching two lines, with a double angle` },
+    'a23-q3-ii': { sections: ['A circle as an equation', 'Completing the square', 'When a line touches a circle'], note: t`Finding the circle that touches three lines` },
   }),
   gate: ['a23-q3-i', 'a23-q3-ii'],
   recall: [
     { front: t`State the equation of the circle with centre ${math`(a, b)`} and radius ${math`r`}.`, back: t`${math`(x - a)^{${2}} + (y - b)^{${2}} = r^{${2}}`}.` },
+    { front: t`When does the line ${math`y = mx + c`} touch a circle?`, back: t`When substituting it into the circle gives a quadratic in ${math`x`} with discriminant ${0}: one repeated root, one meeting point.` },
+    { front: t`${math`\tan ${2}\alpha`} in terms of ${math`\tan\alpha`}.`, back: t`${math`\frac{${2}\tan\alpha}{${1} - \tan^{${2}}\alpha}`}, proved by reflecting ${math`(${1}, ${0})`} in the line ${math`y = x\tan\alpha`}.` },
     { front: t`How do you find the centre and radius of ${math`x^{${2}} + y^{${2}} + Dx + Ey + F = ${0}`}?`, back: t`Complete the square: centre ${math`\left(-\frac{D}{${2}}, -\frac{E}{${2}}\right)`}, radius squared ${math`\frac{D^{${2}}}{${4}} + \frac{E^{${2}}}{${4}} - F`}, which must be positive.` },
   ],
   proofOrder: [

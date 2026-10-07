@@ -377,7 +377,7 @@ export const countingGf: TopicContent = {
   terms: ['ordinary-generating-function'],
   claims,
   cambridge: withUses([q3even, euler, eulerProof, q3proof], {
-    'ia-s2-q3': { sections: ['Probabilities and parity'], note: t`An even count by a generating function, and by a recurrence`, needs: ['prob.first-step'] },
+    'ia-s2-q3': { sections: ['Probabilities and parity'], note: t`An even count by a generating function, and by a recurrence` },
     'ia-s2-q3-even': { sections: ['Probabilities and parity'], note: t`An even count by a generating function` },
   }),
   gate: ['ia-s2-q3', 'ia-s2-q3-even'],

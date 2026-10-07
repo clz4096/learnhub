@@ -401,8 +401,8 @@ export const pgf: TopicContent = {
   terms: ['pgf'],
   claims,
   cambridge: withUses([q5mean, q5var, q5proof, schedule], {
-    'ia-s3-q5': { sections: ['The generating function', 'Moments from derivatives'], note: t`The negative binomial: its distribution, generating function, and moments`, needs: ['alg.binomial-rational'] },
-    'ia-s3-q5-variance': { sections: ['Moments from derivatives'], note: t`A variance from the generating function`, needs: ['alg.binomial-rational'] },
+    'ia-s3-q5': { sections: ['The generating function', 'Moments from derivatives'], note: t`The negative binomial: its distribution, generating function, and moments` },
+    'ia-s3-q5-variance': { sections: ['Moments from derivatives'], note: t`A variance from the generating function` },
     'ia-s3-q5-mean': { sections: ['Moments from derivatives'], note: t`A mean from the generating function` },
   }),
   // The full sheet question first, then its variance and mean.

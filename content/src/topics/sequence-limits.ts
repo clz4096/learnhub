@@ -2,9 +2,10 @@
  * an.sequence-limits: what x_n -> a means (the epsilon-N definition), with the basic limits
  * 1/n -> 0 and r^n -> 0 for |r| < 1, and limits of quotients by dividing through. STEP adds
  * "the limit of a sequence" to the A-level content (STEP specification, in bold italics);
- * the problems are STEP Support Assignment 15, Q2 (limits of iterated sequences as fixed
- * points) and Q3(ii) (2006 STEP II Q1, the limit 36), checked against the hints and by
- * iterating each sequence.
+ * the gate is the NST Mathematics Workbook, SS4 (the powers k^n, case by case, checked by
+ * computing far-out terms). STEP Support Assignment 15, Q2 (limits of iterated sequences as
+ * fixed points) is further practice, checked against the hints and by iterating; its Q3(ii)
+ * (2006 STEP II Q1) gates alg.recurrence-sequences, which teaches the fixed-point idea.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
@@ -226,32 +227,71 @@ const a15iv = auto({
   misconceptions: [{ response: '-sqrt(2)', why: t`All the terms are positive, so the limit is not negative.` }],
 });
 
-const a15q3 = auto({
-  id: 'a15-q3-ii',
-  source: cite(F15, 'Assignment 15, Q3(ii)'),
-  title: t`The limit when ${math`k = ${37}`}`,
-  prompt: t`(${2006} STEP II, Question ${1}.) The sequence is defined by ${math`u_{${1}} = ${2}`} and ${math`u_{n + ${1}} = ${37} - \frac{${36}}{u_{n}}`}. Given that it converges to a limit ${math`l`}, and that ${math`u_{n} \ge ${2}`} for all ${mn}, find ${math`l`}.`,
-  answer: { kind: 'exact', expected: '36' },
-  solution: [
-    t`${math`l = ${37} - \frac{${36}}{l}`}, so ${math`l^{${2}} - ${37}l + ${36} = ${0}`}, that is ${math`(l - ${36})(l - ${1}) = ${0}`}.`,
-    t`Since ${math`u_{n} \ge ${2}`} for every ${mn}, the limit satisfies ${math`l \ge ${2}`}, which excludes ${1}. So ${math`l = ${36}`}.`,
-  ],
-  reference: '36',
-  verify: () => {
-    const l = iterate((x) => 37 - 36 / x, 2, 400);
-    return Math.abs(l - 36) < 1e-9 ? null : `iterated to ${l}`;
-  },
-  misconceptions: [{ response: '1', why: t`${1} solves the fixed-point equation, but every term is at least ${2}, so the limit is too.` }],
-  official: { source: cite(F15H, 'Assignment 15, Q3(ii)'), answer: '36', agrees: true },
+// NST Mathematics Workbook, SS4: the powers of a fixed number, case by case.
+const SS4: { id: string; k: Rational; label: string; holds: boolean }[] = [
+  { id: 'a', k: q(9, 10), label: 'tends to zero', holds: true },
+  { id: 'b', k: q(-9, 10), label: 'alternates in sign, so it has no limit', holds: false },
+  { id: 'c', k: q(1), label: 'tends to one', holds: true },
+  { id: 'd', k: q(-1), label: 'has no limit', holds: true },
+  { id: 'e', k: q(11, 10), label: 'converges, since each term is only a little larger than the one before', holds: false },
+  { id: 'f', k: q(-2), label: 'has no limit, and its size grows without bound', holds: true },
+];
+/** The behaviour of k^n, read from far-out terms: 'zero', 'one', 'none', or 'none-unbounded'. */
+const powerFate = (k: Rational): string => {
+  const x = Number(k.num) / Number(k.den);
+  const [a, b] = [x ** 400, x ** 401];
+  if (Math.abs(a) < 1e-12 && Math.abs(b) < 1e-12) return 'zero';
+  if (a === 1 && b === 1) return 'one';
+  return Math.abs(a) > 1e12 ? 'none-unbounded' : 'none';
+};
+/** Whether each statement of the SS4 check is true, from the computed fate. */
+const ss4Holds = (row: (typeof SS4)[number]): boolean => {
+  const f = powerFate(row.k);
+  if (row.id === 'a') return f === 'zero';
+  if (row.id === 'b') return f === 'none' || f === 'none-unbounded';
+  if (row.id === 'c') return f === 'one';
+  if (row.id === 'd') return f === 'none';
+  if (row.id === 'e') return f === 'zero' || f === 'one';
+  return f === 'none-unbounded';
+};
+const SS4_TRUE = SS4.filter((r) => r.holds).map((r) => r.id);
+
+const nstSs4 = supervision({
+  id: 'nst-ss4',
+  source: cite('nst-workbook', 'SS4'),
+  title: t`Powers of a fixed number`,
+  prompt: t`The sequence ${math`u_{n}`} satisfies ${math`u_{n + ${1}} = ku_{n}`}, where ${math`k`} is a fixed number, and ${math`u_{${0}} = ${1}`}. Express ${math`u_{n}`} in terms of ${math`k`}. Describe the behaviour of ${math`u_{n}`} for large ${mn} in the different cases that arise according to the value of ${math`k`}.`,
+  writeUp: 'explanation',
+  official: cite('nst-workbook', 'Answers, SS4'),
 });
 
-const a15q3sup = supervision({
-  id: 'a15-q3-ii-proof',
-  source: cite(F15, 'Assignment 15, Q3(ii)'),
-  title: t`Why the limit is ${36}`,
-  prompt: t`(${2006} STEP II, Question ${1}(ii).) For ${math`u_{${1}} = ${2}`}, ${math`u_{n + ${1}} = ${37} - \frac{${36}}{u_{n}}`}, show that ${math`u_{n} \ge ${2}`} for all ${mn}. Given that the sequence converges to a limit ${math`l`}, find ${math`l`}, justifying the choice between the roots, and explain why a limit of terms that are all at least ${2} is itself at least ${2}.`,
-  writeUp: 'proof',
-  official: cite(F15H, 'Assignment 15, Q3(ii)'),
+const nstSs4Cases = auto({
+  id: 'nst-ss4-cases',
+  source: cite('nst-workbook', 'SS4', true),
+  title: t`Powers of a fixed number, case by case`,
+  prompt: t`The sequence ${math`u_{n}`} satisfies ${math`u_{n + ${1}} = ku_{n}`}, where ${math`k`} is a fixed number, and ${math`u_{${0}} = ${1}`}. Which of these statements about ${math`u_{n}`} as ${math`n \to \infty`} are true? Choose all that are.`,
+  answer: {
+    kind: 'choice',
+    options: SS4.map((r) => ({ id: r.id, label: t`If ${math`k = ${r.k}`}, the sequence ${r.label}.` })),
+    correct: SS4_TRUE,
+  },
+  solution: [
+    t`Each step multiplies by ${math`k`}, so ${math`u_{${1}} = k`}, ${math`u_{${2}} = k^{${2}}`}, and in general ${math`u_{n} = k^{n}`}: by induction, if ${math`u_{n} = k^{n}`} then ${math`u_{n + ${1}} = k \cdot k^{n} = k^{n + ${1}}`}.`,
+    t`So the theorem on powers decides each case. For ${math`|k| < ${1}`}, ${math`k^{n} \to ${0}`}, whether or not the signs alternate. So with ${math`k = ${q(9, 10)}`} the sequence tends to zero, and with ${math`k = ${q(-9, 10)}`} it tends to zero too: the statement that it has no limit is false.`,
+    t`For ${math`k = ${1}`} every term is ${1}, so the limit is ${1}. For ${math`k = -${1}`} the terms are ${math`${1}, -${1}, ${1}, \ldots`}, two apart, so no number is within ${1} of both and there is no limit.`,
+    t`For ${math`k > ${1}`}, ${math`k^{n}`} grows without bound, however close ${math`k`} is to ${1}: with ${math`k = ${q(11, 10)}`}, already ${math`k^{${100}} > ${10}^{${4}}`}. For ${math`k < -${1}`}, ${math`|k^{n}| = |k|^{n}`} grows without bound and the signs alternate, so there is no limit. The true statements are those for ${math`k = ${q(9, 10)}`}, ${1}, ${math`-${1}`}, and ${math`-${2}`}.`,
+  ],
+  reference: SS4_TRUE,
+  verify: () => {
+    const wrong = SS4.filter((r) => ss4Holds(r) !== r.holds).map((r) => r.id);
+    if (wrong.length > 0) return `statements ${wrong.join(', ')} misjudged`;
+    return (11 / 10) ** 100 > 1e4 ? null : '1.1^100 is not above 10^4';
+  },
+  misconceptions: [
+    { response: ['a', 'c', 'f'], why: t`For ${math`k = -${1}`} the terms are ${math`${1}, -${1}, ${1}, \ldots`}: they never settle, so it is true that there is no limit.` },
+    { response: ['a', 'b', 'c', 'd', 'f'], why: t`Alternating signs do not stop a sequence converging: ${math`\left(${q(-9, 10)}\right)^{n}`} shrinks to ${0} as its size ${math`\left(${q(9, 10)}\right)^{n}`} does.` },
+    { response: ['a', 'c', 'd', 'e', 'f'], why: t`Any ${math`k > ${1}`} makes ${math`k^{n}`} grow without bound. Small steps up still add up: ${math`\left(${q(11, 10)}\right)^{n} \ge ${1} + \frac{n}{${10}}`}.` },
+  ],
 });
 
 // ---------------------------------------------------------------- lesson
@@ -303,11 +343,11 @@ export const sequenceLimits: TopicContent = {
   generators: [nGen, ratGen, powGen, expGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['limit-of-sequence', 'divergent-sequence'],
-  cambridge: withUses([a15q3, a15q3sup, a15c, a15iv], {
-    'a15-q3-ii-proof': { sections: ['The basic limits'], note: t`A bound by induction and the limit of a recurrence`, needs: ['alg.recurrence-sequences', 'alg.proof-by-induction'] },
-    'a15-q3-ii': { sections: ['The basic limits'], note: t`The limit of a recurrence as a fixed point`, needs: ['alg.recurrence-sequences'] },
+  cambridge: withUses([nstSs4, nstSs4Cases, a15c, a15iv], {
+    'nst-ss4': { sections: ['Getting close and staying close', 'The basic limits'], note: t`The powers of a fixed number, and what they do for large n in every case` },
+    'nst-ss4-cases': { sections: ['Getting close and staying close', 'The basic limits'], note: t`Deciding case by case whether the powers of a number converge, and to what` },
   }),
-  gate: ['a15-q3-ii-proof', 'a15-q3-ii'],
+  gate: ['nst-ss4', 'nst-ss4-cases'],
   recall: [
     { front: t`Define ${math`x_{n} \to a`}.`, back: t`${math`\forall \varepsilon > ${0}\ \exists N\ \forall n \ge N:\ |x_{n} - a| < \varepsilon`}.` },
     { front: t`For which ${math`r`} does ${math`r^{n}`} converge, and to what?`, back: t`For ${math`|r| < ${1}`}, to ${0}; for ${math`r = ${1}`}, to ${1}; otherwise it diverges.` },

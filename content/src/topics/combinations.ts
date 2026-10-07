@@ -1,7 +1,7 @@
 /**
  * comb.combinations: Unordered selections and the binomial coefficient. From IA
  * Probability Example Sheet 1, Q1 (the litter of mice), Q7(a) (a committee containing given
- * people), and Q12 (balls in boxes, checked for n = 2 and 3); Book of Proof Chapter 4,
+ * people), and Q12 (balls in boxes: the general n, and the checks for n = 2 and 3); Book of Proof Chapter 4,
  * exercises 22, 23, and 25; and STEP Support Assignment 12's hints, whose Method 2 counts
  * pairs of sweets with nCr. Sheet 1 has no official solutions; its answers are checked by
  * brute force.
@@ -283,7 +283,6 @@ const q12 = auto({
   solution: [
     t`With ${math`n = ${2}`}: ${math`${2}^{${2}} = ${4}`} equally likely ways; exactly one box is empty when both balls land in the same box, ${2} ways. So ${oneEmpty(2)}.`,
     t`With ${math`n = ${3}`}: ${math`${3}^{${3}} = ${27}`} ways. Choose the empty box (${3} ways), then the three balls fill the other two boxes with neither empty: ${math`${2}^{${3}} - ${2} = ${6}`} ways. So ${math`\frac{${3} \times ${6}}{${27}} = ${oneEmpty(3)}`}.`,
-    t`The general answer, for the sheet, is ${math`\binom{n}{${2}} \frac{n!}{n^{n}}`}: choose the box left empty and the box that gets two balls, then arrange.`,
   ],
   reference: [str(oneEmpty(2)), str(oneEmpty(3))],
   verify: () => {
@@ -292,6 +291,53 @@ const q12 = auto({
     return null;
   },
   misconceptions: [{ response: [str(q(1, 4)), str(q(1, 9))], why: t`Each ball chooses its box independently, so there are ${math`n^{n}`} equally likely outcomes, not ${math`n^{${2}}`}. Count them.` }],
+});
+
+/** Exactly one of n boxes empty when n balls are tossed independently and uniformly, by listing all n^n outcomes. */
+function oneEmptyBrute(n: number): number {
+  let hits = 0;
+  const total = n ** n;
+  for (let code = 0; code < total; code++) {
+    let x = code;
+    const used = new Array<number>(n).fill(0);
+    for (let b = 0; b < n; b++) { used[x % n] = (used[x % n] as number) + 1; x = Math.floor(x / n); }
+    if (used.filter((u) => u === 0).length === 1) hits++;
+  }
+  return hits / total;
+}
+
+const ia12 = auto({
+  id: 'ia1-q12',
+  source: cite('ia-prob-sheet-1', 'Q12'),
+  title: t`Exactly one empty box`,
+  prompt: t`Suppose that ${mn} balls are tossed independently and at random into ${mn} boxes, where ${math`n \ge ${2}`}. What is the probability that exactly one box is empty? Give a formula in ${mn}; you may write ${math`\binom{n}{${2}}`} as C(n, ${2}) and type ${math`n!`} with an exclamation mark, as on a calculator.`,
+  answer: { kind: 'expression', expected: 'choose(n, 2) * factorial(n) / n^n', variables: ['n'], domains: { n: { kind: 'integer', min: 2, max: 9 } }, binomial: true },
+  solution: [
+    t`All ${math`n^{n}`} ways of placing the balls (ball ${1} to some box, ball ${2} to some box, ...) are equally likely.`,
+    t`Exactly one box empty means: one box is empty, one box holds two balls, and every other box holds one. Choose the empty box: ${mn} ways. Choose the box with two: ${math`n - ${1}`} ways. Choose which two balls share it: ${math`\binom{n}{${2}}`} ways.`,
+    t`The remaining ${math`n - ${2}`} balls go one each into the remaining ${math`n - ${2}`} boxes, in order: ${math`(n - ${2})!`} ways.`,
+    t`So the count is ${math`n(n - ${1})\binom{n}{${2}}(n - ${2})! = \binom{n}{${2}}\,n!`}, and the probability is ${dmath`\frac{\binom{n}{${2}}\,n!}{n^{n}}.`} Check: ${math`n = ${2}`} gives ${math`\frac{${1} \times ${2}}{${4}} = \frac{${1}}{${2}}`} (both balls in the same box), and ${math`n = ${3}`} gives ${math`\frac{${3} \times ${6}}{${27}} = \frac{${2}}{${3}}`}.`,
+  ],
+  reference: 'C(n, 2) n!/n^n',
+  verify: () => {
+    for (let n = 2; n <= 6; n++) {
+      const formula = (choose(n, 2) * factorial(n)) / n ** n;
+      if (Math.abs(formula - oneEmptyBrute(n)) > 1e-12) return `n = ${n}: formula ${formula}, brute force ${oneEmptyBrute(n)}`;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: 'n * choose(n, 2) * factorial(n - 2) / n^n', why: t`Choosing the empty box and then the doubled box are two separate choices: ${mn} and then ${math`n - ${1}`}. You have left out one of them.` },
+    { response: 'factorial(n) / n^n', why: t`That is the probability that no box is empty. Exactly one empty box means one box gets two balls.` },
+  ],
+});
+
+const ia12proof = supervision({
+  id: 'ia1-q12-check',
+  source: cite('ia-prob-sheet-1', 'Q12'),
+  title: t`Exactly one empty box, derived`,
+  prompt: t`Derive the probability that exactly one box is empty when ${mn} balls are tossed independently and at random into ${mn} boxes, explaining each factor in your count. Check your answer for ${math`n = ${2}`} and ${math`n = ${3}`} directly, by listing outcomes.`,
+  writeUp: 'proof',
 });
 
 const bop422 = auto({
@@ -395,11 +441,13 @@ export const combinations: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['combination', 'binomial-coefficient'],
   claims,
-  cambridge: withUses([q7a, q12, bop422, bop423, bop425], {
+  cambridge: withUses([q7a, q12, ia12, ia12proof, bop422, bop423, bop425], {
     'q7-a': { sections: ['Order, then forget it', 'Probabilities of selections'], note: t`A probability of a selection as a ratio of binomial coefficients` },
     'q12-check': { sections: ['Probabilities of selections'], note: t`Small cases of a placement probability, counted directly` },
+    'ia1-q12': { sections: ['Values worth knowing', 'Probabilities of selections'], note: t`Counting placements with exactly one empty box, with a binomial coefficient for the shared box` },
+    'ia1-q12-check': { sections: ['Values worth knowing', 'Probabilities of selections'], note: t`Deriving the placement count factor by factor, and checking small cases` },
   }),
-  gate: ['q7-a', 'q12-check'],
+  gate: ['q7-a', 'q12-check', 'ia1-q12', 'ia1-q12-check'],
   recall: [
     { front: t`${binom('n', 'r')} as factorials.`, back: t`${math`\frac{n!}{r!\,(n - r)!}`}: ordered choices ${math`\frac{n!}{(n - r)!}`}, divided by the ${math`r!`} orders.` },
     { front: t`${math`\binom{n}{${2}}`}.`, back: t`${math`\frac{n(n - ${1})}{${2}}`}, the number of pairs.` },

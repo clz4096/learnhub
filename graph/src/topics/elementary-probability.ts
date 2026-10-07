@@ -153,7 +153,7 @@ export const elementaryProbability: Topic[] = [
     summary: 'Find the chance that a repeated experiment ends one way by conditioning on its first step and solving the resulting equations.',
     level: 'step',
     area: 'elementary-probability',
-    prereqs: ['prob.conditional-formula', 'prob.independent-events', 'alg.geometric-sum-to-infinity'],
+    prereqs: ['prob.conditional-formula', 'prob.independent-events', 'alg.geometric-sum-to-infinity', 'comb.binomial-theorem'],
     encompasses: { 'prob.conditional-formula': 0.5, 'prob.independent-events': 0.5, 'alg.geometric-sum-to-infinity': 0.4, 'pre.tree-diagrams': 0.4 },
     sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: `${M1_PROB}, Probability`, note: 'Spec: "Understand and use conditional probability, including the use of tree diagrams". The first-step method is not named; Mixed STEP 1 Statistics Q12 and Q13 teach it.', verified: true }],
     estMinutes: 20,

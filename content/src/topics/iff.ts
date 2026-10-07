@@ -493,7 +493,7 @@ export const iff: TopicContent = {
   cambridge: withUses([bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, sw113, sw122, sw127, tmuaI3], {
     'sw-1-2-7': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
     'sw-1-2-2': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
-    'sw-1-1-3': { sections: ['Proving both directions'], note: t`Proving each direction separately, from what it assumes`, needs: ['pre.algebraic-argument'] },
+    'sw-1-1-3': { sections: ['Proving both directions'], note: t`Proving each direction separately, from what it assumes` },
   }),
   // The two-way proof of 1.1.3. It leans on parity arguments from pre.algebraic-argument, earlier in the book,
   // and says so. 1.2.7 and 1.2.2 need divisibility, taught later, so they are practice. The true-or-false

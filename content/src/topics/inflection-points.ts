@@ -267,7 +267,7 @@ export const inflectionPoints: TopicContent = {
   terms: ['point-of-inflection'],
   cambridge: withUses([nonStationary, stepA, prepQ], {
     'a13-q3-ii-a': { sections: ['Where the bending changes', 'Testing a candidate'], note: t`A point where both derivatives vanish` },
-    'a13-q2-iii': { sections: ['Where the bending changes', 'Testing a candidate'], note: t`Stationary points and inflections of a quartic, then counting roots`, needs: ['calc.stationary-points'] },
+    'a13-q2-iii': { sections: ['Where the bending changes', 'Testing a candidate'], note: t`Stationary points and inflections of a quartic, then counting roots` },
   }),
   gate: ['a13-q3-ii-a', 'a13-q2-iii'],
   recall: [

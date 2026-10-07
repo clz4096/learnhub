@@ -12,7 +12,7 @@ export const limitTheorems: Topic[] = [
     summary: 'Bound $P(X \\ge a) \\le E(X)/a$ for $X \\ge 0$, and $P(|X - \\mu| \\ge c) \\le \\mathrm{Var}(X)/c^2$.',
     level: 'tripos-ia',
     area: 'limit-theorems',
-    prereqs: ['rv.expectation-general'],
+    prereqs: ['rv.expectation-general', 'prob.poisson-distribution'],
     encompasses: { 'rv.expectation-general': 0.6, 'rv.variance': 0.5 },
     sources: [{ doc: TRIPOS, course: IA_PROB_PART_V, section: IA_INEQUALITIES, note: 'Schedule: "Markov\'s inequality, Chebyshev\'s inequality."', verified: true }],
     estMinutes: 15,

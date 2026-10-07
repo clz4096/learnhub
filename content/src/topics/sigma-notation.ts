@@ -519,7 +519,7 @@ export const sigmaNotation: TopicContent = {
     'step95-q3-iii': { sections: ['Sigma notation', 'Rules for manipulating sums'], note: t`Splitting an alternating sum into all terms minus twice the even ones` },
     'sw-4-3-2-d': { sections: ['Telescoping'], note: t`Telescoping power sums, then induction on the power`, needs: ['proof.strong-induction', 'comb.binomial-theorem'] },
     'step95-q3-iii-sum': { sections: ['Sigma notation', 'Rules for manipulating sums'], note: t`Splitting an alternating sum and simplifying to a product` },
-    'step05-q7-ii': { sections: ['Telescoping'], note: t`Factorising each term and cancelling across a product`, needs: ['pre.fractions'] },
+    'step05-q7-ii': { sections: ['Telescoping'], note: t`Factorising each term and cancelling across a product` },
   }),
   // Best first: STEP I 1995 Q3(iii) (an alternating sum of cubes; parts (i) and (ii), the telescoping sum and the sum
   // of cubes, are in the lesson and its practice), then the auto-checked 1995 Q3(iii) and STEP I 2005 Q7(ii), which cancels

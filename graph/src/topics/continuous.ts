@@ -17,7 +17,7 @@ export const continuous: Topic[] = [
     summary: 'Find probabilities as areas under a density $f$, with $\\int_{-\\infty}^{\\infty} f(x) \\, dx = 1$, and relate $f$ to the distribution function by $f = F\'$.',
     level: 'step',
     area: 'continuous',
-    prereqs: ['prob.discrete-distributions', 'calc.improper-integrals'],
+    prereqs: ['prob.discrete-distributions', 'calc.improper-integrals', 'calc.integration-by-parts'],
     encompasses: { 'calc.improper-integrals': 0.5, 'calc.definite-integrals': 0.6, 'prob.discrete-distributions': 0.3 },
     sources: [{ doc: STEP, course: 'STEP Mathematics 2', section: M2_PROB_DIST, note: M2_DENSITIES, verified: true }],
     estMinutes: 20,

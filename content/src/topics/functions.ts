@@ -275,7 +275,7 @@ export const functionsTopic: TopicContent = {
   terms: ['function-domain-range', 'composite-function', 'inverse-function', 'periodic-function'],
   cambridge: withUses([a16ii, a16v, a21], {
     'a21-q1': { sections: ['Functions defined in other ways'], note: t`Proving identities for two functions from their definitions` },
-    'a16-q1-v': { sections: ['Functions defined in other ways'], note: t`Finding functions that satisfy an equation, one of them a logarithm`, needs: ['alg.exp-and-ln'] },
+    'a16-q1-v': { sections: ['Functions defined in other ways'], note: t`Finding functions that satisfy an equation, one of them a logarithm` },
     'a16-q1-ii': { sections: ['Composites and inverses', 'Functions defined in other ways'], note: t`Recovering a function from its value at a square` },
   }),
   gate: ['a21-q1', 'a16-q1-v', 'a16-q1-ii'],

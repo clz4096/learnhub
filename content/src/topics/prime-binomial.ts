@@ -234,7 +234,7 @@ export const primeBinomial: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['prime-divides-binomial'],
   cambridge: withUses([cor85, bop421, lemma27], {
-    'notes-116-lemmas-27-29': { sections: ['The theorem', 'Why the prime matters'], note: t`The ends of a row and the inner coefficients, case by case`, needs: ['num.congruence'] },
+    'notes-116-lemmas-27-29': { sections: ['The theorem', 'Why the prime matters'], note: t`The ends of a row and the inner coefficients, case by case` },
   }),
   // The notes' proof by cases. Corollary 85 with numbers is a division sum, and Book of Proof is not Cambridge standard.
   gate: ['notes-116-lemmas-27-29'],

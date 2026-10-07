@@ -295,7 +295,7 @@ export const reciprocalFunctions: TopicContent = {
   terms: ['reciprocal-trig'],
   cambridge: withUses([a25iii, t3, t2, a24b], {
     'nst-t2': { sections: ['Three more names', 'The Pythagorean identities'], note: t`Proving an identity with cosecant and cotangent` },
-    'nst-t3-iii': { sections: ['Three more names'], note: t`An exact cotangent from a difference of angles`, needs: ['trig.compound-angles'] },
+    'nst-t3-iii': { sections: ['Three more names'], note: t`An exact cotangent from a difference of angles` },
   }),
   gate: ['nst-t2', 'nst-t3-iii'],
   recall: [

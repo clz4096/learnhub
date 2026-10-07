@@ -49,7 +49,7 @@ export const logic: Topic[] = [
     summary: 'Say whether a condition is necessary, sufficient, or both, and prove an if and only if in both directions.',
     level: 'step',
     area: 'logic',
-    prereqs: ['logic.implication'],
+    prereqs: ['logic.implication', 'pre.algebraic-argument'],
     encompasses: { 'logic.implication': 0.7 },
     sources: [
       {

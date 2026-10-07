@@ -178,12 +178,12 @@ const GATE_KEY = `pre.fractions/${gateOf('pre.fractions')[0] as string}`;
 describe('status and the hub summary', () => {
   it('counts mastered topics (drills passed and the gate met) in the closure of the chosen courses', () => {
     let p = ensureSession(fresh(), T0);
-    expect(hubSummary(p, T0)).toMatchObject({ done: 0, total: 101 });
+    expect(hubSummary(p, T0)).toMatchObject({ done: 0, total: 110 });
     p = completeLesson(p, 'pre.fractions', true, T0, 0, 15, 'ia-probability');
     // Drills alone: learned, not mastered.
-    expect(hubSummary(p, T0)).toMatchObject({ done: 0, total: 101 });
+    expect(hubSummary(p, T0)).toMatchObject({ done: 0, total: 110 });
     p = recordCambridgeAnswer(p, GATE_KEY, true, { hints: 0, ms: 60_000 }, T0 + 1);
-    expect(hubSummary(p, T0)).toMatchObject({ done: 1, total: 101 });
+    expect(hubSummary(p, T0)).toMatchObject({ done: 1, total: 110 });
     expect(hubSummary({ ...p, courses: ['cst-discrete-maths'] }, T0)).toMatchObject({ done: 1, total: closureOf(['cst-discrete-maths']).size });
     expect(hubSummary({ ...p, courses: [] }, T0)).toBeNull();
   });

@@ -31,7 +31,7 @@ export const coordinateGeometry: Topic[] = [
     summary: 'Write a circle as $(x - a)^2 + (y - b)^2 = r^2$, and find its centre and radius by completing the square.',
     level: 'a-level',
     area: 'coordinate-geometry',
-    prereqs: ['geom.straight-lines', 'pre.quadratic-equations'],
+    prereqs: ['geom.straight-lines', 'pre.quadratic-equations', 'trig.right-triangle'],
     encompasses: { 'geom.straight-lines': 0.4, 'pre.quadratic-equations': 0.4 },
     sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: M1_COORDINATES, note: 'Spec: "the coordinate geometry of the circle including using the equation of a circle in the form (x - a)^2 + (y - b)^2 = r^2; completing the square to find the centre and radius".', verified: true }],
     estMinutes: 15,
@@ -75,7 +75,7 @@ export const coordinateGeometry: Topic[] = [
     summary: 'Add and scale vectors in two and three dimensions, find magnitudes, and use the scalar product for angles and perpendicularity.',
     level: 'a-level',
     area: 'coordinate-geometry',
-    prereqs: ['geom.3d-coordinates'],
+    prereqs: ['geom.3d-coordinates', 'trig.radians-and-graphs'],
     encompasses: { 'geom.3d-coordinates': 0.5 },
     sources: [
       { doc: STEP, course: 'STEP Mathematics 1', section: M1_VECTORS, note: 'Spec: "Calculate the magnitude and direction of a vector" and "Add vectors diagrammatically and perform the algebraic operations of vector addition and multiplication by scalars".', verified: true },
