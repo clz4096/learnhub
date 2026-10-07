@@ -11,6 +11,7 @@ import {
 } from './campaignCalendar';
 import { INTERVIEW_HEADER, PAPER_HEADER, interviewPacket, paperPacket } from './campaignPackets';
 import { planFor, parseClock } from './day';
+import { standupFixed } from './standupStore';
 
 const T0 = Date.UTC(2026, 9, 5, 14);
 const LESSONS_DONE = { lessons: { mastered: 10, total: 10 } };
@@ -261,7 +262,9 @@ describe('the calendar', () => {
   it('takes the pace from the hours ticked off in the planner, or the 36-hour target with none', () => {
     const today = '2026-10-05';
     expect(pace({}, today)).toEqual({ hoursPerWeek: TARGET_WEEK_HOURS, logged: false });
-    const plan = planFor(today, parseClock('09:00') as number);
+    // The plan the planner shows: the standup is in it, and the blocks move around it.
+    const plan = planFor(today, parseClock('09:00') as number, standupFixed(today));
+    expect(plan.slots.some((s) => s.kind === 'meeting')).toBe(true);
     const study = plan.slots.filter((s) => s.kind === 'study');
     const ticks = study.map((s) => s.start);
     const minutes = study.reduce((a, s) => a + s.end - s.start, 0);

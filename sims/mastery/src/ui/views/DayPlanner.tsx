@@ -12,19 +12,20 @@
  * day's tasks to the session.
  */
 import { useEffect, useState } from 'preact/hooks';
-import type { ComponentChildren } from 'preact';
+import { Fragment, type ComponentChildren } from 'preact';
 import type { Progress } from '@learnhub/mastery';
 import {
   CORE, GET_GOING, addDays, clockValue, fmtLong, isDate, parseClock, planDate,
-  replanDay, sunsetMinutes, weekdayOf, type FixedBlock, type Slot,
+  replanDay, restDaysOf, sunsetMinutes, weekdayOf, type FixedBlock, type Slot,
 } from '@/model/day';
+import { isYomTov } from '@/model/holidays';
 import { loadDays, saveDay, type DayEntry, type DayLog } from '@/model/dayLog';
 import { learnerSynced } from '@/model/learnerChange';
 import { replanDayTasks, withDayTasks, type DayItem } from '@/model/dayQueue';
 import { planMore } from '@/model/learner';
 import { go, hrefOf, type Route } from '@/model/route';
 import { commit, now } from '@/model/store';
-import { DEFAULT_WAKE, WEEK_TARGET_HOURS, budgetFor, dayView, weekMinutes, type Next } from '@/ui/views/dayView';
+import { DEFAULT_WAKE, WEEK_TARGET_HOURS, budgetFor, dayView, weekMinutes, yomTovOfWeek, type Next } from '@/ui/views/dayView';
 import type { LadderSuggestion } from '@/ui/ladderShared';
 
 const KIND: Record<DayItem['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz', redo: 'Supervision redo', mixed: 'Blind mixed review' };
@@ -56,6 +57,7 @@ function kinds(items: readonly DayItem[]): string {
 export const dayTitle = (date: string): string => longDate(date, { weekday: 'long' });
 
 function slotLabel(s: Slot): string {
+  if (s.kind === 'meeting') return 'Meeting';
   if (s.fixed !== undefined) return 'Timed work';
   if (s.kind === 'study') return s.heavy ? 'Core study' : 'Core study, light';
   if (s.kind === 'optional') return 'Optional';
@@ -183,6 +185,8 @@ export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog, ladder = n
   const dow = weekdayOf(date);
   const fri = dow === 6 ? addDays(date, -1) : addDays(date, 5 - dow);
   const sat = addDays(fri, 1);
+  const rest = restDaysOf(date);
+  const yomTov = yomTovOfWeek(date);
   const shortDate: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' };
 
   const week = weekMinutes(log, date, fixed);
@@ -238,7 +242,14 @@ export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog, ladder = n
           const canCheck = study || s.kind === 'gym';
           const st = state(s.start, s.end);
           let body: ComponentChildren;
-          if (s.fixed !== undefined) {
+          if (s.kind === 'meeting') {
+            body = (
+              <>
+                <div class="it">{s.fixed?.to !== undefined ? <RouteLink to={s.fixed.to} cls="d-item"><span class="d-item-title">{s.title}</span></RouteLink> : s.title}</div>
+                <div class="sub">{len} min{s.detail !== '' ? ` · ${s.detail}` : ''}</div>
+              </>
+            );
+          } else if (s.fixed !== undefined) {
             body = (
               <>
                 <div class="it">{s.fixed.to !== undefined ? <RouteLink to={s.fixed.to} cls="d-item"><span class="d-item-title">{s.title}</span></RouteLink> : s.title}</div>
@@ -266,7 +277,7 @@ export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog, ladder = n
             body = <><div class="it">{s.title}</div>{s.detail !== '' && <div class="sub">{s.detail}</div>}</>;
           }
           return (
-            <li key={s.start} class={`${study ? 'study' : 'quiet'}${s.kind === 'optional' ? ' opt' : ''}${done ? ' ticked' : ''}${st}`}>
+            <li key={s.start} class={`${study ? 'study' : 'quiet'}${s.kind === 'meeting' ? ' meet' : ''}${s.kind === 'optional' ? ' opt' : ''}${done ? ' ticked' : ''}${st}`}>
               <span class="t">{fmtLong(s.start)}</span>
               <span class="n" />
               <div class="w">
@@ -292,8 +303,10 @@ export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog, ladder = n
         <li class={`end quiet${isToday && nowMin >= plan.stop ? ' now' : ''}`}>
           <span class="t">{fmtLong(plan.stop)}</span><span class="n" />
           <div class="w">
-            <div class="it">{dow === 5 ? 'Shabbat begins' : 'Wind down · bed at 1:00 am'}</div>
-            {dow === 5 && <div class="sub">Nothing scheduled until Saturday sundown</div>}
+            <div class="it">{rest.tomorrow !== null ? `${rest.tomorrow} begins` : 'Wind down · bed at 1:00 am'}</div>
+            {rest.tomorrow !== null && (
+              <div class="sub">{rest.tomorrow === 'Shabbat' && rest.today === null ? 'Nothing scheduled until Saturday sundown' : 'Nothing scheduled until it ends at sundown'}</div>
+            )}
           </div>
         </li>
       </ol>
@@ -364,7 +377,7 @@ export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog, ladder = n
         <div class="sec-h"><h2 id="this-week">This week</h2><span>{hours(weekTotal)} of {WEEK_TARGET_HOURS} h</span></div>
         <ol class="d-week">
           {week.map((d, i) => (
-            <li key={d.date} class={`${d.date === date ? 'cur' : ''}${i === 6 ? ' shab' : ''}`}>
+            <li key={d.date} class={`${d.date === date ? 'cur' : ''}${i === 6 || isYomTov(d.date) ? ' shab' : ''}`}>
               <span class="col" aria-hidden="true">
                 {d.minutes > 0 && <i style={{ height: `${Math.min(100, (100 * d.minutes) / 60 / BAR_MAX_HOURS)}%` }} />}
                 <span class="tgt" style={{ bottom: `${(100 * CORE) / 60 / BAR_MAX_HOURS}%` }} />
@@ -374,7 +387,7 @@ export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog, ladder = n
             </li>
           ))}
         </ol>
-        <p class="d-small">Hours ticked off in this browser. The line marks the 6-hour day. Saturday is Shabbat.</p>
+        <p class="d-small">Hours ticked off in this browser. The line marks the 6-hour day. Saturday is Shabbat{yomTov.length > 0 ? '; yom tov days are marked too' : ''}.</p>
       </section>
 
       <section class="sec" aria-labelledby="shabbat">
@@ -382,6 +395,12 @@ export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog, ladder = n
         <ul class="ruled d-shab">
           <li><span>Begins {longDate(fri, shortDate)}</span><span class="r">{fmtLong(sunsetMinutes(fri))}</span></li>
           <li><span>Ends {longDate(sat, shortDate)}</span><span class="r">{fmtLong(sunsetMinutes(sat))}</span></li>
+          {yomTov.map((y) => (
+            <Fragment key={y.first}>
+              <li class="yt"><span>{y.name} begins {longDate(y.eve, shortDate)}</span><span class="r">{fmtLong(y.begins)}</span></li>
+              <li class="yt"><span>{y.name} ends {longDate(y.last, shortDate)}</span><span class="r">{fmtLong(y.ends)}</span></li>
+            </Fragment>
+          ))}
         </ul>
         <p class="d-small">Brooklyn sundown, computed on this device. Nothing is scheduled in between.</p>
       </section>

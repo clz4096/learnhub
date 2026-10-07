@@ -17,7 +17,7 @@ import { BOOK, placeOf } from '@learnhub/content/book';
 import { hereChapter } from '@/model/book';
 import { prefetchContent } from '@/model/content';
 import { shortName, titleOf } from '@/model/courses';
-import { CORE, fmtLong, planDate, type Slot } from '@/model/day';
+import { CORE, addDays, fmtLong, planDate, sunsetMinutes, type Slot } from '@/model/day';
 import { loadDays, type DayLog } from '@/model/dayLog';
 import { learnerSynced } from '@/model/learnerChange';
 import { withDayTasks, type DayItem } from '@/model/dayQueue';
@@ -33,8 +33,14 @@ import { campaignUnlockLine, ladderSuggestion } from '@/ui/ladderShared';
 import { ensureLadder } from '@/model/ladderStore';
 import { ContinueReading } from '@/ui/views/Book';
 import { DayPlanner } from '@/ui/views/DayPlanner';
-import { WEEK_TARGET_HOURS, dayView, shabbatOf, streakDays, weekMinutes, type DayView } from '@/ui/views/dayView';
+import { WEEK_TARGET_HOURS, dayView, shabbatOf, streakDays, weekMinutes, yomTovOfWeek, type DayView } from '@/ui/views/dayView';
+import { yomTovOf } from '@/model/holidays';
 import { stageOf } from '@/ui/views/stages';
+import { STANDUP_LENGTH, isStandupDay } from '@/model/standup';
+import { standup, withStandup } from '@/model/standupStore';
+
+/** The day's fixed blocks: the cohort's standup, pinned at its time, then the campaign's timed work. */
+const dayFixed = withStandup(campaignFixedFor);
 
 const KIND: Record<SessionTask['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz' };
 const ITEM_KIND: Record<DayItem['kind'], string> = { lesson: 'Lesson', review: 'Review', quiz: 'Quiz', redo: 'Supervision redo', mixed: 'Blind mixed review' };
@@ -57,6 +63,7 @@ const hours = (m: number): string => {
   return Number.isInteger(h) ? String(h) : h.toFixed(1);
 };
 const upper = (m: number): string => fmtLong(m).toUpperCase();
+const weekday = (date: string): string => new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
 
 /** The clock, to the second; only this re-renders each second. Not announced, so a screen reader is not interrupted. */
 function LiveClock() {
@@ -114,6 +121,7 @@ function chapterOfItem(p: Progress, x: DayItem): string | null {
 /** What a block holds, as a card: its first open item, the gym, a timed paper, or a meal. */
 function cardOf(p: Progress, v: DayView, s: Slot): Card | null {
   const len = s.end - s.start;
+  if (s.kind === 'meeting') return { slot: s, title: s.title, meta: `${s.detail !== '' ? s.detail : 'Meeting'}`, to: s.fixed?.to ?? null, forecast: false };
   if (s.fixed !== undefined) return { slot: s, title: s.title, meta: `Timed work · ${len} min`, to: s.fixed.to ?? null, forecast: false };
   if (s.kind === 'gym') return { slot: s, title: 'Gym', meta: `gym mode · ${len} min`, to: { view: 'gym' }, forecast: false };
   if (s.kind === 'meal') return { slot: s, title: s.title, meta: `${len} min`, to: null, forecast: false };
@@ -132,6 +140,8 @@ function nowCard(p: Progress, v: DayView): Card | null {
   const ahead = v.plan.slots.filter((s) => s.kind !== 'break' && s.end > v.nowMin && !v.ticks.has(s.start));
   for (const s of ahead) {
     if (s.kind === 'meal') continue;
+    // A standup already given has nothing left to start.
+    if (s.kind === 'meeting' && standup.peek().attended.includes(v.date)) continue;
     const c = cardOf(p, v, s);
     if (c !== null && c.to !== null) return c;
   }
@@ -139,6 +149,40 @@ function nowCard(p: Progress, v: DayView): Card | null {
   const x = v.left.find((y) => !y.done);
   if (x !== undefined) return { slot: null, title: x.title, meta: ITEM_KIND[x.kind], to: x.to, forecast: x.forecast };
   return null;
+}
+
+/** On a yom tov or its eve: when the rest begins or ends (Brooklyn sundown). */
+function RestLine({ date, nowMin }: { date: string; nowMin: number }) {
+  const sunset = sunsetMinutes(date);
+  const today = yomTovOf(date);
+  const tomorrow = yomTovOf(addDays(date, 1));
+  const text = today !== null && nowMin < sunset
+    ? <>{today}: a rest day until sundown, <b>{fmtLong(sunset)}</b>. Nothing is planned before then.</>
+    : tomorrow !== null
+      ? <>{tomorrow} begins at sundown, <b>{fmtLong(sunset)}</b>. Nothing is planned after it.</>
+      : null;
+  if (text === null) return null;
+  return (
+    <p class="ds-sceneline ds-restline">
+      <span class="ds-dot" aria-hidden="true" />
+      <span>{text}</span>
+    </p>
+  );
+}
+
+/** "Standup at 10:00 am" on a day with one, with where it stands; a link to the standup. */
+function StandupLine({ date, nowMin }: { date: string; nowMin: number }) {
+  const st = standup.value;
+  if (!isStandupDay(date, st)) return null;
+  const end = st.minutes + STANDUP_LENGTH;
+  const state = st.attended.includes(date) ? 'done' : nowMin < st.minutes ? '' : nowMin < end ? 'on now' : 'missed';
+  return (
+    <Go to={{ view: 'standup' }} cls={`ds-sceneline ds-standupline${state === 'missed' ? ' missed' : ''}`}>
+      <span class="ds-dot" aria-hidden="true" />
+      <span>Standup at {fmtLong(st.minutes)}{state === '' ? '' : <> · <b>{state}</b></>}</span>
+      <span class="ds-go" aria-hidden="true">open ›</span>
+    </Go>
+  );
 }
 
 function Header({ p, v, log }: { p: Progress; v: DayView; log: DayLog }) {
@@ -156,10 +200,10 @@ function Header({ p, v, log }: { p: Progress; v: DayView; log: DayLog }) {
   const later = v.plan.slots.filter((s) => s.kind !== 'break' && s.start > (nowSlot?.start ?? v.nowMin) && s !== nowSlot && s.end > v.nowMin);
   const st = story.value;
   const ready = playing.value === null ? st.queued.map((q) => sceneById(q.id)).find((s) => s !== undefined && s.script !== null) : undefined;
-  const wk = weekMinutes(log, v.date, campaignFixedFor).reduce((a, d) => a + d.minutes, 0);
+  const wk = weekMinutes(log, v.date, dayFixed).reduce((a, d) => a + d.minutes, 0);
   const pct = Math.min(100, Math.round((100 * wk) / 60 / WEEK_TARGET_HOURS));
   const sh = shabbatOf(v.date);
-  const streak = streakDays(p, log, t, campaignFixedFor);
+  const streak = streakDays(p, log, t, dayFixed);
   const isCur = nowSlot !== null && v.cur === nowSlot;
   // Before the campaign's exam topics are ready no paper is planned; say what unlocks the first timed question.
   const unlock = campaignUnlockLine();
@@ -198,6 +242,8 @@ function Header({ p, v, log }: { p: Progress; v: DayView; log: DayLog }) {
             )}
         </section>
         {unlock !== null && <p class="ds-note ds-unlock">{unlock}</p>}
+        <RestLine date={v.date} nowMin={v.nowMin} />
+        <StandupLine date={v.date} nowMin={v.nowMin} />
         {ready !== undefined && (
           <button type="button" class="ds-sceneline" onClick={() => { playing.value = { id: ready.id, auto: false }; }}>
             <span class="ds-dot" aria-hidden="true" />
@@ -216,7 +262,7 @@ function Header({ p, v, log }: { p: Progress; v: DayView; log: DayLog }) {
                   const len = s.end - s.start;
                   const items = v.fill.get(s) ?? [];
                   const title = c?.title ?? (s.kind === 'optional' ? 'Light study' : 'Study');
-                  const sub = s.kind === 'meal' ? '' : s.kind === 'study' || s.kind === 'optional'
+                  const sub = s.kind === 'meal' ? '' : s.kind === 'meeting' ? `${len} min` : s.kind === 'study' || s.kind === 'optional'
                     ? (s.fixed !== undefined ? `timed work · ${len} min` : `${items.length === 0 ? 'nothing planned yet' : `${items.length} ${items.length === 1 ? 'item' : 'items'}`} · ${len} min`)
                     : c?.meta ?? '';
                   const body = (
@@ -245,6 +291,12 @@ function Header({ p, v, log }: { p: Progress; v: DayView; log: DayLog }) {
           <i style={{ width: `${pct}%` }} />
         </div>
         <div class="ds-sect"><div class="ds-eyebrow">Shabbat</div><div class="ds-meta">Fri {fmtLong(sh.begins)} to Sat {fmtLong(sh.ends)}</div></div>
+        {yomTovOfWeek(v.date).map((y) => (
+          <div key={y.first} class="ds-sect">
+            <div class="ds-eyebrow">{y.name}</div>
+            <div class="ds-meta">{weekday(y.eve)} {fmtLong(y.begins)} to {weekday(y.last)} {fmtLong(y.ends)}</div>
+          </div>
+        ))}
         <div class="ds-sect"><div class="ds-eyebrow">Streak</div><div class="ds-h1 ds-streak">{streak} {streak === 1 ? 'day' : 'days'}</div></div>
       </aside>
     </div>
@@ -288,12 +340,12 @@ export function Today() {
   }, []);
 
   if (p === null) return <p class="page">Planning today.</p>;
-  const planner = <DayPlanner p={p} fixed={campaignFixedFor} log={log} onLog={setLog} ladder={ladderSuggestion()} />;
+  const planner = <DayPlanner p={p} fixed={dayFixed} log={log} onLog={setLog} ladder={ladderSuggestion()} />;
   if (p.session === null || p.session.day !== today) return <section class="ds-page">{planner}<p class="page">Planning today.</p></section>;
   const s = p.session;
   const time = sessionTime(s);
   const nextIndex = s.tasks.findIndex((t) => !t.done);
-  const v = dayView(p, log, planDate(now()), now(), campaignFixedFor);
+  const v = dayView(p, log, planDate(now()), now(), dayFixed);
 
   return (
     <section class="ds-page ds-today" aria-labelledby="now-title">

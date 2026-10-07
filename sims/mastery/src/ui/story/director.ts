@@ -12,6 +12,9 @@
  *
  * Exam Temperament reads timed papers, which also need the registry to mark: it loads too
  * while a temperament beat is unseen and this browser holds timed work.
+ *
+ * The cohort's beats read the cohort's events (cohortStory.ts): classmates' news by the
+ * date, and the standups Albert missed since this browser first counted them.
  */
 import { useEffect } from 'preact/hooks';
 import { activeSitting, acts, deliverLetters, lettersDue } from '@/model/campaign';
@@ -26,6 +29,19 @@ import { SCENES } from '@/model/storyScenes';
 import { storyFacts } from '@/model/storyFacts';
 import { playing, saveStory, story } from '@/model/storyStore';
 import { admissions, loadAdmissions } from '@/ui/campaignShared';
+import { addDays, planDate, planMinute } from '@/model/day';
+import { cohortEvents } from '@/model/cohortStory';
+import { STANDUP_LENGTH } from '@/model/standup';
+import { countFrom, ensureSince, standup } from '@/model/standupStore';
+
+/** The cohort's events now; the first run sets the day missed standups count from (tomorrow when today's is over). */
+function cohortNow(t: number): string[] {
+  const today = planDate(t);
+  const nowMin = planMinute(t);
+  ensureSince(nowMin < standup.peek().minutes + STANDUP_LENGTH ? today : addDays(today, 1));
+  const sd = standup.peek();
+  return cohortEvents({ p: progress.peek(), today, nowMin, settings: sd, attended: new Set(sd.attended), since: countFrom(sd, today) });
+}
 
 const CAMPAIGN_TRIGGERS: ReadonlySet<string> = new Set(['act', 'letter', 'confirmed']);
 
@@ -55,7 +71,7 @@ export function directStory(r: Route): string | null {
       saveCampaign(c);
     }
   }
-  const f = storyFacts(p, c, loadDays(), now(), adm, adm === null ? [] : peekLadder(adm));
+  const f = { ...storyFacts(p, c, loadDays(), now(), adm, adm === null ? [] : peekLadder(adm)), cohort: cohortNow(now()) };
   const next = enqueue(st, newlyDue(SCENES, st, f), f, now());
   if (next !== st) saveStory(next);
   if (playing.peek() !== null) return null;
@@ -70,7 +86,8 @@ export function useStoryDirector(ready: boolean, r: Route, href: string): void {
   const c = campaign.value;
   const adm = admissions.value;
   const open = playing.value !== null;
+  const sd = standup.value;
   useEffect(() => {
     if (ready) directStory(r);
-  }, [ready, p, c, adm, href, open]);
+  }, [ready, p, c, adm, href, open, sd]);
 }

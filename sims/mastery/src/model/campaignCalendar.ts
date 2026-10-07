@@ -15,6 +15,7 @@
 import type { RegistryPaper } from '@learnhub/content/admissions';
 import { addDays, parseClock, planFor, tickedMinutes, weekOf } from './day';
 import type { DayLog } from './dayLog';
+import { standupFixed } from './standupStore';
 import {
   FINAL_A_LEVEL_PAPERS, marked, subjectOf,
   type Act, type Admissions, type Campaign, type EffectRule, type Subject, type TmuaSitting,
@@ -90,7 +91,8 @@ export function pace(log: DayLog, today: string, days = PACE_DAYS): Pace {
 function dayMinutes(log: DayLog, date: string): number {
   const e = log[date];
   const w = e === undefined ? null : parseClock(e.wake);
-  return e === undefined || w === null ? 0 : tickedMinutes(planFor(date, w), e.ticks);
+  // The standup moves the blocks around it, so the plan the ticks name has it in.
+  return e === undefined || w === null ? 0 : tickedMinutes(planFor(date, w, standupFixed(date)), e.ticks);
 }
 
 /** Hours ticked off this week (Sunday to Saturday). */

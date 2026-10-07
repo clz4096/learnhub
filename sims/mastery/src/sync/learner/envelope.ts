@@ -7,7 +7,8 @@
  * choice and result was set, and what was removed. `mergeLearner` is the product of the
  * parts' merges, each a join (idempotent, commutative, associative), so devices end with
  * the same envelope whatever order their copies meet in. The rules are in each part's
- * file: campaign.ts, story.ts, day.ts, ladder.ts, current.ts, lesson.ts.
+ * file: campaign.ts, story.ts, day.ts, ladder.ts, current.ts, lesson.ts, standup.ts,
+ * standupCfg.ts.
  *
  * Older builds read the progress document and ignore the `learner` key (an unknown field
  * is a warning, not an error), so a row or a file with an envelope still opens there.
@@ -16,11 +17,14 @@
  * envelope without them reads as having none, and a build before them reads the envelope
  * and ignores the field (it reads parts by name), so neither side refuses the other. Such a
  * build drops the field when it pushes; each device keeps its own copy and puts it back.
+ * Standups (`standup`) and their settings (`standupCfg`) joined the same way.
  */
 import type { Campaign } from '@/model/campaign';
 import type { DayLog } from '@/model/dayLog';
 import type { LadderAttempt } from '@/model/ladder';
 import type { MixedSitting } from '@/model/mixedReview';
+import type { StandupLog } from '@/model/standupLog';
+import type { StandupSettings } from '@/model/standupSettings';
 import type { StoryState } from '@/model/story';
 import {
   emptyCampaignSync, mergeCampaign, normalizeCampaign, observeCampaign, parseCampaignSync, type CampaignSync,
@@ -33,6 +37,13 @@ import { dayLogOf, emptyDaySync, mergeDay, normalizeDay, observeDay, parseDaySyn
 import { canonicalJson, isObj } from './join';
 import { emptyLadderSync, mergeLadder, normalizeLadder, observeLadder, parseLadderSync, type LadderSync } from './ladder';
 import { emptyLessonSync, lessonValuesOf, mergeLesson, normalizeLesson, observeLesson, parseLessonSync, type LessonSync, type LessonValues } from './lesson';
+import {
+  emptyStandupSync, mergeStandup, normalizeStandup, observeStandup, parseStandupSync, standupLogOf, type StandupSync,
+} from './standup';
+import {
+  emptyStandupCfgSync, mergeStandupCfg, normalizeStandupCfg, observeStandupCfg, parseStandupCfgSync, standupSettingsOf,
+  type StandupCfgSync,
+} from './standupCfg';
 import { emptyStorySync, mergeStory, normalizeStory, observeStory, parseStorySync, type StorySync } from './story';
 
 export const LEARNER_VERSION = 1;
@@ -46,6 +57,8 @@ export interface LearnerState {
   mixed: MixedSync;
   flags: FlagsSync;
   lesson: LessonSync;
+  standup: StandupSync;
+  standupCfg: StandupCfgSync;
 }
 
 /** The parts as the app's stores keep them. */
@@ -57,14 +70,17 @@ export interface LearnerValues {
   mixed: MixedSitting | null;
   flags: Record<string, string[]>;
   lesson: LessonValues;
+  standup: StandupLog;
+  standupCfg: StandupSettings;
 }
 
-export const LEARNER_PARTS = ['campaign', 'story', 'day', 'ladder', 'mixed', 'flags', 'lesson'] as const;
+export const LEARNER_PARTS = ['campaign', 'story', 'day', 'ladder', 'mixed', 'flags', 'lesson', 'standup', 'standupCfg'] as const;
 
 export function emptyLearner(): LearnerState {
   return {
     version: LEARNER_VERSION, campaign: emptyCampaignSync(), story: emptyStorySync(), day: emptyDaySync(),
     ladder: emptyLadderSync(), mixed: emptyMixedSync(), flags: emptyFlagsSync(), lesson: emptyLessonSync(),
+    standup: emptyStandupSync(), standupCfg: emptyStandupCfgSync(),
   };
 }
 
@@ -72,6 +88,7 @@ export function normalizeLearner(s: LearnerState): LearnerState {
   return {
     version: LEARNER_VERSION, campaign: normalizeCampaign(s.campaign), story: normalizeStory(s.story), day: normalizeDay(s.day),
     ladder: normalizeLadder(s.ladder), mixed: s.mixed, flags: s.flags, lesson: normalizeLesson(s.lesson),
+    standup: normalizeStandup(s.standup), standupCfg: normalizeStandupCfg(s.standupCfg),
   };
 }
 
@@ -86,6 +103,8 @@ export function mergeLearner(a: LearnerState, b: LearnerState): LearnerState {
     mixed: mergeMixed(a.mixed, b.mixed),
     flags: mergeFlags(a.flags, b.flags),
     lesson: mergeLesson(a.lesson, b.lesson),
+    standup: mergeStandup(a.standup, b.standup),
+    standupCfg: mergeStandupCfg(a.standupCfg, b.standupCfg),
   };
 }
 
@@ -113,6 +132,8 @@ export function observeLearner(s: LearnerState, v: LearnerValues, now: number): 
     mixed: observeMixed(s.mixed, v.mixed, now),
     flags: observeFlags(s.flags, v.flags, now),
     lesson: observeLesson(s.lesson, v.lesson, now),
+    standup: observeStandup(s.standup, v.standup),
+    standupCfg: observeStandupCfg(s.standupCfg, v.standupCfg, now),
   };
 }
 
@@ -126,6 +147,8 @@ export function learnerValues(s: LearnerState): LearnerValues {
     mixed: s.mixed.value,
     flags: flagsOf(s.flags),
     lesson: lessonValuesOf(s.lesson),
+    standup: standupLogOf(s.standup),
+    standupCfg: standupSettingsOf(s.standupCfg),
   };
 }
 
@@ -149,13 +172,19 @@ export function parseLearner(x: unknown): LearnerParse {
   const mixed = parseMixedSync(x.mixed);
   const flags = parseFlagsSync(x.flags);
   const lesson = parseLessonSync(x.lesson);
+  const standup = parseStandupSync(x.standup);
+  const standupCfg = parseStandupCfgSync(x.standupCfg);
   const bad = [
     campaign === null && 'campaign', story === null && 'story', day === null && 'day', ladder === null && 'ladder',
-    mixed === null && 'mixed', flags === null && 'flags', lesson === null && 'lesson',
+    mixed === null && 'mixed', flags === null && 'flags', lesson === null && 'lesson', standup === null && 'standup',
+    standupCfg === null && 'standupCfg',
   ].filter((p): p is string => p !== false);
   if (bad.length > 0) return { ok: false, error: `learner: unreadable ${bad.join(', ')}` };
   return {
     ok: true,
-    value: { version: LEARNER_VERSION, campaign: campaign!, story: story!, day: day!, ladder: ladder!, mixed: mixed!, flags: flags!, lesson: lesson! },
+    value: {
+      version: LEARNER_VERSION, campaign: campaign!, story: story!, day: day!, ladder: ladder!, mixed: mixed!, flags: flags!, lesson: lesson!,
+      standup: standup!, standupCfg: standupCfg!,
+    },
   };
 }

@@ -35,6 +35,7 @@ import '@/styles/tokens.css';
 import '@/styles/app.css';
 import '@/styles/story.css';
 import '@/styles/v4.css';
+import '@/styles/cohort.css';
 
 loadTheme();
 // Before anything saves: the learner envelope is built from what is stored, then each save is stamped.

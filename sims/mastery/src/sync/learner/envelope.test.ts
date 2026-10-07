@@ -5,6 +5,7 @@ import type { DayLog } from '@/model/dayLog';
 import type { LadderAttempt } from '@/model/ladder';
 import { DRAFT_TTL_MS, type LessonPlace, type PlaceEntry } from '@/model/lessonState';
 import { completeScene, emptyStory, isChoice, type StoryNumbers } from '@/model/story';
+import { DEFAULT_STANDUP } from '@/model/standupSettings';
 import { SCENES } from '@/model/storyScenes';
 import { removeFromCampaign } from './campaign';
 import {
@@ -35,7 +36,7 @@ const FLAG_IDS = ['tmua-2023-p1@100', 'step-2024-s2/question/3@200'];
 const LESSON_KEYS = ['lesson-1-0.pre.fractions', 'learn-5.pre.ratio', '__proto__'];
 const STAGES = ['learn', 'examples', 'practice', 'cambridge'] as const;
 
-const empty = (): LearnerValues => ({ campaign: null, story: emptyStory(), day: {}, ladder: [], mixed: null, flags: {}, lesson: emptyLessonValues() });
+const empty = (): LearnerValues => ({ campaign: null, story: emptyStory(), day: {}, ladder: [], mixed: null, flags: {}, lesson: emptyLessonValues(), standup: {}, standupCfg: { ...DEFAULT_STANDUP } });
 
 /** One device: its stored values and its envelope, changed only as the app changes them. */
 interface Device {
@@ -133,7 +134,7 @@ function step(rng: Rng, dev: Device): Device {
   const at = time(rng);
   const v: LearnerValues = plain(dev.v);
   let s = dev.s;
-  switch (randInt(rng, 0, 6)) {
+  switch (randInt(rng, 0, 8)) {
     case 0: {
       const r = campaignStep(rng, v.campaign, at);
       v.campaign = r.c;
@@ -182,6 +183,21 @@ function step(rng: Rng, dev: Device): Device {
         const prev = v.lesson.writeUps[k]?.updatedAt ?? -Infinity;
         setEntry(v.lesson.writeUps, k, { updatedAt: Math.max(at, prev + 1), text: pick(rng, ['', 'Half.', 'Half of it.']) });
       }
+      break;
+    }
+    case 6: {
+      // A standup submitted, or submitted again, for one of a few dates.
+      const d = pick(rng, DATES);
+      const transcript = pick(rng, ['Finished sequences.', 'Stuck on induction.', '']);
+      setEntry(v.standup, d, { date: d, transcript, checkedAt: at, flags: transcript === '' ? ['Say what you did yesterday.'] : [], duration: randInt(rng, 0, 90) });
+      break;
+    }
+    case 7: {
+      // A standup setting changed in You: on or off, the time, read aloud.
+      const f = randInt(rng, 0, 2);
+      if (f === 0) v.standupCfg.enabled = !v.standupCfg.enabled;
+      else if (f === 1) v.standupCfg.minutes = pick(rng, [540, 600, 690]);
+      else v.standupCfg.muted = !v.standupCfg.muted;
       break;
     }
     default: {
@@ -359,6 +375,21 @@ describe('the rules', () => {
     // A stale copy of the same plan, fewer answers in, does not undo answers.
     const stale = dev((v) => { v.mixed = { day: '2026-10-06', items, results: [true], done: false }; }, T0 + 2 * MIN, b);
     expect(learnerValues(stale).mixed?.results).toEqual([true, false]);
+  });
+
+  it('standup settings: last writer wins, field by field', () => {
+    const phone = dev((v) => { v.standupCfg.enabled = false; }, T0 + 5 * MIN);
+    const mac = dev((v) => { v.standupCfg.minutes = 690; v.standupCfg.enabled = true; }, T0 + 3 * MIN);
+    expect(learnerValues(mergeLearner(phone, mac)).standupCfg).toEqual({ minutes: 690, muted: false, enabled: false });
+    expect(learnerValues(mergeLearner(mac, phone)).standupCfg).toEqual({ minutes: 690, muted: false, enabled: false });
+    // Back on later on the Mac wins over the phone's off.
+    const on = dev((v) => { v.standupCfg.enabled = true; }, T0 + 9 * MIN, mergeLearner(phone, mac));
+    expect(learnerValues(mergeLearner(on, phone)).standupCfg.enabled).toBe(true);
+    // An envelope from a build before the settings synced reads as the defaults, stamped 0.
+    const old = JSON.parse(JSON.stringify(mac)) as Record<string, unknown>;
+    delete old.standupCfg;
+    const r = parseLearner(old);
+    expect(r.ok && learnerValues(r.value).standupCfg).toEqual(DEFAULT_STANDUP);
   });
 
   it('flags: the later sitting wins; for one sitting, parts flagged on each device are both kept', () => {

@@ -17,6 +17,7 @@ import { closureTopics } from '@/model/courses';
 import { DEFAULT_COURSES, ensureSession, startLearner } from '@/model/learner';
 import { go, parseRoute, route } from '@/model/route';
 import { commit, flush, init, setClock } from '@/model/store';
+import { reloadStandup } from '@/model/standupStore';
 import { NO_NUMBERS, emptyStory, type Seen } from '@/model/story';
 import { SCENES, STEP_BLOCK_1 } from '@/model/storyScenes';
 import { STORY_KEY, playing, reloadStory, saveStory, story } from '@/model/storyStore';
@@ -34,6 +35,8 @@ beforeEach(async () => {
   sessionStorage.clear();
   localStorage.setItem('mastery.tour.v1', '1');
   reloadStory();
+  // The standup's state is in memory too; a fresh browser has none.
+  reloadStandup();
   playing.value = null;
   history.replaceState(null, '', '#/');
   route.value = parseRoute('#/');

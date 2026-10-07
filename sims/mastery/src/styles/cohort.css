@@ -1,0 +1,50 @@
+/* The cohort (model/cohort.ts): the standup screen, monogram portraits, the standing on the
+   Story tab, the standup line on Today, and the standup's block in the day planner. */
+
+.mono-art { flex: none; display: block; }
+.mono-art.on circle:first-child { stroke: var(--cam); }
+
+/* Today */
+a.ds-standupline { color: var(--ink2); text-decoration: none; }
+.ds-standupline .ds-dot { background: var(--cam); }
+.ds-standupline.missed .ds-dot { background: var(--scarlet); }
+
+/* the planner */
+.d-tl li.meet .it { color: var(--cam); }
+
+/* #/standup */
+.su-status { margin-top: 6px; }
+.su-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 18px 0 8px; }
+.su-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.su-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.su-row.on { background: var(--cam-soft); }
+.su-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.su-who b { font: 400 18px/1.25 var(--serif); }
+.su-bg { font-size: 12.5px; color: var(--mute); }
+.su-line { margin: 4px 0 0; font: 15.5px/1.5 var(--serif); color: var(--fg); }
+.su-line.quiet { color: var(--mute); }
+.su-self { border-bottom: 0; }
+.su-cal { margin: 8px 0 0; font-size: 13.5px; line-height: 1.5; }
+.su-cal-row { display: block; }
+.su-cal-row .su-cal { margin: 0; }
+
+/* Today and the planner: a rest day (Shabbat, yom tov) */
+.ds-restline { color: var(--ink2); }
+.ds-restline .ds-dot { background: var(--mute); }
+
+/* Story: the ratings and the standing side by side on a wide screen */
+.story-pair { display: grid; gap: 0 32px; }
+@media (min-width: 900px) { .story-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.co-list > li { grid-template-columns: 1.5em 28px minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 6px 0; }
+.co-list .co-n { font: 12px var(--mono); color: var(--mute); }
+.co-list .co-name { font-size: 14.5px; }
+.co-list li.me .co-name { color: var(--cam); font-weight: 500; }
+.co-list .co-v { font-family: var(--mono); }
+
+/* Admission: the programme terms */
+.c-terms li.cur span:first-child { color: var(--cam); }
+.c-terms li.done { color: var(--mute); }
+
+@media (prefers-reduced-motion: reduce) {
+  .su-row { transition: none; }
+}

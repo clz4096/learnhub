@@ -53,6 +53,7 @@ import { admissions } from '@/ui/campaignShared';
 import { ReportView } from '@/ui/views/Report';
 import { LettersView } from '@/ui/views/Letters';
 import { StoryView } from '@/ui/views/Story';
+import { StandupView } from '@/ui/views/Standup';
 import { GymView } from '@/ui/views/Gym';
 import { StoryPlayer } from '@/ui/story/Player';
 import { useStoryDirector } from '@/ui/story/director';
@@ -114,6 +115,7 @@ function View({ r }: { r: Route }) {
     case 'report': return progress.value === null ? <Today /> : <ReportView p={progress.value} />;
     case 'letters': return progress.value === null ? <Today /> : <LettersView p={progress.value} />;
     case 'story': return progress.value === null ? <Today /> : <StoryView p={progress.value} />;
+    case 'standup': return <StandupView />;
   }
 }
 

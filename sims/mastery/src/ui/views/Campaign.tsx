@@ -21,6 +21,9 @@ import { loadDays } from '@/model/dayLog';
 import { go, route, type Route } from '@/model/route';
 import { now } from '@/model/store';
 import { LadderLinks } from '@/ui/views/Ladder';
+import {
+  COHORT_ENTRY, COHORT_START, DECISIONS_DATE, MILESTONES, PROGRAMME, PROGRAMME_TERMS, eventsBy, termOf, type MilestoneId,
+} from '@/model/cohort';
 import { AppLink, CopyBlock, ROMAN, WithAdmissions, entryLine, longDay, shortStamp, useDeliverLetters } from '@/ui/campaignShared';
 
 const update = (f: (c: CampaignState) => CampaignState): void => {
@@ -74,6 +77,7 @@ function CampaignBody({ adm, c, p }: { adm: Admissions; c: CampaignState; p: Pro
       <ChoicesSection c={c} s={s} />
       <Standing s={s} />
       <CalendarSection s={s} />
+      <CohortCalendar today={s.today} />
       <ApplicationSection c={c} s={s} />
       <InterviewSection c={c} s={s} />
       <LettersSection adm={adm} c={c} s={s} />
@@ -330,6 +334,53 @@ function Standing({ s }: { s: Summary }) {
 }
 
 const shortDate = (d: string): string => (d >= '9999' ? 'never' : new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }));
+
+/** What the cohort's news on a milestone came to, once it has happened. */
+function cohortNews(id: MilestoneId, today: string): string {
+  const ev = eventsBy(today);
+  const n = (k: string): number => ev.filter((e) => e.kind === k).length;
+  if (id === 'decisions' && today >= DECISIONS_DATE) return `${n('offer')} offers, ${n('rejected')} without a place`;
+  if (id === 'results' && n('met') + n('missed') > 0) return `${n('met')} met their offers, ${n('missed')} to resit`;
+  return '';
+}
+
+/** The programme's terms and the cohort's milestones toward October 2028, on the Admission timeline. */
+function CohortCalendar({ today }: { today: string }) {
+  const term = termOf(today);
+  return (
+    <section class="sec" aria-labelledby="cohort-cal">
+      <div class="sec-h"><h2 id="cohort-cal">The cohort</h2><span>{PROGRAMME.name}</span></div>
+      <p class="c-body">
+        The {PROGRAMME.society}'s programme for adults from unconventional paths: six classmates and you, from{' '}
+        {longDay(COHORT_START)}, applying together for October {COHORT_ENTRY} entry. Standup every weekday; see{' '}
+        <AppLink to={{ view: 'standup' }}>today's standup</AppLink>.
+      </p>
+      <ul class="ruled c-terms" aria-label="Programme terms">
+        {PROGRAMME_TERMS.map((t) => (
+          <li key={t.name} class={t === term ? 'cur' : t.end < today ? 'done' : undefined}>
+            <span>{t.name}{t === term ? ' (now)' : ''}</span>
+            <span class="r">{shortDate(t.start)} to {shortDate(t.end)}</span>
+          </li>
+        ))}
+      </ul>
+      <div class="c-scroll">
+        <table class="rec">
+          <thead><tr><th scope="col">Milestone</th><th scope="col">Date</th><th scope="col">The cohort</th></tr></thead>
+          <tbody>
+            {MILESTONES.map((m) => (
+              <tr key={m.id} class={m.date < today ? 'done' : ''}>
+                <th scope="row">{m.label}</th>
+                <td>{shortDate(m.date)}{m.basis === 'published' ? '' : '*'}</td>
+                <td>{cohortNews(m.id, today)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="note">*Approximate, or the 2027-entry date a year on. Programme dates are the programme's own.</p>
+    </section>
+  );
+}
 
 function CalendarSection({ s }: { s: Summary }) {
   const { projection: pr, cycle: cy } = s;

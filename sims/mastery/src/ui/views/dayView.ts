@@ -9,6 +9,7 @@
 import type { Progress } from '@learnhub/mastery';
 import { CORE, fillBlocks, parseClock, planDate, planMinute, sunsetMinutes, tickedMinutes, weekOf, weekdayOf, addDays, type DayPlan, type FixedBlock, type Slot } from '@/model/day';
 import { planOf, type DayEntry, type DayLog } from '@/model/dayLog';
+import { yomTovBetween } from '@/model/holidays';
 import { dayItems, type DayItem } from '@/model/dayQueue';
 import { localDay } from '@/model/learner';
 import { mixedDoneOn } from '@/model/mixedReview';
@@ -126,6 +127,34 @@ export function shabbatOf(date: string): { fri: string; sat: string; begins: num
   const fri = dow === 6 ? addDays(date, -1) : addDays(date, 5 - dow);
   const sat = addDays(fri, 1);
   return { fri, sat, begins: sunsetMinutes(fri), ends: sunsetMinutes(sat) };
+}
+
+export interface YomTovSpan {
+  name: string;
+  /** The first and last day, YYYY-MM-DD. */
+  first: string;
+  last: string;
+  /** Sundown on the eve of the first day, and on the last day, in plan minutes. */
+  eve: string;
+  begins: number;
+  ends: number;
+}
+
+/** This week's yom tov (Sunday to Saturday), consecutive days of one holiday as one span. */
+export function yomTovOfWeek(date: string): YomTovSpan[] {
+  const week = weekOf(date);
+  const out: YomTovSpan[] = [];
+  for (const h of yomTovBetween(week[0] as string, week[6] as string)) {
+    const prev = out[out.length - 1];
+    if (prev !== undefined && prev.name === h.name && addDays(prev.last, 1) === h.date) {
+      prev.last = h.date;
+      prev.ends = sunsetMinutes(h.date);
+      continue;
+    }
+    const eve = addDays(h.date, -1);
+    out.push({ name: h.name, first: h.date, last: h.date, eve, begins: sunsetMinutes(eve), ends: sunsetMinutes(h.date) });
+  }
+  return out;
 }
 
 /**

@@ -19,6 +19,7 @@
  *   #/report      the results report
  *   #/letters     the campaign's letters
  *   #/story       story mode: the chapters, scenes to replay, REP, relationships
+ *   #/standup     the cohort's daily standup: classmates' updates and Albert's own
  *
  * Every step a learner can take back from has its own route, so the browser's Back (and
  * Cmd+[ or a swipe on the Mac) returns to the previous view of the app, and a reload
@@ -48,7 +49,8 @@ export type Route =
   | { view: 'gym' }
   | { view: 'report' }
   | { view: 'letters' }
-  | { view: 'story' };
+  | { view: 'story' }
+  | { view: 'standup' };
 
 const ID = /^[a-z0-9.-]+$/;
 
@@ -87,6 +89,7 @@ export function parseRoute(hash: string): Route {
     case 'report': return { view: 'report' };
     case 'letters': return { view: 'letters' };
     case 'story': return { view: 'story' };
+    case 'standup': return { view: 'standup' };
     default: return { view: 'today' };
   }
 }
@@ -112,6 +115,7 @@ export function hrefOf(r: Route): string {
     case 'report': return '#/report';
     case 'letters': return '#/letters';
     case 'story': return '#/story';
+    case 'standup': return '#/standup';
   }
 }
 

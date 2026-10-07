@@ -8,6 +8,7 @@
  */
 import { slug } from '@learnhub/content/book';
 import { TARGET_WEEK_HOURS } from './campaignCalendar';
+import { COHORT_SCENES } from './cohortStory';
 import {
   offerOutcome, relationWord, repLevel,
   type EndContext, type EndItem, type OfferOutcome, type RelId, type Relationships, type Scene, type StoryCampaign, type StoryNumbers,
@@ -1081,6 +1082,7 @@ export const SCENES: readonly Scene[] = [
   PROLOGUE, FIRST_LIGHT, PROOF, LONG_WINTER, ACT_ONE, ACT_TWO, ACT_THREE, ACT_FOUR, THE_OFFER, RESULTS_DAY, MATRICULATION,
   THURSDAY_NIGHT, A_REPLY,
   BEAT_PROOF, BEAT_TEMPERAMENT, BEAT_OVERALL,
+  ...COHORT_SCENES,
 ];
 
 export const BOOKS: readonly { n: number; title: string }[] = [

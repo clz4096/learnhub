@@ -1,8 +1,8 @@
 /**
  * Changes to the learner's state kept outside the progress document (campaign, story, day
- * log, timed ladder, mixed review, timed-paper flags, lesson places and write-up drafts):
- * each store reports a save here, so sync (sync/local.ts) can record what changed and when,
- * and schedule a round. Sync writes merged copies back `quietly`, so they are not reported
+ * log, timed ladder, mixed review, timed-paper flags, lesson places and write-up drafts,
+ * standups and their settings): each store reports a save here, so sync (sync/local.ts) can record what changed
+ * and when, and schedule a round. Sync writes merged copies back `quietly`, so they are not reported
  * as the learner's own changes.
  *
  * `learnerSynced` counts merged copies written back, for screens that hold a copy of their
@@ -10,7 +10,7 @@
  */
 import { signal } from '@preact/signals';
 
-export type LearnerPart = 'campaign' | 'story' | 'day' | 'ladder' | 'mixed' | 'flags' | 'lesson';
+export type LearnerPart = 'campaign' | 'story' | 'day' | 'ladder' | 'mixed' | 'flags' | 'lesson' | 'standup' | 'standupCfg';
 
 /** An item the learner removed on purpose: only these are removed on every device. */
 export interface Removal {

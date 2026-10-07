@@ -17,6 +17,7 @@ import { commit, init, progress, setClock } from '@/model/store';
 import { THEME_KEY, setTheme } from '@/model/theme';
 import { APP_TITLE, App } from '@/ui/App';
 import { DayPlanner } from '@/ui/views/DayPlanner';
+import { STANDUP_CFG_KEY, reloadStandup } from '@/model/standupStore';
 
 // Monday 2026-10-05, 11:00 am in New York (EDT, UTC-4).
 const T0 = Date.UTC(2026, 9, 5, 15, 0);
@@ -42,6 +43,9 @@ beforeEach(async () => {
   localStorage.clear();
   sessionStorage.clear();
   localStorage.setItem('mastery.tour.v1', '1');
+  // These tests hold the planner's own layout; the standup's block has its own tests (standup.test.tsx).
+  localStorage.setItem(STANDUP_CFG_KEY, JSON.stringify({ enabled: false }));
+  reloadStandup();
   history.replaceState(null, '', '#/');
   route.value = parseRoute('#/');
   setClock(() => T0);

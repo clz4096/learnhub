@@ -12,6 +12,7 @@
  * at the end of a free stretch with nothing after it. Added since: fixed blocks (timed
  * papers) placed first, and replanning the rest of the day from a given time.
  */
+import { restOf } from './holidays';
 import type { Route } from './route';
 
 /** Minutes to get going after waking. */
@@ -39,7 +40,8 @@ const MIN_LIGHT = 30;
 
 export const BROOKLYN = { lat: 40.6782, lon: -73.9442 } as const;
 
-export type SlotKind = 'study' | 'optional' | 'gym' | 'meal' | 'break';
+/** `meeting`: a fixed block pinned at a time (the cohort's standup); not study. */
+export type SlotKind = 'study' | 'optional' | 'gym' | 'meal' | 'break' | 'meeting';
 
 /**
  * A block of a set length placed first in the day, before the 90-minute blocks, and
@@ -48,6 +50,11 @@ export type SlotKind = 'study' | 'optional' | 'gym' | 'meal' | 'break';
  */
 export interface FixedBlock {
   minutes: number;
+  /**
+   * Pinned at this plan minute, as a meeting (the standup): placed where it is, not counted
+   * as study, and dropped when the day has not started by then or something kept is there.
+   */
+  at?: number;
   title: string;
   /** A line under the title. */
   detail?: string;
@@ -68,7 +75,7 @@ export interface Slot {
   detail: string;
   /** A full core block (90 minutes, or the last of the core and at least 60): new material goes here. Light blocks get reviews. */
   heavy: boolean;
-  /** Set on a study slot that is a fixed block. */
+  /** Set on a study slot that is a fixed block, and on a meeting. */
   fixed?: PlacedFixed;
 }
 
@@ -103,7 +110,8 @@ export const fmtLong = (m: number): string => fmt(m).replace(/(am|pm)$/, ' $1');
 
 const GYM_NOTE = 'The gym window, 2:00 to 2:30 pm, has passed or does not fit today.';
 const LUNCH_TITLE = 'Lunch';
-const unplacedNote = (f: FixedBlock): string => `${f.title}, ${f.minutes} minutes, does not fit today.`;
+const unplacedNote = (f: FixedBlock): string =>
+  (f.at === undefined ? `${f.title}, ${f.minutes} minutes, does not fit today.` : `${f.title} at ${fmtLong(f.at)} does not fit today.`);
 const REPLANNED = 'Replanned from ';
 
 /** What a build starts from: an empty day, or for a replan, the slots that stay. */
@@ -117,6 +125,8 @@ interface Ctx {
   lunch: boolean;
   dinner: boolean;
   fixed: readonly PlacedFixed[];
+  /** Pinned blocks may start from here: the wake time, or a replan's time. */
+  pinFrom: number;
 }
 
 interface Built { slots: Slot[]; core: number; optional: number; coreEnd: number | null; gym: number | null; unplaced: PlacedFixed[] }
@@ -141,10 +151,22 @@ function build(g: number | null, c: Ctx): Built {
 
 function buildOnce(g: number | null, c: Ctx): Built {
   const { start, stop } = c;
-  const obstacles = c.kept.filter((s) => s.end > start);
+  const kept = c.kept.filter((s) => s.end > start);
+  // Pinned blocks first, where they are: everything else is placed around them.
+  const pins: Slot[] = [];
+  const unpinned: PlacedFixed[] = [];
+  for (const f of c.fixed) {
+    if (f.at === undefined) continue;
+    const a = f.at;
+    const b = a + f.minutes;
+    const free = c.pinFrom <= a && b <= stop && [...kept, ...pins].every((x) => x.end <= a || x.start >= b);
+    if (free) pins.push({ start: a, end: b, kind: 'meeting', title: f.title, detail: f.detail ?? '', heavy: false, fixed: f });
+    else unpinned.push(f);
+  }
+  const obstacles = [...kept, ...pins];
   const clear = (a: number, b: number): boolean => start <= a && b <= stop && obstacles.every((x) => x.end <= a || x.start >= b);
   const fixed = (s: number, e: number, kind: SlotKind, title: string, detail = ''): Slot => ({ start: s, end: e, kind, title, detail, heavy: false });
-  const events: Slot[] = [];
+  const events: Slot[] = [...pins];
   const gymOk = c.gym && g !== null && clear(g, g + GYM);
   if (gymOk && g !== null) {
     if (c.lunch && clear(g - LUNCH, g)) events.push(fixed(g - LUNCH, g, 'meal', LUNCH_TITLE));
@@ -152,7 +174,7 @@ function buildOnce(g: number | null, c: Ctx): Built {
     events.push(fixed(g, g + GYM, 'gym', 'Gym', '90 minutes including travel'));
   }
   if (c.dinner && clear(DINNER, DINNER + DINNER_LENGTH)) events.push(fixed(DINNER, DINNER + DINNER_LENGTH, 'meal', 'Dinner'));
-  const busy = [...obstacles, ...events].sort((a, b) => a.start - b.start);
+  const busy = [...kept, ...events].sort((a, b) => a.start - b.start);
 
   const free: [number, number][] = [];
   let t = start;
@@ -163,7 +185,7 @@ function buildOnce(g: number | null, c: Ctx): Built {
   if (stop > t) free.push([t, stop]);
 
   const items: Slot[] = [];
-  const pending = [...c.fixed];
+  const pending = c.fixed.filter((f) => f.at === undefined);
   let core = minutesOf(c.kept, 'study');
   let optional = minutesOf(c.kept, 'optional');
   for (const [from, to] of free) {
@@ -200,7 +222,7 @@ function buildOnce(g: number | null, c: Ctx): Built {
     if (items.length > 0 && items[items.length - 1]?.kind === 'break' && (items[items.length - 1]?.end ?? 0) > from) items.pop();
   }
   const slots = [...c.kept, ...items, ...events].sort((a, b) => a.start - b.start);
-  return { slots, core, optional, coreEnd: coreEndOf(slots), gym: gymOk ? g : null, unplaced: pending };
+  return { slots, core, optional, coreEnd: coreEndOf(slots), gym: gymOk ? g : null, unplaced: [...unpinned, ...pending] };
 }
 
 /** Whether `p` beats `best`: a gym that fits, then every fixed block placed, then more core, then the core done earlier. */
@@ -222,29 +244,49 @@ function choose(c: Ctx): Built {
   return best as Built;
 }
 
+/** Rest days by name ("Shabbat", "Rosh Hashanah"), or null for a working day. */
+export interface RestDays {
+  today: string | null;
+  tomorrow: string | null;
+}
+
 const placed = (fixed: readonly FixedBlock[]): PlacedFixed[] => fixed.map((f, index) => ({ ...f, index }));
 
 /**
  * The day's plan. `wake` in plan minutes (see the file comment), `weekday` 0 for Sunday to
- * 6 for Saturday, `sunset` that day's Brooklyn sundown in minutes. Friday ends at sundown;
- * Saturday starts after it. The gym tries each start in GYM_STARTS and keeps the one that
+ * 6 for Saturday, `sunset` that day's Brooklyn sundown in minutes. A day before a rest day
+ * (Friday, or the eve of a yom tov) ends at sundown; a rest day (Saturday, a yom tov) starts
+ * after it, and a rest day followed by another has no plan. `rest` names the rest days, today
+ * and tomorrow (holidays.ts `restOf`); without it, Saturday is today's and Friday's tomorrow's.
+ * The gym tries each start in GYM_STARTS and keeps the one that
  * places every fixed block, then fits the most core study, then finishes the core
  * earliest. `fixed` blocks go first, in order, each in the earliest free stretch it fits.
  */
-export function planDay(wake: number, weekday: number, sunset: number, fixed: readonly FixedBlock[] = []): DayPlan {
+export function planDay(
+  wake: number, weekday: number, sunset: number, fixed: readonly FixedBlock[] = [],
+  rest: RestDays = { today: weekday === 6 ? 'Shabbat' : null, tomorrow: weekday === 5 ? 'Shabbat' : null },
+): DayPlan {
   let start = wake + GET_GOING;
   let stop = BED - WIND_DOWN;
   const notes: string[] = [];
-  if (weekday === 5) {
+  if (rest.today !== null && rest.tomorrow !== null) {
+    notes.push(`${rest.today}, then ${rest.tomorrow} from sundown: a rest day, nothing is planned.`);
+    start = Math.max(start, sunset);
     stop = Math.min(stop, sunset);
-    notes.push(`Friday: the plan ends at sundown, ${fmtLong(sunset)}.`);
+  } else {
+    if (rest.tomorrow !== null) {
+      stop = Math.min(stop, sunset);
+      notes.push(rest.tomorrow === 'Shabbat' && weekday === 5
+        ? `Friday: the plan ends at sundown, ${fmtLong(sunset)}.`
+        : `${rest.tomorrow} begins at sundown: the plan ends then, ${fmtLong(sunset)}.`);
+    }
+    if (rest.today !== null && start < sunset) {
+      notes.push(`${rest.today}: the plan starts after sundown, ${fmtLong(sunset)}.`);
+      start = sunset;
+    }
   }
-  if (weekday === 6 && start < sunset) {
-    notes.push(`Shabbat: the plan starts after sundown, ${fmtLong(sunset)}.`);
-    start = sunset;
-  }
-  const chosen = choose({ start, stop, kept: [], gym: true, lunch: true, dinner: true, fixed: placed(fixed) });
-  if (chosen.gym === null && weekday !== 6) notes.push(GYM_NOTE);
+  const chosen = choose({ start, stop, kept: [], gym: true, lunch: true, dinner: true, fixed: placed(fixed), pinFrom: wake });
+  if (chosen.gym === null && rest.today === null) notes.push(GYM_NOTE);
   notes.push(...chosen.unplaced.map(unplacedNote));
   return { slots: chosen.slots, core: chosen.core, optional: chosen.optional, coreEnd: chosen.coreEnd, gym: chosen.gym, start, stop, notes };
 }
@@ -263,7 +305,7 @@ export function replanDay(plan: DayPlan, at: number, ticks: readonly number[], f
   const kept = plan.slots.filter((s) =>
     s.end <= at
     || (s.kind !== 'break' && ticked.has(s.start))
-    || ((s.kind === 'gym' || s.kind === 'meal') && s.start <= at)
+    || ((s.kind === 'gym' || s.kind === 'meal' || s.kind === 'meeting') && s.start <= at)
     // Lunch is placed around the gym, so it stays with a gym that stays.
     || (keepGym !== undefined && s.kind === 'meal' && s.title === LUNCH_TITLE));
   const has = (f: (s: Slot) => boolean): boolean => kept.some(f);
@@ -275,6 +317,7 @@ export function replanDay(plan: DayPlan, at: number, ticks: readonly number[], f
     lunch: !has((s) => s.kind === 'meal' && s.title === LUNCH_TITLE),
     dinner: !has((s) => s.kind === 'meal' && s.start === DINNER),
     fixed: placed(fixed).filter((f) => !done.has(f.index)),
+    pinFrom: at,
   });
   const gym = keepGym?.start ?? chosen.gym;
   const dropped = new Set([GYM_NOTE, ...placed(fixed).map(unplacedNote)]);
@@ -345,7 +388,12 @@ export function isDate(s: string): boolean {
 
 /** The plan for a date and a wake time in plan minutes. */
 export function planFor(date: string, wake: number, fixed: readonly FixedBlock[] = []): DayPlan {
-  return planDay(wake, weekdayOf(date), sunsetMinutes(date), fixed);
+  return planDay(wake, weekdayOf(date), sunsetMinutes(date), fixed, restDaysOf(date));
+}
+
+/** The rest days (Shabbat or a yom tov) on `date` and the day after, by name. */
+export function restDaysOf(date: string): RestDays {
+  return { today: restOf(date), tomorrow: restOf(addDays(date, 1)) };
 }
 
 // ---------------------------------------------------------------- the clock

@@ -27,7 +27,7 @@ export const TABS: readonly Tab[] = [
 /** The tab a route sits under. */
 export function tabOf(r: Route): TabId {
   switch (r.view) {
-    case 'today': case 'start': case 'task': case 'problem': case 'gym': case 'mixed': return 'today';
+    case 'today': case 'start': case 'task': case 'problem': case 'gym': case 'mixed': case 'standup': return 'today';
     case 'learn': case 'book': case 'chapter': case 'map': return 'course';
     case 'campaign': case 'papers': case 'paper': case 'ladder': case 'report': case 'letters': return 'admission';
     case 'story': return 'story';

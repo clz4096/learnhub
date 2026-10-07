@@ -12,7 +12,8 @@
  * threshold (ratings.ts) can play a short beat.
  */
 import type { Route } from './route';
-import { nyParts, sunsetMinutes, weekdayOf } from './day';
+import { addDays, nyParts, sunsetMinutes } from './day';
+import { restOf } from './holidays';
 import { RATING_LABELS, type RatingId, type RatingValues } from './ratings';
 
 // ---------------------------------------------------------------- the cast
@@ -136,6 +137,11 @@ export interface StoryFacts extends StoryNumbers {
   letters: readonly string[];
   /** The player ratings now (ratings.ts); absent or null while unknown, and then no rating beat fires. */
   ratings?: RatingValues | null;
+  /**
+   * The cohort's events so far (cohortStory.ts): a classmate's decision or results
+   * ("offer:marcus"), a standup missed, falling far behind. Absent: no cohort beat fires.
+   */
+  cohort?: readonly string[] | null;
 }
 
 // ---------------------------------------------------------------- REP
@@ -261,7 +267,9 @@ export type Trigger =
    */
   | { kind: 'side'; after: string; need: SideNeed; name: string }
   /** A rating beat: the rating (or the overall) at `at` or above. */
-  | { kind: 'rating'; rating: RatingId | 'overall'; at: number };
+  | { kind: 'rating'; rating: RatingId | 'overall'; at: number }
+  /** A cohort beat: the event has happened. `name` finishes "plays ...": "when you miss a standup". */
+  | { kind: 'cohort'; event: string; name: string };
 
 /** What unlocks a side scene: one option taken at a choice point, or a relationship at a level. */
 export type SideNeed =
@@ -310,6 +318,7 @@ export function triggerText(t: Trigger): string {
     case 'confirmed': return 'plays when your place is confirmed';
     case 'side': return `plays ${t.name}`;
     case 'rating': return `plays when your ${t.rating === 'overall' ? 'overall' : RATING_LABELS[t.rating]} rating reaches ${t.at}`;
+    case 'cohort': return `plays ${t.name}`;
   }
 }
 
@@ -331,6 +340,7 @@ export function triggered(t: Trigger, f: StoryFacts, st?: Pick<StoryState, 'seen
     case 'confirmed': return f.actsComplete !== null && f.actsComplete >= 5 && f.campaign !== null && offerOutcome(f.campaign) !== 'missed';
     case 'side': return st !== undefined && st.seen[t.after] !== undefined && sideNeedMet(t.need, st);
     case 'rating': return f.ratings != null && f.ratings[t.rating] >= t.at;
+    case 'cohort': return f.cohort != null && f.cohort.includes(t.event);
   }
 }
 
@@ -493,13 +503,19 @@ export function completeScene(
 
 // ---------------------------------------------------------------- when a scene may play by itself
 
-/** Friday sundown to Saturday sundown in Brooklyn (the app's sunset function). */
-export function isShabbat(ms: number): boolean {
+/**
+ * The rest under way at a moment, by name ("Shabbat", "Pesach"), or null: Shabbat from
+ * Friday sundown to Saturday sundown, a yom tov from sundown the evening before to sundown
+ * on the day, in Brooklyn (the app's sunset function).
+ */
+export function restNow(ms: number): string | null {
   const { date, minutes } = nyParts(ms);
-  const dow = weekdayOf(date);
-  if (dow === 5) return minutes >= sunsetMinutes(date);
-  if (dow === 6) return minutes < sunsetMinutes(date);
-  return false;
+  return minutes < sunsetMinutes(date) ? restOf(date) : restOf(addDays(date, 1));
+}
+
+/** Whether a rest day is under way: Shabbat or a yom tov (`restNow`). */
+export function isShabbat(ms: number): boolean {
+  return restNow(ms) !== null;
 }
 
 /**

@@ -10,6 +10,46 @@ import { setTheme, theme, type Theme } from '@/model/theme';
 import { helpOpen, startTour } from '@/ui/help/state';
 import { OutcomeSlot } from '@/ui/OutcomeSlot';
 import { ProgressView } from '@/ui/views/ProgressView';
+import { fmtLong } from '@/model/day';
+import { STANDUP_EARLIEST, STANDUP_LATEST } from '@/model/standup';
+import { saveStandup, standup } from '@/model/standupStore';
+import { CalendarLink } from '@/ui/cohort/CalendarLink';
+
+/** The standup's possible start times, every quarter hour. */
+const STANDUP_TIMES = Array.from({ length: (STANDUP_LATEST - STANDUP_EARLIEST) / 15 + 1 }, (_, i) => STANDUP_EARLIEST + 15 * i);
+
+/** The standup on or off, its time, read aloud, and the calendar subscription, as settings rows. */
+function StandupSettings() {
+  const st = standup.value;
+  return (
+    <>
+      <li class="ds-li">
+        <span class="ds-x" id="standup-on">Daily standup</span>
+        <span class="ds-seg" role="group" aria-labelledby="standup-on">
+          <button type="button" aria-pressed={st.enabled} onClick={() => saveStandup({ ...st, enabled: true })}>On</button>
+          <button type="button" aria-pressed={!st.enabled} onClick={() => saveStandup({ ...st, enabled: false })}>Off</button>
+        </span>
+      </li>
+      <li class="ds-li">
+        <label class="ds-x" for="standup-time">Standup time</label>
+        <select
+          id="standup-time" value={String(st.minutes)}
+          onChange={(e) => saveStandup({ ...st, minutes: Number((e.currentTarget as HTMLSelectElement).value) })}
+        >
+          {STANDUP_TIMES.map((m) => <option key={m} value={String(m)}>{fmtLong(m)}</option>)}
+        </select>
+      </li>
+      <li class="ds-li">
+        <span class="ds-x" id="standup-voice">Standup read aloud</span>
+        <span class="ds-seg" role="group" aria-labelledby="standup-voice">
+          <button type="button" aria-pressed={!st.muted} onClick={() => saveStandup({ ...st, muted: false })}>On</button>
+          <button type="button" aria-pressed={st.muted} onClick={() => saveStandup({ ...st, muted: true })}>Muted</button>
+        </span>
+      </li>
+      <li class="ds-li su-cal-row"><CalendarLink /></li>
+    </>
+  );
+}
 
 const THEMES: readonly Theme[] = ['system', 'light', 'dark'];
 const THEME_NAMES: Readonly<Record<Theme, string>> = { system: 'System', light: 'Light', dark: 'Dark' };
@@ -72,6 +112,7 @@ export function YouView() {
               ))}
             </span>
           </li>
+          <StandupSettings />
         </ul>
       </section>
 

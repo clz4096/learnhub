@@ -12,7 +12,7 @@ import { hasStoredLadder, peekLadder } from '@/model/ladderStore';
 import { DRILL_CAP, RATING_MAX, RATING_MIN, overall, type Rating } from '@/model/ratings';
 import { now } from '@/model/store';
 import {
-  CHARACTERS, REL_IDS, REP_TABLE, isShabbat, metOf, relationWord, repLevel, repOf, strandOf, titleOf, triggerText,
+  CHARACTERS, REL_IDS, REP_TABLE, metOf, relationWord, repLevel, repOf, restNow, strandOf, titleOf, triggerText,
   type Scene, type StoryNumbers, type StoryState,
 } from '@/model/story';
 import { BOOKS, LATER_BOOKS, SCENES } from '@/model/storyScenes';
@@ -20,10 +20,14 @@ import { storyFacts, storyRatings } from '@/model/storyFacts';
 import { playing, story } from '@/model/storyStore';
 import { admissions, loadAdmissions, shortStamp } from '@/ui/campaignShared';
 import { ART } from '@/ui/story/art';
+import { cohortDayOf } from '@/model/cohort';
+import { albertStanding } from '@/model/cohortStory';
+import { planDate } from '@/model/day';
+import { Monogram } from '@/ui/cohort/Monogram';
 
 const sentence = (s: string): string => `${s.charAt(0).toUpperCase()}${s.slice(1)}.`;
 
-function SceneRow({ s, st, shabbat }: { s: Scene; st: StoryState; shabbat: boolean }) {
+function SceneRow({ s, st, rest }: { s: Scene; st: StoryState; rest: string | null }) {
   const seen = st.seen[s.id];
   const queued = st.queued.some((q) => q.id === s.id);
   // A seen scene goes by the title it played under ("The Long Winter" or "Momentum").
@@ -44,7 +48,7 @@ function SceneRow({ s, st, shabbat }: { s: Scene; st: StoryState; shabbat: boole
       <li>
         <span>{name}</span>
         <span class="r"><button type="button" class="story-play" onClick={open} aria-label={`Play ${s.title}`}>Play</button></span>
-        <span class="s">{shabbat ? 'Ready. It waits until Saturday sundown to play by itself.' : 'Ready to play.'}</span>
+        <span class="s">{rest === null ? 'Ready to play.' : `Ready. It waits until ${rest === 'Shabbat' ? 'Saturday sundown' : `${rest} ends at sundown`} to play by itself.`}</span>
       </li>
     );
   }
@@ -117,6 +121,35 @@ function RatingsCard({ rs }: { rs: readonly Rating[] }) {
   );
 }
 
+const ordinal = (n: number): string => {
+  const t = n % 100;
+  const suffix = t >= 11 && t <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th';
+  return `${n}${suffix}`;
+};
+
+/** Where Albert stands in the cohort by topics mastered, beside the ratings. */
+function CohortCard({ p }: { p: Progress }) {
+  const today = planDate(now());
+  if (cohortDayOf(today) < 0) return null;
+  const { rows, rank } = albertStanding(p, today);
+  return (
+    <section class="ds-sect story-cohort" aria-labelledby="story-cohort">
+      <div class="ds-eyebrow ds-sect-h"><h2 id="story-cohort">Cohort standing</h2><span>{ordinal(rank)} of {rows.length}</span></div>
+      <ol class="ruled co-list">
+        {rows.map((r) => (
+          <li key={r.id} class={r.id === 'albert' ? 'me' : undefined}>
+            <span class="co-n" aria-hidden="true">{r.rank}</span>
+            <Monogram id={r.id} name={r.name} size={28} />
+            <span class="co-name">{r.id === 'albert' ? `${r.name} (you)` : r.name}</span>
+            <span class="r co-v"><span class="visually-hidden">topics mastered: </span>{r.gated}</span>
+          </li>
+        ))}
+      </ol>
+      <p class="ds-meta rt-note">Topics mastered (drills passed and the gate met), in the same book. Classmates' numbers are simulated from the programme's start.</p>
+    </section>
+  );
+}
+
 export function StoryView({ p }: { p: Progress }) {
   const st = story.value;
   const adm = admissions.value;
@@ -130,7 +163,7 @@ export function StoryView({ p }: { p: Progress }) {
   const rep = repOf(f);
   const level = repLevel(rep);
   const met = metOf(SCENES, st.seen);
-  const shabbat = isShabbat(now());
+  const rest = restNow(now());
   const span = level.next === null ? 1 : level.next.at - level.at;
   const pct = level.next === null ? 100 : Math.min(100, Math.round((100 * (rep - level.at)) / span));
   const written = SCENES.filter((x) => x.script !== null && strandOf(x) === 'main');
@@ -149,7 +182,10 @@ export function StoryView({ p }: { p: Progress }) {
       </div>
       <p class="lead">A story you play through by studying. Your real progress triggers every scene, and REP comes only from real work.</p>
       <SceneCard st={st} numbers={f} />
-      <RatingsCard rs={rs} />
+      <div class="story-pair">
+        <RatingsCard rs={rs} />
+        <CohortCard p={p} />
+      </div>
 
       <section class="ds-sect story-scenes" aria-labelledby="story-chapters">
         <div class="ds-eyebrow ds-sect-h"><h2 id="story-chapters">Chapters</h2><span>{seen} / {written.length}</span></div>
@@ -157,14 +193,14 @@ export function StoryView({ p }: { p: Progress }) {
           <section key={b.n} class="sec story-book" aria-labelledby={`story-book-${b.n}`}>
             <div class="sec-h"><h3 id={`story-book-${b.n}`}>{b.title}</h3></div>
             <ul class="ruled">
-              {SCENES.filter((x) => x.book === b.n && strandOf(x) === 'main').map((x) => <SceneRow key={x.id} s={x} st={st} shabbat={shabbat} />)}
+              {SCENES.filter((x) => x.book === b.n && strandOf(x) === 'main').map((x) => <SceneRow key={x.id} s={x} st={st} rest={rest} />)}
             </ul>
           </section>
         ))}
         <section class="sec story-book" aria-labelledby="story-side">
           <div class="sec-h"><h3 id="story-side">Side scenes and beats</h3></div>
           <ul class="ruled">
-            {extras.map((x) => <SceneRow key={x.id} s={x} st={st} shabbat={shabbat} />)}
+            {extras.map((x) => <SceneRow key={x.id} s={x} st={st} rest={rest} />)}
           </ul>
         </section>
         <section class="sec story-book" aria-labelledby="story-later">
@@ -203,7 +239,7 @@ export function StoryView({ p }: { p: Progress }) {
           ))}
         </ul>
       </section>
-      <p class="note">Scenes play as soon as your work triggers them, except during a timed paper and from Friday sundown to Saturday sundown; then they wait, and Today shows that one is ready.</p>
+      <p class="note">Scenes play as soon as your work triggers them, except during a timed paper, from Friday sundown to Saturday sundown, and on yom tov from sundown to sundown; then they wait, and Today shows that one is ready.</p>
     </section>
   );
 }

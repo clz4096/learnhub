@@ -19,6 +19,8 @@ import { LADDER_KEY, reloadLadder } from '@/model/ladderStore';
 import { learnerSynced, onLearnerChange, quietly, type LearnerChange } from '@/model/learnerChange';
 import { loadPlaces, loadWriteUps, settlePlaces, storeDrafts } from '@/model/lessonState';
 import { MIXED_KEY, loadMixed, saveMixed } from '@/model/mixedStore';
+import { loadStandups, storeStandups } from '@/model/standupLog';
+import { loadStandupSettings, reloadStandup, storeStandupSettings } from '@/model/standupStore';
 import { now } from '@/model/store';
 import { parseStory } from '@/model/story';
 import { SCENES } from '@/model/storyScenes';
@@ -68,6 +70,8 @@ export function storedValues(): LearnerValues {
     mixed: loadMixed(),
     flags: parseStoredFlags(readJson(FLAG_KEY)),
     lesson: { places: loadPlaces(), writeUps: loadWriteUps() },
+    standup: loadStandups(),
+    standupCfg: loadStandupSettings(),
   };
 }
 
@@ -158,6 +162,16 @@ export function applyLearner(s: LearnerState): void {
     const lesson = { places: settlePlaces(v.lesson.places), writeUps: v.lesson.writeUps };
     if (!same(before.lesson, lesson)) {
       storeDrafts(lesson.places, lesson.writeUps);
+      wrote = true;
+    }
+    if (!same(before.standup, v.standup)) {
+      storeStandups(v.standup);
+      // Attendance is read from the log.
+      reloadStandup();
+      wrote = true;
+    }
+    if (!same(before.standupCfg, v.standupCfg)) {
+      storeStandupSettings(v.standupCfg);
       wrote = true;
     }
   });
