@@ -231,7 +231,7 @@ export const expSeries: TopicContent = {
         { label: t`Compare neighbouring terms`, text: t`The ratio of the term for ${math`k + ${1}`} to the term for ${math`k`} has size ${math`\frac{|x|^{k + ${1}}/(k + ${1})!}{|x|^{k}/k!} = \frac{|x|}{k + ${1}}`}.` },
         { label: t`Eventually at most a half`, text: t`Choose a whole number ${math`N \ge ${2}|x|`}. For ${math`k \ge N`}, ${math`\frac{|x|}{k + ${1}} < \frac{${1}}{${2}}`}, so each term is less than half the one before.` },
         { label: t`Compare with a geometric series`, text: t`So from ${math`k = N`} on the terms are at most ${math`T, \frac{T}{${2}}, \frac{T}{${4}}, \ldots`}, where ${math`T = \frac{|x|^{N}}{N!}`}; their sum is at most ${math`${2}T`}.`, why: { q: t`Why is that sum at most ${math`${2}T`}?`, a: t`It is the geometric series ${math`T\sum_{j \ge ${0}} ${2}^{-j} = \frac{T}{${1} - \frac{${1}}{${2}}} = ${2}T`}.` } },
-        { label: t`Conclude`, text: t`The partial sums of the positive series ${math`\sum \frac{|x|^{k}}{k!}`} increase and are bounded, so it converges; a series that converges absolutely converges.` },
+        { label: t`Conclude`, text: t`The partial sums of the positive series ${math`\sum \frac{|x|^{k}}{k!}`} increase and are bounded, so it converges; and a series whose terms' sizes add up to a finite total converges itself (this is called absolute convergence, and the fact is proved in IA Analysis).` },
       ],
     },
     { kind: 'table', caption: t`The terms ${math`\frac{${5}^{k}}{k!}`} grow at first, then the factorial wins`, head: [t`${math`k`}`, ...TERMS5.map((_, k) => t`${k}`)], rows: [[t`term`, ...TERMS5.map((v) => t`${Number(v.toPrecision(4))}`)]] },

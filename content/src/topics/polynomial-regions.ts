@@ -364,11 +364,11 @@ export const polynomialRegions: TopicContent = {
       kind: 'definition',
       name: t`Region test`,
       formal: t`To find where ${math`F(x, y) = L_{${1}}L_{${2}}\cdots L_{m} \ge ${0}`}, with each ${math`L_{i}`} linear, draw the lines ${math`L_{i} = ${0}`} and, in each region they bound, evaluate ${math`F`} at one [[region-test-point|test point]] off the lines.`,
-      plain: t`Draw the boundary, then test one point per region. For ${math`(x - ${2}y)(x - y) \le ${0}`}: at ${math`(${3}, ${2})`}, ${math`(-${1})(${1}) = -${1}`}, so that whole wedge is shaded.`,
+      plain: t`Draw the boundary, then test one point per region. For ${math`(x + ${2}y)(x - y) \le ${0}`}: at ${math`(${1}, ${2})`}, ${math`(${5})(-${1}) = -${5}`}, so the whole wedge containing that point is shaded.`,
     },
     { kind: 'narrative', text: t`Why one point per region suffices: inside a region, no factor is ${0}, and a linear expression can change sign only by passing through ${0}. So every factor, and the product, has the same sign throughout the region.` },
     checkFrom(regionPoints, { m1: 1, m2: -1, pts: [[2, 0], [0, 2], [3, 1], [-1, -3]], neg: true }, t`At ${math`(${2}, ${0})`}: ${math`(-${2})(${2}) = -${4}`}; at ${math`(${3}, ${1})`}: ${math`(-${2})(${4}) = -${8}`}. The other two give positive products.`),
-    { kind: 'takeaway', text: t`Factorise, mark where each factor is ${0}, and use one test point per piece: the sign is constant between boundaries and flips across a simple one.` },
+    { kind: 'takeaway', text: t`Factorise, mark where each factor is ${0}, and use one test point per piece: the sign is constant between boundaries and flips across one whose factor appears to an odd power.` },
   ],
   examples: [
     withExaminer(workedCambridge(a4q2ii), t`The factorised form, a sketch with the three roots marked, and inequalities with the right strictness at each end.`),

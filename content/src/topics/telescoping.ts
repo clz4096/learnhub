@@ -314,7 +314,7 @@ const a24q3sup = supervision({
 
 // ---------------------------------------------------------------- lesson
 
-const EXS = [1, 2, 3, 4].map((n) => sumQ(1, n, (r) => q(1, r * (r + 1))));
+const EXS = [1, 2, 3, 4].map((n) => sumQ(1, n, (r) => q(1, (3 * r - 2) * (3 * r + 1))));
 
 export const telescoping: TopicContent = {
   topicId: 'alg.telescoping',
@@ -324,13 +324,13 @@ export const telescoping: TopicContent = {
   minutes: 25,
   lesson: [
     { kind: 'section', title: t`Everything cancels but the ends` },
-    { kind: 'hook', text: t`${math`\frac{${1}}{${2}} + \frac{${1}}{${6}} + \frac{${1}}{${12}} + \frac{${1}}{${20}} + \cdots`}: the running totals are ${math`${EXS[0] as Rational}, ${EXS[1] as Rational}, ${EXS[2] as Rational}, ${EXS[3] as Rational}`}. A pattern this clean usually has a reason. Here the reason is that every term is secretly a difference.` },
-    { kind: 'narrative', text: t`${math`\frac{${1}}{${2}} = ${1} - \frac{${1}}{${2}}`}, ${math`\frac{${1}}{${6}} = \frac{${1}}{${2}} - \frac{${1}}{${3}}`}, ${math`\frac{${1}}{${12}} = \frac{${1}}{${3}} - \frac{${1}}{${4}}`}. Add them and each negative piece is cancelled by the positive piece of the next term, like the sections of a telescope sliding shut. Only the very first and very last pieces are left.` },
+    { kind: 'hook', text: t`${math`\frac{${1}}{${1} \times ${4}} + \frac{${1}}{${4} \times ${7}} + \frac{${1}}{${7} \times ${10}} + \frac{${1}}{${10} \times ${13}} + \cdots`}: the running totals are ${math`${EXS[0] as Rational}, ${EXS[1] as Rational}, ${EXS[2] as Rational}, ${EXS[3] as Rational}`}. A pattern this clean usually has a reason. Here the reason is that every term is secretly a difference.` },
+    { kind: 'narrative', text: t`${math`\frac{${1}}{${1} \times ${4}} = \frac{${1}}{${3}}\left(${1} - \frac{${1}}{${4}}\right)`}, ${math`\frac{${1}}{${4} \times ${7}} = \frac{${1}}{${3}}\left(\frac{${1}}{${4}} - \frac{${1}}{${7}}\right)`}, ${math`\frac{${1}}{${7} \times ${10}} = \frac{${1}}{${3}}\left(\frac{${1}}{${7}} - \frac{${1}}{${10}}\right)`}. (Check the first: ${math`${1} - \frac{${1}}{${4}} = \frac{${3}}{${4}}`}, and a third of that is ${math`\frac{${1}}{${4}}`}.) Add them and each negative piece is cancelled by the positive piece of the next term, like the sections of a telescope sliding shut. Only the very first and very last pieces are left.` },
     {
       kind: 'definition',
       name: t`Method of differences`,
       formal: t`If the terms of a sum can be written ${math`u_{r} = f(r) - f(r - ${1})`} for some function ${math`f`}, then the sum is found by the [[method-of-differences|method of differences]]: ${dmath`\sum_{r = ${1}}^{n} u_{r} = \sum_{r = ${1}}^{n} \left(f(r) - f(r - ${1})\right) = f(n) - f(${0}).`}`,
-      plain: t`When each term is "something minus the same something one step back", the sum is "last minus first". For ${math`\frac{${1}}{r(r + ${1})}`} take ${math`f(r) = -\frac{${1}}{r + ${1}}`}: then ${math`f(r) - f(r - ${1}) = \frac{${1}}{r} - \frac{${1}}{r + ${1}}`}, and the sum to ${mn} is ${math`f(n) - f(${0}) = ${1} - \frac{${1}}{n + ${1}}`}.`,
+      plain: t`When each term is "something minus the same something one step back", the sum is "last minus first". For the hook's terms take ${math`f(r) = -\frac{${1}}{${3}(${3}r + ${1})}`}. Then ${math`f(r - ${1}) = -\frac{${1}}{${3}(${3}r - ${2})}`}, so ${math`f(r) - f(r - ${1}) = \frac{${1}}{${3}}\left(\frac{${1}}{${3}r - ${2}} - \frac{${1}}{${3}r + ${1}}\right) = \frac{${1}}{(${3}r - ${2})(${3}r + ${1})}`}, and the sum to ${mn} is ${math`f(n) - f(${0}) = \frac{${1}}{${3}} - \frac{${1}}{${3}(${3}n + ${1})} = \frac{n}{${3}n + ${1}}`}. (At ${math`n = ${4}`}: ${math`\frac{${4}}{${13}}`}, the hook's fourth total.)`,
     },
     { kind: 'theorem', name: t`Telescoping sum`, statement: t`For any function ${math`f`} defined on ${math`\{${0}, ${1}, \ldots, n\}`}, ${math`\sum_{r = ${1}}^{n} \left(f(r) - f(r - ${1})\right) = f(n) - f(${0})`}.` },
     {
@@ -342,14 +342,14 @@ export const telescoping: TopicContent = {
         { label: t`Add the next term`, text: t`Then ${math`\sum_{r = ${1}}^{k + ${1}} = f(k) - f(${0}) + f(k + ${1}) - f(k) = f(k + ${1}) - f(${0})`}: the new term's ${math`-f(k)`} cancels the old end.`, plain: t`That cancellation, repeated, is the whole method.` },
       ],
     },
-    { kind: 'p', text: t`Finding ${math`f`} is the skill. For a fraction, partial fractions usually do it: ${math`\frac{${1}}{r(r + ${1})} = \frac{${1}}{r} - \frac{${1}}{r + ${1}}`}, checked by putting the right side over ${math`r(r + ${1})`}. If the gap is two, ${math`\frac{${1}}{r(r + ${2})} = \frac{${1}}{${2}}\left(\frac{${1}}{r} - \frac{${1}}{r + ${2}}\right)`}, and two pieces survive at each end.` },
-    checkFrom(pairGen, { a: 1, b: 9 }, t`The sum telescopes to ${math`${1} - \frac{${1}}{${10}} = \frac{${9}}{${10}}`}.`),
+    { kind: 'p', text: t`Finding ${math`f`} is the skill. For a fraction, partial fractions usually do it: ${math`\frac{${1}}{(${3}r - ${2})(${3}r + ${1})} = \frac{${1}}{${3}}\left(\frac{${1}}{${3}r - ${2}} - \frac{${1}}{${3}r + ${1}}\right)`}, checked by putting the bracket over ${math`(${3}r - ${2})(${3}r + ${1})`}: its top is ${math`(${3}r + ${1}) - (${3}r - ${2}) = ${3}`}. If the gap is two, ${math`\frac{${1}}{r(r + ${2})} = \frac{${1}}{${2}}\left(\frac{${1}}{r} - \frac{${1}}{r + ${2}}\right)`}, and two pieces survive at each end.` },
+    checkFrom(pairGen, { a: 5, b: 9 }, t`The sum telescopes to ${math`\frac{${1}}{${5}} - \frac{${1}}{${10}} = \frac{${1}}{${10}}`}.`),
     { kind: 'section', title: t`Telescoping products` },
     {
       kind: 'definition',
       name: t`Product notation`,
       formal: t`In [[product-notation|product notation]], ${math`\prod_{r = ${1}}^{n} a_{r} = a_{${1}} \times a_{${2}} \times \cdots \times a_{n}`}. If ${math`g(r) \neq ${0}`} for ${math`${0} \le r \le n`}, then ${math`\prod_{r = ${1}}^{n} \frac{g(r)}{g(r - ${1})} = \frac{g(n)}{g(${0})}`}.`,
-      plain: t`The multiplying version of a telescope: each numerator cancels the next denominator. ${math`\prod_{r = ${1}}^{${4}} r = ${24}`}, and ${math`\prod_{r = ${2}}^{n} \frac{r - ${1}}{r} = \frac{${1}}{n}`}.`,
+      plain: t`The multiplying version of a telescope: each numerator cancels the next denominator. ${math`\prod_{r = ${1}}^{${4}} r = ${24}`}, and ${math`\prod_{r = ${1}}^{n} \frac{r^{${2}} + r + ${1}}{r^{${2}} - r + ${1}} = n^{${2}} + n + ${1}`}, because ${math`r^{${2}} - r + ${1}`} is ${math`g(r) = r^{${2}} + r + ${1}`} one step back: ${math`(r - ${1})^{${2}} + (r - ${1}) + ${1} = r^{${2}} - r + ${1}`}, and ${math`g(${0}) = ${1}`}.`,
     },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`${math`\sum_{r = ${1}}^{n} \frac{${1}}{r(r + ${2})} = \frac{${1}}{${2}}\left(${1} - \frac{${1}}{n + ${2}}\right)`}: first piece minus last.`, counterexample: t`For ${math`n = ${2}`} the sum is ${math`\frac{${1}}{${3}} + \frac{${1}}{${8}} = ${add(q(1, 3), q(1, 8))}`}, but the claim gives ${math`${q(3, 8)}`}. With a gap of two, the piece ${math`\frac{${1}}{${2}}`} has no earlier term to cancel it, and ${math`-\frac{${1}}{n + ${1}}`} no later one: two pieces survive at each end. Write out the first and last few terms.` },
@@ -378,16 +378,16 @@ export const telescoping: TopicContent = {
   gate: ['a6-q1-i-show', 'a6-q1-i-general', 'a15-q1-iii-b', 'a17-q2-iii-a', 'a24-q2-iii'],
   recall: [
     { front: t`What is ${math`\sum_{r = ${1}}^{n} (f(r) - f(r - ${1}))`}?`, back: t`${math`f(n) - f(${0})`}: everything else cancels.` },
-    { front: t`Write ${math`\frac{${1}}{r(r + ${1})}`} as a difference.`, back: t`${math`\frac{${1}}{r} - \frac{${1}}{r + ${1}}`}, so ${math`\sum_{r = ${1}}^{n} \frac{${1}}{r(r + ${1})} = \frac{n}{n + ${1}}`}.` },
+    { front: t`What is ${math`\prod_{r = ${1}}^{n} \frac{g(r)}{g(r - ${1})}`}?`, back: t`${math`\frac{g(n)}{g(${0})}`}, when no ${math`g(r)`} is ${0}: each numerator cancels the next denominator.` },
   ],
   proofOrder: [
     {
-      title: t`${math`\sum_{r = ${1}}^{n} \frac{${1}}{r(r + ${1})} = \frac{n}{n + ${1}}`}`,
+      title: t`${math`\sum_{r = ${1}}^{n} \frac{${1}}{(${3}r - ${2})(${3}r + ${1})} = \frac{n}{${3}n + ${1}}`}`,
       steps: [
-        t`Partial fractions: ${math`\frac{${1}}{r(r + ${1})} = \frac{${1}}{r} - \frac{${1}}{r + ${1}}`}.`,
-        t`Write out the sum: ${math`(${1} - \frac{${1}}{${2}}) + (\frac{${1}}{${2}} - \frac{${1}}{${3}}) + \cdots + (\frac{${1}}{n} - \frac{${1}}{n + ${1}})`}.`,
+        t`Partial fractions: ${math`\frac{${1}}{(${3}r - ${2})(${3}r + ${1})} = \frac{${1}}{${3}}\left(\frac{${1}}{${3}r - ${2}} - \frac{${1}}{${3}r + ${1}}\right)`}.`,
+        t`Write out the sum: ${math`\frac{${1}}{${3}}\left[(${1} - \frac{${1}}{${4}}) + (\frac{${1}}{${4}} - \frac{${1}}{${7}}) + \cdots + (\frac{${1}}{${3}n - ${2}} - \frac{${1}}{${3}n + ${1}})\right]`}.`,
         t`Each negative piece cancels the next positive piece.`,
-        t`Only ${math`${1} - \frac{${1}}{n + ${1}} = \frac{n}{n + ${1}}`} is left.`,
+        t`Only ${math`\frac{${1}}{${3}}\left(${1} - \frac{${1}}{${3}n + ${1}}\right) = \frac{n}{${3}n + ${1}}`} is left.`,
       ],
     },
   ],

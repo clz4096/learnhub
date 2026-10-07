@@ -4,7 +4,11 @@
  * condition, and the constant solutions where g(y) = 0. The Cambridge problem is the NST
  * Mathematics Workbook, DE1, whose printed answer y = (1 - x^2)/(1 + x^2) is compared in the
  * content checks. The STEP 1 specification: "first order differential equations with
- * separable variables, including finding particular solutions".
+ * separable variables, including finding particular solutions". DE1 is the worked example, so
+ * it does not gate (2026-10-07). The gates (batch 9) are 2003 STEP I Q8 (a reaction whose rate
+ * is proportional to both amounts: separable, with partial fractions, and a constant solution
+ * that is never reached) and 1996 STEP I Q7 (a tank with water flowing out and in), whose
+ * solution is checked against a Runge-Kutta solution.
  */
 import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
@@ -181,6 +185,44 @@ const de1Write = supervision({
   writeUp: 'proof',
 });
 
+// 2003 STEP I Q8: the reaction A -> B at rate kVxy.
+const step03Reaction = supervision({
+  id: 'step03-q8',
+  source: cite('stepdb-03-s1', 'Q8'),
+  title: t`A reaction that never finishes`,
+  prompt: t`A liquid of fixed volume ${math`V`} is made up of two chemicals ${math`A`} and ${math`B`}. A reaction takes place in which ${math`A`} converts to ${math`B`}. The volume of ${math`A`} at time ${math`t`} is ${math`xV`} and the volume of ${math`B`} at time ${math`t`} is ${math`yV`}, where ${math`x`} and ${math`y`} depend on ${math`t`} and ${math`x + y = ${1}`}. The rate at which ${math`A`} converts into ${math`B`} is given by ${math`kVxy`}, where ${math`k`} is a positive constant. Show that if both ${math`x`} and ${math`y`} are strictly positive at the start, then at time ${math`t`} ${dmath`y = \frac{De^{kt}}{${1} + De^{kt}},`} where ${math`D`} is a constant. Does ${math`A`} ever completely convert to ${math`B`}? Justify your answer.`,
+  writeUp: 'proof',
+});
+
+// 1996 STEP I Q7(ii): a tank emptying at a rate proportional to its contents, and filled at rate a.
+/** The solution of dy/dt = a + y ln b with y(0) = 1. */
+const tankLevel = (a: number, b: number, time: number): number => b ** time + (a * (b ** time - 1)) / Math.log(b);
+const step96Tank = auto({
+  id: 'step96-q7-ii',
+  source: cite('stepdb-96-s1', 'Q7', true),
+  title: t`A tank filling and emptying`,
+  prompt: t`At time ${math`t = ${0}`} a tank contains one unit of water, and water flows out at a rate proportional to the amount ${math`y`} in the tank; then ${math`y = b^{t}`} for a constant ${math`b`} with ${math`${0} < b < ${1}`}. Suppose instead that the tank contains one unit of water at time ${math`t = ${0}`}, but that in addition to water flowing out as described, water is added at a steady rate ${math`a > ${0}`}. Then ${dmath`\frac{dy}{dt} - y\ln b = a.`} Find ${math`y`} in terms of ${math`a`}, ${math`b`}, and ${math`t`}. (Type ${math`\ln`} as ln.)`,
+  answer: { kind: 'expression', expected: 'b^t + a (b^t - 1)/ln(b)', variables: ['a', 'b', 't'], domains: { a: { kind: 'real', min: 0.1, max: 5 }, b: { kind: 'real', min: 0.1, max: 0.9 }, t: { kind: 'real', min: 0, max: 5 } } },
+  solution: [
+    t`Write the equation as ${math`\frac{dy}{dt} = a + y\ln b`}: the right side depends on ${math`y`} only, so the variables separate. Where ${math`a + y\ln b \ne ${0}`}, ${math`\int \frac{dy}{a + y\ln b} = \int dt`}, so ${math`\frac{${1}}{\ln b}\ln|a + y\ln b| = t + C`}.`,
+    t`Multiply by ${math`\ln b`} and exponentiate: ${math`a + y\ln b = Ae^{t\ln b} = Ab^{t}`} for a constant ${math`A`}. At ${math`t = ${0}`}, ${math`y = ${1}`}, so ${math`A = a + \ln b`}.`,
+    t`So ${math`y = \frac{(a + \ln b)b^{t} - a}{\ln b} = b^{t} + \frac{a(b^{t} - ${1})}{\ln b}`}. As ${math`t \to \infty`}, ${math`b^{t} \to ${0}`} and ${math`y \to -\frac{a}{\ln b}`}, the constant solution at which inflow and outflow balance (positive, since ${math`\ln b < ${0}`}).`,
+  ],
+  reference: 'b^t + a(b^t - 1)/ln(b)',
+  verify: () => {
+    for (const [a, b, time] of [[1, 0.5, 2], [2.5, 0.8, 3], [0.3, 0.2, 1.5]] as const) {
+      const lnb = Math.log(b);
+      const e = close(`y(${time}) for a = ${a}, b = ${b}`, rk4((_t, y) => a + y * lnb, 0, 1, time), tankLevel(a, b, time), 1e-8);
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: 'b^t - a/ln(b)', why: t`That solves the equation but starts at the wrong level: at ${math`t = ${0}`} it gives ${math`${1} - \frac{a}{\ln b}`}, not ${1}. Fix the constant from ${math`y(${0}) = ${1}`}.` },
+    { response: 'b^t + a t', why: t`The added water also drains away at a rate proportional to the amount, so it does not simply pile up: solve the equation with both terms.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const separableOdes: TopicContent = {
@@ -209,7 +251,7 @@ export const separableOdes: TopicContent = {
       steps: [
         { label: t`Separate`, text: t`For ${math`\frac{dy}{dx} = ${2}y`}: ${math`\int \frac{dy}{y} = \int ${2}\,dx`}.` },
         { label: t`Integrate`, text: t`${math`\ln|y| = ${2}x + C`}.` },
-        { label: t`Exponentiate`, text: t`${math`|y| = e^{C}e^{${2}x}`}. A solution never ${0} keeps one sign, so ${math`y = Ae^{${2}x}`} with ${math`A \ne ${0}`}; with the constant solution ${math`y = ${0}`}, every ${math`A`} works.`, eq: [dmath`y = Ae^{${2}x}`] },
+        { label: t`Exponentiate`, text: t`${math`|y| = e^{C}e^{${2}x}`}. A solution that is never ${0} keeps one sign (it is continuous, so to change sign it would have to pass through ${0}), so ${math`y = Ae^{${2}x}`} with ${math`A \ne ${0}`}; with the constant solution ${math`y = ${0}`}, every ${math`A`} works.`, eq: [dmath`y = Ae^{${2}x}`] },
         { label: t`Use a condition`, text: t`If ${math`y(${0}) = ${3}`}, then ${math`A = ${3}`}: ${math`y = ${3}e^{${2}x}`}, the [[ode-particular-solution|particular solution]].` },
       ],
     },
@@ -226,11 +268,14 @@ export const separableOdes: TopicContent = {
   generators: [growth, power, ySquared],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['separable-equation', 'ode-particular-solution'],
-  cambridge: withUses([de1Value, de1Write], {
+  cambridge: withUses([step03Reaction, step96Tank, de1Value, de1Write], {
+    'step03-q8': { sections: ['An equation for a function'], note: t`Setting up a separable equation from a rate, solving it with partial fractions, and deciding whether a limit is reached` },
+    'step96-q7-ii': { sections: ['An equation for a function'], note: t`Separating an equation whose right side depends on the unknown only, and fixing the constant` },
     'nst-de1-write': { sections: ['An equation for a function'], note: t`Separating, integrating by partial fractions, and the constant solutions` },
     'nst-de1-value': { sections: ['An equation for a function'], note: t`Reading a value from the solution` },
   }),
-  gate: ['nst-de1-write', 'nst-de1-value'],
+  // The two STEP questions. NST DE1 is the worked example, so its two forms are practice (2026-10-07).
+  gate: ['step03-q8', 'step96-q7-ii'],
   recall: [
     { front: t`How do you solve ${math`\frac{dy}{dx} = f(x)g(y)`}?`, back: t`${math`\int \frac{dy}{g(y)} = \int f(x)\,dx + C`}, then fix ${math`C`}; also check constant solutions where ${math`g(y) = ${0}`}.` },
     { front: t`Solve ${math`\frac{dy}{dx} = ky`}.`, back: t`${math`y = Ae^{kx}`}, with ${math`A = y(${0})`}.` },

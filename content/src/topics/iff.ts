@@ -4,7 +4,9 @@
  * and Proposition 16, using an iff as two implications), Book of Proof Section 2.4, and the
  * TMUA notes on swapping A and B (page 40) and on necessary and sufficient (pages 51 to 54).
  * The problems are Book of Proof's exercises for Section 2.4, supervision exercises 1.1.3,
- * 1.2.2, and 1.2.7 (with the 2023-24 official solutions), and TMUA Exercise I.
+ * 1.2.2, and 1.2.7 (with the 2023-24 official solutions), and TMUA Exercise I. The second gate
+ * (batch 9) is STEP Support Assignment 10, Q2(v): five "if and only if" statements to judge,
+ * each false one by a single example, checked against the hints and by search.
  */
 import { assignments, evalFormula, parseFormula } from '@learnhub/mastery';
 import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
@@ -408,6 +410,70 @@ const tmuaI3 = supervision({
   writeUp: 'explanation',
 });
 
+// STEP Support Assignment 10, Q2(v): which of five "iff" statements are true.
+const isPrimeNumber = (n: number): boolean => {
+  if (n < 2) return false;
+  for (let d = 2; d * d <= n; d++) if (n % d === 0) return false;
+  return true;
+};
+/** Integer-sided triangles with sides up to 20: is "scalene iff no two angles equal" true for all? */
+function scaleneMatchesAngles(): boolean {
+  // cos A = (b^2 + c^2 - a^2) / (2bc), compared exactly by cross-multiplying.
+  const cosEq = (a: number, b: number, c: number, x: number, y: number, z: number): boolean =>
+    (b * b + c * c - a * a) * (2 * y * z) === (y * y + z * z - x * x) * (2 * b * c);
+  for (let a = 1; a <= 20; a++) for (let b = 1; b <= 20; b++) for (let c = 1; c <= 20; c++) {
+    if (a + b <= c || b + c <= a || a + c <= b) continue;
+    const scalene = a !== b && b !== c && a !== c;
+    const twoAnglesEqual = cosEq(a, b, c, b, c, a) || cosEq(b, c, a, c, a, b) || cosEq(a, b, c, c, a, b);
+    if (scalene === twoAnglesEqual) return false;
+  }
+  return true;
+}
+const IFF_TRUE = ['a', 'e'];
+const a10Iff = auto({
+  id: 'a10-q2-v',
+  source: cite('step-f10', 'Q2(v)', true),
+  title: t`Five statements with "if and only if"`,
+  prompt: t`Which of the following statements are true? Choose all that are. (For each false one, be ready to say which direction fails, with an example.)`,
+  answer: {
+    kind: 'choice',
+    options: [
+      { id: 'a', label: t`An even number is prime if and only if it is ${2}.` },
+      { id: 'b', label: t`An odd number is prime if and only if it is ${3}.` },
+      { id: 'c', label: t`${math`x = ${3}`} if and only if ${math`x^{${2}} - ${9} = ${0}`}.` },
+      { id: 'd', label: t`A triangle with sides of lengths ${math`a`}, ${math`b`}, and ${math`c`} is right-angled if and only if ${math`a^{${2}} + b^{${2}} = c^{${2}}`}.` },
+      { id: 'e', label: t`A triangle is scalene (no two sides equal) if and only if no two of its angles are the same.` },
+    ],
+    correct: IFF_TRUE,
+  },
+  solution: [
+    t`Each statement is two implications, and a false one fails in at least one direction. (a) is true: ${2} is even and prime, and an even number ${math`n`} greater than ${2} has the factor ${2}, which lies strictly between ${1} and ${math`n`}, so it is not prime. (b) is false: "if it is ${3}, it is prime" holds, but the other direction fails at ${5}, an odd prime that is not ${3}.`,
+    t`(c) is false: "if ${math`x = ${3}`} then ${math`x^{${2}} - ${9} = ${0}`}" holds, but ${math`x = -${3}`} also makes ${math`x^{${2}} - ${9} = ${0}`}. So ${math`x = ${3}`} is sufficient, not necessary.`,
+    t`(d) is false, and the hints admit it is a little mean: the statement does not say which side is longest. With ${math`a = ${5}`}, ${math`b = ${3}`}, ${math`c = ${4}`} the triangle is right-angled, yet ${math`a^{${2}} + b^{${2}} = ${34} \neq ${16} = c^{${2}}`}. It becomes true if ${math`c`} is known to be the longest side.`,
+    t`(e) is true: in a triangle, two sides are equal exactly when the angles opposite them are equal (the isosceles triangle theorem and its converse). So "no two sides equal" and "no two angles equal" say the same thing. The true statements are (a) and (e).`,
+  ],
+  reference: IFF_TRUE,
+  verify: () => {
+    const evenPrimes = upTo(1000).filter((n) => n % 2 === 0 && isPrimeNumber(n));
+    const verdicts = {
+      a: evenPrimes.join() === '2',
+      b: !upTo(100).some((n) => n % 2 === 1 && isPrimeNumber(n) && n !== 3) && isPrimeNumber(3),
+      // True only if no x other than 3 has x^2 = 9; x = -3 has.
+      c: !((-3) ** 2 - 9 === 0),
+      // True only if every right-angled triangle has a^2 + b^2 = c^2; sides a = 5, b = 3, c = 4 do not.
+      d: !(3 ** 2 + 4 ** 2 === 5 ** 2 && 5 ** 2 + 3 ** 2 !== 4 ** 2),
+      e: scaleneMatchesAngles(),
+    };
+    return same('the true statements', Object.entries(verdicts).filter(([, v]) => v).map(([k]) => k).join(), IFF_TRUE.join());
+  },
+  misconceptions: [
+    { response: ['a', 'd', 'e'], why: t`(d) assumes ${math`c`} is the longest side, which the statement does not say: with ${math`a = ${5}`}, ${math`b = ${3}`}, ${math`c = ${4}`} the triangle is right-angled but ${math`a^{${2}} + b^{${2}} \neq c^{${2}}`}.` },
+    { response: ['a', 'c', 'e'], why: t`(c) fails in one direction: ${math`x = -${3}`} makes ${math`x^{${2}} - ${9} = ${0}`} true and ${math`x = ${3}`} false.` },
+    { response: ['a'], why: t`(e) is true: in a triangle equal sides face equal angles, and equal angles face equal sides, so "no two sides equal" and "no two angles equal" go together.` },
+  ],
+  official: { source: cite('step-f10-hints', 'Q2(v)'), answer: IFF_TRUE, agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const iff: TopicContent = {
@@ -490,15 +556,17 @@ export const iff: TopicContent = {
   generators: [necSuff, iffTable, iffWitness],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['biconditional', 'sufficient-condition', 'necessary-condition'],
-  cambridge: withUses([bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, sw113, sw122, sw127, tmuaI3], {
+  cambridge: withUses([bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, sw113, sw122, sw127, a10Iff, tmuaI3], {
     'sw-1-2-7': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
     'sw-1-2-2': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
     'sw-1-1-3': { sections: ['Proving both directions'], note: t`Proving each direction separately, from what it assumes` },
+    'a10-q2-v': { sections: ['Two arrows at once', 'Necessary and sufficient'], note: t`Testing both directions of each statement, and breaking a false one with a single example` },
   }),
   // The two-way proof of 1.1.3. It leans on parity arguments from pre.algebraic-argument, earlier in the book,
   // and says so. 1.2.7 and 1.2.2 need divisibility, taught later, so they are practice. The true-or-false
-  // version of 1.1.3 is left out: a two-option guess does not test the topic.
-  gate: ['sw-1-1-3'],
+  // version of 1.1.3 is left out: a two-option guess does not test the topic. Assignment 10 Q2(v) has five
+  // statements to judge, so a guess passes it one time in 32.
+  gate: ['sw-1-1-3', 'a10-q2-v'],
   recall: [
     { front: t`What does ${IFF} mean?`, back: t`${math`(P \Rightarrow Q) \land (Q \Rightarrow P)`}: true exactly when ${mP} and ${mQ} have the same truth value.` },
     { front: t`${math`A`} is sufficient for ${math`B`}: which arrow?`, back: t`${math`A \Rightarrow B`}. ${math`A`} on its own guarantees ${math`B`}.` },

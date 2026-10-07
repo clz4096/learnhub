@@ -2,9 +2,15 @@
  * geom.vector-lines: the vector equation of a line r = a + t d, points on a line, and two
  * lines in space: meeting, parallel, or skew. Problems from the NST Maths Workbook, Section 2
  * VE1 (three points on a straight line, and its equation in the form r = a + lambda b).
+ * VE1 is also the worked example, so it does not gate (2026-10-07). The gates (batch 9) are
+ * 2007 STEP I Q7: (i) the least distance between two skew lines, by writing the squared
+ * distance between a point of each as a sum of squares (checked by expanding it at many
+ * parameter values and by setting both partial derivatives to zero, in sympy), and (ii) the
+ * least distance between a fixed line and a family of lines, 5 unless the lines are parallel,
+ * when it is 5 times root 2.
  */
 import { auto, cite, supervision, withUses } from '../cambridge';
-import { add3, colTex, cross, dot, listText, scale3, sub3 } from '../geometry';
+import { add3, colTex, cross, dot, listText, ptTex, scale3, sub3 } from '../geometry';
 import { int, pick, q, str } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, t } from '../rich';
@@ -243,6 +249,49 @@ const ve1proof = supervision({
   writeUp: 'proof',
 });
 
+// 2007 STEP I Q7: least distances between lines.
+const L1 = { a: [1, 0, 2], d: [2, 2, -3] } as const;
+const L2 = { a: [4, -2, 9], d: [1, 2, -2] } as const;
+const pointAt = (L: { a: readonly number[]; d: readonly number[] }, s: number): number[] => add3(L.a, scale3(s, L.d));
+/** The squared distance between the point lambda of L1 and the point mu of L2, as the question writes it. */
+const d2Formula = (lambda: number, mu: number): number => (3 * mu - 4 * lambda - 5) ** 2 + (lambda - 1) ** 2 + 36;
+const [BEST_LAMBDA, BEST_MU] = [1, 3];
+const step07Skew = auto({
+  id: 'step07-q7-i',
+  source: cite('stepdb-07-s1', 'Q7(i)', true),
+  title: t`The least distance between two lines`,
+  prompt: t`The line ${math`L_{${1}}`} has vector equation ${math`\mathbf{r} = ${col(L1.a)} + \lambda${col(L1.d)}`}. The line ${math`L_{${2}}`} has vector equation ${math`\mathbf{r} = ${col(L2.a)} + \mu${col(L2.d)}`}. Show that the distance ${math`D`} between a point on ${math`L_{${1}}`} and a point on ${math`L_{${2}}`} can be expressed in the form ${dmath`D^{${2}} = (${3}\mu - ${4}\lambda - ${5})^{${2}} + (\lambda - ${1})^{${2}} + ${36}.`} Hence find the minimum distance between these two lines. (The paper also asks for the two points that are the minimum distance apart.)`,
+  answer: { kind: 'exact', expected: String(Math.sqrt(d2Formula(BEST_LAMBDA, BEST_MU))) },
+  solution: [
+    t`The point ${math`\lambda`} of ${math`L_{${1}}`} minus the point ${math`\mu`} of ${math`L_{${2}}`} is ${math`${col(sub3(L1.a, L2.a))} + \lambda${col(L1.d)} - \mu${col(L2.d)} = \begin{pmatrix} ${2}\lambda - \mu - ${3} \\ ${2}\lambda - ${2}\mu + ${2} \\ -${3}\lambda + ${2}\mu - ${7} \end{pmatrix}`}. ${math`D^{${2}}`} is the sum of the squares of its components, by Pythagoras in three dimensions; expanding both that and the given form gives the same quadratic in ${math`\lambda`} and ${math`\mu`}.`,
+    t`A square is never negative, so ${math`D^{${2}} \ge ${36}`}, with equality exactly when both squares are ${0}: ${math`\lambda = ${1}`}, and then ${math`${3}\mu - ${4} - ${5} = ${0}`}, so ${math`\mu = ${3}`}.`,
+    t`So the minimum distance is ${math`\sqrt{${36}} = ${6}`}, between the points ${computedTex(ptTex(pointAt(L1, BEST_LAMBDA)))} on ${math`L_{${1}}`} and ${computedTex(ptTex(pointAt(L2, BEST_MU)))} on ${math`L_{${2}}`}.`,
+  ],
+  reference: '6',
+  verify: () => {
+    for (const [lambda, mu] of [[0, 0], [1, 3], [-2, 5], [3, -1], [0.5, 2.5]] as const) {
+      const diff = sub3(pointAt(L1, lambda), pointAt(L2, mu));
+      if (Math.abs(dot(diff, diff) - d2Formula(lambda, mu)) > 1e-9) return `D^2 differs from the formula at lambda = ${lambda}, mu = ${mu}`;
+    }
+    // At the closest points the join is perpendicular to both lines.
+    const join = sub3(pointAt(L1, BEST_LAMBDA), pointAt(L2, BEST_MU));
+    if (dot(join, L1.d) !== 0 || dot(join, L2.d) !== 0) return 'the join of the closest points is not perpendicular to both lines';
+    return Math.sqrt(dot(join, join)) === 6 ? null : `closest distance ${Math.sqrt(dot(join, join))}`;
+  },
+  misconceptions: [
+    { response: '36', why: t`${36} is the least value of ${math`D^{${2}}`}. The distance is its square root.` },
+  ],
+  official: { source: cite('stepdb-07-sol', 'STEP I, Q7(i) (page 12 of the PDF)'), answer: '6', agrees: true, note: 'The solution says "the minimum value of D^2 is therefore 6", a slip for D: the least value of D^2 is 36, so the least distance is 6, between the points (3, 2, -1) and (7, 4, 3) that the solution also gives.' },
+});
+const step07Family = supervision({
+  id: 'step07-q7-ii',
+  source: cite('stepdb-07-s1', 'Q7(ii)'),
+  title: t`A line and a family of lines`,
+  prompt: t`The line ${math`L_{${3}}`} has vector equation ${math`\mathbf{r} = ${col([2, 3, 5])} + \alpha${col([0, 1, 0])}`}. The line ${math`L_{${4}}`} has vector equation ${math`\mathbf{r} = ${col([3, 3, -2])} + \beta\begin{pmatrix} ${4}k \\ ${1} - k \\ -${3}k \end{pmatrix}`}. Determine the minimum distance between these two lines, explaining geometrically the two different cases that arise according to the value of ${math`k`}.`,
+  writeUp: 'proof',
+  official: cite('stepdb-07-sol', 'STEP I, Q7(ii) (page 12 of the PDF)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EXA = [2, -1, 3];
@@ -267,7 +316,7 @@ export const vectorLines: TopicContent = {
       steps: [
         { label: t`Parallel?`, text: t`If ${math`\mathbf{d}_{${2}} = k\mathbf{d}_{${1}}`} for some ${math`k`}, the lines are parallel (or the same line, if they share a point).` },
         { label: t`Equate`, text: t`Otherwise set ${math`\mathbf{a}_{${1}} + s\mathbf{d}_{${1}} = \mathbf{a}_{${2}} + t\mathbf{d}_{${2}}`}: three equations, one per component, in two unknowns ${math`s`} and ${math`t`}.` },
-        { label: t`Solve two, test the third`, text: t`Solve two of the equations for ${math`s`} and ${math`t`}. If the third also holds, the lines meet, at the point given by either line; if not, they are skew.`, why: { q: t`Why can two of the equations always be solved?`, a: t`When the directions are not parallel, some pair of components gives two equations with a nonzero determinant, so they have exactly one solution. Choose that pair. Three equations in two unknowns, though, can be inconsistent: that is the skew case.` } },
+        { label: t`Solve two, test the third`, text: t`Solve two of the equations for ${math`s`} and ${math`t`}. If the third also holds, the lines meet, at the point given by either line; if not, they are skew.`, why: { q: t`Why can two of the equations always be solved?`, a: t`When the directions are not parallel, there is a pair of components in which the two directions are not multiples of each other (if every pair were, the whole directions would be). The two equations from that pair are like two non-parallel lines in the plane: they have exactly one solution. Choose that pair. Three equations in two unknowns, though, can be inconsistent: that is the skew case.` } },
       ],
     },
     { kind: 'p', text: t`[[skew-lines|Skew lines]] have no counterpart in the plane, where non-parallel lines always cross. Think of a road on a bridge and a railway passing underneath at an angle: neither parallel nor meeting.` },
@@ -285,11 +334,14 @@ export const vectorLines: TopicContent = {
   generators: [onLine, meet, lineKind],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['vector-line', 'skew-lines'],
-  cambridge: withUses([ve1proof, ve1b], {
+  cambridge: withUses([step07Skew, step07Family, ve1proof, ve1b], {
+    'step07-q7-i': { sections: ['A line without y equals mx plus c', 'Two lines in space'], note: t`The distance between a point of each line, made least by completing squares` },
+    'step07-q7-ii': { sections: ['A line without y equals mx plus c', 'Two lines in space'], note: t`The least distance between a line and a family of lines, and the parallel case` },
     'nst-ve1': { sections: ['A line without y equals mx plus c'], note: t`Collinearity and the equation of a line, and why it is not unique` },
     'nst-ve1-point': { sections: ['A line without y equals mx plus c'], note: t`A point on a line through three given points` },
   }),
-  gate: ['nst-ve1', 'nst-ve1-point'],
+  // 2007 STEP I Q7. NST VE1 is the worked example, so its two forms are practice (2026-10-07).
+  gate: ['step07-q7-i', 'step07-q7-ii'],
   recall: [
     { front: t`Write the vector equation of the line through ${ma} in direction ${md}.`, back: t`${math`\mathbf{r} = \mathbf{a} + t\mathbf{d}`}, ${math`t \in \mathbb{R}`}.` },
     { front: t`How do you decide whether two lines in space meet?`, back: t`If not parallel, equate components, solve two equations for the parameters, and test the third: it holds if they meet, fails if they are skew.` },

@@ -469,10 +469,10 @@ export const fpExpressions: TopicContent = {
     {
       kind: 'steps',
       steps: [
-        { label: t`Read the expression`, text: t`Take ${code`${7} * (${1} + ${2} + ${3})`}, the first expression of an exercise in the CS${3110} book. OCaml evaluates the inside of the brackets first.`, eq: [dmath`${1} + ${2} + ${3} = ${6}`] },
-        { label: t`Check the types`, text: t`Each of ${7}, ${1}, ${2}, ${3} is an ${code`int`}; ${code`+`} and ${code`*`} take two ints and give an int. So the whole expression has type ${code`int`}, decided before any arithmetic.`, why: { q: t`Why does OCaml check types before computing?`, a: t`So that a mistake such as adding a string to a number is caught when you write the program, not when it is running. A program that passes the check can never apply ${code`+`} to a string.` } },
-        { label: t`Multiply`, text: t`Then the outer product.`, eq: [dmath`${7} \times ${6} = ${42}`] },
-        { label: t`Read the reply`, text: t`The toplevel prints ${code`- : int = ${42}`}: the dash means the value has no name, the type is ${code`int`}, the value is ${42}.` },
+        { label: t`Read the expression`, text: t`Take ${code`${5} * (${2} + ${3} + ${4})`}. OCaml evaluates the inside of the brackets first.`, eq: [dmath`${2} + ${3} + ${4} = ${9}`] },
+        { label: t`Check the types`, text: t`Each of ${5}, ${2}, ${3}, ${4} is an ${code`int`}; ${code`+`} and ${code`*`} take two ints and give an int. So the whole expression has type ${code`int`}, decided before any arithmetic.`, why: { q: t`Why does OCaml check types before computing?`, a: t`So that a mistake such as adding a string to a number is caught when you write the program, not when it is running. A program that passes the check can never apply ${code`+`} to a string.` } },
+        { label: t`Multiply`, text: t`Then the outer product.`, eq: [dmath`${5} \times ${9} = ${45}`] },
+        { label: t`Read the reply`, text: t`The toplevel prints ${code`- : int = ${45}`}: the dash means the value has no name, the type is ${code`int`}, the value is ${45}.` },
       ],
     },
     checkFrom(intArith, { form: 0, a: 23, b: 4 }, t`${math`\frac{${23}}{${4}} = ${23 / 4}`}, and OCaml truncates towards zero, so ${code`${23} / ${4}`} is ${Math.trunc(23 / 4)}.`),

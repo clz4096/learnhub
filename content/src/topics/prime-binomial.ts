@@ -4,7 +4,11 @@
  * (printed pages 116 to 121: Lemma 27, Lemma 28 with its footnote asking for the missing
  * argument, Proposition 29; pages 242 and 243: Corollary 85, p | C(p, m) and
  * (p - m) | C(p - 1, m), from p C(p - 1, m) = (p - m) C(p, m)) and Book of Proof Chapter 4,
- * exercise 21, whose solution argues with prime factorisations instead.
+ * exercise 21, whose solution argues with prime factorisations instead. The second gate
+ * (batch 9) is 2016 STEP III Q5: every prime between m + 1 and 2m + 1 divides C(2m + 1, m), the
+ * lesson's argument with a numerator and a denominator, which leads to the bound that the
+ * product of the primes up to n is less than 4^n (checked in Python: the divisibility and
+ * C(2m + 1, m) < 2^(2m) for m up to 39, and the bound for n up to 79).
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
@@ -179,6 +183,17 @@ const lemma27 = supervision({
   writeUp: 'proof',
 });
 
+// 2016 STEP III Q5: primes dividing a middle binomial coefficient, and a bound on their product.
+const [mm, mr, ms] = [math`m`, math`r`, math`s`];
+const step16Primes = supervision({
+  id: 'step16-s3-q5',
+  source: cite('stepdb-16-s3', 'Q5'),
+  title: t`The product of the primes up to n`,
+  prompt: t`(i) By considering the binomial expansion of ${math`(${1} + x)^{${2}m + ${1}}`}, prove that ${math`\binom{${2}m + ${1}}{m} < ${2}^{${2}m}`} for any positive integer ${mm}. (ii) For any positive integers ${mr} and ${ms} with ${math`r < s`}, ${math`P_{r,s}`} is defined as follows: ${math`P_{r,s}`} is the product of all the prime numbers greater than ${mr} and less than or equal to ${ms}, if there are any such prime numbers; if there are none, then ${math`P_{r,s} = ${1}`}. For example, ${math`P_{${3},${7}} = ${35}`}, ${math`P_{${7},${10}} = ${1}`}, and ${math`P_{${14},${18}} = ${17}`}. Show that, for any positive integer ${mm}, ${math`P_{m + ${1}, ${2}m + ${1}}`} divides ${math`\binom{${2}m + ${1}}{m}`}, and deduce that ${math`P_{m + ${1}, ${2}m + ${1}} < ${2}^{${2}m}`}. (iii) Show that, if ${math`P_{${1},k} < ${4}^{k}`} for ${math`k = ${2}, ${3}, \ldots, ${2}m`}, then ${math`P_{${1},${2}m + ${1}} < ${4}^{${2}m + ${1}}`}. (iv) Prove that ${math`P_{${1},n} < ${4}^{n}`} for ${math`n \ge ${2}`}.`,
+  writeUp: 'proof',
+  official: cite('stepdb-16-sol', 'STEP III, Question 5 (pages 24 and 25)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const row = (n: number): bigint[] => Array.from({ length: n + 1 }, (_, k) => C(n, k));
@@ -233,11 +248,12 @@ export const primeBinomial: TopicContent = {
   generators: [quotient, compositeWitness, rowCount],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['prime-divides-binomial'],
-  cambridge: withUses([cor85, bop421, lemma27], {
+  cambridge: withUses([cor85, bop421, lemma27, step16Primes], {
+    'step16-s3-q5': { sections: ['The theorem', 'Why the prime matters'], note: t`A prime that divides the top of a binomial coefficient but not the bottom, then a bound by strong induction`, needs: ['comb.binomial-theorem'] },
     'notes-116-lemmas-27-29': { sections: ['The theorem', 'Why the prime matters'], note: t`The ends of a row and the inner coefficients, case by case` },
   }),
   // The notes' proof by cases. Corollary 85 with numbers is a division sum, and Book of Proof is not Cambridge standard.
-  gate: ['notes-116-lemmas-27-29'],
+  gate: ['notes-116-lemmas-27-29', 'step16-s3-q5'],
   recall: [
     { front: t`Which entries of row ${mp} does a prime ${mp} divide?`, back: t`Every ${math`\binom{p}{k}`} with ${math`${0} < k < p`}.` },
     { front: t`The identity behind it.`, back: t`${math`k\binom{n}{k} = n\binom{n - ${1}}{k - ${1}}`}: a team of ${mk} with a leader, counted two ways.` },

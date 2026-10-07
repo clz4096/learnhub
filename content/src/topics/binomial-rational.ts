@@ -333,6 +333,7 @@ const db11q6 = supervision({
   title: t`Series summed by the binomial expansion`,
   prompt: t`Use the binomial expansion to show that the coefficient of ${math`x^{r}`} in the expansion of ${math`(${1} - x)^{-${3}}`} is ${math`\frac{${1}}{${2}}(r + ${1})(r + ${2})`}. (i) Show that the coefficient of ${math`x^{r}`} in the expansion of ${dmath`\frac{${1} - x + ${2}x^{${2}}}{(${1} - x)^{${3}}}`} is ${math`r^{${2}} + ${1}`} and hence find the sum of the series ${dmath`${1} + \frac{${2}}{${2}} + \frac{${5}}{${4}} + \frac{${10}}{${8}} + \frac{${17}}{${16}} + \frac{${26}}{${32}} + \frac{${37}}{${64}} + \frac{${50}}{${128}} + \cdots.`} (ii) Find the sum of the series ${dmath`${1} + ${2} + \frac{${9}}{${4}} + ${2} + \frac{${25}}{${16}} + \frac{${9}}{${8}} + \frac{${49}}{${64}} + \cdots.`}`,
   writeUp: 'proof',
+  official: cite('stepdb-11-sol', 'STEP I, Question 6 (pages 21 to 23)'),
 });
 
 /** Partial sums of sum_r f(r)/2^r, to 200 terms, as a float: the series converge fast. */
@@ -387,6 +388,7 @@ const db11q6ii = auto({
   misconceptions: [
     { response: '8', why: t`That is part (i)'s series, with ${math`r^{${2}} + ${1}`} on top. Here the tops are the squares ${math`(r + ${1})^{${2}}`}: ${1}, ${4}, ${9}, ${16}, and so on.` },
   ],
+  official: { source: cite('stepdb-11-sol', 'STEP I, Question 6 (pages 21 to 23)'), answer: '12', agrees: true },
 });
 
 // ---------------------------------------------------------------- lesson

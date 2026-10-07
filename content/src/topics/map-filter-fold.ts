@@ -8,6 +8,11 @@
  *
  * sum_cube_odd 10 = 1225 and sum_cube_odd 5 = 153 were checked in OCaml 4.11.1 with the
  * book's ( -- ) operator; `verify` recomputes them by brute force.
+ *
+ * Batch 9 puts the Cambridge problems first in the gate: Computer Science Tripos Part IA 2016,
+ * Paper 1, Question 1(b) (a function that turns out to be fold_right, restated from Standard ML
+ * in OCaml; checked in OCaml 4.11.1, scratch file s16-ocaml/zarg.ml: the sum of [3; 1; 4; 1; 5]
+ * is 14), then FoCS Exercise 8.3, then CS3110's matrix multiply.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
@@ -236,6 +241,22 @@ const matrixMultiply = supervision({
   prompt: t`A matrix is an ${ml`int list list`} of rows. Write ${ml`multiply_matrices`}, using a transpose function and a dot product of row vectors, with ${ml`List.map`} in place of explicit loops. Explain which functional does which job.`,
   writeUp: 'explanation',
 });
+// Computer Science Tripos Part IA 2016, Paper 1, Question 1(b), in OCaml.
+const cst2016Zarg = supervision({
+  id: 'cst-2016-p1-q1-b',
+  source: cite('cst-y2016p1q1', '(b)', true),
+  title: t`A function to recognise`,
+  prompt: [
+    ...t`Consider the function ${ml`zarg`} defined below:`,
+    mlBlock`
+      let rec zarg f = function
+        | ([], e) -> e
+        | (x :: xs, e) -> f (x, zarg f (xs, e))
+    `,
+    ...t`Show that with the help of this function it is possible to write an expression for the sum of a given list of integers. Then describe what ${ml`zarg`} does in general.`,
+  ],
+  writeUp: 'explanation',
+});
 const focs83 = supervision({
   id: 'focs-8-3',
   source: cite('focs-notes', 'Lecture 8, Exercise 8.3'),
@@ -308,11 +329,13 @@ export const mapFilterFold: TopicContent = {
   generators: [pipeline, foldDirection, whichFunctional],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['map-functional', 'filter-functional', 'fold'],
-  cambridge: withUses([sco5, existsEx, mapComposition, matrixMultiply, focs83, focs84], {
+  cambridge: withUses([sco5, existsEx, mapComposition, matrixMultiply, focs83, focs84, cst2016Zarg], {
+    'cst-2016-p1-q1-b': { sections: ['Fold: combining a whole list'], note: t`Recognising a fold in an unfamiliar recursive function, and using it` },
     'cs3110-4-matrix-multiply': { sections: ['The same recursion, again and again', 'Pipelines, and why one map is enough'], note: t`Matrix multiplication with maps` },
     'focs-8-3': { sections: ['The same recursion, again and again'], note: t`Writing a nested map with one recursive function` },
   }),
-  gate: ['cs3110-4-matrix-multiply', 'focs-8-3'],
+  // The Cambridge problems first: the Tripos question and FoCS 8.3, then CS3110's matrix multiply.
+  gate: ['cst-2016-p1-q1-b', 'focs-8-3', 'cs3110-4-matrix-multiply'],
   recall: [
     { front: t`What does ${ml`map f [x${1}; ...; xn]`} return?`, back: t`${ml`[f x${1}; ...; f xn]`}.` },
     { front: t`State ${ml`fold_left`} and ${ml`fold_right`} on ${ml`[x${1}; ...; xn]`}.`, back: t`${ml`f (... (f a x${1}) ...) xn`} and ${ml`f x${1} (... (f xn a) ...)`}.` },

@@ -16,7 +16,7 @@
 import type { AnswerSpec, Instance, Misconception, Problem, Response } from './problem';
 import type { Rich } from './rich';
 
-/** The documents that problems cite, by their id in scripts/sources/batch-1.json, batch-2.json, batch-6.json, batch-7.json, or batch-8.json. */
+/** The documents that problems cite, by their id in scripts/sources/batch-1.json, batch-2.json, batch-6.json, batch-7.json, batch-8.json, or batch-9.json. */
 export const CITED_DOCS = {
   'step-f05': 'STEP Support Assignment 5',
   'step-f06': 'STEP Support Assignment 6',
@@ -161,12 +161,46 @@ export const CITED_DOCS = {
   'damtp-ia-vm1': 'IA Vectors and Matrices Example Sheet 1',
   'damtp-ia-de1': 'IA Differential Equations Example Sheet 1',
   'mit-18600-ps10': 'MIT 18.600 Problem Set 10',
+  // Batch 9 (scripts/sources/batch-9.json): second gates for the topics that had one, Cambridge
+  // first: STEP papers, IA Analysis I Example Sheet 1, Computer Science Tripos questions, and the
+  // STEP Support STEP 2 Trigonometry and Matrices modules.
+  'dpmms-ia-an1': 'IA Analysis I Example Sheet 1',
+  'stepdb-94-s2': 'STEP II 1994',
+  'stepdb-00-s2': 'STEP II 2000',
+  'stepdb-03-s1': 'STEP I 2003',
+  'stepdb-04-s1': 'STEP I 2004',
+  'stepdb-06-s3': 'STEP III 2006',
+  'stepdb-08-s1': 'STEP I 2008',
+  'stepdb-16-s1': 'STEP I 2016',
+  'stepdb-16-s3': 'STEP III 2016',
+  'cst-y2013p1q1': 'Computer Science Tripos Part IA 2013, Paper 1, Question 1',
+  'cst-y2016p1q1': 'Computer Science Tripos Part IA 2016, Paper 1, Question 1',
+  'cst-y2022p1q2': 'Computer Science Tripos Part IA 2022, Paper 1, Question 2',
+  'step-s2-trig': 'STEP Support STEP 2 Trigonometry',
+  'step-s2-trig-solutions': 'STEP Support STEP 2 Trigonometry, Solutions',
+  'step-s2-matrices': 'STEP Support STEP 2 Matrices',
+  'step-s2-matrices-solutions': 'STEP Support STEP 2 Matrices, Solutions',
+  // The STEP hints, solutions, and mark schemes of the papers above, from the folder of past
+  // papers that the STEP Questions Database links: official answers to compare, not gates.
+  'stepdb-04-ha': 'STEP 2004 Hints and Answers',
+  'stepdb-05-ha': 'STEP 2005 Hints and Answers',
+  'stepdb-06-ha': 'STEP 2006 Hints and Answers',
+  'stepdb-07-sol': 'STEP 2007 Solutions',
+  'stepdb-08-s1-sol': 'STEP I 2008 Solutions',
+  'stepdb-10-s1-sol': 'STEP I 2010 Solutions and Mark Scheme',
+  'stepdb-11-sol': 'STEP 2011 Solutions',
+  'stepdb-12-s1-ms': 'STEP I 2012 Mark Scheme',
+  'stepdb-14-s1-ms': 'STEP I 2014 Mark Scheme',
+  'stepdb-15-hs': 'STEP 2015 Hints and Solutions',
+  'stepdb-16-sol': 'STEP 2016 Solutions',
+  'stepdb-16-ms': 'STEP 2016 Mark Schemes',
+  'stepdb-18-s1-er': 'STEP I 2018 Examiner\'s Report, Hints and Solutions, Mark Scheme',
 } as const;
 
 export type CitedDoc = keyof typeof CITED_DOCS;
 
 export interface Citation {
-  /** The source id in scripts/sources/batch-1.json, batch-2.json, batch-6.json, batch-7.json, or batch-8.json (and so in sources/manifest.json). */
+  /** The source id in scripts/sources/batch-1.json, batch-2.json, batch-6.json, batch-7.json, batch-8.json, or batch-9.json (and so in sources/manifest.json). */
   doc: CitedDoc;
   /** Where in the document, as the learner would look it up: "Q4(ii)", "Exercises 3, 3.1.1", "Section 2.5, exercise 3". */
   at: string;

@@ -57,7 +57,7 @@ const centreRadius = generator<CrP>({
         check: (v) => (v.map(str).join(',') === `${a},${b},${r}` ? null : 'Complete the square in x and in y separately, then move the constants to the right.'),
       },
       solution: [
-        t`Group the ${math`x`} terms and the ${math`y`} terms: ${computedMath(`${poly([1, D])} = (${poly([1, -a])})^${2} - ${a * a}`)} and ${computedMath(`${poly([1, E], 'y')} = (${poly([1, -b], 'y')})^${2} - ${b * b}`)}.`,
+        t`Group the ${math`x`} terms and the ${math`y`} terms: ${computedMath(`${poly([1, D, 0])} = (${poly([1, -a])})^${2} - ${a * a}`)} and ${computedMath(`${poly([1, E, 0], 'y')} = (${poly([1, -b], 'y')})^${2} - ${b * b}`)}.`,
         t`So the equation is ${computedMath(`${sq('x', a)} + ${sq('y', b)} - ${a * a} - ${b * b} ${F < 0 ? '-' : '+'} ${Math.abs(F)} = ${0}`)}, that is ${computedMath(`${sq('x', a)} + ${sq('y', b)} = ${r * r}`)}.`,
         t`The centre is ${math`(${a}, ${b})`}, with signs opposite to those inside the brackets, and the radius is ${math`\sqrt{${r * r}} = ${r}`}.`,
       ],

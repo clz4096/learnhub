@@ -4,7 +4,10 @@
  * Cambridge problems are STEP Support Foundation Assignment 13, Q2(ii) (translations of
  * y = x^3 - 3x + 2), Assignment 22, Q3(iv) (y = sin(x^2)), Assignment 18, Q1(i), and the NST
  * Mathematics Workbook, FC2; the Assignment 13 and 22 hints' answers are compared in the
- * content checks.
+ * content checks. The first gate (batch 9) is 2012 STEP I Q2(i): x^4 - 6x^2 + b = 0 counted by
+ * sliding y = (x^2 - 3)^2, set as statements to judge, checked by solving the quadratic in x^2
+ * for many values of b. Assignment 13 Q2(ii) gates without its parts (b) and (c), which the
+ * worked example and a practice problem already show (2026-10-07).
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { div, int, pick, q, str } from '../math';
@@ -267,11 +270,51 @@ const nstFC2 = auto({
 
 const sketchQ = supervision({
   id: 'a13-q2-ii',
-  source: cite(F13, 'Assignment 13, Q2(ii)'),
-  title: t`Three translations and a parameter`,
-  prompt: t`By considering each of ${math`y = x^{${3}} - ${3}x`}, ${math`y = x^{${3}} - ${3}x + ${4}`}, and ${math`y = x^{${3}} - ${3}x - ${4}`} as a transformation of ${math`y = x^{${3}} - ${3}x + ${2}`}, sketch it, showing the coordinates of the turning points and the ${math`y`} intercept, and state how many distinct roots there are. State the values of ${math`k`} for which ${math`x^{${3}} - ${3}x + k = ${0}`} has (A) ${2} distinct roots and (B) ${3} distinct roots.`,
+  // Parts (b) and (c) are the worked example and a practice problem, so the gate leaves them out (2026-10-07).
+  source: cite(F13, 'Assignment 13, Q2(ii)(a) and its last part', true),
+  title: t`A translation and a parameter`,
+  prompt: t`By considering ${math`y = x^{${3}} - ${3}x`} as a transformation of ${math`y = x^{${3}} - ${3}x + ${2}`}, sketch it, showing the coordinates of the turning points and the ${math`y`} intercept, and state how many distinct roots there are. State the values of ${math`k`} for which ${math`x^{${3}} - ${3}x + k = ${0}`} has (A) ${2} distinct roots and (B) ${3} distinct roots.`,
   writeUp: 'sketch',
   official: cite(F13H, 'Assignment 13 hints, Q2(ii)'),
+});
+
+// 2012 STEP I Q2(i): the number of distinct real roots of x^4 - 6x^2 + b = 0, by sliding y = x^4 - 6x^2 + 9.
+/** Distinct real x with x^4 - 6x^2 + b = 0: x^2 = 3 +- sqrt(9 - b), each positive value giving two x, zero one. */
+const quarticRoots = (b: number): number => {
+  if (b > 9) return 0;
+  const s = Math.sqrt(9 - b);
+  const us = s === 0 ? [3] : [3 - s, 3 + s];
+  return us.reduce((n, u) => n + (u > 1e-12 ? 2 : Math.abs(u) <= 1e-12 ? 1 : 0), 0);
+};
+interface QuarticClaim { id: string; label: Rich; holds: (count: (b: number) => number) => boolean }
+const B_GRID = [...Array.from({ length: 401 }, (_, i) => -20 + i / 10), 0, 9];
+const QUARTIC_CLAIMS: readonly QuarticClaim[] = [
+  { id: 'none', label: t`There are no roots exactly when ${math`b > ${9}`}.`, holds: (n) => B_GRID.every((b) => (n(b) === 0) === (b > 9)) },
+  { id: 'one', label: t`No value of ${math`b`} gives exactly one root.`, holds: (n) => B_GRID.every((b) => n(b) !== 1) },
+  { id: 'two', label: t`There are exactly two roots exactly when ${math`b < ${0}`}.`, holds: (n) => B_GRID.every((b) => (n(b) === 2) === (b < 0)) },
+  { id: 'three', label: t`There are exactly three roots exactly when ${math`b = ${0}`}.`, holds: (n) => B_GRID.every((b) => (n(b) === 3) === (b === 0)) },
+  { id: 'four', label: t`There are exactly four roots exactly when ${math`${0} < b < ${9}`}.`, holds: (n) => B_GRID.every((b) => (n(b) === 4) === (b > 0 && b < 9)) },
+  { id: 'at-nine', label: t`When ${math`b = ${9}`} there are four roots.`, holds: (n) => n(9) === 4 },
+];
+const QUARTIC_TRUE = ['none', 'one', 'three', 'four'];
+const step12Quartic = auto({
+  id: 'step12-q2-i',
+  source: cite('stepdb-12-s1', 'Q2(i)', true),
+  title: t`Sliding a quartic`,
+  prompt: t`Sketch the curve ${math`y = x^{${4}} - ${6}x^{${2}} + ${9}`}, finding its stationary points. Let ${math`n`} be the number of distinct real values of ${math`x`} for which ${math`x^{${4}} - ${6}x^{${2}} + b = ${0}`}. Which of these statements about ${math`n`} are true? Choose all that are.`,
+  answer: { kind: 'choice', options: QUARTIC_CLAIMS.map((c) => ({ id: c.id, label: c.label })), correct: QUARTIC_TRUE },
+  solution: [
+    t`${math`x^{${4}} - ${6}x^{${2}} + ${9} = (x^{${2}} - ${3})^{${2}}`}, which is never negative. Its derivative ${math`${4}x^{${3}} - ${12}x = ${4}x(x^{${2}} - ${3})`} vanishes at ${math`x = ${0}`} and ${math`x = \pm\sqrt{${3}}`}: a local maximum at ${math`(${0}, ${9})`} and minima at ${math`(\pm\sqrt{${3}}, ${0})`}, touching the axis. The curve is symmetric in the ${math`y`} axis and rises without bound on both sides.`,
+    t`Now ${math`x^{${4}} - ${6}x^{${2}} + b = (x^{${4}} - ${6}x^{${2}} + ${9}) - (${9} - b)`}: the sketched curve moved down by ${math`${9} - b`}. Its roots are where the moved curve meets the axis, so follow the turning points, now at heights ${math`b - ${9}`} (the two minima) and ${math`b`} (the maximum).`,
+    t`If ${math`b > ${9}`} the minima are above the axis: no roots. If ${math`b = ${9}`} the curve touches the axis at the two minima: ${math`n = ${2}`}. If ${math`${0} < b < ${9}`} the minima are below and the maximum above: ${math`n = ${4}`}. If ${math`b = ${0}`} the maximum is on the axis: ${math`x = ${0}`} and ${math`x = \pm\sqrt{${6}}`}, so ${math`n = ${3}`}. If ${math`b < ${0}`}, only the outer branches cross: ${math`n = ${2}`}. So ${math`n = ${1}`} never happens, and ${math`n = ${2}`} happens for ${math`b < ${0}`} and also for ${math`b = ${9}`}.`,
+  ],
+  reference: QUARTIC_TRUE,
+  verify: () => same('the true statements', QUARTIC_CLAIMS.filter((c) => c.holds(quarticRoots)).map((c) => c.id).join(), QUARTIC_TRUE.join()),
+  misconceptions: [
+    { response: ['none', 'one', 'two', 'three', 'four'], why: t`At ${math`b = ${9}`} the curve touches the axis at both minima, so ${math`n = ${2}`} there too: two roots happen for ${math`b < ${0}`} and for ${math`b = ${9}`}.` },
+    { response: ['none', 'three', 'four'], why: t`No value of ${math`b`} gives one root: the curve is symmetric, so roots other than ${math`x = ${0}`} come in pairs, and ${math`x = ${0}`} is a root only when ${math`b = ${0}`}, which gives three.` },
+  ],
+  official: { source: cite('stepdb-12-s1-ms', 'Question 2(i) (page 2)'), answer: ['none', 'one', 'three', 'four'], agrees: true, note: 'The mark scheme gives n for each range of b: 0 for b > 9, 1 never, 2 for b = 9 and b < 0, 3 for b = 0, 4 for 0 < b < 9. Those are the statements it makes true.' },
 });
 
 // ---------------------------------------------------------------- lesson
@@ -298,7 +341,7 @@ export const graphTransformations: TopicContent = {
         { label: t`Outside`, text: t`${math`(x, y)`} is on ${math`y = af(x) + c`} exactly when ${math`\left(x, \frac{y - c}{a}\right)`} is on ${math`G`}: heights are multiplied by ${math`a`}, then raised by ${math`c`}.` },
       ],
     },
-    { kind: 'narrative', text: t`Two special cases are reflections: ${math`y = -f(x)`} reflects ${math`G`} in the ${math`x`} axis, and ${math`y = f(-x)`} reflects it in the ${math`y`} axis. When ${math`f(-x) = f(x)`} for every ${math`x`}, the graph is its own mirror image, and ${math`f`} is called even; ${math`\sin(x^{${2}})`} is an example.` },
+    { kind: 'narrative', text: t`Two special cases are reflections: ${math`y = -f(x)`} reflects ${math`G`} in the ${math`x`} axis, and ${math`y = f(-x)`} reflects it in the ${math`y`} axis. When ${math`f(-x) = f(x)`} for every ${math`x`}, the graph is its own mirror image, and ${math`f`} is called even; ${math`x^{${2}}`} and ${math`x^{${4}} - ${3}x^{${2}}`} are examples, since ${math`(-x)^{${2}} = x^{${2}}`}.` },
     checkFrom(imagePoint, { p: 3, qy: 2, a: 2, c: 1, d: -1 }, t`Inside: ${math`x + ${1} = ${3}`} gives ${math`x = ${2}`}. Outside: ${math`${2} \times ${2} - ${1} = ${3}`}.`),
     { kind: 'pitfall', claim: t`${math`y = f(x + ${2})`} is ${math`y = f(x)`} moved ${2} to the right.`, counterexample: t`${math`f(x) = x^{${2}}`} has its vertex at ${math`x = ${0}`}; ${math`(x + ${2})^{${2}}`} has it where ${math`x + ${2} = ${0}`}, at ${math`x = ${-2}`}: ${2} to the left.` },
     { kind: 'pitfall', claim: t`${math`y = f(${2}x)`} stretches the graph to twice its width.`, counterexample: t`${math`\sin(${2}x)`} completes a wave in ${math`\pi`}, half the ${math`${2}\pi`} of ${math`\sin x`}: the graph is squeezed to half its width.` },
@@ -314,10 +357,13 @@ export const graphTransformations: TopicContent = {
   generators: [imagePoint, stretch, translateCount],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['translation'],
-  cambridge: withUses([downSix, evenQ, zerosQ, reciprocalQ, nstFC2, sketchQ], {
+  cambridge: withUses([downSix, evenQ, zerosQ, reciprocalQ, nstFC2, sketchQ, step12Quartic], {
+    'step12-q2-i': { sections: ['Moving a graph', 'Counting roots by sliding'], note: t`Counting the roots of a family of quartics by sliding one sketch up and down` },
     'a13-q2-ii': { sections: ['Moving a graph', 'Counting roots by sliding'], note: t`Translating a cubic and counting roots as it slides` },
   }),
-  gate: ['a13-q2-ii'],
+  // The STEP quartic first. Assignment 13 Q2(ii) gates without its parts (b) and (c), which the worked example
+  // and a practice problem show.
+  gate: ['step12-q2-i', 'a13-q2-ii'],
   recall: [
     { front: t`What does ${math`y = f(x + c)`} do to the graph of ${math`f`}?`, back: t`Translates it by ${math`c`} to the left.` },
     { front: t`What does ${math`y = f(ax)`} do?`, back: t`Stretches it parallel to the ${math`x`} axis by factor ${math`\frac{${1}}{a}`}.` },

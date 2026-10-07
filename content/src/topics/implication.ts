@@ -4,7 +4,10 @@
  * Proposition 8, Theorem 11), Book of Proof Sections 2.3 and 2.5 (the promise, the ways of
  * saying P implies Q), and the TMUA notes on "if A then B" and swapping A and B (pages 28
  * to 30, 38, and 46). The problems are Book of Proof's exercises for Sections 2.3 and 2.5,
- * TMUA Exercises E and J, the TMUA examples of page 29, and the notes' Proposition 10.
+ * TMUA Exercises E and J, the TMUA examples of page 29, and the notes' Proposition 10. The
+ * second gate (batch 9) is STEP Support Assignment 4, Q4(i): which cards to turn over to test
+ * "if a card has an even number on one side, it has a vowel on the other", checked against the
+ * hints and by trying every possible hidden face.
  */
 import { assignments, evalFormula, parseFormula, type Formula } from '@learnhub/mastery';
 import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
@@ -554,6 +557,51 @@ const tmuaJ = supervision({
   writeUp: 'explanation',
 });
 
+// STEP Support Assignment 4, Q4(i): four cards, a number on one side and a letter on the other.
+const CARDS = [
+  { id: 'six', shown: 6 as number | string },
+  { id: 'e', shown: 'E' as number | string },
+  { id: 'q', shown: 'Q' as number | string },
+  { id: 'seven', shown: 7 as number | string },
+] as const;
+const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
+/** The claim on one card: if its number is even, its letter is a vowel. */
+const claimHolds = (num: number, letter: string): boolean => num % 2 !== 0 || VOWELS.has(letter);
+/** The cards whose hidden face could make the claim false: the ones that must be turned. */
+const mustTurn = (): string[] => CARDS.filter((c) => {
+  if (typeof c.shown === 'number') return ['E', 'Q'].some((letter) => !claimHolds(c.shown as number, letter));
+  return [6, 7].some((num) => !claimHolds(num, c.shown as string));
+}).map((c) => c.id);
+const a4Cards = auto({
+  id: 'a4-q4-i',
+  source: cite('step-f04', 'Q4(i)'),
+  title: t`Four cards and a claim`,
+  prompt: t`I have ${4} double-sided cards in front of me. Each has a number on one side and a letter on the other. The faces that are up show ${6}, E, Q, and ${7}. I claim that if there is an even number on one side of a card, then there is a vowel on the other. Which cards do you need to turn over in order to check my claim? Choose all that you must turn over.`,
+  answer: {
+    kind: 'choice',
+    options: [
+      { id: 'six', label: t`The card showing ${6}` },
+      { id: 'e', label: t`The card showing E` },
+      { id: 'q', label: t`The card showing Q` },
+      { id: 'seven', label: t`The card showing ${7}` },
+    ],
+    correct: ['six', 'q'],
+  },
+  solution: [
+    t`For one card the claim is an implication ${math`P \Rightarrow V`}, where ${math`P`} is "this card has an even number" and ${math`V`} is "this card has a vowel". An implication is false only when ${math`P`} is true and ${math`V`} is false. So the claim fails exactly on a card with an even number and a consonant, and a card needs turning only if it could be such a card.`,
+    t`The ${6}: its number is even, so ${math`P`} is true. A consonant on the back would break the claim: turn it. The Q: its letter is a consonant, so ${math`V`} is false. An even number on the back would break the claim: turn it.`,
+    t`The E: its letter is a vowel, so ${math`V`} is true and the implication holds whatever the number. The ${7}: its number is odd, so ${math`P`} is false and the implication holds whatever the letter, as the umbrella promise does on a sunny day. Neither can break the claim. Turning the E would test the converse, "a vowel has an even number behind it", which was never claimed.`,
+  ],
+  reference: ['six', 'q'],
+  verify: () => same('the cards whose hidden face could break the claim', mustTurn().join(), 'six,q'),
+  misconceptions: [
+    { response: ['six', 'e'], why: t`The E cannot break the claim: a vowel makes the conclusion true. Checking it tests the converse. The Q can break it, if an even number is on its back.` },
+    { response: ['six'], why: t`The Q matters too: if its other side is an even number, the card has an even number and a consonant, and the claim is false.` },
+    { response: ['six', 'e', 'q', 'seven'], why: t`An implication with a true conclusion (the E) or a false hypothesis (the ${7}) holds whatever is on the back. Only the ${6} and the Q could break the claim.` },
+  ],
+  official: { source: cite('step-f04-hints', 'Q4(i)'), answer: ['six', 'q'], agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const two = rowsOf(['P', 'Q']);
@@ -660,12 +708,14 @@ export const implication: TopicContent = {
   generators: [fillColumn, findValues, rewrite],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['implication', 'converse', 'modus-ponens'],
-  cambridge: withUses([bop25_1, bop25_7, bop25_10, bop25_11, bop23_3, bop23_5, bop23_7, bop23_11, tmuaE4, tmua29, prop10, thm11, tmuaE1, tmuaJ], {
+  cambridge: withUses([bop25_1, bop25_7, bop25_10, bop25_11, bop23_3, bop23_5, bop23_7, bop23_11, tmuaE4, tmua29, prop10, thm11, a4Cards, tmuaE1, tmuaJ], {
     'notes-50-prop10': { sections: ['Proving and using an implication'], note: t`Proving an implication about rational numbers`, needs: ['num.number-systems'] },
     'notes-54-thm11': { sections: ['Proving and using an implication'], note: t`Proving an implication by chaining modus ponens` },
+    'a4-q4-i': { sections: ['A promise', 'Many ways to say it'], note: t`Finding the only cases in which an implication can be false` },
   }),
-  // Theorem 11 needs modus ponens named twice. Proposition 10 needs rational numbers, taught later, so it is practice.
-  gate: ['notes-54-thm11'],
+  // Theorem 11 needs modus ponens named twice; the cards test when an implication is false. Proposition 10 needs
+  // rational numbers, taught later, so it is practice.
+  gate: ['notes-54-thm11', 'a4-q4-i'],
   recall: [
     { front: t`When is ${IMP} false?`, back: t`Only when ${mP} is true and ${mQ} is false. In the other three cases it is true.` },
     { front: t`What is the converse of ${IMP}?`, back: t`${math`Q \Rightarrow P`}. It is a different statement: one can be true and the other false.` },

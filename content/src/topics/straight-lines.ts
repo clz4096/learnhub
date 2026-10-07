@@ -3,9 +3,11 @@
  * perpendicular gradients, distances, and the line of points equidistant from two points.
  * Sources: STEP Support Foundation Assignment 19 Q2(i) to (iv) and Assignment 2 Q2(i) to
  * (iii). Answers are computed exactly; the equidistant line is found again by expanding
- * PX^2 = QX^2, a different method from the midpoint and perpendicular gradient.
+ * PX^2 = QX^2, a different method from the midpoint and perpendicular gradient. The second
+ * gate (batch 9) is 2004 STEP I Q6: with letters for the vertices, the lines from the vertices
+ * to the midpoints meet at one point, and the perpendicular-gradient rule gives the orthocentre.
  */
-import { auto, cite, same, withUses } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, math, t } from '../rich';
@@ -277,6 +279,17 @@ const a2q2iii = auto({
   official: { source: cite('step-f02-hints', 'Q2(iii)'), answer: '2abs(m) + 1', agrees: true },
 });
 
+// 2004 STEP I Q6: medians and the orthocentre, with letters for the coordinates.
+const vertex = (i: number) => math`(p_{${i}}, q_{${i}})`;
+const step04Lines = supervision({
+  id: 'step04-q6',
+  source: cite('stepdb-04-s1', 'Q6'),
+  title: t`Lines through a triangle, in letters`,
+  prompt: t`The three points ${math`A`}, ${math`B`}, and ${math`C`} have coordinates ${vertex(1)}, ${vertex(2)}, and ${vertex(3)}, respectively. Find the point of intersection of the line joining ${math`A`} to the midpoint of ${math`BC`}, and the line joining ${math`B`} to the midpoint of ${math`AC`}. Verify that this point lies on the line joining ${math`C`} to the midpoint of ${math`AB`}. The point ${math`H`} has coordinates ${math`(p_{${1}} + p_{${2}} + p_{${3}}, q_{${1}} + q_{${2}} + q_{${3}})`}. Show that if the line ${math`AH`} intersects the line ${math`BC`} at right angles, then ${math`p_{${2}}^{${2}} + q_{${2}}^{${2}} = p_{${3}}^{${2}} + q_{${3}}^{${2}}`}, and write down a similar result if the line ${math`BH`} intersects the line ${math`AC`} at right angles. Deduce that if ${math`AH`} is perpendicular to ${math`BC`} and also ${math`BH`} is perpendicular to ${math`AC`}, then ${math`CH`} is perpendicular to ${math`AB`}.`,
+  writeUp: 'proof',
+  official: cite('stepdb-04-ha', 'STEP I, Q6 (page 7 of the STEP I hints)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const PT_EX: PtP = { x1: 3, y1: -1, mn: 2, md: 1 };
@@ -333,8 +346,8 @@ export const straightLines: TopicContent = {
       formal: t`The [[distance-formula|distance]] between ${math`(x_{${1}}, y_{${1}})`} and ${math`(x_{${2}}, y_{${2}})`} is ${math`\sqrt{(x_{${2}} - x_{${1}})^{${2}} + (y_{${2}} - y_{${1}})^{${2}}}`}.`,
       plain: t`Pythagoras on the right-angled triangle whose sides are the horizontal and vertical gaps. From ${math`(${1}, ${1})`} to ${math`(${4}, ${5})`}: ${math`\sqrt{${9} + ${16}} = ${5}`}.`,
     },
-    { kind: 'narrative', text: t`Back to the hook. A point ${math`X`} is as far from ${math`P`} as from ${math`Q`} when ${math`PX^{${2}} = QX^{${2}}`}. Write both with the distance formula and expand: the ${math`x^{${2}}`} and ${math`y^{${2}}`} terms are the same on both sides and cancel. What is left has only ${math`x`}, ${math`y`}, and numbers, so it is a straight line. Squaring is safe here because both distances are positive.` },
-    { kind: 'pitfall', claim: t`The distance from ${math`(${2}, -${2})`} to ${math`(x, y)`} is ${math`\sqrt{(x - ${2})^{${2}} + (y - ${2})^{${2}}}`}.`, counterexample: t`At ${math`(x, y) = (${2}, -${2})`} that gives ${math`\sqrt{${16}} = ${4}`}, but a point is at distance ${0} from itself. Subtract the coordinate with its sign: ${math`y - (-${2}) = y + ${2}`}.` },
+    { kind: 'narrative', text: t`Back to the hook. A point ${math`X`} is as far from ${math`P`} as from ${math`Q`} when ${math`PX^{${2}} = QX^{${2}}`}. Write both with the distance formula and expand: the ${math`x^{${2}}`} and ${math`y^{${2}}`} terms are the same on both sides and cancel. What is left has only ${math`x`}, ${math`y`}, and numbers: an equation ${math`ax + by + c = ${0}`}, which is a straight line. Squaring loses nothing here: distances are never negative, and two numbers that are at least ${0} are equal exactly when their squares are.` },
+    { kind: 'pitfall', claim: t`The distance from ${math`(${3}, -${1})`} to ${math`(x, y)`} is ${math`\sqrt{(x - ${3})^{${2}} + (y - ${1})^{${2}}}`}.`, counterexample: t`At ${math`(x, y) = (${3}, -${1})`} that gives ${math`\sqrt{${0} + (-${2})^{${2}}} = ${2}`}, but a point is at distance ${0} from itself. Subtract the coordinate with its sign: ${math`y - (-${1}) = y + ${1}`}.` },
     { kind: 'takeaway', text: t`A line is ${math`y - y_{${1}} = m(x - x_{${1}})`}; parallel lines share ${math`m`}, perpendicular ones have gradients multiplying to ${math`-${1}`}, and distance is Pythagoras.` },
   ],
   examples: [
@@ -345,12 +358,14 @@ export const straightLines: TopicContent = {
   generators: [throughPoint, perpendicular, equidistant],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['gradient', 'perpendicular-gradients', 'distance-formula'],
-  cambridge: withUses([a19q2i, a19q2iii, a19q2iv, a2q2iii], {
+  cambridge: withUses([a19q2i, a19q2iii, a19q2iv, a2q2iii, step04Lines], {
+    'step04-q6': { sections: ['Gradient and the equation of a line', 'Parallel and perpendicular'], note: t`Equations of lines through points given in letters, where they meet, and the rule for perpendicular gradients` },
     'a2-q2-iii': { sections: ['Gradient and the equation of a line'], note: t`The greatest value of a line on an interval, written with a modulus`, needs: ['fn.modulus'] },
     'a19-q2-iii': { sections: ['Gradient and the equation of a line'], note: t`When two equations describe the same line` },
   }),
-  // Assignment 19 Q2(iii). Assignment 2 Q2(iii) needs a modulus in its answer, taught later, so it is practice.
-  gate: ['a19-q2-iii'],
+  // Assignment 19 Q2(iii), then 2004 STEP I Q6 on the whole lesson. Assignment 2 Q2(iii) needs a modulus in its
+  // answer, taught later, so it is practice.
+  gate: ['a19-q2-iii', 'step04-q6'],
   recall: [
     { front: t`The line through ${math`(x_{${1}}, y_{${1}})`} with gradient ${math`m`}?`, back: t`${math`y - y_{${1}} = m(x - x_{${1}})`}.` },
     { front: t`When are two lines perpendicular?`, back: t`When their gradients multiply to ${math`-${1}`} (or one is vertical and the other horizontal).` },

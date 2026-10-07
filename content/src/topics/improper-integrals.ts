@@ -247,6 +247,7 @@ const db16q8Approx = auto({
     { response: '5/3', why: t`That adds only the first term exactly. Add ${math`r = ${1}`} and ${math`r = ${2}`}, then start the integral at ${math`${2} + \frac{${1}}{${2}}`}.` },
     { response: '19/12', why: t`The integral for the tail starts at ${math`m - \frac{${1}}{${2}}`} with ${math`m = ${3}`}, that is at ${q(5, 2)}, not at ${3}.` },
   ],
+  official: { source: cite('stepdb-16-ms', 'STEP II, Question 8(i) (page 33)'), answer: '33/20', agrees: true },
 });
 
 const db16q8 = supervision({
@@ -255,6 +256,7 @@ const db16q8 = supervision({
   title: t`Reciprocal squares and fourth powers`,
   prompt: t`Evaluate the integral ${dmath`\int_{m - \frac{${1}}{${2}}}^{\infty} \frac{${1}}{x^{${2}}}\,dx \qquad \left(m > \tfrac{${1}}{${2}}\right).`} Show by means of a sketch that ${dmath`\sum_{r = m}^{n} \frac{${1}}{r^{${2}}} \approx \int_{m - \frac{${1}}{${2}}}^{n + \frac{${1}}{${2}}} \frac{${1}}{x^{${2}}}\,dx, \qquad (*)`} where ${math`m`} and ${math`n`} are positive integers with ${math`m < n`}. (i) You are given that the infinite series ${math`\sum_{r = ${1}}^{\infty} \frac{${1}}{r^{${2}}}`} converges to a value denoted by ${math`E`}. Use ${math`(*)`} to obtain the following approximations for ${math`E`}: ${math`E \approx ${2}`}; ${math`E \approx \frac{${5}}{${3}}`}; ${math`E \approx \frac{${33}}{${20}}`}. (ii) Show that, when ${math`r`} is large, the error in approximating ${math`\frac{${1}}{r^{${2}}}`} by ${math`\int_{r - \frac{${1}}{${2}}}^{r + \frac{${1}}{${2}}} \frac{${1}}{x^{${2}}}\,dx`} is approximately ${math`\frac{${1}}{${4}r^{${4}}}`}. Given that ${math`E \approx ${1.645}`}, show that ${math`\sum_{r = ${1}}^{\infty} \frac{${1}}{r^{${4}}} \approx ${1.08}`}.`,
   writeUp: 'proof',
+  official: cite('stepdb-16-ms', 'STEP II, Question 8 (pages 33 and 34)'),
 });
 
 // ---------------------------------------------------------------- lesson
@@ -285,8 +287,8 @@ export const improperIntegrals: TopicContent = {
       ],
     },
     { kind: 'section', title: t`Exponentials` },
-    { kind: 'theorem', name: t`Exponential tails`, statement: t`For ${math`k > ${0}`}, ${math`\int_{${0}}^{\infty} e^{-kx}\,dx = \frac{${1}}{k}`}, and for each whole number ${math`n \ge ${0}`}, ${math`\int_{${0}}^{\infty} x^{n}e^{-x}\,dx = n!`}.` },
-    { kind: 'p', text: t`The first: ${math`\int_{${0}}^{R} e^{-kx}\,dx = \frac{${1} - e^{-kR}}{k} \to \frac{${1}}{k}`}. The second by parts: with ${math`I_{n}`} the integral, ${math`I_{n} = \lim_{R \to \infty}\left(\left[-x^{n}e^{-x}\right]_{${0}}^{R} + n\int_{${0}}^{R} x^{n - ${1}}e^{-x}\,dx\right) = nI_{n - ${1}}`}, because ${math`R^{n}e^{-R} \to ${0}`}; with ${math`I_{${0}} = ${1}`}, induction gives ${math`n!`}.`, why: { q: t`Why does ${math`R^{n}e^{-R}`} tend to ${0}?`, a: t`From the exponential series, ${math`e^{R} \ge \frac{R^{n + ${1}}}{(n + ${1})!}`} for ${math`R > ${0}`}, so ${math`R^{n}e^{-R} \le \frac{(n + ${1})!}{R} \to ${0}`}.` } },
+    { kind: 'theorem', name: t`Exponential tails`, statement: t`For ${math`k > ${0}`}, ${math`\int_{${0}}^{\infty} e^{-kx}\,dx = \frac{${1}}{k}`}, and for each whole number ${math`n \ge ${0}`}, ${math`R^{n}e^{-R} \to ${0}`} as ${math`R \to \infty`}.` },
+    { kind: 'p', text: t`The first: ${math`\int_{${0}}^{R} e^{-kx}\,dx = \frac{${1} - e^{-kR}}{k} \to \frac{${1}}{k}`}. The second says the exponential beats every power: at ${math`R = ${20}`}, ${math`R^{${3}}e^{-R}`} is already about ${Number((20 ** 3 * Math.exp(-20)).toPrecision(2))}. It is what makes boundary terms such as ${math`\left[-x^{n}e^{-x}\right]_{${0}}^{R}`} vanish when you integrate a power times ${math`e^{-x}`} by parts over ${math`[${0}, \infty)`}.`, why: { q: t`Why does ${math`R^{n}e^{-R}`} tend to ${0}?`, a: t`From the exponential series, ${math`e^{R} \ge \frac{R^{n + ${1}}}{(n + ${1})!}`} for ${math`R > ${0}`}, so ${math`R^{n}e^{-R} \le \frac{(n + ${1})!}{R} \to ${0}`}.` } },
     checkFrom(powerTail, { c: 3, p: 2, a: 1 }, t`${math`\int_{${1}}^{R} ${3}x^{-${2}}\,dx = ${3} - \frac{${3}}{R} \to ${3}`}.`),
     { kind: 'pitfall', claim: t`If the integrand tends to ${0}, the integral converges.`, counterexample: t`${math`\frac{${1}}{x} \to ${0}`}, but ${math`\int_{${1}}^{R} \frac{dx}{x} = \ln R`}, which passes ${math`${1000}`} once ${math`R > e^{${1000}}`} and keeps going.` },
     { kind: 'pitfall', claim: t`${math`\int_{-\infty}^{\infty} x\,dx = ${0}`}, because the two halves cancel.`, counterexample: t`Each half, ${math`\int_{${0}}^{\infty} x\,dx`}, diverges, so the whole integral is undefined. Only ${math`\lim_{R \to \infty}\int_{-R}^{R}`} is ${0}, and that is a different (symmetric) limit.` },
@@ -311,7 +313,7 @@ export const improperIntegrals: TopicContent = {
   recall: [
     { front: t`Define ${math`\int_{a}^{\infty} f(x)\,dx`}.`, back: t`${math`\lim_{R \to \infty}\int_{a}^{R} f(x)\,dx`}, when the limit exists.` },
     { front: t`When does ${math`\int_{${1}}^{\infty} x^{-p}\,dx`} converge?`, back: t`Exactly when ${math`p > ${1}`}; then it is ${math`\frac{${1}}{p - ${1}}`}.` },
-    { front: t`What is ${math`\int_{${0}}^{\infty} x^{n}e^{-x}\,dx`}?`, back: t`${math`n!`}.` },
+    { front: t`What does ${math`R^{n}e^{-R}`} do as ${math`R \to \infty`}?`, back: t`It tends to ${0}, for every whole number ${math`n`}: the exponential beats every power.` },
   ],
   proofOrder: [{
     title: t`The power tail converges for p above one`,

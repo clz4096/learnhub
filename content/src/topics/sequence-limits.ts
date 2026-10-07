@@ -2,8 +2,12 @@
  * an.sequence-limits: what x_n -> a means (the epsilon-N definition), with the basic limits
  * 1/n -> 0 and r^n -> 0 for |r| < 1, and limits of quotients by dividing through. STEP adds
  * "the limit of a sequence" to the A-level content (STEP specification, in bold italics);
- * the gate is the NST Mathematics Workbook, SS4 (the powers k^n, case by case, checked by
- * computing far-out terms). STEP Support Assignment 15, Q2 (limits of iterated sequences as
+ * the gates are IA Analysis I Example Sheet 1, Q1a (prove from the definition that the limit
+ * of a sum is the sum of the limits, which the lesson states and leaves to the analysis course)
+ * and IA Numbers and Sets Example Sheet 3, Q14 (a convergent sequence has differences tending to
+ * 0, and the converse fails). The NST Mathematics Workbook, SS4 (the powers k^n, case by case,
+ * checked by computing far-out terms) asks for the lesson's own theorem on powers, so it is
+ * practice (2026-10-07). STEP Support Assignment 15, Q2 (limits of iterated sequences as
  * fixed points) is further practice, checked against the hints and by iterating; its Q3(ii)
  * (2006 STEP II Q1) gates alg.recurrence-sequences, which teaches the fixed-point idea.
  */
@@ -294,6 +298,25 @@ const nstSs4Cases = auto({
   ],
 });
 
+// IA Analysis I Example Sheet 1, Q1a: the sum law from the definition. The sheet assumes the
+// triangle inequality from lectures; the prompt states it, as no earlier lesson proves it.
+const an1Sum = supervision({
+  id: 'an1-q1a',
+  source: cite('dpmms-ia-an1', 'Q1a', true),
+  title: t`The limit of a sum, from the definition`,
+  prompt: t`Suppose ${math`(a_{n})`} and ${math`(b_{n})`} are two sequences of real numbers. Prove that if ${math`a_{n} \to a`} and ${math`b_{n} \to b`}, then ${math`a_{n} + b_{n} \to a + b`}. Work from the definition of a limit: given ${math`\varepsilon > ${0}`}, produce an ${mN} that works. You may use the triangle inequality, ${math`|x + y| \le |x| + |y|`} for all real ${math`x`} and ${math`y`}.`,
+  writeUp: 'proof',
+});
+
+// IA Numbers and Sets Example Sheet 3, Q14: differences of a convergent sequence, and the converse.
+const ns3Differences = supervision({
+  id: 'ns3-q14',
+  source: cite('ia-ns-sheet-3', 'Q14', true),
+  title: t`Differences that tend to zero`,
+  prompt: t`Let ${math`(x_{n})`} be a sequence of real numbers. Show that if ${math`(x_{n})`} is convergent, then ${math`x_{n} - x_{n - ${1}} \to ${0}`}. If ${math`x_{n} - x_{n - ${1}} \to ${0}`}, must ${math`(x_{n})`} be convergent? Prove your answer. You may use the triangle inequality, ${math`|x + y| \le |x| + |y|`} for all real ${math`x`} and ${math`y`}.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const sequenceLimits: TopicContent = {
@@ -343,11 +366,14 @@ export const sequenceLimits: TopicContent = {
   generators: [nGen, ratGen, powGen, expGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['limit-of-sequence', 'divergent-sequence'],
-  cambridge: withUses([nstSs4, nstSs4Cases, a15c, a15iv], {
+  cambridge: withUses([an1Sum, ns3Differences, nstSs4, nstSs4Cases, a15c, a15iv], {
+    'an1-q1a': { sections: ['Getting close and staying close'], note: t`Proving a limit law straight from the definition of a limit` },
+    'ns3-q14': { sections: ['Getting close and staying close', 'Where it breaks'], note: t`A proof from the definition of a limit, then a sequence to show the converse fails` },
     'nst-ss4': { sections: ['Getting close and staying close', 'The basic limits'], note: t`The powers of a fixed number, and what they do for large n in every case` },
     'nst-ss4-cases': { sections: ['Getting close and staying close', 'The basic limits'], note: t`Deciding case by case whether the powers of a number converge, and to what` },
   }),
-  gate: ['nst-ss4', 'nst-ss4-cases'],
+  // Two proofs from the definition. SS4 asks for the lesson's theorem on powers, so it is practice.
+  gate: ['an1-q1a', 'ns3-q14'],
   recall: [
     { front: t`Define ${math`x_{n} \to a`}.`, back: t`${math`\forall \varepsilon > ${0}\ \exists N\ \forall n \ge N:\ |x_{n} - a| < \varepsilon`}.` },
     { front: t`For which ${math`r`} does ${math`r^{n}`} converge, and to what?`, back: t`For ${math`|r| < ${1}`}, to ${0}; for ${math`r = ${1}`}, to ${1}; otherwise it diverges.` },

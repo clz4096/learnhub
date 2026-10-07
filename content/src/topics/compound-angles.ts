@@ -403,7 +403,7 @@ export const compoundAngles: TopicContent = {
     },
     { kind: 'section', title: t`The rest of the family` },
     { kind: 'narrative', text: t`Once the sine of a sum is known, the other [[compound-angle-formula|compound angle formulae]] cost almost nothing. Two facts about sine and cosine for all angles do the work: ${math`\sin(-\beta) = -\sin\beta`} and ${math`\cos(-\beta) = \cos\beta`} (a negative angle is the mirror image in the ${math`x`}-axis), and ${math`\cos\gamma = \sin(${90}^\circ - \gamma)`}, ${math`\sin\gamma = \cos(${90}^\circ - \gamma)`}.` },
-    { kind: 'theorem', name: t`Compound angle formulae`, statement: t`For all angles ${ma} and ${mb}: ${math`\sin(\alpha \pm \beta) = \sin\alpha\cos\beta \pm \cos\alpha\sin\beta`}; ${math`\cos(\alpha \pm \beta) = \cos\alpha\cos\beta \mp \sin\alpha\sin\beta`}; and, where the tangents are defined, ${math`\tan(\alpha \pm \beta) = \frac{\tan\alpha \pm \tan\beta}{${1} \mp \tan\alpha\tan\beta}`}.` },
+    { kind: 'theorem', name: t`Compound angle formulae`, statement: t`For all angles ${ma} and ${mb}: ${math`\sin(\alpha \pm \beta) = \sin\alpha\cos\beta \pm \cos\alpha\sin\beta`}; ${math`\cos(\alpha \pm \beta) = \cos\alpha\cos\beta \mp \sin\alpha\sin\beta`}; and, where the tangents are defined, ${math`\tan(\alpha + \beta) = \frac{\tan\alpha + \tan\beta}{${1} - \tan\alpha\tan\beta}`}.` },
     {
       kind: 'steps',
       steps: [

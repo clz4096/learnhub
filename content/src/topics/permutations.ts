@@ -6,9 +6,12 @@
  * problems are Grinstead and Snell, Section 3.1, Exercise 12 (concert programs, counted by
  * listing every ordered choice of three pieces) and Assignment 6, Q2(i) (checked against the
  * hints). IA Probability Example Sheet 1, Q12 needs a binomial coefficient and a probability,
- * so it is in comb.combinations.
+ * so it is in comb.combinations. The first gate (batch 9) is 1995 STEP I Q12, asked as counts
+ * of orders instead of probabilities, since probability comes later: hockey players at the
+ * ends, all together, and none side by side, the last an ordered choice of gaps. The three
+ * formulas were checked by listing every order for n up to 7.
  */
-import { auto, cite, same, withUses } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t } from '../rich';
@@ -268,6 +271,15 @@ const gs3112 = auto({
   ],
 });
 
+// 1995 STEP I Q12, as counts: r hockey players among n pupils in a row.
+const step95Hockey = supervision({
+  id: 'step95-q12',
+  source: cite('stepdb-95-s1', 'Q12', true),
+  title: t`Hockey players in a row`,
+  prompt: t`A school has ${mn} pupils, of whom ${mr} play hockey, where ${math`n \ge r \ge ${2}`}. All ${mn} pupils are arranged in a row. (i) In how many of the orders is there a hockey player at each end of the row? (ii) In how many orders are all the hockey players standing together? (iii) By considering the gaps between the pupils who do not play hockey, find the number of orders in which no two hockey players are standing together, distinguishing between the cases when this number is zero and when it is not.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EX = { n: 8, r: 3 };
@@ -281,7 +293,7 @@ export const permutations: TopicContent = {
   lesson: [
     { kind: 'section', title: t`Ordered choices` },
     { kind: 'hook', text: t`${EX.n} runners, three medals: gold, silver, bronze. How many different podiums can there be? Not ${math`${EX.n}^{${3}}`}, since nobody wins two medals; and not "the number of groups of three", since gold for Ann and bronze for Bo is a different podium from the reverse.` },
-    { kind: 'narrative', text: t`Fill the podium one step at a time. Gold can go to any of the ${EX.n}. Whoever wins gold, silver can go to any of the other ${EX.n - 1}. Then bronze to any of the remaining ${EX.n - 2}. By the product rule there are ${math`${EX.n} \times ${EX.n - 1} \times ${EX.n - 2} = ${perm(EX.n, EX.r)}`} podiums. The pattern: start at ${mn} and count down, one factor per place.` },
+    { kind: 'narrative', text: t`Fill the podium one step at a time. Gold can go to any of the ${EX.n}. Whoever wins gold, silver can go to any of the other ${EX.n - 1}. Then bronze to any of the remaining ${EX.n - 2}. By the multiplication principle (when a choice can be made in the same number of ways whatever was chosen before, the numbers of ways multiply) there are ${math`${EX.n} \times ${EX.n - 1} \times ${EX.n - 2} = ${perm(EX.n, EX.r)}`} podiums. The pattern: start at ${mn} and count down, one factor per place.` },
     {
       kind: 'definition',
       name: t`Permutation of r from n`,
@@ -294,14 +306,14 @@ export const permutations: TopicContent = {
       proof: true,
       steps: [
         { label: t`Fill the places in order`, text: t`The first entry can be any of the ${mn} objects. Whatever it is, the second can be any of the other ${math`n - ${1}`}. In general, once ${math`i - ${1}`} entries are chosen, the ${math`i`}th can be any of the ${math`n - (i - ${1})`} objects not yet used.` },
-        { label: t`Multiply`, text: t`The number of choices at each step does not depend on the earlier choices, so by the product rule ${math`P(n, r) = n(n - ${1})\cdots(n - r + ${1})`}, a product of ${mr} factors.`, why: { q: t`Why is the last factor ${math`n - r + ${1}`}?`, a: t`The ${mr}th place is filled after ${math`r - ${1}`} objects are used, leaving ${math`n - (r - ${1}) = n - r + ${1}`}. For the podium, ${math`n = ${8}`}, ${math`r = ${3}`}: the last factor is ${6}.` } },
+        { label: t`Multiply`, text: t`The number of choices at each step does not depend on the earlier choices, so by the multiplication principle ${math`P(n, r) = n(n - ${1})\cdots(n - r + ${1})`}, a product of ${mr} factors.`, why: { q: t`Why is the last factor ${math`n - r + ${1}`}?`, a: t`The ${mr}th place is filled after ${math`r - ${1}`} objects are used, leaving ${math`n - (r - ${1}) = n - r + ${1}`}. For the podium, ${math`n = ${8}`}, ${math`r = ${3}`}: the last factor is ${6}.` } },
         { label: t`Write it with factorials`, text: t`Multiply and divide by ${math`(n - r)! = (n - r)(n - r - ${1})\cdots ${1}`}: the top becomes ${math`n(n - ${1})\cdots ${1} = n!`}. So ${math`P(n, r) = \frac{n!}{(n - r)!}`}.`, plain: t`With ${math`r = n`} this is ${math`\frac{n!}{${0}!} = n!`}, because ${math`${0}! = ${1}`}: arranging all ${mn} objects.` },
       ],
     },
     { kind: 'p', text: t`STEP Support's Stuart counts this way. His name has the different letters S, U, A, R and two identical T's. Placing S, U, A, R into ${6} positions in turn gives ${math`${6} \times ${5} \times ${4} \times ${3} = ${perm(6, 4)}`} ways, and the T's go in the two gaps: an ordered selection of ${4} positions from ${6}.` },
     checkFrom(permGen, { ctx: 'officers', n: 10, r: 3 }, t`Chair, then secretary, then treasurer: ${math`${10} \times ${9} \times ${8} = ${720}`}.`),
     { kind: 'section', title: t`Order or no order` },
-    { kind: 'narrative', text: t`A permutation is a choice plus an order. Choose which ${mr} objects, in ${math`\binom{n}{r}`} ways, then arrange them, in ${math`r!`} ways. So ${math`P(n, r) = r!\binom{n}{r}`}. For the podium: ${math`\binom{${8}}{${3}} = ${choose(8, 3)}`} groups of three finalists, each in ${6} orders, ${math`${choose(8, 3)} \times ${6} = ${perm(8, 3)}`}. Ask of every problem: would swapping two chosen objects give a different outcome? If yes, use ${math`P`}; if no, use ${math`\binom{n}{r}`}.` },
+    { kind: 'narrative', text: t`A permutation is a choice plus an order. Write ${math`\binom{n}{r}`} (read "${math`n`} choose ${mr}") for the number of ways to choose ${mr} of the ${math`n`} objects with no order, as a set. Every permutation is made by choosing which ${mr} objects, in ${math`\binom{n}{r}`} ways, then arranging them, in ${math`P(r, r) = r!`} ways. So ${math`P(n, r) = r!\binom{n}{r}`}, and dividing, ${math`\binom{n}{r} = \frac{n!}{r!(n - r)!}`}. For the podium: ${math`\binom{${8}}{${3}} = ${choose(8, 3)}`} groups of three finalists, each in ${6} orders, ${math`${choose(8, 3)} \times ${6} = ${perm(8, 3)}`}. Ask of every problem: would swapping two chosen objects give a different outcome? If yes, use ${math`P`}; if no, use ${math`\binom{n}{r}`}.` },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`A ${3}-digit code from the digits ${0} to ${9} can be chosen in ${math`P(${10}, ${3}) = ${720}`} ways.`, counterexample: t`Only if the digits must differ. If repeats are allowed, such as ${math`${0}${0}${7}`}, each place has ${10} choices: ${math`${10}^{${3}} = ${1000}`}. ${math`P(n, r)`} is for lists without repeats.` },
     { kind: 'pitfall', claim: t`The number of ways to pick ${3} of ${8} people for a committee is ${math`P(${8}, ${3}) = ${perm(8, 3)}`}.`, counterexample: t`A committee has no order: ${math`\{A, B, C\}`} is the same committee as ${math`\{C, A, B\}`}. Each committee was counted ${math`${3}! = ${6}`} times, so the answer is ${math`\binom{${8}}{${3}} = ${choose(8, 3)}`}.` },
@@ -316,10 +328,11 @@ export const permutations: TopicContent = {
   generators: [permGen, wordGen, fixGen, inclGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['permutation'],
-  cambridge: withUses([gs3112, a6q2], {
+  cambridge: withUses([step95Hockey, gs3112, a6q2], {
+    'step95-q12': { sections: ['Ordered choices'], note: t`Counting orders with conditions: ordered choices of ends, of a block, and of gaps` },
     'gs-3-1-12': { sections: ['Ordered choices', 'Order or no order'], note: t`Ordered programs, first in a fixed order of categories, then in any order` },
   }),
-  gate: ['gs-3-1-12'],
+  gate: ['step95-q12', 'gs-3-1-12'],
   recall: [
     { front: t`What is ${math`P(n, r)`}, and what does it count?`, back: t`${math`\frac{n!}{(n - r)!} = n(n - ${1})\cdots(n - r + ${1})`}: ordered selections of ${mr} different objects from ${mn}.` },
     { front: t`How are ${math`P(n, r)`} and ${math`\binom{n}{r}`} related?`, back: t`${math`P(n, r) = r!\binom{n}{r}`}: choose the objects, then order them.` },
@@ -330,7 +343,7 @@ export const permutations: TopicContent = {
       steps: [
         t`The first place can take any of the ${mn} objects.`,
         t`Each later place can take any object not yet used: one fewer each time.`,
-        t`By the product rule, ${math`P(n, r) = n(n - ${1})\cdots(n - r + ${1})`}.`,
+        t`By the multiplication principle, ${math`P(n, r) = n(n - ${1})\cdots(n - r + ${1})`}.`,
         t`Multiplying and dividing by ${math`(n - r)!`} gives ${math`\frac{n!}{(n - r)!}`}.`,
       ],
     },

@@ -233,8 +233,8 @@ export const rootsCoefficients: TopicContent = {
   minutes: 25,
   lesson: [
     { kind: 'section', title: t`The idea` },
-    { kind: 'hook', text: t`Without solving ${math`x^{${2}} - ${7}x + ${10} = ${0}`}, can you say what its roots add up to? Yes: ${7}. And multiply to? ${10}. The coefficients are the roots in disguise.` },
-    { kind: 'narrative', text: t`Expand ${math`(x - \alpha)(x - \beta)`}: you get ${math`x^{${2}} - (\alpha + \beta)x + \alpha\beta`}. So if this is the same as ${math`x^{${2}} - ${7}x + ${10}`}, the sum of the roots is ${7} and the product is ${10}. Two numbers with sum ${7} and product ${10}: ${2} and ${5}.` },
+    { kind: 'hook', text: t`Without solving ${math`x^{${2}} - ${9}x + ${14} = ${0}`}, can you say what its roots add up to? Yes: ${9}. And multiply to? ${14}. The coefficients are the roots in disguise.` },
+    { kind: 'narrative', text: t`Expand ${math`(x - \alpha)(x - \beta)`}: you get ${math`x^{${2}} - (\alpha + \beta)x + \alpha\beta`}. So if this is the same as ${math`x^{${2}} - ${9}x + ${14}`}, the sum of the roots is ${9} and the product is ${14}. Two numbers with sum ${9} and product ${14}: ${2} and ${7}.` },
     { kind: 'section', title: t`Quadratics` },
     {
       kind: 'definition',
@@ -248,7 +248,7 @@ export const rootsCoefficients: TopicContent = {
       proof: true,
       steps: [
         { label: t`Expand`, text: t`${math`a(x - \alpha)(x - \beta) = ax^{${2}} - a(\alpha + \beta)x + a\alpha\beta`}.` },
-        { label: t`Compare coefficients`, text: t`The two sides agree for every ${math`x`}, so the coefficients of ${math`x`} agree: ${math`b = -a(\alpha + \beta)`}; and the constants agree: ${math`c = a\alpha\beta`}.`, why: { q: t`Why must the coefficients agree?`, a: t`The difference of the two sides is a polynomial of degree at most ${2} that is ${0} for every ${math`x`}. Putting ${math`x = ${0}`}, then comparing values at two more points, forces each of its coefficients to be ${0}.` } },
+        { label: t`Compare coefficients`, text: t`The two sides agree for every ${math`x`}, so the coefficients of ${math`x`} agree: ${math`b = -a(\alpha + \beta)`}; and the constants agree: ${math`c = a\alpha\beta`}.`, why: { q: t`Why must the coefficients agree?`, a: t`The difference of the two sides is a polynomial of degree at most ${2} that is ${0} for every ${math`x`}. Call it ${math`px^{${2}} + qx + r`}. Putting ${math`x = ${0}`} gives ${math`r = ${0}`}. Then ${math`x = ${1}`} gives ${math`p + q = ${0}`} and ${math`x = -${1}`} gives ${math`p - q = ${0}`}; adding and subtracting these, ${math`p = q = ${0}`}. So every coefficient of the difference is ${0}.` } },
         { label: t`Divide by a`, text: t`${math`a \ne ${0}`}, so ${math`\alpha + \beta = -\frac{b}{a}`} and ${math`\alpha\beta = \frac{c}{a}`}.` },
       ],
     },

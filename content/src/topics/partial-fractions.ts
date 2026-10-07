@@ -328,7 +328,8 @@ export const partialFractions: TopicContent = {
     'a17-q2-iii-200': { sections: ['Telescoping sums'], note: t`Partial fractions, then a telescoping sum between two limits` },
     'a17-q2-iii-n': { sections: ['Distinct linear factors', 'Telescoping sums'], note: t`Partial fractions, then a telescoping sum` },
   }),
-  gate: ['nst-a7-iii', 'a17-q2-iii-200', 'a17-q2-iii-n'],
+  // The STEP Support problems first (batch 9), then the NST Workbook's repeated factor.
+  gate: ['a17-q2-iii-n', 'a17-q2-iii-200', 'nst-a7-iii'],
   recall: [
     { front: t`State the cover-up rule.`, back: t`The coefficient over ${math`x - a`} is the rest of the fraction evaluated at ${math`x = a`}.` },
     { front: t`Partial fractions for ${math`\frac{${1}}{(${2}r - ${1})(${2}r + ${1})}`}?`, back: t`${math`\frac{${1}}{${2}}\left(\frac{${1}}{${2}r - ${1}} - \frac{${1}}{${2}r + ${1}}\right)`}.` },

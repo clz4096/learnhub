@@ -227,7 +227,8 @@ export function lessonSections(lesson: readonly Block[]): LessonSection[] {
  * exercises, (batch 7) the IA Numbers and Sets example sheets, the CST Logic and Proof notes,
  * and chapters 3 to 5 of Grinstead and Snell, and batch 8's STEP Support STEP 2 and 3 modules,
  * STEP papers, Computer Science Tripos Part IA questions, IA example sheets, and MIT 18.600
- * problem set (not their hints or solutions). Book of Proof and the TMUA notes are good practice
+ * problem set, and batch 9's further STEP papers, IA Analysis I sheet, Tripos questions, and
+ * STEP Support STEP 2 Trigonometry and Matrices modules (not their hints or solutions). Book of Proof and the TMUA notes are good practice
  * but easier; the schedules state a course, not problems; the CS3110 book's prose is a reference,
  * not an exercise sheet; answers and solutions (Grinstead and Snell's odd answers, the CST
  * solutions) support a gate but are not one.
@@ -249,6 +250,9 @@ export const GATE_DOCS: ReadonlySet<string> = new Set([
   'stepdb-12-s2', 'stepdb-13-s2', 'stepdb-14-s1', 'stepdb-15-s1', 'stepdb-16-s2', 'stepdb-18-s1', 'stepdb-spec-s1',
   'cst-y2016p1q2', 'cst-y2018p1q2', 'cst-y2020p1q1', 'cst-y2024p1q2', 'cst-y2025p1q1', 'cst-y2025p1q2',
   'damtp-ia-vm1', 'damtp-ia-de1', 'mit-18600-ps10',
+  // Batch 9: STEP papers, IA Analysis I Example Sheet 1, CST Part IA FoCS questions, STEP Support STEP 2 modules.
+  'dpmms-ia-an1', 'stepdb-94-s2', 'stepdb-00-s2', 'stepdb-03-s1', 'stepdb-04-s1', 'stepdb-06-s3', 'stepdb-08-s1', 'stepdb-16-s1', 'stepdb-16-s3',
+  'cst-y2013p1q1', 'cst-y2016p1q1', 'cst-y2022p1q2', 'step-s2-trig', 'step-s2-matrices',
 ]);
 
 /** The ids of a topic's Cambridge problems from a Cambridge-standard document (`GATE_DOCS`): the default gate. */

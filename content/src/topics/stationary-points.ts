@@ -310,6 +310,7 @@ const db15q7 = supervision({
   title: t`The greatest value on an interval, as the cubic changes`,
   prompt: t`Let ${dmath`f(x) = ${3}ax^{${2}} - ${6}x^{${3}}`} and, for each real number ${math`a`}, let ${math`M(a)`} be the greatest value of ${math`f(x)`} in the interval ${math`-\frac{${1}}{${3}} \le x \le ${1}`}. Determine ${math`M(a)`} for ${math`a \ge ${0}`}. (The formula for ${math`M(a)`} is different in different ranges of ${math`a`}; you will need to identify three ranges.)`,
   writeUp: 'explanation',
+  official: cite('stepdb-15-hs', 'STEP I, Q7 (page 6)'),
 });
 
 /** M(a): the greatest of f at -1/3, at 1, and at the stationary point a/3 when it lies in the interval, exactly. */
@@ -415,6 +416,8 @@ const eqns4 = supervision({
 // ---------------------------------------------------------------- lesson
 
 const EX: CubicP = { s: 1, p: -2, q: 2, d: 1 };
+/** The hook's cubic, x^3 - 27x + 5: not one of the Cambridge cubics this topic cites. */
+const HOOK: CubicP = { s: 1, p: -3, q: 3, d: 5 };
 
 export const stationaryPoints: TopicContent = {
   topicId: 'calc.stationary-points',
@@ -424,7 +427,7 @@ export const stationaryPoints: TopicContent = {
   minutes: 20,
   lesson: [
     { kind: 'section', title: t`Where the curve is level` },
-    { kind: 'hook', text: t`At the very top of a hill the ground is level for a moment: one step further and you are going down. The curve ${math`y = ${cm(poly(cubic(EX)))}`} rises, falls, then rises again. Where exactly does it turn, and how could you know without drawing it?` },
+    { kind: 'hook', text: t`At the very top of a hill the ground is level for a moment: one step further and you are going down. The curve ${math`y = ${cm(poly(cubic(HOOK)))}`} rises, falls, then rises again. Where exactly does it turn, and how could you know without drawing it?` },
     { kind: 'narrative', text: t`The derivative measures the gradient. Going up, the gradient is positive; going down, negative. At the moment the curve turns from one to the other, it is neither: the gradient is ${0}. That suggests a plan: solve ${math`f'(x) = ${0}`}.` },
     { kind: 'definition', name: t`Stationary point`, formal: t`Let ${math`f`} be differentiable. A point ${math`a`} with ${math`f'(a) = ${0}`} is a [[stationary-point|stationary point]] of ${math`f`}, and ${math`(a, f(a))`} a stationary point of the curve ${math`y = f(x)`}.`, plain: t`A place where the tangent is horizontal. For ${math`y = x^{${2}}`}, ${math`\frac{dy}{dx} = ${2}x`} is ${0} at ${math`x = ${0}`}: the bottom of the bowl.` },
     { kind: 'definition', name: t`Local maximum and minimum`, formal: t`${math`f`} has a [[local-maximum|local maximum]] at ${math`a`} if there is ${math`\delta > ${0}`} with ${math`f(x) \le f(a)`} whenever ${math`|x - a| < \delta`}; a local minimum if ${math`f(x) \ge f(a)`} whenever ${math`|x - a| < \delta`}. Either is a turning point.`, plain: t`Higher (or lower) than every nearby point, though not necessarily than every point. The letter ${math`\delta`} is just how near "nearby" is, say ${q(1, 10)}.` },
@@ -441,8 +444,9 @@ export const stationaryPoints: TopicContent = {
     },
     { kind: 'pitfall', claim: t`Every stationary point is a maximum or a minimum.`, counterexample: t`${math`y = x^{${3}}`} has ${math`\frac{dy}{dx} = ${3}x^{${2}} = ${0}`} at ${math`x = ${0}`}, but it rises on both sides. The theorem goes one way only: turning points are stationary, not the other way round.` },
     { kind: 'section', title: t`Maximum, minimum, or neither?` },
-    { kind: 'narrative', text: t`So a stationary point might be a peak, a dip, or a pause on the way up. Two tests sort them. The first looks at the gradient just either side; the second asks whether the gradient is increasing or decreasing as it passes through ${0}.` },
+    { kind: 'narrative', text: t`So a stationary point might be a peak, a dip, or a pause on the way up. Two tests sort them. The first looks at the gradient just either side; the second asks whether the gradient is increasing or decreasing as it passes through ${0}. For that, differentiate twice: the derivative of ${math`f'`} is the second derivative, written ${math`f''`} or ${math`\frac{d^{${2}}y}{dx^{${2}}}`}. For ${math`f(x) = x^{${3}}`}, ${math`f'(x) = ${3}x^{${2}}`} and ${math`f''(x) = ${6}x`}.` },
     { kind: 'theorem', name: t`First derivative test`, statement: t`Let ${math`f'(a) = ${0}`}. If ${math`f' > ${0}`} just to the left of ${math`a`} and ${math`f' < ${0}`} just to the right, ${math`f`} has a local maximum at ${math`a`}; if ${math`f' < ${0}`} then ${math`f' > ${0}`}, a local minimum; if ${math`f'`} has the same sign on both sides, neither, and ${math`a`} is a stationary point of inflection.` },
+    { kind: 'p', text: t`Read it from the picture: a positive gradient means the curve is climbing, so climbing into ${math`a`} and falling out of it makes ${math`a`} a peak. A full proof needs the mean value theorem, which you meet in analysis; here we use the test as stated.` },
     { kind: 'theorem', name: t`Second derivative test`, statement: t`Let ${math`f'(a) = ${0}`} and let ${math`f''(a)`} exist. If ${math`f''(a) < ${0}`}, ${math`f`} has a local maximum at ${math`a`}; if ${math`f''(a) > ${0}`}, a local minimum. If ${math`f''(a) = ${0}`}, the test gives no answer.` },
     {
       kind: 'steps',
@@ -454,7 +458,7 @@ export const stationaryPoints: TopicContent = {
         { label: t`Apply the first test`, text: t`By the first derivative test, ${math`a`} is a local maximum. The case ${math`f''(a) > ${0}`} is the mirror image.` },
       ],
     },
-    { kind: 'narrative', text: t`Back to the hook. For ${math`y = ${cm(poly(cubic(EX)))}`}, ${math`\frac{dy}{dx} = ${cm(poly(polyDeriv(cubic(EX))))}`} is ${0} at ${math`x = \pm ${2}`}, and ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${6}x`} is ${-12} at ${math`x = ${-2}`} and ${12} at ${math`x = ${2}`}. So there is a maximum at ${math`(${-2}, ${polyAt(cubic(EX), -2)})`} and a minimum at ${math`(${2}, ${polyAt(cubic(EX), 2)})`}.` },
+    { kind: 'narrative', text: t`Back to the hook. For ${math`y = ${cm(poly(cubic(HOOK)))}`}, ${math`\frac{dy}{dx} = ${cm(poly(polyDeriv(cubic(HOOK))))}`} is ${0} when ${math`x^{${2}} = ${9}`}, at ${math`x = \pm ${3}`}. Differentiating again, ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${6}x`}, which is ${-18} at ${math`x = ${-3}`} (negative: a maximum) and ${18} at ${math`x = ${3}`} (positive: a minimum). So there is a maximum at ${math`(${-3}, ${polyAt(cubic(HOOK), -3)})`} and a minimum at ${math`(${3}, ${polyAt(cubic(HOOK), 3)})`}.` },
     checkFrom(classify, { shape: 'fourth', c: EX, p: 1, k: 2, atMax: false }, t`The second derivative is ${0} at ${math`x = ${1}`}, so look either side: the gradient ${math`${4}(x - ${1})^{${3}}`} goes from negative to positive, a local minimum.`),
     { kind: 'pitfall', claim: t`If ${math`f'(a) = ${0}`} and ${math`f''(a) = ${0}`}, then ${math`a`} is a point of inflection.`, counterexample: t`${math`y = x^{${4}}`} has both derivatives ${0} at ${math`x = ${0}`}, yet ${math`x^{${4}} \ge ${0}`} everywhere: it is a minimum. When ${math`f''(a) = ${0}`}, use the first derivative test.` },
     { kind: 'takeaway', text: t`Solve ${math`f'(x) = ${0}`} to find the stationary points; classify each by the sign of ${math`f''`}, or, when ${math`f'' = ${0}`}, by the sign of ${math`f'`} either side.` },

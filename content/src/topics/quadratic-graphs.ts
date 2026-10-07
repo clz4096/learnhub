@@ -338,7 +338,7 @@ export const quadraticGraphs: TopicContent = {
       why: { q: t`Why does ${math`f`} grow with the distance?`, a: t`${math`(x - h)^{${2}} = |x - h|^{${2}}`}, and squaring is increasing for non-negative numbers; multiplying by ${math`a > ${0}`} and adding ${math`k`} keep the order.` },
     },
     checkFrom(onInterval, { b: -4, c: 1, lo: -1, hi: 3, want: 'g' }, t`The vertex ${math`x = ${2}`} is inside, so the greatest is at the farther end ${math`x = -${1}`}: ${math`${1} + ${4} + ${1} = ${6}`}.`),
-    { kind: 'pitfall', claim: t`The least value of a quadratic on an interval is always at the vertex.`, counterexample: t`${math`(x - ${3})^{${2}}`} on ${math`-${2} \le x \le ${2}`} has its vertex at ${math`x = ${3}`}, outside the interval; the least value there is ${1}, at ${math`x = ${2}`}, not ${0}.` },
+    { kind: 'pitfall', claim: t`The least value of a quadratic on an interval is always at the vertex.`, counterexample: t`${math`(x - ${5})^{${2}}`} on ${math`${0} \le x \le ${3}`} has its vertex at ${math`x = ${5}`}, outside the interval. On the interval the least value is ${math`(${3} - ${5})^{${2}} = ${4}`}, at the nearer end ${math`x = ${3}`}, not ${0}.` },
     { kind: 'takeaway', text: t`Complete the square to find the vertex; then on an interval compare the ends, and the vertex if it is inside.` },
   ],
   examples: [

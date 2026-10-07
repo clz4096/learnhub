@@ -232,7 +232,7 @@ export const rationalInequalities: TopicContent = {
   minutes: 20,
   lesson: [
     { kind: 'section', title: t`The idea` },
-    { kind: 'hook', text: t`Solve ${math`x + \frac{${1}}{x} > ${2}`}. Multiply by ${math`x`}: ${math`x^{${2}} + ${1} > ${2}x`}, so ${math`(x - ${1})^{${2}} > ${0}`}, true for every ${math`x \ne ${1}`}. But try ${math`x = -${1}`}: ${math`-${1} - ${1} = -${2}`}, which is not more than ${2}. Something went wrong in the first step.` },
+    { kind: 'hook', text: t`Solve ${math`x + \frac{${4}}{x} > ${4}`}. Multiply by ${math`x`}: ${math`x^{${2}} + ${4} > ${4}x`}, so ${math`(x - ${2})^{${2}} > ${0}`}, true for every ${math`x \ne ${2}`}. But try ${math`x = -${1}`}: ${math`-${1} - ${4} = -${5}`}, which is not more than ${4}. Something went wrong in the first step.` },
     { kind: 'narrative', text: t`Multiplying an inequality by ${math`x`} keeps its direction only when ${math`x`} is positive. When ${math`x`} could be negative, that one innocent step changes the answer. This lesson gives two safe methods.` },
     { kind: 'section', title: t`Multiply by a square` },
     {
@@ -251,13 +251,13 @@ export const rationalInequalities: TopicContent = {
         { label: t`Simplify`, text: t`${math`\frac{P(x)}{Q(x)}Q(x)^{${2}} = P(x)Q(x)`}. Dividing by the positive ${math`Q(x)^{${2}}`} reverses the step, so the two inequalities are equivalent.` },
       ],
     },
-    { kind: 'narrative', text: t`Applied to the hook: multiply ${math`x + \frac{${1}}{x} > ${2}`} by ${math`x^{${2}}`}: ${math`x^{${3}} + x > ${2}x^{${2}}`}, so ${math`x(x - ${1})^{${2}} > ${0}`}. That needs ${math`x > ${0}`} and ${math`x \ne ${1}`}: the negative numbers are rightly excluded.` },
+    { kind: 'narrative', text: t`Applied to the hook: multiply ${math`x + \frac{${4}}{x} > ${4}`} by ${math`x^{${2}}`}, which is positive for ${math`x \ne ${0}`}: ${math`x^{${3}} + ${4}x > ${4}x^{${2}}`}. Move everything to the left and take out ${math`x`}: ${math`x(x^{${2}} - ${4}x + ${4}) = x(x - ${2})^{${2}} > ${0}`}. The square is positive except at ${math`x = ${2}`}, so this needs ${math`x > ${0}`} and ${math`x \ne ${2}`}: the negative numbers are rightly excluded.` },
     checkFrom(fractionVsNumber, { k: 6, b: 1, c: 2 }, t`Multiply by ${math`(x - ${1})^{${2}}`}: ${math`(x - ${1})(${2}x - ${8}) < ${0}`}, so ${math`${1} < x < ${4}`}.`),
     { kind: 'section', title: t`Sign diagrams with a denominator` },
     { kind: 'narrative', text: t`The second method: put everything over one denominator and compare with ${0}. Then the critical values are the zeros of the top and of the bottom. The sign of ${math`\frac{P}{Q}`} is the sign of ${math`PQ`}, so the sign diagram works as before, with one difference: zeros of the bottom are never in the answer, because there the expression does not exist.` },
     checkFrom(quotientSign, { a: 3, b: -1, op: '<=' }, t`Negative between ${math`-${1}`} and ${3}; ${0} at ${3}, which is allowed; undefined at ${math`-${1}`}. So ${math`-${1} < x \le ${3}`}.`),
     { kind: 'pitfall', claim: t`${math`\frac{x - ${3}}{x + ${1}} \le ${0}`} has the same solutions as ${math`(x - ${3})(x + ${1}) \le ${0}`}.`, counterexample: t`${math`x = -${1}`} satisfies the product inequality (it gives ${0}), but the fraction is undefined there. The answers differ by exactly that point.` },
-    { kind: 'pitfall', claim: t`${math`\frac{${1}}{x} < ${2}`} means ${math`${1} < ${2}x`}, so ${math`x > ${half}`}.`, counterexample: t`${math`x = -${1}`}: ${math`\frac{${1}}{-${1}} = -${1} < ${2}`}, yet ${math`-${1} < ${half}`}. The full answer is ${math`x < ${0}`} or ${math`x > ${half}`}.` },
+    { kind: 'pitfall', claim: t`${math`\frac{${1}}{x} < ${2}`} means ${math`${1} < ${2}x`}, so ${math`x > ${half}`}.`, counterexample: t`${math`x = -${1}`}: ${math`\frac{${1}}{-${1}} = -${1} < ${2}`}, so ${math`x = -${1}`} solves the inequality, yet it is not more than ${math`${half}`}. The full answer is ${math`x < ${0}`} or ${math`x > ${half}`}.` },
     { kind: 'takeaway', text: t`Never multiply an inequality by something whose sign you do not know: multiply by its square, or use a sign diagram that marks where the denominator is ${0}.` },
   ],
   examples: [

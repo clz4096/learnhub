@@ -4,7 +4,9 @@
  * The Cambridge problems are STEP Support Foundation Assignment 13, Q1, whose opening notes
  * define concave and convex by the sign of the second derivative, with the answers of the
  * Assignment 13 hints compared in the content checks. The STEP specification ties the second
- * derivative to "convex and concave sections of curves" (STEP 1, Differentiation).
+ * derivative to "convex and concave sections of curves" (STEP 1, Differentiation). Part (ii) of
+ * Q1 is the worked example and part (i) is practice, so the whole-question gate sets parts (iii)
+ * and (iv) only (2026-10-07).
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
@@ -203,9 +205,10 @@ const quarticQ = auto({
 
 const sketchQ = supervision({
   id: 'a13-q1',
-  source: cite(F13, 'Assignment 13, Q1'),
-  title: t`Concave, convex, and four curves`,
-  prompt: t`(i) For the graph ${math`y = x^{${3}} - ${2}x^{${2}} - ${3}x`}, find the point where ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}. (ii) Find a range of values of ${math`x`} for which the graph ${math`y = x^{${4}} - ${6}x^{${2}} + ${9}`} is concave. (iii) For the graph ${math`y = x^{${4}} - ${2}x^{${3}}`}, find the stationary points and the points where ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}, and sketch it. (iv) For the graph ${math`y = (x - ${1})^{${4}}`}, find the point where ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}, and by considering the shape of the graph show that it is not a point of inflection.`,
+  // Part (i) is practice and part (ii) the worked example, so the gate leaves them out (2026-10-07).
+  source: cite(F13, 'Assignment 13, Q1(iii), (iv)', true),
+  title: t`A sketch from the second derivative, and a false inflection`,
+  prompt: t`(iii) For the graph ${math`y = x^{${4}} - ${2}x^{${3}}`}, find the stationary points and the points where ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}, and sketch it. (iv) For the graph ${math`y = (x - ${1})^{${4}}`}, find the point where ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}, and by considering the shape of the graph show that it is not a point of inflection.`,
   writeUp: 'sketch',
   official: cite(F13H, 'Assignment 13 hints, Q1'),
 });

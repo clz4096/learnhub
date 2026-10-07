@@ -3,10 +3,12 @@
  * the test for primality by trial division up to the square root. Sources: the GCSE subject
  * content (DfE 2013), and STEP Support Foundation Assignment 10 Q2(i) and Q3 (the function
  * f(N) = N(1 - 1/p1)...(1 - 1/pk), Euler's totient). Every count and every factor is found
- * by brute force over the divisors.
+ * by brute force over the divisors. The second gate (batch 9) is IA Numbers and Sets Example
+ * Sheet 1, Q3: four primes between two consecutive multiples of 10, which happens again from
+ * 100 to 110, found by ruling out small factors and testing up to the square root.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
-import { pick, q, sample } from '../math';
+import { pick, q, sample, toFloat, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, listOf, math, t } from '../rich';
 import { checkFrom, workedCambridge, worked, type TopicContent } from '../topic';
@@ -191,6 +193,41 @@ const a10q3ib = supervision({
   official: cite(F10H, 'Q3'),
 });
 
+// IA Numbers and Sets Example Sheet 1, Q3: four primes between consecutive multiples of 10.
+const DECADE = 10;
+/** The primes strictly between m and m + 10. */
+const primesInDecade = (m: number): number[] => Array.from({ length: DECADE - 1 }, (_, i) => m + i + 1).filter(isPrime);
+/** Null when m is a multiple of 10, at least 20, with four primes between m and m + 10; else why not. */
+function fourPrimeDecade(m: number): string | null {
+  if (!Number.isInteger(m) || m % DECADE !== 0) return `${m} is not a multiple of ${DECADE}`;
+  if (m < 2 * DECADE) return 'The question asks whether it happens again, after 0 to 10 and 10 to 20: give a multiple of 10 from 20 on.';
+  const ps = primesInDecade(m);
+  return ps.length === 4 ? null : `Between ${m} and ${m + DECADE} the primes are ${ps.length === 0 ? 'none' : ps.join(', ')}: ${ps.length}, not 4.`;
+}
+const ns1Q3 = auto({
+  id: 'ns1-q3',
+  source: cite('ia-ns-sheet-1', 'Q3'),
+  title: t`Four primes in a row of ten`,
+  prompt: t`There are four primes between ${0} and ${DECADE}, and four between ${DECADE} and ${2 * DECADE}. Does it ever happen again that there are four primes between two consecutive multiples of ${DECADE}? Settle it: give a multiple of ${DECADE}, at least ${2 * DECADE}, with four primes between it and the next multiple of ${DECADE}.`,
+  answer: { kind: 'witness', count: 1, example: '100', check: (v) => fourPrimeDecade(toFloat(v[0] as Rational)) },
+  solution: [
+    t`Between ${math`m`} and ${math`m + ${DECADE}`}, with ${math`m`} a multiple of ${DECADE}, the numbers ending in ${listOf([2, 4, 6, 8])} are even and the one ending in ${5} is a multiple of ${5}. So only ${math`m + ${1}`}, ${math`m + ${3}`}, ${math`m + ${7}`}, and ${math`m + ${9}`} can be prime, and all four must be.`,
+    t`Three more cuts come from ${3}. If ${3} divides ${math`m`}, it divides ${math`m + ${3}`}; if ${math`m`} is ${2} more than a multiple of ${3}, then ${3} divides ${math`m + ${1}`}. So ${math`m`} must be ${1} more than a multiple of ${3}: from ${2 * DECADE} on, the candidates are ${listOf([40, 70, 100])}, and so on.`,
+    t`Test them. ${40}: ${math`${49} = ${7} \times ${7}`}. ${70}: ${math`${77} = ${7} \times ${11}`}. ${100}: the candidates are ${listOf(primesInDecade(100))}. A composite number below ${121} has a prime factor at most ${10}, so testing ${listOf([2, 3, 5, 7])} is enough, and none divides any of them. So yes: there are four primes between ${100} and ${110}.`,
+  ],
+  reference: '100',
+  verify: () => {
+    const hits = Array.from({ length: 100 }, (_, i) => DECADE * (i + 2)).filter((m) => fourPrimeDecade(m) === null);
+    if (hits[0] !== 100) return `the first decade after 10 to 20 with four primes starts at ${hits[0]}`;
+    // Every hit is 1 more than a multiple of 3, as the solution argues.
+    return hits.every((m) => m % 3 === 1) ? null : 'a hit that is not 1 more than a multiple of 3';
+  },
+  misconceptions: [
+    { response: '40', why: t`${49} is not prime: ${math`${49} = ${7} \times ${7}`}. Between ${40} and ${50} there are only three primes.` },
+    { response: '70', why: t`${77} is not prime: ${math`${77} = ${7} \times ${11}`}.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const primesAndFactors: TopicContent = {
@@ -207,7 +244,7 @@ export const primesAndFactors: TopicContent = {
     {
       kind: 'definition',
       name: t`Factor and multiple`,
-      formal: t`For integers ${math`d`} and ${math`n`}, ${math`d`} is a [[factor|factor]] of ${math`n`}, and ${math`n`} is a [[multiple|multiple]] of ${math`d`}, if ${math`n = dk`} for some integer ${math`k`}.`,
+      formal: t`For integers ${math`d`} and ${math`n`}, ${math`d`} is a [[factor|factor]] of ${math`n`} (we also say ${math`d`} divides ${math`n`}), and ${math`n`} is a [[multiple|multiple]] of ${math`d`}, if ${math`n = dk`} for some integer ${math`k`}.`,
       plain: t`${math`d`} goes into ${math`n`} exactly. ${4} is a factor of ${12}, since ${math`${12} = ${4} \times ${3}`}; ${12} is a multiple of ${4}.`,
     },
     {
@@ -225,7 +262,7 @@ export const primesAndFactors: TopicContent = {
       steps: [
         { label: t`Write it as a product`, text: t`${math`n`} is composite, so ${math`n = ab`} with ${math`${1} < a \le b < n`}.`, plain: t`Call the smaller factor ${math`a`}. For ${math`n = ${91}`}: ${math`a = ${7}`}, ${math`b = ${13}`}.` },
         { label: t`The smaller factor is small`, text: t`If ${math`a > \sqrt{n}`}, then ${math`b \ge a > \sqrt{n}`} and ${math`ab > \sqrt{n}\sqrt{n} = n`}, which is false. So ${math`a \le \sqrt{n}`}.` },
-        { label: t`Take a prime factor of it`, text: t`${math`a \ge ${2}`} has a prime factor ${math`p`}, and ${math`p \le a \le \sqrt{n}`}. Since ${math`p`} divides ${math`a`} and ${math`a`} divides ${math`n`}, ${math`p`} divides ${math`n`}.`, why: { q: t`Why does every ${math`a \ge ${2}`} have a prime factor?`, a: t`Its smallest factor bigger than ${1} must be prime: any factor of that factor would be a smaller factor of ${math`a`}.` } },
+        { label: t`Take a prime factor of it`, text: t`${math`a \ge ${2}`} has a prime factor ${math`p`}, and ${math`p \le a \le \sqrt{n}`}. Since ${math`p`} divides ${math`a`} and ${math`a`} divides ${math`n`}, ${math`p`} divides ${math`n`}.`, why: { q: t`Why does every ${math`a \ge ${2}`} have a prime factor?`, a: t`Take the smallest factor of ${math`a`} that is bigger than ${1}; call it ${math`q`}. If ${math`q`} were not prime, it would have a factor ${math`r`} with ${math`${1} < r < q`}, and ${math`r`} would also be a factor of ${math`a`}, smaller than ${math`q`}. That is impossible, so ${math`q`} is prime. (For ${math`a = ${15}`}: ${math`q = ${3}`}.)` } },
       ],
     },
     { kind: 'narrative', text: t`So to test ${math`n`}, divide by the primes up to ${math`\sqrt{n}`}. If none divides it, ${math`n`} is prime. For ${97}: ${math`\sqrt{${97}}`} is less than ${10}, and none of ${2}, ${3}, ${5}, ${7} divides ${97}, so it is prime.` },
@@ -242,13 +279,15 @@ export const primesAndFactors: TopicContent = {
   generators: [countFactors, whichPrime, smallestPrimeFactor],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['factor', 'multiple', 'composite-number'],
-  cambridge: withUses([a10q3ia, a10q3iii, a10q3ib], {
+  cambridge: withUses([a10q3ia, a10q3iii, a10q3ib, ns1Q3], {
+    'ns1-q3': { sections: ['Factors, multiples, primes', 'When to stop testing'], note: t`Ruling out candidates with small factors, then testing the rest up to the square root` },
     'a10-q3-i-b': { sections: ['Factors, multiples, primes'], note: t`Proving a product formula is a whole number and testing three claims`, needs: ['pre.prime-factorisation', 'proof.counterexample'] },
     'a10-q3-iii': { sections: ['Factors, multiples, primes'], note: t`Working backwards from the formula to a prime power`, needs: ['pre.prime-factorisation'] },
     'a10-q3-i-a': { sections: ['Factors, multiples, primes'], note: t`Listing the prime factors of a number and evaluating the formula` },
   }),
-  // Assignment 10 Q3(i)(a). The other parts need prime factorisation and counterexamples, taught later, so they are practice.
-  gate: ['a10-q3-i-a'],
+  // Assignment 10 Q3(i)(a), and the four primes of Numbers and Sets Q3. The other Assignment 10 parts need prime
+  // factorisation and counterexamples, taught later, so they are practice.
+  gate: ['a10-q3-i-a', 'ns1-q3'],
   recall: [
     { front: t`Define a prime number.`, back: t`An integer ${math`p \ge ${2}`} whose only positive factors are ${1} and ${math`p`}.` },
     { front: t`Which divisors must you try to test ${math`n`} for primality?`, back: t`The primes up to ${math`\sqrt{n}`}: a composite ${math`n`} has a prime factor that small.` },

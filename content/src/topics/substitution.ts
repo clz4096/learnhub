@@ -279,6 +279,7 @@ const db10q4 = supervision({
   title: t`A substitution that clears two square roots`,
   prompt: t`Use the substitution ${math`x = \frac{${1}}{t^{${2}} - ${1}}`}, where ${math`t > ${1}`}, to show that, for ${math`x > ${0}`}, ${dmath`\int \frac{${1}}{\sqrt{x(x + ${1})}}\,dx = ${2}\ln\left(\sqrt{x} + \sqrt{x + ${1}}\right) + c.`} [Note: you may use without proof the result ${math`\int \frac{${1}}{t^{${2}} - a^{${2}}}\,dt = \frac{${1}}{${2}a}\ln\left|\frac{t - a}{t + a}\right| + \text{constant}`}.]`,
   writeUp: 'proof',
+  official: cite('stepdb-10-s1-sol', 'Question 4 (pages 15 to 18)'),
 });
 
 // ---------------------------------------------------------------- lesson

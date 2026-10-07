@@ -242,7 +242,7 @@ export const hashTables: TopicContent = {
     checkFrom(bucketsGen, { m: 7, keys: [4, 8, 15, 16, 23, 42, 30], ask: 'longest' }, t`${30} also goes to bucket ${2}, joining ${16} and ${23}: three keys.`),
     { kind: 'section', title: t`The load factor` },
     { kind: 'narrative', text: t`Every operation costs about the length of one bucket. With a hash function that spreads the keys evenly, that length is about the number of bindings divided by the number of buckets.` },
-    { kind: 'definition', name: t`Load factor`, formal: t`The [[load-factor|load factor]] of a hash table with ${math`n`} bindings and ${math`m`} buckets is ${math`\alpha = n/m`}.`, plain: t`The average bucket length. ${31} bindings in ${16} buckets give ${math`\alpha = \frac{${31}}{${16}}`}, a little under ${2}.` },
+    { kind: 'definition', name: t`Load factor`, formal: t`The [[load-factor|load factor]] of a hash table with ${math`n`} bindings and ${math`m`} buckets is ${math`\alpha = n/m`}.`, plain: t`The average bucket length. ${13} bindings in ${8} buckets give ${math`\alpha = \frac{${13}}{${8}}`}: on average a bucket holds between one and two bindings.` },
     { kind: 'p', text: t`If ${math`m`} stays fixed, ${math`\alpha`} grows with ${math`n`} and the table degrades to a few long lists. So the table resizes: when ${math`\alpha`} passes a bound (${2} for ${ml`Hashtbl`}), make a new array with twice as many buckets and rehash every binding into it.` },
     checkFrom(resizeGen, { b: 4, n: 20 }, t`${4} buckets hold ${8} bindings at load factor ${2}; the ${9}th doubles to ${8} buckets, and the ${17}th to ${16}.`),
     { kind: 'section', title: t`Why doubling is cheap` },

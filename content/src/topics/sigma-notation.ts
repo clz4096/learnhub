@@ -429,6 +429,7 @@ const db05q7ii = auto({
     { response: '1/n', why: t`That is only the product of ${math`\frac{r - ${1}}{r}`}. The other factor, ${math`\prod \frac{r + ${1}}{r}`}, telescopes to ${math`\frac{n + ${1}}{${2}}`}.` },
     { response: '(n + 1)/n', why: t`The second product starts at ${math`r = ${2}`}, so its first denominator is ${2}: it telescopes to ${math`\frac{n + ${1}}{${2}}`}, not ${math`n + ${1}`}.` },
   ],
+  official: { source: cite('stepdb-05-ha', 'STEP I, Q7(ii) (page 7 of the STEP I hints)'), answer: '(n + 1)/(2n)', agrees: true },
 });
 
 // ---------------------------------------------------------------- lesson

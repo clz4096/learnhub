@@ -4,7 +4,10 @@
  * Matrices: "add, subtract, and multiply conformable matrices"; "calculate and use the
  * inverse of a non-singular 2 x 2 matrix") and the NST Mathematics Workbook, Section 2,
  * Matrices M1 to M3. Every product, determinant and inverse here is computed exactly and
- * checked by multiplying back.
+ * checked by multiplying back. The first gate (batch 9) is the STEP Support STEP 2 Matrices
+ * module's Q3 (an Oxford and Cambridge A level Special Paper question of 1968): commutators and
+ * the trace of 2 x 2 matrices, ending in the fact that no A, B have AB - BA = I. Its part (iii)
+ * needs induction, so it is left out.
  */
 import type { Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision, withUses } from '../cambridge';
@@ -254,6 +257,17 @@ const m3 = supervision({
   writeUp: 'proof',
 });
 
+// STEP Support STEP 2 Matrices, Q3: commutators and the trace.
+const [mA2, mB2, mC2] = [math`\mathbf{A}`, math`\mathbf{B}`, math`\mathbf{C}`];
+const s2MatTrace = supervision({
+  id: 's2mat-q3',
+  source: cite('step-s2-matrices', 'Q3 (all parts but (iii))', true),
+  title: t`No two matrices with AB minus BA equal to I`,
+  prompt: t`Let ${mA2}, ${mB2}, ${mC2} be real ${math`${2} \times ${2}`} matrices and write ${math`[\mathbf{A}, \mathbf{B}] = \mathbf{AB} - \mathbf{BA}`}, and so on. Prove that: (i) ${math`[\mathbf{A}, \mathbf{A}] = \mathbf{O}`}, where ${math`\mathbf{O}`} is the zero matrix; (ii) ${math`[[\mathbf{A}, \mathbf{B}], \mathbf{C}] + [[\mathbf{B}, \mathbf{C}], \mathbf{A}] + [[\mathbf{C}, \mathbf{A}], \mathbf{B}] = \mathbf{O}`}. At each step you should state clearly any properties of matrices which you use. The trace of a matrix ${math`\mathbf{A} = \begin{pmatrix} a_{${1}${1}} & a_{${1}${2}} \\ a_{${2}${1}} & a_{${2}${2}} \end{pmatrix}`} is defined by ${math`\operatorname{Tr}(\mathbf{A}) = a_{${1}${1}} + a_{${2}${2}}`}. Prove that: (iv) ${math`\operatorname{Tr}(\mathbf{A} + \mathbf{B}) = \operatorname{Tr}(\mathbf{A}) + \operatorname{Tr}(\mathbf{B})`}; (v) ${math`\operatorname{Tr}(\mathbf{AB}) = \operatorname{Tr}(\mathbf{BA})`}; (vi) ${math`\operatorname{Tr}(\mathbf{I}) = ${2}`}. Deduce that there are no matrices satisfying ${math`[\mathbf{A}, \mathbf{B}] = \mathbf{I}`}.`,
+  writeUp: 'proof',
+  official: cite('step-s2-matrices-solutions', 'Q3 (pages 8 and 9)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EXA = mat(2, 1, 5, 3);
@@ -273,7 +287,7 @@ export const matrices: TopicContent = {
       formal: t`An ${math`m \times n`} [[matrix|matrix]] is a rectangular array of numbers with ${math`m`} rows and ${math`n`} columns; ${math`a_{ij}`} is the entry in row ${math`i`}, column ${math`j`}. Matrices of the same size add entry by entry. If ${mA} is ${math`m \times n`} and ${mB} is ${math`n \times p`}, their product ${math`AB`} is the ${math`m \times p`} matrix with ${dmath`(AB)_{ij} = \sum_{k = ${1}}^{n} a_{ik}b_{kj}.`}`,
       plain: t`Entry ${math`(i, j)`} of ${math`AB`} is row ${math`i`} of ${mA} times column ${math`j`} of ${mB}: multiply in pairs and add. The number of columns of ${mA} must equal the number of rows of ${mB}.`,
     },
-    { kind: 'p', text: t`Order matters. With ${math`A = ${texM(NA)}`} and ${math`B = ${texM(NB)}`}: ${math`AB = ${texM(mmul(NA, NB))}`} but ${math`BA = ${texM(mmul(NB, NA))}`}. Read ${math`AB\mathbf{v}`} as "do ${mB} to ${math`\mathbf{v}`}, then ${mA}": composing two transformations, and doing things in a different order usually gives a different result.` },
+    { kind: 'p', text: t`Order matters. With ${math`A = ${texM(mat(1, 1, 0, 1))}`} and ${math`B = ${texM(mat(1, 0, 1, 1))}`}: ${math`AB = ${texM(mmul(mat(1, 1, 0, 1), mat(1, 0, 1, 1)))}`} but ${math`BA = ${texM(mmul(mat(1, 0, 1, 1), mat(1, 1, 0, 1)))}`}. Read ${math`AB\mathbf{v}`} as "do ${mB} to ${math`\mathbf{v}`}, then ${mA}": composing two transformations, and doing things in a different order usually gives a different result.` },
     checkFrom(detGen, { e: [3, 2, 4, 5] }, t`${math`ad - bc = ${3} \times ${5} - ${2} \times ${4} = ${7}`}.`),
     { kind: 'section', title: t`Determinant and inverse` },
     {
@@ -309,18 +323,9 @@ export const matrices: TopicContent = {
         { label: t`Every other point`, text: t`${math`(x, y) = x(${1}, ${0}) + y(${0}, ${1})`}, and the rotation carries this to ${math`x(\cos\theta, \sin\theta) + y(-\sin\theta, \cos\theta)`}, which is ${math`R_{\theta}\begin{pmatrix} x \\ y \end{pmatrix}`}.`, why: { q: t`Why does the rotation respect the sum?`, a: t`The point ${math`(x, y)`} is the far corner of the rectangle with sides ${math`x(${1}, ${0})`} and ${math`y(${0}, ${1})`} at the origin. Turning the whole rectangle about the origin turns its sides and its far corner together, so the far corner goes to the sum of the turned sides.` } },
       ],
     },
-    { kind: 'theorem', name: t`A rotation with a scaling`, statement: t`For ${math`s > ${0}`} and any angle ${math`\theta`}, ${math`(sI)R_{\theta} = R_{\theta}(sI) = \begin{pmatrix} s\cos\theta & -s\sin\theta \\ s\sin\theta & s\cos\theta \end{pmatrix}`}. Conversely, a matrix ${math`\begin{pmatrix} a & -c \\ c & a \end{pmatrix}`} with ${math`a`}, ${math`c`} not both ${0} has this form, with ${math`s = \sqrt{a^{${2}} + c^{${2}}}`}, ${math`\cos\theta = \frac{a}{s}`} and ${math`\sin\theta = \frac{c}{s}`}.` },
-    {
-      kind: 'steps',
-      proof: true,
-      steps: [
-        { label: t`Multiply by the scaling`, text: t`${math`(sI)X = sX = X(sI)`} for every ${math`${2} \times ${2}`} matrix ${math`X`}, so both products are ${math`sR_{\theta}`}: every entry of ${math`R_{\theta}`} times ${math`s`}.`, why: { q: t`Why is ${math`(sI)X = sX`}?`, a: t`Row ${math`i`} of ${math`sI`} has ${math`s`} in place ${math`i`} and ${0} elsewhere, so entry ${math`(i, j)`} of the product is ${math`s`} times entry ${math`(i, j)`} of ${math`X`}. The same holds on the other side, column by column.` } },
-        { label: t`Match the entries`, text: t`If ${math`\begin{pmatrix} a & -c \\ c & a \end{pmatrix} = sR_{\theta}`}, then ${math`a = s\cos\theta`} and ${math`c = s\sin\theta`}.` },
-        { label: t`Find the scale`, text: t`Square and add: ${math`a^{${2}} + c^{${2}} = s^{${2}}(\cos^{${2}}\theta + \sin^{${2}}\theta) = s^{${2}}`}, so ${math`s = \sqrt{a^{${2}} + c^{${2}}}`}, taking the positive root as ${math`s > ${0}`}. It is not ${0}, since ${math`a`} and ${math`c`} are not both ${0}.` },
-        { label: t`Find the angle`, text: t`${math`\left(\frac{a}{s}\right)^{${2}} + \left(\frac{c}{s}\right)^{${2}} = ${1}`}, so ${math`\left(\frac{a}{s}, \frac{c}{s}\right)`} is a point on the unit circle, and ${math`\theta`} is its angle: ${math`\cos\theta = \frac{a}{s}`}, ${math`\sin\theta = \frac{c}{s}`}. With these, ${math`sR_{\theta}`} has the entries ${math`a, -c, c, a`}.` },
-      ],
-    },
-    { kind: 'p', text: t`For example, ${math`${texM(mat(0, -3, 3, 0))}`} has ${math`a = ${0}`}, ${math`c = ${3}`}: ${math`s = \sqrt{${0} + ${9}} = ${3}`}, ${math`\cos\theta = ${0}`} and ${math`\sin\theta = ${1}`}, so ${math`\theta = \frac{\pi}{${2}}`}. It is a quarter turn and a tripling of lengths, in either order. Its determinant is ${math`${0} \times ${0} - (-${3}) \times ${3} = ${det(mat(0, -3, 3, 0))} = s^{${2}}`}: lengths scale by ${3}, so areas scale by ${9}.` },
+    { kind: 'theorem', name: t`A rotation with a scaling`, statement: t`For ${math`s > ${0}`} and any angle ${math`\theta`}, ${math`(sI)R_{\theta} = R_{\theta}(sI) = sR_{\theta} = \begin{pmatrix} s\cos\theta & -s\sin\theta \\ s\sin\theta & s\cos\theta \end{pmatrix}`}.` },
+    { kind: 'p', text: t`Proof: ${math`(sI)X = sX = X(sI)`} for every ${math`${2} \times ${2}`} matrix ${math`X`}, so both products are ${math`sR_{\theta}`}, every entry of ${math`R_{\theta}`} times ${math`s`}. So turning then scaling is the same as scaling then turning. ∎`, why: { q: t`Why is ${math`(sI)X = sX`}?`, a: t`Row ${math`i`} of ${math`sI`} has ${math`s`} in place ${math`i`} and ${0} elsewhere, so entry ${math`(i, j)`} of the product is ${math`s`} times entry ${math`(i, j)`} of ${math`X`}. The same holds on the other side, column by column.` } },
+    { kind: 'p', text: t`For example, a quarter turn and a tripling of lengths, in either order, is ${math`${3}R_{\pi/${2}} = ${3}${texM(mat(0, -1, 1, 0))} = ${texM(mat(0, -3, 3, 0))}`}. Notice the pattern of the entries: the two diagonal entries are equal, and the other two are negatives of each other. Its determinant is ${math`${0} \times ${0} - (-${3}) \times ${3} = ${det(mat(0, -3, 3, 0))} = s^{${2}}`}: lengths scale by ${3}, so areas scale by ${9}.` },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`If ${math`AB = ${0}`}, then ${math`A = ${0}`} or ${math`B = ${0}`}.`, counterexample: t`${math`${texM(mat(0, 1, 0, 0))}${texM(mat(0, 1, 0, 0))} = ${texM(mat(0, 0, 0, 0))}`}, yet neither factor is zero. Matrices can multiply to zero; that is why "dividing" needs a non-zero determinant.` },
     { kind: 'pitfall', claim: t`${math`(AB)^{-${1}} = A^{-${1}}B^{-${1}}`}.`, counterexample: t`It is ${math`B^{-${1}}A^{-${1}}`}: undo the last step first. ${math`(AB)(B^{-${1}}A^{-${1}}) = A(BB^{-${1}})A^{-${1}} = AA^{-${1}} = I`}, while ${math`A^{-${1}}B^{-${1}}`} generally fails, since ${math`AB \neq BA`}.` },
@@ -334,11 +339,13 @@ export const matrices: TopicContent = {
   generators: [prodGen, detGen, invGen, sysGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['matrix', 'determinant', 'inverse-matrix'],
-  cambridge: withUses([m2, m3, m1ba, m1sum], {
+  cambridge: withUses([s2MatTrace, m2, m3, m1ba, m1sum], {
+    's2mat-q3': { sections: ['Arrays that act'], note: t`Proofs about matrix products in general: the commutator and the trace` },
     'nst-m3': { sections: ['Rotations and scalings'], note: t`A matrix as a rotation and a scaling` },
     'nst-m2': { sections: ['Arrays that act', 'Determinant and inverse'], note: t`Matrices whose product is zero one way only` },
   }),
-  gate: ['nst-m3', 'nst-m2'],
+  // The STEP Support question first, then the NST Workbook's two.
+  gate: ['s2mat-q3', 'nst-m3', 'nst-m2'],
   recall: [
     { front: t`State the inverse of ${math`\begin{pmatrix} a & b \\ c & d \end{pmatrix}`}, and when it exists.`, back: t`${math`\frac{${1}}{ad - bc}\begin{pmatrix} d & -b \\ -c & a \end{pmatrix}`}, when ${math`ad - bc \neq ${0}`}.` },
     { front: t`What is entry ${math`(i, j)`} of ${math`AB`}?`, back: t`${math`\sum_{k} a_{ik}b_{kj}`}: row ${math`i`} of ${mA} times column ${math`j`} of ${mB}.` },

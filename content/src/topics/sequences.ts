@@ -3,10 +3,13 @@
  * the start (decision 11); the CST supervision exercise 1.3.1 (triangular numbers, from
  * t_0 = 0) and STEP Support Assignment 6 Q1(i) (a general term from its first cases)
  * supply the examples and problems, checked against the official 2023-24 solutions and
- * the STEP hints.
+ * the STEP hints. The second gate (batch 9) is IA Numbers and Sets Example Sheet 1, Q2: the
+ * sequence 41, 43, 47, 53, 61, ..., whose gaps grow by 2, is not all prime. Its nth term,
+ * 41 + n(n - 1), comes from adding the gaps as the arithmetic-sequence proof does, with the
+ * triangular numbers; the first 40 terms are prime, so trial and error is slow.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
-import { add, div, int, mul, q, str, upTo } from '../math';
+import { add, div, int, mul, q, str, toFloat, upTo, type Rational } from '../math';
 import { poly, signed } from '../poly';
 import { generator, type Misconception } from '../problem';
 import { computedMath as cm, dmath, listOf, math, paren, t, texOf, type Span } from '../rich';
@@ -271,6 +274,51 @@ const sw131d = supervision({
   official: cite('cst-dm-sols-2324-1', '1.3.1(d)'),
 });
 
+// IA Numbers and Sets Example Sheet 1, Q2: 41, 43, 47, 53, 61, ..., each gap 2 more than the last.
+const EULER_START = 41;
+/** The nth term: the first term plus the gaps 2, 4, ..., 2(n - 1). */
+const eulerTerm = (n: number): number => EULER_START + n * (n - 1);
+const isPrime = (m: number): boolean => {
+  if (m < 2) return false;
+  for (let d = 2; d * d <= m; d++) if (m % d === 0) return false;
+  return true;
+};
+/** Null when v is a term of the sequence that is not prime, else why not. */
+function notPrimeTerm(v: number): string | null {
+  if (!Number.isInteger(v)) return `${v} is not a whole number`;
+  let n = 1;
+  while (eulerTerm(n) < v) n++;
+  if (eulerTerm(n) !== v) return `${v} is not a term of the sequence: the terms near it are ${eulerTerm(n - 1)} and ${eulerTerm(n)}`;
+  return isPrime(v) ? `${v} is a term, but it is prime` : null;
+}
+const ns1Q2 = auto({
+  id: 'ns1-q2',
+  source: cite('ia-ns-sheet-1', 'Q2'),
+  title: t`Are they all prime?`,
+  prompt: t`Consider the sequence ${listOf([eulerTerm(1), eulerTerm(2), eulerTerm(3), eulerTerm(4), eulerTerm(5)])}, ..., where each difference is ${2} more than the previous one. Are all of these numbers prime? Settle it by giving a term of the sequence that is not prime.`,
+  answer: { kind: 'witness', count: 1, example: String(eulerTerm(EULER_START)), check: (v) => notPrimeTerm(toFloat(v[0] as Rational)) },
+  solution: [
+    t`Trying the terms one by one is slow: the first ${EULER_START - 1} of them are all prime. Find the position-to-term rule instead. The differences are ${listOf([2, 4, 6, 8])}, ..., so the step from ${math`u_k`} to ${math`u_{k + ${1}}`} is ${math`${2}k`}.`,
+    t`As in the proof for arithmetic sequences, ${math`u_n - u_{${1}}`} is the sum of the steps from position ${1} to position ${mn}: ${math`u_n = ${EULER_START} + ${2}(${1} + ${2} + \cdots + (n - ${1})) = ${EULER_START} + ${2}t_{n - ${1}}`}, and ${math`t_{n - ${1}} = \frac{(n - ${1})n}{${2}}`}. So ${math`u_n = ${EULER_START} + n(n - ${1})`}. Check: ${math`u_{${5}} = ${EULER_START} + ${20} = ${eulerTerm(5)}`}.`,
+    t`Now choose ${mn} to make a factor appear. With ${math`n = ${EULER_START}`}, ${math`u_{${EULER_START}} = ${EULER_START} + ${EULER_START} \times ${EULER_START - 1} = ${EULER_START} \times ${EULER_START} = ${eulerTerm(EULER_START)}`}, which is not prime. So the answer is no: a pattern that holds for ${EULER_START - 1} terms can still fail.`,
+  ],
+  reference: String(eulerTerm(EULER_START)),
+  verify: () => {
+    // Build the terms by adding the gaps, and compare with the rule; the first 40 are prime, the 41st is 41 squared.
+    let u = EULER_START;
+    for (let k = 1; k <= EULER_START; k++) {
+      const e = same(`u_${k} from the gaps`, u, eulerTerm(k));
+      if (e !== null) return e;
+      if (k < EULER_START && !isPrime(u)) return `u_${k} = ${u} is not prime`;
+      u += 2 * k;
+    }
+    return same('u_41', eulerTerm(EULER_START), EULER_START * EULER_START) ?? notPrimeTerm(eulerTerm(EULER_START));
+  },
+  misconceptions: [
+    { response: '51', why: t`${51} is not prime, but it is not a term either: the gaps grow, so the terms go ${listOf([eulerTerm(4), eulerTerm(5), eulerTerm(6)])}, and ${51} is skipped.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const L = { a: 5, d: 3 };
@@ -338,13 +386,14 @@ export const sequences: TopicContent = {
   generators: [nthTerm, recursive, whichTerm, whichTriangular],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sequence', 'term', 'term-to-term', 'position-to-term', 'arithmetic-sequence', 'common-difference', 'triangular-number'],
-  cambridge: withUses([sw131b, sw131c, sw131d], {
+  cambridge: withUses([sw131b, sw131c, sw131d, ns1Q2], {
     'sw-1-3-1-c': { sections: ['Triangular numbers'], note: t`An if and only if proof about triangular numbers and odd squares`, needs: ['pre.algebraic-argument', 'logic.iff'] },
     'sw-1-3-1-d': { sections: ['Triangular numbers'], note: t`Adding two triangular-number formulas and recognising a square` },
+    'ns1-q2': { sections: ['Sequences and their rules', 'Arithmetic sequences', 'Triangular numbers'], note: t`Finding the nth term when the differences grow, then choosing n to make a factor appear` },
   }),
   // Consecutive triangular numbers add to a square. 1.3.1(c) is an if and only if proof by parity, taught later,
   // so it is practice. The formula for the kth triangular number is recall, so it does not gate.
-  gate: ['sw-1-3-1-d'],
+  gate: ['sw-1-3-1-d', 'ns1-q2'],
   recall: [
     { front: t`Term-to-term rule versus position-to-term rule?`, back: t`Term-to-term gives ${math`u_{n + ${1}}`} from ${math`u_{n}`}; position-to-term gives ${math`u_{n}`} from ${mn}.` },
     { front: t`When is a sequence arithmetic?`, back: t`When ${math`u_{n + ${1}} - u_{n} = d`}, the same ${md}, for every ${mn}.` },

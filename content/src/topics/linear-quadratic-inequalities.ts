@@ -332,7 +332,7 @@ export const linearQuadraticInequalities: TopicContent = {
   minutes: 25,
   lesson: [
     { kind: 'section', title: t`The idea` },
-    { kind: 'hook', text: t`Solve ${math`x^{${2}} - ${3}x - ${4} = ${0}`} and you get two numbers, ${math`-${1}`} and ${4}. Now solve ${math`x^{${2}} - ${3}x - ${4} > ${0}`}. The answer is not two numbers at all: it is two whole stretches of the number line. Which stretches, and how do you know?` },
+    { kind: 'hook', text: t`Solve ${math`x^{${2}} - x - ${6} = ${0}`} and you get two numbers, ${math`-${2}`} and ${3}. Now solve ${math`x^{${2}} - x - ${6} > ${0}`}. The answer is not two numbers at all: it is two whole stretches of the number line. Which stretches, and how do you know?` },
     { kind: 'narrative', text: t`An inequality asks a yes or no question about every real number at once. So its answer is a set. The good news: the equation still does most of the work. Its roots are the only places where the answer can switch from yes to no.` },
     { kind: 'section', title: t`The rules for inequalities` },
     {
@@ -355,12 +355,12 @@ export const linearQuadraticInequalities: TopicContent = {
     checkFrom(linear, LIN_EX, t`${math`${2}x + ${5} < ${5}x - ${1}`} gives ${math`-${3}x < -${6}`}; dividing by ${math`-${3}`} reverses the sign, so ${math`x > ${2}`}.`),
     { kind: 'pitfall', claim: t`${math`\frac{${1}}{x} < ${1}`} means ${math`x > ${1}`} (multiply both sides by ${math`x`}).`, counterexample: t`${math`x = -${1}`} satisfies ${math`\frac{${1}}{x} = -${1} < ${1}`}, but it is not more than ${1}. Multiplying by ${math`x`} is only safe when you know ${math`x > ${0}`}; here ${math`x`} could be negative.` },
     { kind: 'section', title: t`Quadratic inequalities` },
-    { kind: 'narrative', text: t`Picture ${math`y = (x + ${1})(x - ${4})`}. It is a parabola opening upwards, crossing the axis at ${math`-${1}`} and ${4}. Between the crossings it dips below the axis; outside them it is above. That picture is the whole method, and the theorem below says why it is right without the picture.` },
+    { kind: 'narrative', text: t`Picture ${math`y = x^{${2}} - x - ${6} = (x + ${2})(x - ${3})`}. It is a parabola opening upwards, crossing the axis at ${math`-${2}`} and ${3}. Between the crossings it dips below the axis; outside them it is above. That picture is the whole method, and the theorem below says why it is right without the picture.` },
     {
       kind: 'definition',
       name: t`Critical values`,
       formal: t`The [[critical-value|critical values]] of an inequality ${math`f(x) > ${0}`} are the real ${math`x`} where ${math`f(x) = ${0}`} or ${math`f`} is undefined.`,
-      plain: t`They are the only places the sign of ${math`f`} can change. For ${math`(x + ${1})(x - ${4})`} they are ${math`-${1}`} and ${4}.`,
+      plain: t`They are the only places the sign of ${math`f`} can change. For ${math`(x + ${2})(x - ${3})`} they are ${math`-${2}`} and ${3}.`,
     },
     { kind: 'theorem', name: t`Sign of a quadratic`, statement: t`Let ${math`a > ${0}`} and ${math`\alpha < \beta`}. Then ${math`a(x - \alpha)(x - \beta) < ${0}`} exactly when ${math`\alpha < x < \beta`}, and ${math`a(x - \alpha)(x - \beta) > ${0}`} exactly when ${math`x < \alpha`} or ${math`x > \beta`}.` },
     {
@@ -373,10 +373,10 @@ export const linearQuadraticInequalities: TopicContent = {
         { label: t`Multiply by a`, text: t`Multiplying by ${math`a > ${0}`} keeps every sign, by the operations theorem. At ${math`x = \alpha`} and ${math`x = \beta`} the value is ${0}, which is neither.`, plain: t`So the three cases cover every ${math`x`}, and each gives the stated sign.` },
       ],
     },
-    { kind: 'narrative', text: t`If ${math`a < ${0}`}, multiply the inequality by ${math`-${1}`} first, reversing it, so that the ${math`x^{${2}}`} coefficient is positive. Then use the theorem. With ${math`\le`} or ${math`\ge`}, add the roots themselves, where the value is ${0}.` },
+    { kind: 'narrative', text: t`If ${math`a < ${0}`}, multiply the inequality by ${math`-${1}`} first, reversing it, so that the ${math`x^{${2}}`} coefficient is positive. Then use the theorem. With ${math`\le`} or ${math`\ge`}, add the roots themselves, where the value is ${0}. And if the quadratic has no real roots, its graph never meets the axis, so its sign never changes: it has the sign of its ${math`x^{${2}}`} coefficient for every ${math`x`}.` },
     checkFrom(quadratic, Q_EX, t`${math`(x + ${2})(x - ${5}) \le ${0}`}: the upward parabola is below the axis between the roots, and ${0} at them, so ${math`-${2} \le x \le ${5}`}.`),
     { kind: 'section', title: t`When a quadratic has no real roots` },
-    { kind: 'narrative', text: t`A question you will meet constantly: for which values of a parameter does a quadratic have no real roots? The quadratic formula says real roots exist exactly when the discriminant ${math`B^{${2}} - ${4}AC \ge ${0}`}. So "no real roots" is the inequality ${math`B^{${2}} - ${4}AC < ${0}`}, and when the coefficients involve the parameter, that is a quadratic inequality in the parameter.` },
+    { kind: 'narrative', text: t`A question you will meet constantly: for which values of a parameter does a quadratic have no real roots? For ${math`Ax^{${2}} + Bx + C = ${0}`} with ${math`A \ne ${0}`}, the quadratic formula ${math`x = \frac{-B \pm \sqrt{B^{${2}} - ${4}AC}}{${2}A}`} gives real roots exactly when the number under the root, the discriminant ${math`B^{${2}} - ${4}AC`}, is at least ${0}. So "no real roots" is the inequality ${math`B^{${2}} - ${4}AC < ${0}`}, and when the coefficients involve the parameter, that is a quadratic inequality in the parameter.` },
     { kind: 'pitfall', claim: t`From ${math`c(${25}c - ${12}) < ${0}`}, divide by ${math`c`} to get ${math`${25}c - ${12} < ${0}`}, so ${math`c < ${C1225}`}.`, counterexample: t`${math`c = -${1}`} satisfies ${math`c < ${C1225}`}, but ${math`(-${1})(-${37}) = ${37}`}, which is positive. Dividing by ${math`c`} silently assumed ${math`c > ${0}`}. Read the sign of the product instead: ${math`${0} < c < ${C1225}`}.` },
     { kind: 'takeaway', text: t`Move everything to one side, find the critical values, and read the sign of the product from a sketch; only ever multiply or divide by a number whose sign you know.` },
   ],

@@ -9,10 +9,15 @@
  * The IA gate also needs x - 1 to be a factor of x^n - 1, which the section "A power minus one"
  * teaches (2026-10-06), on 2^6 - 1 and 2^15 - 1, never the gate's number. Assignment 12 Q1(iii)
  * needs parity arguments from pre.algebraic-argument, so it is practice.
+ *
+ * The second gate (batch 9) is the NST Mathematics Workbook, A1: a quotient of powers and roots
+ * with fractional indices, which every law of the lesson is needed to simplify; its printed
+ * answer, x^(-1/10), is compared in the content checks. No STEP or Tripos question found tests
+ * indices alone: the index questions found also need factorising, parity, or prime factorisation.
  */
 import type { Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision, withUses } from '../cambridge';
-import { int, pick, q, str } from '../math';
+import { add, int, mul, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, dmath, frac, ident, math, t } from '../rich';
 import { checkFrom, quickCheck, worked, workedProof, type TopicContent } from '../topic';
@@ -252,6 +257,37 @@ const a12Q1iii = supervision({
  * 4. 1 < 127 < 2^91 - 1, so it is a proper factor and 2^91 - 1 is not prime (4). (8191 = 2^13 - 1
  *    works the same way.)
  */
+// NST Mathematics Workbook, A1: x^(-1/5) (x^(2/3))^6 / (x sqrt(x^5) fifth-root(x^2)), as one power of x.
+const A1_TOP = [q(-1, 5), mul(q(2, 3), q(6))];
+const A1_BOTTOM = [q(1), q(5, 2), q(2, 5)];
+const A1_INDEX = add(A1_TOP.reduce(add, q(0)), mul(q(-1), A1_BOTTOM.reduce(add, q(0))));
+const nstA1 = auto({
+  id: 'nst-a1',
+  source: cite('nst-workbook', 'Algebra, A1', true),
+  title: t`Powers and roots in one fraction`,
+  prompt: t`Simplify ${dmath`\frac{x^{-\frac{${1}}{${5}}} \times \left(x^{\frac{${2}}{${3}}}\right)^{${6}}}{x \times \sqrt{x^{${5}}} \times \sqrt[${5}]{x^{${2}}}}`} for ${math`x > ${0}`}, writing the result as a single power ${math`x^{k}`}. What is ${math`k`}?`,
+  answer: { kind: 'exact', expected: str(A1_INDEX) },
+  solution: [
+    t`Write every factor as a power of ${math`x`}. On top, ${math`\left(x^{\frac{${2}}{${3}}}\right)^{${6}} = x^{\frac{${2}}{${3}} \times ${6}} = x^{${4}}`}, by the power of a power law, so the top is ${math`x^{-\frac{${1}}{${5}}} \times x^{${4}} = x^{${A1_TOP.reduce(add, q(0))}}`}.`,
+    t`Underneath, a root is a fractional index: ${math`\sqrt{x^{${5}}} = x^{\frac{${5}}{${2}}}`} and ${math`\sqrt[${5}]{x^{${2}}} = x^{\frac{${2}}{${5}}}`}. So the bottom is ${math`x^{${1}} \times x^{\frac{${5}}{${2}}} \times x^{\frac{${2}}{${5}}} = x^{${A1_BOTTOM.reduce(add, q(0))}}`}, adding the indices.`,
+    t`Dividing subtracts the indices: ${math`${A1_TOP.reduce(add, q(0))} - ${A1_BOTTOM.reduce(add, q(0))} = ${A1_INDEX}`}. So the expression is ${math`x^{${A1_INDEX}}`}, and ${math`k = ${A1_INDEX}`}.`,
+  ],
+  reference: str(A1_INDEX),
+  verify: () => {
+    // Evaluate both sides at several x, as numbers, independently of the index laws used above.
+    for (const x of [0.3, 2, 7.5]) {
+      const lhs = (x ** (-1 / 5) * (x ** (2 / 3)) ** 6) / (x * Math.sqrt(x ** 5) * (x ** 2) ** (1 / 5));
+      if (Math.abs(lhs - x ** -0.1) > 1e-12 * Math.max(1, lhs)) return `at x = ${x}: ${lhs} against ${x ** -0.1}`;
+    }
+    return same('k', str(A1_INDEX), '-1/10');
+  },
+  misconceptions: [
+    { response: str(add(q(-1, 5), add(q(4), mul(q(-1), add(q(1), add(q(2, 5), q(2, 5))))))), why: t`The square root of ${math`x^{${5}}`} is ${math`x^{\frac{${5}}{${2}}}`}: a square root halves the index.` },
+    { response: str(add(add(q(-1, 5), q(2, 3)), mul(q(-1), A1_BOTTOM.reduce(add, q(0))))), why: t`The power of a power multiplies the indices: ${math`\left(x^{\frac{${2}}{${3}}}\right)^{${6}} = x^{${4}}`}, not ${math`x^{\frac{${2}}{${3}}}`}.` },
+  ],
+  official: { source: cite('nst-workbook', 'Answers, A1'), answer: str(A1_INDEX), agrees: true },
+});
+
 const ns2q12ii = supervision({
   id: 'ns2-q12-ii',
   source: cite('ia-ns-sheet-2', 'Q12, second part'),
@@ -365,14 +401,15 @@ export const indices: TopicContent = {
   generators: [combine, powerOfPower, evaluate, newBase],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['power', 'base', 'index', 'zero-index', 'negative-index', 'fractional-index'],
-  cambridge: withUses([sw123verdict, sw123witness, a12Q1iii, ns2q12ii], {
+  cambridge: withUses([sw123verdict, sw123witness, a12Q1iii, ns2q12ii, nstA1], {
+    'nst-a1': { sections: ['Powers and the three laws', 'Zero and negative indices', 'Fractional indices'], note: t`Writing every root and power as a power of x, then combining them with all three laws` },
     'ns2-q12-ii': { sections: ['Powers and the three laws', 'A power minus one'], note: t`Writing a power as a power of a power, then factorising a power minus one` },
     'a12-q1-iii': { sections: ['Powers and the three laws'], note: t`Factorising and arguing about consecutive integers`, needs: ['pre.algebraic-argument'] },
   }),
   // The IA question: the power of a power law, then the section on a power minus one, find the factor. Assignment 12
   // Q1(iii) needs parity arguments, taught later, so it is practice; the true or false verdict is dropped, since a guess
   // passes it half the time.
-  gate: ['ns2-q12-ii'],
+  gate: ['ns2-q12-ii', 'nst-a1'],
   recall: [
     { front: t`The three laws of indices.`, back: t`${math`x^{m}x^{n} = x^{m + n}`}, ${math`(x^{m})^{n} = x^{mn}`}, ${math`x^{m}/x^{n} = x^{m - n}`}.` },
     { front: t`What are ${math`x^{${0}}`} and ${math`x^{-n}`}, for ${math`x \ne ${0}`}?`, back: t`${math`x^{${0}} = ${1}`} and ${math`x^{-n} = ${1}/x^{n}`}: the only values that keep the laws true.` },

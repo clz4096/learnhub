@@ -4,7 +4,10 @@
  * curves given parametrically, dy/dx = (dy/dt)/(dx/dt). The Cambridge problems are the NST
  * Mathematics Workbook, D3(ii), (iv), D4, and D5, whose printed answers are compared in the
  * content checks. The STEP 1 specification: "Differentiate simple functions and relations
- * defined implicitly or parametrically".
+ * defined implicitly or parametrically". The first gate (batch 9) is 2011 STEP I Q1: the gradient
+ * of a/x + b/y = 1 found implicitly, then when the line ax + by = 1 touches the curve or is
+ * normal to a related one. D4 is the worked example, so the D4 and D5 write-up is practice and
+ * D5 gates alone (2026-10-07).
  */
 import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
@@ -232,6 +235,16 @@ const writeUp = supervision({
   writeUp: 'explanation',
 });
 
+// 2011 STEP I Q1: a line touching, or normal to, a curve given implicitly.
+const step11Tangent = supervision({
+  id: 'step11-q1',
+  source: cite('stepdb-11-s1', 'Q1'),
+  title: t`A line that touches a curve, and one that is normal`,
+  prompt: t`(i) Show that the gradient of the curve ${math`\frac{a}{x} + \frac{b}{y} = ${1}`}, where ${math`b \ne ${0}`}, is ${math`-\frac{ay^{${2}}}{bx^{${2}}}`}. The point ${math`(p, q)`} lies on both the straight line ${math`ax + by = ${1}`} and the curve ${math`\frac{a}{x} + \frac{b}{y} = ${1}`}, where ${math`ab \ne ${0}`}. Given that, at this point, the line and the curve have the same gradient, show that ${math`p = \pm q`}. Show further that either ${math`(a - b)^{${2}} = ${1}`} or ${math`(a + b)^{${2}} = ${1}`}. (ii) Show that if the straight line ${math`ax + by = ${1}`}, where ${math`ab \ne ${0}`}, is a normal to the curve ${math`\frac{a}{x} - \frac{b}{y} = ${1}`}, then ${math`a^{${2}} - b^{${2}} = \frac{${1}}{${2}}`}.`,
+  writeUp: 'proof',
+  official: cite('stepdb-11-sol', 'STEP I, Question 1 (pages 4 to 6)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const implicitDifferentiation: TopicContent = {
@@ -271,12 +284,14 @@ export const implicitDifferentiation: TopicContent = {
   generators: [circle, conic, parametric],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['implicit-differentiation'],
-  cambridge: withUses([d5, ax, xx, writeUp], {
+  cambridge: withUses([step11Tangent, d5, ax, xx, writeUp], {
+    'step11-q1': { sections: ['Differentiating an equation'], note: t`Differentiating a curve implicitly, then the conditions for a line to touch it or to be a normal`, needs: ['geom.straight-lines'] },
     'nst-d4-d5': { sections: ['Differentiating an equation', 'Logarithms and parameters'], note: t`Implicit and parametric differentiation, explained` },
     'nst-d3-iv': { sections: ['Logarithms and parameters'], note: t`Differentiating by taking logarithms` },
     'nst-d5': { sections: ['Logarithms and parameters'], note: t`Differentiating a curve given by a parameter` },
   }),
-  gate: ['nst-d4-d5', 'nst-d3-iv', 'nst-d5'],
+  // 2011 STEP I Q1 first. D4 is the worked example, so the D4 and D5 write-up is practice; D5 alone still gates.
+  gate: ['step11-q1', 'nst-d3-iv', 'nst-d5'],
   recall: [
     { front: t`What is ${math`\frac{d}{dx}g(y)`} when ${math`y`} depends on ${math`x`}?`, back: t`${math`g'(y)\frac{dy}{dx}`}, by the chain rule.` },
     { front: t`How do you find ${math`\frac{dy}{dx}`} for a parametric curve?`, back: t`${math`\frac{dy/dt}{dx/dt}`}, where ${math`\frac{dx}{dt} \ne ${0}`}.` },

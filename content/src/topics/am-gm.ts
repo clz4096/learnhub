@@ -253,6 +253,7 @@ const db14q5 = supervision({
   title: t`A cubic that never goes negative, and the largest ${math`xy^{${2}}`}`,
   prompt: t`(i) Let ${math`f(x) = (x + ${2}a)^{${3}} - ${27}a^{${2}}x`}, where ${math`a \ge ${0}`}. Show that ${math`f(x) \ge ${0}`} for ${math`x \ge ${0}`}. (The question asks for a sketch of ${math`f`}; an argument by AM-GM is as good.) (ii) Use part (i) to find the greatest value of ${math`xy^{${2}}`} in the region of the ${math`(x, y)`} plane given by ${math`x \ge ${0}`}, ${math`y \ge ${0}`} and ${math`x + ${2}y \le ${3}`}. For what values of ${math`x`} and ${math`y`} is this greatest value achieved?`,
   writeUp: 'proof',
+  official: cite('stepdb-14-s1-ms', 'SI 2014 Q5 (page 10)'),
 });
 
 const db14q5ii = auto({
@@ -281,6 +282,7 @@ const db14q5ii = auto({
   misconceptions: [
     { response: '27/32', why: t`That is ${math`x = ${q(3, 2)}`}, ${math`y = ${q(3, 4)}`}, splitting the ${3} evenly between ${mx} and ${math`${2}y`}. AM-GM balances the three numbers ${mx}, ${math`y`}, ${math`y`}, so the best point has ${math`x = y`}.` },
   ],
+  official: { source: cite('stepdb-14-s1-ms', 'SI 2014 Q5(ii) (page 10)'), answer: '1', agrees: true },
 });
 
 const db12q1 = supervision({
@@ -289,6 +291,7 @@ const db12q1 = supervision({
   title: t`The shortest way round a fixed point`,
   prompt: t`The line ${math`L`} has equation ${math`y = c - mx`}, with ${math`m > ${0}`} and ${math`c > ${0}`}. It passes through the point ${math`R(a, b)`} and cuts the axes at the points ${math`P(p, ${0})`} and ${math`Q(${0}, q)`}, where ${math`a`}, ${math`b`}, ${math`p`} and ${math`q`} are all positive. Find ${math`p`} and ${math`q`} in terms of ${math`a`}, ${math`b`} and ${math`m`}. As ${math`L`} varies with ${math`R`} remaining fixed, show that the minimum value of the sum of the distances of ${math`P`} and ${math`Q`} from the origin is ${math`(a^{\frac{${1}}{${2}}} + b^{\frac{${1}}{${2}}})^{${2}}`}.`,
   writeUp: 'proof',
+  official: cite('stepdb-12-s1-ms', 'Question 1 (page 1)'),
 });
 
 const ABDOM = { a: { kind: 'real' as const, min: 0.5, max: 5 }, b: { kind: 'real' as const, min: 0.5, max: 5 } };

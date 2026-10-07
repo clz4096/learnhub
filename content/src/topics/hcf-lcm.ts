@@ -4,7 +4,9 @@
  * subject content (DfE 2013), and STEP Support Foundation Assignment 10 Q2(iii). HCFs are
  * computed by Euclid's algorithm and LCMs by searching the multiples, independently of the
  * prime-power method the solutions use. The gate is IA Numbers and Sets Example Sheet 2, Q8
- * (batch 7), with HCF written for the sheet's (a, b).
+ * (batch 7), with HCF written for the sheet's (a, b). The second gate (batch 9) is CST Discrete
+ * Mathematics supervision exercise 3.1.2: the HCF of 21212121 and 12121212, which share the
+ * factor 1010101; the official 2023-24 solution, by Euclid's algorithm, gives the same 3030303.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, q, type Rational } from '../math';
@@ -235,6 +237,30 @@ const ns2q8Witness = auto({
   misconceptions: [{ response: 'a = 2, b = 2, c = 3, d = 3', why: t`Here both sides are ${6}: when ${math`a = b`} and ${math`c = d`} nothing is lost. Look for a factor shared across the pairs, between ${math`a`} and ${math`d`}.` }],
 });
 
+// CST Discrete Mathematics supervision exercise 3.1.2: HCF(21212121, 12121212).
+const BLOCK = 1010101;
+const [BIG_A, BIG_B] = [21 * BLOCK, 12 * BLOCK];
+const BIG_HCF = gcd(21, 12) * BLOCK;
+const sw312 = auto({
+  id: 'sw-3-1-2',
+  source: cite('cst-dm-sw1', 'Exercises 3, 3.1.2'),
+  title: t`The HCF of two long numbers`,
+  prompt: t`Find the highest common factor of ${BIG_A} and ${BIG_B}.`,
+  answer: { kind: 'exact', expected: String(BIG_HCF) },
+  solution: [
+    t`Factorising each number fully into primes would be slow. Look at the digits instead: each number repeats a block of two digits four times, so ${math`${BIG_A} = ${21} \times ${BLOCK}`} and ${math`${BIG_B} = ${12} \times ${BLOCK}`}.`,
+    t`Prime by prime, the power of a prime in ${math`${21} \times ${BLOCK}`} is its power in ${21} plus its power in ${BLOCK}, and likewise for ${math`${12} \times ${BLOCK}`}. The HCF takes the lower of the two powers, and the lower of ${math`\alpha + \gamma`} and ${math`\beta + \gamma`} is the lower of ${math`\alpha`} and ${math`\beta`}, plus ${math`\gamma`}. So the shared factor ${BLOCK} comes out whole: the HCF is ${math`\text{HCF}(${21}, ${12}) \times ${BLOCK}`}.`,
+    t`${math`${21} = ${3} \times ${7}`} and ${math`${12} = ${2}^{${2}} \times ${3}`}, so ${math`\text{HCF}(${21}, ${12}) = ${gcd(21, 12)}`}, and the answer is ${math`${gcd(21, 12)} \times ${BLOCK} = ${BIG_HCF}`}.`,
+  ],
+  reference: String(BIG_HCF),
+  verify: () => same('the HCF by Euclid\'s algorithm', gcd(BIG_A, BIG_B), BIG_HCF),
+  misconceptions: [
+    { response: String(BLOCK), why: t`${BLOCK} is a common factor, but not the highest: ${21} and ${12} still share the factor ${3}.` },
+    { response: String(gcd(21, 12)), why: t`That is the HCF of ${21} and ${12} only. The common block ${BLOCK} divides both numbers too, so multiply by it.` },
+  ],
+  official: { source: cite('cst-dm-sols-2324-3', '3.1.2'), answer: String(BIG_HCF), agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const hcfLcm: TopicContent = {
@@ -256,6 +282,7 @@ export const hcfLcm: TopicContent = {
     },
     { kind: 'section', title: t`From prime factorisations` },
     { kind: 'theorem', name: t`HCF and LCM from prime powers`, statement: t`If ${math`a = \prod p^{\alpha_{p}}`} and ${math`b = \prod p^{\beta_{p}}`} (over the primes ${math`p`}, with powers ${math`\ge ${0}`}), then ${math`\text{HCF}(a, b) = \prod p^{\min(\alpha_{p}, \beta_{p})}`} and ${math`\text{LCM}(a, b) = \prod p^{\max(\alpha_{p}, \beta_{p})}`}. Consequently ${math`\text{HCF}(a, b) \times \text{LCM}(a, b) = ab`}.` },
+    { kind: 'p', text: t`In plain words: ${math`\prod`} means "multiply together, one factor for each prime", and ${math`\alpha_{p}`} is the power of the prime ${math`p`} in ${math`a`} (${0} if ${math`p`} does not divide ${math`a`}). Take the hook's numbers: ${math`${12} = ${2}^{${2}} \times ${3}^{${1}}`} and ${math`${18} = ${2}^{${1}} \times ${3}^{${2}}`}. The lower powers give ${math`\text{HCF} = ${2}^{${1}} \times ${3}^{${1}} = ${6}`}, and the higher powers give ${math`\text{LCM} = ${2}^{${2}} \times ${3}^{${2}} = ${36}`}.` },
     {
       kind: 'steps',
       proof: true,
@@ -279,12 +306,14 @@ export const hcfLcm: TopicContent = {
   generators: [hcf, lcm, product],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hcf', 'lcm'],
-  cambridge: withUses([a10lcm, ns2q8, ns2q8Witness], {
+  cambridge: withUses([a10lcm, ns2q8, ns2q8Witness, sw312], {
+    'sw-3-1-2': { sections: ['Definitions', 'From prime factorisations'], note: t`Spotting a common factor in the digits, then taking the HCF prime by prime` },
     'ns2-q8': { sections: ['Definitions', 'From prime factorisations'], note: t`Testing claims about highest common factors, proving or giving a counterexample`, needs: ['proof.counterexample'] },
   }),
   // The IA question: three claims about HCFs of products, each proved or refuted. The LCM from given
-  // factorisations is a single step, and the counterexample alone is the question's first line.
-  gate: ['ns2-q8'],
+  // factorisations is a single step, and the counterexample alone is the question's first line. The CST
+  // exercise needs the prime-by-prime rule applied to numbers too long to factorise by hand.
+  gate: ['ns2-q8', 'sw-3-1-2'],
   recall: [
     { front: t`HCF and LCM from prime factorisations?`, back: t`HCF: the lower power of each prime. LCM: the higher power.` },
     { front: t`How are the HCF and LCM of ${math`a`} and ${math`b`} related?`, back: t`${math`\text{HCF}(a, b) \times \text{LCM}(a, b) = ab`}.` },

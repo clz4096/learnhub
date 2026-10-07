@@ -191,6 +191,7 @@ const db18q2 = supervision({
   title: t`Bounds on ${math`\ln \pi`}`,
   prompt: t`You may use the change of base rule ${math`\frac{\log_{a} c}{\log_{a} b} = \log_{b} c`}. (i) Given that ${math`\pi^{${2}} < ${10}`}, prove that ${dmath`\frac{${1}}{\log_{${2}} \pi} + \frac{${1}}{\log_{${5}} \pi} > ${2}.`} (ii) Given that ${math`\log_{${2}} \frac{\pi}{e} > \frac{${1}}{${5}}`} and that ${math`e^{${2}} < ${8}`}, prove that ${math`\ln \pi > \frac{${17}}{${15}}`}. (iii) Given that ${math`e^{${3}} > ${20}`}, ${math`\pi^{${2}} < ${10}`} and ${math`\log_{${10}} ${2} > \frac{${3}}{${10}}`}, prove that ${math`\ln \pi < \frac{${15}}{${13}}`}.`,
   writeUp: 'proof',
+  official: cite('stepdb-18-s1-er', 'Hints and Solutions, Question 2 (page 22)'),
 });
 
 const db00q1 = supervision({
@@ -276,7 +277,7 @@ export const expAndLn: TopicContent = {
     checkFrom(logLaws, { a: 6, b: 4, c: 3 }, t`${math`\ln ${6} + \ln ${4} = \ln ${24}`}, and ${math`\ln ${24} - \ln ${3} = \ln ${8}`}.`),
     { kind: 'pitfall', claim: t`${math`\ln(a + b) = \ln a + \ln b`}.`, counterexample: t`${math`\ln(${1} + ${1}) = \ln ${2} \approx ${Number(Math.log(2).toFixed(3))}`}, but ${math`\ln ${1} + \ln ${1} = ${0}`}. The law is for products: ${math`\ln(ab) = \ln a + \ln b`}.` },
     { kind: 'section', title: t`Other bases` },
-    { kind: 'narrative', text: t`${math`\log_{a} x`} is the power of ${math`a`} that gives ${math`x`}: ${math`\log_{${2}} ${8} = ${3}`}. It obeys the same laws, and converts to ${math`\ln`}: if ${math`y = \log_{a} x`} then ${math`a^{y} = x`}, so ${math`y\ln a = \ln x`} and ${math`\log_{a} x = \frac{\ln x}{\ln a}`}. This is the change of base rule.` },
+    { kind: 'narrative', text: t`For a base ${math`a > ${0}`} with ${math`a \ne ${1}`}, and ${math`x > ${0}`}, ${math`\log_{a} x`} is the power of ${math`a`} that gives ${math`x`}: ${math`\log_{${2}} ${8} = ${3}`}, because ${math`${2}^{${3}} = ${8}`}. It obeys the same laws, and converts to ${math`\ln`}: if ${math`y = \log_{a} x`} then ${math`a^{y} = x`}. Take ${math`\ln`} of both sides and use the power law: ${math`y\ln a = \ln x`}. Since ${math`a \ne ${1}`}, ${math`\ln a \ne ${0}`}, so you may divide by it: ${math`\log_{a} x = \frac{\ln x}{\ln a}`}. This is the change of base rule.` },
     checkFrom(lnEquation, { r: 2, d: 3 }, t`${math`x(x + ${3}) = ${10}`} gives ${math`x = ${2}`} or ${math`x = -${5}`}, and ${math`\ln(-${5})`} is undefined.`),
     { kind: 'pitfall', claim: t`Every root of the quadratic you reach solves the log equation.`, counterexample: t`${math`\ln x + \ln(x + ${3}) = \ln ${10}`} leads to ${math`x = ${2}`} or ${math`x = -${5}`}, but ${math`\ln(-${5})`} does not exist. Check each root in the original.` },
     { kind: 'takeaway', text: t`${math`\ln`} undoes ${math`e`}; logs turn products into sums and powers into multiples, and only positive numbers have logarithms.` },

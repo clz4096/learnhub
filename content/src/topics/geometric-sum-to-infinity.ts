@@ -390,7 +390,7 @@ export const geometricSumToInfinity: TopicContent = {
           text: t`If instead ${math`S_{n} \to S`}, then ${math`S_{n + ${1}} - S_{n} \to S - S = ${0}`}. But ${math`S_{n + ${1}} - S_{n} = ar^{n}`}.`,
           why: { q: t`Why does ${math`S_{n + ${1}} - S_{n}`} tend to ${0}?`, a: t`Both ${math`S_{n + ${1}}`} and ${math`S_{n}`} get within any ${math`\varepsilon`} of ${mS} for large ${mn}, so their difference is within ${math`${2}\varepsilon`} of ${0}.` },
         },
-        { label: t`So the ratio is small`, text: t`If ${math`|r| \ge ${1}`}, then ${math`|ar^{n}| = |a||r|^{n} \ge |a| > ${0}`} for every ${mn}, so ${math`ar^{n}`} does not tend to ${0}. Hence the series diverges.`, plain: t`With ${math`|r| \ge ${1}`}, every term is at least as big as the first in size, so each step moves the total by a fixed amount and it can never settle.` },
+        { label: t`Otherwise it diverges`, text: t`If ${math`|r| \ge ${1}`}, then ${math`|ar^{n}| = |a||r|^{n} \ge |a| > ${0}`} for every ${mn}, so ${math`ar^{n}`} does not tend to ${0}. Hence the series diverges.`, plain: t`With ${math`|r| \ge ${1}`}, every term is at least as big as the first in size, so each step moves the total by at least ${math`|a|`} and it can never settle.` },
       ],
     },
     { kind: 'p', text: t`Example: ${math`${3} + ${1} + \frac{${1}}{${3}} + \cdots`} has ${math`a = ${3}`} and ${math`r = ${EXR}`}, so its sum is ${math`\frac{${3}}{${1} - ${EXR}} = ${EXS}`}. Take a moment to check the first few partial sums, ${math`${3}, ${4}, ${q(13, 3)}`}: they are closing in on ${math`${EXS}`}.` },

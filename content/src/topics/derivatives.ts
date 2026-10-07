@@ -323,7 +323,6 @@ export const derivatives: TopicContent = {
       formal: t`Let ${math`f`} be a real function defined near ${math`a`}. ${math`f`} is [[differentiable|differentiable]] at ${math`a`} if the limit ${math`\displaystyle f'(a) = \lim_{h \to ${0}} \frac{f(a + h) - f(a)}{h}`} exists. The number ${math`f'(a)`} is the [[derivative|derivative]] of ${math`f`} at ${math`a`}. When ${math`y = f(x)`} we also write ${math`\frac{dy}{dx}`} for ${math`f'(x)`}.`,
       plain: t`The derivative is the gradient the chords settle on as the second point slides into the first. For ${math`f(x) = x^{${2}}`} at ${math`a = ${3}`}, the chords have gradient ${math`${6} + h`}, so ${math`f'(${3}) = ${6}`}.`,
     },
-    checkFrom(gradientAt, { c: [1, 0, -2, 4], a: 2 }, t`Differentiate first: ${math`\frac{dy}{dx} = ${cm(poly(polyDeriv([1, 0, -2, 4])))}`}, then put ${math`x = ${2}`} to get ${gradAt({ c: [1, 0, -2, 4], a: 2 })}.`),
     { kind: 'section', title: t`The rules` },
     { kind: 'narrative', text: t`Computing a limit every time would be slow. The same algebra as for ${math`x^{${2}}`} works for any whole number power, and gives a rule you can use at once.` },
     { kind: 'theorem', name: t`Power rule`, statement: t`For every integer ${math`n \ge ${1}`} and every real ${math`x`}, ${math`\frac{d}{dx} x^{n} = nx^{n - ${1}}`}.` },
@@ -339,6 +338,7 @@ export const derivatives: TopicContent = {
     { kind: 'narrative', text: t`The same rule holds for every real power ${math`n`} when ${math`x > ${0}`}; and the exponential and the logarithm have rules of their own. Their proofs come in the lessons on first principles and on the exponential series. Here we collect them and use them.` },
     { kind: 'theorem', name: t`Standard derivatives`, statement: t`For constants ${math`a`}, ${math`b`}, ${math`k`}, ${math`n`}: ${math`\frac{d}{dx} x^{n} = nx^{n - ${1}}`} (for ${math`x > ${0}`} when ${math`n`} is not a whole number); ${math`\frac{d}{dx} e^{kx} = ke^{kx}`}; ${math`\frac{d}{dx} \ln x = \frac{${1}}{x}`} for ${math`x > ${0}`}; and ${math`\frac{d}{dx}(af + bg) = af' + bg'`}.` },
     { kind: 'p', text: t`The last rule, linearity, lets you differentiate a sum one term at a time and carry constant multiples through.`, why: { q: t`Why may we split a sum?`, a: t`The chord quotient of ${math`af + bg`} is ${math`a`} times that of ${math`f`} plus ${math`b`} times that of ${math`g`}, and a limit of a sum is the sum of the limits.` } },
+    checkFrom(gradientAt, { c: [1, 0, -2, 4], a: 2 }, t`Differentiate first: ${math`\frac{dy}{dx} = ${cm(poly(polyDeriv([1, 0, -2, 4])))}`}, then put ${math`x = ${2}`} to get ${gradAt({ c: [1, 0, -2, 4], a: 2 })}.`),
     { kind: 'section', title: t`Rewrite, then differentiate` },
     { kind: 'narrative', text: t`The rules are stated for powers, so first write roots and reciprocals as powers. Take ${math`y = ${sumTex(L1)}`}.` },
     {

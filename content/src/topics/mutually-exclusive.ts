@@ -5,7 +5,11 @@
  * problems are Assignment 6, Q4(i)(b) (non-smokers, two exclusive cases), Assignment 12,
  * Q2(ii) (two sweets of the same flavour) and Assignment 12, Q3 (the raffle queue: the
  * successful queues split into exclusive cases), all checked against the hints and, for the
- * raffle, by listing every queue.
+ * raffle, by listing every queue. The second gate (batch 9) is 2016 STEP I Q12: Bob tosses one
+ * coin more than Alice. All sequences of tosses are equally likely, as in the lesson's two dice,
+ * and half of those in any case have the extra toss a head, so no multiplying along a tree is
+ * needed; with "Bob ahead", "level", and "Alice ahead" exclusive and exhaustive, the chance Bob
+ * gets more heads is always 1/2 (checked by listing every sequence of tosses for n up to 4).
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
@@ -265,6 +269,16 @@ const a12q3ii = supervision({
   official: cite('step-f12-hints', 'Assignment 12, Q3(ii)'),
 });
 
+// 2016 STEP I Q12: Alice and Bob toss coins.
+const step16Coins = supervision({
+  id: 'step16-q12',
+  source: cite('stepdb-16-s1', 'Q12'),
+  title: t`One more coin`,
+  prompt: t`(i) Alice tosses a fair coin twice and Bob tosses a fair coin three times. Calculate the probability that Bob gets more heads than Alice. (ii) Alice tosses a fair coin three times and Bob tosses a fair coin four times. Calculate the probability that Bob gets more heads than Alice. (iii) Let ${math`p_{${1}}`} be the probability that Bob gets the same number of heads as Alice, and let ${math`p_{${2}}`} be the probability that Bob gets more heads than Alice, when Alice and Bob each toss a fair coin ${math`n`} times. Alice tosses a fair coin ${math`n`} times and Bob tosses a fair coin ${math`n + ${1}`} times. Express the probability that Bob gets more heads than Alice in terms of ${math`p_{${1}}`} and ${math`p_{${2}}`}, and hence obtain a generalisation of the results of parts (i) and (ii).`,
+  writeUp: 'proof',
+  official: cite('stepdb-16-sol', 'STEP I, Question 12 (page 17)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const mutuallyExclusive: TopicContent = {
@@ -297,7 +311,7 @@ export const mutuallyExclusive: TopicContent = {
     { kind: 'p', text: t`Proof: their union is the whole sample space, which has probability ${1}, and by the addition rule its probability is the sum. For the complement, ${mA} and "not ${mA}" are exclusive and exhaustive, so ${math`P(A) + P(\text{not } A) = ${1}`}.` },
     checkFrom(orGen, { a: 7, b: 11 }, t`Exclusive totals add: ${math`\frac{${6}}{${36}} + \frac{${2}}{${36}} = \frac{${8}}{${36}} = \frac{${2}}{${9}}`}.`),
     { kind: 'section', title: t`Splitting into cases` },
-    { kind: 'narrative', text: t`The real use is in reverse: break a hard event into exclusive cases you can each find. "Two sweets of the same flavour" from a bag of ${9} mints and ${6} lemons is "two mints" or "two lemons". These cannot both happen, so ${math`P = \frac{${9}}{${15}} \cdot \frac{${8}}{${14}} + \frac{${6}}{${15}} \cdot \frac{${5}}{${14}} = ${q(17, 35)}`}. The skill is choosing cases that do not overlap and miss nothing.` },
+    { kind: 'narrative', text: t`The real use is in reverse: break a hard event into exclusive cases you can each find. Take two sweets, one after the other, from a bag of ${7} mints and ${5} lemons. "Two of the same flavour" is "two mints" or "two lemons", and these cannot both happen. For two mints: the first is a mint with probability ${math`\frac{${7}}{${12}}`}, and then ${6} of the ${11} sweets left are mints, so this case has probability ${math`\frac{${7}}{${12}} \cdot \frac{${6}}{${11}}`} (a fraction of a fraction). Likewise two lemons has ${math`\frac{${5}}{${12}} \cdot \frac{${4}}{${11}}`}. Add the exclusive cases: ${math`P = \frac{${42}}{${132}} + \frac{${20}}{${132}} = ${q(31, 66)}`}. The skill is choosing cases that do not overlap and miss nothing.` },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`From a pack of ${52} cards, ${math`P(\text{king or heart}) = \frac{${4}}{${52}} + \frac{${13}}{${52}} = \frac{${17}}{${52}}`}.`, counterexample: t`The king of hearts is in both events and was counted twice. There are ${16} cards that are kings or hearts, so the answer is ${math`\frac{${16}}{${52}}`}. Adding needs exclusive events.` },
     { kind: 'pitfall', claim: t`Mutually exclusive events are independent.`, counterexample: t`For one die, "a six" and "a one" are exclusive. If you know a six came up, a one is now impossible: ${math`P(\text{both}) = ${0}`}, not ${math`\frac{${1}}{${6}} \times \frac{${1}}{${6}}`}. Exclusive events with positive probabilities are never independent.` },
@@ -312,12 +326,13 @@ export const mutuallyExclusive: TopicContent = {
   generators: [spinGen, missGen, notGen, orGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['mutually-exclusive', 'exhaustive-events'],
-  cambridge: withUses([a12q3i, a12q3ii, a12q2], {
+  cambridge: withUses([a12q3i, a12q3ii, a12q2, step16Coins], {
+    'step16-q12': { sections: ['Either, never both', 'Splitting into cases'], note: t`Splitting into exclusive cases, and using that exhaustive cases add up to one` },
     'a12-q3-ii': { sections: ['Splitting into cases'], note: t`Adding the probabilities of disjoint successful queues`, needs: ['pre.tree-diagrams'] },
     'a12-q3-i': { sections: ['Splitting into cases'], note: t`The probability the queue never runs out of change, by its one bad case` },
   }),
   // Assignment 12 Q3(i). Part (ii) multiplies probabilities along the queue (pre.tree-diagrams, later), so it is practice.
-  gate: ['a12-q3-i'],
+  gate: ['a12-q3-i', 'step16-q12'],
   recall: [
     { front: t`When is ${math`P(A \text{ or } B) = P(A) + P(B)`}?`, back: t`When ${mA} and ${mB} are mutually exclusive: they cannot both happen.` },
     { front: t`What do the probabilities of an exhaustive set of mutually exclusive events add to?`, back: t`${1}. So ${math`P(\text{not } A) = ${1} - P(A)`}.` },

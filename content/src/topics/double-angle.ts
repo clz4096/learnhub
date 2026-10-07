@@ -368,20 +368,20 @@ export const doubleAngle: TopicContent = {
     checkFrom(doubleFromCos, { i: 1, swap: false, fn: 'sin' }, t`Find ${math`\sin A`} first, then ${math`\sin ${2}A = ${2}\sin A\cos A`}.`),
     { kind: 'section', title: t`Tripling an angle` },
     { kind: 'narrative', text: t`Write ${math`${3}A = ${2}A + A`} and expand once more. Every ${math`\sin^{${2}}`} can be turned into cosines, so ${math`\cos ${3}A`} becomes a polynomial in ${math`\cos A`}. This is the formula STEP uses to solve cubic equations.` },
-    { kind: 'theorem', name: t`Triple angle formulae`, statement: t`For every angle ${mA}: ${math`\cos ${3}A = ${4}\cos^{${3}} A - ${3}\cos A`} and ${math`\sin ${3}A = ${3}\sin A - ${4}\sin^{${3}} A`}.` },
+    { kind: 'theorem', name: t`Triple angle formula`, statement: t`For every angle ${mA}: ${math`\cos ${3}A = ${4}\cos^{${3}} A - ${3}\cos A`}.` },
     {
       kind: 'steps',
       proof: true,
       steps: [
         { label: t`Split the angle`, text: t`${math`\cos ${3}A = \cos(${2}A + A) = \cos ${2}A\cos A - \sin ${2}A\sin A`}.` },
         { label: t`Use the double angles`, text: t`With ${math`c = \cos A`}: ${math`\cos ${2}A = ${2}c^{${2}} - ${1}`} and ${math`\sin ${2}A\sin A = ${2}\sin^{${2}} A \cos A = ${2}(${1} - c^{${2}})c`}.` },
-        { label: t`Collect`, text: t`${math`\cos ${3}A = (${2}c^{${2}} - ${1})c - ${2}(${1} - c^{${2}})c = ${2}c^{${3}} - c - ${2}c + ${2}c^{${3}} = ${4}c^{${3}} - ${3}c`}. The sine formula is proved the same way from ${math`\sin(${2}A + A)`}.`, plain: t`Check at ${math`A = ${0}`}: the left side is ${1}, and ${math`${4} - ${3} = ${1}`}.` },
+        { label: t`Collect`, text: t`${math`\cos ${3}A = (${2}c^{${2}} - ${1})c - ${2}(${1} - c^{${2}})c = ${2}c^{${3}} - c - ${2}c + ${2}c^{${3}} = ${4}c^{${3}} - ${3}c`}.`, plain: t`Check at ${math`A = ${0}`}: the left side is ${1}, and ${math`${4} - ${3} = ${1}`}.` },
       ],
     },
     checkFrom(tripleAngle, { fn: 'cos', n: 1, d: 2 }, t`${math`${4} \cdot \frac{${1}}{${8}} - ${3} \cdot \frac{${1}}{${2}} = -${1}`}: indeed ${math`\cos A = \frac{${1}}{${2}}`} for ${math`A = ${60}^\circ`}, and ${math`\cos ${180}^\circ = -${1}`}.`),
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`${math`\sin ${2}A = ${2}\sin A`}.`, counterexample: t`At ${math`A = ${90}^\circ`}: ${math`\sin ${180}^\circ = ${0}`}, but ${math`${2}\sin ${90}^\circ = ${2}`}. The factor ${math`\cos A`} is what makes the difference.` },
-    { kind: 'pitfall', claim: t`${math`\tan ${2}A = \frac{${2}\tan A}{${1} - \tan^{${2}} A}`} for every ${mA} where ${math`\tan A`} is defined.`, counterexample: t`At ${math`A = ${45}^\circ`}, ${math`\tan A = ${1}`} and the denominator is ${0}: ${math`\tan ${90}^\circ`} is undefined. The formula holds only where both sides are defined.` },
+    { kind: 'pitfall', claim: t`${math`\cos ${2}A = ${2}\cos A - ${1}`}, dropping the square, the cosine twin of the slip above.`, counterexample: t`At ${math`A = ${60}^\circ`}: ${math`\cos ${120}^\circ = -\frac{${1}}{${2}}`}, but ${math`${2}\cos ${60}^\circ - ${1} = ${2} \cdot \frac{${1}}{${2}} - ${1} = ${0}`}. The cosine is squared: ${math`\cos ${2}A = ${2}\cos^{${2}} A - ${1}`}, which gives ${math`${2} \cdot \frac{${1}}{${4}} - ${1} = -\frac{${1}}{${2}}`}.` },
     { kind: 'takeaway', text: t`Put ${math`B = A`} in the compound angle formulae for the double angles, and expand ${math`${2}A + A`} for the triple ones; pick the form of ${math`\cos ${2}A`} that uses what you know.` },
   ],
   examples: [
@@ -406,7 +406,7 @@ export const doubleAngle: TopicContent = {
   recall: [
     { front: t`State the double angle formulae for sine and cosine.`, back: t`${math`\sin ${2}A = ${2}\sin A\cos A`}; ${math`\cos ${2}A = \cos^{${2}} A - \sin^{${2}} A = ${2}\cos^{${2}} A - ${1} = ${1} - ${2}\sin^{${2}} A`}.` },
     { front: t`State ${math`\tan ${2}A`}.`, back: t`${math`\frac{${2}\tan A}{${1} - \tan^{${2}} A}`}, where defined.` },
-    { front: t`State the triple angle formulae.`, back: t`${math`\cos ${3}A = ${4}\cos^{${3}} A - ${3}\cos A`}; ${math`\sin ${3}A = ${3}\sin A - ${4}\sin^{${3}} A`}.` },
+    { front: t`State ${math`\cos ${3}A`} in terms of ${math`\cos A`}.`, back: t`${math`\cos ${3}A = ${4}\cos^{${3}} A - ${3}\cos A`}, from ${math`\cos(${2}A + A)`}.` },
   ],
   proofOrder: [
     {

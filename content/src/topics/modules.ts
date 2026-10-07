@@ -10,6 +10,12 @@
  * structure is a signature mismatch (zero is required but not provided); removing add from
  * the signature compiles, and Complex.add is then unbound outside; zero = 0, 0 is a
  * signature mismatch (int * int is not included in t).
+ *
+ * Batch 9 adds a Cambridge first gate: Computer Science Tripos Part IA 2022, Paper 1, Question 2,
+ * parts (a)(i) and (ii): sets of integers as lists of intervals, a test for the standard form
+ * (the representation invariant), and an insertion that keeps it. A reference solution was run in
+ * OCaml 4.11.1 (scratch file s16-ocaml/intset.ml): on 2,000 random sets, add_interval kept the
+ * standard form and the right members.
  */
 import { cite, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, sample } from '../math';
@@ -231,6 +237,15 @@ const abstracted = supervision({
   writeUp: 'explanation',
 });
 
+// Computer Science Tripos Part IA 2022, Paper 1, Question 2 (a)(i), (ii): an invariant for interval lists.
+const cst2022Intervals = supervision({
+  id: 'cst-2022-p1-q2-a',
+  source: cite('cst-y2022p1q2', '(a)(i), (ii)'),
+  title: t`Sets as lists of intervals, kept in standard form`,
+  prompt: t`One way to represent sets of integers is as lists of intervals: ${ml`type intset = (int * int) list`}. For example, ${math`\{${1}, ${2}, ${3}, ${9}, ${10}, ${11}, ${12}\}`} can be represented as ${ml`[(${1},${3});(${9},${12})]`}, the union of the intervals ${math`[${1}..${3}]`} and ${math`[${9}..${12}]`}. Each set of integers has many different interval list representations. An interval list is in standard form if it is an ascending sequence of non-empty intervals that cannot be merged. (i) Write a function ${ml`is_standard : intset -> bool`} that tests whether an ${ml`intset`} is in standard form. (ii) Write a function ${ml`add_interval : (int * int) -> intset -> intset`} that adds an interval to an ${ml`intset`} in standard form, producing a new ${ml`intset`} in standard form.`,
+  writeUp: 'explanation',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const modules: TopicContent = {
@@ -293,11 +308,13 @@ export const modules: TopicContent = {
   generators: [stackTrace, sealing, fraction],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['module', 'signature', 'abstract-type', 'representation-invariant'],
-  cambridge: withUses([stackOption, fractionReduced, abstracted], {
+  cambridge: withUses([stackOption, fractionReduced, abstracted, cst2022Intervals], {
+    'cst-2022-p1-q2-a': { sections: ['Invariants the module keeps'], note: t`A representation invariant: testing it, and an operation that keeps it` },
     'cs3110-5-fraction-reduced': { sections: ['Invariants the module keeps'], note: t`A module that keeps fractions in lowest terms` },
     'cs3110-5-stack-option': { sections: ['Hiding the representation'], note: t`A stack module behind an abstract signature` },
   }),
-  gate: ['cs3110-5-fraction-reduced', 'cs3110-5-stack-option'],
+  // The Tripos question first, then CS3110's two.
+  gate: ['cst-2022-p1-q2-a', 'cs3110-5-fraction-reduced', 'cs3110-5-stack-option'],
   recall: [
     { front: t`What is a signature?`, back: t`A module type: declarations ${ml`type t`} and ${ml`val x :`} ${math`\tau`} that a structure must provide, and the only names visible outside a module sealed by it.` },
     { front: t`What is an abstract type?`, back: t`A type declared in a signature without its definition: outside, its values can be handled only by the module's operations.` },

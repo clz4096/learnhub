@@ -350,7 +350,7 @@ export const radiansAndGraphs: TopicContent = {
     checkFrom(allSolutions, { fn: 'sin', ref: 30, neg: true }, t`One solution is ${math`-\frac{\pi}{${6}}`}; the other family starts at ${math`\pi + \frac{\pi}{${6}}`}. In ${math`[${0}, ${2}\pi)`} that gives ${math`\frac{${7}\pi}{${6}}`} and ${math`\frac{${11}\pi}{${6}}`}.`),
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`The calculator's ${math`\sin^{-${1}}`} gives every solution of ${math`\sin x = c`}.`, counterexample: t`${math`\sin^{-${1}}\left(\frac{${1}}{${2}}\right) = \frac{\pi}{${6}}`}, but ${math`\frac{${5}\pi}{${6}}`} also has sine ${math`\frac{${1}}{${2}}`}, and so does every angle ${math`${2}\pi`} away from either.` },
-    { kind: 'pitfall', claim: t`An arc of angle ${math`${60}`} in a circle of radius ${3} has length ${math`${3} \times ${60} = ${180}`}.`, counterexample: t`The formula ${math`r\theta`} needs ${mth} in radians: ${math`${60}^\circ = \frac{\pi}{${3}}`}, so the arc is ${math`\pi`}, about ${Number(Math.PI.toFixed(2))}. In degrees the arc is ${math`\frac{\theta}{${360}} \times ${2}\pi r`}.` },
+    { kind: 'pitfall', claim: t`An arc of angle ${math`${72}`} in a circle of radius ${5} has length ${math`${5} \times ${72} = ${360}`}.`, counterexample: t`The formula ${math`r\theta`} needs ${mth} in radians: ${math`${72}^\circ = ${72} \times \frac{\pi}{${180}} = \frac{${2}\pi}{${5}}`}, so the arc is ${math`${5} \times \frac{${2}\pi}{${5}} = ${2}\pi`}, about ${Number((2 * Math.PI).toFixed(2))}. In degrees the arc is ${math`\frac{\theta}{${360}} \times ${2}\pi r`}.` },
     { kind: 'takeaway', text: t`A radian is the angle whose arc equals the radius; sine and cosine are the coordinates of a point turning round the unit circle, so they repeat every ${math`${2}\pi`} and every value is taken twice per turn.` },
   ],
   examples: [
@@ -365,7 +365,8 @@ export const radiansAndGraphs: TopicContent = {
     'nst-fc4': { sections: ['Sine and cosine for every angle'], note: t`Sketching two trigonometric graphs and relating them` },
     'a22-q3-iv': { sections: ['Every angle with a given sine'], note: t`Every angle with sine zero, then a square root` },
   }),
-  gate: ['nst-fc4', 'a22-q3-iv'],
+  // The STEP Support problem first (batch 9), then the NST Workbook's sketch.
+  gate: ['a22-q3-iv', 'nst-fc4'],
   recall: [
     { front: t`Define a radian.`, back: t`The angle at the centre of a circle whose arc equals the radius; ${math`\pi`} radians is ${math`${180}^\circ`}.` },
     { front: t`State the arc length and sector area for an angle ${mth} in radians.`, back: t`Arc ${math`r\theta`}; area ${math`\frac{${1}}{${2}}r^{${2}}\theta`}.` },

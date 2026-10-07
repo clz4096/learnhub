@@ -10,6 +10,12 @@
  *   inorder (ftree 1 3) = [4; 2; 5; 1; 6; 3; 7]
  *   for t = Br (1, Br (2, Br (4, Lf, Lf), Br (5, Lf, Lf)), Br (3, Lf, Lf)):
  *   preorder t = [1; 2; 4; 5; 3]; (count t, depth t, leaves t) = (5, 3, 6)
+ *
+ * The first gate (batch 9) is Computer Science Tripos Part IA 2013, Paper 1, Question 1, parts
+ * (b) and (c), restated from Standard ML in OCaml: all trees with a given root built from two
+ * lists of subtrees, then all trees with a given inorder list. A reference solution was run in
+ * the OCaml 4.11.1 toplevel (scratch file s16-ocaml/trees.ml): for [1; 2; ...; n] it returns
+ * 1, 1, 2, 5, 14, 42, 132 trees for n = 0 to 6, every one with that inorder list.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { code, codeBlock, oc, showList } from '../ocaml-code';
@@ -337,6 +343,15 @@ const focs76 = supervision({
   writeUp: 'proof',
 });
 
+// Computer Science Tripos Part IA 2013, Paper 1, Question 1 (b) and (c), in OCaml.
+const cst2013Trees = supervision({
+  id: 'cst-2013-p1-q1-bc',
+  source: cite('cst-y2013p1q1', '(b), (c)', true),
+  title: t`Every tree with a given inorder`,
+  prompt: t`Use the type ${code`type 'a tree = Lf | Br of 'a * 'a tree * 'a tree`}. (b) Write an OCaml function that takes a label and two lists of trees, and returns all trees that consist of a branch with the given label, with the left subtree taken from the first list of trees and the right subtree taken from the second. (c) Write an OCaml function that, given a list of distinct values, returns a list of all possible binary trees whose labels, listed in inorder, match that list. For example, given ${code`${oc(showList([1, 2, 3]))}`} your function should return, in any order, the ${5} trees with inorder ${code`${oc(showList([1, 2, 3]))}`}. Explain your code, and keep it free of needless complexity.`,
+  writeUp: 'explanation',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EX = br(1, br(2, br(4, null, null), br(5, null, null)), br(3, null, null));
@@ -414,12 +429,14 @@ export const fpTrees: TopicContent = {
   generators: [measure, traversal, bound],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binary-tree', 'tree-traversal'],
-  cambridge: withUses([ftreeInorder, depthEx, shapeEx, focs62, focs76], {
+  cambridge: withUses([ftreeInorder, depthEx, shapeEx, focs62, focs76, cst2013Trees], {
+    'cst-2013-p1-q1-bc': { sections: ['A type that contains itself', 'Three ways to list the labels'], note: t`Building all the trees with a given root, then every tree with a given inorder list` },
     'focs-7-6': { sections: ['Three ways to list the labels'], note: t`The quadratic cost of traversals with append`, needs: ['fp.complexity'] },
     'cs3110-ex3-shape': { sections: ['A type that contains itself', 'Measuring a tree'], note: t`Comparing the shapes of two trees with one match` },
   }),
-  // Exercise 7.6 needs O-notation, taught later; it gates fp.binary-search-trees instead.
-  gate: ['cs3110-ex3-shape'],
+  // The Tripos question first, then CS3110's shapes. Exercise 7.6 needs O-notation, taught later; it gates
+  // fp.binary-search-trees instead.
+  gate: ['cst-2013-p1-q1-bc', 'cs3110-ex3-shape'],
   recall: [
     { front: t`State the relation between ${code`leaves`} and ${code`count`}.`, back: t`${math`\mathrm{leaves}(t) = \mathrm{count}(t) + ${1}`} for every tree, by induction on the tree.` },
     { front: t`How many labels can a tree of depth ${math`d`} hold?`, back: t`At most ${math`${2}^{d} - ${1}`}, reached by the complete tree.` },

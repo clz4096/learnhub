@@ -236,7 +236,7 @@ export const lazySequences: TopicContent = {
     { kind: 'pitfall', claim: t`${ml`filterq p s`} always returns.`, counterexample: t`If no element of the infinite ${ml`s`} satisfies ${ml`p`}, as for ${ml`filterq (fun x -> x < ${0}) (from ${1})`}, it forces the tail forever.` },
     { kind: 'section', title: t`An application: square roots` },
     { kind: 'narrative', text: t`FoCS builds Newton-Raphson as a pipeline. ${ml`iterates (next a) x${0}`} is the infinite sequence of approximations ${math`x_{k + ${1}} = (a/x_{k} + x_{k})/${2}`} to ${math`\sqrt{a}`}, and ${ml`within eps`} walks along it until two neighbours differ by at most ${ml`eps`}. Producer and consumer are written separately; laziness joins them.` },
-    checkFrom(interGen, { a: 0, b: 1, r: 2, j: 5 }, t`${0}, ${1}, ${1}, ${2}, ${2}, ${4}: position ${5} is ${4}.`),
+    checkFrom(interGen, { a: 5, b: 1, r: 3, j: 5 }, t`${5}, ${1}, ${6}, ${3}, ${7}, ${9}: position ${5} is ${9}.`),
     { kind: 'takeaway', text: t`A lazy sequence stores its head and a function for its tail; forcing computes only what is demanded, so infinite sequences become ordinary values.` },
   ],
   examples: [

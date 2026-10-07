@@ -284,6 +284,7 @@ export const smallestCounterexample: TopicContent = {
       plain: t`Name the first place the statement goes wrong. It sits right after a place where the statement is right. Show that being right at ${math`k - ${1}`} forces it to be right at ${mk}, and the "first failure" was never a failure.`,
     },
     { kind: 'section', title: t`A first example` },
+    { kind: 'p', text: t`Notation: ${math`a \mid b`} (read "${math`a`} divides ${math`b`}") means ${math`b = ac`} for some integer ${math`c`}, and ${math`a \nmid b`} means it does not. So ${math`${4} \mid ${24}`}, since ${math`${24} = ${4} \times ${6}`}, but ${math`${4} \nmid ${10}`}.` },
     { kind: 'theorem', statement: t`For every ${math`n \in \mathbb{N}`}, ${math`${4} \mid ${5}^{n} - ${1}`}.` },
     {
       kind: 'steps',
@@ -303,7 +304,7 @@ export const smallestCounterexample: TopicContent = {
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`Step (${1}) can be skipped: the contradiction in step (${4}) is the real proof.`, counterexample: t`Try the false claim "${math`n^{${2}} + n + ${1}`} is even". If ${mk} were the smallest failure, the claim would hold at ${math`k - ${1}`}, and ${math`k^{${2}} + k + ${1} = \left((k - ${1})^{${2}} + (k - ${1}) + ${1}\right) + ${2}k`} would be even: step (${4}) goes through. Yet ${math`n^{${2}} + n = n(n + ${1})`} is even, so the claim fails for every ${mn}. Step (${1}) catches it: the claim already fails at ${math`n = ${1}`}, so there is no ${math`k - ${1}`} to lean on.` },
     { kind: 'pitfall', claim: t`Any set of numbers with a counterexample has a smallest counterexample.`, counterexample: t`Among the positive rationals, the claim "${math`x \ge ${1}`}" fails at ${math`\frac{${1}}{${2}}, \frac{${1}}{${3}}, \frac{${1}}{${4}}, \ldots`}, with no smallest failure. The method needs the natural numbers, or any set where every non-empty subset has a least element.` },
-    { kind: 'pitfall', claim: t`The smallest counterexample to "${math`n^{${2}} + ${17}n + ${17}`} is prime" is ${math`n = ${17}`}, where ${17} visibly divides it.`, counterexample: t`Test from the start: ${math`n = ${1}`} gives ${math`${35} = ${5} \times ${7}`}. "Smallest" means checking in order.` },
+    { kind: 'pitfall', claim: t`The smallest counterexample to "${math`n^{${2}} + ${19}n + ${19}`} is prime" is ${math`n = ${19}`}, where ${19} visibly divides it.`, counterexample: t`Test from the start: ${math`n = ${1}`} gives ${math`${39} = ${3} \times ${13}`}. "Smallest" means checking in order.` },
     { kind: 'takeaway', text: t`If something failed, it would fail first at some ${math`k > ${1}`} with ${math`k - ${1}`} fine; show that is impossible.` },
   ],
   examples: [

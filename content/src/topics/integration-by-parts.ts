@@ -249,8 +249,8 @@ export const integrationByParts: TopicContent = {
   minutes: 25,
   lesson: [
     { kind: 'section', title: t`Undoing the product rule` },
-    { kind: 'hook', text: t`You can integrate ${math`x`} and you can integrate ${math`e^{x}`}. But ${math`\int xe^{x}\,dx`}? There is no rule for the integral of a product. Still, ${math`\frac{d}{dx}(xe^{x}) = e^{x} + xe^{x}`} contains the very thing we want. Can we turn that around?` },
-    { kind: 'narrative', text: t`Rearranged, that derivative says ${math`xe^{x} = \frac{d}{dx}(xe^{x}) - e^{x}`}. Integrate both sides: ${math`\int xe^{x}\,dx = xe^{x} - e^{x} + c`}. The trick works whenever the integrand is one factor times the derivative of another.` },
+    { kind: 'hook', text: t`You can integrate ${math`x`} and you can integrate ${math`\sinh x`}. But ${math`\int x\sinh x\,dx`}? There is no rule for the integral of a product. Still, the product rule gives ${math`\frac{d}{dx}(x\cosh x) = \cosh x + x\sinh x`}, which contains the very thing we want. Can we turn that around?` },
+    { kind: 'narrative', text: t`Rearranged, that derivative says ${math`x\sinh x = \frac{d}{dx}(x\cosh x) - \cosh x`}. Integrate both sides, using ${math`\int \cosh x\,dx = \sinh x`}: ${math`\int x\sinh x\,dx = x\cosh x - \sinh x + c`}. (Check: ${math`\frac{d}{dx}(x\cosh x - \sinh x) = \cosh x + x\sinh x - \cosh x = x\sinh x`}.) The trick works whenever the integrand is one factor times the derivative of another.` },
     { kind: 'p', text: t`This is [[integration-by-parts|integration by parts]].` },
     { kind: 'theorem', name: t`Integration by parts`, statement: t`Let ${math`u`} and ${math`v`} have continuous derivatives on ${math`[a, b]`}. Then ${math`\int_{a}^{b} u(x)v'(x)\,dx = \left[u(x)v(x)\right]_{a}^{b} - \int_{a}^{b} u'(x)v(x)\,dx`}. Without limits, ${math`\int uv'\,dx = uv - \int u'v\,dx`}.` },
     {
@@ -267,9 +267,9 @@ export const integrationByParts: TopicContent = {
     {
       kind: 'steps',
       steps: [
-        { label: t`The integral of ln x`, text: t`Write ${math`\ln x = \ln x \cdot ${1}`}: ${math`u = \ln x`}, ${math`v' = ${1}`}, so ${math`u' = \frac{${1}}{x}`} and ${math`v = x`}.` },
-        { label: t`Apply the rule`, text: t`${math`\int \ln x\,dx = x\ln x - \int x \cdot \frac{${1}}{x}\,dx = x\ln x - x + c`}.`, plain: t`The awkward ${math`\ln x`} was traded for ${math`\frac{${1}}{x}`}, which cancels the ${math`x`}.` },
-        { label: t`Check`, text: t`${math`\frac{d}{dx}(x\ln x - x) = \ln x + x \cdot \frac{${1}}{x} - ${1} = \ln x`}.` },
+        { label: t`A power times ln x`, text: t`For ${math`\int x^{${3}}\ln x\,dx`} (with ${math`x > ${0}`}): take ${math`u = \ln x`} and ${math`v' = x^{${3}}`}, so ${math`u' = \frac{${1}}{x}`} and ${math`v = \frac{x^{${4}}}{${4}}`}.`, plain: t`${math`\ln x`} is the factor that gets simpler when differentiated; ${math`x^{${3}}`} is easy to integrate.` },
+        { label: t`Apply the rule`, text: t`${math`\int x^{${3}}\ln x\,dx = \frac{x^{${4}}}{${4}}\ln x - \int \frac{x^{${4}}}{${4}} \cdot \frac{${1}}{x}\,dx = \frac{x^{${4}}\ln x}{${4}} - \int \frac{x^{${3}}}{${4}}\,dx = \frac{x^{${4}}\ln x}{${4}} - \frac{x^{${4}}}{${16}} + c`}.`, plain: t`The awkward ${math`\ln x`} was traded for ${math`\frac{${1}}{x}`}, which cancels one power of ${math`x`}.` },
+        { label: t`Check`, text: t`By the product rule, ${math`\frac{d}{dx}\left(\frac{x^{${4}}\ln x}{${4}} - \frac{x^{${4}}}{${16}}\right) = x^{${3}}\ln x + \frac{x^{${4}}}{${4}} \cdot \frac{${1}}{x} - \frac{x^{${3}}}{${4}} = x^{${3}}\ln x`}.` },
       ],
     },
     { kind: 'narrative', text: t`Sometimes two rounds return the integral you started with. Take ${math`I = \int e^{x}\sin x\,dx`}, and integrate the ${math`e^{x}`} factor both times.` },
@@ -284,7 +284,7 @@ export const integrationByParts: TopicContent = {
     },
     { kind: 'narrative', text: t`And when the integrand depends on a whole number ${math`n`}, parts often links ${math`I_{n}`} to ${math`I_{n - ${1}}`}: a recurrence.` },
     checkFrom(xExp, { k: 2 }, t`${math`\left[\frac{xe^{${2}x}}{${2}}\right]_{${0}}^{${1}} - \left[\frac{e^{${2}x}}{${4}}\right]_{${0}}^{${1}} = \frac{e^{${2}}}{${2}} - \frac{e^{${2}} - ${1}}{${4}}`}.`),
-    { kind: 'pitfall', claim: t`Either factor can be ${math`u`}; it makes no difference.`, counterexample: t`For ${math`\int xe^{x}\,dx`} with ${math`u = e^{x}`} and ${math`v' = x`}: ${math`\int xe^{x}\,dx = \frac{x^{${2}}}{${2}}e^{x} - \int \frac{x^{${2}}}{${2}}e^{x}\,dx`}, a harder integral than before. The power of ${math`x`} must be differentiated away.` },
+    { kind: 'pitfall', claim: t`Either factor can be ${math`u`}; it makes no difference.`, counterexample: t`For ${math`\int x\sinh x\,dx`} with ${math`u = \sinh x`} and ${math`v' = x`}: ${math`\int x\sinh x\,dx = \frac{x^{${2}}}{${2}}\sinh x - \int \frac{x^{${2}}}{${2}}\cosh x\,dx`}, a harder integral than before. The power of ${math`x`} must be differentiated away.` },
     { kind: 'pitfall', claim: t`${math`\int uv' = uv + \int u'v`}.`, counterexample: t`With ${math`u = x`}, ${math`v' = ${1}`} on ${math`[${0}, ${1}]`}: ${math`\int_{${0}}^{${1}} x\,dx = \frac{${1}}{${2}}`}, while ${math`\left[x^{${2}}\right]_{${0}}^{${1}} + \int_{${0}}^{${1}} x\,dx = \frac{${3}}{${2}}`}. The sign is minus.` },
     { kind: 'takeaway', text: t`${math`\int uv' = uv - \int u'v`}: choose ${math`u`} to get simpler when differentiated, and check by differentiating your answer.` },
   ],
@@ -308,7 +308,7 @@ export const integrationByParts: TopicContent = {
   gate: ['a24-q1-ii-a', 'a24-q1-ii-c', 'nst-i2-i'],
   recall: [
     { front: t`State integration by parts.`, back: t`${math`\int_{a}^{b} uv'\,dx = \left[uv\right]_{a}^{b} - \int_{a}^{b} u'v\,dx`}.` },
-    { front: t`What is ${math`\int \ln x\,dx`}?`, back: t`${math`x\ln x - x + c`}, by parts with ${math`u = \ln x`}, ${math`v' = ${1}`}.` },
+    { front: t`In integration by parts, which factor should be ${math`u`}?`, back: t`The one that gets simpler when differentiated, such as a power of ${math`x`} or ${math`\ln x`}; the other, ${math`v'`}, must be one you can integrate.` },
   ],
   proofOrder: [{
     title: t`Integration by parts`,

@@ -6,13 +6,19 @@
  * Faculty schedule's "Axioms (countable case)". The sheet has no official solutions. Batch 7 adds
  * Grinstead and Snell, Section 5.1, Exercise 12 (the Poisson probabilities sum to 1), as practice:
  * it leans on the exponential series. Their Exercise 3 (no uniform distribution on a countable set)
- * is this lesson's pitfall, so it is not set.
+ * is this lesson's pitfall, so it is not set. The second gate (batch 9) is 1994 STEP II Q12, the
+ * game of craps: the probability of winning on throw n is given, and countable additivity adds
+ * the infinitely many disjoint ways to win. The paper gives the formula conditional on a second
+ * throw and asks for it to be derived, which needs conditioning and independence; here it is
+ * given without the condition (multiplied by 2/3, the chance of a second throw), as in the
+ * solution, and the sum is checked against a first-step argument and by listing every sequence
+ * of up to three throws.
  */
 import type { Rng } from '@learnhub/mastery';
 import { auto, cite, same, supervision, withUses } from '../cambridge';
-import { int, mul, pick, q, sample, str, sub, type Rational } from '../math';
+import { add, div, int, mul, pick, q, sample, str, sub, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
-import { join, math, t, type Rich, type Span } from '../rich';
+import { dmath, join, math, t, type Rich, type Span } from '../rich';
 import { checkFrom, worked, workedProof, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const [mO, mP] = [math`\Omega`, math`\mathbb{P}`];
@@ -257,6 +263,66 @@ const gs5112 = supervision({
   writeUp: 'proof',
 });
 
+// 1994 STEP II Q12: craps. Two fair dice; 7 or 11 wins at once, 2, 3, or 12 loses; any other first
+// sum is the point, and she throws again until the point (win) or a 7 (loss).
+const DICE_SUMS = Array.from({ length: 36 }, (_, i) => Math.floor(i / 6) + (i % 6) + 2);
+const sumChance = (k: number): Rational => q(DICE_SUMS.filter((x) => x === k).length, 36);
+const POINTS = [4, 5, 6, 8, 9, 10] as const;
+const FIRST_WIN = add(sumChance(7), sumChance(11));
+/** The coefficient and ratio of each geometric term of P(win on throw n), n >= 2: one per pair of points with equal chance. */
+const CRAPS_TERMS = [4, 5, 6].map((k) => {
+  const p = sumChance(k);
+  return { coeff: mul(q(2), mul(p, p)), ratio: sub(q(1), add(p, sumChance(7))) };
+});
+const CRAPS_LATER = CRAPS_TERMS.map(({ coeff, ratio }) => div(coeff, sub(q(1), ratio))).reduce(add, q(0));
+const CRAPS_WIN = add(FIRST_WIN, CRAPS_LATER);
+/** P(win on throw n) for n = 2 or 3, by listing every sequence of n throws. */
+function crapsByListing(n: number): Rational {
+  let wins = 0;
+  const total = 36 ** n;
+  for (let code = 0; code < total; code++) {
+    let x = code;
+    const sums: number[] = [];
+    for (let i = 0; i < n; i++) { sums.push(DICE_SUMS[x % 36] as number); x = Math.floor(x / 36); }
+    const [first, ...rest] = sums as [number, ...number[]];
+    if (!(POINTS as readonly number[]).includes(first)) continue;
+    const last = rest[rest.length - 1] as number;
+    const middleGoesOn = rest.slice(0, -1).every((s) => s !== first && s !== 7);
+    if (middleGoesOn && last === first) wins++;
+  }
+  return q(wins, total);
+}
+const crapsTermAt = (n: number): Rational => CRAPS_TERMS.map(({ coeff, ratio }) => mul(coeff, pow(ratio, n - 2))).reduce(add, q(0));
+const mn = math`n`;
+const CRAPS_ANSWERS = [str(FIRST_WIN), str(CRAPS_WIN)];
+const step94Craps = auto({
+  id: 'step94-q12-craps',
+  source: cite('stepdb-94-s2', 'Q12', true),
+  title: t`Craps: adding infinitely many ways to win`,
+  prompt: t`Calamity Jane plays craps. She rolls two fair dice. If, on the first throw, the sum of the dice is ${2}, ${3}, or ${12} she loses, while if it is ${7} or ${11} she wins. Otherwise she continues to roll the dice until either the first sum is repeated, in which case she wins, or the sum is ${7}, in which case she loses. (a) Find the probability that she wins on the first throw. (b) For ${math`n \ge ${2}`}, the probability that she wins on the ${mn}th throw is ${dmath`${(CRAPS_TERMS[0] as { coeff: Rational }).coeff}\left(${(CRAPS_TERMS[0] as { ratio: Rational }).ratio}\right)^{n - ${2}} + ${(CRAPS_TERMS[1] as { coeff: Rational }).coeff}\left(${(CRAPS_TERMS[1] as { ratio: Rational }).ratio}\right)^{n - ${2}} + ${(CRAPS_TERMS[2] as { coeff: Rational }).coeff}\left(${(CRAPS_TERMS[2] as { ratio: Rational }).ratio}\right)^{n - ${2}}.`} Find the probability that she wins.`,
+  answer: { kind: 'table', cell: 'exact', columns: [t`part`, t`probability`], rows: [[t`(a) she wins on the first throw`, null], [t`(b) she wins`, null]], expected: CRAPS_ANSWERS },
+  solution: [
+    t`(a) The ${36} ordered pairs of faces are equally likely. A sum of ${7} comes from ${6} of them and ${11} from ${2}, and these cannot happen together, so the probability is ${math`\frac{${8}}{${36}} = ${FIRST_WIN}`}.`,
+    t`(b) Let ${math`W_{n}`} be the event that she wins on the ${mn}th throw. She wins on exactly one throw if she wins at all, so ${math`W_{${1}}, W_{${2}}, W_{${3}}, \ldots`} are pairwise disjoint and their union is the event that she wins. By countable additivity, ${math`\mathbb{P}(\text{she wins}) = \sum_{n \ge ${1}} \mathbb{P}(W_{n})`}: one event at a time would never reach all of them.`,
+    t`Each part of the formula is a geometric series in ${math`n - ${2}`}, with ratio less than ${1}: ${math`\sum_{n \ge ${2}} c\,r^{n - ${2}} = \frac{c}{${1} - r}`}. The three sums are ${math`${(CRAPS_TERMS[0] as { coeff: Rational }).coeff} \times ${div(q(1), sub(q(1), (CRAPS_TERMS[0] as { ratio: Rational }).ratio))} = ${div((CRAPS_TERMS[0] as { coeff: Rational }).coeff, sub(q(1), (CRAPS_TERMS[0] as { ratio: Rational }).ratio))}`}, ${math`${div((CRAPS_TERMS[1] as { coeff: Rational }).coeff, sub(q(1), (CRAPS_TERMS[1] as { ratio: Rational }).ratio))}`}, and ${math`${div((CRAPS_TERMS[2] as { coeff: Rational }).coeff, sub(q(1), (CRAPS_TERMS[2] as { ratio: Rational }).ratio))}`}, which add to ${CRAPS_LATER}.`,
+    t`Adding ${math`\mathbb{P}(W_{${1}}) = ${FIRST_WIN}`}: the probability that she wins is ${math`${FIRST_WIN} + ${CRAPS_LATER} = ${CRAPS_WIN}`}, a little under a half.`,
+  ],
+  reference: CRAPS_ANSWERS,
+  verify: () => {
+    for (const n of [2, 3]) {
+      const e = same(`P(win on throw ${n}) by listing`, str(crapsByListing(n)), str(crapsTermAt(n)));
+      if (e !== null) return e;
+    }
+    // A second method for the total: once the point k is set, she wins with chance P(k) / (P(k) + P(7)).
+    const firstStep = POINTS.map((k) => mul(sumChance(k), div(sumChance(k), add(sumChance(k), sumChance(7))))).reduce(add, FIRST_WIN);
+    return same('P(win) by first-step analysis', str(firstStep), str(CRAPS_WIN));
+  },
+  misconceptions: [
+    { response: [str(FIRST_WIN), str(CRAPS_LATER)], why: t`That adds the wins from the second throw on, but leaves out ${math`W_{${1}}`}: winning at once is one of the disjoint ways to win.` },
+    { response: [str(sumChance(7)), str(add(sumChance(7), CRAPS_LATER))], why: t`A sum of ${11} also wins on the first throw: ${2} more of the ${36} pairs.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
@@ -323,10 +389,11 @@ export const axioms: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['probability-measure', 'countable-additivity'],
   claims,
-  cambridge: withUses([disjointHalves, q4c, countableCase, gs5112], {
+  cambridge: withUses([disjointHalves, q4c, countableCase, gs5112, step94Craps], {
     'ia-q4-c': { sections: ['The three axioms', 'First consequences'], note: t`Finite additivity from countable additivity` },
+    'step94-q12-craps': { sections: ['The three axioms', 'Countable sample spaces'], note: t`Adding the probabilities of infinitely many disjoint ways to win` },
   }),
-  gate: ['ia-q4-c'],
+  gate: ['ia-q4-c', 'step94-q12-craps'],
   recall: [
     { front: t`The three axioms of a probability measure.`, back: t`${math`\mathbb{P}(A) \ge ${0}`}; ${math`\mathbb{P}(\Omega) = ${1}`}; for pairwise disjoint ${math`A_{${1}}, A_{${2}}, \ldots`}, ${math`\mathbb{P}\left(\bigcup A_{n}\right) = \sum \mathbb{P}(A_{n})`}.` },
     { front: t`A probability measure on a countable ${mO}, in terms of point masses.`, back: t`${math`\mathbb{P}(A) = \sum_{\omega \in A} p_{\omega}`}, with ${math`p_{\omega} \ge ${0}`} and ${math`\sum_{\omega} p_{\omega} = ${1}`}.` },

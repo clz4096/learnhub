@@ -3,7 +3,11 @@
  * sec^2 = 1 + tan^2 and cosec^2 = 1 + cot^2. Follows STEP Support Foundation Assignment 24
  * Q2(ii) (cosec pi/4 and cosec 5pi/6, with the official answers from the hints) and
  * Assignment 25 Q2(iii) (the relation between tan and sec), and NST Maths Workbook T2 and
- * T3(iii).
+ * T3(iii). The first gate (batch 9) is the STEP Support STEP 2 Trigonometry module's Q2, parts
+ * (i) and (ii) (2009 STEP II Q3): tan(pi/4 - x/2) = sec x - tan x, used for exact values; the
+ * identity was checked numerically, and tan(pi/8) = sqrt(2) - 1 and tan(11 pi/24) =
+ * 2 + sqrt(2) + sqrt(3) + sqrt(6) in sympy. Part (iii) is a long computation in the same vein,
+ * left out.
  */
 import { auto, cite, supervision, withUses } from '../cambridge';
 import { cosDeg, sinDeg, TRIPLES, valuesKey, type Exact } from '../geometry';
@@ -253,6 +257,16 @@ const t3 = auto({
   misconceptions: [{ response: '2 - sqrt(3)', why: t`That is ${math`\tan\frac{\pi}{${12}}`}; the cotangent is its reciprocal.` }],
 });
 
+// STEP Support STEP 2 Trigonometry, Q2 (2009 STEP II Q3), parts (i) and (ii).
+const s2TrigSec = supervision({
+  id: 's2trig-q2',
+  source: cite('step-s2-trig', 'Q2(i), (ii) (2009 STEP II Q3)'),
+  title: t`Secant minus tangent`,
+  prompt: t`(i) Prove that ${dmath`\tan\left(\tfrac{${1}}{${4}}\pi - \tfrac{${1}}{${2}}x\right) \equiv \sec x - \tan x. \qquad (*)`} Use ${math`(*)`} to find the value of ${math`\tan\frac{${1}}{${8}}\pi`}. Hence show that ${dmath`\tan\frac{${11}}{${24}}\pi = \frac{\sqrt{${3}} + \sqrt{${2}} - ${1}}{\sqrt{${3}} - \sqrt{${6}} + ${1}}.`} (ii) Show that ${dmath`\frac{\sqrt{${3}} + \sqrt{${2}} - ${1}}{\sqrt{${3}} - \sqrt{${6}} + ${1}} = ${2} + \sqrt{${2}} + \sqrt{${3}} + \sqrt{${6}}.`}`,
+  writeUp: 'proof',
+  official: cite('step-s2-trig-solutions', 'Q2 (page 3)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const reciprocalFunctions: TopicContent = {
@@ -293,11 +307,13 @@ export const reciprocalFunctions: TopicContent = {
   generators: [exactRecip, identity, solveRecip],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['reciprocal-trig'],
-  cambridge: withUses([a25iii, t3, t2, a24b], {
+  cambridge: withUses([s2TrigSec, a25iii, t3, t2, a24b], {
+    's2trig-q2': { sections: ['Three more names'], note: t`Proving an identity in secant and tangent from the compound-angle formulae, then using it for exact values`, needs: ['alg.surds'] },
     'nst-t2': { sections: ['Three more names', 'The Pythagorean identities'], note: t`Proving an identity with cosecant and cotangent` },
     'nst-t3-iii': { sections: ['Three more names'], note: t`An exact cotangent from a difference of angles` },
   }),
-  gate: ['nst-t2', 'nst-t3-iii'],
+  // The STEP question first, then the NST Workbook's two.
+  gate: ['s2trig-q2', 'nst-t2', 'nst-t3-iii'],
   recall: [
     { front: t`Define ${math`\sec`}, ${math`\csc`}, and ${math`\cot`}.`, back: t`${math`\frac{${1}}{\cos}`}, ${math`\frac{${1}}{\sin}`}, and ${math`\frac{\cos}{\sin}`}.` },
     { front: t`State the identities for ${math`\sec^{${2}}`} and ${math`\csc^{${2}}`}.`, back: t`${math`\sec^{${2}}\theta = ${1} + \tan^{${2}}\theta`}; ${math`\csc^{${2}}\theta = ${1} + \cot^{${2}}\theta`}.` },

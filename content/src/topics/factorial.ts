@@ -1,8 +1,10 @@
 /**
  * comb.factorial: Factorials and arranging n objects. From STEP Support Assignment 6
  * (Q5(i): Claire's 6 x 5 x ... x 1 = 6!; Q2(i): Ben, Elsa, and Charlie) and the change
- * ringing discussion of Assignment 12 Q4 (an extent on 5 bells is 5! = 120 changes). The gate
- * problems are Grinstead and Snell, Section 3.1, Exercises 6, 7, and 14(a) (batch 7).
+ * ringing discussion of Assignment 12 Q4 (an extent on 5 bells is 5! = 120 changes). The first
+ * gate is 2008 STEP I Q13(i) (batch 9), three couples at a round table, asked as a count of
+ * seatings rather than a probability, since probability comes later; the second is Grinstead
+ * and Snell, Section 3.1, Exercise 6, and Exercises 7 and 14(a) are practice (batch 7).
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, q, str } from '../math';
@@ -268,6 +270,40 @@ const gs3114a = auto({
   misconceptions: [{ response: String(5 ** 5), why: t`That allows a button to be pushed twice. Each button is used exactly once, so each place has one fewer choice than the one before.` }],
 });
 
+// 2008 STEP I Q13(i), as a count: the question asks for the probability 2/15 that each husband
+// sits next to his wife, which is 96 of the 6! = 720 seatings in numbered chairs.
+const COUPLES = 3;
+const CHAIRS = 2 * COUPLES;
+/** Seatings of people 0 .. 5 in chairs 0 .. 5 round a table where every couple (2k, 2k + 1) sits side by side. */
+const couplesTogether = (): number => permutations(CHAIRS).filter((seat) => {
+  for (let k = 0; k < COUPLES; k++) {
+    const gap = Math.abs((seat[2 * k] as number) - (seat[2 * k + 1] as number));
+    if (gap !== 1 && gap !== CHAIRS - 1) return false;
+  }
+  return true;
+}).length;
+/** The count in stages: the two ways to cut the ring of chairs into neighbouring pairs, the couples to the pairs, each couple's order. */
+const COUPLES_COUNT = 2 * factorial(COUPLES) * 2 ** COUPLES;
+const step08Couples = auto({
+  id: 'step08-q13-i',
+  source: cite('stepdb-08-s1', 'Q13(i)', true),
+  title: t`Three couples at a round table`,
+  prompt: t`Three married couples sit down at a round table at which there are ${CHAIRS} chairs, numbered ${1} to ${CHAIRS} round the table, so that chairs ${CHAIRS} and ${1} are next to each other. In how many of the possible seatings of the ${CHAIRS} people does each husband sit next to his wife?`,
+  answer: { kind: 'exact', expected: String(COUPLES_COUNT) },
+  solution: [
+    t`Count a seating in three stages. First, the chairs that the couples share: a couple sits in two neighbouring chairs, so the ${CHAIRS} chairs are cut into ${COUPLES} pairs of neighbours. Going round the ring, chair ${1} is paired either with chair ${2} or with chair ${CHAIRS}, and once that pair is fixed the rest follow: ${math`\{${1}, ${2}\}, \{${3}, ${4}\}, \{${5}, ${6}\}`} or ${math`\{${2}, ${3}\}, \{${4}, ${5}\}, \{${6}, ${1}\}`}. That is ${2} ways.`,
+    t`Second, which couple has which pair of chairs: an ordering of the ${COUPLES} couples, ${math`${COUPLES}! = ${factorial(COUPLES)}`} ways. Third, within each pair, who sits on which chair: ${2} ways for each couple, so ${math`${2}^{${COUPLES}} = ${2 ** COUPLES}`}.`,
+    t`Each choice at one stage goes with every choice at the others, and different choices give different seatings, so the product rule gives ${math`${2} \times ${factorial(COUPLES)} \times ${2 ** COUPLES} = ${COUPLES_COUNT}`}. Out of all ${math`${CHAIRS}! = ${factorial(CHAIRS)}`} seatings that is the fraction ${q(COUPLES_COUNT, factorial(CHAIRS))}, the probability the question asks for.`,
+  ],
+  reference: String(COUPLES_COUNT),
+  verify: () => same('seatings with every couple side by side, listed', couplesTogether(), COUPLES_COUNT),
+  misconceptions: [
+    { response: String(factorial(COUPLES) * 2 ** COUPLES), why: t`That fixes which chairs pair up. Round a table the ring can be cut into neighbouring pairs in ${2} ways: chair ${1} goes with chair ${2} or with chair ${CHAIRS}.` },
+    { response: String(COUPLES_COUNT / CHAIRS), why: t`That counts seatings with rotations of the table treated as the same. Here the chairs are numbered, so a rotated seating is a different seating.` },
+  ],
+  official: { source: cite('stepdb-08-s1-sol', 'Question 13(i) (page 50)'), answer: '16', agrees: false, note: 'Not an error on either side: the solution fixes one husband in his seat, treating rotations of the table as the same seating, and finds 16 of 5! = 120. With numbered chairs, as here, each of those is 6 seatings, 96 of 6! = 720. Both give the probability 2/15 that the question asks for.' },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const letters = ['A', 'B', 'C'];
@@ -339,13 +375,14 @@ export const factorialTopic: TopicContent = {
   generators: [arrange, ratio, fixed, names],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arrangement', 'factorial'],
-  cambridge: withUses([extent6, extent8, gs316, gs317, gs3114a], {
+  cambridge: withUses([step08Couples, extent6, extent8, gs316, gs317, gs3114a], {
+    'step08-q13-i': { sections: ['Putting things in order', 'Why n! counts orderings'], note: t`Counting seatings with a condition in stages, then multiplying` },
     'gs-3-1-6': { sections: ['Why n! counts orderings'], note: t`Counting arrangements in a circle by fixing one seat` },
     'gs-3-1-7': { sections: ['Why n! counts orderings'], note: t`A probability as a count of orderings over all outcomes`, needs: ['pre.probability-scale'] },
   }),
-  // The round table needs an argument, not a formula. The lift asks for a probability, taught later, so it is
-  // practice. The lock and the two extents are each one factorial, so they are practice, not gates.
-  gate: ['gs-3-1-6'],
+  // The STEP couples come first; the round table needs an argument, not a formula. The lift asks for a probability,
+  // taught later, so it is practice. The lock and the two extents are each one factorial, so they are practice, not gates.
+  gate: ['step08-q13-i', 'gs-3-1-6'],
   recall: [
     { front: t`Define ${math`n!`}.`, back: t`${ident('0!', '1')}, and ${math`n! = n \times (n - ${1})!`} for ${math`n \ge ${1}`}.` },
     { front: t`How many orderings have ${mn} different objects?`, back: t`${math`n!`}.` },

@@ -9,6 +9,12 @@
  * Map.Make(Int) after add 5, add 2, add 5 again, remove 2, add 9 has find 5 = the second
  * value and cardinal 2; the date compare gives -1 for March 31 against April 1. The
  * generators run the same operations on a TypeScript Map, then sort the keys.
+ *
+ * The second gate (batch 9) is CS3110's Chapter 5 exercise "sets": a set of strings that ignores
+ * case, from Set.Make with a compare that lowercases first. The Foundations of Computer Science
+ * course does not teach functors, so no Tripos question fits; the reference answer was run in
+ * OCaml 4.11.1 (scratch file s16-ocaml/cis.ml): the sets {"grr", "argh"} and {"aRgh", "GRR"}
+ * are equal, and adding "gRr" leaves 2 elements.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
@@ -218,6 +224,15 @@ const functorBst = supervision({
   writeUp: 'explanation',
 });
 
+// CS3110 Chapter 5, Exercise: sets. A case-insensitive set of strings from Set.Make.
+const caseSets = supervision({
+  id: 'cs3110-5-sets',
+  source: cite('cs3110-ex5', 'Exercise: sets'),
+  title: t`Sets of strings that ignore case`,
+  prompt: t`The standard library's ${ml`Set`} module is quite similar to the ${ml`Map`} module. Use it to create a module that represents sets of case-insensitive strings: strings that differ only in their case should be considered equal by the set. For example, the sets ${ml`{"grr", "argh"}`} and ${ml`{"aRgh", "GRR"}`} should be considered the same, and adding ${ml`"gRr"`} to either set should not change the set. Explain why your argument to the functor makes this happen.`,
+  writeUp: 'explanation',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const functors: TopicContent = {
@@ -249,13 +264,13 @@ export const functors: TopicContent = {
     { kind: 'p', text: t`Now ${ml`IntSum.total [${3}; ${4}; ${5}]`} is ${3 + 4 + 5}. The functor wrote ${ml`total`} once; each application specialises it to one type. Apply ${ml`Sum`} to a structure with ${ml`type t = string`}, ${ml`zero = ""`}, and ${ml`plus = ( ^ )`}, and the same ${ml`total`} joins a list of strings: ${ml`["ab"; "c"; "d"]`} gives ${ml`"abcd"`}.` },
     { kind: 'section', title: t`Maps from an ordered type` },
     { kind: 'narrative', text: t`The standard library's ${ml`Map.Make`} is exactly the dictionary functor. Its argument must match ${ml`Map.OrderedType`}.` },
-    { kind: 'definition', name: t`Ordered type`, formal: t`A module matches ${ml`Map.OrderedType`} when it has a type ${ml`t`} and ${ml`compare : t -> t -> int`}, where ${ml`compare a b`} is negative, zero, or positive as ${ml`a`} is less than, equal to, or greater than ${ml`b`}, for a [[total-order|total order]] on ${ml`t`}.`, plain: t`Total order: any two keys are comparable, and the comparisons are consistent (if ${math`a < b`} and ${math`b < c`} then ${math`a < c`}). ${ml`Char`}, ${ml`Int`}, and ${ml`String`} all qualify.` },
+    { kind: 'definition', name: t`Ordered type`, formal: t`A module matches ${ml`Map.OrderedType`} when it has a type ${ml`t`} and ${ml`compare : t -> t -> int`}, where ${ml`compare a b`} is negative, zero, or positive as ${ml`a`} is less than, equal to, or greater than ${ml`b`}, for a [[total-order|total order]] on ${ml`t`}.`, plain: t`Total order: any two keys are comparable, and the comparisons are consistent (if ${math`a < b`} and ${math`b < c`} then ${math`a < c`}). ${ml`Int`} and ${ml`String`} both qualify: each has a type ${ml`t`} and a ${ml`compare`} of the right type.` },
     {
       kind: 'steps',
       steps: [
-        { label: t`Apply the functor`, text: t`${ml`module CharMap = Map.Make (Char)`} makes a module of maps whose keys are characters.`, plain: t`OCaml prints its signature: ${ml`key`} is ${ml`Char.t`} and ${ml`'a t`} is a map from keys to values of type ${ml`'a`}.` },
+        { label: t`Apply the functor`, text: t`${ml`module StringMap = Map.Make (String)`} makes a module of maps whose keys are strings.`, plain: t`OCaml prints its signature: ${ml`key`} is ${ml`String.t`} and ${ml`'a t`} is a map from keys to values of type ${ml`'a`}.` },
         { label: t`Read the types`, text: t`${ml`empty : 'a t`}, ${ml`add : key -> 'a -> 'a t -> 'a t`}, ${ml`remove : key -> 'a t -> 'a t`}.`, plain: t`Maps are persistent: ${ml`add`} returns a new map and leaves the old one unchanged.` },
-        { label: t`Use it`, text: t`${ml`CharMap.(empty |> add 'A' "Alpha" |> add 'E' "Echo" |> find 'E')`} is ${ml`"Echo"`}.`, plain: t`${ml`M.(e)`} opens ${ml`M`} for the expression ${ml`e`}, so ${ml`add`} means ${ml`CharMap.add`}.` },
+        { label: t`Use it`, text: t`${ml`StringMap.(empty |> add "A" "Alpha" |> add "E" "Echo" |> find "E")`} is ${ml`"Echo"`}.`, plain: t`${ml`M.(e)`} opens ${ml`M`} for the expression ${ml`e`}, so ${ml`add`} means ${ml`StringMap.add`}.` },
         { label: t`Read the order`, text: t`${ml`bindings`} returns the bindings in increasing order of keys, by the ${ml`compare`} the functor was given.`, plain: t`The map is a balanced search tree inside, which is why it needs the order.` },
       ],
     },
@@ -273,12 +288,13 @@ export const functors: TopicContent = {
   generators: [mapOps, bindingsOrder, dateOrder],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['functor', 'total-order'],
-  cambridge: withUses([charOrdered, printFunctor, functorBst], {
+  cambridge: withUses([charOrdered, printFunctor, functorBst, caseSets], {
+    'cs3110-5-sets': { sections: ['Maps from an ordered type'], note: t`Choosing the comparison passed to a functor, and what that comparison decides` },
     'cs3110-5-print': { sections: ['Functions from modules to modules'], note: t`Writing and applying a functor` },
     'cs3110-9-functorized-bst': { sections: ['Maps from an ordered type'], note: t`A binary search tree set as a functor`, needs: ['fp.binary-search-trees'] },
   }),
   // The functorized BST needs binary search trees, taught later, so it is practice.
-  gate: ['cs3110-5-print'],
+  gate: ['cs3110-5-print', 'cs3110-5-sets'],
   recall: [
     { front: t`What is a functor?`, back: t`A parameterised module, ${ml`module F (M : S) = struct ... end`}: a function from modules matching ${ml`S`} to modules.` },
     { front: t`What must the argument of ${ml`Map.Make`} provide?`, back: t`A type ${ml`t`} and ${ml`compare : t -> t -> int`}, negative, zero, or positive for a total order.` },

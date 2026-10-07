@@ -202,7 +202,7 @@ export const factorisations: TopicContent = {
   minutes: 20,
   lesson: [
     { kind: 'section', title: t`The idea` },
-    { kind: 'hook', text: t`${math`x^{${4}} + ${4}`} looks impossible to factorise: it is a sum of two squares, and those never split over the reals. Yet ${math`x^{${4}} + ${4} = (x^{${2}} - ${2}x + ${2})(x^{${2}} + ${2}x + ${2})`}. The trick is to add and subtract a well-chosen term.` },
+    { kind: 'hook', text: t`${math`x^{${4}} + ${4}`} looks impossible to factorise: it is a sum of two squares, ${math`(x^{${2}})^{${2}} + ${2}^{${2}}`}, and there is no sum-of-squares rule to match ${math`a^{${2}} - b^{${2}} = (a - b)(a + b)`}. Yet ${math`x^{${4}} + ${4} = (x^{${2}} - ${2}x + ${2})(x^{${2}} + ${2}x + ${2})`}. The trick is to add and subtract a well-chosen term.` },
     { kind: 'narrative', text: t`A handful of identities do most of the factorising in STEP. Each is checked by multiplying out, but you should know them on sight, and know how to make one appear.` },
     { kind: 'section', title: t`Squares and cubes` },
     {
@@ -237,7 +237,7 @@ export const factorisations: TopicContent = {
     },
     { kind: 'p', text: t`Nothing was divided, so the identity holds for every ${math`a`} and ${math`b`}, including ${math`a = ${0}`} and ${math`a = b`}. For odd ${math`n`}, replacing ${math`b`} by ${math`-b`} gives ${math`a^{n} + b^{n}`} with the factor ${math`a + b`}.`, why: { q: t`Why only odd ${math`n`}?`, a: t`For odd ${math`n`}, ${math`(-b)^{n} = -b^{n}`}, so ${math`a^{n} - (-b)^{n} = a^{n} + b^{n}`}. For even ${math`n`} the sign does not change.` } },
     { kind: 'section', title: t`Making a difference of squares` },
-    { kind: 'narrative', text: t`Back to ${math`x^{${4}} + ${4}`}. Compare it with ${math`(x^{${2}} + ${2})^{${2}} = x^{${4}} + ${4}x^{${2}} + ${4}`}: it is that square minus ${math`${4}x^{${2}}`}, and ${math`${4}x^{${2}} = (${2}x)^{${2}}`}. So ${math`x^{${4}} + ${4} = (x^{${2}} + ${2})^{${2}} - (${2}x)^{${2}}`}, a difference of two squares. The same move gives ${math`x^{${4}} + ${1} = (x^{${2}} + ${1})^{${2}} - (\sqrt{${2}}x)^{${2}}`}.` },
+    { kind: 'narrative', text: t`Back to ${math`x^{${4}} + ${4}`}. Compare it with ${math`(x^{${2}} + ${2})^{${2}} = x^{${4}} + ${4}x^{${2}} + ${4}`}: it is that square minus ${math`${4}x^{${2}}`}, and ${math`${4}x^{${2}} = (${2}x)^{${2}}`}. So ${math`x^{${4}} + ${4} = (x^{${2}} + ${2})^{${2}} - (${2}x)^{${2}}`}, a difference of two squares. With ${math`a = x^{${2}} + ${2}`} and ${math`b = ${2}x`}, the rule ${math`a^{${2}} - b^{${2}} = (a - b)(a + b)`} gives ${math`(x^{${2}} - ${2}x + ${2})(x^{${2}} + ${2}x + ${2})`}.` },
     checkFrom(disguised, { k: 1 }, t`${math`x^{${4}} + ${4} = (x^{${2}} + ${2})^{${2}} - (${2}x)^{${2}} = (x^{${2}} - ${2}x + ${2})(x^{${2}} + ${2}x + ${2})`}.`),
     { kind: 'takeaway', text: t`Know ${math`a^{${2}} - b^{${2}}`}, ${math`a^{${3}} \pm b^{${3}}`}, and ${math`a^{n} - b^{n}`} on sight, and when you meet a sum, add and subtract a term to make a difference of squares.` },
   ],

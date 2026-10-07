@@ -4,7 +4,11 @@
  * From the STEP 3 Statistics topic notes (page 1, "Algebra of Expectations") and STEP 3
  * Statistics Q3 (2013 S3 Q12: a As and b Bs in a random row), whose E(X1 Xj) shows two
  * dependent indicators with E(XY) ≠ E(X)E(Y), and whose Var(S) uses Var = E(S^2) - E(S)^2.
- * Checked by listing every row for 2 ≤ a, b ≤ 5 and compared with the official solutions.
+ * Checked by listing every row for 2 ≤ a, b ≤ 5 and compared with the official solutions. The
+ * second gate (batch 9) is 2006 STEP III Q14, first two paragraphs: the perimeter and area of a
+ * plate with independent length and breadth, their means and standard deviations from the rules
+ * for E alone, and why the perimeter and area are not independent. The later parts need
+ * covariance, taught later, so they are not set.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, mul, pick, q, str, type Rational } from '../math';
@@ -286,6 +290,17 @@ const notesProof = supervision({
   writeUp: 'proof',
 });
 
+// 2006 STEP III Q14, first two paragraphs: the plates.
+const [X1, X2] = [math`X_{${1}}`, math`X_{${2}}`];
+const step06Plates = supervision({
+  id: 'step06-q14',
+  source: cite('stepdb-06-s3', 'Q14, first two paragraphs'),
+  title: t`The perimeter and area of a plate`,
+  prompt: t`For any random variables ${X1} and ${X2}, state the relationship between ${math`E(aX_{${1}} + bX_{${2}})`} and ${math`E(X_{${1}})`} and ${math`E(X_{${2}})`}, where ${math`a`} and ${math`b`} are constants. If ${X1} and ${X2} are independent, state the relationship between ${math`E(X_{${1}}X_{${2}})`} and ${math`E(X_{${1}})`} and ${math`E(X_{${2}})`}. An industrial process produces rectangular plates. The length and the breadth of the plates are modelled by independent random variables ${X1} and ${X2} with non-zero means ${math`\mu_{${1}}`} and ${math`\mu_{${2}}`} and non-zero standard deviations ${math`\sigma_{${1}}`} and ${math`\sigma_{${2}}`}, respectively. Using the results in the paragraph above, and without quoting a formula for ${math`\operatorname{Var}(aX_{${1}} + bX_{${2}})`}, find the means and standard deviations of the perimeter ${math`P`} and area ${math`A`} of the plates. Show that ${math`P`} and ${math`A`} are not independent.`,
+  writeUp: 'proof',
+  official: cite('stepdb-06-ha', 'STEP III, Q14 (page 33 of the PDF)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const [mX, mY, ma, mb] = [math`X`, math`Y`, math`a`, math`b`];
@@ -356,13 +371,15 @@ export const expectationAlgebra: TopicContent = {
   generators: [linear, combination, dice],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['linearity-of-expectation', 'variance-of-sum'],
-  cambridge: withUses([q3iic, notesComb, notesProof], {
+  cambridge: withUses([q3iic, notesComb, notesProof, step06Plates], {
+    'step06-q14': { sections: ['Means of combinations', 'Variance of a linear function', 'Independent variables'], note: t`Means and spreads of a sum and of a product of two independent measurements, from the rules for expectation` },
     's3-q3-ii-c': { sections: ['Independent variables'], note: t`The variance of a count of runs, from pairs of indicators`, needs: ['rv.indicators'] },
     's3-notes-proofs': { sections: ['Means of combinations', 'Variance of a linear function', 'Independent variables'], note: t`Proving the rules for means and variances, and where independence is used` },
   }),
   // The proofs from the topic notes. STEP 3 Statistics Q3(ii)(c) needs indicator variables, taught next, so it is
-  // practice; the notes' numerical combination is one application of the rule, left out.
-  gate: ['s3-notes-proofs'],
+  // practice; the notes' numerical combination is one application of the rule, left out. The STEP plates apply the
+  // rules to a product as well as a sum.
+  gate: ['s3-notes-proofs', 'step06-q14'],
   recall: [
     { front: t`State linearity of expectation.`, back: t`${math`E(aX + bY + c) = aE(X) + bE(Y) + c`}, for any ${mX} and ${mY}.` },
     { front: t`${math`\mathrm{Var}(aX + b)`}?`, back: t`${math`a^{${2}}\mathrm{Var}(X)`}.` },

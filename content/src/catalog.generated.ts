@@ -14,6 +14,7 @@ export interface CatalogProblem {
 export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   "pre.fractions": [
     { id: "a6-q1-i-value", title: "A product that cancels", mode: "auto", gate: true },
+    { id: "step00-q1-unit", title: "A unit fraction as two unit fractions", mode: "supervision", gate: true },
   ],
   "pre.set-notation": [
     { id: "bop-1-5-1a", title: "A union", mode: "auto", gate: false },
@@ -81,6 +82,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "notes-205-equality", title: "Proving two sets equal", mode: "supervision", gate: true },
   ],
   "comb.factorial": [
+    { id: "step08-q13-i", title: "Three couples at a round table", mode: "auto", gate: true },
     { id: "a12-q4-extent-6", title: "An extent on 6 bells", mode: "auto", gate: false },
     { id: "a12-q4-extent-8", title: "An extent on 8 bells", mode: "auto", gate: false },
     { id: "gs-3-1-6", title: "People around a round table", mode: "supervision", gate: true },
@@ -92,13 +94,16 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "sw-1-2-3-witness", title: "The counterexample", mode: "auto", gate: false },
     { id: "a12-q1-iii", title: "n^5 - n^3 and 24", mode: "supervision", gate: false },
     { id: "ns2-q12-ii", title: "A large number that is not prime", mode: "supervision", gate: true },
+    { id: "nst-a1", title: "Powers and roots in one fraction", mode: "auto", gate: true },
   ],
   "pre.sequences": [
     { id: "sw-1-3-1-b", title: "A formula for t_k", mode: "auto", gate: false },
     { id: "sw-1-3-1-c", title: "Triangular and square", mode: "supervision", gate: false },
     { id: "sw-1-3-1-d", title: "Two consecutive triangular numbers", mode: "supervision", gate: true },
+    { id: "ns1-q2", title: "Are they all prime?", mode: "auto", gate: true },
   ],
   "pre.probability-scale": [
+    { id: "step94-q12", title: "Colleges picked at random", mode: "auto", gate: true },
     { id: "a12-q2-ii-first", title: "The first sweet", mode: "auto", gate: false },
     { id: "a12-q2-iv-b", title: "The first child in the queue", mode: "auto", gate: false },
     { id: "gs-3-1-10", title: "The last card dealt", mode: "auto", gate: true },
@@ -142,6 +147,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "tmua-p29", title: "True or false implications", mode: "auto", gate: false },
     { id: "notes-50-prop10", title: "If √(x) is rational, so is x", mode: "supervision", gate: false },
     { id: "notes-54-thm11", title: "Implication is transitive", mode: "supervision", gate: true },
+    { id: "a4-q4-i", title: "Four cards and a claim", mode: "auto", gate: true },
     { id: "tmua-e-1-2", title: "If P then Q, with and, or, not", mode: "supervision", gate: false },
     { id: "tmua-j-3-4", title: "Converses", mode: "supervision", gate: false },
   ],
@@ -176,6 +182,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "notes-167-cancel", title: "Why cancellation needs k ≠ 0", mode: "auto", gate: false },
     { id: "sw-1-1-6", title: "The sum of two rationals", mode: "supervision", gate: true },
     { id: "sw-3-2-5", title: "Lowest terms are unique", mode: "supervision", gate: false },
+    { id: "step08-q1", title: "Irrational sums and products", mode: "supervision", gate: true },
   ],
   "alg.sigma-notation": [
     { id: "step95-q3-iii", title: "An alternating sum of cubes", mode: "supervision", gate: true },
@@ -217,6 +224,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "sw-1-1-3", title: "n^2 is even if and only if n is even", mode: "supervision", gate: true },
     { id: "sw-1-2-2", title: "Cancelling a common factor", mode: "supervision", gate: false },
     { id: "sw-1-2-7", title: "Divisible by 30", mode: "supervision", gate: false },
+    { id: "a10-q2-v", title: "Five statements with \"if and only if\"", mode: "auto", gate: true },
     { id: "tmua-i-3", title: "Swapping the sides", mode: "supervision", gate: false },
   ],
   "logic.quantifiers": [
@@ -485,6 +493,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "sheet-3-2-4", title: "Cancelling in a congruence", mode: "supervision", gate: false },
     { id: "bop-5-21", title: "Cubes of congruent numbers", mode: "supervision", gate: false },
     { id: "bop-5-32", title: "Congruent numbers have the same remainder", mode: "supervision", gate: false },
+    { id: "step04-q5", title: "Five progressions, and two impossible equations", mode: "supervision", gate: true },
   ],
   "num.gcd": [
     { id: "bop-7-32", title: "The values of \\gcd(n, n + 2)", mode: "auto", gate: false },
@@ -570,6 +579,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "ia-q4-c", title: "Finite additivity from countable additivity", mode: "supervision", gate: true },
     { id: "schedule-countable-case", title: "Point masses give a probability measure", mode: "supervision", gate: false },
     { id: "gs-5-1-12", title: "The Poisson probabilities add to one", mode: "supervision", gate: false },
+    { id: "step94-q12-craps", title: "Craps: adding infinitely many ways to win", mode: "auto", gate: true },
   ],
   "num.fundamental-theorem": [
     { id: "notes-304-example-98", title: "The power of 2 in 1224", mode: "auto", gate: false },
@@ -589,6 +599,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "notes-242-corollary-85", title: "The second half of Corollary 85", mode: "auto", gate: false },
     { id: "bop-4-21", title: "Book of Proof's version", mode: "supervision", gate: false },
     { id: "notes-116-lemmas-27-29", title: "The ends of the row and the proof by cases", mode: "supervision", gate: true },
+    { id: "step16-s3-q5", title: "The product of the primes up to n", mode: "supervision", gate: true },
   ],
   "num.fermat-little": [
     { id: "notes-132-totd-cubes", title: "Rubik's cubes, five at a time", mode: "auto", gate: false },
@@ -680,6 +691,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "s2-q5-show", title: "The quadratic, and two positive rates", mode: "supervision", gate: false },
     { id: "a1-q2-ii", title: "A repeated root", mode: "auto", gate: false },
     { id: "a2-q2-vi", title: "Completing the square on an interval", mode: "auto", gate: false },
+    { id: "a1-q2-i", title: "Two fractions that make a quadratic", mode: "auto", gate: true },
   ],
   "rv.variance": [
     { id: "s2-q1-a", title: "The Poisson distribution without its zero: the constant", mode: "auto", gate: false },
@@ -726,6 +738,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "s3-q3-ii-c", title: "The variance of the number of runs of As", mode: "auto", gate: false },
     { id: "s3-notes-combination", title: "Variance of a combination", mode: "auto", gate: false },
     { id: "s3-notes-proofs", title: "Why the rules hold", mode: "supervision", gate: true },
+    { id: "step06-q14", title: "The perimeter and area of a plate", mode: "supervision", gate: true },
   ],
   "rv.indicators": [
     { id: "s3-q3-i-xk", title: "One indicator's mean", mode: "auto", gate: true },
@@ -862,6 +875,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "ia4-q4-three", title: "The first of three to fail", mode: "auto", gate: true },
     { id: "schedule-memoryless", title: "The memoryless property, and its converse", mode: "supervision", gate: false },
     { id: "ia4-q4-which", title: "Which one fails first, and the time it takes", mode: "supervision", gate: false },
+    { id: "step16-q13-ii", title: "The second e-mail to arrive", mode: "auto", gate: true },
   ],
   "rv.joint-densities": [
     { id: "ia4-q4-race", title: "The probability that X exceeds Y", mode: "auto", gate: true },
@@ -952,6 +966,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a19-q2-iii", title: "Two equations for the same line", mode: "auto", gate: true },
     { id: "a19-q2-iv", title: "Change the subject", mode: "auto", gate: false },
     { id: "a2-q2-iii", title: "The greatest value of a line on an interval", mode: "auto", gate: false },
+    { id: "step04-q6", title: "Lines through a triangle, in letters", mode: "supervision", gate: true },
   ],
   "fn.quadratic-graphs": [
     { id: "a2-q2-iv", title: "A vertex inside the range", mode: "auto", gate: false },
@@ -964,6 +979,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a10-q3-i-a", title: "Evaluating f(N)", mode: "auto", gate: true },
     { id: "a10-q3-iii", title: "Working backwards from f", mode: "auto", gate: false },
     { id: "a10-q3-i-b", title: "f(N) is always an integer", mode: "supervision", gate: false },
+    { id: "ns1-q3", title: "Four primes in a row of ten", mode: "auto", gate: true },
   ],
   "pre.remainders": [
     { id: "a3-q4-i", title: "The bananas: the equation", mode: "supervision", gate: true },
@@ -1027,6 +1043,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a10-q2-iii-lcm", title: "The LCM of the same pair", mode: "auto", gate: false },
     { id: "ns2-q8", title: "Highest common factors of products", mode: "supervision", gate: true },
     { id: "ns2-q8-unequal", title: "Not always equal", mode: "auto", gate: false },
+    { id: "sw-3-1-2", title: "The HCF of two long numbers", mode: "auto", gate: true },
   ],
   "fn.functions": [
     { id: "a16-q1-ii", title: "Recovering f from f(x^2)", mode: "auto", gate: true },
@@ -1106,7 +1123,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   "calc.convexity": [
     { id: "a13-q1-i", title: "Where the bending changes", mode: "auto", gate: false },
     { id: "a13-q1-iii", title: "Concave between the points where the second derivative vanishes", mode: "auto", gate: true },
-    { id: "a13-q1", title: "Concave, convex, and four curves", mode: "supervision", gate: true },
+    { id: "a13-q1", title: "A sketch from the second derivative, and a false inflection", mode: "supervision", gate: true },
   ],
   "calc.inflection-points": [
     { id: "a13-q2-iii-b", title: "The non-stationary inflection of a quartic", mode: "auto", gate: false },
@@ -1119,7 +1136,8 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a22-q3-iv-b", title: "The zeros of sin of x squared", mode: "auto", gate: false },
     { id: "a18-q1-i", title: "One over x, moved", mode: "auto", gate: false },
     { id: "nst-fc2-v", title: "Where the vertex goes", mode: "auto", gate: false },
-    { id: "a13-q2-ii", title: "Three translations and a parameter", mode: "supervision", gate: true },
+    { id: "a13-q2-ii", title: "A translation and a parameter", mode: "supervision", gate: true },
+    { id: "step12-q2-i", title: "Sliding a quartic", mode: "auto", gate: true },
   ],
   "calc.first-principles": [
     { id: "a20-q1-iii-inverse", title: "The derivative of one over the square root", mode: "auto", gate: false },
@@ -1192,14 +1210,17 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a25-q3", title: "STEP: three integrals by substitution", mode: "supervision", gate: true },
   ],
   "calc.implicit-differentiation": [
+    { id: "step11-q1", title: "A line that touches a curve, and one that is normal", mode: "supervision", gate: true },
     { id: "nst-d5", title: "A curve given by a parameter", mode: "auto", gate: true },
     { id: "nst-d3-ii", title: "A power with the variable on top", mode: "auto", gate: false },
     { id: "nst-d3-iv", title: "x to the power x", mode: "auto", gate: true },
-    { id: "nst-d4-d5", title: "Implicit and parametric, explained", mode: "supervision", gate: true },
+    { id: "nst-d4-d5", title: "Implicit and parametric, explained", mode: "supervision", gate: false },
   ],
   "calc.separable-odes": [
-    { id: "nst-de1-value", title: "Where the solution reaches minus a half", mode: "auto", gate: true },
-    { id: "nst-de1-write", title: "The full solution, with the constant solutions", mode: "supervision", gate: true },
+    { id: "step03-q8", title: "A reaction that never finishes", mode: "supervision", gate: true },
+    { id: "step96-q7-ii", title: "A tank filling and emptying", mode: "auto", gate: true },
+    { id: "nst-de1-value", title: "Where the solution reaches minus a half", mode: "auto", gate: false },
+    { id: "nst-de1-write", title: "The full solution, with the constant solutions", mode: "supervision", gate: false },
   ],
   "calc.improper-integrals": [
     { id: "step16-q8", title: "Reciprocal squares and fourth powers", mode: "supervision", gate: true },
@@ -1238,6 +1259,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "b1-2-7", title: "A product with the empty set inside", mode: "auto", gate: false },
     { id: "b1-2-8", title: "A Cartesian power", mode: "auto", gate: false },
     { id: "b8-16", title: "The distributive law for products", mode: "supervision", gate: false },
+    { id: "notes-353-prop109", title: "An ordered pair made of sets", mode: "supervision", gate: true },
   ],
   "sets.indexed": [
     { id: "sw-5-1-5-union", title: "The CST family: its union", mode: "auto", gate: false },
@@ -1276,6 +1298,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "b10-13", title: "6 | n^3 - n", mode: "supervision", gate: false },
   ],
   "comb.permutations": [
+    { id: "step95-q12", title: "Hockey players in a row", mode: "supervision", gate: true },
     { id: "gs-3-1-12", title: "Concert programs", mode: "auto", gate: true },
     { id: "a6-q2-i", title: "Charlie's letters", mode: "auto", gate: false },
   ],
@@ -1283,11 +1306,13 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a12-q3-i", title: "The raffle queue", mode: "auto", gate: true },
     { id: "a12-q3-ii", title: "Two \\pounds 2 coins", mode: "supervision", gate: false },
     { id: "a12-q2-ii", title: "Two sweets of one flavour", mode: "auto", gate: false },
+    { id: "step16-q12", title: "One more coin", mode: "supervision", gate: true },
   ],
   "prob.addition-rule": [
     { id: "ia1-q4-e", title: "The addition rule from the axioms", mode: "supervision", gate: false },
     { id: "ia1-q5-a", title: "Not A, but B or C", mode: "supervision", gate: true },
     { id: "a6-q4-i-or", title: "A woman or a smoker", mode: "auto", gate: false },
+    { id: "step94-q12-iii", title: "At least one single-sex college", mode: "auto", gate: true },
   ],
   "ineq.am-gm": [
     { id: "step14-q5", title: "A cubic that never goes negative, and the largest xy^2", mode: "supervision", gate: true },
@@ -1309,8 +1334,10 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a20-q3-f7", title: "The first Fibonacci numbers", mode: "auto", gate: false },
   ],
   "an.sequence-limits": [
-    { id: "nst-ss4", title: "Powers of a fixed number", mode: "supervision", gate: true },
-    { id: "nst-ss4-cases", title: "Powers of a fixed number, case by case", mode: "auto", gate: true },
+    { id: "an1-q1a", title: "The limit of a sum, from the definition", mode: "supervision", gate: true },
+    { id: "ns3-q14", title: "Differences that tend to zero", mode: "supervision", gate: true },
+    { id: "nst-ss4", title: "Powers of a fixed number", mode: "supervision", gate: false },
+    { id: "nst-ss4-cases", title: "Powers of a fixed number, case by case", mode: "auto", gate: false },
     { id: "a15-q2-i-c", title: "A slowly settling sequence", mode: "auto", gate: false },
     { id: "a15-q2-iv", title: "A machine for √(2)", mode: "auto", gate: false },
   ],
@@ -1358,6 +1385,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "gs-5-1-6", title: "The smallest of several dice", mode: "auto", gate: true },
   ],
   "mat.matrices": [
+    { id: "s2mat-q3", title: "No two matrices with AB minus BA equal to I", mode: "supervision", gate: true },
     { id: "nst-m2", title: "Zero one way, not the other", mode: "supervision", gate: true },
     { id: "nst-m3", title: "A rotation and a scaling", mode: "supervision", gate: true },
     { id: "nst-m1-ba", title: "The product BA", mode: "auto", gate: false },
@@ -1418,6 +1446,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "cs3110-ex3-shape", title: "Trees of the same shape", mode: "supervision", gate: true },
     { id: "focs-6-2", title: "The sum of a tree", mode: "supervision", gate: false },
     { id: "focs-7-6", title: "Traversals with append are quadratic", mode: "supervision", gate: false },
+    { id: "cst-2013-p1-q1-bc", title: "Every tree with a given inorder", mode: "supervision", gate: true },
   ],
   "fp.specifications-testing": [
     { id: "cs3110-ex8-qcheck-avg", title: "A buggy average", mode: "auto", gate: true },
@@ -1451,6 +1480,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "cs3110-4-matrix-multiply", title: "Matrix multiplication with lists", mode: "supervision", gate: true },
     { id: "focs-8-3", title: "\\textttmap2 without \\textttmap", mode: "supervision", gate: true },
     { id: "focs-8-4", title: "\\textttmap for options", mode: "supervision", gate: false },
+    { id: "cst-2016-p1-q1-b", title: "A function to recognise", mode: "supervision", gate: true },
   ],
   "fp.complexity": [
     { id: "focs-2-2-exponential", title: "The 60-hour column, exponential row", mode: "auto", gate: false },
@@ -1463,6 +1493,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "cs3110-5-stack-option", title: "A stack with options", mode: "supervision", gate: true },
     { id: "cs3110-5-fraction-reduced", title: "Fractions with an invariant", mode: "supervision", gate: true },
     { id: "cs3110-5-abstracted-interface", title: "Making a type abstract", mode: "supervision", gate: false },
+    { id: "cst-2022-p1-q2-a", title: "Sets as lists of intervals, kept in standard form", mode: "supervision", gate: true },
   ],
   "fp.functional-queues": [
     { id: "cst-2018-p1-q2-b", title: "A functional deque", mode: "supervision", gate: true },
@@ -1474,6 +1505,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "cs3110-5-char-ordered", title: "Why \\textttChar can be passed to \\textttMap.Make", mode: "supervision", gate: false },
     { id: "cs3110-5-print", title: "The \\textttPrint functor", mode: "supervision", gate: true },
     { id: "cs3110-9-functorized-bst", title: "A functorized binary search tree", mode: "supervision", gate: false },
+    { id: "cs3110-5-sets", title: "Sets of strings that ignore case", mode: "supervision", gate: true },
   ],
   "fp.references": [
     { id: "focs-11-accounts", title: "Two bank accounts", mode: "auto", gate: false },
@@ -1602,6 +1634,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a19-q3-ii", title: "The same circle from two other points", mode: "supervision", gate: true },
   ],
   "trig.reciprocal-functions": [
+    { id: "s2trig-q2", title: "Secant minus tangent", mode: "supervision", gate: true },
     { id: "a25-q2-iii", title: "Tangent and secant", mode: "supervision", gate: false },
     { id: "nst-t3-iii", title: "\\cotπ/12", mode: "auto", gate: true },
     { id: "nst-t2", title: "An identity with cot and cosec", mode: "supervision", gate: true },
@@ -1617,8 +1650,10 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a5-q3-ii-scalar", title: "The tetrahedron's angle by the scalar product", mode: "supervision", gate: true },
   ],
   "geom.vector-lines": [
-    { id: "nst-ve1", title: "Collinearity and the equation of the line", mode: "supervision", gate: true },
-    { id: "nst-ve1-point", title: "A fourth point on the same line", mode: "auto", gate: true },
+    { id: "step07-q7-i", title: "The least distance between two lines", mode: "auto", gate: true },
+    { id: "step07-q7-ii", title: "A line and a family of lines", mode: "supervision", gate: true },
+    { id: "nst-ve1", title: "Collinearity and the equation of the line", mode: "supervision", gate: false },
+    { id: "nst-ve1-point", title: "A fourth point on the same line", mode: "auto", gate: false },
   ],
   "cx.complex-numbers": [
     { id: "a2-q1-iv", title: "x^4 + 1 as a product of two quadratics", mode: "auto", gate: true },

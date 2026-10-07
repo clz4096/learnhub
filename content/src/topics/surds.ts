@@ -316,9 +316,9 @@ const largeX = supervision({
 
 // ---------------------------------------------------------------- lesson
 
-const SIM_EX: SimP = { a: 5, b: 3, d: 2, m: 2 };
+const SIM_EX: SimP = { a: 5, b: 2, d: 1, m: 3 };
 const SQ_EX: SqP = { p: 2, r: 3, n: 5 };
-const RAT_EX: RatP = { p: 3, r: 1, n: 5 };
+const RAT_EX: RatP = { p: 3, r: 1, n: 2 };
 
 export const surds: TopicContent = {
   topicId: 'alg.surds',
@@ -328,8 +328,8 @@ export const surds: TopicContent = {
   minutes: 20,
   lesson: [
     { kind: 'section', title: t`The idea` },
-    { kind: 'hook', text: t`Here is a sum that looks stuck: ${math`\sqrt{${50}} + \sqrt{${18}}`}. Neither number is a perfect square, so neither root is a whole number. Yet the sum is exactly ${math`${8}\sqrt{${2}}`}, a single tidy term. Where did that come from?` },
-    { kind: 'narrative', text: t`The trick is that ${50} hides a square: ${math`${50} = ${25} \times ${2}`}. If a square root of a product splits into a product of square roots, then ${math`\sqrt{${50}} = \sqrt{${25}}\sqrt{${2}} = ${5}\sqrt{${2}}`}. In the same way ${math`\sqrt{${18}} = ${3}\sqrt{${2}}`}. Now both are multiples of the same thing, ${math`\sqrt{${2}}`}, and they add like ${math`${5}x + ${3}x`}.` },
+    { kind: 'hook', text: t`Here is a sum that looks stuck: ${math`\sqrt{${75}} + \sqrt{${12}}`}. Neither number is a perfect square, so neither root is a whole number. Yet the sum is exactly ${math`${7}\sqrt{${3}}`}, a single tidy term. Where did that come from?` },
+    { kind: 'narrative', text: t`The trick is that ${75} hides a square: ${math`${75} = ${25} \times ${3}`}. If a square root of a product splits into a product of square roots, then ${math`\sqrt{${75}} = \sqrt{${25}}\sqrt{${3}} = ${5}\sqrt{${3}}`}. In the same way ${math`${12} = ${4} \times ${3}`}, so ${math`\sqrt{${12}} = ${2}\sqrt{${3}}`}. Now both are multiples of the same thing, ${math`\sqrt{${3}}`}, and they add like ${math`${5}x + ${2}x = ${7}x`}.` },
     { kind: 'narrative', text: t`This lesson makes that "if" precise, then uses it three ways: to simplify, to multiply out brackets, and to move a root out of the bottom of a fraction.` },
     { kind: 'section', title: t`Square roots and surds` },
     {
@@ -355,7 +355,7 @@ export const surds: TopicContent = {
       ],
     },
     { kind: 'narrative', text: t`So to simplify ${math`\sqrt{N}`}, write ${math`N = k^{${2}}m`} with ${math`k^{${2}}`} the largest square that divides ${math`N`}; then ${math`\sqrt{N} = k\sqrt{m}`}. For ${math`N = ${72}`}: the largest square factor is ${36}, so ${math`\sqrt{${72}} = \sqrt{${36}}\sqrt{${2}} = ${6}\sqrt{${2}}`}.` },
-    checkFrom(simplifySum, SIM_EX, t`${math`\sqrt{${50}} = ${5}\sqrt{${2}}`}, ${math`\sqrt{${18}} = ${3}\sqrt{${2}}`}, and ${math`\sqrt{${8}} = ${2}\sqrt{${2}}`}, so ${math`c = ${5} + ${3} - ${2} = ${6}`}.`),
+    checkFrom(simplifySum, SIM_EX, t`${math`\sqrt{${75}} = ${5}\sqrt{${3}}`}, ${math`\sqrt{${12}} = ${2}\sqrt{${3}}`}, and ${math`\sqrt{${3}}`} is itself, so ${math`c = ${5} + ${2} - ${1} = ${6}`}.`),
     { kind: 'pitfall', claim: t`${math`\sqrt{a + b} = \sqrt{a} + \sqrt{b}`}.`, counterexample: t`${math`\sqrt{${9} + ${16}} = \sqrt{${25}} = ${5}`}, but ${math`\sqrt{${9}} + \sqrt{${16}} = ${3} + ${4} = ${7}`}. Roots split over products, never over sums.` },
     { kind: 'section', title: t`Multiplying out` },
     { kind: 'narrative', text: t`Brackets with surds multiply out exactly like brackets with a letter, with one extra rule: whenever ${math`\sqrt{n}`} meets itself, it becomes ${math`n`}. So a product of two surd forms is again a surd form.` },
@@ -374,12 +374,12 @@ export const surds: TopicContent = {
     },
     checkFrom(squareSurd, { p: 1, r: 1, n: 2 }, t`${math`(${1} + \sqrt{${2}})^{${2}} = ${1} + ${2}\sqrt{${2}} + ${2} = ${3} + ${2}\sqrt{${2}}`}: the middle term gives the surd part.`),
     { kind: 'section', title: t`Rationalising a denominator` },
-    { kind: 'narrative', text: t`A root on the bottom of a fraction is awkward: you cannot add ${math`\frac{${1}}{${3} + \sqrt{${5}}}`} to anything easily. Here is the way out. You already know ${math`(x + y)(x - y) = x^{${2}} - y^{${2}}`}. If ${math`y`} is a surd, then ${math`y^{${2}}`} is a whole number, so the product has no surd at all.` },
+    { kind: 'narrative', text: t`A root on the bottom of a fraction is awkward: you cannot add ${math`\frac{${1}}{${3} + \sqrt{${2}}}`} to anything easily. Here is the way out. You already know ${math`(x + y)(x - y) = x^{${2}} - y^{${2}}`}. If ${math`y`} is a surd, then ${math`y^{${2}}`} is a whole number, so the product has no surd at all.` },
     {
       kind: 'definition',
       name: t`Conjugate`,
       formal: t`The [[conjugate|conjugate]] of ${math`p + q\sqrt{n}`} is ${math`p - q\sqrt{n}`}. To [[rationalise-denominator|rationalise the denominator]] of a fraction is to rewrite it with no surd in the denominator.`,
-      plain: t`Same numbers, opposite sign in front of the root: the conjugate of ${math`${3} + \sqrt{${5}}`} is ${math`${3} - \sqrt{${5}}`}.`,
+      plain: t`Same numbers, opposite sign in front of the root: the conjugate of ${math`${3} + \sqrt{${2}}`} is ${math`${3} - \sqrt{${2}}`}.`,
     },
     { kind: 'theorem', name: t`Conjugates multiply to a rational`, statement: t`Let ${math`p, q \in \mathbb{Q}`}, not both ${0}, and let ${math`n`} be a positive integer that is not a perfect square. Then ${math`(p + q\sqrt{n})(p - q\sqrt{n}) = p^{${2}} - q^{${2}}n`}, which is rational and not ${0}.` },
     {
@@ -394,13 +394,13 @@ export const surds: TopicContent = {
     {
       kind: 'steps',
       steps: [
-        { label: t`Multiply by one`, text: t`${math`\frac{${1}}{${3} + \sqrt{${5}}} = \frac{${1}}{${3} + \sqrt{${5}}} \times \frac{${3} - \sqrt{${5}}}{${3} - \sqrt{${5}}}`}.`, plain: t`The new fraction is ${1}, so the value is unchanged.` },
-        { label: t`The bottom`, text: t`${math`(${3} + \sqrt{${5}})(${3} - \sqrt{${5}}) = ${9} - ${5} = ${4}`}.` },
-        { label: t`The answer`, text: t`${math`\frac{${1}}{${3} + \sqrt{${5}}} = \frac{${3} - \sqrt{${5}}}{${4}}`}.`, plain: t`Check with decimals: both sides are about ${Number((1 / (3 + Math.sqrt(5))).toFixed(4))}.` },
+        { label: t`Multiply by one`, text: t`${math`\frac{${1}}{${3} + \sqrt{${2}}} = \frac{${1}}{${3} + \sqrt{${2}}} \times \frac{${3} - \sqrt{${2}}}{${3} - \sqrt{${2}}}`}.`, plain: t`The new fraction is ${1}, so the value is unchanged.` },
+        { label: t`The bottom`, text: t`${math`(${3} + \sqrt{${2}})(${3} - \sqrt{${2}}) = ${9} - ${2} = ${7}`}.` },
+        { label: t`The answer`, text: t`${math`\frac{${1}}{${3} + \sqrt{${2}}} = \frac{${3} - \sqrt{${2}}}{${7}}`}.`, plain: t`Check with decimals: both sides are about ${Number((1 / (3 + Math.sqrt(2))).toFixed(4))}.` },
       ],
     },
-    checkFrom(rationalise, RAT_EX, t`Multiply top and bottom by ${math`${3} - \sqrt{${5}}`}: the bottom is ${math`${9} - ${5} = ${4}`}, so ${math`a = ${q(3, 4)}`} and ${math`b = ${q(-1, 4)}`}.`),
-    { kind: 'pitfall', claim: t`To rationalise ${math`\frac{${1}}{${3} + \sqrt{${5}}}`}, multiply the bottom by ${math`${3} - \sqrt{${5}}`}.`, counterexample: t`Multiplying only the bottom changes the value: ${math`\frac{${1}}{${4}}`} is not ${math`\frac{${1}}{${3} + \sqrt{${5}}}`}. Multiply the top by the same thing, so you multiply by ${1}.` },
+    checkFrom(rationalise, RAT_EX, t`Multiply top and bottom by ${math`${3} - \sqrt{${2}}`}: the bottom is ${math`${9} - ${2} = ${7}`}, so ${math`a = ${q(3, 7)}`} and ${math`b = ${q(-1, 7)}`}.`),
+    { kind: 'pitfall', claim: t`To rationalise ${math`\frac{${1}}{${3} + \sqrt{${2}}}`}, multiply the bottom by ${math`${3} - \sqrt{${2}}`}.`, counterexample: t`Multiplying only the bottom changes the value: ${math`\frac{${1}}{${7}}`} is not ${math`\frac{${1}}{${3} + \sqrt{${2}}}`}. Multiply the top by the same thing, so you multiply by ${1}.` },
     { kind: 'takeaway', text: t`Take out square factors, treat ${math`\sqrt{n}`} like a letter that squares to ${math`n`}, and clear a surd from a denominator with its conjugate.` },
   ],
   examples: [

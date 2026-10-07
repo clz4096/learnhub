@@ -8,8 +8,13 @@
  * cancelling on a different product. The second part of Q1(i), the same product to n factors
  * and its written proof, needs algebra with n and a general argument, so it is in
  * alg.telescoping (2026-10-06).
+ *
+ * The second gate is the first paragraph of 2000 STEP II Q1: guess 1/N = 1/a + 1/b from two
+ * examples and prove it, so that every unit fraction is a sum of two different ones. It needs
+ * only adding fractions over a common denominator, with letters for the numbers. The rest of
+ * the question factorises N^2 and needs primes, so it is not set.
  */
-import { auto, cite, same, withUses } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, gcd, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, frac, math, t, type Span } from '../rich';
@@ -351,6 +356,15 @@ const a6Smokers = auto({
   official: { source: cite('step-f06-hints', 'Q4(i)(a)'), answer: '18/100', agrees: true },
 });
 
+// 2000 STEP II Q1, first paragraph: two unit fractions for every unit fraction.
+const unitPair = supervision({
+  id: 'step00-q1-unit',
+  source: cite('stepdb-00-s2', 'Q1, first paragraph'),
+  title: t`A unit fraction as two unit fractions`,
+  prompt: t`A number of the form ${math`\frac{${1}}{N}`}, where ${math`N`} is an integer greater than ${1}, is called a unit fraction. Noting that ${dmath`\frac{${1}}{${2}} = \frac{${1}}{${3}} + \frac{${1}}{${6}} \quad\text{and}\quad \frac{${1}}{${3}} = \frac{${1}}{${4}} + \frac{${1}}{${12}},`} guess a general result of the form ${math`\frac{${1}}{N} = \frac{${1}}{a} + \frac{${1}}{b}`}, and hence prove that any unit fraction can be expressed as the sum of two distinct unit fractions.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const ex = { a: 1, b: 4, c: 1, d: 6 };
@@ -513,10 +527,11 @@ export const fractions: TopicContent = {
     { ...workedCambridge(a6Smokers), examiner: t`Each percentage written as a fraction first, the product taken because the smokers are a fraction of a fraction, and the answer checked by counting ${SMOKERS.per} people, as the assignment's hint suggests.` },
   ],
   generators: [addFractions, multiplyDivide, simplify, ratioShare, telescope],
-  cambridge: withUses([a6Value], {
+  cambridge: withUses([a6Value, unitPair], {
     'a6-q1-i-value': { sections: ['Multiplying and dividing', 'Cancelling across a long product'], note: t`Writing each bracket as one fraction, then cancelling across the whole product before multiplying` },
+    'step00-q1-unit': { sections: ['Adding and subtracting'], note: t`Spotting a pattern in two examples, then proving it for every whole number by adding fractions with letters` },
   }),
-  gate: ['a6-q1-i-value'],
+  gate: ['a6-q1-i-value', 'step00-q1-unit'],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fraction', 'numerator', 'denominator', 'lowest-terms', 'common-denominator', 'reciprocal', 'ratio'],
   recall: [

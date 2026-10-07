@@ -306,7 +306,7 @@ export const floorFunction: TopicContent = {
     { kind: 'narrative', text: t`The graph of ${math`y = [x]`} is a staircase, a [[step-function|step function]]: flat at height ${math`r`} for ${math`r \le x < r + ${1}`}, with a jump at every integer. Draw each step with a filled dot at its left end and an open dot at its right end. Do not join the steps with solid vertical lines: the graph is a collection of separate pieces.` },
     {
       kind: 'p',
-      text: t`So the area under ${math`y = [x]`} from ${0} to a positive integer ${math`a`} is a stack of rectangles of width ${1} and heights ${math`${0}, ${1}, \ldots, a - ${1}`}: ${math`\int_{${0}}^{a} [x]\,dx = ${0} + ${1} + \cdots + (a - ${1}) = \frac{a(a - ${1})}{${2}}`}.`,
+      text: t`So the area under ${math`y = [x]`} from ${0} to a positive integer ${math`a`} is a stack of rectangles of width ${1} and heights ${math`${0}, ${1}, \ldots, a - ${1}`}: ${math`\int_{${0}}^{a} [x]\,dx = ${0} + ${1} + \cdots + (a - ${1}) = \frac{a(a - ${1})}{${2}}`}. (Write the sum forwards and backwards and add the two rows: each of the ${math`a`} columns adds to ${math`a - ${1}`}, so twice the sum is ${math`a(a - ${1})`}.)`,
       why: { q: t`Why does the jump at each integer not matter?`, a: t`A single point has no width, so changing the value there changes no area.` },
     },
     checkFrom(floorArea, { whole: 5, half: false }, t`Heights ${0}, ${1}, ${2}, ${3}, ${4}, each of width ${1}: the area is ${10}.`),
@@ -314,7 +314,7 @@ export const floorFunction: TopicContent = {
   ],
   examples: [
     withExaminer(workedCambridge(a3q2ii), t`Each floor justified by the integers on either side, including a bound for ${math`\pi`} good enough to fix ${math`[${10}\pi]`}.`),
-    worked(floorArea, { whole: 4, half: true }, t`An area that ends halfway along a step`),
+    worked(floorArea, { whole: 6, half: true }, t`An area that ends halfway along a step`),
     worked(floorEquation, { c: 3, m: -2, k: 1 }, t`An equation with a floor`),
   ],
   generators: [floorValue, floorArea, floorEquation],

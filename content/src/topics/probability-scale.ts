@@ -2,8 +2,11 @@
  * pre.probability-scale: Probability of equally likely outcomes. No Cambridge source
  * teaches it from the start (decision 11); STEP Support Assignment 6 Q4 defines "at
  * random" (any person as likely to be picked as any other), and Assignment 12 Q2 supplies
- * the sweets problems. The gate is Grinstead and Snell, Section 3.1, Exercise 10 (batch 7):
- * the last of thirteen cards dealt, by symmetry.
+ * the sweets problems. The first gate is 1994 STEP I Q12, parts (i), (ii), and (iv) (batch 9):
+ * colleges picked at random, each answer a count of equally likely choices made by symmetry. The
+ * second is Grinstead and Snell, Section 3.1, Exercise 10 (batch 7): the last of thirteen cards
+ * dealt, by symmetry. Part (iii) of the STEP question gates prob.addition-rule; the conditional
+ * parts (v) to (vii) need conditional probability, taught later.
  */
 import { auto, cite, same, withUses } from '../cambridge';
 import { int, pick, q, str, sub, toFloat, upTo } from '../math';
@@ -325,6 +328,53 @@ const gs3110 = auto({
   ],
 });
 
+// 1994 STEP I Q12 (i), (ii), (iv): 28 colleges, 2 of them for women only; three picked at random,
+// in order, all different. Checked by listing all 28 x 27 x 26 ordered picks.
+const COLLEGES = 28;
+const SINGLE_SEX = 2;
+const PICKS = 3;
+/** Every ordered pick of three different colleges, numbered 0 .. 27; 0 is Newnham and 1 New Hall. */
+const allPicks = (): number[][] => {
+  const out: number[][] = [];
+  for (let a = 0; a < COLLEGES; a++) for (let b = 0; b < COLLEGES; b++) for (let c = 0; c < COLLEGES; c++) {
+    if (a !== b && b !== c && a !== c) out.push([a, b, c]);
+  }
+  return out;
+};
+const share = (picks: readonly number[][], keep: (p: readonly number[]) => boolean): string => str(q(picks.filter(keep).length, picks.length));
+const COLLEGE_ANSWERS = [q(SINGLE_SEX, COLLEGES), q(PICKS, COLLEGES), q(PICKS - 1, COLLEGES - 1)].map(str);
+const step94Colleges = auto({
+  id: 'step94-q12',
+  source: cite('stepdb-94-s1', 'Q12(i), (ii), (iv)'),
+  title: t`Colleges picked at random`,
+  prompt: t`There are ${COLLEGES} colleges in Cambridge, of which two (New Hall and Newnham) are for women only; the others admit both men and women. Anya, Betty, and Doreen are applying to Cambridge. Each has picked three different colleges at random, in order of preference, to enter on her application form. Find each probability as a fraction in lowest terms. (i) What is the probability that Anya's first choice college is single-sex? (ii) What is the probability that Betty has picked Newnham? (iv) Doreen's first choice is Newnham. What is the probability that one of her other two choices is New Hall?`,
+  answer: {
+    kind: 'table', cell: 'exact', columns: [t`part`, t`probability`],
+    rows: [[t`(i) Anya's first choice is single-sex`, null], [t`(ii) Betty has picked Newnham`, null], [t`(iv) Doreen has picked New Hall too`, null]],
+    expected: COLLEGE_ANSWERS,
+  },
+  solution: [
+    t`"At random" makes every college equally likely to be Anya's first choice: ${COLLEGES} equally likely outcomes, ${SINGLE_SEX} of them single-sex. So (i) is ${math`\frac{${SINGLE_SEX}}{${COLLEGES}} = ${q(SINGLE_SEX, COLLEGES)}`}.`,
+    t`For (ii), think of all the forms Betty could fill in, each equally likely. No college is special, so each of the ${COLLEGES} colleges appears on the same share of them. Each form names ${PICKS} colleges, so the shares add up to ${PICKS}, and each college, Newnham included, is on ${q(PICKS, COLLEGES)} of the forms.`,
+    t`For (iv), Doreen's first choice is fixed as Newnham, and her other ${PICKS - 1} choices are different colleges from the remaining ${COLLEGES - 1}, every pair equally likely. The same argument with ${COLLEGES - 1} colleges and ${PICKS - 1} places gives ${q(PICKS - 1, COLLEGES - 1)}: knowing Newnham is taken changes the chance for New Hall from ${q(PICKS, COLLEGES)} to ${q(PICKS - 1, COLLEGES - 1)}.`,
+  ],
+  reference: COLLEGE_ANSWERS,
+  verify: () => {
+    const picks = allPicks();
+    const doreen = picks.filter((p) => p[0] === 0);
+    return same('the three probabilities by listing every pick', [
+      share(picks, (p) => (p[0] as number) < SINGLE_SEX),
+      share(picks, (p) => p.includes(0)),
+      share(doreen, (p) => p.includes(1)),
+    ].join(), COLLEGE_ANSWERS.join());
+  },
+  misconceptions: [
+    { response: [str(q(SINGLE_SEX, COLLEGES)), str(q(1, COLLEGES)), str(q(PICKS - 1, COLLEGES - 1))], why: t`In (ii) Betty has three choices, not one: Newnham can be her first, second, or third, so the chance is ${q(PICKS, COLLEGES)}.` },
+    { response: [str(q(SINGLE_SEX, COLLEGES)), str(q(PICKS, COLLEGES)), str(q(1, COLLEGES - 1))], why: t`In (iv) Doreen still has two choices left, and either could be New Hall: ${q(PICKS - 1, COLLEGES - 1)}.` },
+    { response: [str(q(SINGLE_SEX, COLLEGES)), str(q(PICKS, COLLEGES)), str(q(PICKS - 1, COLLEGES))], why: t`In (iv) Newnham is already taken, so the other two choices come from ${COLLEGES - 1} colleges, not ${COLLEGES}.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const L = { red: 3, blue: 5 };
@@ -419,12 +469,13 @@ export const probabilityScale: TopicContent = {
   generators: [bag, die, complement, letters],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['probability', 'event', 'equally-likely', 'complement-event'],
-  cambridge: withUses([a12Mint, a12Goggles, gs3110], {
+  cambridge: withUses([step94Colleges, a12Mint, a12Goggles, gs3110], {
+    'step94-q12': { sections: ['Two colours, but not a fair coin', 'The definition'], note: t`Choosing the equally likely outcomes, then using symmetry so that no college is special` },
     'gs-3-1-10': { sections: ['The definition'], note: t`Equally likely positions: the last card is like the first` },
   }),
-  // The last card dealt: equally likely outcomes chosen well, by symmetry. The two STEP problems are
-  // one-step (the goggles chance is given in the question, the mints a direct count).
-  gate: ['gs-3-1-10'],
+  // The colleges, then the last card dealt: equally likely outcomes chosen well, by symmetry. The two STEP
+  // Support problems are one-step (the goggles chance is given in the question, the mints a direct count).
+  gate: ['step94-q12', 'gs-3-1-10'],
   recall: [
     { front: t`With equally likely outcomes, what is ${math`P(A)`}?`, back: t`${math`P(A) = \frac{\lvert A \rvert}{\lvert \Omega \rvert}`}: the number of outcomes in ${mA} over the number of outcomes there are.` },
     { front: t`What does "at random" mean?`, back: t`Every item has the same probability of being picked as any other.` },

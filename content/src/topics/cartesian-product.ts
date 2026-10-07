@@ -4,7 +4,9 @@
  * the problems are its exercises (checked against the book's solutions to the odd ones),
  * CST Discrete Mathematics supervision exercises 5.1.4 and 5.2.4 (prove or disprove five
  * statements about products, checked by brute force over small sets), and Book of Proof
- * Chapter 8, exercise 16.
+ * Chapter 8, exercise 16. The second gate (batch 9) is Proposition 109 of the CST notes: the
+ * pair built from sets as {{a}, {a, b}} has the defining property of an ordered pair, which
+ * answers the lesson's opening question of how sets, which forget order, can remember it.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
@@ -362,6 +364,16 @@ const b127 = auto({
   official: { source: cite('bop', 'Solutions, Section 1.2, exercise 7'), answer: '4', agrees: true },
 });
 
+// CST notes, Proposition 109 (with Proposition 108 as the fact it may use): the set-built ordered pair.
+const prop109 = supervision({
+  id: 'notes-353-prop109',
+  source: cite('cst-dm-notes', 'printed pages 348 to 353, Propositions 108 and 109', true),
+  title: t`An ordered pair made of sets`,
+  prompt: t`Sets forget order, but an ordered pair can be built from them. For any ${math`a`} and ${math`b`}, define ${math`\langle a, b \rangle = \{\{a\}, \{a, b\}\}`}. Prove that for all ${math`a, b, x, y`}: if ${math`\langle a, b \rangle = \langle x, y \rangle`}, then ${math`a = x`} and ${math`b = y`}. You may use the fact that ${math`\{c, u\} = \{c, v\}`} implies ${math`u = v`}, for any ${math`c`}, ${math`u`}, ${math`v`} (sets included).`,
+  writeUp: 'proof',
+  official: cite('cst-dm-notes', 'printed page 353, the proof of Proposition 109'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EXA = [1, 2, 3];
@@ -380,7 +392,7 @@ export const cartesianProduct: TopicContent = {
       kind: 'definition',
       name: t`Ordered pair`,
       formal: t`An [[ordered-pair|ordered pair]] ${math`(a, b)`} has a first entry ${math`a`} and a second entry ${math`b`}, and ${dmath`(a, b) = (c, d) \iff a = c \text{ and } b = d.`} More generally an ordered list ${math`(a_{${1}}, \ldots, a_{n})`} has ${math`n`} entries in order, and two lists are equal when they agree entry by entry.`,
-      plain: t`A pair is a set of two slots, labelled first and second. ${math`(${3}, ${5}) \neq (${5}, ${3})`}, because the first entries differ. Repeats are allowed: ${math`(${2}, ${2})`} is a perfectly good pair.`,
+      plain: t`A pair is not a set: it has two slots, labelled first and second. ${math`(${3}, ${5}) \neq (${5}, ${3})`}, because the first entries differ. Repeats are allowed: ${math`(${2}, ${2})`} is a perfectly good pair.`,
     },
     {
       kind: 'definition',
@@ -423,10 +435,11 @@ export const cartesianProduct: TopicContent = {
   generators: [sizeGen, pairsGen, rectGen, distGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ordered-pair', 'cartesian-product'],
-  cambridge: withUses([sw524, sw524Proof, sw514, b125, b127, b128, b816], {
+  cambridge: withUses([sw524, sw524Proof, sw514, b125, b127, b128, b816, prop109], {
     'sw-5-2-4-proof': { sections: ['Order matters', 'Where it breaks'], note: t`Proving or disproving inclusions between products, unions, and subsets` },
+    'notes-353-prop109': { sections: ['Order matters'], note: t`Proving from set equality that a pair built from sets remembers its order` },
   }),
-  gate: ['sw-5-2-4-proof'],
+  gate: ['sw-5-2-4-proof', 'notes-353-prop109'],
   recall: [
     { front: t`When is ${math`(a, b) = (c, d)`}?`, back: t`Exactly when ${math`a = c`} and ${math`b = d`}.` },
     { front: t`Define ${math`A \times B`} and give its size.`, back: t`${math`\{(a, b) : a \in A, b \in B\}`}, with ${math`|A| \cdot |B|`} elements.` },

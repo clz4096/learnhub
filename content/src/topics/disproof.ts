@@ -350,7 +350,7 @@ export const disproof: TopicContent = {
       kind: 'definition',
       name: t`Disproof of an existence statement`,
       formal: t`A [[disproof-of-existence|disproof of an existence statement]] ${math`\exists x \in S,\ P(x)`} is a proof of ${math`\forall x \in S,\ \neg P(x)`}: a direct, contrapositive, or contradiction proof of "if ${math`x \in S`}, then ${math`\neg P(x)`}", with ${mx} arbitrary.`,
-      plain: t`Show that no element of ${math`S`} can have the property, by an argument about an arbitrary element. For ${math`\exists a, b \in \mathbb{Z},\ ${42}a + ${7}b = ${1}`}: for every ${math`a, b`}, ${math`${42}a + ${7}b = ${7}(${6}a + b)`} is a multiple of ${7}, so it is never ${1}.`,
+      plain: t`Show that no element of ${math`S`} can have the property, by an argument about an arbitrary element. For ${math`\exists a, b \in \mathbb{Z},\ ${35}a + ${14}b = ${3}`}: for every ${math`a, b`}, ${math`${35}a + ${14}b = ${7}(${5}a + ${2}b)`} is a multiple of ${7}, and a multiple of ${7} is ${0} or at least ${7} in size, so it is never ${3}.`,
     },
     { kind: 'section', title: t`Disproof by contradiction` },
     { kind: 'narrative', text: t`Often the cleanest route is contradiction: assume the existence statement is true, name the object it promises, and follow it until something impossible happens. Then nothing like it can exist. Here is the hook, settled.` },

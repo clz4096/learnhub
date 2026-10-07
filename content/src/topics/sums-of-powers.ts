@@ -217,7 +217,7 @@ export const sumsOfPowers: TopicContent = {
       ],
     },
     { kind: 'p', text: t`A proof with no guessing: telescope ${math`(r + ${1})^{${3}} - r^{${3}} = ${3}r^{${2}} + ${3}r + ${1}`} from ${math`r = ${1}`} to ${mn}. The left side sums to ${math`(n + ${1})^{${3}} - ${1}`}, so ${math`${3}\sum r^{${2}} = (n + ${1})^{${3}} - ${1} - ${3}\cdot\frac{n(n + ${1})}{${2}} - n`}, which simplifies to the same formula. It is worked in full below.` },
-    checkFrom(sqGen, { n: 10 }, t`${math`\frac{${10} \times ${11} \times ${21}}{${6}} = ${385}`}.`),
+    checkFrom(sqGen, { n: 12 }, t`${math`\frac{${12} \times ${13} \times ${25}}{${6}} = ${650}`}.`),
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`${math`\sum_{r = ${1}}^{n} r^{${2}} = \left(\sum_{r = ${1}}^{n} r\right)^{${2}}`}, just as for cubes.`, counterexample: t`For ${math`n = ${2}`}: ${math`${1} + ${4} = ${5}`}, but ${math`(${1} + ${2})^{${2}} = ${9}`}. Squaring a sum creates cross terms ${math`${2} \cdot ${1} \cdot ${2}`}; only for cubes do the totals coincide.` },
     { kind: 'pitfall', claim: t`A polynomial that matches the sum at four values of ${mn} is the formula.`, counterexample: t`Only if the sum is known to be a cubic. The STEP question gives that; otherwise prove it. The values ${1}, ${2}, ${4}, ${8} of ${math`${2}^{n}`} at ${math`n = ${0}, \ldots, ${3}`} fit a cubic too, which then fails at ${math`n = ${4}`}: it gives ${15}, not ${16}.` },

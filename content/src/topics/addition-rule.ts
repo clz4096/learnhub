@@ -3,7 +3,9 @@
  * specification's probability section; the problems are IA Probability Example Sheet 1,
  * Q4(e) (prove the rule from the axioms, for supervision) and Q5(b) (how many of 1 to 500
  * are not divisible by 7 but divisible by 3 or 5, counted here by brute force), and an
- * addition-rule question on the data of STEP Support Assignment 6, Q4(i).
+ * addition-rule question on the data of STEP Support Assignment 6, Q4(i). The second gate
+ * (batch 9) is 1994 STEP I Q12(iii): the chance of picking at least one of two single-sex
+ * colleges among three, by the addition rule, checked by listing every ordered pick.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub } from '../math';
@@ -217,6 +219,41 @@ const a6or = auto({
   ],
 });
 
+// 1994 STEP I Q12(iii): at least one of the two single-sex colleges among three picked at random.
+const N_COLLEGES = 28;
+const N_PICKS = 3;
+const P_ONE = q(N_PICKS, N_COLLEGES);
+const P_BOTH = q(N_PICKS * (N_PICKS - 1) * (N_COLLEGES - 2), N_COLLEGES * (N_COLLEGES - 1) * (N_COLLEGES - 2));
+const P_EITHER = sub(add(P_ONE, P_ONE), P_BOTH);
+const step94Either = auto({
+  id: 'step94-q12-iii',
+  source: cite('stepdb-94-s1', 'Q12(iii)', true),
+  title: t`At least one single-sex college`,
+  prompt: t`There are ${N_COLLEGES} colleges in Cambridge, of which two (New Hall and Newnham) are for women only. Celia has picked ${N_PICKS} different colleges at random, in order of preference, to enter on her application form. What is the probability that Celia has picked at least one single-sex college? Give a fraction in lowest terms.`,
+  answer: { kind: 'exact', expected: str(P_EITHER) },
+  solution: [
+    t`Let ${mA} be "she has picked Newnham" and ${mB} "she has picked New Hall". The question asks for ${math`P(A \cup B)`}, and the two events can happen together, so use the addition rule: ${math`P(A \cup B) = P(A) + P(B) - P(A \cap B)`}.`,
+    t`No college is special, so each appears on the same share of her possible forms, and the shares add to ${N_PICKS}, the number of colleges on a form: ${math`P(A) = P(B) = ${P_ONE}`}.`,
+    t`For ${math`A \cap B`}, count ordered picks. There are ${math`${N_COLLEGES} \times ${N_COLLEGES - 1} \times ${N_COLLEGES - 2}`} equally likely ones. Those with both colleges: a place for Newnham (${N_PICKS} ways), a place for New Hall (${N_PICKS - 1} ways), and any of the other ${N_COLLEGES - 2} colleges in the last place. So ${math`P(A \cap B) = \frac{${N_PICKS} \times ${N_PICKS - 1} \times ${N_COLLEGES - 2}}{${N_COLLEGES} \times ${N_COLLEGES - 1} \times ${N_COLLEGES - 2}} = ${P_BOTH}`}.`,
+    t`So ${math`P(A \cup B) = ${P_ONE} + ${P_ONE} - ${P_BOTH} = ${P_EITHER}`}. Check by the complement: she picks no single-sex college with probability ${math`\frac{${N_COLLEGES - 2} \times ${N_COLLEGES - 3} \times ${N_COLLEGES - 4}}{${N_COLLEGES} \times ${N_COLLEGES - 1} \times ${N_COLLEGES - 2}} = ${sub(q(1), P_EITHER)}`}, and ${math`${1} - ${sub(q(1), P_EITHER)} = ${P_EITHER}`}.`,
+  ],
+  reference: str(P_EITHER),
+  verify: () => {
+    let hit = 0;
+    let all = 0;
+    for (let a = 0; a < N_COLLEGES; a++) for (let b = 0; b < N_COLLEGES; b++) for (let c = 0; c < N_COLLEGES; c++) {
+      if (a === b || b === c || a === c) continue;
+      all++;
+      if ([a, b, c].some((x) => x < 2)) hit++;
+    }
+    return same('at least one single-sex college, by listing ordered picks', str(q(hit, all)), str(P_EITHER));
+  },
+  misconceptions: [
+    { response: str(add(P_ONE, P_ONE)), why: t`That counts the forms with both colleges twice. Take off ${math`P(A \cap B) = ${P_BOTH}`} once.` },
+    { response: str(q(2, N_COLLEGES)), why: t`That is the chance her first choice is single-sex. She picks ${N_PICKS} colleges, and any of them could be single-sex.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EXN = { a: 12, b: 13, both: 3 };
@@ -237,7 +274,7 @@ export const additionRule: TopicContent = {
       kind: 'steps',
       proof: true,
       steps: [
-        { label: t`Split the union`, text: t`${math`A \cup B`} is ${mA} together with the part of ${mB} outside ${mA}, and these do not overlap: ${math`A \cup B = A \cup (B \setminus A)`} with ${math`A \cap (B \setminus A) = \varnothing`}.`, plain: t`Everything in the union is either in ${mA}, or in ${mB} but not ${mA}, never both.` },
+        { label: t`Split the union`, text: t`${math`A \cup B`} is ${mA} together with the part of ${mB} outside ${mA}, and these do not overlap: ${math`A \cup B = A \cup (B \setminus A)`} with ${math`A \cap (B \setminus A) = \varnothing`}.`, plain: t`Everything in the union is either in ${mA}, or in ${mB} but not ${mA}, never both. Here ${math`B \setminus A`} (read "${math`B`} minus ${math`A`}") is the set of outcomes in ${math`B`} but not in ${math`A`}.` },
         { label: t`Add the exclusive pieces`, text: t`By the rule for mutually exclusive events, ${math`P(A \cup B) = P(A) + P(B \setminus A)`}.` },
         { label: t`Split B the same way`, text: t`${math`B = (B \setminus A) \cup (A \cap B)`}, again with no overlap, so ${math`P(B) = P(B \setminus A) + P(A \cap B)`}, that is ${math`P(B \setminus A) = P(B) - P(A \cap B)`}.` },
         { label: t`Substitute`, text: t`${math`P(A \cup B) = P(A) + P(B) - P(A \cap B)`}.` },
@@ -261,10 +298,11 @@ export const additionRule: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['addition-rule'],
   claims: [{ what: 'a picture card or a heart', exact: q(22, 52), trial: (rng) => { const c = DECK[Math.floor(rng() * 52)] as Card; return c.rank >= 11 || c.suit === 1; } }],
-  cambridge: withUses([ia4e, ia5a, a6or], {
+  cambridge: withUses([ia4e, ia5a, a6or, step94Either], {
     'ia1-q5-a': { sections: ['Using it both ways'], note: t`Applying the addition rule twice to three events` },
+    'step94-q12-iii': { sections: ['Counting the overlap once'], note: t`Adding two chances that overlap, and finding the overlap by counting` },
   }),
-  gate: ['ia1-q5-a'],
+  gate: ['ia1-q5-a', 'step94-q12-iii'],
   recall: [
     { front: t`State the addition rule for two events.`, back: t`${math`P(A \cup B) = P(A) + P(B) - P(A \cap B)`}.` },
     { front: t`How is the addition rule proved from the rule for exclusive events?`, back: t`Split ${math`A \cup B = A \cup (B \setminus A)`} and ${math`B = (B \setminus A) \cup (A \cap B)`}, both disjoint, and add.` },

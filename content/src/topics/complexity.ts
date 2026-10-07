@@ -294,15 +294,15 @@ export const complexity: TopicContent = {
       [[math`T(n) = T(n/${2}) + ${1}`], [math`O(\log n)`], t`binary search`],
       [[math`T(n) = ${2}T(n/${2}) + n`], [math`O(n \log n)`], t`mergesort`],
     ] },
-    { kind: 'theorem', name: t`FoCS Exercise ${2}.${4}`, statement: t`If ${math`T(${1}) = ${1}`} and ${math`T(n) = ${2}T(n/${2}) + ${1}`} for ${math`n \ge ${2}`}, then ${math`T(n) = ${2}n - ${1}`} for every power of two ${math`n = ${2}^{k}`}, ${math`k \ge ${0}`}. So ${math`T(n) = O(n)`} on powers of two.` },
+    { kind: 'theorem', name: t`The mergesort recurrence`, statement: t`If ${math`T(${1}) = ${1}`} and ${math`T(n) = ${2}T(n/${2}) + n`} for ${math`n \ge ${2}`}, then ${math`T(n) = n(\log_{${2}} n + ${1})`} for every power of two ${math`n = ${2}^{k}`}, ${math`k \ge ${0}`}. So ${math`T(n) = O(n \log n)`} on powers of two.` },
     {
       kind: 'steps',
       proof: true,
       steps: [
-        { label: t`Restate in k`, text: t`Let ${math`S(k) = T(${2}^{k})`}. Then ${math`S(${0}) = ${1}`} and ${math`S(k + ${1}) = ${2}S(k) + ${1}`}. We prove ${math`S(k) = ${2}^{k + ${1}} - ${1}`} by induction on ${math`k`}.`, plain: t`Halving ${math`${2}^{k + ${1}}`} gives ${math`${2}^{k}`}, so the recurrence steps ${math`k`} down by one.` },
-        { label: t`Base case`, text: t`${math`S(${0}) = ${1} = ${2}^{${1}} - ${1}`}.` },
-        { label: t`Inductive step`, text: t`If ${math`S(k) = ${2}^{k + ${1}} - ${1}`}, then ${math`S(k + ${1}) = ${2}(${2}^{k + ${1}} - ${1}) + ${1} = ${2}^{k + ${2}} - ${2} + ${1} = ${2}^{k + ${2}} - ${1}`}.`, plain: t`Multiply out the bracket, then collect the constants.` },
-        { label: t`Translate back`, text: t`With ${math`n = ${2}^{k}`}, ${math`${2}^{k + ${1}} = ${2}n`}, so ${math`T(n) = ${2}n - ${1} \le ${2}n`}, which is ${math`O(n)`} with ${math`c = ${2}`}.` },
+        { label: t`Restate in k`, text: t`Let ${math`S(k) = T(${2}^{k})`}. Then ${math`S(${0}) = ${1}`} and ${math`S(k + ${1}) = ${2}S(k) + ${2}^{k + ${1}}`}. We prove ${math`S(k) = (k + ${1})${2}^{k}`} by induction on ${math`k`}.`, plain: t`Halving ${math`${2}^{k + ${1}}`} gives ${math`${2}^{k}`}, so the recurrence steps ${math`k`} down by one; the extra ${math`n`} is ${math`${2}^{k + ${1}}`}.` },
+        { label: t`Base case`, text: t`${math`S(${0}) = ${1} = (${0} + ${1}) \times ${2}^{${0}}`}.` },
+        { label: t`Inductive step`, text: t`If ${math`S(k) = (k + ${1})${2}^{k}`}, then ${math`S(k + ${1}) = ${2}(k + ${1})${2}^{k} + ${2}^{k + ${1}} = (k + ${1})${2}^{k + ${1}} + ${2}^{k + ${1}} = (k + ${2})${2}^{k + ${1}}`}.`, plain: t`Use ${math`${2} \times ${2}^{k} = ${2}^{k + ${1}}`}, then take out the common factor ${math`${2}^{k + ${1}}`}.` },
+        { label: t`Translate back`, text: t`With ${math`n = ${2}^{k}`}, ${math`k = \log_{${2}} n`}, so ${math`T(n) = n(\log_{${2}} n + ${1})`}. For ${math`n \ge ${2}`}, ${math`\log_{${2}} n \ge ${1}`}, so ${math`T(n) \le ${2}n\log_{${2}} n`}: ${math`O(n \log n)`} with ${math`c = ${2}`} and ${math`n_{${0}} = ${2}`}.` },
       ],
     },
     checkFrom(recurrence, { kind: 'merge', c: 2, k: 3 }, t`${math`T(${2}) = ${4}`}, ${math`T(${4}) = ${12}`}, ${math`T(${8}) = ${2} \times ${12} + ${8} = ${32}`}.`),
@@ -314,7 +314,7 @@ export const complexity: TopicContent = {
   ],
   examples: [
     { ...workedCambridge(focs22n2), examiner: t`The examiner wants the conversion to milliseconds, the inequality solved for ${math`n`}, and the answer rounded down.` },
-    worked(recurrence, { kind: 'double-halve', c: 2, k: 4 }, t`Unfolding a divide and conquer recurrence`),
+    worked(recurrence, { kind: 'halve', c: 2, k: 4 }, t`Unfolding a halving recurrence`),
     worked(bigO, { top: 'exp', lower: 'n3', a: 1, b: 500, c: 36 }, t`An exponential term beats any power`),
   ],
   generators: [recurrence, bigO, table],
@@ -328,15 +328,15 @@ export const complexity: TopicContent = {
   recall: [
     { front: t`Define ${math`f(n) = O(g(n))`}.`, back: t`There are ${math`c > ${0}`} and ${math`n_{${0}}`} with ${math`|f(n)| \le c|g(n)|`} for all ${math`n \ge n_{${0}}`}.` },
     { front: t`Costs of ${math`T(n) = T(n/${2}) + ${1}`} and ${math`T(n) = ${2}T(n/${2}) + n`}?`, back: t`${math`O(\log n)`} and ${math`O(n \log n)`}.` },
-    { front: t`Solve ${math`T(${1}) = ${1}`}, ${math`T(n) = ${2}T(n/${2}) + ${1}`} on powers of two.`, back: t`${math`T(n) = ${2}n - ${1}`}, so ${math`O(n)`}.` },
+    { front: t`Solve ${math`T(${1}) = ${1}`}, ${math`T(n) = ${2}T(n/${2}) + n`} on powers of two.`, back: t`${math`T(n) = n(\log_{${2}} n + ${1})`}, so ${math`O(n \log n)`}.` },
   ],
   proofOrder: [{
-    title: t`${math`T(n) = ${2}n - ${1}`} on powers of two`,
+    title: t`${math`T(n) = n(\log_{${2}} n + ${1})`} on powers of two`,
     steps: [
-      t`Set ${math`S(k) = T(${2}^{k})`}, so ${math`S(k + ${1}) = ${2}S(k) + ${1}`}.`,
-      t`Base case: ${math`S(${0}) = ${1} = ${2}^{${1}} - ${1}`}.`,
-      t`Inductive step: ${math`${2}(${2}^{k + ${1}} - ${1}) + ${1} = ${2}^{k + ${2}} - ${1}`}.`,
-      t`With ${math`n = ${2}^{k}`}, ${math`T(n) = ${2}n - ${1}`}, which is ${math`O(n)`}.`,
+      t`Set ${math`S(k) = T(${2}^{k})`}, so ${math`S(k + ${1}) = ${2}S(k) + ${2}^{k + ${1}}`}.`,
+      t`Base case: ${math`S(${0}) = ${1} = (${0} + ${1}) \times ${2}^{${0}}`}.`,
+      t`Inductive step: ${math`${2}(k + ${1})${2}^{k} + ${2}^{k + ${1}} = (k + ${2})${2}^{k + ${1}}`}.`,
+      t`With ${math`n = ${2}^{k}`}, ${math`T(n) = n(\log_{${2}} n + ${1})`}, which is ${math`O(n \log n)`}.`,
     ],
   }],
 };

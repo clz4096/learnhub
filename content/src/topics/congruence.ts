@@ -4,13 +4,16 @@
  * printed page 60, Proposition 16, Proposition 24 on the unique representative from 0 to
  * m - 1) and Book of Proof Section 5.2 (Definition 5.1, Example 5.1, and the propositions
  * on squares and multiples). The problems add supervision exercises 2.1.1 and 3.2.4 with
- * their 2023-24 official solutions and Book of Proof Chapter 5, exercises 21 and 32.
+ * their 2023-24 official solutions and Book of Proof Chapter 5, exercises 21 and 32. The second
+ * gate (batch 9) is 2004 STEP I Q5: the positive integers split into five progressions, the
+ * classes of remainders modulo 5, and a sum or square lands in a predictable class, which rules
+ * out two equations.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
 import { gcd, mod } from '../numbers';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
-import { join, math, paren, t, type Span } from '../rich';
+import { join, listOf, math, paren, t, type Span } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mm, mk] = [math`m`, math`k`];
@@ -213,6 +216,18 @@ const bop532 = supervision({
   writeUp: 'proof',
 });
 
+// 2004 STEP I Q5: the five progressions of remainders modulo 5.
+const FIVE = 5;
+const progression = (start: number) => t`${listOf([0, 1, 2, 3].map((i) => start + FIVE * i))}, ...`;
+const step04Classes = supervision({
+  id: 'step04-q5',
+  source: cite('stepdb-04-s1', 'Q5'),
+  title: t`Five progressions, and two impossible equations`,
+  prompt: t`The positive integers can be split into five distinct arithmetic progressions, as shown: ${math`A`}: ${progression(1)}; ${math`B`}: ${progression(2)}; ${math`C`}: ${progression(3)}; ${math`D`}: ${progression(4)}; ${math`E`}: ${progression(5)}. Write down an expression for the value of the general term in each of the five progressions. Hence prove that the sum of any term in ${math`B`} and any term in ${math`C`} is a term in ${math`E`}. Prove also that the square of every term in ${math`B`} is a term in ${math`D`}. State and prove a similar claim about the square of every term in ${math`C`}. (i) Prove that there are no positive integers ${math`x`} and ${math`y`} such that ${math`x^{${2}} + ${5}y = ${243723}`}. (ii) Prove also that there are no positive integers ${math`x`} and ${math`y`} such that ${math`x^{${4}} + ${2}y^{${4}} = ${26081974}`}.`,
+  writeUp: 'proof',
+  official: cite('stepdb-04-ha', 'STEP I, Q5 (page 6 of the STEP I hints)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const DAYS = 100;
@@ -266,12 +281,14 @@ export const congruence: TopicContent = {
   generators: [whichCongruent, witnessK, cancelFactor],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['congruent-mod'],
-  cambridge: withUses([bop51, sheet324, sheet211, sheet324proof, bop521, bop532], {
+  cambridge: withUses([bop51, sheet324, sheet211, sheet324proof, bop521, bop532, step04Classes], {
+    'step04-q5': { sections: ['The definition', 'Same remainder'], note: t`Working with the five classes of remainders modulo five: where sums and squares land` },
     'sheet-2-1-1': { sections: ['The definition', 'Like equality, almost'], note: t`Congruence is reflexive, symmetric, and transitive` },
     'sheet-3-2-4': { sections: ['The definition'], note: t`Cancelling a factor in a congruence through the gcd`, needs: ['num.gcd', 'num.euclid-theorem'] },
   }),
-  // Exercise 3.2.4 needs the gcd and Euclid's theorem, taught later, so it is practice.
-  gate: ['sheet-2-1-1'],
+  // Exercise 3.2.4 needs the gcd and Euclid's theorem, taught later, so it is practice. The STEP question works
+  // with remainders written out as progressions, so it needs only the definition and the remainder theorem.
+  gate: ['sheet-2-1-1', 'step04-q5'],
   recall: [
     { front: t`Define ${math`a \equiv b \pmod{m}`}.`, back: t`${math`m \mid (a - b)`}: ${math`a - b = km`} for some integer ${mk}.` },
     { front: t`Congruence in terms of remainders.`, back: t`${math`a \equiv b \pmod{m}`} exactly when ${math`a`} and ${math`b`} leave the same remainder on division by ${mm}.` },

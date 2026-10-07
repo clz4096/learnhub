@@ -6,7 +6,8 @@
  * quadratic in e^λ, whose two roots give Mildred's two phones. The official solution's
  * answers, λ1 + λ2 = -ln p and p(1 - p), are compared in the content checks. Batch 7 adds STEP
  * Foundation Assignment 1 Q2(ii) and Assignment 2 Q2(vi) with their hints; Assignment 1 Q2(iii)
- * and Q3 are set in ineq.linear-quadratic.
+ * and Q3 are set in ineq.linear-quadratic. Batch 9 adds Assignment 1 Q2(i) as a second gate:
+ * an equation with two fractions that clearing denominators turns into a quadratic.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
@@ -329,6 +330,51 @@ const a2q2vi = auto({
   official: { source: cite('step-f02-hints', 'Q2(vi)'), answer: ['-4', '5', '21', '5'], agrees: true },
 });
 
+// STEP Support Assignment 1, Q2(i): 2/(x + 3) + 1/(x + 1) = 1.
+const FRAC_ROOTS = [q(1), q(-2)];
+/** The left side of the equation at x, exactly; null where a denominator is zero. */
+const fracLeft = (x: Rational): Rational | null => {
+  const d1 = add(x, q(3));
+  const d2 = add(x, q(1));
+  if (d1.num === 0n || d2.num === 0n) return null;
+  return add(div(q(2), d1), div(q(1), d2));
+};
+const a1q2i = auto({
+  id: 'a1-q2-i',
+  source: cite('step-f01', 'Q2(i)'),
+  title: t`Two fractions that make a quadratic`,
+  prompt: t`Solve the equation ${dmath`\frac{${2}}{x + ${3}} + \frac{${1}}{x + ${1}} = ${1}.`} Give every solution, separated by commas.`,
+  answer: {
+    kind: 'witness', count: { min: 1, max: 3 }, unordered: true, example: asList(FRAC_ROOTS),
+    check: (vals) => {
+      if (vals.some((v) => fracLeft(v) === null)) return 'That value makes a denominator zero, so it cannot be a solution.';
+      if (setKey(vals) === setKey(FRAC_ROOTS)) return null;
+      if (vals.length === 1 && FRAC_ROOTS.some((r) => setKey([r]) === setKey(vals))) return 'That value works, but there is another.';
+      return 'Multiply both sides by (x + 3)(x + 1), collect everything on one side, and solve the quadratic.';
+    },
+  },
+  solution: [
+    t`The fractions need ${math`x \ne -${3}`} and ${math`x \ne -${1}`}. For any other ${math`x`}, multiplying both sides by ${math`(x + ${3})(x + ${1})`}, which is not zero, gives an equation with the same solutions: ${math`${2}(x + ${1}) + (x + ${3}) = (x + ${3})(x + ${1})`}.`,
+    t`Expand: ${math`${3}x + ${5} = x^{${2}} + ${4}x + ${3}`}, so ${math`x^{${2}} + x - ${2} = ${0}`}, which factorises as ${math`(x + ${2})(x - ${1}) = ${0}`}.`,
+    t`So ${math`x = ${1}`} or ${math`x = -${2}`}. Neither is ${math`-${3}`} or ${math`-${1}`}, and both check in the original equation: ${math`\frac{${2}}{${4}} + \frac{${1}}{${2}} = ${1}`} and ${math`\frac{${2}}{${1}} + \frac{${1}}{-${1}} = ${1}`}.`,
+  ],
+  reference: asList(FRAC_ROOTS),
+  verify: () => {
+    for (const r of FRAC_ROOTS) {
+      const left = fracLeft(r);
+      const e = same(`the left side at x = ${str(r)}`, left === null ? 'undefined' : str(left), '1');
+      if (e !== null) return e;
+    }
+    // And no other root: x^2 + x - 2 has exactly these two roots, by the product of the roots.
+    return same('the product of the roots', str(mul(FRAC_ROOTS[0] as Rational, FRAC_ROOTS[1] as Rational)), '-2');
+  },
+  misconceptions: [
+    { response: '1', why: t`${math`x = ${1}`} works, and so does ${math`x = -${2}`}: the quadratic ${math`x^{${2}} + x - ${2} = ${0}`} has two roots, and neither makes a denominator zero.` },
+    { response: '-1, 2', why: t`Check the signs: ${math`x^{${2}} + x - ${2} = (x + ${2})(x - ${1})`}, which is zero at ${math`x = -${2}`} and ${math`x = ${1}`}.` },
+  ],
+  official: { source: cite('step-f01-hints', 'Q2(i)'), answer: '1, -2', agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EXP = { a: 2, b: -7, c: 3 };
@@ -416,14 +462,16 @@ export const quadraticEquations: TopicContent = {
   generators: [solveQuadratic, repeatedRoot, hiddenQuadratic],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quadratic-formula', 'discriminant'],
-  cambridge: withUses([mildredWait, twoRates, showQuadratic, a1q2ii, a2q2vi], {
+  cambridge: withUses([mildredWait, twoRates, showQuadratic, a1q2ii, a2q2vi, a1q2i], {
+    'a1-q2-i': { sections: ['Factorising', 'Quadratics in disguise'], note: t`Clearing the fractions to reach a quadratic, then checking no root makes a denominator zero` },
     's2-q5-two-values': { sections: ['Quadratics in disguise', 'Factorising'], note: t`Spotting a quadratic in a new letter and solving it` },
     'a2-q2-vi': { sections: ['The formula, derived'], note: t`Completing the square, then the greatest and least values on an interval`, needs: ['fn.quadratic-graphs'] },
   }),
   // The two values of the exponential test the quadratic. The write-up (s2-q5-show) and Mildred's first text
   // both need Poisson processes, not yet met here, so neither gates. Assignment 2 Q2(vi) asks for greatest and
   // least values on an interval, taught in fn.quadratic-graphs, so it is practice. The repeated root is one step.
-  gate: ['s2-q5-two-values'],
+  // Assignment 1 Q2(i) hides a quadratic behind two fractions.
+  gate: ['s2-q5-two-values', 'a1-q2-i'],
   recall: [
     { front: t`State the quadratic formula.`, back: t`${math`x = \frac{-b \pm \sqrt{b^{${2}} - ${4}ac}}{${2}a}`}, for ${math`a \ne ${0}`}.` },
     { front: t`How does the discriminant count the real roots?`, back: t`${math`\Delta > ${0}`}: two. ${math`\Delta = ${0}`}: one repeated root. ${math`\Delta < ${0}`}: none.` },

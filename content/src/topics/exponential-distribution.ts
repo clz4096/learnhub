@@ -4,14 +4,17 @@
  * Faculty schedule ("Uniform, normal and exponential random variables. Memoryless property
  * of exponential distribution.") and IA Probability Example Sheet 4 Q4 (the minimum of two
  * independent exponential variables). Sheet 4 has no official solutions; the answers are
- * checked by exact algebra and simulation.
+ * checked by exact algebra and simulation. The second gate (batch 9) is 2016 STEP I Q13(ii):
+ * the expected arrival time of the second of n e-mails. The paper states the answer to be shown;
+ * here it is asked for, and it is checked by integrating the density of the second arrival,
+ * a different route from the survival function the solution uses.
  */
 import { mulberry32 } from '@learnhub/mastery';
 import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, pick, q, str, type Rational } from '../math';
 import { expSample, integrateToInfinity, near, round } from '../partv-b';
 import { generator, type Misconception } from '../problem';
-import { math, t, type Span } from '../rich';
+import { dmath, math, t, type Span } from '../rich';
 import { quickCheck, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
 
 const mX = math`X`;
@@ -238,6 +241,41 @@ const q4firstWhich = supervision({
   writeUp: 'proof',
 });
 
+// 2016 STEP I Q13(ii): n e-mails, each arriving after an independent Exp(lambda) time; the second arrival.
+/** E(second arrival) by integrating t times its density n(n - 1)F(t)(1 - F(t))^(n - 2)f(t), F the Exp(lambda) cdf. */
+const secondArrivalMean = (n: number, lambda: number): number => integrateToInfinity((x) => {
+  const F = 1 - Math.exp(-lambda * x);
+  return x * n * (n - 1) * F * (1 - F) ** (n - 2) * lambda * Math.exp(-lambda * x);
+}, 0, 20000, 1 / lambda);
+const [mn, ml] = [math`n`, math`\lambda`];
+const step16Second = auto({
+  id: 'step16-q13-ii',
+  source: cite('stepdb-16-s1', 'Q13(ii)', true),
+  title: t`The second e-mail to arrive`,
+  prompt: t`An internet tester sends ${mn} e-mails simultaneously at time ${math`t = ${0}`}, where ${math`n \ge ${2}`}. Their arrival times at their destinations are independent random variables, each having probability density function ${math`\lambda e^{-\lambda t}`} for ${math`${0} \le t < \infty`}, where ${math`\lambda > ${0}`}. Find the expected time of arrival of the second e-mail to arrive at its destination, in terms of ${mn} and ${ml}. (Type ${ml} as lambda.)`,
+  answer: { kind: 'expression', expected: '1/(n lambda) + 1/((n - 1) lambda)', variables: ['n', 'lambda'], domains: { n: { kind: 'integer', min: 2, max: 12 }, lambda: { kind: 'real', min: 0.1, max: 5 } } },
+  solution: [
+    t`Let ${math`T_{${2}}`} be the time of the second arrival. It is later than ${math`t`} exactly when at most one e-mail has arrived by time ${math`t`}. None has arrived with probability ${math`e^{-n\lambda t}`}: the ${mn} survival chances ${math`e^{-\lambda t}`} multiply, by independence. Exactly one has arrived with probability ${math`n\left(${1} - e^{-\lambda t}\right)e^{-(n - ${1})\lambda t}`}: it can be any of the ${mn}, it has arrived with chance ${math`${1} - e^{-\lambda t}`}, and each of the other ${math`n - ${1}`} has not, with chance ${math`e^{-\lambda t}`}. So ${dmath`P(T_{${2}} > t) = e^{-n\lambda t} + n\left(${1} - e^{-\lambda t}\right)e^{-(n - ${1})\lambda t} = n e^{-(n - ${1})\lambda t} - (n - ${1})e^{-n\lambda t}.`}`,
+    t`Differentiate ${math`${1} - P(T_{${2}} > t)`} to get the density: ${math`f(t) = n(n - ${1})\lambda\left(e^{-(n - ${1})\lambda t} - e^{-n\lambda t}\right)`}. Each term is a multiple of an exponential density, and ${math`\int_{${0}}^{\infty} t\,\mu e^{-\mu t}\,dt = \frac{${1}}{\mu}`}, so ${dmath`E(T_{${2}}) = n(n - ${1})\lambda\left(\frac{${1}}{(n - ${1})^{${2}}\lambda^{${2}}} - \frac{${1}}{n^{${2}}\lambda^{${2}}}\right) = \frac{n}{(n - ${1})\lambda} - \frac{n - ${1}}{n\lambda} = \frac{${1}}{\lambda}\left(\frac{${1}}{n - ${1}} + \frac{${1}}{n}\right).`}`,
+    t`The memoryless property explains the answer. The first e-mail arrives after the minimum of ${mn} exponential clocks, which is ${math`\mathrm{Exp}(n\lambda)`}, mean ${math`\frac{${1}}{n\lambda}`}. At that moment the other ${math`n - ${1}`} are as good as new, so the further wait is the minimum of ${math`n - ${1}`} fresh clocks, mean ${math`\frac{${1}}{(n - ${1})\lambda}`}. The two means add.`,
+  ],
+  reference: '1/(lambda (n - 1)) + 1/(n lambda)',
+  verify: () => {
+    for (const n of [2, 3, 5, 8]) {
+      for (const lambda of [0.5, 2]) {
+        const e = near(`E(second arrival), n = ${n}, lambda = ${lambda}`, secondArrivalMean(n, lambda), (1 / lambda) * (1 / (n - 1) + 1 / n), 1e-6);
+        if (e !== null) return e;
+      }
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: '1/((n - 1) lambda)', why: t`That is only the wait from the first arrival to the second. Add the wait for the first, mean ${math`\frac{${1}}{n\lambda}`}.` },
+    { response: '2/(n lambda)', why: t`After the first arrival only ${math`n - ${1}`} e-mails are still travelling, so the second wait has rate ${math`(n - ${1})\lambda`}, not ${math`n\lambda`}.` },
+  ],
+  official: { source: cite('stepdb-16-sol', 'STEP I, Question 13 (page 18)'), answer: '1/(n lambda) + 1/((n - 1) lambda)', agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
@@ -312,12 +350,14 @@ export const exponentialDistribution: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exponential-distribution', 'memoryless-property'],
   claims,
-  cambridge: withUses([q4three, memorylessProof, q4firstWhich], {
+  cambridge: withUses([q4three, memorylessProof, q4firstWhich, step16Second], {
+    'step16-q13-ii': { sections: ['The memoryless property', 'Racing clocks'], note: t`The expected time of the second of several independent exponential arrivals` },
     'ia4-q4-which': { sections: ['Racing clocks'], note: t`The winner of a race is independent of the time it takes`, needs: ['rv.joint-densities'] },
     'ia4-q4-three': { sections: ['Racing clocks'], note: t`The first of three exponential clocks` },
   }),
-  // The three bulbs. Sheet 4 Q4's independence of the winner and the time needs a joint density, taught next, so it is practice.
-  gate: ['ia4-q4-three'],
+  // The three bulbs, and the second of n e-mails. Sheet 4 Q4's independence of the winner and the time needs a joint
+  // density, taught next, so it is practice.
+  gate: ['ia4-q4-three', 'step16-q13-ii'],
   recall: [
     { front: t`Density and survival function of ${math`\mathrm{Exp}(\lambda)`}?`, back: t`${math`\lambda e^{-\lambda x}`} and ${math`P(X > x) = e^{-\lambda x}`}, for ${math`x \ge ${0}`}.` },
     { front: t`Mean and variance of ${math`\mathrm{Exp}(\lambda)`}?`, back: t`${math`\frac{${1}}{\lambda}`} and ${math`\frac{${1}}{\lambda^{${2}}}`}.` },

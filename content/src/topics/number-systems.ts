@@ -4,7 +4,11 @@
  * which elements have inverses. From the CST notes, printed pages 158 to 175 (addition and
  * multiplication, cancellation on page 167, the remark on inverses on page 173, and the
  * extension to Z and Q on page 174), Book of Proof Section 1.9, and supervision exercises
- * 1.1.6 and 3.2.5, whose 2023-24 official solutions are cited for the supervisor.
+ * 1.1.6 and 3.2.5, whose 2023-24 official solutions are cited for the supervisor. The second
+ * gate (batch 9) is 2008 STEP I Q1: closure of the rationals, read backwards, says that an
+ * irrational product or sum needs an irrational ingredient. The paper asks for proofs "by
+ * contradiction", a method taught later in the book; the prompt asks only for proofs, and the
+ * closure theorem gives each in a line.
  */
 import type { Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision, withUses } from '../cambridge';
@@ -410,6 +414,16 @@ const sw325 = supervision({
   official: cite('cst-dm-sols-2324-3', '3.2.5'),
 });
 
+// 2008 STEP I Q1: irrational sums and products.
+const step08Irrational = supervision({
+  id: 'step08-q1',
+  source: cite('stepdb-08-s1', 'Q1', true),
+  title: t`Irrational sums and products`,
+  prompt: t`What does it mean to say that a number ${math`x`} is irrational? Prove statements A and B below, where ${math`p`} and ${math`q`} are real numbers. A: if ${math`pq`} is irrational, then at least one of ${math`p`} and ${math`q`} is irrational. B: if ${math`p + q`} is irrational, then at least one of ${math`p`} and ${math`q`} is irrational. Disprove by means of a counterexample statement C below, where ${math`p`} and ${math`q`} are real numbers. C: if ${math`p`} and ${math`q`} are irrational, then ${math`p + q`} is irrational. If the numbers ${math`e`}, ${math`\pi`}, ${math`\pi^{${2}}`}, ${math`e^{${2}}`}, and ${math`e\pi`} are irrational, prove that at most one of the numbers ${math`\pi + e`}, ${math`\pi - e`}, ${math`\pi^{${2}} - e^{${2}}`}, ${math`\pi^{${2}} + e^{${2}}`} is rational.`,
+  writeUp: 'proof',
+  official: cite('stepdb-08-s1-sol', 'Question 1 (pages 2 to 4)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const numberSystems: TopicContent = {
@@ -466,13 +480,15 @@ export const numberSystems: TopicContent = {
   generators: [closure, which, smallest, inverse],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['natural-number', 'integer', 'rational-number', 'closed', 'additive-inverse'],
-  cambridge: withUses([notes174z, notes174q, notes167, sw116, sw325], {
+  cambridge: withUses([notes174z, notes174q, notes167, sw116, sw325, step08Irrational], {
+    'step08-q1': { sections: ['Three number systems', 'Closure'], note: t`Using closure of the rationals to rule out cases, and one example to break a false claim` },
     'sw-3-2-5': { sections: ['Three number systems'], note: t`Uniqueness of lowest terms, which needs the greatest common divisor`, needs: ['num.gcd', 'num.euclid-theorem'] },
     'sw-1-1-6': { sections: ['Three number systems', 'Closure'], note: t`Proving the rationals closed under addition from the definition` },
   }),
   // The CST proof of 1.1.6. Exercise 3.2.5 needs the gcd, taught later, so it is practice. The three-way choices
-  // from the notes are guessable, and the cancellation witness is a single step.
-  gate: ['sw-1-1-6'],
+  // from the notes are guessable, and the cancellation witness is a single step. 2008 STEP I Q1 uses closure
+  // under all four operations.
+  gate: ['sw-1-1-6', 'step08-q1'],
   recall: [
     { front: t`Define a rational number.`, back: t`A real number equal to ${math`\frac{m}{n}`} for some integers ${math`m, n`} with ${math`n \ne ${0}`}.` },
     { front: t`What does "closed under an operation" mean?`, back: t`Combining any two members of the set always gives a member.` },

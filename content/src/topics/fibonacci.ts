@@ -252,7 +252,7 @@ const db13q6 = supervision({
 
 // ---------------------------------------------------------------- lesson
 
-const FIRST = fibs(12);
+const FIRST = fibs(5);
 
 export const fibonacci: TopicContent = {
   topicId: 'alg.fibonacci',
@@ -267,7 +267,7 @@ export const fibonacci: TopicContent = {
       kind: 'definition',
       name: t`Fibonacci numbers`,
       formal: t`The [[fibonacci-numbers|Fibonacci numbers]] are defined by ${math`F_{${0}} = ${0}`}, ${math`F_{${1}} = ${1}`}, and ${math`F_{n + ${1}} = F_{n} + F_{n - ${1}}`} for ${math`n \ge ${1}`}.`,
-      plain: t`Two starting values, then each term is the sum of the previous two: ${math`F_{${2}} = ${1}`}, ${math`F_{${3}} = ${2}`}, ${math`F_{${6}} = ${8}`}, ${math`F_{${10}} = ${55}`}. Because each term needs two before it, induction proofs about ${math`F_{n}`} often need two base cases.`,
+      plain: t`Two starting values, then each term is the sum of the previous two: ${math`F_{${2}} = ${1}`}, ${math`F_{${3}} = ${2}`}, ${math`F_{${5}} = ${5}`}, ${math`F_{${10}} = ${55}`}. Because each term needs two before it, induction proofs about ${math`F_{n}`} often need two base cases.`,
     },
     { kind: 'section', title: t`An identity by induction` },
     { kind: 'narrative', text: t`Multiply neighbours on either side of a term and compare with its square: ${math`F_{${3}}F_{${1}} - F_{${2}}^{${2}} = ${2} - ${1} = ${1}`}, ${math`F_{${4}}F_{${2}} - F_{${3}}^{${2}} = ${3} - ${4} = -${1}`}, ${math`F_{${5}}F_{${3}} - F_{${4}}^{${2}} = ${10} - ${9} = ${1}`}. Always ${math`\pm ${1}`}, alternating.` },
@@ -282,7 +282,7 @@ export const fibonacci: TopicContent = {
         { label: t`Use the assumption`, text: t`The right side is ${math`-\left(F_{k + ${1}}F_{k - ${1}} - F_{k}^{${2}}\right) = -(-${1})^{k} = (-${1})^{k + ${1}}`}: the case ${math`k + ${1}`}. By induction the identity holds for all ${math`n \ge ${1}`}.` },
       ],
     },
-    checkFrom(cassGen, { n: 6, }, t`${math`F_{${7}}F_{${5}} - F_{${6}}^{${2}} = ${13} \times ${5} - ${64} = ${1} = (-${1})^{${6}}`}.`),
+    checkFrom(cassGen, { n: 9 }, t`${math`F_{${10}}F_{${8}} - F_{${9}}^{${2}} = ${55} \times ${21} - ${1156} = -${1} = (-${1})^{${9}}`}.`),
     { kind: 'section', title: t`The closed form` },
     { kind: 'narrative', text: t`Geometric sequences ${math`x^{n}`} are easy; does any of them obey the Fibonacci rule? We need ${math`x^{n + ${1}} = x^{n} + x^{n - ${1}}`}, and dividing by ${math`x^{n - ${1}}`} gives ${math`x^{${2}} = x + ${1}`}. Two numbers work: the roots of that quadratic. Then mix them to match the starting values.` },
     {
@@ -302,7 +302,7 @@ export const fibonacci: TopicContent = {
         { label: t`Same start, same rule, same sequence`, text: t`${math`G_{n}`} and ${math`F_{n}`} agree at ${math`n = ${0}`} and ${math`n = ${1}`}, and each later term of both is the sum of the two before. By strong induction they agree for every ${math`n \ge ${0}`}.`, why: { q: t`Why two base cases?`, a: t`The step from ${math`n - ${1}`} and ${mn} to ${math`n + ${1}`} uses two earlier terms, so the induction must start with two known terms.` } },
       ],
     },
-    { kind: 'p', text: t`The surds always cancel, which answers the hook. And since ${math`|\psi| < ${1}`}, ${math`\psi^{n} \to ${0}`}: so ${math`F_{n}`} is the whole number nearest to ${math`\frac{\varphi^{n}}{\sqrt{${5}}}`}, and ${math`\frac{F_{n + ${1}}}{F_{n}} \to \varphi`}.` },
+    { kind: 'p', text: t`The surds always cancel, which answers the hook. And since ${math`|\psi| < ${1}`}, the correction ${math`\frac{\psi^{n}}{\sqrt{${5}}}`} is at most ${math`\frac{${1}}{\sqrt{${5}}}`} in size, which is less than ${math`\frac{${1}}{${2}}`} because ${math`\sqrt{${5}} > ${2}`}. So ${math`F_{n}`} is the whole number nearest to ${math`\frac{\varphi^{n}}{\sqrt{${5}}}`}. And as ${math`\psi^{n} \to ${0}`}, ${math`\frac{F_{n + ${1}}}{F_{n}} \to \varphi`}.` },
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`To prove ${math`F_{n} < ${2}^{n - ${1}}`} for ${math`n \ge ${2}`} by induction, one base case, ${math`n = ${2}`}, is enough.`, counterexample: t`The step ${math`F_{k + ${1}} = F_{k} + F_{k - ${1}} < ${2}^{k - ${1}} + ${2}^{k - ${2}}`} uses the claim at ${mk} and at ${math`k - ${1}`}. From ${math`n = ${2}`} alone the step to ${math`n = ${3}`} needs ${math`n = ${1}`}, where ${math`F_{${1}} = ${1}`} is not less than ${math`${2}^{${0}} = ${1}`}. Check ${math`n = ${2}`} and ${math`n = ${3}`}, then step.` },
     { kind: 'pitfall', claim: t`The solution of ${math`u_{n + ${1}} = u_{n} + u_{n - ${1}}`} is ${math`u_{n} = \frac{\varphi^{n} - \psi^{n}}{\sqrt{${5}}}`}.`, counterexample: t`Only with ${math`u_{${0}} = ${0}`}, ${math`u_{${1}} = ${1}`}. With ${math`u_{${0}} = ${2}`}, ${math`u_{${1}} = ${1}`} (the Lucas numbers) the solution is ${math`\varphi^{n} + \psi^{n}`}. The recurrence fixes the roots; the starting values fix the constants.` },
