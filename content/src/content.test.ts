@@ -615,9 +615,10 @@ describe('what each Cambridge problem draws on', () => {
    * Topics whose gate still needs a topic later in the book. The three of the gatefit audit
    * (2026-10-06) are fixed: comb.permutations and an.sequence-limits have new gates, and
    * geom.circles teaches touching and the double angle itself. Explicit, so a new misfit fails
-   * here and a fixed one is taken off the list.
+   * here and a fixed one is taken off the list. proof.direct (2026-10-07): ns2-q15 step 3 uses
+   * HCF and LCM, which the book places later (STEP Foundation Assignment 10), so it is a label.
    */
-  const GATE_NEEDS_LATER: ReadonlySet<string> = new Set([]);
+  const GATE_NEEDS_LATER: ReadonlySet<string> = new Set(['proof.direct']);
 
   it('every gate problem says what it draws on, from at least one section of its lesson', () => {
     for (const c of TOPIC_CONTENT) {

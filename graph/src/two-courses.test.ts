@@ -27,11 +27,13 @@ const firstDone = (r: SimResult): number => Math.min(...Object.values(r.dayCours
 const beforeFirst = runs.map((r, i) => simulate({ topics, courses, seed: SEEDS[i] as number, days: firstDone(r) - 1 }));
 
 describe('two courses at an even split (simulation)', { timeout: 120_000 }, () => {
-  it('masters both slices on every seed within 80 days', () => {
+  // Measured at most 86 days (seed 4, IA Probability) since the prerequisite fixes of 2026-10-07;
+  // at most 79 before.
+  it('masters both slices on every seed within 90 days', () => {
     for (const r of runs) {
       for (const c of courses) {
         expect(r.dayCourseMastered?.[c.id], c.id).not.toBeNull();
-        expect(r.dayCourseMastered?.[c.id] as number, c.id).toBeLessThanOrEqual(80);
+        expect(r.dayCourseMastered?.[c.id] as number, c.id).toBeLessThanOrEqual(90);
       }
       expect(r.dayAllMastered).toBe(Math.max(...Object.values(r.dayCourseMastered ?? {}).map((d) => d as number)));
     }

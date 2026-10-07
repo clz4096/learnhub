@@ -449,6 +449,10 @@ After these changes the shared graph (98 topics) validates with zero errors and 
 
 The gate-fit audit's prerequisites change both closures. Discrete Mathematics has 59 topics (1,020 lesson minutes), 35 of them at or below STEP: `num.euclid-algorithm` now builds on `alg.fibonacci` and `comb.binomial-theorem-proof` on `mat.matrices`, which bring in seven topics: those two, the geometric series and its sum to infinity, surds, quadratic equations, and simultaneous equations. IA Probability has 90 (see `probstats-slice.md`, "Update (2026-10-06)"). The two share 39 topics, 11 of them at Tripos level: the number theory and proof under `num.fundamental-theorem`, which `prob.point-mass-spaces` now builds on. Nine batch 2 and Preparation topics are ancestors of a target, none a target. The union has 110 topics, so the default budget for both courses is `placementBudget(110) = 55` (was 51); measured on 500 truthful learners, split, seed 1, it places everyone exactly with at most 46 questions. Discrete Mathematics alone keeps 30, and IA Probability alone gets 45 (was 31). Both SIMULATION files were regenerated; with both courses the learner now masters both slices in 70 to 79 days (`SIMULATION-two-courses.md`).
 
+## Update (2026-10-07): four prerequisite fixes
+
+`sets.countable-unions` now builds on `logic.negating-quantifiers`, so IA Probability also reaches `logic.nested-quantifiers`, `logic.equivalences`, and `logic.iff`, all already in Discrete Mathematics. The two courses share 43 topics (was 39); the union is still 110 topics and Discrete Mathematics is unchanged at 59. IA Probability alone gets a budget of 47 (94 topics). With both courses the learner masters both slices in 67 to 86 days (`SIMULATION-two-courses.md`).
+
 ## Judgement calls (as raised before approval)
 
 1. **Granularity.** 25 Tripos topics for 10 lectures, 2.5 per lecture, plus 13 new foundations below the Tripos. Too coarse or too fine?

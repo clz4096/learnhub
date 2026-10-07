@@ -4,7 +4,7 @@
 
 ## Setup
 
-- Courses: `ia-probability` (90 topics, 1590 lesson minutes in its closure) and `cst-discrete-maths` (59 topics, 1020 lesson minutes in its closure); 110 topics in the union, each learned once.
+- Courses: `ia-probability` (94 topics, 1655 lesson minutes in its closure) and `cst-discrete-maths` (59 topics, 1020 lesson minutes in its closure); 110 topics in the union, each learned once.
 - 120 days, one 60-minute session a day, starting from nothing, no placement. `planSession` with both courses and no weights: an even split of new-lesson minutes, reviews unsplit.
 - Seeds: 1, 2, 3, 4, 5.
 
@@ -14,13 +14,13 @@ Lesson minutes are charged to the course that took the lesson (a shared foundati
 
 | seed | days to master ia-probability | days to master cst-discrete-maths | days to master both | lesson min, ia-probability | lesson min, cst-discrete-maths | review and quiz min | split before the first course is done |
 |---|---|---|---|---|---|---|---|
-| 1 | 71 | 56 | 71 | 1335 | 955 | 2238 | 925 / 935 |
-| 2 | 70 | 51 | 70 | 1375 | 895 | 2416 | 875 / 875 |
-| 3 | 74 | 61 | 74 | 1315 | 1000 | 2288 | 1000 / 980 |
-| 4 | 79 | 61 | 79 | 1350 | 975 | 2730 | 960 / 955 |
-| 5 | 74 | 64 | 74 | 1360 | 1060 | 2013 | 1050 / 1040 |
+| 1 | 69 | 54 | 69 | 1360 | 970 | 2307 | 980 / 950 |
+| 2 | 81 | 57 | 81 | 1580 | 1000 | 2461 | 995 / 980 |
+| 3 | 67 | 57 | 67 | 1390 | 1030 | 1834 | 1045 / 1010 |
+| 4 | 86 | 55 | 86 | 1475 | 950 | 2944 | 915 / 930 |
+| 5 | 71 | 53 | 71 | 1345 | 935 | 2152 | 915 / 915 |
 
-Means over 5 seeds: 73.6 days to master `ia-probability`, 58.6 days to master `cst-discrete-maths`, 73.6 days for both.
+Means over 5 seeds: 74.8 days to master `ia-probability`, 55.2 days to master `cst-discrete-maths`, 74.8 days for both.
 
 ## Placement over both courses
 
@@ -28,6 +28,6 @@ Truthful random learners (the `SIMULATION.md` model), split strategy. Unclassifi
 
 | budget | learners | placed exactly | mean over-placed | mean under-placed | mean questions | max questions |
 |---|---|---|---|---|---|---|
-| 30 | 1000 | 34.0% | 0.00 | 4.14 | 29.8 | 30 |
-| 40 | 1000 | 91.9% | 0.00 | 0.15 | 34.8 | 40 |
-| 55 | 1000 | 100.0% | 0.00 | 0.00 | 34.9 | 46 |
+| 30 | 1000 | 39.8% | 0.00 | 3.87 | 29.8 | 30 |
+| 40 | 1000 | 89.4% | 0.00 | 0.13 | 34.6 | 40 |
+| 55 | 1000 | 100.0% | 0.00 | 0.00 | 34.8 | 43 |

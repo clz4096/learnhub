@@ -34,7 +34,7 @@ export const randomProcesses: Topic[] = [
     summary: 'Show that the generation sizes have pgf $G \\circ \\cdots \\circ G$ and that the extinction probability is the least root of $t = G(t)$ in $[0, 1]$.',
     level: 'tripos-ia',
     area: 'random-processes',
-    prereqs: ['gf.random-sums', 'prob.continuity'],
+    prereqs: ['gf.random-sums'],
     encompasses: { 'gf.random-sums': 0.6, 'gf.pgf': 0.5, 'prob.continuity': 0.4 },
     sources: [{ doc: TRIPOS, course: IA_PROB_PART_V, section: IA_DISCRETE_RV, note: 'Schedule: "Branching processes: generating functions and extinction probability."', verified: true }],
     estMinutes: 25,

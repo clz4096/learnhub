@@ -9,7 +9,7 @@ export const analysis: Topic[] = [
     summary: 'Say what $x_n \\to a$ means and find simple limits such as $1/n$ and $r^n$.',
     level: 'step',
     area: 'analysis',
-    prereqs: ['alg.proof-by-induction'],
+    prereqs: ['pre.sequences'],
     encompasses: { 'pre.sequences': 0.4 },
     sources: [{ doc: STEP, course: 'STEP Mathematics 1', section: STEP_SS, note: 'The limit-of-a-sequence line is a STEP addition (bold italics).', verified: true }],
     estMinutes: 15,

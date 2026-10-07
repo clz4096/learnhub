@@ -102,7 +102,8 @@ describe('the two courses share foundations', () => {
     expect(shared).toEqual([
       'alg.arithmetic-series', 'alg.fibonacci', 'alg.geometric-series', 'alg.geometric-sum-to-infinity', 'alg.proof-by-induction',
       'alg.sigma-notation', 'alg.surds', 'comb.binomial-identities', 'comb.binomial-theorem', 'comb.combinations', 'comb.factorial',
-      'logic.connectives', 'logic.implication', 'logic.quantifiers', 'num.congruence', 'num.divisibility', 'num.division-theorem',
+      'logic.connectives', 'logic.equivalences', 'logic.iff', 'logic.implication', 'logic.negating-quantifiers', 'logic.nested-quantifiers',
+      'logic.quantifiers', 'num.congruence', 'num.divisibility', 'num.division-theorem',
       'num.euclid-algorithm', 'num.euclid-theorem', 'num.fundamental-theorem', 'num.gcd', 'num.number-systems', 'pre.algebraic-argument',
       'pre.algebraic-manipulation', 'pre.fractions', 'pre.hcf-lcm', 'pre.indices', 'pre.prime-factorisation', 'pre.primes-and-factors',
       'pre.product-rule', 'pre.quadratic-equations', 'pre.remainders', 'pre.sequences', 'pre.set-notation', 'proof.counterexample',
@@ -110,8 +111,10 @@ describe('the two courses share foundations', () => {
     ]);
     // The shared Tripos topics are the number theory and proof that unique factorisation needs:
     // IA Probability reaches them through prob.point-mass-spaces (the gatefit prerequisites, 2026-10-06).
+    // The rest are the logic under negating quantifiers, which sets.countable-unions builds on (2026-10-07).
     const tripos = shared.filter((id) => byId.get(id)?.level === 'tripos-ia');
-    for (const id of tripos) expect(ancestorsOf('num.fundamental-theorem').has(id) || id === 'num.fundamental-theorem', id).toBe(true);
+    const under = (root: string, id: string): boolean => id === root || ancestorsOf(root).has(id);
+    for (const id of tripos) expect(under('num.fundamental-theorem', id) || under('logic.negating-quantifiers', id), id).toBe(true);
     for (const id of shared.filter((x) => !tripos.includes(x))) expect(LEVELS.indexOf(byId.get(id)?.level as Topic['level'])).toBeLessThanOrEqual(LEVELS.indexOf('step'));
   });
 
@@ -123,7 +126,7 @@ describe('the two courses share foundations', () => {
     expect(topics.map((t) => t.id).filter((id) => !union.has(id)).sort()).toEqual([...NOT_TARGETS].sort());
     for (const id of GATEFIT_ANCESTORS) expect(union.has(id), id).toBe(true);
     expect(union.size).toBe(topics.length - NOT_TARGETS.length);
-    expect(A.size + D.size - union.size).toBe(39);
+    expect(A.size + D.size - union.size).toBe(43);
   });
 });
 
@@ -184,8 +187,8 @@ describe('placement for both courses', { timeout: 60_000 }, () => {
     expect(m.meanOverPlaced).toBe(0);
   });
 
-  it('is max(30, ceil(n / 2)) for one course: 45 for IA Probability (90 topics), 30 for Discrete Mathematics (59)', () => {
-    expect(placementBudget(placementGraph(topics, { targets: courseTargets(topics, ia) }).order.length)).toBe(45);
+  it('is max(30, ceil(n / 2)) for one course: 47 for IA Probability (94 topics), 30 for Discrete Mathematics (59)', () => {
+    expect(placementBudget(placementGraph(topics, { targets: courseTargets(topics, ia) }).order.length)).toBe(47);
     expect(placementBudget(placementGraph(topics, { targets: courseTargets(topics, dm) }).order.length)).toBe(30);
   });
 });

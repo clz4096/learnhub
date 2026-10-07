@@ -22,7 +22,7 @@ export const sets: Topic[] = [
     summary: 'Recognise countable sets and work with unions and intersections of a sequence of sets.',
     level: 'tripos-ia',
     area: 'sets',
-    prereqs: ['pre.sequences', 'logic.quantifiers'],
+    prereqs: ['pre.sequences', 'logic.negating-quantifiers'],
     encompasses: { 'pre.set-notation': 0.5, 'pre.sequences': 0.2 },
     sources: [{ doc: TRIPOS, course: 'IA Numbers and Sets', section: 'Countability and uncountability', note: 'Unions and intersections from "Sets, relations and functions".', verified: true }],
     estMinutes: 20,

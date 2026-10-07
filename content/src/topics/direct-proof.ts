@@ -530,7 +530,7 @@ export const directProof: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['direct-proof', 'scratch-work', 'lemma'],
   cambridge: withUses([bop47, bop419, bop46, bop410, tmuaR3, tmua72, bop49, bop413, bop424, scratch, ns2q15], {
-    'ns2-q15': { sections: ['The method'], note: t`Finding multiples inside a block of consecutive numbers` },
+    'ns2-q15': { sections: ['The method'], note: t`Finding multiples inside a block of consecutive numbers`, needs: ['pre.hcf-lcm'] },
     'notes-35-scratch': { sections: ['What a proof is', 'The method'], note: t`Turning scratch work into a proof in sentences` },
   }),
   // The IA block question first: a direct proof with a case the first idea misses. Then the CST

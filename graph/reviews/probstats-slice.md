@@ -543,6 +543,10 @@ The gate-fit audit of 2026-10-06 added prerequisites so that every gate problem 
 
 `comb.binomial-theorem` and `alg.proof-by-induction` are no longer entry points: `comb.binomial-identities` now builds on both. The default placement budget for the course is `placementBudget(90) = max(30, ceil(90 / 2)) = 45`, up from 31; measured on 500 truthful random learners it places everyone exactly with at most 37 questions (`graph/src/placement.test.ts`). The simulation runs for 120 days instead of 60, since at 60 days some seeds had not finished the larger slice (`graph/SIMULATION.md`).
 
+### Update (2026-10-07): four prerequisite fixes
+
+`an.sequence-limits` builds on `pre.sequences` again, not on induction (its gate is done by unrolling the recurrence); `alg.recurrence-sequences` and `prob.inclusion-exclusion` build on `alg.proof-by-induction` directly, since their gates use induction. `sets.countable-unions` builds on `logic.negating-quantifiers` (its gates negate and nest quantifiers), which brings `logic.nested-quantifiers`, `logic.equivalences`, and `logic.iff` in: the slice is 94 topics (1,655 lesson minutes). `prob.point-mass-spaces` builds on `prob.continuity`, which makes `bp.extinction`'s own edge to it redundant. `proof.direct` does not build on `pre.hcf-lcm`, which the book places later; its gate `ns2-q15` lists it under "Also needs". The entry points are now 15: `an.exp-limit` credits 7 (was 11) and `logic.iff` (6) is new. The default budget is `placementBudget(94) = 47`; measured, it places everyone exactly with at most 39 questions. Both SIMULATION files were regenerated.
+
 ## External checks
 
 From the STEP Support Programme Foundation module list (step.maths.org/assignments/foundation, read 2026-10-04):

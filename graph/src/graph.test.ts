@@ -89,19 +89,21 @@ describe('the probstats slice (IA Probability)', () => {
   const ia = courseById('ia-probability');
   const probstats = coursesTopics(topics, [ia]);
 
-  it('is the reviewed 60 topics, the two of Cambridge batch 1, and the 28 of the gatefit prerequisites, in the reviewed order', () => {
+  it('is the reviewed 60 topics, the two of Cambridge batch 1, and the 32 of the gatefit prerequisites, in the reviewed order', () => {
     // The order keeps SIMULATION.md stable; see topics/index.ts. Batch 1 added
     // prob.bayes-two-events and prob.event-spaces (graph/reviews/cambridge-batch-1.md, changes 2 and 3).
     // The gatefit prerequisites (2026-10-06, graph/reviews/probstats-slice.md) brought 28 ancestors in,
-    // 20 of them through prob.point-mass-spaces, whose gate needs unique factorisation.
+    // 20 of them through prob.point-mass-spaces, whose gate needs unique factorisation. The four logic
+    // topics came in on 2026-10-07, when sets.countable-unions began to build on negating quantifiers.
     const GATEFIT = new Set([
       'alg.fibonacci', 'alg.surds', 'calc.differentiation-rules', 'logic.connectives', 'logic.implication', 'logic.quantifiers',
       'num.congruence', 'num.divisibility', 'num.division-theorem', 'num.euclid-algorithm', 'num.euclid-theorem', 'num.fundamental-theorem',
       'num.gcd', 'num.number-systems', 'pre.algebraic-argument', 'pre.hcf-lcm', 'pre.prime-factorisation', 'pre.primes-and-factors',
       'pre.quadratic-equations', 'pre.remainders', 'proof.counterexample', 'proof.direct', 'proof.quantifier-patterns', 'proof.strong-induction',
       'rv.expectation', 'rv.expectation-algebra', 'rv.variance', 'sets.comprehension',
+      'logic.equivalences', 'logic.iff', 'logic.nested-quantifiers', 'logic.negating-quantifiers',
     ]);
-    expect(probstats).toHaveLength(90);
+    expect(probstats).toHaveLength(94);
     const reviewed = probstats.filter((t) => !GATEFIT.has(t.id));
     expect(reviewed).toHaveLength(62);
     expect(reviewed.map((t) => t.id)).toEqual(expect.arrayContaining(['prob.bayes-two-events', 'prob.event-spaces']));
