@@ -134,6 +134,9 @@ ol.outline .here { font: 10.5px/1.9 var(--mono); color: var(--cam); }
 dl.objective { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 4px 12px; margin: 10px 0 8px; }
 dl.objective dt { font: 500 10.5px/1.9 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--mute); }
 dl.objective dd { margin: 0; font: 15px/1.5 var(--serif); color: var(--text); }
+/* What a Cambridge problem draws on: the header's label column, wide enough for "From this lesson", in a smaller face. */
+dl.prob-uses { grid-template-columns: 140px minmax(0, 1fr); margin: 4px 0 10px; }
+dl.prob-uses dd { font-size: 14px; }
 .lesson-meta { font: 12px var(--mono); color: var(--mute); margin: 0; }
 .lesson-head { padding-bottom: var(--space-4); border-bottom: 1px solid var(--border); }
 .takeaway { border-top: 1px solid var(--border); padding-top: var(--space-3); margin: var(--space-4) 0 var(--space-3); font-weight: 600; }

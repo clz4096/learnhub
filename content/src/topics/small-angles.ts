@@ -6,7 +6,7 @@
  * also from NST Maths Workbook SS6 (an approximation to third order, checked with sympy), and
  * the gate adds STEP I 1999 Q5 and STEP I 2006 Q4 (STEP Questions Database).
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t } from '../rich';
@@ -304,7 +304,12 @@ export const smallAngles: TopicContent = {
   generators: [ratioLimit, cosLimit, approx2],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['small-angle-approximation'],
-  cambridge: [db99q5, db06q4, db99q5k, db99q5ab, a19q1, ss6],
+  cambridge: withUses([db99q5, db06q4, db99q5k, db99q5ab, a19q1, ss6], {
+    'step99-q5': { sections: ['The squeeze'], note: t`Small angle approximations for how far a satellite can be seen` },
+    'step06-q4': { sections: ['The squeeze'], note: t`Comparing a polygon with its circle for many sides` },
+    'nst-ss6': { sections: ['The squeeze'], note: t`Combining small angle approximations to a given power`, needs: ['alg.geometric-sum-to-infinity'] },
+    'step99-q5-ii': { sections: ['The squeeze'], note: t`A small angle approximation for a low satellite` },
+  }),
   // Best first: STEP I 1999 Q5 (the horizon of a satellite), STEP I 2006 Q4 without its
   // differentiation part, the NST Workbook's SS6, then the auto-checked 1999 Q5(ii).
   gate: ['step99-q5', 'step06-q4', 'nst-ss6', 'step99-q5-ii'],

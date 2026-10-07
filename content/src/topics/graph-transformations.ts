@@ -6,7 +6,7 @@
  * Mathematics Workbook, FC2; the Assignment 13 and 22 hints' answers are compared in the
  * content checks.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { div, int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -314,7 +314,9 @@ export const graphTransformations: TopicContent = {
   generators: [imagePoint, stretch, translateCount],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['translation'],
-  cambridge: [downSix, evenQ, zerosQ, reciprocalQ, nstFC2, sketchQ],
+  cambridge: withUses([downSix, evenQ, zerosQ, reciprocalQ, nstFC2, sketchQ], {
+    'a13-q2-ii': { sections: ['Moving a graph', 'Counting roots by sliding'], note: t`Translating a cubic and counting roots as it slides`, needs: ['calc.stationary-points'] },
+  }),
   gate: ['a13-q2-ii'],
   recall: [
     { front: t`What does ${math`y = f(x + c)`} do to the graph of ${math`f`}?`, back: t`Translates it by ${math`c`} to the left.` },

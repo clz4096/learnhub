@@ -7,7 +7,7 @@
  * Example Sheet 2, Q5 (its second and third parts: primes of the form 4n - 1; the first part is
  * this lesson's theorem) and Q6 (2^(2^n) - 1 has at least n distinct prime factors).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, listOf, math, t } from '../rich';
@@ -342,11 +342,15 @@ export const infinitelyManyPrimes: TopicContent = {
   generators: [newPrime, remainder, euclidNumbers],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['euclids-theorem'],
-  cambridge: [firstComposite, notPrime, bopVersion, ns2q5, ns2q6],
-  // The IA sheet's variations on Euclid first: primes of the form 4n - 1, then a tower with many
-  // prime factors. The CST sheet's remark asks for the proof rewritten correctly. The first composite
-  // is a factoring exercise, and Book of Proof is not Cambridge standard.
-  gate: ['ns2-q5', 'ns2-q6', 'cst-totd-remarks'],
+  cambridge: withUses([firstComposite, notPrime, bopVersion, ns2q5, ns2q6], {
+    'ns2-q5': { sections: ['Every number has a prime factor', "Euclid's theorem"], note: t`Adapting Euclid's argument to primes of one form` },
+    'ns2-q6': { sections: ['Every number has a prime factor'], note: t`Factorising a tower of powers and showing the factors share no prime`, needs: ['alg.proof-by-induction'] },
+    'cst-totd-remarks': { sections: ["Euclid's theorem", 'What the proof does not say'], note: t`Saying exactly what the argument proves, and rewriting it correctly` },
+  }),
+  // The IA sheet's primes of the form 4n - 1, then the CST sheet's remark, which asks for the proof rewritten
+  // correctly. The tower with many prime factors needs induction, taught later, so it is practice. The first
+  // composite is a factoring exercise, and Book of Proof is not Cambridge standard.
+  gate: ['ns2-q5', 'cst-totd-remarks'],
   recall: [
     { front: t`State Euclid's theorem.`, back: t`There are infinitely many primes.` },
     { front: t`The key number in Euclid's proof.`, back: t`${math`N = p_{${1}} \cdots p_{\ell} + ${1}`}: no prime on the list divides it, yet it has a prime factor.` },

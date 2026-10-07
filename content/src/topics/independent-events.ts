@@ -6,7 +6,7 @@
  * and three sixes), checked against the hints.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { dmath, math, setOf, t } from '../rich';
@@ -417,7 +417,12 @@ export const independentEvents: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['independent-events'],
   claims,
-  cambridge: [a19two, a12one, a12dep, a19bet, disjointNotIndependent],
+  cambridge: withUses([a19two, a12one, a12dep, a19bet, disjointNotIndependent], {
+    'a19-q4-ii-independence': { sections: ['Multiplying with independence'], note: t`Where independence of the dice is used` },
+    'a12-q2-iv-disjoint': { sections: ['The definition', 'Where it breaks'], note: t`Why disjoint events are not independent` },
+    'a19-q4-ii-two': { sections: ['Multiplying with independence'], note: t`Multiplying for independent dice and counting the orders` },
+    'a12-q2-iv-one': { sections: ['Multiplying with independence'], note: t`Exactly one success among independent children` },
+  }),
   // The write-ups first; the multiple-choice verdict is dropped, since a guess passes it one time in three.
   gate: ['a19-q4-ii-independence', 'a12-q2-iv-disjoint', 'a19-q4-ii-two', 'a12-q2-iv-one'],
   recall: [

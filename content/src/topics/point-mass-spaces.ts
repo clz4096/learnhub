@@ -8,7 +8,7 @@
  * tails bounded.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, nearestFraction, pow } from '../partv-c';
@@ -346,7 +346,10 @@ export const pointMassSpaces: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['point-mass', 'countable-probability-space'],
   claims,
-  cambridge: [q13b, q13proof, scheduleProof],
+  cambridge: withUses([q13b, q13proof, scheduleProof], {
+    'ia-s2-q13-euler': { sections: ['Point masses', 'Adding masses'], note: t`Independent divisibility events and Euler's product`, needs: ['prob.independence', 'num.fundamental-theorem'] },
+    'ia-s2-q13-coprime-six': { sections: ['Adding masses'], note: t`Adding point masses over multiples` },
+  }),
   // The sheet's proof first, then its numbers with s = 2, which still need independence and complements.
   gate: ['ia-s2-q13-euler', 'ia-s2-q13-coprime-six'],
   recall: [

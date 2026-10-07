@@ -7,7 +7,7 @@
  * Assignment 24, Q4 (the Basel sum from the odd squares). Every answer is computed here and
  * compared with the hints.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, sample, str, sub, toFloat, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { dmath, join, math, t, type Span } from '../rich';
@@ -410,7 +410,10 @@ export const geometricSumToInfinity: TopicContent = {
   generators: [sumGen, decimalGen, ratioGen, convGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['partial-sum', 'sum-to-infinity'],
-  cambridge: [a14q3iii, a18q4, a14q2iiConj, a03q1iii, a24q4i, a03q1ii],
+  cambridge: withUses([a14q3iii, a18q4, a14q2iiConj, a03q1iii, a24q4i, a03q1ii], {
+    'a18-q4-iv': { sections: ['Partial sums', 'The sum to infinity'], note: t`Finding the ratio from a geometric picture, then the limit of the area` },
+    'a14-q3-iii': { sections: ['The sum to infinity'], note: t`Splitting into two geometric series and simplifying surds`, needs: ['alg.surds'] },
+  }),
   gate: ['a18-q4-iv', 'a14-q3-iii'],
   recall: [
     { front: t`When does ${math`\sum_{k \ge ${0}} ar^{k}`} converge, and to what (with ${math`a \neq ${0}`})?`, back: t`Exactly when ${math`|r| < ${1}`}; its sum is ${math`\frac{a}{${1} - r}`}.` },

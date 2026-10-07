@@ -9,7 +9,7 @@
  * distribution is not on the 2019 STEP specification; the IA schedule lists it.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { chance, distinctFrom, nearestFraction, pow } from '../partv-c';
@@ -388,7 +388,11 @@ export const geometricDistribution: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['geometric-distribution', 'geometric-memoryless'],
   claims,
-  cambridge: [firstSix, varianceNotes, coupon, negBin],
+  cambridge: withUses([firstSix, varianceNotes, coupon, negBin], {
+    'ia-s2-q11-coupons': { sections: ['The mean wait', 'Waits add up'], note: t`The expected wait for a full set as a sum of geometric waits`, needs: ['rv.expectation-algebra'] },
+    'ia-s3-q5-sum-of-geometrics': { sections: ['Waits add up'], note: t`The wait for the a-th success as a sum of geometric waits` },
+    's3-notes-variance': { sections: ['The mean wait'], note: t`A variance by differentiating a geometric series`, needs: ['rv.variance'] },
+  }),
   // The IA sheets first: the coupon collector and the negative binomial, both sums of geometric waits.
   // Then the variance from the STEP notes. The first six on roll four is one product, left out.
   gate: ['ia-s2-q11-coupons', 'ia-s3-q5-sum-of-geometrics', 's3-notes-variance'],

@@ -8,7 +8,7 @@
  * numerical integration and simulation.
  */
 import { mulberry32 } from '@learnhub/mastery';
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str } from '../math';
 import { expSample, near, normalSample, PhiSeries, round, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
@@ -343,7 +343,11 @@ export const transformations: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['change-of-variables', 'jacobian'],
   claims,
-  cambridge: [q8ratio, q7dist, q7proof, q8proof, q9a],
+  cambridge: withUses([q8ratio, q7dist, q7proof, q8proof, q9a], {
+    'ia4-q8': { sections: ['The change of variables formula'], note: t`The sum and the share of two exponentials are independent` },
+    'ia4-q7': { sections: ['Independence, polar coordinates, rotations'], note: t`Rotating independent standard normals` },
+    'ia4-q9-a': { sections: ['Independence, polar coordinates, rotations'], note: t`The distance of a normal point from the centre` },
+  }),
   // Best first: the three Sheet 4 write-ups. The two choice questions (the distribution of
   // X/(X + Y), and of a rotated normal) can be guessed, so they do not gate.
   gate: ['ia4-q8', 'ia4-q7', 'ia4-q9-a'],

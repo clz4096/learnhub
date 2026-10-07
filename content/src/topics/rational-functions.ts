@@ -7,7 +7,7 @@
  * points (0, 0) and (2, 4), and Assignment 7, Q1(i). The gate adds STEP II 2012 Q5(i) (STEP
  * Questions Database), the sketch of 1/((x - a)^2 - 1).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -304,7 +304,10 @@ export const rationalFunctions: TopicContent = {
   generators: [vertical, horizontal, oblique],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['rational-function', 'asymptote'],
-  cambridge: [turnsQ, horizQ, sumQ, crossQ, sketchAll, db12q5],
+  cambridge: withUses([turnsQ, horizQ, sumQ, crossQ, sketchAll, db12q5], {
+    'a18-q1': { sections: ['What happens far out', 'Putting a sketch together'], note: t`Sketching four rational curves with asymptotes and turning points` },
+    'step12-q5-i': { sections: ['A curve with a gap', 'Putting a sketch together'], note: t`Sketching a reciprocal quadratic shifted by a parameter` },
+  }),
   // Assignment 18 Q1 (2014 STEP I Q3) first; then STEP II 2012 Q5(i), a sketch with a parameter.
   gate: ['a18-q1', 'step12-q5-i'],
   recall: [

@@ -7,7 +7,7 @@
  * brute force.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -395,7 +395,10 @@ export const combinations: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['combination', 'binomial-coefficient'],
   claims,
-  cambridge: [q7a, q12, bop422, bop423, bop425],
+  cambridge: withUses([q7a, q12, bop422, bop423, bop425], {
+    'q7-a': { sections: ['Order, then forget it', 'Probabilities of selections'], note: t`A probability of a selection as a ratio of binomial coefficients` },
+    'q12-check': { sections: ['Probabilities of selections'], note: t`Small cases of a placement probability, counted directly` },
+  }),
   gate: ['q7-a', 'q12-check'],
   recall: [
     { front: t`${binom('n', 'r')} as factorials.`, back: t`${math`\frac{n!}{r!\,(n - r)!}`}: ordered choices ${math`\frac{n!}{(n - r)!}`}, divided by the ${math`r!`} orders.` },

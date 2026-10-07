@@ -7,7 +7,7 @@
  * on the two of its formulas built from "and", "or", and "not" alone.
  */
 import { assignments, evalFormula, parseFormula, type Formula } from '@learnhub/mastery';
-import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
+import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { generator, type AnswerSpec, type ChoiceOption, type Misconception } from '../problem';
 import { math, t, type Rich, type Span } from '../rich';
@@ -753,10 +753,13 @@ export const connectives: TopicContent = {
   generators: [whichRows, countTrue, tableSize, fillColumn, symbolize],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['statement', 'open-sentence', 'truth-value', 'conjunction', 'disjunction', 'negation', 'truth-table'],
-  cambridge: [
+  cambridge: withUses([
     tmuaA1, tmuaB1, bop21_1, bop21_3, bop21_9, bop21_11, bop21_13, bop22_8, bop22_9, bop22_10,
     bop25_5, bop25_8, bop26_4, bop26_9, bop26_13, tmuaC4, tmuaA2, tmuaB2, bop22_12, lp3, lp3Why,
-  ],
+  ], {
+    'lp-ex-3-why': { sections: ['And, or, not', 'Reading a compound statement'], note: t`Truth tables for compound statements, and showing a row is the only one` },
+    'lp-ex-3': { sections: ['And, or, not', 'Reading a compound statement'], note: t`Finding the one assignment that makes a formula true` },
+  }),
   // The Logic and Proof exercise: the write-up (true and false rows, and why the true one is the
   // only one) first, then the auto-checked rows.
   gate: ['lp-ex-3-why', 'lp-ex-3'],

@@ -6,7 +6,7 @@
  * Assignment 12 Q1 and its hints, and Book of Proof Section 4.2 with Chapter 4, exercises
  * 11 and 20, and Chapter 6, exercise 19.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample, upTo } from '../math';
 import { gcd } from '../numbers';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -439,7 +439,11 @@ export const divisibility: TopicContent = {
   generators: [quotientWitness, largestDivisor, zeroAndSigns],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['divides'],
-  cambridge: [sheet121a, sheet121b, bop619, bop420, sheet124, sheet126, bop411, a12q1iv],
+  cambridge: withUses([sheet121a, sheet121b, bop619, bop420, sheet124, sheet126, bop411, a12q1iv], {
+    'a12-q1-iv': { sections: ['Whole families at once'], note: t`A divisibility claim for every power, and a counterexample to a tempting argument`, needs: ['pre.remainders'] },
+    'sheet-1-2-6': { sections: ['Proofs find the witness'], note: t`Proving divisibility facts from the definition, then combining them` },
+    'sheet-1-2-4': { sections: ['Proofs find the witness'], note: t`Naming the witness in a transitivity proof` },
+  }),
   // STEP Support Q1(iv) first: it needs a correct proof and a counterexample to a tempting one.
   // Then the supervision proofs. The two parts of 1.2.1 are left out: a one-word answer can be guessed.
   gate: ['a12-q1-iv', 'sheet-1-2-6', 'sheet-1-2-4'],

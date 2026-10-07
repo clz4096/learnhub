@@ -6,7 +6,7 @@
  * quadratics, with the official answer from the hints), Assignment 14 Q1(iv) (x^4 = -1), and
  * NST Maths Workbook Section 2 C1.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, paren, t } from '../rich';
@@ -325,7 +325,10 @@ export const complexNumbers: TopicContent = {
   generators: [arithmetic, quadRoots, argument],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['complex-number', 'complex-conjugate', 'modulus-complex', 'argument-complex'],
-  cambridge: [a2iv, a14iv, c1ii],
+  cambridge: withUses([a2iv, a14iv, c1ii], {
+    'a14-q1-iv': { sections: ['Roots of quadratics', 'Modulus and argument'], note: t`The fourth roots of minus one from a factorisation, on an Argand diagram` },
+    'a2-q1-iv': { sections: ['Roots of quadratics'], note: t`A factorisation of a fourth power plus one` },
+  }),
   gate: ['a14-q1-iv', 'a2-q1-iv'],
   recall: [
     { front: t`How do you divide by a complex number?`, back: t`Multiply top and bottom by the conjugate of the bottom, making the bottom ${math`|w|^{${2}}`}, a real number.` },

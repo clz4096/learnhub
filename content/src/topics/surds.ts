@@ -5,7 +5,7 @@
  * Assignment 14 Q2(i), (ii). Every answer is computed: by exact arithmetic on pairs
  * (a, b) standing for a + b√n, and checked by floating point.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, math, t } from '../rich';
@@ -411,8 +411,15 @@ export const surds: TopicContent = {
   generators: [simplifySum, squareSurd, rationalise],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['surd', 'conjugate', 'rationalise-denominator'],
-  cambridge: [simplest, threeTerms, hidden, conjugates, geometric, local1858, largeX],
-  gate: ['a2-q1-iii', 'a14-q2-ii', 'a1-q1-iv', 'a1-q1-iii'],
+  cambridge: withUses([simplest, threeTerms, hidden, conjugates, geometric, local1858, largeX], {
+    'a2-q1-iii': { sections: ['Rationalising a denominator'], note: t`Rationalising with a conjugate, then reading off the size for large values` },
+    'a14-q2-ii': { sections: ['Rationalising a denominator'], note: t`Summing an infinite geometric series with a surd ratio`, needs: ['alg.geometric-sum-to-infinity'] },
+    'a1-q1-iv': { sections: ['Multiplying out'], note: t`Solving a quadratic in disguise with surd roots`, needs: ['pre.quadratic-equations'] },
+    'a1-q1-iii': { sections: ['Multiplying out'], note: t`Squaring a sum of three surd terms and collecting like surds` },
+  }),
+  // Assignment 2 Q1(iii) and Assignment 1 Q1(iii). Assignment 14 Q2(ii) and Assignment 1 Q1(iv) need the sum to
+  // infinity and quadratic equations, taught later, so they are practice.
+  gate: ['a2-q1-iii', 'a1-q1-iii'],
   recall: [
     { front: t`State the rule for the square root of a product.`, back: t`For ${math`a, b \ge ${0}`}: ${math`\sqrt{ab} = \sqrt{a}\sqrt{b}`}. There is no such rule for a sum.` },
     { front: t`How do you rationalise ${math`\frac{${1}}{p + q\sqrt{n}}`}?`, back: t`Multiply the top and bottom by the conjugate ${math`p - q\sqrt{n}`}; the bottom becomes ${math`p^{${2}} - q^{${2}}n`}.` },

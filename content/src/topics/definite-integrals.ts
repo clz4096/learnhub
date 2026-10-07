@@ -5,7 +5,7 @@
  * Assignment 3, Q2(i) (an integral as a trapezium) and Assignment 18, Q3 (2014 STEP I Q3,
  * the integral of x^2 equal to the square of the integral of x), with their hints.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -254,7 +254,10 @@ export const definiteIntegrals: TopicContent = {
   generators: [polyIntegral, areaBelow, expIntegral],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['definite-integral', 'antiderivative'],
-  cambridge: [stepB, stepBroot, stepFull],
+  cambridge: withUses([stepB, stepBroot, stepFull], {
+    'a18-q3': { sections: ['The fundamental theorem'], note: t`Two integrals compared, then a cubic located by a sketch`, needs: ['calc.curve-sketching'] },
+    'a18-q3-i': { sections: ['The fundamental theorem'], note: t`Comparing two integrals` },
+  }),
   gate: ['a18-q3', 'a18-q3-i'],
   recall: [
     { front: t`State the fundamental theorem of calculus.`, back: t`If ${math`f`} is continuous on ${math`[a, b]`}, ${math`\frac{d}{dx}\int_{a}^{x} f(t)\,dt = f(x)`}, and ${math`\int_{a}^{b} f = F(b) - F(a)`} for any antiderivative ${math`F`}.` },

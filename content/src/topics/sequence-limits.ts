@@ -6,7 +6,7 @@
  * points) and Q3(ii) (2006 STEP II Q1, the limit 36), checked against the hints and by
  * iterating each sequence.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -303,7 +303,10 @@ export const sequenceLimits: TopicContent = {
   generators: [nGen, ratGen, powGen, expGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['limit-of-sequence', 'divergent-sequence'],
-  cambridge: [a15q3, a15q3sup, a15c, a15iv],
+  cambridge: withUses([a15q3, a15q3sup, a15c, a15iv], {
+    'a15-q3-ii-proof': { sections: ['The basic limits'], note: t`A bound by induction and the limit of a recurrence`, needs: ['alg.recurrence-sequences', 'alg.proof-by-induction'] },
+    'a15-q3-ii': { sections: ['The basic limits'], note: t`The limit of a recurrence as a fixed point`, needs: ['alg.recurrence-sequences'] },
+  }),
   gate: ['a15-q3-ii-proof', 'a15-q3-ii'],
   recall: [
     { front: t`Define ${math`x_{n} \to a`}.`, back: t`${math`\forall \varepsilon > ${0}\ \exists N\ \forall n \ge N:\ |x_{n} - a| < \varepsilon`}.` },

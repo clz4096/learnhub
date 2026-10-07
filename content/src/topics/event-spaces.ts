@@ -5,7 +5,7 @@
  * the lesson is written from the sheet's Q4 and Q6 and the schedule. The worked example is
  * Q4(a), worked in full; Q4's definitions and Q6(b) are set for supervision.
  */
-import { cite, supervision } from '../cambridge';
+import { cite, supervision, withUses } from '../cambridge';
 import { int, sample, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, setOf, t, type Span } from '../rich';
@@ -284,7 +284,10 @@ export const eventSpaces: TopicContent = {
   generators: [partitionCount, generated, missing],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sigma-algebra', 'partition'],
-  cambridge: [q4def, q4aSecond, q6b],
+  cambridge: withUses([q4def, q4aSecond, q6b], {
+    'q6-b-event': { sections: ['New events from old'], note: t`"Infinitely often" as a countable union of intersections` },
+    'q4-a-finite': { sections: ['Which sets are events?'], note: t`Finite unions and intersections from the definition` },
+  }),
   // Q6(b) first: it needs the limit events built from countable unions and intersections. Then Q4(a)'s
   // finite case. Q4's definitions are recall, not a test, so they do not gate.
   gate: ['q6-b-event', 'q4-a-finite'],

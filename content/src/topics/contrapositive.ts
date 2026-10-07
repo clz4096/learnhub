@@ -7,7 +7,7 @@
  * against the solutions to odd exercises, supervision exercises 1.1.2 and 1.1.8 with the
  * 2023-24 official solutions, and TMUA Exercise K.
  */
-import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
+import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { int, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { equivalent } from '../logic';
@@ -441,7 +441,11 @@ export const contrapositive: TopicContent = {
   generators: [writeContrapositive, withDeMorgan, fourStatements],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['proof-by-contrapositive'],
-  cambridge: [bop1, bop9, bop7, sw112, sw118, bop25, sw112proof, sw118proof, corollary41, tmuaK3],
+  cambridge: withUses([bop1, bop9, bop7, sw112, sw118, bop25, sw112proof, sw118proof, corollary41, tmuaK3], {
+    'cst-corollary-41': { sections: ['The contrapositive', 'Proof by contrapositive'], note: t`Stating and proving the contrapositive about irrational numbers`, needs: ['num.number-systems'] },
+    'sw-1-1-8': { sections: ['Proof by contrapositive', 'Negating compound parts'], note: t`The contrapositive of an implication with an "or", by De Morgan's law` },
+    'sw-1-1-2': { sections: ['Proof by contrapositive', 'Negating compound parts'], note: t`Taking the contrapositive of only part of a statement` },
+  }),
   gate: ['cst-corollary-41', 'sw-1-1-8', 'sw-1-1-2'],
   recall: [
     { front: t`The contrapositive of ${math`P \Rightarrow Q`}.`, back: t`${math`\lnot Q \Rightarrow \lnot P`}, logically equivalent to it.` },

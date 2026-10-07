@@ -14,7 +14,7 @@
  *   bool -> int -> int, 'a list -> int, 'a -> 'a -> 'a, bool -> int list;
  *   push 3 [] : int list; push 3 [true] is a type error; [[]; []] : 'a list list.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { code, codeBlock, oc } from '../ocaml-code';
 import { ex, declSource, parseTy, source, typeOfDecl, typeOfExpr, type Decl, type Ex } from '../fp-types';
 import { int } from '../math';
@@ -328,7 +328,10 @@ export const fpPolymorphism: TopicContent = {
   generators: [inferType, instance, literal],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['type-variable', 'polymorphic-type', 'most-general-type'],
-  cambridge: [polyF, polyG, polyI, focs34, cst25b],
+  cambridge: withUses([polyF, polyG, polyI, focs34, cst25b], {
+    'focs-3-4': { sections: ['One function, many types', 'How OCaml finds the type'], note: t`Why polymorphic types prevent run time type errors` },
+    'cst-2025-p1-q1-b': { sections: ['One function, many types', 'How OCaml finds the type'], note: t`A polymorphic test for sortedness, and its inferred type` },
+  }),
   // FoCS Exercise 3.4 first; then the 2025 Tripos check_sorted, a shorter exercise.
   gate: ['focs-3-4', 'cst-2025-p1-q1-b'],
   recall: [

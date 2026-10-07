@@ -2,10 +2,15 @@
  * pre.fractions: Fractions and ratios. No Cambridge source teaches fractions from the start,
  * so the explanation is written from scratch (decision 11); the STEP Support assignments
  * supply the habit they ask for (cancel before multiplying, answers in lowest terms) and the
- * problems: Assignment 6 Q1(i).
+ * problems: Assignment 6 Q1(i), first part, the gate, and Q4(i)(a), worked.
+ *
+ * The gate needs only this lesson: its section "Cancelling across a long product" teaches the
+ * cancelling on a different product. The second part of Q1(i), the same product to n factors
+ * and its written proof, needs algebra with n and a general argument, so it is in
+ * alg.telescoping (2026-10-06).
  */
-import { auto, cite, same, supervision } from '../cambridge';
-import { add, div, gcd, int, mul, pick, q, str, sub, upTo, type Rational } from '../math';
+import { auto, cite, same, withUses } from '../cambridge';
+import { add, div, gcd, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, frac, math, t, type Span } from '../rich';
 import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
@@ -316,39 +321,34 @@ const a6Value = auto({
   official: { source: cite('step-f06-hints', 'Q1(i)'), answer: '9', agrees: true },
 });
 
-const a6General = auto({
-  id: 'a6-q1-i-general',
-  source: cite(A6, 'Q1(i), second part'),
-  title: t`The same product to ${math`n`} factors`,
-  prompt: t`Find, in terms of ${math`n`}, the value of ${computedTex(`\\frac{${factors('+', [2, 4, 6, 8], `${2}n`)}}{${factors('-', [2, 4, 6, 8], `${2}n`)}}`)}.`,
-  answer: { kind: 'expression', expected: '2n + 1', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 30 } } },
+/**
+ * Q4(i)(a) as a fraction of a fraction: the assignment asks for a probability, and its hint
+ * counts a population of 100, so it is worked here as "what fraction of the population".
+ */
+const SMOKERS = { women: 60, smokeOfWomen: 30, per: 100 } as const;
+const a6Smokers = auto({
+  id: 'a6-q4-i-a',
+  source: cite(A6, 'Q4(i)(a)', true),
+  title: t`A fraction of a fraction`,
+  prompt: t`A study of a large population found that ${SMOKERS.women}% were women, and of the women ${SMOKERS.smokeOfWomen}% were smokers. What fraction of the whole population are women who smoke? Give it as a fraction.`,
+  answer: { kind: 'exact', expected: str(mul(q(SMOKERS.smokeOfWomen, SMOKERS.per), q(SMOKERS.women, SMOKERS.per))) },
   solution: [
-    t`As in the first part, write the brackets as fractions: the top is ${math`\frac{${3}}{${2}} \times \frac{${5}}{${4}} \times \cdots \times \frac{${2}n + ${1}}{${2}n}`} and the bottom is ${math`\frac{${1}}{${2}} \times \frac{${3}}{${4}} \times \cdots \times \frac{${2}n - ${1}}{${2}n}`}.`,
-    t`The even denominators cancel, leaving ${math`\frac{${3} \times ${5} \times \cdots \times (${2}n - ${1}) \times (${2}n + ${1})}{${1} \times ${3} \times \cdots \times (${2}n - ${3}) \times (${2}n - ${1})}`}.`,
-    t`Every odd number on the bottom cancels one on top, and only ${math`${2}n + ${1}`} survives.`,
+    t`${SMOKERS.women}% means ${SMOKERS.women} out of every ${SMOKERS.per}: the fraction ${frac(SMOKERS.women, SMOKERS.per)}, which is ${q(SMOKERS.women, SMOKERS.per)} in lowest terms. Likewise ${SMOKERS.smokeOfWomen}% is ${frac(SMOKERS.smokeOfWomen, SMOKERS.per)}, which is ${q(SMOKERS.smokeOfWomen, SMOKERS.per)}.`,
+    t`The smokers are ${q(SMOKERS.smokeOfWomen, SMOKERS.per)} of the women, and the women are ${q(SMOKERS.women, SMOKERS.per)} of everyone. Taking a fraction of an amount multiplies the amount by that fraction, so the women who smoke are ${math`${q(SMOKERS.smokeOfWomen, SMOKERS.per)} \times ${q(SMOKERS.women, SMOKERS.per)} = ${mul(q(SMOKERS.smokeOfWomen, SMOKERS.per), q(SMOKERS.women, SMOKERS.per))}`} of the population.`,
+    t`Check by counting, as the assignment suggests: of ${SMOKERS.per} people, ${SMOKERS.women} are women, and ${SMOKERS.smokeOfWomen}% of ${SMOKERS.women} is ${(SMOKERS.women * SMOKERS.smokeOfWomen) / SMOKERS.per}. And ${frac((SMOKERS.women * SMOKERS.smokeOfWomen) / SMOKERS.per, SMOKERS.per)} is ${q((SMOKERS.women * SMOKERS.smokeOfWomen) / SMOKERS.per, SMOKERS.per)} in lowest terms.`,
   ],
-  reference: '2n + 1',
+  reference: str(mul(q(SMOKERS.smokeOfWomen, SMOKERS.per), q(SMOKERS.women, SMOKERS.per))),
   verify: () => {
-    for (const n of upTo(20)) {
-      const e = same(`A6 Q1(i) at n = ${n}`, str(product('a6', n)), String(2 * n + 1));
-      if (e !== null) return e;
-    }
-    return null;
+    // A population of 1000 counted person by person: people 0 to 599 are the women, and
+    // within each run of ten women the first three smoke.
+    let both = 0;
+    for (let i = 0; i < 1000; i++) if (i < 600 && i % 10 < 3) both++;
+    return same('A6 Q4(i)(a) by counting', str(q(both, 1000)), str(mul(q(SMOKERS.smokeOfWomen, SMOKERS.per), q(SMOKERS.women, SMOKERS.per))));
   },
   misconceptions: [
-    { response: '2n - 1', why: t`That drops the last factor. The last bracket on top is ${math`${1} + \frac{${1}}{${2}n} = \frac{${2}n + ${1}}{${2}n}`}, and its top survives.` },
-    { response: '2n', why: t`The denominators cancel, so no ${math`${2}n`} is left. What survives is the last numerator, ${math`${2}n + ${1}`}.` },
+    { response: str(sub(q(SMOKERS.women, SMOKERS.per), q(SMOKERS.smokeOfWomen, SMOKERS.per))), why: t`That subtracts the percentages. The smokers are a fraction of the women, so take that fraction of the women's share: multiply.` },
   ],
-  official: { source: cite('step-f06-hints', 'Q1(i)'), answer: '2n + 1', agrees: true },
-});
-
-const a6Show = supervision({
-  id: 'a6-q1-i-show',
-  source: cite(A6, 'Q1(i), second part', true),
-  title: t`Why the general product is ${math`${2}n + ${1}`}`,
-  prompt: t`Show carefully that the product in the last problem equals ${math`${2}n + ${1}`} for every positive integer ${math`n`}. Generalising from a few cases is not enough: say exactly which factors cancel and why the cancelling leaves only ${math`${2}n + ${1}`}.`,
-  writeUp: 'explanation',
-  official: cite('step-f06-hints', 'Q1(i)'),
+  official: { source: cite('step-f06-hints', 'Q4(i)(a)'), answer: '18/100', agrees: true },
 });
 
 // ---------------------------------------------------------------- lesson
@@ -362,12 +362,36 @@ const pizza = { cut: 8, eaten: 3 };
 const eq = { n: 6, d: 8, g: gcd(6, 8) };
 const prod = { a: 2, b: 3, c: 3, d: 5 };
 
+// Cancelling across a long product: the lesson's own product, (1 + 1/k) for k = 2 to 9, never the gate's.
+const longKs: readonly number[] = Array.from({ length: 8 }, (_, i) => i + 2);
+const longFirst = longKs[0] as number;
+const longLast = longKs[longKs.length - 1] as number;
+const longValue = longKs.map((k) => add(q(1), q(1, k))).reduce(mul, q(1));
+const plusBracket = (k: number): string => `\\left(${1} + \\frac{${1}}{${k}}\\right)`;
+const longTex = longKs.map(plusBracket).join('');
+const longShortTex = [...longKs.slice(0, 3).map(plusBracket), '\\cdots', plusBracket(longLast)].join('');
+const longTops = longKs.map((k) => k + 1);
+const longFracTex = `\\frac{${longTops.join(' \\times ')}}{${longKs.join(' \\times ')}}`;
+/** The theorem's example: k = 2 is a factor of the top of the first fraction and the bottom of the second. */
+const cancelEx = { a: 2, b: 3, c: 9, d: 4, k: 2 };
+/** A quotient of two products, turned into one product. */
+const quot = { top: [q(3, 4), q(10, 9)], bottom: [q(5, 6), q(2, 3)] };
+const quotValue = div(quot.top.reduce(mul, q(1)), quot.bottom.reduce(mul, q(1)));
+const flip = (r: Rational): Rational => div(q(1), r);
+const timesTex = (rs: readonly Rational[]): Span => math`${rs[0] as Rational} \times ${rs[1] as Rational}`;
+/** The quick check: (1 - 1/k) for k = 2 to 6. */
+const checkKs: readonly number[] = Array.from({ length: 5 }, (_, i) => i + 2);
+const checkValue = checkKs.map((k) => sub(q(1), q(1, k))).reduce(mul, q(1));
+const checkTex = checkKs.map((k) => `\\left(${1} - \\frac{${1}}{${k}}\\right)`).join('');
+/** The pitfall: a sum on top and underneath. */
+const sumTrap = { x: 3, y: 2, z: 5 };
+
 export const fractions: TopicContent = {
   topicId: 'pre.fractions',
   goal: t`Add, multiply, divide, and simplify fractions, and share an amount in a ratio.`,
-  objective: t`Add, multiply, divide, and simplify fractions, and share an amount in a ratio.`,
+  objective: t`Add, multiply, divide, and simplify fractions, cancel across a long product, and share in a ratio.`,
   why: t`Fractions run through all of probability and algebra; probabilities themselves are fractions.`,
-  minutes: 20,
+  minutes: 25,
   lesson: [
     { kind: 'section', title: t`What a fraction is` },
     { kind: 'hook', text: t`Is ${math`\frac{${ex.a}}{${ex.b}} + \frac{${ex.c}}{${ex.d}}`} equal to ${math`\frac{${ex.a + ex.c}}{${ex.b + ex.d}}`}? Adding tops and bottoms looks natural. But ${math`\frac{${ex.a + ex.c}}{${ex.b + ex.d}}`} is smaller than ${math`\frac{${ex.a}}{${ex.b}}`} on its own, and adding a positive amount cannot make something smaller. So what is the right rule, and why?` },
@@ -426,7 +450,54 @@ export const fractions: TopicContent = {
       text: t`For example ${math`\frac{${prod.a}}{${prod.b}} \times \frac{${prod.c}}{${prod.d}} = \frac{${prod.a * prod.c}}{${prod.b * prod.d}}`}, which is ${mul(q(prod.a, prod.b), q(prod.c, prod.d))}. Dividing by ${half} is multiplying by ${div(q(1), half)}: there are ${div(q(1), half)} halves in one whole.`,
       why: { q: t`Why does multiplying tops and bottoms work?`, a: t`If ${math`bx = a`} and ${math`dy = c`}, then ${math`(bd)(xy) = (bx)(dy) = ac`}. So ${math`xy`} is the number that, times ${math`bd`}, gives ${math`ac`}: that is ${math`\frac{ac}{bd}`}. Dividing by ${math`\frac{c}{d}`} means finding the number that, times ${math`\frac{c}{d}`}, gives ${math`\frac{a}{b}`}, and ${math`\frac{a}{b} \times \frac{d}{c}`} does it.` },
     },
-    { kind: 'p', text: t`Cancel before you multiply. In ${math`\frac{${3}}{${2}} \times \frac{${5}}{${4}} \times \frac{${2}}{${5}}`}, the ${2} and the ${5} each appear once on top and once underneath, so they cancel and leave ${math`\frac{${3}}{${4}}`}, with no large numbers on the way. The STEP Support assignments ask for this habit, and for every answer in lowest terms.` },
+    { kind: 'section', title: t`Cancelling across a long product` },
+    { kind: 'narrative', text: t`How would you work out ${computedTex(longTex)}? Multiplying one bracket at a time works, but the tops and bottoms grow at every step. There is a better way, and the STEP Support assignments expect it: cancel before you multiply.` },
+    { kind: 'p', text: t`Start small. In ${math`\frac{${3}}{${2}} \times \frac{${5}}{${4}} \times \frac{${2}}{${5}}`}, the ${2} and the ${5} each appear once on top and once underneath, so they cancel and leave ${math`\frac{${3}}{${4}}`}, with no large numbers on the way. Here is why that is allowed.` },
+    { kind: 'theorem', name: t`Cancelling across a product`, statement: t`Let ${math`\frac{a}{b}`} and ${math`\frac{c}{d}`} be fractions, and let ${math`k \neq ${0}`} be a whole number with ${math`a = ka'`} and ${math`d = kd'`} for whole numbers ${math`a'`} and ${math`d'`}. Then ${math`\frac{a}{b} \times \frac{c}{d} = \frac{a'}{b} \times \frac{c}{d'}`}.` },
+    {
+      kind: 'p',
+      text: t`In plain words: a number that divides the top of one fraction and the bottom of another may be divided out of both before you multiply. With ${math`\frac{${cancelEx.a}}{${cancelEx.b}} \times \frac{${cancelEx.c}}{${cancelEx.d}}`}, ${math`k = ${cancelEx.k}`} divides the top ${cancelEx.a} and the bottom ${cancelEx.d}, so the product is ${math`\frac{${cancelEx.a / cancelEx.k}}{${cancelEx.b}} \times \frac{${cancelEx.c}}{${cancelEx.d / cancelEx.k}} = ${mul(q(cancelEx.a, cancelEx.b), q(cancelEx.c, cancelEx.d))}`}. Multiplying first gives ${math`\frac{${cancelEx.a * cancelEx.c}}{${cancelEx.b * cancelEx.d}}`}, the same number.`,
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Multiply`, text: t`${math`\frac{a}{b} \times \frac{c}{d} = \frac{ac}{bd} = \frac{k a' c}{b k d'}`}.`, plain: t`The rule for multiplying, then ${math`a = ka'`} on top and ${math`d = kd'`} underneath.` },
+        { label: t`Divide top and bottom by k`, text: t`${math`\frac{k \cdot a'c}{k \cdot bd'} = \frac{a'c}{bd'}`}.`, plain: t`Multiplying top and bottom by the same nonzero number never changes a fraction, so dividing both by ${math`k`} does not either.`, why: { q: t`Why is ${math`k \neq ${0}`} needed?`, a: t`Dividing by ${0} has no meaning, and the rule ${math`\frac{ka}{kb} = \frac{a}{b}`} was proved only for ${math`k \neq ${0}`}.` } },
+        { label: t`Split again`, text: t`${math`\frac{a'c}{bd'} = \frac{a'}{b} \times \frac{c}{d'}`}.`, plain: t`The rule for multiplying, read from right to left.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`A product of many fractions is worked out two at a time, so the same cancelling works between any top and any bottom in it, however far apart they stand.`,
+      why: { q: t`Why may a top cancel a bottom that is not next to it?`, a: t`Multiplication can be done in any order and grouped in any way: ${math`x \times y = y \times x`} and ${math`(x \times y) \times z = x \times (y \times z)`}. So the two fractions can be brought side by side, cancelled, and put back.` },
+    },
+    {
+      kind: 'steps',
+      steps: [
+        { label: t`One fraction per bracket`, text: t`${math`${1} + \frac{${1}}{${2}} = \frac{${3}}{${2}}`}, ${math`${1} + \frac{${1}}{${3}} = \frac{${4}}{${3}}`}, and so on, up to ${math`${1} + \frac{${1}}{${longLast}} = \frac{${longLast + 1}}{${longLast}}`}.`, why: { q: t`Why is ${math`${1} + \frac{${1}}{${2}} = \frac{${3}}{${2}}`}?`, a: t`${math`${1} = \frac{${2}}{${2}}`}, so ${math`${1} + \frac{${1}}{${2}} = \frac{${2}}{${2}} + \frac{${1}}{${2}} = \frac{${3}}{${2}}`}: add over the common denominator.` } },
+        { label: t`Tops over bottoms`, text: t`So the product is ${computedTex(longFracTex)}.`, plain: t`Multiplying fractions multiplies the tops and multiplies the bottoms.` },
+        { label: t`Cancel`, text: t`Every whole number from ${longFirst + 1} to ${longLast} is once on top and once underneath, so each cancels, leaving ${math`\frac{${longLast + 1}}{${longFirst}}`}.`, plain: t`By the theorem, one pair at a time.` },
+        { label: t`Finish`, text: t`${math`\frac{${longLast + 1}}{${longFirst}} = ${longValue}`}.`, plain: t`No multiplication was needed at all.` },
+      ],
+    },
+    { kind: 'p', text: t`Written short, the product is ${computedTex(longShortTex)}. The dots stand for the brackets left out: one for every whole number from ${longFirst} to ${longLast}.` },
+    {
+      kind: 'p',
+      text: t`A fraction bar means divide, so a fraction whose top and bottom are both products is the top divided by the bottom, and that is one more product. Dividing by a product of fractions is multiplying by each of them turned upside down: ${math`\frac{${timesTex(quot.top)}}{${timesTex(quot.bottom)}} = ${quot.top[0] as Rational} \times ${quot.top[1] as Rational} \times ${flip(quot.bottom[0] as Rational)} \times ${flip(quot.bottom[1] as Rational)}`}, and cancelling finishes it: the value is ${quotValue}.`,
+      why: { q: t`Why may each fraction underneath be turned upside down?`, a: t`${math`${timesTex(quot.bottom)} \times ${flip(quot.bottom[0] as Rational)} \times ${flip(quot.bottom[1] as Rational)} = ${1}`}, since every number cancels. So ${math`${flip(quot.bottom[0] as Rational)} \times ${flip(quot.bottom[1] as Rational)}`} is the reciprocal of the bottom, and dividing by a number is multiplying by its reciprocal.` },
+    },
+    quickCheck({
+      prompt: t`Work out ${computedTex(checkTex)} in lowest terms.`,
+      answer: { kind: 'exact', expected: str(checkValue), requireLowestTerms: true },
+      reference: str(checkValue),
+      why: t`As fractions the brackets are ${computedTex(checkKs.map((k) => `\\frac{${k - 1}}{${k}}`).join(' \\times '))}; each top from ${2} to ${checkKs[checkKs.length - 2] as number} cancels the bottom before it, leaving ${checkValue}.`,
+    }),
+    {
+      kind: 'pitfall',
+      claim: t`Cancelling works in a sum too: ${math`\frac{${sumTrap.x} + ${sumTrap.y}}{${sumTrap.x} + ${sumTrap.z}} = \frac{${sumTrap.y}}{${sumTrap.z}}`}.`,
+      counterexample: t`${math`\frac{${sumTrap.x} + ${sumTrap.y}}{${sumTrap.x} + ${sumTrap.z}} = ${q(sumTrap.x + sumTrap.y, sumTrap.x + sumTrap.z)}`}, not ${q(sumTrap.y, sumTrap.z)}. Only a factor of the whole top and of the whole bottom may be cancelled; in a sum, ${sumTrap.x} is a term, not a factor.`,
+    },
     { kind: 'section', title: t`Ratios` },
     {
       kind: 'definition',
@@ -434,17 +505,18 @@ export const fractions: TopicContent = {
       formal: t`Amounts are shared in the [[ratio|ratio]] ${math`m : n`} (with ${math`m, n > ${0}`}) when the first share is ${math`\frac{m}{m + n}`} of the total and the second is ${math`\frac{n}{m + n}`}.`,
       plain: t`cut the whole into ${math`m + n`} equal parts; the first person gets ${math`m`} of them. In the ratio ${math`${2} : ${3}`} the first share is ${q(2, 5)} of the total.`,
     },
-    { kind: 'takeaway', text: t`${math`\frac{a}{b}`} is the number that times ${math`b`} gives ${math`a`}; two fractions are equal when ${math`ad = bc`}, add over a common denominator, and multiply tops and bottoms.` },
+    { kind: 'takeaway', text: t`${math`\frac{a}{b}`} is the number that times ${math`b`} gives ${math`a`}; two fractions are equal when ${math`ad = bc`}, add over a common denominator, multiply tops and bottoms, and in a long product cancel before you multiply.` },
   ],
   examples: [
     worked(addFractions, { a: 2, b: 3, c: 1, d: 4 }, t`Adding fractions`),
     worked(multiplyDivide, { a: 3, b: 4, c: 5, d: 6, op: 'divide' }, t`Dividing by a fraction`),
-    { ...workedCambridge(a6Value), examiner: t`Each bracket written as a single fraction, and the cancelling shown before any multiplication, as the assignment's hint asks.` },
+    { ...workedCambridge(a6Smokers), examiner: t`Each percentage written as a fraction first, the product taken because the smokers are a fraction of a fraction, and the answer checked by counting ${SMOKERS.per} people, as the assignment's hint suggests.` },
   ],
   generators: [addFractions, multiplyDivide, simplify, ratioShare, telescope],
-  cambridge: [a6General, a6Show],
-  // The written argument first, then the general value; both are STEP Support Assignment 6 Q1(i).
-  gate: ['a6-q1-i-show', 'a6-q1-i-general'],
+  cambridge: withUses([a6Value], {
+    'a6-q1-i-value': { sections: ['Multiplying and dividing', 'Cancelling across a long product'], note: t`Writing each bracket as one fraction, then cancelling across the whole product before multiplying` },
+  }),
+  gate: ['a6-q1-i-value'],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fraction', 'numerator', 'denominator', 'lowest-terms', 'common-denominator', 'reciprocal', 'ratio'],
   recall: [
@@ -452,6 +524,7 @@ export const fractions: TopicContent = {
     { front: t`When is ${math`\frac{a}{b} = \frac{c}{d}`}?`, back: t`Exactly when ${math`ad = bc`}.` },
     { front: t`How do you add ${math`\frac{a}{b} + \frac{c}{d}`}?`, back: t`Rewrite both over a common denominator, then add the numerators.` },
     { front: t`How do you divide by ${math`\frac{c}{d}`}?`, back: t`Multiply by its reciprocal, ${math`\frac{d}{c}`}.` },
+    { front: t`In a product of fractions, what may you cancel?`, back: t`A factor of any top against the same factor of any bottom, before multiplying.` },
   ],
   proofOrder: [
     {

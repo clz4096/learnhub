@@ -8,7 +8,7 @@
  * answers are compared with the official solutions.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, join, math, t, type Rich } from '../rich';
@@ -495,7 +495,13 @@ export const firstStep: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['first-step-analysis'],
   claims,
-  cambridge: [q12i, q12ii, q13i, q13ii, s2q3i, darts, s2q3proof, evenSuccesses],
+  cambridge: withUses([q12i, q12ii, q13i, q13ii, s2q3i, darts, s2q3proof, evenSuccesses], {
+    'sheet2-q3': { sections: ['An equation instead of a sum'], note: t`A recurrence by conditioning on the first trial, and a second proof by the binomial theorem`, needs: ['comb.binomial-theorem'] },
+    's2-q3-i-w': { sections: ['An equation instead of a sum', 'When the experiment remembers'], note: t`Conditioning on the first game of a match` },
+    'mixed-q13-ii': { sections: ['When the experiment remembers'], note: t`Winning probabilities in a sequence game by first steps` },
+    'sheet2-q4-darts': { sections: ['An equation instead of a sum'], note: t`Conditioning on the first round of alternate throws` },
+    'mixed-q13-i': { sections: ['When the experiment remembers'], note: t`Which pattern appears first` },
+  }),
   // Best first: Sheet 2 Q3's recurrence, STEP 2 Statistics Q3(i) (a game with internal states), the
   // four-player race, the darts, and the two-player race. Left out: Q12(i), a single geometric sum;
   // Q12(ii), whose answer 1/2 can be guessed; and the comparison of Q3(i), which is algebra on the answer.

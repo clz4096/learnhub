@@ -8,7 +8,7 @@
  * Example Sheet 2 Q6 and Q7 (no official solutions; checked by a second method).
  */
 import { mulberry32 } from '@learnhub/mastery';
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { farApart, poissonPmf, poissonPmfRec, powQ, samplePoisson, sig } from '../partv-d';
@@ -402,7 +402,14 @@ export const poissonRates: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['poisson-rate', 'thinning'],
   claims,
-  cambridge: [q5Sum, q4None, q7a, q5George, q4Rest, q6, q7b],
+  cambridge: withUses([q5Sum, q4None, q7a, q5George, q4Rest, q6, q7b], {
+    'ia-s2-q7-b': { sections: ['Given the total, and thinning'], note: t`Thinning a Poisson count into two independent ones` },
+    's2-q4-nearest': { sections: ['Rates'], note: t`The distance to the nearest point: its density, mean, and variance`, needs: ['rv.pdf', 'rv.continuous-summaries', 'calc.integration-by-parts'] },
+    'ia-s2-q6': { sections: ['Independent Poisson counts add', 'Given the total, and thinning'], note: t`The sum of Poissons and one count given the total` },
+    's2-q5-george': { sections: ['Rates'], note: t`A waiting time from a Poisson rate, and a quadratic in its exponential` },
+    'ia-s2-q7-a': { sections: ['Independent Poisson counts add'], note: t`The page of the second misprint` },
+    's2-q5-sum': { sections: ['Rates', 'Independent Poisson counts add'], note: t`Two rates that add` },
+  }),
   // Multi-part proofs first. The no-supermarket probability is a single step, and dropped.
   gate: ['ia-s2-q7-b', 's2-q4-nearest', 'ia-s2-q6', 's2-q5-george', 'ia-s2-q7-a', 's2-q5-sum'],
   recall: [

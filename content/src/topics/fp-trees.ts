@@ -11,7 +11,7 @@
  *   for t = Br (1, Br (2, Br (4, Lf, Lf), Br (5, Lf, Lf)), Br (3, Lf, Lf)):
  *   preorder t = [1; 2; 4; 5; 3]; (count t, depth t, leaves t) = (5, 3, 6)
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { code, codeBlock, oc, showList } from '../ocaml-code';
 import { int, pick } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -414,8 +414,12 @@ export const fpTrees: TopicContent = {
   generators: [measure, traversal, bound],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binary-tree', 'tree-traversal'],
-  cambridge: [ftreeInorder, depthEx, shapeEx, focs62, focs76],
-  gate: ['focs-7-6', 'cs3110-ex3-shape'],
+  cambridge: withUses([ftreeInorder, depthEx, shapeEx, focs62, focs76], {
+    'focs-7-6': { sections: ['Three ways to list the labels'], note: t`The quadratic cost of traversals with append`, needs: ['fp.complexity'] },
+    'cs3110-ex3-shape': { sections: ['A type that contains itself', 'Measuring a tree'], note: t`Comparing the shapes of two trees with one match` },
+  }),
+  // Exercise 7.6 needs O-notation, taught later; it gates fp.binary-search-trees instead.
+  gate: ['cs3110-ex3-shape'],
   recall: [
     { front: t`State the relation between ${code`leaves`} and ${code`count`}.`, back: t`${math`\mathrm{leaves}(t) = \mathrm{count}(t) + ${1}`} for every tree, by induction on the tree.` },
     { front: t`How many labels can a tree of depth ${math`d`} hold?`, back: t`At most ${math`${2}^{d} - ${1}`}, reached by the complete tree.` },

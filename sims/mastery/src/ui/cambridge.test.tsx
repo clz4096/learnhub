@@ -4,13 +4,13 @@
  * supervision write-up with Copy for supervision (build step 3; see supervision.test.tsx).
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/preact';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/preact';
 import type { AutoProblem, Instance } from '@learnhub/content';
 import { contentFor } from '@learnhub/content/all';
 import { hintFor, inputModeFor, keypadFor } from '@/model/keypad';
 import { loadPlace, loadWriteUp } from '@/model/lessonState';
 import { ProblemCard } from '@/ui/ProblemCard';
-import { LessonRunner } from '@/ui/views/Lesson';
+import { LessonRunner, ProblemView } from '@/ui/views/Lesson';
 
 afterEach(() => {
   cleanup();
@@ -187,5 +187,56 @@ describe('the Cambridge stage', () => {
     render(<LessonRunner topicId="comb.pigeonhole" salt="test" onEnd={() => undefined} onSkip={() => undefined} />);
     fireEvent.click(screen.getByRole('button', { name: /Worked examples/ }));
     expect(screen.getByText('From STEP Support Assignment 5, Q4(i)')).toBeTruthy();
+  });
+});
+
+describe('what a Cambridge problem draws on', () => {
+  const open = async (topicId: string): Promise<void> => {
+    render(<LessonRunner topicId={topicId} salt="test" onEnd={() => undefined} onSkip={() => undefined} />);
+    fireEvent.click(await screen.findByRole('button', { name: /Cambridge problem/ }));
+  };
+  const uses = (problemId: string): HTMLElement => {
+    const card = document.querySelector(`[data-problem="${problemId}"]`) as HTMLElement;
+    return within(card).getByLabelText('What this problem uses');
+  };
+
+  it('says above the gate what it tests, which sections of the lesson it uses, and that fractions build on nothing', async () => {
+    await open('pre.fractions');
+    const block = uses('a6-q1-i-value');
+    expect(within(block).getByText('This tests')).toBeTruthy();
+    expect(block.textContent).toMatch(/cancelling across the whole product before multiplying/);
+    expect(within(block).getByRole('button', { name: 'Multiplying and dividing' })).toBeTruthy();
+    expect(within(block).getByText('Nothing before this lesson')).toBeTruthy();
+    // The block sits above the problem itself.
+    const card = document.querySelector('[data-problem="a6-q1-i-value"]') as HTMLElement;
+    const form = card.querySelector('form') as HTMLElement;
+    expect(block.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('a section link opens that section of the lesson', async () => {
+    await open('pre.fractions');
+    fireEvent.click(within(uses('a6-q1-i-value')).getByRole('button', { name: 'Cancelling across a long product' }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Cancelling across a long product' })).toBeTruthy();
+    expect(loadPlace('test.pre.fractions')?.stage).toBe('learn');
+    expect(document.querySelector('[data-problem]')).toBeNull();
+  });
+
+  it('links the prerequisites, and names what a practice problem needs beyond them', async () => {
+    await open('alg.telescoping');
+    const gate = uses('a6-q1-i-general');
+    const sigma = within(gate).getByRole('link', { name: 'Sigma notation' });
+    expect(sigma.getAttribute('href')).toMatch(/^#\/learn\/alg\.sigma-notation/);
+    expect(within(gate).getByRole('link', { name: 'Fractions and ratios' })).toBeTruthy();
+    expect(within(gate).queryByText('Also needs')).toBeNull();
+    const practice = uses('a24-q3');
+    expect(within(practice).getByText('Also needs')).toBeTruthy();
+    expect(within(practice).getByRole('link', { name: 'Integration by parts' })).toBeTruthy();
+  });
+
+  it('on its own page a problem names the sections without jumping', async () => {
+    render(<ProblemView topicId="pre.fractions" problemId="a6-q1-i-value" />);
+    const block = await screen.findByLabelText('What this problem uses');
+    expect(within(block).getByText('Cancelling across a long product')).toBeTruthy();
+    expect(within(block).queryByRole('button')).toBeNull();
   });
 });

@@ -10,7 +10,7 @@
  *   try f 3 + f (-1) with Neg -> 100 = 100, for f x = if x < 0 then raise Neg else x * 2
  *   try list_max [] with Failure s -> String.length s = 5, for list_max [] = failwith "empty"
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { code, codeBlock, oc, showList } from '../ocaml-code';
 import { int, pick } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -348,7 +348,11 @@ export const fpExceptions: TopicContent = {
   generators: [tryEval, nearest, changeGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exception', 'exception-handler'],
-  cambridge: [listMax, listMaxString, focs65],
+  cambridge: withUses([listMax, listMaxString, focs65], {
+    'focs-6-5': { sections: ['When there is no answer'], note: t`An evaluator that raises an exception for a variable` },
+    'cs3110-ex3-list-max-exn-string': { sections: ['When there is no answer'], note: t`Handling an exception and the type of the handler` },
+    'cs3110-ex3-list-max-exn': { sections: ['When there is no answer'], note: t`What a handled failure returns` },
+  }),
   gate: ['focs-6-5', 'cs3110-ex3-list-max-exn-string', 'cs3110-ex3-list-max-exn'],
   recall: [
     { front: t`What does ${code`raise e`} do, and what is its type?`, back: t`It abandons the current computation and passes the exception ${code`e`} outwards; it has every type, since it returns no value.` },

@@ -5,7 +5,7 @@
  * (-5, 13), with the official answer from the hints) and Assignment 23 Q3 (2009 STEP I Q8:
  * the circles touching y = 0 and 3y = 4x, and the incircle of a 3, 4, 5 triangle).
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedMath, dmath, math, paren, t } from '../rich';
@@ -302,7 +302,10 @@ export const circles: TopicContent = {
   generators: [centreRadius, diameterCircle, pointPosition],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['circle-equation'],
-  cambridge: [a23incircle, a23q3i],
+  cambridge: withUses([a23incircle, a23q3i], {
+    'a23-q3-i': { sections: ['A circle as an equation'], note: t`A circle touching two lines, with a double angle`, needs: ['trig.double-angle', 'geom.intersections'] },
+    'a23-q3-ii': { sections: ['A circle as an equation', 'Completing the square'], note: t`Finding the circle that touches three lines`, needs: ['geom.intersections'] },
+  }),
   gate: ['a23-q3-i', 'a23-q3-ii'],
   recall: [
     { front: t`State the equation of the circle with centre ${math`(a, b)`} and radius ${math`r`}.`, back: t`${math`(x - a)^{${2}} + (y - b)^{${2}} = r^{${2}}`}.` },

@@ -4,7 +4,7 @@
  * ringing discussion of Assignment 12 Q4 (an extent on 5 bells is 5! = 120 changes). The gate
  * problems are Grinstead and Snell, Section 3.1, Exercises 6, 7, and 14(a) (batch 7).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, computedMath as cm, dmath, ident, math, t } from '../rich';
@@ -339,10 +339,13 @@ export const factorialTopic: TopicContent = {
   generators: [arrange, ratio, fixed, names],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arrangement', 'factorial'],
-  cambridge: [extent6, extent8, gs316, gs317, gs3114a],
-  // The round table needs an argument, not a formula; the lift needs the count of all outcomes as
-  // well. The lock and the two extents are each one factorial, so they are practice, not gates.
-  gate: ['gs-3-1-6', 'gs-3-1-7'],
+  cambridge: withUses([extent6, extent8, gs316, gs317, gs3114a], {
+    'gs-3-1-6': { sections: ['Why n! counts orderings'], note: t`Counting arrangements in a circle by fixing one seat` },
+    'gs-3-1-7': { sections: ['Why n! counts orderings'], note: t`A probability as a count of orderings over all outcomes`, needs: ['pre.probability-scale'] },
+  }),
+  // The round table needs an argument, not a formula. The lift asks for a probability, taught later, so it is
+  // practice. The lock and the two extents are each one factorial, so they are practice, not gates.
+  gate: ['gs-3-1-6'],
   recall: [
     { front: t`Define ${math`n!`}.`, back: t`${ident('0!', '1')}, and ${math`n! = n \times (n - ${1})!`} for ${math`n \ge ${1}`}.` },
     { front: t`How many orderings have ${mn} different objects?`, back: t`${math`n!`}.` },

@@ -10,7 +10,7 @@
  * sw has type ('a -> 'b -> 'c) -> 'b -> 'a -> 'c and sw (-) 2 10 is 8. The `verify`
  * functions recompute each answer by evaluating the code's meaning in TypeScript.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { codeOf, ml, mlBlock } from '../ocaml-code';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -314,7 +314,10 @@ export const higherOrder: TopicContent = {
   generators: [repeatValue, partialType, precedence],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['higher-order-function', 'anonymous-function', 'currying', 'partial-application'],
-  cambridge: [mystery2, twiceNoArgs, repeatEx, uncurried, focs81, focs82],
+  cambridge: withUses([mystery2, twiceNoArgs, repeatEx, uncurried, focs81, focs82], {
+    'focs-8-2': { sections: ['Functions are values', 'Currying'], note: t`Combining two orderings with a higher-order function` },
+    'focs-8-1': { sections: ['Currying', 'Reading a type'], note: t`What a function that swaps arguments does, with partial application` },
+  }),
   gate: ['focs-8-2', 'focs-8-1'],
   recall: [
     { front: t`What is a higher-order function?`, back: t`A function that takes a function as an argument or returns one as its result.` },

@@ -9,7 +9,7 @@
  * gives root E, black height 3, 8 nodes, height 4. The `rbInsert` below is the same
  * algorithm in TypeScript. The drawing exercise is a gate, so no practice problem traces it.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, sample } from '../math';
 import { codeOf, ml, mlBlock } from '../ocaml-code';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -231,7 +231,10 @@ export const redBlackTrees: TopicContent = {
   generators: [boundGen, minGen, insGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['red-black-tree', 'black-height', 'rotation'],
-  cambridge: [drawComplete, drawInsertSketch],
+  cambridge: withUses([drawComplete, drawInsertSketch], {
+    'cs3110-9-rb-draw-complete': { sections: ['Two rules that force balance', 'Why the height is logarithmic'], note: t`Colouring a tree to meet both invariants` },
+    'cs3110-9-rb-draw-insert': { sections: ['Inserting without breaking the rules'], note: t`Following insertions with rotations and recolouring` },
+  }),
   gate: ['cs3110-9-rb-draw-complete', 'cs3110-9-rb-draw-insert'],
   recall: [
     { front: t`State the red-black invariants.`, back: t`Black root; no red node has a red child; every root-to-leaf path has the same number of black nodes.` },

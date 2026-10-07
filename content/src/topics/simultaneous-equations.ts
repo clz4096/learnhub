@@ -5,7 +5,7 @@
  * Assignment 14 Q2(iii), and Assignment 17 Q2(i). Linear systems are solved again by exact
  * Gaussian elimination on rationals; non-linear ones by checking the solutions.
  */
-import { auto, cite, same } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, math, t } from '../rich';
@@ -291,7 +291,11 @@ export const simultaneousEquations: TopicContent = {
   generators: [twoLinear, threeLinear, lineQuadratic],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['simultaneous-equations', 'elimination'],
-  cambridge: [a6k, a17, a14],
+  cambridge: withUses([a6k, a17, a14], {
+    'a17-q2-i': { sections: ['Elimination'], note: t`Eliminating to solve four equations in four unknowns` },
+    'a14-q2-iii': { sections: ['A line and a curve'], note: t`Substituting to solve with one quadratic equation` },
+    'a6-q1-ii-k': { sections: ['Elimination', 'When there is no solution'], note: t`Solving with a parameter and finding when there is no solution` },
+  }),
   gate: ['a17-q2-i', 'a14-q2-iii', 'a6-q1-ii-k'],
   recall: [
     { front: t`Which moves keep the solutions of a linear system?`, back: t`Adding a multiple of one equation to another, and multiplying an equation by a non-zero number.` },

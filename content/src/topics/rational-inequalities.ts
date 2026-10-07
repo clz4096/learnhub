@@ -7,7 +7,7 @@
  * set is checked by the sign test (prep-a.ts, setWhere), which treats a zero denominator
  * as "undefined, so not a solution".
  */
-import { cite, supervision } from '../cambridge';
+import { cite, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, sub, type Rational } from '../math';
 import { generator } from '../problem';
 import { computedMath, math, t } from '../rich';
@@ -268,7 +268,11 @@ export const rationalInequalities: TopicContent = {
   generators: [quotientSign, fractionVsNumber, xPlusReciprocal],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['rational-inequality'],
-  cambridge: [db01q2, db01q2auto, a7a, a18iii],
+  cambridge: withUses([db01q2, db01q2auto, a7a, a18iii], {
+    'step01-q2-i': { sections: ['Multiply by a square', 'Sign diagrams with a denominator'], note: t`Solving a rational inequality without losing the sign of x` },
+    'a18-q2-iii': { sections: ['The idea', 'Sign diagrams with a denominator'], note: t`The signs of a quotient` },
+    'step01-q2-i-set': { sections: ['Multiply by a square', 'Sign diagrams with a denominator'], note: t`The solution set of a rational inequality` },
+  }),
   // Best first: STEP I 2001 Q2(i), then Assignment 18 Q2(iii), then 2001 Q2(i) auto-checked.
   gate: ['step01-q2-i', 'a18-q2-iii', 'step01-q2-i-set'],
   recall: [

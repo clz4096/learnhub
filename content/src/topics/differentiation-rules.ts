@@ -8,7 +8,7 @@
  * Calculus Q1 (2005 STEP II Q1), STEP I 1994 Q2(iv), (v) (STEP Questions Database), and IA
  * Differential Equations Example Sheet 1, Q3(ii) (DAMTP).
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -424,7 +424,12 @@ export const differentiationRules: TopicContent = {
   generators: [product, chain, quotient],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['product-rule-calculus', 'chain-rule'],
-  cambridge: [calc1, calc1zeros, db94q2iv, db94q2v, damtpQ3ii, xex, lnSquare, dwdp, turnP, productProof, chainProof, tanProof],
+  cambridge: withUses([calc1, calc1zeros, db94q2iv, db94q2v, damtpQ3ii, xex, lnSquare, dwdp, turnP, productProof, chainProof, tanProof], {
+    's2calc-q1': { sections: ['Products', 'Functions of functions'], note: t`Where the derivative of a polynomial times a Gaussian vanishes` },
+    'step94-q2-iv': { sections: ['Functions of functions'], note: t`Differentiating a tower of powers` },
+    'damtp-de1-q3-ii': { sections: ['Functions of functions', 'Products'], note: t`A third derivative by the chain and product rules` },
+    's2-q3-turn': { sections: ['Quotients'], note: t`A turning point by the quotient rule` },
+  }),
   // Best first: 2005 STEP II Q1 (with official solutions), then the auto-checked STEP I 1994
   // Q2(iv), the IA sheet's Q3(ii), and STEP 2 Statistics Q3(i).
   gate: ['s2calc-q1', 'step94-q2-iv', 'damtp-de1-q3-ii', 's2-q3-turn'],

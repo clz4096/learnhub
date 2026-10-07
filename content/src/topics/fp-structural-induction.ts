@@ -11,7 +11,7 @@
  * on every generated input: rev (xs @ ys) = rev ys @ rev xs, and inorder (reflect t) =
  * rev (inorder t).
  */
-import { cite, supervision } from '../cambridge';
+import { cite, supervision, withUses } from '../cambridge';
 import { code, codeBlock, oc, showList } from '../ocaml-code';
 import { int } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -312,7 +312,11 @@ export const fpStructuralInduction: TopicContent = {
   generators: [ihCount, revAppend, reflectGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['structural-induction'],
-  cambridge: [revDist, revInv, reflectSize, propositions],
+  cambridge: withUses([revDist, revInv, reflectSize, propositions], {
+    'cs3110-ex8-rev-involutive': { sections: ['Induction without numbers', 'Append is associative'], note: t`Structural induction on lists with a lemma` },
+    'cs3110-ex8-reflect-size': { sections: ['Trees: two hypotheses'], note: t`Structural induction on trees with two hypotheses` },
+    'cs3110-ex8-rev-dist-append': { sections: ['Induction without numbers', 'Append is associative'], note: t`Choosing which list to induct on` },
+  }),
   gate: ['cs3110-ex8-rev-involutive', 'cs3110-ex8-reflect-size', 'cs3110-ex8-rev-dist-append'],
   recall: [
     { front: t`State the induction principle for lists.`, back: t`If ${math`P([\,])`}, and ${math`P(t)`} implies ${math`P(h :: t)`} for all ${code`h`}, ${code`t`}, then ${math`P`} holds for every list.` },

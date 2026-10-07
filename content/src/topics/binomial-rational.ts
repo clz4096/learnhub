@@ -9,7 +9,7 @@
  * solutions) and STEP I 2011 Q6 (STEP Questions Database, series summed through (1 - x)^-3).
  * Every coefficient is computed exactly here.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t, type Span } from '../rich';
@@ -433,7 +433,13 @@ export const binomialRational: TopicContent = {
   generators: [coefGen, valGen, approxGen, termsGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binomial-series'],
-  cambridge: [misc7, db11q6, misc7a, misc7b, db11q6i, db11q6ii, a20k, ss5iii, ss5ii, ss5sup],
+  cambridge: withUses([misc7, db11q6, misc7a, misc7b, db11q6i, db11q6ii, a20k, ss5iii, ss5ii, ss5sup], {
+    's2misc-q7': { sections: ['Beyond whole-number powers', 'Approximations'], note: t`Square and cube roots from the binomial series` },
+    'step11-q6': { sections: ['Beyond whole-number powers'], note: t`Coefficients of a negative power, then summing a series` },
+    's2misc-q7-i-b': { sections: ['Approximations'], note: t`Choosing a value to approximate a square root` },
+    'step11-q6-ii': { sections: ['Beyond whole-number powers'], note: t`Summing a series from the coefficients of a negative power` },
+    'nst-ss5-iii': { sections: ['Beyond whole-number powers'], note: t`A quotient of two binomial series` },
+  }),
   // Best first: two STEP questions (2007 II Q1, with official solutions; 2011 I Q6), then their
   // auto-checked parts, then the NST Workbook's SS5(iii).
   gate: ['s2misc-q7', 'step11-q6', 's2misc-q7-i-b', 'step11-q6-ii', 'nst-ss5-iii'],

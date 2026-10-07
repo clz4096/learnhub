@@ -5,7 +5,7 @@
  * bananas, 8N = 81m + 65), Assignment 13 warm down (coins and notes, 4p + 5q = 54), and
  * Assignment 19 Q2(v). Every solution set is found by brute-force search.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, q } from '../math';
 import { generator, type Misconception } from '../problem';
 import { listOf, math, t } from '../rich';
@@ -258,7 +258,10 @@ export const linearDiophantine: TopicContent = {
   generators: [oneSolution, nextSolution, factorPairs],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['diophantine-equation', 'particular-solution'],
-  cambridge: [coins, a19q2v, bananasProof],
+  cambridge: withUses([coins, a19q2v, bananasProof], {
+    'a13-wd': { sections: ['One solution, then all of them', 'Finding the first solution'], note: t`Turning a word problem into a linear equation and listing its positive solutions` },
+    'a19-q2-v': { sections: ['Factorising instead'], note: t`Factorising, then listing factor pairs` },
+  }),
   gate: ['a13-wd', 'a19-q2-v'],
   recall: [
     { front: t`All integer solutions of ${math`ax + by = c`}, given one ${math`(x_{${0}}, y_{${0}})`} and no common factor of ${math`a, b`}?`, back: t`${math`x = x_{${0}} + bk`}, ${math`y = y_{${0}} - ak`}, for every integer ${math`k`}.` },

@@ -4,7 +4,7 @@
  * Foundation Assignment 2 Q2(iv) to (vii) and Q3 (1999 STEP I Q6), and the NST Maths
  * Workbook A4. Extreme values are checked by evaluating on a fine grid of the interval.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, math, t } from '../rich';
@@ -349,8 +349,13 @@ export const quadraticGraphs: TopicContent = {
   generators: [completeSquare, vertex, onInterval],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['completing-the-square', 'vertex'],
-  cambridge: [a2q2iv, a2q2v, a2q2vii, nstA4, step1999],
-  gate: ['a2-q3', 'a2-q2-vii', 'nst-a4'],
+  cambridge: withUses([a2q2iv, a2q2v, a2q2vii, nstA4, step1999], {
+    'a2-q3': { sections: ['Completing the square', 'Extremes on an interval'], note: t`Greatest and least values on an interval, case by case` },
+    'a2-q2-vii': { sections: ['Completing the square', 'Extremes on an interval'], note: t`The greatest value as the vertex moves, written with a modulus`, needs: ['fn.modulus'] },
+    'nst-a4': { sections: ['Completing the square', 'Extremes on an interval'], note: t`Minimum values by completing the square, on the whole line and on an interval` },
+  }),
+  // Assignment 2 Q3 and NST A4. Assignment 2 Q2(vii) needs a modulus in its answer, taught later, so it is practice.
+  gate: ['a2-q3', 'nst-a4'],
   recall: [
     { front: t`Complete the square: ${math`ax^{${2}} + bx + c = \ ?`}`, back: t`${math`a\left(x + \frac{b}{${2}a}\right)^{${2}} + c - \frac{b^{${2}}}{${4}a}`}.` },
     { front: t`Where are the extremes of an upward parabola on an interval?`, back: t`The greatest at the end farther from the vertex; the least at the vertex if it is inside, else at the nearer end.` },

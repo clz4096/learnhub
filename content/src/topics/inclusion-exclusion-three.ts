@@ -6,7 +6,7 @@
  * checked by brute force.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -344,7 +344,11 @@ export const inclusionExclusionThree: TopicContent = {
   generators: [multiples, unionThree, survey],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inclusion-exclusion'],
-  cambridge: [iaQ5bAny, iaQ5aNum, iaQ5a, derive],
+  cambridge: withUses([iaQ5bAny, iaQ5aNum, iaQ5a, derive], {
+    'ia-q5-a': { sections: ['The formula'], note: t`An identity for three events by splitting into disjoint pieces` },
+    'ia-q5-three': { sections: ['The formula', 'Why each outcome counts once'], note: t`Deriving the three-event formula from the two-event rule` },
+    'ia-q5-b-any': { sections: ['Counting with it'], note: t`Counting multiples by inclusion-exclusion` },
+  }),
   // The sheet's two proofs first, then the count to 500; the plug-in with numbers is drill, not a
   // Cambridge-standard test.
   gate: ['ia-q5-a', 'ia-q5-three', 'ia-q5-b-any'],

@@ -7,7 +7,7 @@
  * successful queues split into exclusive cases), all checked against the hints and, for the
  * raffle, by listing every queue.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { math, t } from '../rich';
@@ -312,8 +312,12 @@ export const mutuallyExclusive: TopicContent = {
   generators: [spinGen, missGen, notGen, orGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['mutually-exclusive', 'exhaustive-events'],
-  cambridge: [a12q3i, a12q3ii, a12q2],
-  gate: ['a12-q3-ii', 'a12-q3-i'],
+  cambridge: withUses([a12q3i, a12q3ii, a12q2], {
+    'a12-q3-ii': { sections: ['Splitting into cases'], note: t`Adding the probabilities of disjoint successful queues`, needs: ['pre.tree-diagrams'] },
+    'a12-q3-i': { sections: ['Splitting into cases'], note: t`The probability the queue never runs out of change, by its one bad case` },
+  }),
+  // Assignment 12 Q3(i). Part (ii) multiplies probabilities along the queue (pre.tree-diagrams, later), so it is practice.
+  gate: ['a12-q3-i'],
   recall: [
     { front: t`When is ${math`P(A \text{ or } B) = P(A) + P(B)`}?`, back: t`When ${mA} and ${mB} are mutually exclusive: they cannot both happen.` },
     { front: t`What do the probabilities of an exhaustive set of mutually exclusive events add to?`, back: t`${1}. So ${math`P(\text{not } A) = ${1} - P(A)`}.` },

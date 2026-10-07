@@ -8,7 +8,7 @@
  * (q + pt)^n gives at t = 1 and t = -1). The sheets have no official solutions; every
  * count is checked by listing every case.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { powQ } from '../partv-d';
@@ -376,7 +376,10 @@ export const countingGf: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ordinary-generating-function'],
   claims,
-  cambridge: [q3even, euler, eulerProof, q3proof],
+  cambridge: withUses([q3even, euler, eulerProof, q3proof], {
+    'ia-s2-q3': { sections: ['Probabilities and parity'], note: t`An even count by a generating function, and by a recurrence`, needs: ['prob.first-step'] },
+    'ia-s2-q3-even': { sections: ['Probabilities and parity'], note: t`An even count by a generating function` },
+  }),
   gate: ['ia-s2-q3', 'ia-s2-q3-even'],
   recall: [
     { front: t`The product rule for generating functions.`, back: t`Independent choices multiply: the coefficient of ${math`x^{n}`} in ${math`A(x)B(x)`} is ${math`\sum_{k} a_{k}b_{n - k}`}.` },

@@ -5,7 +5,7 @@
  * three dice, whose probabilities the hints use for the expected gain of a bet.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, upTo, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t, type Rich } from '../rich';
@@ -432,7 +432,11 @@ export const sampleSpaces: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sample-space', 'sample-space-diagram'],
   claims,
-  cambridge: [a19three, a19one, a19table, a19bet],
+  cambridge: withUses([a19three, a19one, a19table, a19bet], {
+    'a19-q4-ii-bet': { sections: ['The list of outcomes', 'Choosing what to list'], note: t`Counting outcomes over many games to judge a bet` },
+    'a19-q4-ii-table': { sections: ['The list of outcomes'], note: t`The probability of each number of sixes from the list of outcomes` },
+    'a19-q4-ii-one': { sections: ['The list of outcomes'], note: t`Counting the outcomes with exactly one six` },
+  }),
   // Best first: the bet (needs every probability and a judgement), the full table, then
   // exactly one six. Three sixes is a single product, too slight to gate.
   gate: ['a19-q4-ii-bet', 'a19-q4-ii-table', 'a19-q4-ii-one'],

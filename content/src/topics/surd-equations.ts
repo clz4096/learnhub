@@ -4,7 +4,7 @@
  * Foundation Assignment 11 Q2(ii) and Q3 (2013 STEP I Q1). Every answer is found again by
  * searching for the values that satisfy the original equation, evaluated in floating point.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, math, t } from '../rich';
@@ -271,7 +271,11 @@ export const surdEquations: TopicContent = {
   generators: [rootLinear, substituteRoot, differenceOfRoots],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['extraneous-solution'],
-  cambridge: [a11q3i, a11q3iia, a11q3iib, step2013],
+  cambridge: withUses([a11q3i, a11q3iia, a11q3iib, step2013], {
+    'a11-q3': { sections: ['Why squaring adds solutions', 'Substituting for the root'], note: t`Substituting for a root and rejecting false solutions` },
+    'a11-q3-ii-b': { sections: ['Substituting for the root'], note: t`Substituting for a root of a quadratic expression` },
+    'a11-q3-i': { sections: ['Substituting for the root'], note: t`Substituting for a square root` },
+  }),
   gate: ['a11-q3', 'a11-q3-ii-b', 'a11-q3-i'],
   recall: [
     { front: t`Why must you check answers after squaring?`, back: t`${math`A^{${2}} = B^{${2}}`} only gives ${math`A = \pm B`}, so squaring can add solutions of ${math`A = -B`}.` },

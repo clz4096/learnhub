@@ -7,7 +7,7 @@
  * checked by trying every permutation, and the minima by a numerical search. The gate adds
  * MIT 18.600 Problem Set 10, C(a) (relative entropy is non-negative), asked through Jensen.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, expect, meanOf, nearestFraction, permutations, population, type Dist } from '../partv-c';
@@ -287,7 +287,10 @@ export const jensen: TopicContent = {
   generators: [reciprocalMean, amgmMinimum, harmonicMean],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['convex-function', 'jensen-inequality', 'am-gm'],
-  cambridge: [q1b, q1bProof, scheduleJensen, mitC],
+  cambridge: withUses([q1b, q1bProof, scheduleJensen, mitC], {
+    'ia-s3-q1-b': { sections: ['AM-GM'], note: t`AM-GM on ratios of a reordering` },
+    'mit-ps10-c-a': { sections: ["Jensen's inequality"], note: t`Jensen with the logarithm: expected smugness` },
+  }),
   // The sheet's proof is the test; the largest reordering is a search over six cases, which does
   // not need Jensen. MIT 18.600's relative entropy (Gibbs' inequality) is the second gate.
   gate: ['ia-s3-q1-b', 'mit-ps10-c-a'],

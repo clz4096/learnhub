@@ -23,6 +23,7 @@ import {
   answerText, citationText, formalNumbers, grade, hasContent, lessonSections, plain, readAnswer, type Block, type CambridgeProblem, type MasteryRule, type QuickCheck,
   type SupervisionProblem, type TopicContent, type WorkedExample, type Why,
 } from '@learnhub/content';
+import { placeOf } from '@learnhub/content/book';
 import { GATE_PASS_MARK } from '@learnhub/mastery';
 import { journeyOf } from '@/model/book';
 import { lessonOutline, outlineIndex, type OutlineEntry } from '@/model/lessonOutline';
@@ -37,6 +38,7 @@ import { answer, freshPractice, instanceAt, outcomeOf, type PracticeState } from
 import { ProblemCard, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
 import type { Route } from '@/model/route';
 import { BackLink } from '@/ui/BackLink';
+import { BookLink } from '@/ui/views/Book';
 import { Rich } from '@/ui/Rich';
 import { AnswerInput } from '@/ui/AnswerInput';
 import { TexText } from '@/ui/Tex';
@@ -416,12 +418,50 @@ function WrongAnswerSupervision({ k, given }: { k: string; given: string }) {
   );
 }
 
+/** A lesson as a link, from the book when the book places it, so Back returns to its chapter. */
+function TopicLink({ id }: { id: string }) {
+  const to: Route = placeOf(id) !== undefined ? { view: 'learn', topicId: id, from: 'book' } : { view: 'learn', topicId: id };
+  return <BookLink to={to}>{titleOf(id)}</BookLink>;
+}
+
+/** Items in a line, separated by commas. */
+const commas = (items: readonly ComponentChildren[]): ComponentChildren[] => items.flatMap((x, i) => (i === 0 ? [x] : [', ', x]));
+
+/**
+ * What a Cambridge problem asks of the learner, above it: the skill it tests, the sections
+ * of this lesson it draws on, and the lessons it builds on (the topic's prerequisites in the
+ * graph). `onSection` opens a section of the lesson; without it (a problem on its own page)
+ * the sections are named, not linked.
+ */
+export function ProblemUsesView({ c, p, onSection }: { c: TopicContent; p: CambridgeProblem; onSection?: (section: number) => void }) {
+  const u = p.uses;
+  const prereqs = topicOf(c.topicId)?.prereqs ?? [];
+  const sections = lessonSections(c.lesson);
+  const section = (title: string, i: number) => {
+    const at = sections.findIndex((x) => x.title !== null && plain(x.title) === title);
+    const found = sections[at];
+    const name = found === undefined || found.title === null ? title : <Rich text={found.title} />;
+    return onSection === undefined || at < 0
+      ? <span key={i}>{name}</span>
+      : <button key={i} type="button" class="linklike" onClick={() => onSection(at)}>{name}</button>;
+  };
+  return (
+    <dl class="objective prob-uses" aria-label="What this problem uses">
+      {u?.note !== undefined && <><dt>This tests</dt><Rich as="dd" text={u.note} /></>}
+      {u !== undefined && u.sections.length > 0 && <><dt>From this lesson</dt><dd>{commas(u.sections.map(section))}</dd></>}
+      <dt>Builds on</dt>
+      <dd>{prereqs.length === 0 ? 'Nothing before this lesson' : commas(prereqs.map((id) => <TopicLink key={id} id={id} />))}</dd>
+      {u?.needs !== undefined && u.needs.length > 0 && <><dt>Also needs</dt><dd>{commas(u.needs.map((id) => <TopicLink key={id} id={id} />))}</dd></>}
+    </dl>
+  );
+}
+
 /**
  * One Cambridge problem. An auto-checked answer is logged as soon as its result shows
  * (`recordCambridgeAnswer`): it is the gate's evidence, and a right one closes the
- * problem's open redos. A gate problem says so.
+ * problem's open redos. A gate problem says so. What it draws on is shown above it.
  */
-export function CambridgeItem({ c, p, n }: { c: TopicContent; p: CambridgeProblem; n: number }) {
+export function CambridgeItem({ c, p, n, onSection }: { c: TopicContent; p: CambridgeProblem; n: number; onSection?: (section: number) => void }) {
   // A new key remounts the card, so "Try it again" starts with an empty answer.
   const [round, setRound] = useState(0);
   const [last, setLast] = useState<string | null>(null);
@@ -435,6 +475,7 @@ export function CambridgeItem({ c, p, n }: { c: TopicContent; p: CambridgeProble
     <article class="cambridge-problem" data-problem={p.id} aria-labelledby={`cam-${p.id}`}>
       <h3 id={`cam-${p.id}`}>Problem {n}: <Rich text={p.title} /></h3>
       <p class="citation small">{citationText(p.source)}{p.mode === 'supervision' ? ' · for supervision' : ' · checked here'}{c.gate.includes(p.id) && ' · gate problem'}{last !== null && <span class={`badge badge-${last === 'correct' ? 'good' : 'muted'}`}>{last === 'correct' ? 'Solved' : 'Tried'}</span>}</p>
+      <ProblemUsesView c={c} p={p} onSection={onSection} />
       {p.mode === 'supervision'
         ? <SupervisionCard topicId={c.topicId} p={p} />
         : (
@@ -473,7 +514,7 @@ export function gateRule(): string {
  * then its other Cambridge problems as further practice. `passed`: the practice run was
  * passed, so this stage finishes the lesson; otherwise it leads back to practice.
  */
-function CambridgeStage({ c, passed, onFinish, onPractice }: { c: TopicContent; passed: boolean; onFinish: () => void; onPractice: () => void }) {
+function CambridgeStage({ c, passed, onFinish, onPractice, onSection }: { c: TopicContent; passed: boolean; onFinish: () => void; onPractice: () => void; onSection: (section: number) => void }) {
   const doc = progress.value;
   const evidence = doc === null ? null : masteryOf(doc, c.topicId).evidence;
   const gate = c.cambridge.filter((p) => c.gate.includes(p.id));
@@ -491,12 +532,12 @@ function CambridgeStage({ c, passed, onFinish, onPractice }: { c: TopicContent; 
         : gate.length === 0
           ? <p>No Cambridge-standard problem is written for this topic yet, so it cannot be mastered until one is. Its practice still counts, and it will be reviewed.</p>
           : <p>To master this topic, {passed ? 'one more step' : 'after its practice'}: {gateRule()}</p>}
-      {gate.map((p) => <CambridgeItem key={p.id} c={c} p={p} n={n(p)} />)}
+      {gate.map((p) => <CambridgeItem key={p.id} c={c} p={p} n={n(p)} onSection={onSection} />)}
       {others.length > 0 && (
         <>
           <h3>More from the Cambridge sources</h3>
           <p class="small muted">Further practice from the same sources. They do not count towards the gate.</p>
-          {others.map((p) => <CambridgeItem key={p.id} c={c} p={p} n={n(p)} />)}
+          {others.map((p) => <CambridgeItem key={p.id} c={c} p={p} n={n(p)} onSection={onSection} />)}
         </>
       )}
       <div class="actions">
@@ -728,7 +769,15 @@ function LessonBody({ salt, onEnd, c, head, title }: LessonProps & { c: TopicCon
           </div>
         </div>
       )}
-      {stage === 'cambridge' && <CambridgeStage c={c} passed={passed} onFinish={() => end({ passed: true })} onPractice={() => goStage('practice')} />}
+      {stage === 'cambridge' && (
+        <CambridgeStage
+          c={c}
+          passed={passed}
+          onFinish={() => end({ passed: true })}
+          onPractice={() => goStage('practice')}
+          onSection={(i) => { goTo(outlineIndex(outline, 'learn', i)); toTop(); }}
+        />
+      )}
       {stage === 'practice' && (
         <Practice
           key={run}

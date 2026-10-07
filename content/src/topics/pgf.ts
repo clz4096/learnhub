@@ -9,7 +9,7 @@
  * the stated forms, and every answer is checked by summing the series.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { meanQ, polyDeriv, polyEval, polyMul, polyTex, sampleFrom, varQ, type Poly } from '../partv-d';
@@ -400,7 +400,11 @@ export const pgf: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['pgf'],
   claims,
-  cambridge: [q5mean, q5var, q5proof, schedule],
+  cambridge: withUses([q5mean, q5var, q5proof, schedule], {
+    'ia-s3-q5': { sections: ['The generating function', 'Moments from derivatives'], note: t`The negative binomial: its distribution, generating function, and moments`, needs: ['alg.binomial-rational'] },
+    'ia-s3-q5-variance': { sections: ['Moments from derivatives'], note: t`A variance from the generating function`, needs: ['alg.binomial-rational'] },
+    'ia-s3-q5-mean': { sections: ['Moments from derivatives'], note: t`A mean from the generating function` },
+  }),
   // The full sheet question first, then its variance and mean.
   gate: ['ia-s3-q5', 'ia-s3-q5-variance', 'ia-s3-q5-mean'],
   recall: [

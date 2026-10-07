@@ -7,7 +7,7 @@
  * 1.2.2, and 1.2.7 (with the 2023-24 official solutions), and TMUA Exercise I.
  */
 import { assignments, evalFormula, parseFormula } from '@learnhub/mastery';
-import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
+import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { int, upTo } from '../math';
 import { generator, type AnswerSpec, type ChoiceOption, type Misconception } from '../problem';
 import { math, t, type Rich, type Span } from '../rich';
@@ -490,10 +490,15 @@ export const iff: TopicContent = {
   generators: [necSuff, iffTable, iffWitness],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['biconditional', 'sufficient-condition', 'necessary-condition'],
-  cambridge: [bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, sw113, sw122, sw127, tmuaI3],
-  // The two-way proofs of the supervision sheet. 1.2.7 first: its backward direction needs a real idea.
-  // The true-or-false version of 1.1.3 is left out: a two-option guess does not test the topic.
-  gate: ['sw-1-2-7', 'sw-1-2-2', 'sw-1-1-3'],
+  cambridge: withUses([bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, sw113, sw122, sw127, tmuaI3], {
+    'sw-1-2-7': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
+    'sw-1-2-2': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
+    'sw-1-1-3': { sections: ['Proving both directions'], note: t`Proving each direction separately, from what it assumes`, needs: ['pre.algebraic-argument'] },
+  }),
+  // The two-way proof of 1.1.3. It leans on parity arguments from pre.algebraic-argument, earlier in the book,
+  // and says so. 1.2.7 and 1.2.2 need divisibility, taught later, so they are practice. The true-or-false
+  // version of 1.1.3 is left out: a two-option guess does not test the topic.
+  gate: ['sw-1-1-3'],
   recall: [
     { front: t`What does ${IFF} mean?`, back: t`${math`(P \Rightarrow Q) \land (Q \Rightarrow P)`}: true exactly when ${mP} and ${mQ} have the same truth value.` },
     { front: t`${math`A`} is sufficient for ${math`B`}: which arrow?`, back: t`${math`A \Rightarrow B`}. ${math`A`} on its own guarantees ${math`B`}.` },

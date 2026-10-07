@@ -6,7 +6,7 @@
  * The gate problems are STEP I 2014 Q5, STEP II 2008 Q3, and STEP I 2012 Q1 (STEP Questions
  * Database), each settled by AM-GM where the paper suggests calculus or a sketch.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -392,7 +392,12 @@ export const amGm: TopicContent = {
   generators: [minGen, prodGen, gapGen, signGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arithmetic-mean', 'geometric-mean'],
-  cambridge: [db14q5, db08q3, db12q1, db14q5ii, db12q1m, a8q1ii, a8q1iii, a8q1, a8eq],
+  cambridge: withUses([db14q5, db08q3, db12q1, db14q5ii, db12q1m, a8q1ii, a8q1iii, a8q1, a8eq], {
+    'step14-q5': { sections: ['Four numbers, then three'], note: t`A cubic inequality by three-term AM-GM, then a maximum` },
+    'step08-q3': { sections: ['Four numbers, then three'], note: t`A bound by AM-GM, then a proof by contradiction`, needs: ['proof.contradiction'] },
+    'step12-q1': { sections: ['Two kinds of average'], note: t`Minimising a sum by two-term AM-GM` },
+    'step14-q5-ii': { sections: ['Four numbers, then three'], note: t`The greatest product under a line, by AM-GM` },
+  }),
   // The gate is three STEP questions the lesson does not touch, best first: 2014 I Q5 (a cubic
   // bound that is AM-GM in disguise, then a maximum), 2008 II Q3 (bounds on products), 2012 I Q1
   // (a minimum distance), then 2014 I Q5(ii) auto-checked. Assignment 8 Q1 is proved in the lesson.

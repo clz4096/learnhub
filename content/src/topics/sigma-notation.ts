@@ -7,7 +7,7 @@
  * manipulating sums, with the induction proofs left to the induction topic). The gate adds
  * STEP I 1995 Q3(iii) and STEP I 2005 Q7(i), (ii) (STEP Questions Database).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, upTo, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -515,11 +515,17 @@ export const sigmaNotation: TopicContent = {
   generators: [evaluate, closedForm, shift, pattern],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sigma-notation', 'index-variable', 'telescoping'],
-  cambridge: [db95q3, db95q3auto, db05q7i, db05q7ii, bop10_1, bop10_4, bop10_6, bop10_7, bop10_15, bop10_3, sw432d, bop10_20],
-  // Best first: STEP I 1995 Q3(iii) (an alternating sum of cubes; parts (i) and (ii), the
-  // telescoping sum and the sum of cubes, are in the lesson and its practice), the CST exercise
-  // on sums of kth powers, then the auto-checked 1995 Q3(iii) and STEP I 2005 Q7(ii).
-  gate: ['step95-q3-iii', 'sw-4-3-2-d', 'step95-q3-iii-sum', 'step05-q7-ii'],
+  cambridge: withUses([db95q3, db95q3auto, db05q7i, db05q7ii, bop10_1, bop10_4, bop10_6, bop10_7, bop10_15, bop10_3, sw432d, bop10_20], {
+    'step95-q3-iii': { sections: ['Sigma notation', 'Rules for manipulating sums'], note: t`Splitting an alternating sum into all terms minus twice the even ones` },
+    'sw-4-3-2-d': { sections: ['Telescoping'], note: t`Telescoping power sums, then induction on the power`, needs: ['proof.strong-induction', 'comb.binomial-theorem'] },
+    'step95-q3-iii-sum': { sections: ['Sigma notation', 'Rules for manipulating sums'], note: t`Splitting an alternating sum and simplifying to a product` },
+    'step05-q7-ii': { sections: ['Telescoping'], note: t`Factorising each term and cancelling across a product`, needs: ['pre.fractions'] },
+  }),
+  // Best first: STEP I 1995 Q3(iii) (an alternating sum of cubes; parts (i) and (ii), the telescoping sum and the sum
+  // of cubes, are in the lesson and its practice), then the auto-checked 1995 Q3(iii) and STEP I 2005 Q7(ii), which cancels
+  // across a product as pre.fractions teaches. The CST exercise on sums of kth powers needs induction on k and the binomial
+  // theorem, taught later, so it is practice.
+  gate: ['step95-q3-iii', 'step95-q3-iii-sum', 'step05-q7-ii'],
   recall: [
     { front: t`How many terms has ${math`\sum_{i = m}^{n} a_{i}`}?`, back: t`${math`n - m + ${1}`}.` },
     { front: t`State the telescoping sum.`, back: t`${math`\sum_{i = ${0}}^{n} \big(f(i + ${1}) - f(i)\big) = f(n + ${1}) - f(${0})`}.` },

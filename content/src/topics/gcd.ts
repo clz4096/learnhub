@@ -7,7 +7,7 @@
  * 3.1.3, 3.2.1, and 3.2.6. Book of Proof Chapter 5, exercise 31, and Chapter 7, exercises 31
  * and 32 give more problems.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { divisors, factorise, gcd } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -298,7 +298,11 @@ export const gcdTopic: TopicContent = {
   generators: [commonDivisorsGen, possibleValues, linearity],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['common-divisor', 'gcd'],
-  cambridge: [bop732, sheet326, sheet313, sheet321, sheet326proof, bop531],
+  cambridge: withUses([bop732, sheet326, sheet313, sheet321, sheet326proof, bop531], {
+    'sheet-3-2-6': { sections: ['The Key Lemma'], note: t`Subtracting multiples without changing the gcd` },
+    'sheet-3-2-1': { sections: ['Laws from the universal property'], note: t`A gcd equal to one of its arguments, from the universal property` },
+    'sheet-3-1-3': { sections: ['Common divisors'], note: t`The gcd divides every combination` },
+  }),
   // The supervision proofs, hardest first. The numerical check of 3.2.6 is left out: it is one gcd computation.
   gate: ['sheet-3-2-6', 'sheet-3-2-1', 'sheet-3-1-3'],
   recall: [

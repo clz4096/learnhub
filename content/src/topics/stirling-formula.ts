@@ -6,7 +6,7 @@
  * Faculty schedule proves only the asymptotics of log n!; the full formula is stated and
  * used. The sheet has no official solutions; each estimate is compared with the exact value.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, toFloat } from '../math';
 import { chooseBig } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -242,7 +242,11 @@ export const stirlingFormula: TopicContent = {
   generators: [stirlingRatio, halfHeads, logFactorial],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['stirlings-formula', 'asymptotic'],
-  cambridge: [q14, q3proof, q14a, q14b],
+  cambridge: withUses([q14, q3proof, q14a, q14b], {
+    'ia-q3-stirling-derivation': { sections: ['Asymptotic equality', 'Ratios of factorials'], note: t`A central binomial coefficient from Stirling, and what the approximation claims` },
+    'ia-q14-a': { sections: ['Ratios of factorials'], note: t`A return probability from Stirling` },
+    'ia-q14-b': { sections: ['Ratios of factorials'], note: t`The local limit everywhere` },
+  }),
   // Best first: deriving the central binomial estimate and the deck answer, then the random
   // walk's local limit at 0 and everywhere. Putting n = 100 into the given formula is too
   // slight to gate.

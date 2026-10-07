@@ -6,7 +6,7 @@
  * Database). Solution sets are checked by the
  * sign test (prep-a.ts, setWhere); regions by evaluating the product at the points.
  */
-import { cite, supervision, auto, same } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, sample, sub, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedMath, dmath, math, t } from '../rich';
@@ -378,7 +378,11 @@ export const polynomialRegions: TopicContent = {
   generators: [cubicSign, repeatedRoot, regionPoints],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sign-diagram', 'region-test-point'],
-  cambridge: [db00q6, db00q6point, a4q3i, nstA5ii, a4q2iii, a4q3iiLines, step1995, a4q2iv],
+  cambridge: withUses([db00q6, db00q6point, a4q3i, nstA5ii, a4q2iii, a4q3iiLines, step1995, a4q2iv], {
+    'step00-q6': { sections: ['Sign diagrams', 'Regions of the plane'], note: t`Factorising into lines and shading where a product is positive` },
+    'a4-q3': { sections: ['Sign diagrams', 'Regions of the plane'], note: t`A cubic sign diagram, then lines through the origin and shaded regions` },
+    'step00-q6-point': { sections: ['Regions of the plane'], note: t`Finding a point inside two shaded regions` },
+  }),
   // Best first: STEP I 2000 Q6 (two regions and a common point), Assignment 4 Q3 (1995 STEP I
   // Q1), then the auto-checked common point of 2000 Q6.
   gate: ['step00-q6', 'a4-q3', 'step00-q6-point'],

@@ -6,7 +6,7 @@
  * 4.2.3(d) with their 2023-24 official solutions; the official solution to 4.2.3(d)
  * fixes the step count used here: gcd(2, 1) takes one step.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { gcd } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -311,7 +311,11 @@ export const euclidAlgorithm: TopicContent = {
   generators: [runEuclid, countSteps, subtractive],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['euclids-algorithm'],
-  cambridge: [notes75, sheet423d, sheet333, theorem79, sheet423dproof],
+  cambridge: withUses([notes75, sheet423d, sheet333, theorem79, sheet423dproof], {
+    'sheet-4-2-3-d-proof': { sections: ['How fast'], note: t`Fibonacci inputs, by induction on the steps`, needs: ['alg.fibonacci'] },
+    'notes-224-theorem-79-bound': { sections: ['How fast'], note: t`The second number halves every two steps` },
+    'sheet-3-3-3': { sections: ['Why it is right'], note: t`Why the subtractive algorithm keeps the common divisors and stops` },
+  }),
   // The proofs: the Fibonacci induction, the halving bound, and the subtractive algorithm's correctness.
   // The two step counts are left out: each is one run of the algorithm.
   gate: ['sheet-4-2-3-d-proof', 'notes-224-theorem-79-bound', 'sheet-3-3-3'],

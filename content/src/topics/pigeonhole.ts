@@ -4,7 +4,7 @@
  * Assignments 5 and 8, Q4 (socks in two and three colours), checked against the hints.
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, listOf, math, t, type Rich } from '../rich';
@@ -359,7 +359,11 @@ export const pigeonhole: TopicContent = {
   generators: [socks, sameKind, worstCase, remainders],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['pigeonhole-principle', 'worst-case', 'proof-by-cases'],
-  cambridge: [a8i, a8ii, a5iii, a8iii, a5iiiShow, a8iiiShow, notesProof],
+  cambridge: withUses([a8i, a8ii, a5iii, a8iii, a5iiiShow, a8iiiShow, notesProof], {
+    'a8-q4-iii-show': { sections: ['How many to be sure?', 'Pigeonholes in disguise'], note: t`Why a number of socks is enough and one fewer is not, with three colours` },
+    'a5-q4-iii-show': { sections: ['How many to be sure?'], note: t`Why a number of socks is enough and one fewer is not, with two colours` },
+    'notes-87-proof': { sections: ['The principle'], note: t`Proving the pigeonhole principle without naming the pigeonhole` },
+  }),
   // The written proofs. The single numbers are dropped: parts (i) and (ii) are one step, and the general formulas appear in the titles of the proof problems.
   gate: ['a8-q4-iii-show', 'a5-q4-iii-show', 'notes-87-proof'],
   recall: [

@@ -10,7 +10,7 @@
  *   [Some 3110; None] matches the pattern [Some 3110; None]; h :: tl matches every non-empty list
  *   wheels Lorry = 18 for the enumeration; safe_hd : 'a list -> 'a option; safe_tl : 'a list -> 'a list option
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { code, codeBlock, oc } from '../ocaml-code';
 import { int, pick } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -417,7 +417,11 @@ export const fpVariants: TopicContent = {
   generators: [wheelsGen, optionGen, whichMatches],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['variant-type', 'constructor', 'option-type'],
-  cambridge: [cst25expr, cst20trees, matchingII, quadrant, safeHdTl, focs61],
+  cambridge: withUses([cst25expr, cst20trees, matchingII, quadrant, safeHdTl, focs61], {
+    'cst-2025-p1-q2-ab': { sections: ['Data of several kinds'], note: t`A variant type for expressions and a function over it` },
+    'cst-2020-p1-q1-ab': { sections: ['Data of several kinds'], note: t`Defining a variant type and functions on it` },
+    'cs3110-ex3-safe-hd-tl': { sections: ['A result that might not exist'], note: t`Option results that force the empty case` },
+  }),
   // Best first: the 2025 and 2020 Tripos questions, then the CS3110 exercise.
   gate: ['cst-2025-p1-q2-ab', 'cst-2020-p1-q1-ab', 'cs3110-ex3-safe-hd-tl'],
   recall: [

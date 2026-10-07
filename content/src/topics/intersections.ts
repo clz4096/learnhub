@@ -6,7 +6,7 @@
  * intersections), and Assignment 23 Q2(ii), (iii) (lines and circles; the tangents to
  * y = x^2 from (0, -1)). Official answers are from the hints.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { listText, pointsKey, valuesKey } from '../geometry';
 import { int, pick, q, sample } from '../math';
 import { generator, type Misconception } from '../problem';
@@ -363,7 +363,11 @@ export const intersections: TopicContent = {
   generators: [countPoints, linePoints, tangentSlopes],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['intersection-point', 'tangent-line'],
-  cambridge: [a8q3pts, a8q3, a8q2iv, a23c, a23iii],
+  cambridge: withUses([a8q3pts, a8q3, a8q2iv, a23c, a23iii], {
+    'a8-q3': { sections: ['Two circles, and curves beyond'], note: t`Combining two curve equations to get every curve through their meeting points` },
+    'a8-q3-points': { sections: ['Two equations, one point', 'Two circles, and curves beyond'], note: t`Solving two ellipse equations together` },
+    'a8-q2-iv': { sections: ['Two circles, and curves beyond'], note: t`Eliminating to find where a circle and an ellipse meet` },
+  }),
   gate: ['a8-q3', 'a8-q3-points', 'a8-q2-iv'],
   recall: [
     { front: t`How do you find where a line meets a curve?`, back: t`Substitute the line into the curve, solve the one-variable equation, and find the other coordinate from the line.` },

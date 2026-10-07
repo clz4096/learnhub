@@ -4,7 +4,7 @@
  * Support Foundation Assignment 11 Q2(i) and Q4. Integer answers are found by searching
  * integers exactly; logarithmic answers by bisection, independently of the log formula.
  */
-import { auto, cite, same } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { int, pick, q } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, math, t } from '../rich';
@@ -249,7 +249,10 @@ export const exponentialEquations: TopicContent = {
   generators: [hiddenQuadratic, shifted, twoBases],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exponential-equation'],
-  cambridge: [a11q4i, a11q4ii],
+  cambridge: withUses([a11q4i, a11q4ii], {
+    'a11-q4-ii': { sections: ['Substitution'], note: t`Turning three bases into a quadratic by a substitution` },
+    'a11-q4-i': { sections: ['Logarithms, and two bases'], note: t`Factorising powers of two bases and matching them` },
+  }),
   gate: ['a11-q4-ii', 'a11-q4-i'],
   recall: [
     { front: t`How do you solve ${math`a^{${2}x} + pa^{x} + q = ${0}`}?`, back: t`Put ${math`y = a^{x}`}, solve the quadratic in ${math`y`}, keep only ${math`y > ${0}`}, then ${math`x = \frac{\ln y}{\ln a}`}.` },

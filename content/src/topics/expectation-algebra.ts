@@ -6,7 +6,7 @@
  * dependent indicators with E(XY) ≠ E(X)E(Y), and whose Var(S) uses Var = E(S^2) - E(S)^2.
  * Checked by listing every row for 2 ≤ a, b ≤ 5 and compared with the official solutions.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, mul, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, paren, t } from '../rich';
@@ -356,10 +356,13 @@ export const expectationAlgebra: TopicContent = {
   generators: [linear, combination, dice],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['linearity-of-expectation', 'variance-of-sum'],
-  cambridge: [q3iic, notesComb, notesProof],
-  // STEP 3 Statistics Q3(ii)(c) first, then the proofs from the topic notes. The notes' numerical
-  // combination is one application of the rule, left out.
-  gate: ['s3-q3-ii-c', 's3-notes-proofs'],
+  cambridge: withUses([q3iic, notesComb, notesProof], {
+    's3-q3-ii-c': { sections: ['Independent variables'], note: t`The variance of a count of runs, from pairs of indicators`, needs: ['rv.indicators'] },
+    's3-notes-proofs': { sections: ['Means of combinations', 'Variance of a linear function', 'Independent variables'], note: t`Proving the rules for means and variances, and where independence is used` },
+  }),
+  // The proofs from the topic notes. STEP 3 Statistics Q3(ii)(c) needs indicator variables, taught next, so it is
+  // practice; the notes' numerical combination is one application of the rule, left out.
+  gate: ['s3-notes-proofs'],
   recall: [
     { front: t`State linearity of expectation.`, back: t`${math`E(aX + bY + c) = aE(X) + bE(Y) + c`}, for any ${mX} and ${mY}.` },
     { front: t`${math`\mathrm{Var}(aX + b)`}?`, back: t`${math`a^{${2}}\mathrm{Var}(X)`}.` },

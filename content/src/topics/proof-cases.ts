@@ -8,7 +8,7 @@
  * Assignment 6 Q3, Book of Proof Chapter 4 exercises 14 to 16, and supervision exercises
  * 1.2.8, 2.2.3, 2.3.1, and 3.2.7, with the 2023-24 official solutions.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computed, computedTex, dmath, listOf, math, t, type Rich } from '../rich';
@@ -422,10 +422,17 @@ export const proofCases: TopicContent = {
   generators: [residues, parityCases, digitSums],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exhaustive-cases', 'without-loss-of-generality'],
-  cambridge: [a6ii, lemma26, odd8, bop14, bop15, bop44, sw223, sw128, sw231, sw327, bop16],
-  // Best first: the two hardest supervision proofs, the STEP count, then the easier proofs. The
-  // auto-checked remainders (0 or 1; 1 for odd squares mod 8) can be guessed, so they do not gate.
-  gate: ['sw-2-3-1', 'sw-3-2-7', 'a6-q3-ii', 'sw-1-2-8', 'sw-2-2-3'],
+  cambridge: withUses([a6ii, lemma26, odd8, bop14, bop15, bop44, sw223, sw128, sw231, sw327, bop16], {
+    'sw-2-3-1': { sections: ['Proof by cases', 'Squares and remainders'], note: t`Both directions by cases on remainders, written as congruences`, needs: ['num.congruence'] },
+    'sw-3-2-7': { sections: ['Squares and remainders'], note: t`Squares modulo three and eight, then combining for primes`, needs: ['num.congruence'] },
+    'a6-q3-ii': { sections: ['Show there are no more'], note: t`Counting by the shortfall from all nines, case by case` },
+    'sw-1-2-8': { sections: ['Proof by cases'], note: t`Splitting off the zero case in a divisibility proof` },
+    'sw-2-2-3': { sections: ['Proof by cases', 'Squares and remainders'], note: t`Odd and even cases for the remainder of a square` },
+  }),
+  // The STEP count, then the proofs by cases. Exercises 2.3.1 and 3.2.7 are written with congruences, taught later,
+  // so they are practice. The auto-checked remainders (0 or 1; 1 for odd squares mod 8) can be guessed, so they do
+  // not gate.
+  gate: ['a6-q3-ii', 'sw-1-2-8', 'sw-2-2-3'],
   recall: [
     { front: t`State proof by cases.`, back: t`If ${math`P_{${1}}, \ldots, P_{k}`} are exhaustive and each ${math`P_{i}`} implies ${mQ}, then ${mQ} holds.` },
     { front: t`What does it mean for cases to be exhaustive?`, back: t`At least one of them always holds: ${math`P_{${1}} \lor \cdots \lor P_{k}`}.` },

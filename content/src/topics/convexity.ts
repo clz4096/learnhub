@@ -6,7 +6,7 @@
  * Assignment 13 hints compared in the content checks. The STEP specification ties the second
  * derivative to "convex and concave sections of curves" (STEP 1, Differentiation).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -253,7 +253,10 @@ export const convexity: TopicContent = {
   generators: [cubicSwitch, quarticConcave, chord],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['concave-function', 'tangent-below'],
-  cambridge: [switchQ, quarticQ, sketchQ],
+  cambridge: withUses([switchQ, quarticQ, sketchQ], {
+    'a13-q1': { sections: ['The second derivative'], note: t`Second derivatives, concavity, and a sketch with stationary points`, needs: ['calc.stationary-points'] },
+    'a13-q1-iii': { sections: ['The second derivative'], note: t`Where the second derivative is negative` },
+  }),
   gate: ['a13-q1', 'a13-q1-iii'],
   recall: [
     { front: t`Define a convex function on an interval.`, back: t`${math`f(tx + (${1} - t)y) \le tf(x) + (${1} - t)f(y)`} for all ${math`x, y`} in it and ${math`t \in [${0}, ${1}]`}: chords lie above.` },

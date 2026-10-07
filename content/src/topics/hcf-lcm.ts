@@ -6,7 +6,7 @@
  * prime-power method the solutions use. The gate is IA Numbers and Sets Example Sheet 2, Q8
  * (batch 7), with HCF written for the sheet's (a, b).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, q, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, math, t } from '../rich';
@@ -279,7 +279,9 @@ export const hcfLcm: TopicContent = {
   generators: [hcf, lcm, product],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hcf', 'lcm'],
-  cambridge: [a10lcm, ns2q8, ns2q8Witness],
+  cambridge: withUses([a10lcm, ns2q8, ns2q8Witness], {
+    'ns2-q8': { sections: ['Definitions', 'From prime factorisations'], note: t`Testing claims about highest common factors, proving or giving a counterexample`, needs: ['proof.counterexample'] },
+  }),
   // The IA question: three claims about HCFs of products, each proved or refuted. The LCM from given
   // factorisations is a single step, and the counterexample alone is the question's first line.
   gate: ['ns2-q8'],

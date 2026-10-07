@@ -7,7 +7,7 @@
  * var(S_N) = σ^2 E(N) + μ^2 var(N)). The sheets have no official solutions; the answers are
  * checked by exact convolution of the Poisson weights and by summing over every outcome.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, expect, meanOf, variance, type Dist } from '../partv-c';
@@ -379,7 +379,11 @@ export const conditionalExpectation: TopicContent = {
   generators: [conditionalPmf, conditionalMean, towerLaw],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['conditional-distribution', 'conditional-expectation', 'tower-law'],
-  cambridge: [q6sum, q8b, q6proof, q8proof, scheduleTower],
+  cambridge: withUses([q6sum, q8b, q6proof, q8proof, scheduleTower], {
+    'ia-s3-q8-ab': { sections: ['The tower law', 'Two working rules'], note: t`The mean and variance of a random sum by conditioning` },
+    'ia-s2-q6': { sections: ['Conditional distribution and mean'], note: t`A conditional distribution given a total`, needs: ['prob.poisson-distribution', 'comb.binomial-theorem'] },
+    'ia-s3-q8-b': { sections: ['Two working rules'], note: t`The variance of a random sum` },
+  }),
   gate: ['ia-s3-q8-ab', 'ia-s2-q6', 'ia-s3-q8-b'],
   recall: [
     { front: t`The conditional distribution of ${math`X`} given ${math`Y = y`}.`, back: t`${math`\mathbb{P}(X = x \mid Y = y) = \frac{\mathbb{P}(X = x, Y = y)}{\mathbb{P}(Y = y)}`}, for ${math`\mathbb{P}(Y = y) > ${0}`}.` },

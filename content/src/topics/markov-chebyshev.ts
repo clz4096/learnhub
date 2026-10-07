@@ -7,7 +7,7 @@
  * the Poisson bound by minimising over a grid of β, and each bound against the two- or
  * three-point distribution that attains it.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, expect, type Dist } from '../partv-c';
@@ -311,7 +311,11 @@ export const markovChebyshev: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['markov-inequality', 'chebyshev-inequality'],
   claims,
-  cambridge: [q3a, q2proof, q3proof, scheduleProof],
+  cambridge: withUses([q3a, q2proof, q3proof, scheduleProof], {
+    'ia-s3-q3-a': { sections: ["Markov's inequality"], note: t`Optimising an exponential Markov bound for a Poisson tail`, needs: ['prob.poisson-distribution'] },
+    'ia-s3-q2': { sections: ["Markov's inequality", "Chebyshev's inequality"], note: t`Two more forms of Markov's inequality` },
+    'ia-s3-q3-a-value': { sections: ["Markov's inequality"], note: t`A numerical exponential bound for a Poisson tail`, needs: ['prob.poisson-distribution'] },
+  }),
   // The two write-ups first, then the Chernoff bound with numbers, which still needs the optimisation over the exponent.
   gate: ['ia-s3-q3-a', 'ia-s3-q2', 'ia-s3-q3-a-value'],
   recall: [

@@ -5,7 +5,7 @@
  * (iii). Answers are computed exactly; the equidistant line is found again by expanding
  * PX^2 = QX^2, a different method from the midpoint and perpendicular gradient.
  */
-import { auto, cite, same } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, math, t } from '../rich';
@@ -345,8 +345,12 @@ export const straightLines: TopicContent = {
   generators: [throughPoint, perpendicular, equidistant],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['gradient', 'perpendicular-gradients', 'distance-formula'],
-  cambridge: [a19q2i, a19q2iii, a19q2iv, a2q2iii],
-  gate: ['a2-q2-iii', 'a19-q2-iii'],
+  cambridge: withUses([a19q2i, a19q2iii, a19q2iv, a2q2iii], {
+    'a2-q2-iii': { sections: ['Gradient and the equation of a line'], note: t`The greatest value of a line on an interval, written with a modulus`, needs: ['fn.modulus'] },
+    'a19-q2-iii': { sections: ['Gradient and the equation of a line'], note: t`When two equations describe the same line` },
+  }),
+  // Assignment 19 Q2(iii). Assignment 2 Q2(iii) needs a modulus in its answer, taught later, so it is practice.
+  gate: ['a19-q2-iii'],
   recall: [
     { front: t`The line through ${math`(x_{${1}}, y_{${1}})`} with gradient ${math`m`}?`, back: t`${math`y - y_{${1}} = m(x - x_{${1}})`}.` },
     { front: t`When are two lines perpendicular?`, back: t`When their gradients multiply to ${math`-${1}`} (or one is vertical and the other horizontal).` },

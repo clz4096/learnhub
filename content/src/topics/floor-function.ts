@@ -5,7 +5,7 @@
  * square roots); areas by adding the rectangles one unit at a time, and checked by a
  * Riemann sum in floating point.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { math, t } from '../rich';
@@ -320,7 +320,11 @@ export const floorFunction: TopicContent = {
   generators: [floorValue, floorArea, floorEquation],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['floor-function', 'step-function'],
-  cambridge: [a3q2iv, a3q2v, a3q3ii, step2004],
+  cambridge: withUses([a3q2iv, a3q2v, a3q3ii, step2004], {
+    'a3-q3': { sections: ['The definition', 'The staircase and its area'], note: t`Areas under step graphs as sums, including a geometric sum`, needs: ['alg.geometric-series'] },
+    'a3-q3-ii': { sections: ['The staircase and its area'], note: t`The area under a step graph as a geometric sum`, needs: ['alg.geometric-series'] },
+    'a3-q2-v': { sections: ['The definition', 'The staircase and its area'], note: t`Sketching a product with the floor function and adding the areas piece by piece` },
+  }),
   gate: ['a3-q3', 'a3-q3-ii', 'a3-q2-v'],
   recall: [
     { front: t`Define ${math`[x]`}.`, back: t`The greatest integer at most ${math`x`}: the integer ${math`n`} with ${math`n \le x < n + ${1}`}.` },

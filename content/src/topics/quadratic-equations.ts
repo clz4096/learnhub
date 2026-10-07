@@ -8,7 +8,7 @@
  * Foundation Assignment 1 Q2(ii) and Assignment 2 Q2(vi) with their hints; Assignment 1 Q2(iii)
  * and Q3 are set in ineq.linear-quadratic.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, computedTex, dmath, frac, math, t } from '../rich';
@@ -416,12 +416,14 @@ export const quadraticEquations: TopicContent = {
   generators: [solveQuadratic, repeatedRoot, hiddenQuadratic],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quadratic-formula', 'discriminant'],
-  cambridge: [mildredWait, twoRates, showQuadratic, a1q2ii, a2q2vi],
-  // The two values of the exponential test the quadratic. The write-up (s2-q5-show) and
-  // Mildred's first text both need Poisson processes, not yet met here, so neither gates.
-  // Batch 7 adds the STEP Foundation warm-ups (Assignment 1 Q2(ii), Assignment 2 Q2(vi)); completing
-  // the square on an interval has four parts, so it gates too. The repeated root is one step.
-  gate: ['s2-q5-two-values', 'a2-q2-vi'],
+  cambridge: withUses([mildredWait, twoRates, showQuadratic, a1q2ii, a2q2vi], {
+    's2-q5-two-values': { sections: ['Quadratics in disguise', 'Factorising'], note: t`Spotting a quadratic in a new letter and solving it` },
+    'a2-q2-vi': { sections: ['The formula, derived'], note: t`Completing the square, then the greatest and least values on an interval`, needs: ['fn.quadratic-graphs'] },
+  }),
+  // The two values of the exponential test the quadratic. The write-up (s2-q5-show) and Mildred's first text
+  // both need Poisson processes, not yet met here, so neither gates. Assignment 2 Q2(vi) asks for greatest and
+  // least values on an interval, taught in fn.quadratic-graphs, so it is practice. The repeated root is one step.
+  gate: ['s2-q5-two-values'],
   recall: [
     { front: t`State the quadratic formula.`, back: t`${math`x = \frac{-b \pm \sqrt{b^{${2}} - ${4}ac}}{${2}a}`}, for ${math`a \ne ${0}`}.` },
     { front: t`How does the discriminant count the real roots?`, back: t`${math`\Delta > ${0}`}: two. ${math`\Delta = ${0}`}: one repeated root. ${math`\Delta < ${0}`}: none.` },

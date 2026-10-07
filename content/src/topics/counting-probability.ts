@@ -6,7 +6,7 @@
  * against the hints.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, q, str, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -357,7 +357,12 @@ export const countingProbability: TopicContent = {
   generators: [committee, largest, together],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['favourable-outcome'],
-  cambridge: [q3ii, q3iii, twoMints, q3iiShow, q3general],
+  cambridge: withUses([q3ii, q3iii, twoMints, q3iiShow, q3general], {
+    'a12-q3-ii-show': { sections: ['Building a favourable count', 'Arrangements'], note: t`Counting the successful queues and justifying the list` },
+    'a12-q3-iii': { sections: ['Building a favourable count', 'Arrangements'], note: t`A queue probability by counting arrangements` },
+    'a12-q3-ii': { sections: ['Building a favourable count', 'Arrangements'], note: t`A queue probability by counting arrangements` },
+    'a12-q3-discussion': { sections: ['Arrangements'], note: t`Testing a conjecture by listing every equally likely queue` },
+  }),
   // The raffle question, STEP I 2011 Q12: the written justification of n equal to 2 first, then the
   // hardest case, its n = 2 answer, and the Discussion. The sweets question is a one-line count, left out.
   gate: ['a12-q3-ii-show', 'a12-q3-iii', 'a12-q3-ii', 'a12-q3-discussion'],

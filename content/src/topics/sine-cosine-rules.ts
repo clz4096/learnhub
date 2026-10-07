@@ -6,7 +6,7 @@
  * the official answers from the hints), Assignment 9 Q1(ii) and (iii), Assignment 20 Q5,
  * and NST Maths Workbook G1(ii).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { cosDeg, listText, sinDeg, surd, valuesKey } from '../geometry';
 import { int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
@@ -365,7 +365,10 @@ export const sineCosineRules: TopicContent = {
   generators: [cosineSide, cosineAngle, areaGen, sineSide],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['cosine-rule', 'sine-rule'],
-  cambridge: [a5alt, a5q1ii, a9q1, a20q5, g1ii],
+  cambridge: withUses([a5alt, a5q1ii, a9q1, a20q5, g1ii], {
+    'a20-q5': { sections: ['Area and the sine rule', 'Which rule, and where it breaks'], note: t`Angles in a triangle from the sine rule and a height` },
+    'a5-q2-i-altitudes': { sections: ['The cosine rule', 'Area and the sine rule'], note: t`The area from two sides and the sine, then each altitude` },
+  }),
   gate: ['a20-q5', 'a5-q2-i-altitudes'],
   recall: [
     { front: t`State the cosine rule.`, back: t`${math`c^{${2}} = a^{${2}} + b^{${2}} - ${2}ab\cos C`}, with ${mC} the angle between ${ma} and ${mb}.` },

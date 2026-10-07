@@ -6,7 +6,7 @@
  * (p - m) | C(p - 1, m), from p C(p - 1, m) = (p - m) C(p, m)) and Book of Proof Chapter 4,
  * exercise 21, whose solution argues with prime factorisations instead.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { chooseBig, isPrime } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -233,7 +233,9 @@ export const primeBinomial: TopicContent = {
   generators: [quotient, compositeWitness, rowCount],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['prime-divides-binomial'],
-  cambridge: [cor85, bop421, lemma27],
+  cambridge: withUses([cor85, bop421, lemma27], {
+    'notes-116-lemmas-27-29': { sections: ['The theorem', 'Why the prime matters'], note: t`The ends of a row and the inner coefficients, case by case`, needs: ['num.congruence'] },
+  }),
   // The notes' proof by cases. Corollary 85 with numbers is a division sum, and Book of Proof is not Cambridge standard.
   gate: ['notes-116-lemmas-27-29'],
   recall: [

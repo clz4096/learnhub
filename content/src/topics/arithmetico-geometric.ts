@@ -6,7 +6,7 @@
  * 2: the geometric distribution's mean 1/p and second moment by differentiating). Every
  * official answer is compared; the infinite sums are checked by summing them numerically.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t, texOfRational } from '../rich';
@@ -348,7 +348,12 @@ export const arithmeticoGeometric: TopicContent = {
   generators: [infiniteSum, finiteSum, contest],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arithmetico-geometric-series'],
-  cambridge: [arthur, beta, contestMean, geomSecond, q2proofS, q2proofE],
+  cambridge: withUses([arthur, beta, contestMean, geomSecond, q2proofS, q2proofE], {
+    's3-q2-prove-series': { sections: ['Subtract r times the series'], note: t`Summing by subtracting r times the series` },
+    's3-q2-prove-contest': { sections: ['Subtract r times the series'], note: t`An expected number of shots split by who wins`, needs: ['rv.expectation'] },
+    's3-q2-contest-shots': { sections: ['Subtract r times the series'], note: t`An expected number of shots`, needs: ['rv.expectation'] },
+    's3-notes-geometric-second-moment': { sections: ['The calculus route'], note: t`A second moment by differentiating a geometric series twice`, needs: ['rv.expectation'] },
+  }),
   gate: ['s3-q2-prove-series', 's3-q2-prove-contest', 's3-q2-contest-shots', 's3-notes-geometric-second-moment'],
   recall: [
     { front: t`${math`\sum_{n \ge ${0}} (a + nd)r^{n}`} for ${math`|r| < ${1}`}.`, back: t`${math`\frac{a}{${1} - r} + \frac{dr}{(${1} - r)^{${2}}}`}.` },

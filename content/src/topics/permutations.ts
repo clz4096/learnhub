@@ -6,7 +6,7 @@
  * problems are Assignment 6, Q2(i) (checked against the hints) and IA Probability Example
  * Sheet 1, Q12 (n balls into n boxes, exactly one box empty), checked by brute force.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t } from '../rich';
@@ -309,7 +309,10 @@ export const permutations: TopicContent = {
   generators: [permGen, wordGen, fixGen, inclGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['permutation'],
-  cambridge: [ia12, ia12proof, a6q2],
+  cambridge: withUses([ia12, ia12proof, a6q2], {
+    'ia1-q12-check': { sections: ['Ordered choices'], note: t`Counting placements with exactly one empty box`, needs: ['comb.combinations', 'pre.probability-scale'] },
+    'ia1-q12': { sections: ['Ordered choices'], note: t`Counting placements with exactly one empty box`, needs: ['comb.combinations', 'pre.probability-scale'] },
+  }),
   gate: ['ia1-q12-check', 'ia1-q12'],
   recall: [
     { front: t`What is ${math`P(n, r)`}, and what does it count?`, back: t`${math`\frac{n!}{(n - r)!} = n(n - ${1})\cdots(n - r + ${1})`}: ordered selections of ${mr} different objects from ${mn}.` },

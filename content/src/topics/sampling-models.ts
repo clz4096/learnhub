@@ -7,7 +7,7 @@
  * answer is checked by listing every outcome.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, q, str, sub } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -290,7 +290,11 @@ export const samplingModels: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sampling-model', 'stars-and-bars'],
   claims,
-  cambridge: [q12four, q13auto, q13why, q12why],
+  cambridge: withUses([q12four, q13auto, q13why, q12why], {
+    'ia-q13-bijection': { sections: ['The four models'], note: t`A bijection between non-decreasing functions and samples with replacement` },
+    'ia-q13': { sections: ['The four models', 'Which outcomes are equally likely?'], note: t`The chance a random non-decreasing function is strictly increasing` },
+    'ia-q12-model': { sections: ['Which outcomes are equally likely?'], note: t`Which sample space has equally likely outcomes` },
+  }),
   // Best first: the bijection proof for non-decreasing functions, its probability, then the
   // explanation of which model is equally likely. Four balls into four boxes is the worked
   // formula with a number put in, so it does not gate.

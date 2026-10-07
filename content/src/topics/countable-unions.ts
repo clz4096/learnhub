@@ -6,7 +6,7 @@
  * force), and the proof of the set identity that the sheet's Q4(a) relies on goes to
  * supervision. The sheet's own Q6(a) is set in prob.event-spaces, so it is not worked here.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, setOf, t, type Rich, type Span } from '../rich';
@@ -359,7 +359,10 @@ export const countableUnions: TopicContent = {
   generators: [windowSets, intervals, ioEventually],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['countable', 'infinitely-often'],
-  cambridge: [q6divB, q6parity, q6fixed, deMorgan, ioWords],
+  cambridge: withUses([q6divB, q6parity, q6fixed, deMorgan, ioWords], {
+    'q4-de-morgan': { sections: ['Infinitely many sets at once'], note: t`De Morgan's law for a sequence of sets` },
+    'q6-words': { sections: ['Infinitely often and eventually'], note: t`"Infinitely often" and "eventually" in quantifiers`, needs: ['logic.quantifiers'] },
+  }),
   gate: ['q4-de-morgan', 'q6-words'],
   recall: [
     { front: t`${math`\bigcup_{n} A_n`} and ${math`\bigcap_{n} A_n`}.`, back: t`The points in ${math`A_n`} for some ${mn}; the points in ${math`A_n`} for every ${mn}.` },

@@ -6,7 +6,7 @@
  * like to show that E(X) = lambda") and STEP 2 Statistics Q1 (2003 S2 Q13, the Poisson
  * distribution without its zero), whose hints and solutions give A, the mean, and 0.04.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { fact, farApart, poissonCdf, poissonPmf, poissonPmfRec, sig } from '../partv-d';
 import { generator, type Misconception } from '../problem';
@@ -355,7 +355,11 @@ export const poissonDistribution: TopicContent = {
   generators: [pmf, tail, ratio],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['poisson-distribution'],
-  cambridge: [q1Mu, q1Var, q1Show, q1Normal, notesMean],
+  cambridge: withUses([q1Mu, q1Var, q1Show, q1Normal, notesMean], {
+    's2-q1-show': { sections: ['The distribution', 'Mean and variance'], note: t`A truncated Poisson distribution: its constant, mean, and variance` },
+    's2-q1-variance': { sections: ['Mean and variance'], note: t`A truncated Poisson variance` },
+    's2-q1-mean': { sections: ['Mean and variance'], note: t`A truncated Poisson mean` },
+  }),
   // STEP 2 Q1 in full first, then its variance and mean. The notes' mean is proved in the lesson, and the normal part belongs to the normal approximation.
   gate: ['s2-q1-show', 's2-q1-variance', 's2-q1-mean'],
   recall: [

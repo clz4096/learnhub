@@ -4,7 +4,7 @@
  * Q4(b) to (e), proved "starting from the definitions". The sheet has no official
  * solutions; the numerical answers are checked on explicit finite probability spaces.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, sample, str, sub, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { join, math, t, type Rich, type Span } from '../rich';
@@ -324,7 +324,11 @@ export const axiomConsequences: TopicContent = {
   generators: [fromThree, bounds, consistent],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['monotonicity'],
-  cambridge: [q4e, q4b, q4eproof, boundsProof],
+  cambridge: withUses([q4e, q4b, q4eproof, boundsProof], {
+    'ia-q4-bounds': { sections: ['Bounds without the overlap'], note: t`Bounds on an intersection, and when they are attained` },
+    'ia-q4-e': { sections: ['The addition rule'], note: t`The addition rule from the axioms` },
+    'ia-q4-b': { sections: ['Complements and subsets'], note: t`The empty set and the complement rule from the axioms` },
+  }),
   gate: ['ia-q4-bounds', 'ia-q4-e', 'ia-q4-b'],
   recall: [
     { front: t`The complement rule.`, back: t`${math`\mathbb{P}(A^{c}) = ${1} - \mathbb{P}(A)`}, from ${math`\Omega = A \cup A^{c}`} disjoint.` },

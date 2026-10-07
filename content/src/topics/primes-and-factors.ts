@@ -5,7 +5,7 @@
  * f(N) = N(1 - 1/p1)...(1 - 1/pk), Euler's totient). Every count and every factor is found
  * by brute force over the divisors.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { pick, q, sample } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, listOf, math, t } from '../rich';
@@ -242,8 +242,13 @@ export const primesAndFactors: TopicContent = {
   generators: [countFactors, whichPrime, smallestPrimeFactor],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['factor', 'multiple', 'composite-number'],
-  cambridge: [a10q3ia, a10q3iii, a10q3ib],
-  gate: ['a10-q3-i-b', 'a10-q3-iii', 'a10-q3-i-a'],
+  cambridge: withUses([a10q3ia, a10q3iii, a10q3ib], {
+    'a10-q3-i-b': { sections: ['Factors, multiples, primes'], note: t`Proving a product formula is a whole number and testing three claims`, needs: ['pre.prime-factorisation', 'proof.counterexample'] },
+    'a10-q3-iii': { sections: ['Factors, multiples, primes'], note: t`Working backwards from the formula to a prime power`, needs: ['pre.prime-factorisation'] },
+    'a10-q3-i-a': { sections: ['Factors, multiples, primes'], note: t`Listing the prime factors of a number and evaluating the formula` },
+  }),
+  // Assignment 10 Q3(i)(a). The other parts need prime factorisation and counterexamples, taught later, so they are practice.
+  gate: ['a10-q3-i-a'],
   recall: [
     { front: t`Define a prime number.`, back: t`An integer ${math`p \ge ${2}`} whose only positive factors are ${1} and ${math`p`}.` },
     { front: t`Which divisors must you try to test ${math`n`} for primality?`, back: t`The primes up to ${math`\sqrt{n}`}: a composite ${math`n`} has a prime factor that small.` },

@@ -9,7 +9,7 @@
  * pitfall, so it is not set.
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, setOf, t, type Span } from '../rich';
@@ -514,7 +514,11 @@ export const indexedSets: TopicContent = {
   generators: [famGen, ivGen, infGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['indexed-family', 'index-set'],
-  cambridge: [sw515u, sw515i, sw526, b181b, b185, b189, b1811, sw527, sw531],
+  cambridge: withUses([sw515u, sw515i, sw526, b181b, b185, b189, b1811, sw527, sw531], {
+    'sw-5-2-6': { sections: ['Many sets at once'], note: t`Unions and intersections of a family, proved both ways`, needs: ['sets.subsets'] },
+    'sw-5-2-7': { sections: ['Many sets at once'], note: t`Writing a union of a family as an intersection of supersets`, needs: ['sets.subsets'] },
+    'sw-5-3-1': { sections: ['Many sets at once'], note: t`Unions of two families, and the matching statement for intersections` },
+  }),
   gate: ['sw-5-2-6', 'sw-5-2-7', 'sw-5-3-1'],
   recall: [
     { front: t`Define ${math`\bigcup_{\alpha \in I} A_{\alpha}`} and ${math`\bigcap_{\alpha \in I} A_{\alpha}`}.`, back: t`The ${mx} in ${math`A_{\alpha}`} for some ${math`\alpha \in I`}; the ${mx} in ${math`A_{\alpha}`} for every ${math`\alpha \in I`}.` },

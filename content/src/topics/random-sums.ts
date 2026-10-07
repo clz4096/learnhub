@@ -8,7 +8,7 @@
  * listing every outcome or by exact composition of polynomials.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { meanQ, polyCompose, polyMul, polyPow, polyTex, polyText, sampleFrom, samplePoisson, varQ, type Poly } from '../partv-d';
 import { generator, type Misconception } from '../problem';
@@ -449,7 +449,12 @@ export const randomSums: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['random-sum'],
   claims,
-  cambridge: [q10a, q10b, q8a, q10c],
+  cambridge: withUses([q10a, q10b, q8a, q10c], {
+    'ia-s3-q8-a': { sections: ['Mean and variance'], note: t`The mean and variance of a random sum` },
+    'ia-s3-q10-c': { sections: ['The random sum formula', 'The hen, and thinning'], note: t`Generating functions for thinned offspring` },
+    'ia-s3-q10-a': { sections: ['The hen, and thinning'], note: t`The generating function of a thinned count` },
+    'ia-s3-q10-b': { sections: ['The random sum formula'], note: t`The generating function of a random sum of offspring` },
+  }),
   // Best first: the mean and variance proof (the heart of the topic), the two compositions
   // written up, then each composition auto-checked.
   gate: ['ia-s3-q8-a', 'ia-s3-q10-c', 'ia-s3-q10-a', 'ia-s3-q10-b'],

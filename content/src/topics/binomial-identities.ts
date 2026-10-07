@@ -8,7 +8,7 @@
  * Snell, Section 3.2, Exercises 9 and 13, with their printed odd answers.
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, listOf, math, t } from '../rich';
@@ -448,7 +448,11 @@ export const binomialIdentities: TopicContent = {
   generators: [nextRow, symmetry, pascalRule, rowSum],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['pascals-triangle', 'pascals-rule'],
-  cambridge: [bop1024, bop1040, bop1041, bop1035, bop1038, notesHomework2, ns2q3, gs329, gs3213],
+  cambridge: withUses([bop1024, bop1040, bop1041, bop1035, bop1038, notesHomework2, ns2q3, gs329, gs3213], {
+    'ns2-q3': { sections: ["Pascal's rule", 'Row sums'], note: t`Proving two identities by counting each side` },
+    'notes-280-homework-2': { sections: ["Pascal's rule"], note: t`The inductive step of the binomial theorem with Pascal's rule`, needs: ['comb.binomial-theorem', 'alg.proof-by-induction'] },
+    'gs-3-2-13': { sections: ['Symmetry'], note: t`The middle binomial coefficient is the largest` },
+  }),
   // The IA sheet's two identities by counting first; the Pascal's rule homework and the middle of a
   // row follow. Three coefficients into one is two uses of Pascal's rule, practice rather than a gate.
   gate: ['ns2-q3', 'notes-280-homework-2', 'gs-3-2-13'],

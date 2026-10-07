@@ -5,7 +5,7 @@
  * Support Foundation Assignment 19 Q2(i), (ii) and Q3 (2005 STEP I Q6: AP = 2BP gives
  * (x + 7)^2 + y^2 = 100). Official answers are from the hints.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, dmath, math, paren, t } from '../rich';
@@ -284,7 +284,10 @@ export const loci: TopicContent = {
   generators: [perpBisector, apollonius, parabola],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['locus'],
-  cambridge: [a19q3i, a19q3],
+  cambridge: withUses([a19q3i, a19q3], {
+    'a19-q3-ii': { sections: ['A fixed ratio of distances'], note: t`Matching two descriptions of the same circle` },
+    'a19-q3-i': { sections: ['A fixed ratio of distances'], note: t`A circle of Apollonius from a ratio of distances` },
+  }),
   gate: ['a19-q3-ii', 'a19-q3-i'],
   recall: [
     { front: t`What is the locus of points equidistant from ${math`P`} and ${math`Q`}?`, back: t`The perpendicular bisector of ${math`PQ`}: the line through the midpoint at right angles to ${math`PQ`}.` },

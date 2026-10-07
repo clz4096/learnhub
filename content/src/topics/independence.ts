@@ -8,7 +8,7 @@
  * (with its printed odd answer), and 50.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, sample, str, sub, toFloat, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { dmath, math, t, type Rich } from '../rich';
@@ -391,7 +391,11 @@ export const independence: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['mutual-independence', 'pairwise-independence'],
   claims,
-  cambridge: [q11proof, bernstein, gs4150, gs4133, gs418],
+  cambridge: withUses([q11proof, bernstein, gs4150, gs4133, gs418], {
+    'ia-q11-by-independence': { sections: ['The definitions'], note: t`Splitting by the last coin with independent events` },
+    'gs-4-1-50': { sections: ['The definitions'], note: t`Independent events need many outcomes` },
+    'gs-4-1-33': { sections: ['The definitions', 'Complements stay independent'], note: t`Independence through all eight products` },
+  }),
   // The sheet's question for general n, then Grinstead and Snell's counting of points (every choice of
   // events and complements has positive probability) and the eight products. The triple product
   // without the pairs is a computation, and the lesson's pitfall shows the idea, so it is practice.

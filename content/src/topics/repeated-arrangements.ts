@@ -6,7 +6,7 @@
  * the preparation (Q2: names with repeated letters, Lillian, MISSISSIPPI), and the hints'
  * general formula, checked against the hints' answers.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, computedTex, dmath, math, t } from '../rich';
@@ -332,7 +332,11 @@ export const repeatedArrangements: TopicContent = {
   generators: [wordArrangements, beads, routes],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['repeated-letter'],
-  cambridge: [a6q2ii, a6q2iii, a6q2v, a6q5iii, lillian, general],
+  cambridge: withUses([a6q2ii, a6q2iii, a6q2v, a6q5iii, lillian, general], {
+    'a6-q2-iv': { sections: ['Label, count, divide'], note: t`Explaining each division when letters repeat` },
+    'a6-q2-v': { sections: ['Label, count, divide'], note: t`Dividing by the arrangements of each repeated letter` },
+    'a6-q2-iii': { sections: ['When two letters are the same', 'Label, count, divide'], note: t`Arrangements of names with repeated letters` },
+  }),
   // Best first: Lillian's "show carefully" write-up, MISSISSIPPI, then the three names with several
   // repeats. The five names with one repeat each and Anna are one division each, too slight to gate.
   // The general formula comes from the hints, not a gate document.

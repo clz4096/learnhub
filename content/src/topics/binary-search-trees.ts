@@ -10,7 +10,7 @@
  * Alice, Tobias, Gerald, Lucy, height 4; Gerald, Alice, Lucy, Tobias gives height 3. The
  * generators build the trees in TypeScript by the same rule.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
 import { codeOf, ml, mlBlock } from '../ocaml-code';
 import { generator, type Misconception } from '../problem';
@@ -264,7 +264,10 @@ export const binarySearchTrees: TopicContent = {
   generators: [heightGen, lookupGen, traversalGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binary-search-tree', 'tree-height'],
-  cambridge: [focs71b, focs74, focs76, focs77, isBst],
+  cambridge: withUses([focs71b, focs74, focs76, focs77, isBst], {
+    'focs-7-6': { sections: ['Height decides the cost', 'Reading the tree back'], note: t`The quadratic cost of traversals with append` },
+    'focs-7-4': { sections: ['Halving the search', 'Reading the tree back'], note: t`Deleting from a binary search tree in every case` },
+  }),
   gate: ['focs-7-6', 'focs-7-4'],
   recall: [
     { front: t`State the binary search tree invariant.`, back: t`At every node, all keys in the left subtree are smaller and all keys in the right subtree are larger.` },

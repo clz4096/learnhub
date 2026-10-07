@@ -9,7 +9,7 @@
  * which give the topic its gate.
  */
 import { mulberry32 } from '@learnhub/mastery';
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { bisect, near, powQ, round, rootTex } from '../partv-b';
 import { generator, type Misconception } from '../problem';
@@ -402,7 +402,11 @@ export const simulation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inverse-transform-sampling', 'box-muller', 'rejection-sampling'],
   claims,
-  cambridge: [rejectAuto, inverseProof, bmProof, rejectProof, gs5221, gs523, gs527],
+  cambridge: withUses([rejectAuto, inverseProof, bmProof, rejectProof, gs5221, gs523, gs527], {
+    'gs-5-2-21': { sections: ['Inverting the distribution function'], note: t`The distribution function of a variable is uniform` },
+    'gs-5-2-3': { sections: ['Inverting the distribution function'], note: t`Exponential samples by the inverse transform` },
+    'gs-5-2-7': { sections: ['Inverting the distribution function'], note: t`A sample by inverting a distribution function` },
+  }),
   // The IA example sheets set no simulation problem, and the schedule is not a gate document, so the
   // gate is Grinstead and Snell's: the converse of the inverse transform, the exponential sampler,
   // and the sampler for F(x) = x^2.

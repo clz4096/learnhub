@@ -7,7 +7,7 @@
  * 1.1.6 and 3.2.5, whose 2023-24 official solutions are cited for the supervisor.
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { div, int, pick, q, str, sub, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, math, paren, t, type Rich, type Span } from '../rich';
@@ -466,9 +466,13 @@ export const numberSystems: TopicContent = {
   generators: [closure, which, smallest, inverse],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['natural-number', 'integer', 'rational-number', 'closed', 'additive-inverse'],
-  cambridge: [notes174z, notes174q, notes167, sw116, sw325],
-  // The two CST proofs. The three-way choices from the notes are guessable, and the cancellation witness is a single step.
-  gate: ['sw-3-2-5', 'sw-1-1-6'],
+  cambridge: withUses([notes174z, notes174q, notes167, sw116, sw325], {
+    'sw-3-2-5': { sections: ['Three number systems'], note: t`Uniqueness of lowest terms, which needs the greatest common divisor`, needs: ['num.gcd', 'num.euclid-theorem'] },
+    'sw-1-1-6': { sections: ['Three number systems', 'Closure'], note: t`Proving the rationals closed under addition from the definition` },
+  }),
+  // The CST proof of 1.1.6. Exercise 3.2.5 needs the gcd, taught later, so it is practice. The three-way choices
+  // from the notes are guessable, and the cancellation witness is a single step.
+  gate: ['sw-1-1-6'],
   recall: [
     { front: t`Define a rational number.`, back: t`A real number equal to ${math`\frac{m}{n}`} for some integers ${math`m, n`} with ${math`n \ne ${0}`}.` },
     { front: t`What does "closed under an operation" mean?`, back: t`Combining any two members of the set always gives a member.` },

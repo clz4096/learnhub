@@ -8,7 +8,7 @@
  * Numbers and Sets Example Sheet 2, Q7 (second question: 3381x + 2646y = 21). The CST exercises
  * 2.3.1 and 2.3.2(b) are gates of proof.cases and proof.contradiction, so they are not set again.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick } from '../math';
 import { generator, type Misconception } from '../problem';
 import { math, t, type Span } from '../rich';
@@ -385,7 +385,10 @@ export const disproof: TopicContent = {
   generators: [linGen, primeGen, negGen, sqGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['disproof-of-existence'],
-  cambridge: [sw115proof, b921, b930, b920, b92, ns2q7ii],
+  cambridge: withUses([sw115proof, b921, b930, b920, b92, ns2q7ii], {
+    'sw-1-1-5-proof': { sections: ['Disproving "there exists"', 'Mixed quantifiers'], note: t`Proving one statement and disproving the other through its negation` },
+    'ns2-q7-ii': { sections: ['Disproof by contradiction'], note: t`Showing no integers work by a common factor of the coefficients`, needs: ['pre.prime-factorisation'] },
+  }),
   gate: ['sw-1-1-5-proof', 'ns2-q7-ii'],
   recall: [
     { front: t`What is the negation of ${math`\exists x \in S,\ P(x)`}?`, back: t`${math`\forall x \in S,\ \neg P(x)`}.` },

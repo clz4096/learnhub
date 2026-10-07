@@ -9,7 +9,7 @@
  * Sets Example Sheet 1, Q5, and Exercise 16 of the CST Logic and Proof notes (the part by
  * equivalences). Their Exercise 14, first line, is the lesson's theorem, so it is not set.
  */
-import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
+import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { int, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, t, type Rich, type Span } from '../rich';
@@ -547,7 +547,10 @@ export const negatingQuantifiers: TopicContent = {
   generators: [negateSymbols, whichTrue, negateWords],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['negation-of-quantifier'],
-  cambridge: [bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12, ns1q5, lp16],
+  cambridge: withUses([bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12, ns1q5, lp16], {
+    'ns1-q5': { sections: ['The two laws', 'Several quantifiers', 'Negating the inside'], note: t`Negating a statement with four quantifiers and an implication` },
+    'lp-ex-16': { sections: ['The two laws', 'Negating the inside'], note: t`Rewriting a negated "for all" by named equivalences` },
+  }),
   // The IA sheet's two negations first (four quantifiers, and an implication in words), then the
   // Logic and Proof equivalences. The CST proof 1.1.5 does not gate: the practice problems on the
   // same exercise give its negation and its witness. The Book of Proof items are not Cambridge

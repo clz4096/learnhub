@@ -5,7 +5,7 @@
  * rows of a triangle of probabilities) is the lesson's; every official answer is compared.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, join, math, t } from '../rich';
@@ -301,7 +301,10 @@ export const tailSum: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['tail-sum-formula'],
   claims,
-  cambridge: [q2tail, q2min, q2proof],
+  cambridge: withUses([q2tail, q2min, q2proof], {
+    'mixed-q2-proof': { sections: ['The tail-sum formula'], note: t`Proving the tail-sum formula by rearranging a sum` },
+    'mixed-q2-tail': { sections: ['Using it'], note: t`A tail probability for the penguins` },
+  }),
   // Best first: defining E(X) and proving the formula, then the tail. The least mean is 3, small
   // enough to guess, so it does not gate.
   gate: ['mixed-q2-proof', 'mixed-q2-tail'],

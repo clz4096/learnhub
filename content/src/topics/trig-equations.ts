@@ -5,7 +5,7 @@
  * answer from the hints) and Q3 (2015 STEP I Q2: the cubic 4x^3 - 3x = cos 3 alpha, and
  * y^3 - 3y - sqrt 2 = 0 solved with it), and NST Maths Workbook T1, T7, and T8.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { valuesKey } from '../geometry';
 import { int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
@@ -364,7 +364,11 @@ export const trigEquations: TopicContent = {
   generators: [multipleAngle, quadratic, tanEq],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['solution-set'],
-  cambridge: [a16cubic, a16q3ii, t8, t1, t7],
+  cambridge: withUses([a16cubic, a16q3ii, t8, t1, t7], {
+    'a16-q3-ii': { sections: ['Three patterns', 'A STEP equation'], note: t`A triple angle root of a cubic, then the other two roots`, needs: ['alg.polynomials'] },
+    'a16-q3-iii': { sections: ['A STEP equation'], note: t`Solving a cubic by a triple angle` },
+    'nst-t8': { sections: ['Three patterns'], note: t`A trigonometric equation by sum-to-product, every solution in range` },
+  }),
   gate: ['a16-q3-ii', 'a16-q3-iii', 'nst-t8'],
   recall: [
     { front: t`How do you solve ${math`\sin nx = c`} on ${math`[${0}, ${2}\pi)`}?`, back: t`Solve ${math`\sin u = c`} for ${math`u = nx`} over ${math`[${0}, ${2}n\pi)`}, then divide by ${math`n`}.` },

@@ -7,7 +7,7 @@
  * topics; only its approximation is set here. Answers are compared with the STEP 2
  * solutions and with the exact probabilities, computed in logarithms.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, pick, q, str, type Rational } from '../math';
 import { near, Phi, PhiSeries, round } from '../partv-b';
 import { generator, type Misconception } from '../problem';
@@ -307,7 +307,10 @@ export const normalApproximation: TopicContent = {
   generators: [continuityCorrection, binomialNormal, poissonNormal],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['continuity-correction'],
-  cambridge: [q1adapted, q1why],
+  cambridge: withUses([q1adapted, q1why], {
+    's2-q1-why': { sections: ['Match the mean and variance', 'The continuity correction'], note: t`Why the normal approximation and its correction apply` },
+    's2-q1-normal-25': { sections: ['The continuity correction', 'Working it through'], note: t`A point probability by a normal approximation with correction` },
+  }),
   // The explanation the STEP solution asks for, then the computation with a new lambda.
   gate: ['s2-q1-why', 's2-q1-normal-25'],
   recall: [

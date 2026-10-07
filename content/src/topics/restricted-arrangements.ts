@@ -7,7 +7,7 @@
  * listing every set of places, and compared with the official solutions.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -418,7 +418,16 @@ export const restrictedArrangements: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['block-method', 'gap-method'],
   claims,
-  cambridge: [q3iiid, q3iv, q3v, q3vii, q4i, q5i, q5ii, q4ii, q5iii, q3why],
+  cambridge: withUses([q3iiid, q3iv, q3v, q3vii, q4i, q5i, q5ii, q4ii, q5iii, q3why], {
+    'mixed-q5-iii': { sections: ['Kept apart: use the gaps'], note: t`Placing people in the gaps so no two are together` },
+    'mixed-q4-ii': { sections: ['Kept apart: use the gaps'], note: t`All three apart by choosing gaps` },
+    'mixed-q4-i': { sections: ['Kept together: glue them'], note: t`All three together by gluing them into one` },
+    'mixed-q5-ii': { sections: ['Kept together: glue them'], note: t`All together, by gluing` },
+    'mixed-q3-v-why': { sections: ['Kept together: glue them'], note: t`Why two "together" probabilities do not multiply`, needs: ['prob.conditional-formula'] },
+    'mixed-q5-i': { sections: ['At the ends: fill them first'], note: t`Filling the ends first` },
+    'mixed-q3-v': { sections: ['Kept together: glue them'], note: t`Two groups each kept together` },
+    'mixed-q3-iv': { sections: ['Kept together: glue them'], note: t`One group kept together` },
+  }),
   // Best first: the full STEP parts in letters (1995 S1 Q12 by gaps with its zero case, 2009
   // S1 Q13), then the dependence question and the numerical parts. The guided rope count
   // (Q3(iii)(d)) and the woman at each end (Q3(vii)) are too slight to gate.

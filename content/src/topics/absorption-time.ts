@@ -7,7 +7,7 @@
  * absorption time on a line). Every answer is checked by solving the first-step equations
  * exactly or by listing every jump sequence; the STEP answer is compared with the solutions.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -419,7 +419,11 @@ export const absorptionTime: TopicContent = {
   generators: [fairDuration, biasedDuration, twoSided],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expected-duration'],
-  cambridge: [u2, u4, symmetric, wald, schedule],
+  cambridge: withUses([u2, u4, symmetric, wald, schedule], {
+    'sheet3-q8c-wald': { sections: ['A walk stopped at plus or minus a'], note: t`The mean position at a stopping time, with care`, needs: ['gf.random-sums'] },
+    's3-q1-u4': { sections: ['The first-step equation'], note: t`An expected number of jumps from a recurrence` },
+    'sheet3-q8c-symmetric': { sections: ['Solving it: the fair walk', 'A walk stopped at plus or minus a'], note: t`The mean time for a fair walk to reach a level` },
+  }),
   gate: ['sheet3-q8c-wald', 's3-q1-u4', 'sheet3-q8c-symmetric'],
   recall: [
     { front: t`The first-step equation for the expected duration ${math`m_{k}`} on ${math`${0}, \ldots, N`}.`, back: t`${math`m_{k} = ${1} + p\,m_{k + ${1}} + q\,m_{k - ${1}}`} for ${math`${0} < k < N`}, with ${math`m_{${0}} = m_{N} = ${0}`}.` },

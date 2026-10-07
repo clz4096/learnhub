@@ -5,11 +5,16 @@
  * STEP Support Assignments 15, Q1(iii) (product notation), 17, Q2(iii) (1/(r(r + 1))) and
  * 24, Q2(iii) and Q3 (1998 STEP II Q4, I_n - I_(n-1)), checked against the hints, by exact
  * arithmetic, and for the integral by numerical integration.
+ *
+ * The gate is STEP Support Assignment 6 Q1(i), second part: the product of (1 + 1/(2r)) over
+ * (1 - 1/(2r)) to n brackets, and why it is 2n + 1. It moved here from pre.fractions
+ * (2026-10-06), whose lesson teaches the four-bracket case but not algebra with n; here it
+ * is a telescoping product. A24 Q3 integrates by parts, taught later, so it is practice.
  */
-import { auto, cite, same, supervision } from '../cambridge';
-import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { dmath, math, t } from '../rich';
+import { computedTex, dmath, math, t } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mn, mr] = [math`n`, math`r`];
@@ -143,6 +148,50 @@ const sqGen = generator<SqP>({
 
 const F17 = 'step-f17';
 const F24 = 'step-f24';
+const F06 = 'step-f06';
+
+/** The A6 Q1(i) bracket (1 + 1/d) or (1 - 1/d) as LaTeX; `d` is computed or "2n". */
+const a6Bracket = (sign: '+' | '-', d: number | string): string => `\\left(${1} ${sign} \\frac{${1}}{${d}}\\right)`;
+/** One row of the A6 product: four brackets, dots, then the bracket with 2n. */
+const a6Row = (sign: '+' | '-'): string => [...[2, 4, 6, 8].map((d) => a6Bracket(sign, d)), '\\cdots', a6Bracket(sign, `${2}n`)].join('');
+const a6Tex = computedTex(`\\frac{${a6Row('+')}}{${a6Row('-')}}`);
+/** The A6 product to n brackets, multiplied out exactly. */
+const a6Product = (n: number): Rational => prodQ(1, n, (r) => div(add(q(1), q(1, 2 * r)), sub(q(1), q(1, 2 * r))));
+
+const a6General = auto({
+  id: 'a6-q1-i-general',
+  source: cite(F06, 'Q1(i), second part'),
+  title: t`A product that cancels, to ${mn} brackets`,
+  prompt: t`Find, in terms of ${mn}, the value of ${a6Tex}.`,
+  answer: { kind: 'expression', expected: '2n + 1', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 30 } } },
+  solution: [
+    t`Take the ${mr}th bracket on top with the ${mr}th underneath, and multiply top and bottom by ${math`${2}r`}: ${math`\frac{${1} + \frac{${1}}{${2}r}}{${1} - \frac{${1}}{${2}r}} = \frac{${2}r + ${1}}{${2}r - ${1}}`}.`,
+    t`With ${math`g(r) = ${2}r + ${1}`}, this is ${math`\frac{g(r)}{g(r - ${1})}`}, because ${math`g(r - ${1}) = ${2}(r - ${1}) + ${1} = ${2}r - ${1}`}. So the whole product is ${math`\prod_{r = ${1}}^{n} \frac{g(r)}{g(r - ${1})}`}, a telescoping product.`,
+    t`It telescopes to ${math`\frac{g(n)}{g(${0})} = \frac{${2}n + ${1}}{${1}} = ${2}n + ${1}`}. With ${math`n = ${4}`} that is ${a6Product(4)}, the first part of the question.`,
+  ],
+  reference: '2n + 1',
+  verify: () => {
+    for (let n = 1; n <= 20; n++) {
+      const e = same(`A6 Q1(i) at n = ${n}`, str(a6Product(n)), String(2 * n + 1));
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: '2n - 1', why: t`That drops the last bracket. The last bracket on top is ${math`${1} + \frac{${1}}{${2}n} = \frac{${2}n + ${1}}{${2}n}`}, and its top survives.` },
+    { response: '2n', why: t`The denominators ${math`${2}r`} all cancel, so no ${math`${2}n`} is left. What survives is the last numerator, ${math`${2}n + ${1}`}.` },
+  ],
+  official: { source: cite('step-f06-hints', 'Q1(i)'), answer: '2n + 1', agrees: true },
+});
+
+const a6Show = supervision({
+  id: 'a6-q1-i-show',
+  source: cite(F06, 'Q1(i), second part', true),
+  title: t`Why the product is ${math`${2}n + ${1}`}`,
+  prompt: t`Show carefully that ${a6Tex} equals ${math`${2}n + ${1}`} for every positive integer ${mn}. Generalising from a few cases is not enough: say exactly which factors cancel and why the cancelling leaves only ${math`${2}n + ${1}`}.`,
+  writeUp: 'explanation',
+  official: cite('step-f06-hints', 'Q1(i)'),
+});
 
 const a17big = auto({
   id: 'a17-q2-iii-b',
@@ -315,8 +364,18 @@ export const telescoping: TopicContent = {
   generators: [pairGen, gapGen, prodGen, sqGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['method-of-differences', 'product-notation'],
-  cambridge: [a24q3, a24q3sup, a17n, a15prod, a24sq],
-  gate: ['a24-q3-proof', 'a24-q3'],
+  cambridge: withUses([a6Show, a6General, a24q3, a24q3sup, a17n, a15prod, a24sq], {
+    'a6-q1-i-show': { sections: ['Telescoping products'], note: t`Explaining exactly which factors of a long product cancel` },
+    'a6-q1-i-general': { sections: ['Telescoping products'], note: t`Cancelling across a product of any length` },
+    'a24-q3-proof': { sections: ['Everything cancels but the ends'], note: t`A recurrence for an integral, then a telescoping sum`, needs: ['trig.compound-angles', 'calc.integration-by-parts'] },
+    'a24-q3': { sections: ['Everything cancels but the ends'], note: t`A recurrence for an integral`, needs: ['trig.compound-angles', 'calc.integration-by-parts'] },
+    'a15-q1-iii-b': { sections: ['Telescoping products'], note: t`A product where each numerator cancels the next denominator` },
+    'a17-q2-iii-a': { sections: ['Everything cancels but the ends'], note: t`Writing each term as a difference and summing` },
+    'a24-q2-iii': { sections: ['Everything cancels but the ends'], note: t`A sum of differences of square roots` },
+  }),
+  // Assignment 6 Q1(i), second part, from pre.fractions: the written argument first, then the general value; then
+  // Assignments 15, 17, and 24. Assignment 24 Q3 integrates by parts, taught later, so it is practice.
+  gate: ['a6-q1-i-show', 'a6-q1-i-general', 'a15-q1-iii-b', 'a17-q2-iii-a', 'a24-q2-iii'],
   recall: [
     { front: t`What is ${math`\sum_{r = ${1}}^{n} (f(r) - f(r - ${1}))`}?`, back: t`${math`f(n) - f(${0})`}: everything else cancels.` },
     { front: t`Write ${math`\frac{${1}}{r(r + ${1})}`} as a difference.`, back: t`${math`\frac{${1}}{r} - \frac{${1}}{r + ${1}}`}, so ${math`\sum_{r = ${1}}^{n} \frac{${1}}{r(r + ${1})} = \frac{n}{n + ${1}}`}.` },

@@ -7,7 +7,7 @@
  * supervision exercises 4.1.1, 4.1.2, 4.2.2, and 4.2.3(g) with the 2023-24 official
  * solutions, and IA Probability Example Sheet 1 Q10 (the Polya urn).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, q, str, upTo, add, mul, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, dmath, listOf, math, t, type Rich } from '../rich';
@@ -492,11 +492,16 @@ export const proofByInduction: TopicContent = {
   generators: [sumStep, basis, recurrence],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['induction', 'base-case', 'induction-hypothesis'],
-  cambridge: [fibII, fibIII, bop9, tromino, polygon, polyaQ, bop13, sw412, sw422, sw411, polyaProof],
-  // The full induction proofs: tiling, Bernoulli, the Polya urn, polygons. The Polya answer and the
-  // Fibonacci conjectures can be found from small cases without induction, and the tile count and the
-  // polygon's 180 degrees are arithmetic, so they do not gate.
-  gate: ['sw-4-1-2', 'sw-4-2-2', 'ia-q10-proof', 'sw-4-1-1'],
+  cambridge: withUses([fibII, fibIII, bop9, tromino, polygon, polyaQ, bop13, sw412, sw422, sw411, polyaProof], {
+    'sw-4-1-2': { sections: ['The principle', 'A first proof'], note: t`An induction whose hypothesis must cover every missing square` },
+    'sw-4-2-2': { sections: ['The principle', 'Both halves are needed'], note: t`An induction for an inequality, using the condition on x in the step` },
+    'ia-q10-proof': { sections: ['The principle', 'A first proof'], note: t`Induction on the number of balls, with conditional probabilities`, needs: ['pre.tree-diagrams'] },
+    'sw-4-1-1': { sections: ['The principle', 'Starting later'], note: t`An induction from a later base case that cuts the polygon` },
+  }),
+  // The full induction proofs: tiling, Bernoulli, polygons. The Polya urn proof needs conditional probability,
+  // taught later, so it is practice. The Polya answer and the Fibonacci conjectures can be found from small
+  // cases without induction, and the tile count and the polygon's 180 degrees are arithmetic, so they do not gate.
+  gate: ['sw-4-1-2', 'sw-4-2-2', 'sw-4-1-1'],
   recall: [
     { front: t`State the Principle of Induction.`, back: t`If ${math`P(${0})`} holds and ${mPk} implies ${mPk1} for every ${math`k \in \mathbb{N}`}, then ${math`P(n)`} holds for every ${math`n \in \mathbb{N}`}.` },
     { front: t`What are the base case, the inductive step and the induction hypothesis?`, back: t`Base case: prove ${math`P(${0})`}. Step: for arbitrary ${mk}, assume ${mPk} (the hypothesis) and deduce ${mPk1}.` },

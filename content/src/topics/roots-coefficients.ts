@@ -5,7 +5,7 @@
  * Q2 and Q3 (2002 STEP I Q5), and Assignment 16 Q2(iv). Answers are checked by finding the
  * roots by brute force and evaluating the expressions exactly.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, math, t } from '../rich';
@@ -270,7 +270,10 @@ export const rootsCoefficients: TopicContent = {
   generators: [symmetric, scaledRoots, cubicValues],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['vieta-formulas'],
-  cambridge: [a7q3, a7q3show, a7iii],
+  cambridge: withUses([a7q3, a7q3show, a7iii], {
+    'a7-q3-quartic': { sections: ['Cubics and beyond'], note: t`Integer roots from the product and the shifted products of the roots` },
+    'a7-q3-show': { sections: ['Cubics and beyond'], note: t`Products of the roots from the coefficients of any polynomial` },
+  }),
   gate: ['a7-q3-quartic', 'a7-q3-show'],
   recall: [
     { front: t`Sum and product of the roots of ${math`ax^{${2}} + bx + c`}?`, back: t`Sum ${math`-\frac{b}{a}`}, product ${math`\frac{c}{a}`}.` },

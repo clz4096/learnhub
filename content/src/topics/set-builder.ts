@@ -5,7 +5,7 @@
  * against the official 2023-24 solutions (the 2023-24 sheet is the same as 2025-26's).
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, q, str, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { dmath, listOf, math, setOf, t, type Span } from '../rich';
@@ -391,7 +391,10 @@ export const setBuilder: TopicContent = {
   generators: [members, countMultiples, image, cd],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['set-builder', 'membership'],
-  cambridge: [sheet311, interval, zeroDivisors, equalProof],
+  cambridge: withUses([sheet311, interval, zeroDivisors, equalProof], {
+    'notes-205-equality': { sections: ['Set-builder notation', 'When are two sets equal?'], note: t`Proving two sets equal by showing each is inside the other` },
+    'sw-3-1-1': { sections: ['Set-builder notation'], note: t`Listing a set given by a property` },
+  }),
   // Best first: the set equality proved in both directions, then the common divisors of 666
   // and 330. Listing [-2..3] and the divisors of 0 are too slight to gate.
   gate: ['notes-205-equality', 'sw-3-1-1'],

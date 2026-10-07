@@ -8,7 +8,7 @@
  * probability by numerical integration, and Q10 is set for supervision.
  */
 import { mulberry32, type Rng } from '@learnhub/mastery';
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { near, round, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
@@ -349,7 +349,11 @@ export const geometricProbability: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['buffons-needle', 'bertrands-paradox'],
   claims,
-  cambridge: [q1unequal, buffonAuto, q10a, q10b, bertrand, buffonProof],
+  cambridge: withUses([q1unequal, buffonAuto, q10a, q10b, bertrand, buffonProof], {
+    'ia4-q10-a': { sections: ['What "at random" means'], note: t`A uniform direction onto a plane gives a Cauchy point` },
+    'ia4-q1-unequal': { sections: ['Probability you can see'], note: t`Meeting when one waits longer, as an area` },
+    'ia4-q10-b': { sections: ['What "at random" means'], note: t`Why the Cauchy density has no mean` },
+  }),
   // Sheet 4: Q10(a) first (a transformation, not just an area), then the unequal meeting times and the
   // Cauchy mean. The schedule problems are not from a sheet.
   gate: ['ia4-q10-a', 'ia4-q1-unequal', 'ia4-q10-b'],

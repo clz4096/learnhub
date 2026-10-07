@@ -7,7 +7,7 @@
  * Mathematics Workbook, D2. The STEP 1 specification asks for first principles "for small
  * positive integer powers of x, and for sin x and cos x".
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -289,7 +289,10 @@ export const firstPrinciples: TopicContent = {
   generators: [diffQuotient, limitAt, chordGradient],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['difference-quotient'],
-  cambridge: [invRootQ, nstD2, triangleQ, triangleProof, sinProof],
+  cambridge: withUses([invRootQ, nstD2, triangleQ, triangleProof, sinProof], {
+    'a20-q4': { sections: ['Back to the definition'], note: t`Showing an operator with the product rule is the derivative`, needs: ['alg.proof-by-induction'] },
+    'a20-q4-cube': { sections: ['Back to the definition'], note: t`Applying the product rule to a cube` },
+  }),
   gate: ['a20-q4', 'a20-q4-cube'],
   recall: [
     { front: t`What are the two small-angle limits?`, back: t`${math`\frac{\sin h}{h} \to ${1}`} and ${math`\frac{\cos h - ${1}}{h} \to ${0}`} as ${math`h \to ${0}`}, in radians.` },

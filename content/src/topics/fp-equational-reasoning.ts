@@ -10,7 +10,7 @@
  * 10 calls for n = 1, 2, 13, 1000; expsq 3 13 = 1594323; facti 3 5 = 3 * fact 5 = 360;
  * exp 2 10 = expsq 2 10 = 1024.
  */
-import { cite, supervision } from '../cambridge';
+import { cite, supervision, withUses } from '../cambridge';
 import { code, codeBlock } from '../ocaml-code';
 import { int, pick } from '../math';
 import { generator, type Misconception } from '../problem';
@@ -247,7 +247,11 @@ export const fpEquationalReasoning: TopicContent = {
   generators: [factiGen, callsGen, invariant],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['equational-reasoning'],
-  cambridge: [fibi, expsq, expsqSimple, mult],
+  cambridge: withUses([fibi, expsq, expsqSimple, mult], {
+    'cs3110-ex8-fibi': { sections: ['A proof that gets stuck', 'Stronger induction for faster code'], note: t`Proving an iterative function correct by a stronger claim` },
+    'cs3110-ex8-expsq': { sections: ['Stronger induction for faster code'], note: t`Proving repeated squaring correct by strong induction` },
+    'cs3110-ex8-mult': { sections: ['Code you can do algebra with'], note: t`Proving a fact about a recursive function by induction` },
+  }),
   gate: ['cs3110-ex8-fibi', 'cs3110-ex8-expsq', 'cs3110-ex8-mult'],
   recall: [
     { front: t`What may justify a step of equational reasoning?`, back: t`Evaluation (unfolding a definition or choosing a branch), the laws of arithmetic, or an equation already proved, such as the induction hypothesis.` },

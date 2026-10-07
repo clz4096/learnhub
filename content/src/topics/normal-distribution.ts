@@ -7,7 +7,7 @@
  * against Φ computed two ways (Simpson's rule and Marsaglia's series) and, for Q6, by
  * numerical integration.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { near, Phi, PhiInverse, PhiSeries, phi, round, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
@@ -325,9 +325,15 @@ export const normalDistribution: TopicContent = {
   generators: [standardise, quantile, sampleSize],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['normal-distribution', 'standard-normal'],
-  cambridge: [q6mean, q6var, q6b, q5why],
-  // Sheet 4 Q6 first: the log-normal mean needs completing the square, which the lesson does not do for you.
-  gate: ['ia4-q6-a-mean', 'ia4-q6-a-variance', 'ia4-q5-why', 'ia4-q6-b'],
+  cambridge: withUses([q6mean, q6var, q6b, q5why], {
+    'ia4-q6-a-mean': { sections: ['The normal density'], note: t`An expectation by completing the square in the exponent` },
+    'ia4-q6-a-variance': { sections: ['The normal density'], note: t`A variance by completing the square in the exponent` },
+    'ia4-q5-why': { sections: ['Sample means', 'Standardising'], note: t`Why a sample mean is normal, and reading the table` },
+    'ia4-q6-b': { sections: ['Sample means'], note: t`Why products of many factors look log-normal`, needs: ['lim.clt'] },
+  }),
+  // Sheet 4 Q6(a) first: the log-normal mean needs completing the square, which the lesson does not do for you.
+  // Q6(b) needs the central limit theorem, taught later (it gates lim.clt), so it is practice here.
+  gate: ['ia4-q6-a-mean', 'ia4-q6-a-variance', 'ia4-q5-why'],
   recall: [
     { front: t`The density of ${math`N(\mu, \sigma^{${2}})`}.`, back: t`${math`\frac{${1}}{\sigma\sqrt{${2}\pi}}e^{-(x - \mu)^{${2}}/(${2}\sigma^{${2}})}`}.` },
     { front: t`How do you standardise ${math`X \sim N(\mu, \sigma^{${2}})`}?`, back: t`${math`Z = (X - \mu)/\sigma \sim N(${0}, ${1})`}, so ${math`P(X \le x) = \Phi((x - \mu)/\sigma)`}.` },

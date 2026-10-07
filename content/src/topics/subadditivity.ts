@@ -6,7 +6,7 @@
  * set in prob.event-spaces. The sheet has no official solutions.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -257,7 +257,10 @@ export const subadditivity: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['union-bound'],
   claims,
-  cambridge: [q6num, subaddProof, converse],
+  cambridge: withUses([q6num, subaddProof, converse], {
+    'ia-q6-subadditivity': { sections: ['The theorem'], note: t`Countable subadditivity from disjoint pieces` },
+    'ia-q6-c-converse': { sections: ['Infinitely often'], note: t`A divergent sum without infinitely many occurrences` },
+  }),
   // Best first: the proof from the axioms, then the converse (a construction and the extra
   // assumption). The numerical tail is a geometric series, too slight to gate.
   gate: ['ia-q6-subadditivity', 'ia-q6-c-converse'],

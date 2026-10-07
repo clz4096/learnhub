@@ -5,7 +5,7 @@
  * and TMUA Exercise Q (squaring both sides can add a false root).
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, sample, str, sub } from '../math';
 import { factor, poly, signed, times } from '../poly';
 import { generator, type Misconception } from '../problem';
@@ -522,8 +522,17 @@ export const algebraicManipulation: TopicContent = {
   generators: [expand, factorise, cancel, collect, vieta, cubic],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expression', 'coefficient', 'like-terms', 'identity', 'expand', 'factorise'],
-  cambridge: [a7Three, a7Quart, a12FracA, a12FracB, tmuaQ, a7Show, a7ShowCubic, a7ShowGeneral],
-  gate: ['a7-q3-show', 'a7-q3', 'a7-q2-iv', 'a7-q2-i-ii', 'a7-q2-v', 'a12-q2-i-b'],
+  cambridge: withUses([a7Three, a7Quart, a12FracA, a12FracB, tmuaQ, a7Show, a7ShowCubic, a7ShowGeneral], {
+    'a7-q3-show': { sections: ['Expressions and identities'], note: t`Substituting into an identity for a polynomial of any degree`, needs: ['alg.polynomials'] },
+    'a7-q3': { sections: ['Expressions and identities', 'Factorising'], note: t`Finding the integer roots of a quartic from its coefficients`, needs: ['alg.polynomials'] },
+    'a7-q2-iv': { sections: ['Expressions and identities', 'Factorising'], note: t`Substituting chosen values into an identity` },
+    'a7-q2-i-ii': { sections: ['Expressions and identities', 'Factorising'], note: t`Comparing coefficients and substituting into an identity` },
+    'a7-q2-v': { sections: ['Expressions and identities', 'Factorising'], note: t`Using an identity to pin down three integer roots` },
+    'a12-q2-i-b': { sections: ['Algebraic fractions'], note: t`Multiplying and adding algebraic fractions and cancelling common factors` },
+  }),
+  // A7 Q2 and A12 Q2 need only this lesson. A7 Q3 (a polynomial of any degree, then a quartic) needs
+  // alg.polynomials, so it is practice here; alg.roots-coefficients gates on it.
+  gate: ['a7-q2-iv', 'a7-q2-i-ii', 'a7-q2-v', 'a12-q2-i-b'],
   recall: [
     { front: t`What is the difference between an identity and an equation?`, back: t`An identity ${math`A \equiv B`} holds for every value of the letters; an equation ${math`A = B`} holds only for some, which you solve for.` },
     { front: t`Expand ${math`(a + b)(c + d)`}.`, back: t`${math`ac + ad + bc + bd`}: every term of one bracket times every term of the other.` },

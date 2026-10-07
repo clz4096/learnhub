@@ -5,7 +5,7 @@
  * the sweets problems. The gate is Grinstead and Snell, Section 3.1, Exercise 10 (batch 7):
  * the last of thirteen cards dealt, by symmetry.
  */
-import { auto, cite, same } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { int, pick, q, str, sub, toFloat, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, ident, listOf, math, setOf, t, type Rich } from '../rich';
@@ -419,7 +419,9 @@ export const probabilityScale: TopicContent = {
   generators: [bag, die, complement, letters],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['probability', 'event', 'equally-likely', 'complement-event'],
-  cambridge: [a12Mint, a12Goggles, gs3110],
+  cambridge: withUses([a12Mint, a12Goggles, gs3110], {
+    'gs-3-1-10': { sections: ['The definition'], note: t`Equally likely positions: the last card is like the first` },
+  }),
   // The last card dealt: equally likely outcomes chosen well, by symmetry. The two STEP problems are
   // one-step (the goggles chance is given in the question, the mints a direct count).
   gate: ['gs-3-1-10'],

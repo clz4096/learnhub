@@ -8,7 +8,7 @@
  * the distance r e^(-r^2/2)). Answers are compared with the STEP 2 and STEP 3 solutions,
  * and with the values Sheet 4 states; every one is checked by numerical integration.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { bisect, integrateToInfinity, near, pw, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
@@ -449,7 +449,17 @@ export const continuousSummaries: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['median-of-density', 'mode-of-density'],
   claims,
-  cambridge: [q6median, q4mean, s3mean, s3time, q9median, q9mean, q4var, q6proofs, s3medians],
+  cambridge: withUses([q6median, q4mean, s3mean, s3time, q9median, q9mean, q4var, q6proofs, s3medians], {
+    's3-q4-medians': { sections: ['The median and the mode'], note: t`A median by a substitution, and why medians and means behave differently` },
+    's2-q6-i-iii': { sections: ['The mean and the variance', 'The median and the mode'], note: t`The mean and median of a step density` },
+    's2-q4-variance': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A variance over an infinite range, integrating by parts`, needs: ['calc.integration-by-parts'] },
+    's3-q4-mean-time': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A mean from a given integral` },
+    's2-q4-mean': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A mean over an infinite range, integrating by parts`, needs: ['calc.integration-by-parts'] },
+    'ia4-q9-b-mean': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A mean over an infinite range, integrating by parts`, needs: ['calc.integration-by-parts'] },
+    's3-q4-mean-speed': { sections: ['The mean and the variance', 'Infinite ranges'], note: t`A mean from a given integral` },
+    's2-q6-ii': { sections: ['The median and the mode'], note: t`The median of a step density` },
+    'ia4-q9-b-median': { sections: ['The median and the mode'], note: t`A median by solving for half the area` },
+  }),
   gate: ['s3-q4-medians', 's2-q6-i-iii', 's2-q4-variance', 's3-q4-mean-time', 's2-q4-mean', 'ia4-q9-b-mean', 's3-q4-mean-speed', 's2-q6-ii', 'ia4-q9-b-median'],
   recall: [
     { front: t`${math`E(X)`} and ${math`E(g(X))`} for a density ${mf}.`, back: t`${math`\int x f(x)\,dx`} and ${math`\int g(x) f(x)\,dx`}, when the integrals converge absolutely.` },

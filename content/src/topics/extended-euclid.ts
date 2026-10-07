@@ -7,7 +7,7 @@
  * Proof Proposition 7.1 (the same fact from the well-ordering principle). The problems are
  * supervision exercises 3.1.4 and 3.1.5 with their 2023-24 official solutions.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
 import { egcd, gcd } from '../numbers';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -359,7 +359,11 @@ export const extendedEuclid: TopicContent = {
   generators: [bezout, shiftSolution, whichCombinations],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['linear-combination', 'extended-euclid'],
-  cambridge: [sheet314a, sheet314b, notes90, sheet315, bop71, allCombos],
+  cambridge: withUses([sheet314a, sheet314b, notes90, sheet315, bop71, allCombos], {
+    'sheet-3-1-5': { sections: ['Making the gcd from the inputs', 'Every pair, and every combination'], note: t`One as a combination exactly when coprime` },
+    'notes-249-all-combinations': { sections: ['Every pair, and every combination'], note: t`Every solution of a linear combination` },
+    'sheet-3-1-4-b': { sections: ['Keeping receipts', 'Every pair, and every combination'], note: t`Shifting a combination to a required range` },
+  }),
   // The two proofs first; then 3.1.4's second part, which needs a run of the algorithm and a shift into range.
   // 3.1.4's first part and Example 90 are single runs of the algorithm, left out.
   gate: ['sheet-3-1-5', 'notes-249-all-combinations', 'sheet-3-1-4-b'],

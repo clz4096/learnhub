@@ -9,7 +9,7 @@
  * answer depends on the quantile: 1041 with the sheet's own 2.58, 1037 with 2.5758; the
  * prompt fixes 2.58.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { div, int, mul, pick, q, str, toFloat, type Rational } from '../math';
 import { dp, lnFact, Phi, PhiSimpson, poissonCdf } from '../partv-d';
 import { generator, type Misconception } from '../problem';
@@ -351,7 +351,11 @@ export const clt: TopicContent = {
   generators: [sumApprox, sampleSize, standardise],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['central-limit-theorem'],
-  cambridge: [q5, q13value, q13proof, q6b, sketch],
+  cambridge: withUses([q5, q13value, q13proof, q6b, sketch], {
+    'ia-s4-q13': { sections: ['Using it for sums'], note: t`A Poisson sum tends to a half, by the central limit theorem` },
+    'ia-s4-q6-b': { sections: ['The theorem'], note: t`Why products of many factors look log-normal` },
+    'ia-s4-q5': { sections: ['Sizing a sample'], note: t`A sample size from the normal table` },
+  }),
   gate: ['ia-s4-q13', 'ia-s4-q6-b', 'ia-s4-q5'],
   recall: [
     { front: t`The central limit theorem.`, back: t`For i.i.d. ${math`X_{i}`} with mean ${math`\mu`} and variance ${math`\sigma^{${2}} \in (${0}, \infty)`}, ${math`P\left(\frac{S_{n} - n\mu}{\sigma\sqrt{n}} \le x\right) \to \Phi(x)`} for every ${math`x`}.` },

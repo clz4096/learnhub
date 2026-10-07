@@ -6,7 +6,7 @@
  * graded by the expression grader (equal at random points, and a product); the
  * Cambridge answers are checked by expanding at many points.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, math, t } from '../rich';
@@ -249,7 +249,10 @@ export const factorisations: TopicContent = {
   generators: [differenceOfSquares, cubes, disguised],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['difference-of-two-squares', 'sum-of-cubes'],
-  cambridge: [a2i, a14six, a10ii, a14q1],
+  cambridge: withUses([a2i, a14six, a10ii, a14q1], {
+    'a14-q1-ii-b': { sections: ['Squares and cubes', 'Higher powers'], note: t`Factorising a difference of sixth powers completely` },
+    'a10-q4-ii': { sections: ['Squares and cubes'], note: t`Using the difference of cubes to solve for two numbers` },
+  }),
   gate: ['a14-q1-ii-b', 'a10-q4-ii'],
   recall: [
     { front: t`${math`a^{${3}} - b^{${3}} = \ ?`}`, back: t`${math`(a - b)(a^{${2}} + ab + b^{${2}})`}.` },

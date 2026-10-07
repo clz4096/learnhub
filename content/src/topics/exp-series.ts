@@ -6,7 +6,7 @@
  * the Assignment 22 hints. The STEP 2 specification: "Recognise and use the series expansion
  * of e^x."
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, div, factorial, int, mul, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { agreesAt, close, numDeriv } from '../prep-c';
@@ -254,7 +254,10 @@ export const expSeries: TopicContent = {
   generators: [partialSum, coefficient, recognise],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exponential-series'],
-  cambridge: [xexSeries, productQ],
+  cambridge: withUses([xexSeries, productQ], {
+    'a22-q2-iv': { sections: ['Its own derivative'], note: t`Index laws from the series, by the product rule`, needs: ['calc.differentiation-rules'] },
+    'a22-q2-iii-series': { sections: ['Its own derivative'], note: t`Differentiating a series term by term` },
+  }),
   gate: ['a22-q2-iv', 'a22-q2-iii-series'],
   recall: [
     { front: t`Write the exponential series.`, back: t`${math`e^{x} = \sum_{k \ge ${0}} \frac{x^{k}}{k!}`}, convergent for every real ${math`x`}.` },

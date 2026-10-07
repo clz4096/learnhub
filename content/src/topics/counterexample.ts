@@ -7,7 +7,7 @@
  * and must fall under the statement). The problems are TMUA Exercise P and supervision
  * exercises 1.1.1, 1.2.5, 1.2.9, and 2.2.1, checked against the official solutions.
  */
-import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
+import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { int, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { math, t, type Rich } from '../rich';
@@ -463,7 +463,12 @@ export const counterexample: TopicContent = {
   generators: [conditional, smallestFail, anyFail],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['disproof'],
-  cambridge: [sw111, sw125, sw129, sw221, p2a, p2b, p2c, p2d, p2e, p1, p2f],
+  cambridge: withUses([sw111, sw125, sw129, sw221, p2a, p2b, p2c, p2d, p2e, p1, p2f], {
+    'sw-2-2-1': { sections: ['What a counterexample is'], note: t`Finding numbers that break a claim about powers` },
+    'sw-1-1-1': { sections: ['What a counterexample is'], note: t`Finding a counterexample among non-primes` },
+    'sw-1-2-9': { sections: ['What a counterexample is', 'Compound statements'], note: t`A counterexample to an implication with an "or"` },
+    'sw-1-2-5': { sections: ['What a counterexample is', 'Compound statements'], note: t`A counterexample to an implication with an "and"` },
+  }),
   gate: ['sw-2-2-1', 'sw-1-1-1', 'sw-1-2-9', 'sw-1-2-5'],
   recall: [
     { front: t`A counterexample to ${math`\forall x.\ (A(x) \Rightarrow B(x))`}.`, back: t`A value with ${math`A`} true and ${math`B`} false.` },

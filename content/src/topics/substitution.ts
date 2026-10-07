@@ -7,7 +7,7 @@
  * u = k^2/x). The gate adds STEP Support STEP 2 Calculus Q2 (2006 STEP II Q4, x f(sin x)) and
  * STEP I 2010 Q4, first part (STEP Questions Database).
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -327,7 +327,12 @@ export const substitution: TopicContent = {
   generators: [linear, reverseChain, sqrtSub],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['substitution'],
-  cambridge: [calc2, db10q4, calc2i, calc2ii, calc2iii, fracQ, rootQ, tanSubQ, statsQ],
+  cambridge: withUses([calc2, db10q4, calc2i, calc2ii, calc2iii, fracQ, rootQ, tanSubQ, statsQ], {
+    's2calc-q2': { sections: ['Choosing the substitution'], note: t`A reflecting substitution, then three integrals` },
+    'step10-q4': { sections: ['Choosing the substitution'], note: t`A substitution that clears two roots` },
+    'a25-q3-tan': { sections: ['The chain rule, run backwards', 'Choosing the substitution'], note: t`A substitution back to a known integral` },
+    's2calc-q2-iii': { sections: ['Choosing the substitution'], note: t`Using a symmetry result with a modulus` },
+  }),
   // Best first: 2006 STEP II Q4 (with official solutions), STEP I 2010 Q4's substitution (its
   // volume of revolution is not a prerequisite), Assignment 25 Q3, then 2006 Q4(iii) auto-checked.
   gate: ['s2calc-q2', 'step10-q4', 'a25-q3-tan', 's2calc-q2-iii'],

@@ -6,7 +6,7 @@
  * official answer from the hints), Assignment 22 Q3(iv) (the zeros and symmetry of sin(x^2)),
  * and NST Maths Workbook G2 (a sector) and FC4 (sketches).
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { cosDeg, sinDeg, tanDeg, valuesKey, type Exact } from '../geometry';
 import { gcd, int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
@@ -361,7 +361,10 @@ export const radiansAndGraphs: TopicContent = {
   generators: [convert, anyAngle, allSolutions, sector],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['radian', 'unit-circle', 'period'],
-  cambridge: [a22zero, g2perim, g2area, fc4],
+  cambridge: withUses([a22zero, g2perim, g2area, fc4], {
+    'nst-fc4': { sections: ['Sine and cosine for every angle'], note: t`Sketching two trigonometric graphs and relating them`, needs: ['trig.double-angle'] },
+    'a22-q3-iv': { sections: ['Every angle with a given sine'], note: t`Every angle with sine zero, then a square root` },
+  }),
   gate: ['nst-fc4', 'a22-q3-iv'],
   recall: [
     { front: t`Define a radian.`, back: t`The angle at the centre of a circle whose arc equals the radius; ${math`\pi`} radians is ${math`${180}^\circ`}.` },

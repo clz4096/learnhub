@@ -5,7 +5,7 @@
  * Foundation Assignment 13, Q1 and Q2(iii), and Q3(ii) (2012 STEP I Q2), with the answers of
  * the Assignment 13 hints compared in the content checks.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -265,7 +265,10 @@ export const inflectionPoints: TopicContent = {
   generators: [inflectionPoint, inflectionGradient, isInflection],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['point-of-inflection'],
-  cambridge: [nonStationary, stepA, prepQ],
+  cambridge: withUses([nonStationary, stepA, prepQ], {
+    'a13-q3-ii-a': { sections: ['Where the bending changes', 'Testing a candidate'], note: t`A point where both derivatives vanish` },
+    'a13-q2-iii': { sections: ['Where the bending changes', 'Testing a candidate'], note: t`Stationary points and inflections of a quartic, then counting roots`, needs: ['calc.stationary-points'] },
+  }),
   gate: ['a13-q3-ii-a', 'a13-q2-iii'],
   recall: [
     { front: t`Define a point of inflection.`, back: t`A point where ${math`f''`} changes sign: concave on one side, convex on the other.` },

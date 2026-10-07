@@ -5,7 +5,7 @@
  * (vi), and Assignment 25, Q4(ii), with their hints. The STEP 1 specification: "Know and use
  * the Fundamental Theorem of Calculus, including applications to integration by inspection".
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -283,7 +283,10 @@ export const standardIntegrals: TopicContent = {
   generators: [trigDefinite, logIntegral, recip],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['log-integral'],
-  cambridge: [e4t, sin2t, xcos, lnln, stQ, ijQ],
+  cambridge: withUses([e4t, sin2t, xcos, lnln, stQ, ijQ], {
+    'a25-q4-ii-c': { sections: ['The logarithm pattern'], note: t`Two integrals at once by their sum and difference` },
+    'a24-q1-i-c': { sections: ['Reading derivatives backwards'], note: t`An integral recognised as a derivative` },
+  }),
   gate: ['a25-q4-ii-c', 'a24-q1-i-c'],
   recall: [
     { front: t`What are ${math`\int \sin kx\,dx`} and ${math`\int \cos kx\,dx`}?`, back: t`${math`-\frac{\cos kx}{k} + c`} and ${math`\frac{\sin kx}{k} + c`}.` },

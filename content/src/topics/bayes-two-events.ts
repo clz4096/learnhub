@@ -6,7 +6,7 @@
  * note on the prosecutor's fallacy.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type AnswerSpec, type Misconception } from '../problem';
 import { dmath, math, t, type Rich } from '../rich';
@@ -374,7 +374,11 @@ export const bayesTwoEvents: TopicContent = {
   generators: [diagnostic, groups, bayesTable],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['false-positive', 'sensitivity', 'specificity', 'prosecutors-fallacy'],
-  cambridge: [a6abc, a6e, a6ii, a6discussion],
+  cambridge: withUses([a6abc, a6e, a6ii, a6discussion], {
+    'a6-q4-ii': { sections: ['Count a population', 'Tests and false positives'], note: t`Reversing a conditional probability for a test` },
+    'a6-discussion': { sections: ['Tests and false positives', 'Where it breaks'], note: t`Telling the two conditional probabilities apart` },
+    'a6-q4-i-e': { sections: ['Count a population', 'The formula behind the table'], note: t`Reversing a condition by counting a population` },
+  }),
   gate: ['a6-q4-ii', 'a6-discussion', 'a6-q4-i-e'],
   claims,
   recall: [

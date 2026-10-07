@@ -6,7 +6,7 @@
  * three children and their goggles. Assignment 6 Q4(i) offers a tree for the smokers.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -433,7 +433,12 @@ export const treeDiagrams: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['tree-diagram', 'without-replacement'],
   claims,
-  cambridge: [a12iiib, a12iva, a12ivc, a12methods, smokers],
+  cambridge: withUses([a12iiib, a12iva, a12ivc, a12methods, smokers], {
+    'a12-q2-ii-methods': { sections: ['Multiplying along a path', 'Adding across paths'], note: t`One problem by a tree and by counting pairs`, needs: ['comb.combinations'] },
+    'a6-q4-i-tree': { sections: ['Multiplying along a path', 'Adding across paths'], note: t`Drawing and labelling a two-stage tree and adding paths` },
+    'a12-q2-iii-b': { sections: ['When the second draw remembers the first', 'Multiplying along a path'], note: t`Multiplying along a path without replacement` },
+    'a12-q2-iv-a': { sections: ['Independent stages and "at least one"'], note: t`"At least one" by the complement` },
+  }),
   // Best first: the two-method write-up, the labelled smokers tree, the three draws in
   // letters, then at least one child with goggles. The middle child alone (one product) is too
   // slight to gate.

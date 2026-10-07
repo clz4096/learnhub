@@ -8,7 +8,7 @@
  * their Exercise 10 (does one order of the quantifiers imply the other?) is the lesson's theorem,
  * so it is not set.
  */
-import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
+import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, q, str, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, t, type Rich, type Span } from '../rich';
@@ -429,7 +429,10 @@ export const nestedQuantifiers: TopicContent = {
   generators: [order, construct, translate],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['dependent-witness'],
-  cambridge: [tmuaN, bop27_9, bop27_10, bop29_7, bop29_5, s1s2, bop29_13, lp12, lp12Why],
+  cambridge: withUses([tmuaN, bop27_9, bop27_10, bop29_7, bop29_5, s1s2, bop29_13, lp12, lp12Why], {
+    'lp-ex-12-why': { sections: ['Who chooses first', 'From words to symbols'], note: t`Checking reflexive, symmetric, and transitive axioms, with a counterexample for each failure` },
+    'lp-ex-12': { sections: ['Who chooses first', 'From words to symbols'], note: t`Checking which axioms hold for each relation` },
+  }),
   // Logic and Proof Exercise 12: nested quantifiers in the axioms, checked on six interpretations.
   gate: ['lp-ex-12-why', 'lp-ex-12'],
   recall: [

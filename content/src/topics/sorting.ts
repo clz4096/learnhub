@@ -8,7 +8,7 @@
  * a model that counts each evaluation of a comparison. log2(10!) = log2 3628800 is about
  * 21.79, so 22 comparisons are needed in the worst case for 10 items.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, sample } from '../math';
 import { codeOf, ml, mlBlock } from '../ocaml-code';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -275,7 +275,10 @@ export const sorting: TopicContent = {
   generators: [insGen, mergeGen, quickGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['insertion-sort', 'quicksort', 'mergesort'],
-  cambridge: [lowerBound, focs52, focs53, focs54],
+  cambridge: withUses([lowerBound, focs52, focs53, focs54], {
+    'focs-5-3': { sections: ['How fast can we sort?', 'Insertion sort: simple and quadratic'], note: t`The best and worst cost of bubble sort` },
+    'focs-5-2': { sections: ['Insertion sort: simple and quadratic'], note: t`Selection sort on lists` },
+  }),
   gate: ['focs-5-3', 'focs-5-2'],
   recall: [
     { front: t`State the comparison lower bound for sorting.`, back: t`At least ${math`\log_{${2}}(n!)`} comparisons in the worst case, about ${math`n\log_{${2}} n`}.` },

@@ -6,7 +6,7 @@
  * commutative semiring) and Book of Proof Chapter 10, exercise 23, whose solution is
  * compared in a supervision problem.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -286,7 +286,10 @@ export const binomialTheoremProof: TopicContent = {
   generators: [stepCoefficient, generalCoefficient, evaluateSum],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['index-shift'],
-  cambridge: [pascalCount, unfold, bop1023, semiring],
+  cambridge: withUses([pascalCount, unfold, bop1023, semiring], {
+    'notes-278-semiring': { sections: ['The proof', 'Where it breaks'], note: t`Where the proof uses commutativity, and a matrix example`, needs: ['mat.matrices'] },
+    'notes-274-unfold': { sections: ['The step, with numbers'], note: t`The coefficients in the unfolded inductive step` },
+  }),
   gate: ['notes-278-semiring', 'notes-274-unfold'],
   recall: [
     { front: t`The binomial theorem.`, back: t`${hyp(mn)}, for ${mx}, ${my} in a commutative ring and ${math`n \in \mathbb{N}`}.` },

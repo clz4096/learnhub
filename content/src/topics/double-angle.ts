@@ -7,7 +7,7 @@
  * the hints. The gate adds STEP I 2005 Q4 and the identity of STEP I 2011 Q3 (STEP Questions
  * Database).
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { TRIPLES } from '../geometry';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
@@ -392,10 +392,17 @@ export const doubleAngle: TopicContent = {
   generators: [doubleFromCos, cosForms, tripleAngle],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['double-angle-formula'],
-  cambridge: [db05q4, db11q3, db05q4cos, db05q4tan, a16sin3, a23tan, a23q2iv, a25q2v],
-  // Best first: STEP I 2005 Q4 (triple angles, then tan 3 theta), Assignment 25 Q2(v), STEP I
-  // 2011 Q3's identity, then the auto-checked tan theta of 2005 Q4(ii).
-  gate: ['step05-q4', 'a25-q2-v', 'step11-q3', 'step05-q4-tan'],
+  cambridge: withUses([db05q4, db11q3, db05q4cos, db05q4tan, a16sin3, a23tan, a23q2iv, a25q2v], {
+    'step05-q4': { sections: ['Doubling an angle', 'Tripling an angle'], note: t`Double and triple angles with the quadrant in radians`, needs: ['trig.radians-and-graphs'] },
+    'a25-q2-v': { sections: ['Doubling an angle', 'Where it breaks'], note: t`A double angle identity, and where it holds` },
+    'step11-q3': { sections: ['Tripling an angle'], note: t`A triple angle identity with angles in radians`, needs: ['trig.radians-and-graphs'] },
+    'step05-q4-tan': { sections: ['Tripling an angle'], note: t`Solving for a tangent from the triple angle formula, choosing the root by the range`, needs: ['trig.radians-and-graphs'] },
+    'a23-q2-iv': { sections: ['Doubling an angle', 'Where it breaks'], note: t`Deriving the double angle formula for tangent` },
+    'a16-q2-ii-sin3a': { sections: ['Tripling an angle'], note: t`The sine of a triple angle from compound angles` },
+  }),
+  // STEP I 2005 Q4 and 2011 Q3 work in radians, taught later, so they are practice. Assignment 25 Q2(v), then
+  // the tangent formula of Assignment 23 Q2(iv) and the sine of a triple angle of Assignment 16 Q2(ii).
+  gate: ['a25-q2-v', 'a23-q2-iv', 'a16-q2-ii-sin3a'],
   recall: [
     { front: t`State the double angle formulae for sine and cosine.`, back: t`${math`\sin ${2}A = ${2}\sin A\cos A`}; ${math`\cos ${2}A = \cos^{${2}} A - \sin^{${2}} A = ${2}\cos^{${2}} A - ${1} = ${1} - ${2}\sin^{${2}} A`}.` },
     { front: t`State ${math`\tan ${2}A`}.`, back: t`${math`\frac{${2}\tan A}{${1} - \tan^{${2}} A}`}, where defined.` },

@@ -7,7 +7,7 @@
  * TMUA Exercises E and J, the TMUA examples of page 29, and the notes' Proposition 10.
  */
 import { assignments, evalFormula, parseFormula, type Formula } from '@learnhub/mastery';
-import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
+import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample, upTo } from '../math';
 import { generator, type AnswerSpec, type ChoiceOption, type Misconception } from '../problem';
 import { math, t, type Rich, type Span } from '../rich';
@@ -660,10 +660,12 @@ export const implication: TopicContent = {
   generators: [fillColumn, findValues, rewrite],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['implication', 'converse', 'modus-ponens'],
-  cambridge: [bop25_1, bop25_7, bop25_10, bop25_11, bop23_3, bop23_5, bop23_7, bop23_11, tmuaE4, tmua29, prop10, thm11, tmuaE1, tmuaJ],
-  // Both are proofs of an implication from the CST notes, set for supervision. Proposition 10 needs the
-  // assume-then-deduce method on its own; Theorem 11 needs modus ponens named twice.
-  gate: ['notes-50-prop10', 'notes-54-thm11'],
+  cambridge: withUses([bop25_1, bop25_7, bop25_10, bop25_11, bop23_3, bop23_5, bop23_7, bop23_11, tmuaE4, tmua29, prop10, thm11, tmuaE1, tmuaJ], {
+    'notes-50-prop10': { sections: ['Proving and using an implication'], note: t`Proving an implication about rational numbers`, needs: ['num.number-systems'] },
+    'notes-54-thm11': { sections: ['Proving and using an implication'], note: t`Proving an implication by chaining modus ponens` },
+  }),
+  // Theorem 11 needs modus ponens named twice. Proposition 10 needs rational numbers, taught later, so it is practice.
+  gate: ['notes-54-thm11'],
   recall: [
     { front: t`When is ${IMP} false?`, back: t`Only when ${mP} is true and ${mQ} is false. In the other three cases it is true.` },
     { front: t`What is the converse of ${IMP}?`, back: t`${math`Q \Rightarrow P`}. It is a different statement: one can be true and the other false.` },

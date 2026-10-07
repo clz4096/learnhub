@@ -8,7 +8,7 @@
  * problems put right triangles inside solids: STEP Support STEP 2 Miscellaneous Q2 (2010 STEP II
  * Q6, a regular tetrahedron) and STEP I 2002 Q6 (STEP Questions Database, a pyramid).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { exactValueError, sinDeg, cosDeg, tanDeg, TRIPLES } from '../geometry';
 import { int, pick, q, str } from '../math';
 import { close } from '../prep-c';
@@ -387,7 +387,12 @@ export const rightTriangle: TopicContent = {
   generators: [ratioFromSides, exactValues, fromSine],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hypotenuse'],
-  cambridge: [misc2, db02q6, misc2pd, misc2r, db02q6angle, a5q1i],
+  cambridge: withUses([misc2, db02q6, misc2pd, misc2r, db02q6angle, a5q1i], {
+    's2misc-q2': { sections: ['Shape, not size', 'The exact values'], note: t`Right triangles inside a tetrahedron: a height, an angle, and an inscribed sphere` },
+    'step02-q6': { sections: ['Shape, not size'], note: t`Right triangles in a pyramid: its volume and the tilt of a face` },
+    's2misc-q2-iii': { sections: ['Shape, not size'], note: t`The radius of the inscribed sphere from right triangles` },
+    'step02-q6-angle': { sections: ['Shape, not size'], note: t`The tangent of a tilt angle from a right triangle` },
+  }),
   // The gate is two STEP questions on right triangles inside solids, best first: 2010 II Q6 (the
   // regular tetrahedron, with official solutions) and 2002 I Q6 (a pyramid tipped onto a face),
   // then their auto-checked parts. Assignment 5 Q1(i) is the lesson's own proof.

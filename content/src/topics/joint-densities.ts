@@ -7,7 +7,7 @@
  * solutions; the answers are checked by exact integration and by simulation.
  */
 import { mulberry32 } from '@learnhub/mastery';
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { expSample, integrateToInfinity, near, powQ, pw } from '../partv-b';
 import { generator, type Misconception } from '../problem';
@@ -331,7 +331,10 @@ export const jointDensities: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['joint-density', 'marginal-density'],
   claims,
-  cambridge: [q4race, q1general, triangle],
+  cambridge: withUses([q4race, q1general, triangle], {
+    'ia4-q1-general': { sections: ['Probabilities as double integrals'], note: t`Meeting probability as an area in a square` },
+    'ia4-q4-race': { sections: ['Probabilities as double integrals', 'Independence'], note: t`The probability one exponential exceeds another` },
+  }),
   // Both are the sheet's own questions: the general meeting problem as a write-up first, then Q4 in general.
   gate: ['ia4-q1-general', 'ia4-q4-race'],
   recall: [

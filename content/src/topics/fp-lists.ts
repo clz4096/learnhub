@@ -11,7 +11,7 @@
  *   take 5 [10; 20; 30] = [10; 20; 30]; drop 5 [10; 20; 30] = []
  *   [1, 2] : (int * int) list = [(1, 2)]
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { code, codeBlock, oc, showList, showLists } from '../ocaml-code';
 import { int, pick } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -425,7 +425,10 @@ export const fpLists: TopicContent = {
   generators: [lengths, listFn, consCount],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ocaml-list', 'cons', 'pattern-matching'],
-  cambridge: [cst16, listExpr, takeDrop, focs32],
+  cambridge: withUses([cst16, listExpr, takeDrop, focs32], {
+    'cst-2016-p1-q2-a': { sections: ['Taking lists apart: pattern matching'], note: t`A prime sieve written by recursion on a list` },
+    'focs-3-2': { sections: ['Taking lists apart: pattern matching'], note: t`The last element of a list, and why it takes a full pass` },
+  }),
   // Best first: the 2016 Tripos sieve, then FoCS Exercise 3.2.
   gate: ['cst-2016-p1-q2-a', 'focs-3-2'],
   recall: [

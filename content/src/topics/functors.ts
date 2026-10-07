@@ -10,7 +10,7 @@
  * value and cardinal 2; the date compare gives -1 for March 31 against April 1. The
  * generators run the same operations on a TypeScript Map, then sort the keys.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
 import { codeOf, ml, mlBlock } from '../ocaml-code';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -273,8 +273,12 @@ export const functors: TopicContent = {
   generators: [mapOps, bindingsOrder, dateOrder],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['functor', 'total-order'],
-  cambridge: [charOrdered, printFunctor, functorBst],
-  gate: ['cs3110-5-print', 'cs3110-9-functorized-bst'],
+  cambridge: withUses([charOrdered, printFunctor, functorBst], {
+    'cs3110-5-print': { sections: ['Functions from modules to modules'], note: t`Writing and applying a functor` },
+    'cs3110-9-functorized-bst': { sections: ['Maps from an ordered type'], note: t`A binary search tree set as a functor`, needs: ['fp.binary-search-trees'] },
+  }),
+  // The functorized BST needs binary search trees, taught later, so it is practice.
+  gate: ['cs3110-5-print'],
   recall: [
     { front: t`What is a functor?`, back: t`A parameterised module, ${ml`module F (M : S) = struct ... end`}: a function from modules matching ${ml`S`} to modules.` },
     { front: t`What must the argument of ${ml`Map.Make`} provide?`, back: t`A type ${ml`t`} and ${ml`compare : t -> t -> int`}, negative, zero, or positive for a total order.` },

@@ -11,7 +11,7 @@
  * distributive laws by truth tables) is what the lesson and its first worked example do, so it is
  * not set.
  */
-import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
+import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { column, differingRows, equivalent, fm, rowText, TF, truthTable } from '../logic';
 import { int, pick } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -609,11 +609,15 @@ export const equivalences: TopicContent = {
   generators: [whichImplies, deMorganWords, whereDiffer],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['logically-equivalent', 'de-morgans-laws', 'contrapositive'],
-  cambridge: [bop3, bop5, bop7, bop10, bop11, bop12, tmuaF1, tmuaK2, tmuaK4, tmuaF3, tmuaK5, lemma43, lp1, lp4, lp4Verdicts],
-  // Logic and Proof Exercise 4 first: normal forms by the laws of the lesson, and a verdict for each.
-  // The Lemma 43 question also negates quantifiers, taught in logic.negating-quantifiers, so a
-  // learner may meet it after that lesson. Exercise 1 is one formula of one letter: practice.
-  gate: ['lp-ex-4', 'cst-lemma-43-equivalences', 'lp-ex-4-verdicts'],
+  cambridge: withUses([bop3, bop5, bop7, bop10, bop11, bop12, tmuaF1, tmuaK2, tmuaK4, tmuaF3, tmuaK5, lemma43, lp1, lp4, lp4Verdicts], {
+    'lp-ex-4': { sections: ["De Morgan's laws", 'Implication as an "or"'], note: t`Rewriting formulas into normal forms with the laws, and judging validity` },
+    'cst-lemma-43-equivalences': { sections: ["De Morgan's laws", 'Implication as an "or"'], note: t`Negating a quantified statement step by step`, needs: ['logic.negating-quantifiers'] },
+    'lp-ex-4-verdicts': { sections: ["De Morgan's laws"], note: t`Deciding validity and satisfiability` },
+  }),
+  // Logic and Proof Exercise 4 first: normal forms by the laws of the lesson, and a verdict for each. The Lemma 43
+  // question negates quantifiers, taught in logic.negating-quantifiers, so it is practice. Exercise 1 is one
+  // formula of one letter: practice.
+  gate: ['lp-ex-4', 'lp-ex-4-verdicts'],
   recall: [
     { front: t`When are two statements logically equivalent?`, back: t`When they have the same truth value in every row of the truth table.` },
     { front: t`State De Morgan's laws.`, back: t`${math`\lnot (P \land Q)`} is equivalent to ${math`(\lnot P) \lor (\lnot Q)`}; ${math`\lnot (P \lor Q)`} is equivalent to ${math`(\lnot P) \land (\lnot Q)`}.` },

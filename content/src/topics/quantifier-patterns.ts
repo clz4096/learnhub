@@ -7,7 +7,7 @@
  * supervision exercises 1.1.4 and 1.1.7 with those solutions, and Book of Proof Chapter 4,
  * exercise 26 and Chapter 7, exercises 12, 17, and 20.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { dmath, listOf, math, t, type Rich } from '../rich';
@@ -379,7 +379,10 @@ export const quantifierPatterns: TopicContent = {
   generators: [firstMove, existsPower, unique],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arbitrary-element', 'unique-existence'],
-  cambridge: [sw117, bop717, bop712, bop720, bop426, sw117proof, sw114proof, bop426proof],
+  cambridge: withUses([sw117, bop717, bop712, bop720, bop426, sw117proof, sw114proof, bop426proof], {
+    'sw-1-1-7-proof': { sections: ['Proving "there exists"', 'Exactly one'], note: t`Existence and uniqueness, written as two parts` },
+    'sw-1-1-4-proof': { sections: ['Proving "for all"', 'Proving "there exists"'], note: t`Writing an existence proof with the witness first` },
+  }),
   // Best first: the existence and uniqueness proof, then the existence write-up. The auto-checked
   // unique y is one line of algebra, so it does not gate.
   gate: ['sw-1-1-7-proof', 'sw-1-1-4-proof'],

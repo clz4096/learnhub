@@ -7,7 +7,7 @@
  * adds STEP I 2015 Q7 and STEP I 1996 Q1 (STEP Questions Database) and STEP Support STEP 2
  * Equations and Inequalities Q4(i) (2010 STEP II Q7(i)).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -467,11 +467,18 @@ export const stationaryPoints: TopicContent = {
   generators: [maxPoint, minValue, classify],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['stationary-point', 'local-maximum'],
-  cambridge: [db15q7, db96q1, eqns4, db15q7values, db96q1sphere, minusTurns, whichMax, nstD1, nstD1iii, sketchQ],
-  // Best first: STEP I 2015 Q7 (a maximum on an interval in three regimes), STEP I 1996 Q1 (the
-  // biscuit tin), 2010 STEP II Q7(i) (with official solutions), Assignment 7 Q1(i), then the
-  // auto-checked parts of 2015 Q7 and 1996 Q1.
-  gate: ['step15-q7', 'step96-q1', 's2eqns-q4-i', 'a7-q1-i', 'step15-q7-values', 'step96-q1-sphere'],
+  cambridge: withUses([db15q7, db96q1, eqns4, db15q7values, db96q1sphere, minusTurns, whichMax, nstD1, nstD1iii, sketchQ], {
+    'step15-q7': { sections: ['Where the curve is level', 'Maximum, minimum, or neither?'], note: t`The greatest value on an interval as a parameter moves the turning points` },
+    'step96-q1': { sections: ['Where the curve is level', 'Maximum, minimum, or neither?'], note: t`Minimising surface area for a fixed volume` },
+    's2eqns-q4-i': { sections: ['Where the curve is level', 'Maximum, minimum, or neither?'], note: t`Using the heights of the turning points to count crossings` },
+    'a7-q1-i': { sections: ['Where the curve is level'], note: t`Sketching with turning points, asymptotes, and behaviour near zero`, needs: ['fn.rational-functions'] },
+    'step15-q7-values': { sections: ['Where the curve is level', 'Maximum, minimum, or neither?'], note: t`The greatest value on an interval for given parameters` },
+    'step96-q1-sphere': { sections: ['Where the curve is level'], note: t`The best tin, then the sphere round it` },
+  }),
+  // Best first: STEP I 2015 Q7 (a maximum on an interval in three regimes), STEP I 1996 Q1 (the biscuit tin),
+  // 2010 STEP II Q7(i), then the auto-checked parts of 2015 Q7 and 1996 Q1. Assignment 7 Q1(i) needs asymptotes,
+  // taught in fn.rational-functions next, so it is practice.
+  gate: ['step15-q7', 'step96-q1', 's2eqns-q4-i', 'step15-q7-values', 'step96-q1-sphere'],
   recall: [
     { front: t`What is a stationary point?`, back: t`A point where ${math`f'(a) = ${0}`}: the tangent is horizontal.` },
     { front: t`State the second derivative test.`, back: t`If ${math`f'(a) = ${0}`}: ${math`f''(a) < ${0}`} gives a local maximum, ${math`f''(a) > ${0}`} a local minimum, and ${math`f''(a) = ${0}`} no conclusion.` },

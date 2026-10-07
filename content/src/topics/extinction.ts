@@ -8,7 +8,7 @@
  * checked by exact recursion, iteration of the pgf, or simulation.
  */
 import { mulberry32, type Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { meanQ, polyCompose, polyEval, polyTex, varQ, type Poly } from '../partv-d';
 import { generator, type Misconception } from '../problem';
@@ -449,7 +449,11 @@ export const extinctionTopic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['branching-process', 'extinction-probability'],
   claims,
-  cambridge: [q9a, q12, q12proof, theorem],
+  cambridge: withUses([q9a, q12, q12proof, theorem], {
+    'ia-s3-q12': { sections: ['The extinction probability'], note: t`Iterating a generating function and the extinction probability` },
+    'ia-s3-q12-extinction': { sections: ['The extinction probability'], note: t`The extinction probability as a fixed point` },
+    'ia-s3-q9-a': { sections: ['Will the family survive?'], note: t`The chance no white cell has appeared` },
+  }),
   // Sheet 3 Q12 in full first (the iterates by induction, the mean, and the extinction probability), then
   // its answer alone, then Q9(a). The schedule theorem is the lesson's own proof.
   gate: ['ia-s3-q12', 'ia-s3-q12-extinction', 'ia-s3-q9-a'],

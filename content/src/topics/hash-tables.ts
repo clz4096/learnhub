@@ -11,7 +11,7 @@
  * exactly 2), and the 33rd makes 32 (load factor goes strictly above 2). The generators
  * simulate the same rules.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
 import { codeOf, ml, mlBlock } from '../ocaml-code';
 import { generator, type Misconception } from '../problem';
@@ -272,7 +272,10 @@ export const hashTables: TopicContent = {
   generators: [bucketsGen, resizeGen, movesGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hash-function', 'hash-table', 'load-factor'],
-  cambridge: [loadFactor, resize33, relaxRi, probing],
+  cambridge: withUses([loadFactor, resize33, relaxRi, probing], {
+    'cs3110-9-linear-probing': { sections: ['From keys to array positions', 'The load factor', 'Why doubling is cheap'], note: t`A linear probing table with resizing` },
+    'cs3110-9-relax-ri': { sections: ['From keys to array positions'], note: t`How a bucket invariant changes the cost of each operation` },
+  }),
   gate: ['cs3110-9-linear-probing', 'cs3110-9-relax-ri'],
   recall: [
     { front: t`What is the load factor of a hash table?`, back: t`Bindings divided by buckets, ${math`\alpha = n/m`}: the average bucket length.` },

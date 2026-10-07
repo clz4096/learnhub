@@ -8,7 +8,7 @@
  * 2023-24 official solution. (Sheet 1, Q2, the primes 41, 43, 47, ..., is this lesson's pitfall,
  * and CST 3.2.7(b) is proof.direct's theorem, so neither is set.)
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -525,7 +525,13 @@ export const algebraicArgument: TopicContent = {
   generators: [writeTwoM, divides, parity, substitute],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['parity', 'consecutive'],
-  cambridge: [bop41, bop43, bop45, bop42, bop44, a12ii, ns1q4, ns1q4Proof, ns1q1, sw131d],
+  cambridge: withUses([bop41, bop43, bop45, bop42, bop44, a12ii, ns1q4, ns1q4Proof, ns1q1, sw131d], {
+    'ns1-q4-proof': { sections: ['A new letter for each number'], note: t`Improving any choice step by step until only twos and threes remain` },
+    'a12-q1-ii-six': { sections: ['Consecutive integers and divisibility'], note: t`Factorising into three consecutive integers` },
+    'ns1-q1': { sections: ['A new letter for each number', 'Consecutive integers and divisibility'], note: t`Writing a number by its remainder on division by three and squaring` },
+    'sw-1-3-1-d': { sections: ['A new letter for each number'], note: t`Adding two consecutive triangular numbers by algebra` },
+    'ns1-q4': { sections: ['A new letter for each number'], note: t`Finding the largest product for a fixed sum` },
+  }),
   // The IA largest-product argument first (the auto-checked value alone can be found by trial, so
   // the write-up gates before it), then the STEP warm-up, the squares, and the triangular numbers.
   gate: ['ns1-q4-proof', 'a12-q1-ii-six', 'ns1-q1', 'sw-1-3-1-d', 'ns1-q4'],

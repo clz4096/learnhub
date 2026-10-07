@@ -5,7 +5,7 @@
  * Assignment 25 Q2(iii) (the relation between tan and sec), and NST Maths Workbook T2 and
  * T3(iii).
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { cosDeg, sinDeg, TRIPLES, valuesKey, type Exact } from '../geometry';
 import { int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
@@ -293,7 +293,10 @@ export const reciprocalFunctions: TopicContent = {
   generators: [exactRecip, identity, solveRecip],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['reciprocal-trig'],
-  cambridge: [a25iii, t3, t2, a24b],
+  cambridge: withUses([a25iii, t3, t2, a24b], {
+    'nst-t2': { sections: ['Three more names', 'The Pythagorean identities'], note: t`Proving an identity with cosecant and cotangent` },
+    'nst-t3-iii': { sections: ['Three more names'], note: t`An exact cotangent from a difference of angles`, needs: ['trig.compound-angles'] },
+  }),
   gate: ['nst-t2', 'nst-t3-iii'],
   recall: [
     { front: t`Define ${math`\sec`}, ${math`\csc`}, and ${math`\cot`}.`, back: t`${math`\frac{${1}}{\cos}`}, ${math`\frac{${1}}{\sin}`}, and ${math`\frac{\cos}{\sin}`}.` },

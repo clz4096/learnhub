@@ -8,7 +8,7 @@
  * solutions to sheet 5. Exercise 5.1.2(a), the empty set is a subset of every set, is the lesson's
  * theorem, so it is not set.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, t, type Span } from '../rich';
@@ -520,7 +520,10 @@ export const subsetsTopic: TopicContent = {
   generators: [countGen, statGen, cardGen, withGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['subset', 'power-set'],
-  cambridge: [cstPowers, cstPowersProof, cstPartialOrder, b1314, b1413, b1415, b1416, b1418, b1419, b1420, sw523, sw512b],
+  cambridge: withUses([cstPowers, cstPowersProof, cstPartialOrder, b1314, b1413, b1415, b1416, b1418, b1419, b1420, sw523, sw512b], {
+    'sw-5-2-2-proof': { sections: ['In it, or inside it?', 'All the subsets at once', 'Where it breaks'], note: t`Proving or disproving inclusions between power sets` },
+    'sw-5-2-3': { sections: ['In it, or inside it?'], note: t`Proving four statements about inclusion equivalent` },
+  }),
   // The CST proofs: power sets, then the four equivalent forms of inclusion. The empty set exercise is
   // two short vacuous arguments, practice rather than a gate.
   gate: ['sw-5-2-2-proof', 'sw-5-2-3'],

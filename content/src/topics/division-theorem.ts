@@ -7,7 +7,7 @@
  * from the well-ordering principle, with a = 17 and b = 3). The problems add the 2023-24
  * official solution to supervision exercise 2.1.3 and Book of Proof Chapter 7, exercise 28.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, upTo } from '../math';
 import { mod } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -332,7 +332,10 @@ export const divisionTheorem: TopicContent = {
   generators: [quoRem, divalgTrace, leastResidue],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quotient-remainder', 'loop-invariant'],
-  cambridge: [sheet213, cor59, bop728, theorem57, sheet213all],
+  cambridge: withUses([sheet213, cor59, bop728, theorem57, sheet213all], {
+    'sheet-2-1-3': { sections: ['Uniqueness', 'Uniqueness as a tool'], note: t`Proving remainder identities from uniqueness` },
+    'notes-181-theorem-57': { sections: ['Existence: the algorithm'], note: t`Why the division algorithm terminates and is right` },
+  }),
   // The three identities of 2.1.3 need uniqueness used three times; Theorem 57 asks for the invariant
   // argument. The numeric versions (2.1.3(a) at numbers, Corollary 59) are one-line computations.
   gate: ['sheet-2-1-3', 'notes-181-theorem-57'],

@@ -11,7 +11,7 @@
  *   1.0 +/. 2.0 = 1.5; 1.0 +/. 2.0 +/. 4.0 = 2.75 (infix operators starting with + group to the left)
  *   square 3 + 1 = 10; f -3 with f : int -> int is a type error; f (-3) = -6
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { code, codeBlock } from '../ocaml-code';
 import { int } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -311,7 +311,10 @@ export const fpFunctions: TopicContent = {
   generators: [applyPrec, partial, twoArgs],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ocaml-function', 'function-type', 'function-application'],
-  cambridge: [rms, average, focs14],
+  cambridge: withUses([rms, average, focs14], {
+    'focs-1-4': { sections: ['Functions of several arguments'], note: t`How type inference finds the result type of a function` },
+    'cs3110-ex2-average': { sections: ['A puzzle about brackets', 'Functions of several arguments'], note: t`How an infix operator groups` },
+  }),
   gate: ['focs-1-4', 'cs3110-ex2-average'],
   recall: [
     { front: t`What does ${code`let f x y = e`} abbreviate?`, back: t`${code`let f = fun x -> (fun y -> e)`}: a function that returns a function.` },

@@ -6,7 +6,7 @@
  * binomial theorem with every middle coefficient a multiple of p. The proof of the theorem
  * itself (printed page 271) is comb.binomial-theorem-proof.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { poly } from '../poly';
 import { generator, type Misconception } from '../problem';
@@ -297,7 +297,11 @@ export const binomialTheorem: TopicContent = {
   generators: [coefficient, expand, coefficientSum],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binomial-theorem', 'binomial-expansion'],
-  cambridge: [dream5, rowAndSum, cor32, proveCor31, proveCor32],
+  cambridge: withUses([dream5, rowAndSum, cor32, proveCor31, proveCor32], {
+    'cst-cor-32-proof': { sections: ["Primes and the Freshman's Dream"], note: t`Which terms of the expansion survive modulo a prime`, needs: ['num.congruence'] },
+    'cst-cor-31-proof': { sections: ['Identities by substitution'], note: t`Substituting into the binomial theorem` },
+    'cst-cor-33-p5': { sections: ["Primes and the Freshman's Dream"], note: t`Expanding a fifth power and seeing every inner coefficient divisible by five` },
+  }),
   gate: ['cst-cor-32-proof', 'cst-cor-31-proof', 'cst-cor-33-p5'],
   recall: [
     { front: t`The binomial theorem.`, back: t`${math`(x + y)^{n} = \sum_{k=${0}}^{n} \binom{n}{k} x^{n - k} y^{k}`}.` },

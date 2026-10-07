@@ -4,7 +4,7 @@
  * (Assignment 20, Q2(b)) or by telescoping (r + 1)^3 - r^3. Also the NST Mathematics Workbook,
  * SE1. Every formula is checked against direct summation.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -231,7 +231,10 @@ export const sumsOfPowers: TopicContent = {
   generators: [sqGen, cubeGen, rangeGen, mixGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sum-of-squares'],
-  cambridge: [a17sup, a20sup, nstSE1],
+  cambridge: withUses([a17sup, a20sup, nstSE1], {
+    'a17-q3-proof': { sections: ['Guess the shape, then fit it'], note: t`Fitting a polynomial to a sum by substituting values` },
+    'a20-q2-b': { sections: ['Guess the shape, then fit it'], note: t`The sum of cubes by induction` },
+  }),
   gate: ['a17-q3-proof', 'a20-q2-b'],
   recall: [
     { front: t`State the sum of the first ${mn} squares.`, back: t`${math`\frac{n(n + ${1})(${2}n + ${1})}{${6}}`}.` },

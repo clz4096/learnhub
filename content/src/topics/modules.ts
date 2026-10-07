@@ -11,7 +11,7 @@
  * the signature compiles, and Complex.add is then unbound outside; zero = 0, 0 is a
  * signature mismatch (int * int is not included in t).
  */
-import { cite, supervision } from '../cambridge';
+import { cite, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, sample } from '../math';
 import { ml, mlBlock } from '../ocaml-code';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -293,7 +293,10 @@ export const modules: TopicContent = {
   generators: [stackTrace, sealing, fraction],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['module', 'signature', 'abstract-type', 'representation-invariant'],
-  cambridge: [stackOption, fractionReduced, abstracted],
+  cambridge: withUses([stackOption, fractionReduced, abstracted], {
+    'cs3110-5-fraction-reduced': { sections: ['Invariants the module keeps'], note: t`A module that keeps fractions in lowest terms` },
+    'cs3110-5-stack-option': { sections: ['Hiding the representation'], note: t`A stack module behind an abstract signature` },
+  }),
   gate: ['cs3110-5-fraction-reduced', 'cs3110-5-stack-option'],
   recall: [
     { front: t`What is a signature?`, back: t`A module type: declarations ${ml`type t`} and ${ml`val x :`} ${math`\tau`} that a structure must provide, and the only names visible outside a module sealed by it.` },

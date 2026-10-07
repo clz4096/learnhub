@@ -8,7 +8,7 @@
  * 1/x^2), from the STEP Questions Database. The STEP 2 specification: "Evaluate improper integrals where ...
  * the range of integration extends to infinity."
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, pick, q, str, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { apart, close, fn, simpson } from '../prep-c';
@@ -300,7 +300,10 @@ export const improperIntegrals: TopicContent = {
   generators: [powerTail, expTail, converge],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['improper-integral'],
-  cambridge: [db16q8, db16q8Approx, varY, nstLimit, nstIN2],
+  cambridge: withUses([db16q8, db16q8Approx, varY, nstLimit, nstIN2], {
+    'step16-q8': { sections: ['An infinitely long region'], note: t`Estimating a series by an integral over an infinite range` },
+    'step16-q8-i': { sections: ['An infinitely long region'], note: t`Estimating the sum of reciprocal squares` },
+  }),
   // STEP II 2016 Q8 is the gate: an improper integral of x^-2 used to estimate a series, which
   // needs only this topic. IN2 (n! as an integral) is worked in the lesson, STEP 2 Q4's variance
   // needs densities and variance, later topics, and the I2(i) limit is one step.

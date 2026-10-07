@@ -7,7 +7,7 @@
  * compared with the official solutions; the sheet has none, so every answer is checked by
  * listing all cases: every row, every pairing of ends, every permutation.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -460,10 +460,17 @@ export const indicators: TopicContent = {
   generators: [neighbours, faces, matchingPairs],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['indicator-variable', 'record'],
-  cambridge: [q3xk, q3iib, sheetQ9, sheetQ10, sheetQ12mean, sheetQ12var, q9proof, q10proof, q12proof],
-  // Multi-step problems first, the proofs before the computed answers; the plug-in numbers of Q9 and
-  // Q12 are drill, and dropped.
-  gate: ['sheet2-q12', 'sheet2-q10', 's3-q3-ii-b', 'sheet2-q9', 's3-q3-i-xk', 'sheet2-q10-hoops'],
+  cambridge: withUses([q3xk, q3iib, sheetQ9, sheetQ10, sheetQ12mean, sheetQ12var, q9proof, q10proof, q12proof], {
+    'sheet2-q12': { sections: ['Indicators', 'The mean, by linearity'], note: t`Indicators for record years, and their independence`, needs: ['prob.independence'] },
+    'sheet2-q10': { sections: ['Indicators', 'The mean, by linearity'], note: t`An expected count by indicators` },
+    's3-q3-ii-b': { sections: ['The variance, from pairs'], note: t`Expectations of products of indicators` },
+    'sheet2-q9': { sections: ['The mean, by linearity', 'The variance, from pairs'], note: t`The mean and variance of a count of successes` },
+    's3-q3-i-xk': { sections: ['Indicators'], note: t`The mean of one indicator` },
+    'sheet2-q10-hoops': { sections: ['Indicators', 'The mean, by linearity'], note: t`An expected count by indicators` },
+  }),
+  // Multi-step problems first, the proofs before the computed answers; the plug-in numbers of Q9 and Q12 are
+  // drill, and dropped. Q12's independence of the record indicators is taught later, so it is practice.
+  gate: ['sheet2-q10', 's3-q3-ii-b', 'sheet2-q9', 's3-q3-i-xk', 'sheet2-q10-hoops'],
   recall: [
     { front: t`The mean of an indicator.`, back: t`${math`E(I_{A}) = P(A)`}.` },
     { front: t`The mean of a count ${math`N = \sum I_{A_{i}}`}.`, back: t`${math`E(N) = \sum P(A_{i})`}, with or without independence.` },

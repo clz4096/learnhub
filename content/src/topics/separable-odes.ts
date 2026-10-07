@@ -6,7 +6,7 @@
  * content checks. The STEP 1 specification: "first order differential equations with
  * separable variables, including finding particular solutions".
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { close, firstError } from '../prep-c';
@@ -226,7 +226,10 @@ export const separableOdes: TopicContent = {
   generators: [growth, power, ySquared],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['separable-equation', 'ode-particular-solution'],
-  cambridge: [de1Value, de1Write],
+  cambridge: withUses([de1Value, de1Write], {
+    'nst-de1-write': { sections: ['An equation for a function'], note: t`Separating, integrating by partial fractions, and the constant solutions`, needs: ['alg.partial-fractions'] },
+    'nst-de1-value': { sections: ['An equation for a function'], note: t`Reading a value from the solution` },
+  }),
   gate: ['nst-de1-write', 'nst-de1-value'],
   recall: [
     { front: t`How do you solve ${math`\frac{dy}{dx} = f(x)g(y)`}?`, back: t`${math`\int \frac{dy}{g(y)} = \int f(x)\,dx + C`}, then fix ${math`C`}; also check constant solutions where ${math`g(y) = ${0}`}.` },

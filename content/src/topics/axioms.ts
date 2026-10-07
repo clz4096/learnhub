@@ -9,7 +9,7 @@
  * is this lesson's pitfall, so it is not set.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, mul, pick, q, sample, str, sub, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { join, math, t, type Rich, type Span } from '../rich';
@@ -323,7 +323,9 @@ export const axioms: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['probability-measure', 'countable-additivity'],
   claims,
-  cambridge: [disjointHalves, q4c, countableCase, gs5112],
+  cambridge: withUses([disjointHalves, q4c, countableCase, gs5112], {
+    'ia-q4-c': { sections: ['The three axioms', 'First consequences'], note: t`Finite additivity from countable additivity` },
+  }),
   gate: ['ia-q4-c'],
   recall: [
     { front: t`The three axioms of a probability measure.`, back: t`${math`\mathbb{P}(A) \ge ${0}`}; ${math`\mathbb{P}(\Omega) = ${1}`}; for pairwise disjoint ${math`A_{${1}}, A_{${2}}, \ldots`}, ${math`\mathbb{P}\left(\bigcup A_{n}\right) = \sum \mathbb{P}(A_{n})`}.` },

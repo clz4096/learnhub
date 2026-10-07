@@ -7,7 +7,7 @@
  * equations and their solution"). Answers are checked against the recurrences iterated
  * exactly and against listing every case, and compared with the stated and official answers.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, listOf, math, paren, t, texOfRational } from '../rich';
@@ -396,7 +396,11 @@ export const linearRecurrences: TopicContent = {
   generators: [firstOrder, secondOrder, repeatedRoot],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['difference-equation', 'auxiliary-equation'],
-  cambridge: [frog, slotLimit, frogExplain, slotDerive, theory],
+  cambridge: withUses([frog, slotLimit, frogExplain, slotDerive, theory], {
+    's3-q1-iii-closed-form': { sections: ['A constant term'], note: t`Fitting a closed form with a constant term` },
+    's3-q1-iii-explain': { sections: ['A constant term'], note: t`Reading off the growth and explaining it by the mean jump`, needs: ['rv.expectation'] },
+    'sheet3-q11-derive': { sections: ['First order'], note: t`Deriving a recurrence by conditioning on the last turn`, needs: ['prob.total-probability'] },
+  }),
   // The STEP frog first. The slot machine's limit is dropped: the worked example's closed form gives it at once.
   gate: ['s3-q1-iii-closed-form', 's3-q1-iii-explain', 'sheet3-q11-derive'],
   recall: [

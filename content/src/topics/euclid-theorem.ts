@@ -7,7 +7,7 @@
  * 3.1.6, 3.2.2, 3.2.7(c), and 3.3.1 with their 2023-24 official solutions, and Book of
  * Proof's exercises 5 and 6 for Section 11.5.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { factorise, gcd, isPrime, mod, phi, primesTo } from '../numbers';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -306,7 +306,11 @@ export const euclidTheorem: TopicContent = {
   generators: [cancelCoprime, squareRootsOfOne, zeroDivisors],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['coprime', 'euclids-lemma'],
-  cambridge: [bop1155, bop1156, sheet316, sheet322, sheet331, bop729],
+  cambridge: withUses([bop1155, bop1156, sheet316, sheet322, sheet331, bop729], {
+    'sheet-3-3-1': { sections: ['When can you cancel?'], note: t`Cancelling by the gcd to reach a coprime pair` },
+    'sheet-3-1-6': { sections: ['Primes'], note: t`Square roots of one modulo a prime`, needs: ['num.congruence'] },
+    'sheet-3-2-2': { sections: ['When can you cancel?', 'What it unlocks'], note: t`Coprime divisors multiply, with a counterexample otherwise` },
+  }),
   // 3.3.1 first: it needs the theorem used with a reduction to the coprime case, not just quoted.
   gate: ['sheet-3-3-1', 'sheet-3-1-6', 'sheet-3-2-2'],
   recall: [

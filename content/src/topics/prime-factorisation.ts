@@ -5,7 +5,7 @@
  * systematically, and deduce the Imam's age (32) and the Rabbi's (50).
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, listOf, math, t, type Rich } from '../rich';
@@ -403,7 +403,12 @@ export const primeFactorisation: TopicContent = {
   generators: [factorise, exponent, divisors, tripleCount],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['prime-number', 'prime-factorisation', 'index-form'],
-  cambridge: [a12sets, a12imam, a12rabbi, a12explain],
+  cambridge: withUses([a12sets, a12imam, a12rabbi, a12explain], {
+    'a12-q4-explain': { sections: ['Primes and factorisations', 'Listing systematically'], note: t`Listing every factorisation into three ages and reasoning from what each speaker knows` },
+    'a12-q4-rabbi': { sections: ['Primes and factorisations', 'Listing systematically'], note: t`Using the factorisations and the clues to pin down an age` },
+    'a12-q4-imam': { sections: ['Primes and factorisations', 'Listing systematically'], note: t`Finding the sum that two factorisations share` },
+    'a12-q4-sets': { sections: ['Primes and factorisations', 'Listing systematically'], note: t`Counting the ways to split a prime factorisation into three factors` },
+  }),
   // The written reasoning first, then the puzzle's answers, which need every earlier step, then the count.
   gate: ['a12-q4-explain', 'a12-q4-rabbi', 'a12-q4-imam', 'a12-q4-sets'],
   recall: [

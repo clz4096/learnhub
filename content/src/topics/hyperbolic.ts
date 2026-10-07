@@ -7,7 +7,7 @@
  * STEP III Q6, a cubic solved with cosh), first paragraph. The STEP 3 specification lists
  * hyperbolic functions.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { agreesAt, close, numDeriv } from '../prep-c';
@@ -316,7 +316,11 @@ export const hyperbolic: TopicContent = {
   generators: [evaluateLog, solveHyp, derivative],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hyperbolic-functions'],
-  cambridge: [hyp4, hyp4root, secondQ, coshDeriv, identities, nstH],
+  cambridge: withUses([hyp4, hyp4root, secondQ, coshDeriv, identities, nstH], {
+    's3hyp-q4': { sections: ['The identities'], note: t`Solving a cubic with a hyperbolic triple angle` },
+    'a21-q1-iii': { sections: ['Derivatives'], note: t`Differentiating hyperbolic-style functions twice` },
+    's3hyp-q4-root': { sections: ['The identities'], note: t`The real root of a cubic from a formula` },
+  }),
   // Best first: 2005 STEP III Q6, first paragraph (with official solutions), then Assignment 21
   // Q1(iii), then the auto-checked real root of x^3 - 6x = 6.
   gate: ['s3hyp-q4', 'a21-q1-iii', 's3hyp-q4-root'],

@@ -5,7 +5,7 @@
  * tetrahedron with vertices on the axes: its volume, the angle ACB, the area of ABC, and the
  * distance d of the origin from ABC, with 1/d^2 = 1/a^2 + 1/b^2 + 1/c^2).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { cross, listText, norm2, ptTex, sub3, surd } from '../geometry';
 import { int, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
@@ -262,7 +262,10 @@ export const coordinates3d: TopicContent = {
   generators: [distance, tetraVolume, cosAngle],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['space-coordinates', 'tetrahedron'],
-  cambridge: [a5q3vol, a5q3area, a5q3d],
+  cambridge: withUses([a5q3vol, a5q3area, a5q3d], {
+    'a5-q3-distance': { sections: ['Volumes, and the tetrahedron on the axes', 'Angles in space'], note: t`An angle, an area, and a distance in a tetrahedron on the axes` },
+    'a5-q3-area': { sections: ['Volumes, and the tetrahedron on the axes', 'Angles in space'], note: t`The area of a slanted face from the cosine of its angle` },
+  }),
   gate: ['a5-q3-distance', 'a5-q3-area'],
   recall: [
     { front: t`State the distance formula in three dimensions.`, back: t`${math`PQ^{${2}} = (x_{${2}} - x_{${1}})^{${2}} + (y_{${2}} - y_{${1}})^{${2}} + (z_{${2}} - z_{${1}})^{${2}}`}, by Pythagoras twice.` },

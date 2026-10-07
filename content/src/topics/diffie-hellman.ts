@@ -7,7 +7,7 @@
  * little theorem; the three-message exchange; RSA, Lemma 95, as an aside). The notes give
  * no numbers; the numerical problems here are adapted to small primes.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { egcd, gcd, inverseBySearch, mod, powMod, powModSlow } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -284,7 +284,12 @@ export const diffieHellman: TopicContent = {
   generators: [sharedKey, discreteLog, decryptionExponent],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['diffie-hellman', 'discrete-logarithm'],
-  cambridge: [lemma94, threePass, lemma94proof, safety, rsa],
+  cambridge: withUses([lemma94, threePass, lemma94proof, safety, rsa], {
+    'notes-264-lemma-94-proof': { sections: ['Why both get the same key'], note: t`Why decryption undoes encryption, by Fermat's little theorem`, needs: ['num.fermat-little', 'num.extended-euclid'] },
+    'notes-266-rsa': { sections: ['Why both get the same key'], note: t`The RSA identity modulo two primes`, needs: ['num.fermat-little', 'num.extended-euclid'] },
+    'notes-265-key-exchange': { sections: ['A secret in public', 'Why both get the same key'], note: t`Following a key exchange through its messages` },
+    'notes-261-safety': { sections: ['Why it is safe'], note: t`What an eavesdropper sees and why it is hard` },
+  }),
   // The proofs of Lemmas 94 and 95 first, then the three-message exchange (four computed numbers) and
   // the safety explanation. Lemma 94 at numbers is one inverse, left out.
   gate: ['notes-264-lemma-94-proof', 'notes-266-rsa', 'notes-265-key-exchange', 'notes-261-safety'],

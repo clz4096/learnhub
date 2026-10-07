@@ -6,7 +6,7 @@
  * content checks. The STEP 1 specification: "Differentiate simple functions and relations
  * defined implicitly or parametrically".
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { agreesAt, close, numDeriv } from '../prep-c';
@@ -271,7 +271,11 @@ export const implicitDifferentiation: TopicContent = {
   generators: [circle, conic, parametric],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['implicit-differentiation'],
-  cambridge: [d5, ax, xx, writeUp],
+  cambridge: withUses([d5, ax, xx, writeUp], {
+    'nst-d4-d5': { sections: ['Differentiating an equation', 'Logarithms and parameters'], note: t`Implicit and parametric differentiation, explained` },
+    'nst-d3-iv': { sections: ['Logarithms and parameters'], note: t`Differentiating by taking logarithms` },
+    'nst-d5': { sections: ['Logarithms and parameters'], note: t`Differentiating a curve given by a parameter` },
+  }),
   gate: ['nst-d4-d5', 'nst-d3-iv', 'nst-d5'],
   recall: [
     { front: t`What is ${math`\frac{d}{dx}g(y)`} when ${math`y`} depends on ${math`x`}?`, back: t`${math`g'(y)\frac{dy}{dx}`}, by the chain rule.` },

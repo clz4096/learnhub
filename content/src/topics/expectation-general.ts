@@ -7,7 +7,7 @@
  * have no official solutions; the answers are checked by exact sums over every outcome
  * and, for the spaghetti, by following every sequence of joins.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { distinctFrom, expect, population, variance, type Dist } from '../partv-c';
@@ -426,7 +426,11 @@ export const expectationGeneral: TopicContent = {
   generators: [expectFunction, meanExists, meanSquaredDistance],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expectation-general', 'expectation-of-function'],
-  cambridge: [q8, q10, q10proof, scheduleExpectation],
+  cambridge: withUses([q8, q10, q10proof, scheduleExpectation], {
+    'ia-s2-q10-general': { sections: ['Linearity again'], note: t`An expected count by linearity without independence` },
+    'ia-s2-q8': { sections: ['Linearity again'], note: t`The mean of a sum of squared deviations` },
+    'ia-s2-q10': { sections: ['Linearity again'], note: t`An expected count by linearity` },
+  }),
   // The IA sheets: the spaghetti proof first (indicators and linearity without independence), then
   // the sample variance and the four-strand spaghetti. The schedule problem is not from a sheet.
   gate: ['ia-s2-q10-general', 'ia-s2-q8', 'ia-s2-q10'],

@@ -9,7 +9,7 @@
  * interleave nats pow${2} is 8. The generators model a sequence as a function from index to
  * element and compute the same values.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { codeOf, ml, mlBlock } from '../ocaml-code';
 import { generator, type Misconception } from '../problem';
@@ -247,7 +247,10 @@ export const lazySequences: TopicContent = {
   generators: [filterGen, interGen, iterGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['lazy-sequence', 'forcing'],
-  cambridge: [interleaveEx, focs91, focs92, focs94, focs95],
+  cambridge: withUses([interleaveEx, focs91, focs92, focs94, focs95], {
+    'focs-9-5': { sections: ['A list that is never finished', 'Functionals on sequences'], note: t`A lazy list that reaches every finite binary list` },
+    'focs-9-4': { sections: ['A list that is never finished', 'Functionals on sequences'], note: t`A lazy tree and the lazy list of its labels` },
+  }),
   gate: ['focs-9-5', 'focs-9-4'],
   recall: [
     { front: t`What is FoCS's type of sequences?`, back: t`${ml`'a seq = Nil | Cons of 'a * (unit -> 'a seq)`}: a head and a function computing the tail.` },

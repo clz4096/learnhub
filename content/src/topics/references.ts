@@ -10,7 +10,7 @@
  * 495 and student 500 then raises TooMuch 5; the while loop with k = 3, n = 4 gives 30.
  * The generators run the same programs on a model of the store.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { ml, mlBlock } from '../ocaml-code';
 import { generator, type Misconception } from '../problem';
@@ -271,7 +271,10 @@ export const references: TopicContent = {
   generators: [aliasing, whileLoop, arrays],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['reference', 'mutable-array'],
-  cambridge: [account, focs111, focs112, focs113, focs115],
+  cambridge: withUses([account, focs111, focs112, focs113, focs115], {
+    'focs-11-1': { sections: ['Names and cells'], note: t`Telling apart a list of references and a reference to a list` },
+    'focs-11-5': { sections: ['Arrays'], note: t`Building matrices from arrays without sharing rows` },
+  }),
   gate: ['focs-11-1', 'focs-11-5'],
   recall: [
     { front: t`What do ${ml`ref E`}, ${ml`!P`}, and ${ml`P := E`} do?`, back: t`Create a cell holding ${math`E`}; read the cell's contents; store ${math`E`} in the cell, returning ${ml`()`}.` },

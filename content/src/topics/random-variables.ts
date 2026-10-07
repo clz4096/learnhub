@@ -7,7 +7,7 @@
  * from Ω to {0, 1}. Batch 7 adds Grinstead and Snell, Section 4.1, Exercise 38 (heads on three
  * tosses: X, Y, X + Y, X - Y) and Exercise 34, first question (the hat check indicator).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { choose } from '../numbers';
@@ -447,7 +447,10 @@ export const randomVariables: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['random-variable', 'rv-distribution'],
   claims,
-  cambridge: [q5b, quarter, scheduleRv, gs4138, gs4134],
+  cambridge: withUses([q5b, quarter, scheduleRv, gs4138, gs4134], {
+    'ia-s2-q5-quarter': { sections: ['Indicators and Bernoulli variables'], note: t`Counting Bernoulli variables on a small space` },
+    'gs-4-1-38': { sections: ['Random variables and their distributions', 'Functions of a random variable'], note: t`Distributions of functions of two counts` },
+  }),
   // The parameter one quarter needs the count of events of two outcomes. Parameter one third has the
   // answer 0, which can be guessed. The schedule write-up is not from a gate document.
   // Batch 7: four variables built on one space, X, Y, X + Y, X - Y; the hat check indicator is one count.

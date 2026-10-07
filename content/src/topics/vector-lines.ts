@@ -3,7 +3,7 @@
  * lines in space: meeting, parallel, or skew. Problems from the NST Maths Workbook, Section 2
  * VE1 (three points on a straight line, and its equation in the form r = a + lambda b).
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add3, colTex, cross, dot, listText, scale3, sub3 } from '../geometry';
 import { int, pick, q, str } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -285,7 +285,10 @@ export const vectorLines: TopicContent = {
   generators: [onLine, meet, lineKind],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['vector-line', 'skew-lines'],
-  cambridge: [ve1proof, ve1b],
+  cambridge: withUses([ve1proof, ve1b], {
+    'nst-ve1': { sections: ['A line without y equals mx plus c'], note: t`Collinearity and the equation of a line, and why it is not unique` },
+    'nst-ve1-point': { sections: ['A line without y equals mx plus c'], note: t`A point on a line through three given points` },
+  }),
   gate: ['nst-ve1', 'nst-ve1-point'],
   recall: [
     { front: t`Write the vector equation of the line through ${ma} in direction ${md}.`, back: t`${math`\mathbf{r} = \mathbf{a} + t\mathbf{d}`}, ${math`t \in \mathbb{R}`}.` },

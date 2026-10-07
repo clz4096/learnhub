@@ -7,7 +7,7 @@
  * = σ^2 Σ a_i b_i). The sheets have no official solutions; the answers are checked by
  * summing over every outcome and listing every permutation.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, expect, meanOf, permutations, variance, type Dist } from '../partv-c';
@@ -362,7 +362,11 @@ export const covariance: TopicContent = {
   generators: [covFromTable, varianceOfCombination, indicatorVariance],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['covariance', 'correlation-coefficient'],
-  cambridge: [q9, q12a, q12aProof, q9proof, scheduleCorrelation],
+  cambridge: withUses([q9, q12a, q12aProof, q9proof, scheduleCorrelation], {
+    'ia-s2-q9-general': { sections: ['The variance of a sum'], note: t`The variance of a count of independent successes, and when it is largest` },
+    'ia-s4-q12-a-proof': { sections: ['Moving together', 'The variance of a sum'], note: t`Bilinearity of covariance` },
+    'ia-s4-q12-a': { sections: ['Moving together'], note: t`The covariance of two linear combinations` },
+  }),
   // The IA sheets: Sheet 2 Q9 in general (with its optimisation) first, then Sheet 4 Q12(a) as a proof and
   // at numbers. Sheet 2 Q9 at three numbers is one sum, left out.
   gate: ['ia-s2-q9-general', 'ia-s4-q12-a-proof', 'ia-s4-q12-a'],

@@ -7,7 +7,7 @@
  * checked by multiplying back.
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, q, str, sub } from '../math';
 import { generator, type AnswerSpec, type Misconception } from '../problem';
 import { computedTex, dmath, math, t, type Span } from '../rich';
@@ -334,7 +334,10 @@ export const matrices: TopicContent = {
   generators: [prodGen, detGen, invGen, sysGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['matrix', 'determinant', 'inverse-matrix'],
-  cambridge: [m2, m3, m1ba, m1sum],
+  cambridge: withUses([m2, m3, m1ba, m1sum], {
+    'nst-m3': { sections: ['Rotations and scalings'], note: t`A matrix as a rotation and a scaling` },
+    'nst-m2': { sections: ['Arrays that act', 'Determinant and inverse'], note: t`Matrices whose product is zero one way only` },
+  }),
   gate: ['nst-m3', 'nst-m2'],
   recall: [
     { front: t`State the inverse of ${math`\begin{pmatrix} a & b \\ c & d \end{pmatrix}`}, and when it exists.`, back: t`${math`\frac{${1}}{ad - bc}\begin{pmatrix} d & -b \\ -c & a \end{pmatrix}`}, when ${math`ad - bc \neq ${0}`}.` },

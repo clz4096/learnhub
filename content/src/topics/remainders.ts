@@ -6,7 +6,7 @@
  * remainder is found by brute force: counting how many times the divisor fits. Batch 7 adds IA
  * Numbers and Sets Example Sheet 2, Q12 (first part) and Q13: remainders of powers and digit sums.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q } from '../math';
 import { generator, type Misconception } from '../problem';
 import { math, t } from '../rich';
@@ -277,7 +277,11 @@ export const remainders: TopicContent = {
   generators: [divide, negative, combination],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quotient', 'remainder'],
-  cambridge: [bananasShow, ns2q13, ns2q13Digit, ns2q12i],
+  cambridge: withUses([bananasShow, ns2q13, ns2q13Digit, ns2q12i], {
+    'ns2-q13': { sections: ['Remainders of combinations'], note: t`Comparing a number and its digit sum by their remainders on division by nine` },
+    'a3-q4-i': { sections: ['Division with remainder'], note: t`Writing each division with remainder as an equation and chaining them` },
+    'ns2-q12-i': { sections: ['Remainders of combinations'], note: t`Finding the remainders of large powers to show a sum has a factor` },
+  }),
   // The digit sum rule first (a remainder argument in general), then the bananas and the sum of
   // powers; the missing digit is the rule applied, a value a calculator also gives.
   gate: ['ns2-q13', 'a3-q4-i', 'ns2-q12-i'],

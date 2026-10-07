@@ -6,7 +6,7 @@
  * sheet has no official solutions; every answer is checked by solving the first-step
  * equations exactly on the states of the walk, and the probabilities by simulation.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -298,7 +298,10 @@ export const gamblersRuin: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['simple-random-walk', 'gamblers-ruin', 'absorbing-barrier'],
   claims,
-  cambridge: [q8top, schedule, finiteT],
+  cambridge: withUses([q8top, schedule, finiteT], {
+    'sheet3-q8c-finite': { sections: ['Ruin'], note: t`Why the walk stops, by blocks of equal steps` },
+    'sheet3-q8c-top': { sections: ['Solving the equation'], note: t`The ruin probability for a biased walk` },
+  }),
   // Sheet 3 Q8(c): the proof that the walk stops, then which end it stops at. The schedule problem is not
   // from a sheet, and its derivation is the lesson's own proof.
   gate: ['sheet3-q8c-finite', 'sheet3-q8c-top'],

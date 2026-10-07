@@ -7,7 +7,7 @@
  * defined). The problems are Book of Proof's exercises for Section 11.5 and supervision
  * exercises 2.1.4 and 2.2.6 with their 2023-24 official solutions.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { mod } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -252,7 +252,10 @@ export const modularIntegers: TopicContent = {
   generators: [zmCalc, tableRow, additiveInverse],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['integers-mod-m'],
-  cambridge: [notes62, sheet226, sheet214, bop1158, notes60],
+  cambridge: withUses([notes62, sheet226, sheet214, bop1158, notes60], {
+    'sheet-2-1-4': { sections: ['Any representative will do', 'Which laws survive?'], note: t`Associativity and inverses in the integers modulo m` },
+    'notes-190-example-60': { sections: ['The integers modulo m'], note: t`The integers modulo two as the booleans` },
+  }),
   // The CST proof first, then the notes' Example 60. The table row and the inverse list are drill.
   gate: ['sheet-2-1-4', 'notes-190-example-60'],
   recall: [

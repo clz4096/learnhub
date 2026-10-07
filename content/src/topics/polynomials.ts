@@ -5,7 +5,7 @@
  * Assignment 18 Q2(i) and Q3 (2014 STEP I Q3), and the NST Maths Workbook A6. Roots are
  * found by trying every divisor of the constant term, and checked by exact evaluation.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, math, t } from '../rich';
@@ -328,8 +328,13 @@ export const polynomials: TopicContent = {
   generators: [cubic, remainder, divideOut],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['polynomial', 'factor-theorem', 'remainder-theorem'],
-  cambridge: [a15, a16iii, a16iv, a18i, nstA6, step2014],
-  gate: ['a18-q3', 'a15-q1-ii', 'a16-q2-iv'],
+  cambridge: withUses([a15, a16iii, a16iv, a18i, nstA6, step2014], {
+    'a18-q3': { sections: ['The remainder and factor theorems'], note: t`A cubic from two integrals, and bounds from a sketch`, needs: ['calc.definite-integrals', 'calc.curve-sketching'] },
+    'a15-q1-ii': { sections: ['The remainder and factor theorems', 'Finding a root, then the rest'], note: t`Checking a root, then factorising a quartic` },
+    'a16-q2-iv': { sections: ['Finding a root, then the rest'], note: t`Solving a cubic, then rescaling its roots by a substitution` },
+  }),
+  // Assignment 15 Q1(ii) and Assignment 16 Q2(iv). Assignment 18 Q3 needs integrals and a sketch, taught later, so it is practice.
+  gate: ['a15-q1-ii', 'a16-q2-iv'],
   recall: [
     { front: t`State the factor theorem.`, back: t`${math`x - c`} is a factor of ${math`p(x)`} if and only if ${math`p(c) = ${0}`}.` },
     { front: t`State the remainder theorem.`, back: t`The remainder on dividing ${math`p(x)`} by ${math`x - c`} is ${math`p(c)`}.` },

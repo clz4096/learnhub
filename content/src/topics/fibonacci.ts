@@ -6,7 +6,7 @@
  * sequence. The gate adds STEP Support STEP 2 Miscellaneous Q5 (2009 STEP II Q6) and STEP II
  * 2013 Q6(i), (ii) (STEP Questions Database).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, listOf, math, t } from '../rich';
@@ -316,7 +316,11 @@ export const fibonacci: TopicContent = {
   generators: [termGen, cassGen, sumGen, linGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fibonacci-numbers', 'golden-ratio'],
-  cambridge: [misc5, db13q6, a14i, a20sup, a14ii, a20f7],
+  cambridge: withUses([misc5, db13q6, a14i, a20sup, a14ii, a20f7], {
+    's2misc-q5': { sections: ['Each term from the two before', 'The closed form'], note: t`Bounding a series of reciprocals by geometric series` },
+    'step13-q6': { sections: ['An identity by induction'], note: t`An identity for a recurrence, then bounds by induction` },
+    'a20-q3-addition': { sections: ['An identity by induction'], note: t`The addition formula by induction, with the base cases it needs` },
+  }),
   // Best first: 2009 STEP II Q6 (the reciprocal sum, with official solutions), 2013 STEP II
   // Q6(i), (ii) (part (iii) needs limits of sequences, not a prerequisite), then Assignment 20 Q3.
   gate: ['s2misc-q5', 'step13-q6', 'a20-q3-addition'],

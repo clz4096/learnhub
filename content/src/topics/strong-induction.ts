@@ -8,7 +8,7 @@
  * 42, the postage example, and supervision exercise 4.3.1 with its 2023-24 solution. Batch 7
  * adds supervision exercise 4.2.3(b), the Fibonacci addition formula, with its 2023-24 solution.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { bigOmega, factorise } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -368,7 +368,10 @@ export const strongInduction: TopicContent = {
   generators: [postageThreshold, primeCount, tilings],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['strong-induction'],
-  cambridge: [stamps47, bop1032, bop1025, bop1042, sheet431, treeProof, bop1042proof, sw423b],
+  cambridge: withUses([stamps47, bop1032, bop1025, bop1042, sheet431, treeProof, bop1042proof, sw423b], {
+    'sheet-4-3-1': { sections: ['The principle'], note: t`Strong induction on a bound, to prove an algorithm terminates` },
+    'sw-4-2-3-b': { sections: ['Leaning on an earlier case', 'The principle'], note: t`Strong induction for the Fibonacci addition formula` },
+  }),
   // The CST problems: the gcd correctness proof by induction from basis 2, then the Fibonacci
   // addition formula, whose step reaches back two cases. The rest are Book of Proof.
   gate: ['sheet-4-3-1', 'sw-4-2-3-b'],

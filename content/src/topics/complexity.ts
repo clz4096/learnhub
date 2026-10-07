@@ -10,7 +10,7 @@
  * and checked in OCaml 4.11.1. Exercise 2.4: T(n) = 2n - 1 for n a power of 2, checked by
  * iterating the recurrence.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { ml, mlBlock } from '../ocaml-code';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -320,7 +320,10 @@ export const complexity: TopicContent = {
   generators: [recurrence, bigO, table],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['big-o', 'cost-recurrence'],
-  cambridge: [focs22exp, focs24value, focs24proof, focs23, focs21],
+  cambridge: withUses([focs22exp, focs24value, focs24proof, focs23, focs21], {
+    'focs-2-3': { sections: ['How fast does it grow?'], note: t`Constant factors disappear inside O-notation` },
+    'focs-2-1': { sections: ['Reading the cost off the code'], note: t`The time and space cost of an iterative power` },
+  }),
   gate: ['focs-2-3', 'focs-2-1'],
   recall: [
     { front: t`Define ${math`f(n) = O(g(n))`}.`, back: t`There are ${math`c > ${0}`} and ${math`n_{${0}}`} with ${math`|f(n)| \le c|g(n)|`} for all ${math`n \ge n_{${0}}`}.` },

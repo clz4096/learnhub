@@ -14,7 +14,7 @@
  * an integer or irrational) and CST supervision exercise 3.2.3 with its 2023-24 solution. CST 3.3.1
  * and 3.2.5 are set in num.euclid-theorem and num.number-systems, so they are not set again.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { divisors, factorise, gcd } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -336,7 +336,11 @@ export const fundamentalTheorem: TopicContent = {
   generators: [gcdLcm, countDivisors, makeSquare],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fundamental-theorem-arithmetic'],
-  cambridge: [notes98, notes68, homework302, bop101, ns3q11, sw323],
+  cambridge: withUses([notes98, notes68, homework302, bop101, ns3q11, sw323], {
+    'ns3-q11': { sections: ['Using it'], note: t`A rational root of a monic polynomial must be an integer` },
+    'notes-302-homework': { sections: ['Uniqueness'], note: t`Uniqueness of factorisation by induction` },
+    'sw-3-2-3': { sections: ['Using it'], note: t`A coprime factor does not change the gcd` },
+  }),
   // The IA monic polynomial question first (unique factorisation does the work), then the
   // uniqueness proof by induction and the gcd exercise. Examples 98 and 68 are single computations, left out.
   gate: ['ns3-q11', 'notes-302-homework', 'sw-3-2-3'],

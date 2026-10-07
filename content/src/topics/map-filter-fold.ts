@@ -9,7 +9,7 @@
  * sum_cube_odd 10 = 1225 and sum_cube_odd 5 = 153 were checked in OCaml 4.11.1 with the
  * book's ( -- ) operator; `verify` recomputes them by brute force.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { codeOf, ml, mlBlock, mlList, type Code } from '../ocaml-code';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -308,7 +308,10 @@ export const mapFilterFold: TopicContent = {
   generators: [pipeline, foldDirection, whichFunctional],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['map-functional', 'filter-functional', 'fold'],
-  cambridge: [sco5, existsEx, mapComposition, matrixMultiply, focs83, focs84],
+  cambridge: withUses([sco5, existsEx, mapComposition, matrixMultiply, focs83, focs84], {
+    'cs3110-4-matrix-multiply': { sections: ['The same recursion, again and again', 'Pipelines, and why one map is enough'], note: t`Matrix multiplication with maps` },
+    'focs-8-3': { sections: ['The same recursion, again and again'], note: t`Writing a nested map with one recursive function` },
+  }),
   gate: ['cs3110-4-matrix-multiply', 'focs-8-3'],
   recall: [
     { front: t`What does ${ml`map f [x${1}; ...; xn]`} return?`, back: t`${ml`[f x${1}; ...; f xn]`}.` },

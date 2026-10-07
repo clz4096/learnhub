@@ -6,7 +6,7 @@
  * and Q3(i) (2015 STEP I Q2); Assignment 25 Q2(i) (tan(A - B)). Official answers are from
  * the hints. The gate adds STEP I 2007 Q2 and STEP I 2010 Q3 (STEP Questions Database).
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { TRIPLES } from '../geometry';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
@@ -428,10 +428,16 @@ export const compoundAngles: TopicContent = {
   generators: [exactCompound, fromRatios, tanSum],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['compound-angle-formula'],
-  cambridge: [db07q2, db10q3, db07q2pq, a10q1i, a16q3, a25tan, a10sin15, a16cos75],
-  // Best first: STEP I 2007 Q2 (arctangents), STEP I 2010 Q3 (factor formulae on an ellipse),
-  // Assignment 16 Q3(i), then the auto-checked p and q of 2007 Q2(i).
-  gate: ['step07-q2', 'step10-q3', 'a16-q3-i', 'step07-q2-pq'],
+  cambridge: withUses([db07q2, db10q3, db07q2pq, a10q1i, a16q3, a25tan, a10sin15, a16cos75], {
+    'step07-q2': { sections: ['The rest of the family'], note: t`Adding arctangents with the tangent formula`, needs: ['trig.radians-and-graphs', 'pre.hcf-lcm'] },
+    'step10-q3': { sections: ['The rest of the family'], note: t`Sum-to-product formulas and parallel chords of an ellipse`, needs: ['trig.radians-and-graphs'] },
+    'a16-q3-i': { sections: ['Sine does not add', 'The rest of the family'], note: t`Exact values from a difference of known angles` },
+    'step07-q2-pq': { sections: ['The rest of the family'], note: t`Integer solutions of an arctangent equation`, needs: ['trig.radians-and-graphs'] },
+    'a25-q2-i': { sections: ['The rest of the family'], note: t`The tangent of a difference from the sine and cosine formulas` },
+  }),
+  // STEP I 2007 Q2 and 2010 Q3 use radians and the highest common factor, taught later, so they are practice.
+  // Assignment 16 Q3(i) and Assignment 25 Q2(i) need only the formulae of this lesson.
+  gate: ['a16-q3-i', 'a25-q2-i'],
   recall: [
     { front: t`State ${math`\sin(\alpha \pm \beta)`} and ${math`\cos(\alpha \pm \beta)`}.`, back: t`${math`\sin\alpha\cos\beta \pm \cos\alpha\sin\beta`}; ${math`\cos\alpha\cos\beta \mp \sin\alpha\sin\beta`}.` },
     { front: t`State ${math`\tan(\alpha + \beta)`}.`, back: t`${math`\frac{\tan\alpha + \tan\beta}{${1} - \tan\alpha\tan\beta}`}.` },

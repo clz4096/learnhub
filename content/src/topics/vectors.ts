@@ -7,7 +7,7 @@
  * Q7 (DAMTP: the altitudes are concurrent) and STEP Support STEP 2 Vectors Q2 (2011 STEP II Q5)
  * and Q1, first paragraph (2002 STEP II Q7), with their official solutions.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { colTex, dot, norm2, sub3, surd } from '../geometry';
 import { int, pick, q, str } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -356,7 +356,13 @@ export const vectors: TopicContent = {
   generators: [magnitude, angle, perpendicular],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['vector', 'scalar-product'],
-  cambridge: [damtpQ7, vec2, vec1, vec2cos, vec1cos, v1ii, a5angle],
+  cambridge: withUses([damtpQ7, vec2, vec1, vec2cos, vec1cos, v1ii, a5angle], {
+    'damtp-vm1-q7': { sections: ['The scalar product'], note: t`Concurrent altitudes by scalar products` },
+    's2vec-q2': { sections: ['The scalar product'], note: t`Reflections written with scalar products` },
+    's2vec-q1': { sections: ['The scalar product'], note: t`Lines at a given angle to two others`, needs: ['trig.radians-and-graphs'] },
+    'a5-q3-ii-scalar': { sections: ['The scalar product'], note: t`An angle in a tetrahedron by the scalar product` },
+    's2vec-q2-cos': { sections: ['The scalar product'], note: t`Two reflections and the angle that makes a midpoint` },
+  }),
   // Best first: the IA sheet's altitudes (DAMTP), 2011 STEP II Q5 (two reflections), 2002 STEP II
   // Q7's first paragraph, Assignment 5 Q3(ii), then the auto-checked cosine of 2011 Q5.
   gate: ['damtp-vm1-q7', 's2vec-q2', 's2vec-q1', 'a5-q3-ii-scalar', 's2vec-q2-cos'],

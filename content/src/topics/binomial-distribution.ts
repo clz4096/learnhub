@@ -6,7 +6,7 @@
  * whose hints remark that "any one child forgets" multiplies a single case by 3).
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -278,7 +278,11 @@ export const binomialDistribution: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['bernoulli-trial', 'binomial-distribution'],
   claims,
-  cambridge: [a19two, a12two, a12dist, a19why],
+  cambridge: withUses([a19two, a12two, a12dist, a19why], {
+    'a19-q4-ii-why-binomial': { sections: ['Trials and the binomial'], note: t`Why a count is binomial, and when it is not` },
+    'a19-q4-ii-at-least-two': { sections: ['At least, at most'], note: t`An "at least" probability for a binomial` },
+    'a12-q2-iv-distribution': { sections: ['Trials and the binomial'], note: t`A whole binomial distribution` },
+  }),
   gate: ['a19-q4-ii-why-binomial', 'a19-q4-ii-at-least-two', 'a12-q2-iv-distribution'],
   recall: [
     { front: t`When is a count binomial?`, back: t`A fixed number ${mn} of independent trials, each a success with the same probability ${mp}.` },

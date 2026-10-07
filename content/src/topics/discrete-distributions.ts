@@ -7,7 +7,7 @@
  * 4.1, Exercise 36 (the smaller of two dice) and Section 5.1, Exercise 6 (the smallest of n), the
  * second worded with dice, since independence comes later.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, math, t } from '../rich';
@@ -370,7 +370,10 @@ export const discreteDistributions: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['distribution-table'],
   claims,
-  cambridge: [ia11, a19bet, a19three, ia11sup, gs4136, gs516],
+  cambridge: withUses([ia11, a19bet, a19three, ia11sup, gs4136, gs516], {
+    'a19-q4-ii-bet': { sections: ['Building a distribution'], note: t`The distribution of a count and a fair bet` },
+    'gs-5-1-6': { sections: ['Building a distribution'], note: t`The distribution of the smallest of several dice` },
+  }),
   // The STEP bet, then the smallest of n dice as a formula. The smaller of two dice mirrors the
   // lesson's worked example (the larger of two), so it is practice.
   gate: ['a19-q4-ii-bet', 'gs-5-1-6'],

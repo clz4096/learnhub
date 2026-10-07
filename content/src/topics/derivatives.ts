@@ -7,7 +7,7 @@
  * Database), on lines meeting y = ln x. The STEP specification lists
  * differentiation under STEP 1, Section A; the TMUA specification has it as MM6.1 and MM6.2.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -361,10 +361,14 @@ export const derivatives: TopicContent = {
   generators: [powerRule, expLn, gradientAt],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['derivative', 'differentiable'],
-  cambridge: [db13q1, db13q1m, solveQuad, turningY, rootCount, sketch],
-  // Best first: STEP II 2013 Q1 (lines across y = ln x), then Assignment 9 Q2(ii), then the
-  // auto-checked 2013 Q1(i).
-  gate: ['step13-q1', 'a9-q2-ii', 'step13-q1-i'],
+  cambridge: withUses([db13q1, db13q1m, solveQuad, turningY, rootCount, sketch], {
+    'step13-q1': { sections: ['The rules', 'Rewrite, then differentiate'], note: t`A tangent to the logarithm curve, then comparing powers by a sketch` },
+    'a9-q2-ii': { sections: ['The rules'], note: t`Turning points and the shape of a cubic`, needs: ['calc.stationary-points'] },
+    'step13-q1-i': { sections: ['The rules'], note: t`The tangent from the origin to the logarithm curve` },
+  }),
+  // STEP II 2013 Q1 first, then its auto-checked part (i). Assignment 9 Q2(ii) needs turning points, taught in
+  // calc.stationary-points next, so it is practice.
+  gate: ['step13-q1', 'step13-q1-i'],
   recall: [
     { front: t`Define the derivative ${math`f'(a)`}.`, back: t`${math`f'(a) = \lim_{h \to ${0}} \frac{f(a + h) - f(a)}{h}`}, when the limit exists.` },
     { front: t`State the power rule.`, back: t`${math`\frac{d}{dx} x^{n} = nx^{n - ${1}}`}.` },

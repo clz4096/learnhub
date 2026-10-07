@@ -195,12 +195,30 @@ export interface Official {
   note?: string;
 }
 
+/**
+ * What a Cambridge problem draws on, shown above it so the learner knows what it asks of them.
+ * Its prerequisite topics are not listed here: they come from the graph.
+ */
+export interface ProblemUses {
+  /** The titles of this topic's lesson sections it draws on, as `plain` gives them. */
+  sections: readonly string[];
+  /** One plain line: the skill it tests. */
+  note?: Rich;
+  /**
+   * Topics outside this topic's prerequisites that it also needs, by graph id: a problem set
+   * here as further practice that leans on a later lesson says so. A gate problem has none,
+   * since a gate asks only for this lesson and what it builds on.
+   */
+  needs?: readonly string[];
+}
+
 interface CambridgeBase {
   /** Unique within the topic, for example "a6-q4-ii". */
   id: string;
   source: Citation;
   /** Short title, for lists. */
   title: Rich;
+  uses?: ProblemUses;
 }
 
 export interface AutoProblem extends CambridgeBase {
@@ -241,6 +259,7 @@ export interface AutoSpec {
   verify: () => string | null;
   misconceptions?: readonly Misconception[];
   official?: Official;
+  uses?: ProblemUses;
 }
 
 /** An auto-checked Cambridge problem, as an instance the graders and checks treat like any other. */
@@ -255,6 +274,7 @@ export function auto(spec: AutoSpec): AutoProblem {
   };
   const out: AutoProblem = { id: spec.id, source: spec.source, title: spec.title, mode: 'auto', instance, verify: spec.verify };
   if (spec.official !== undefined) out.official = spec.official;
+  if (spec.uses !== undefined) out.uses = spec.uses;
   return out;
 }
 
@@ -265,4 +285,18 @@ export function same(what: string, got: unknown, want: unknown): string | null {
 
 export function supervision(spec: Omit<SupervisionProblem, 'mode'>): SupervisionProblem {
   return { ...spec, mode: 'supervision' };
+}
+
+/**
+ * The problems with what each draws on (`ProblemUses`), keyed by problem id, so a topic
+ * states it in one place beside its gate. An id that is not one of the problems is a
+ * mistake in the content, so it throws.
+ */
+export function withUses<P extends CambridgeProblem>(problems: readonly P[], uses: Readonly<Record<string, ProblemUses>>): P[] {
+  const ids = new Set(problems.map((p) => p.id));
+  for (const id of Object.keys(uses)) if (!ids.has(id)) throw new Error(`withUses: ${id} is not one of the problems`);
+  return problems.map((p) => {
+    const u = uses[p.id];
+    return u === undefined ? p : { ...p, uses: u };
+  });
 }

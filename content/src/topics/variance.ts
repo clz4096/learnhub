@@ -6,7 +6,7 @@
  * Var(X) = μ(1 - μ + λ)). Every official answer is compared; the series are checked by
  * summing them numerically.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, join, math, t, type Rich } from '../rich';
@@ -378,7 +378,11 @@ export const varianceTopic: TopicContent = {
   generators: [fromTable, binomialSpread, moments],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['variance', 'standard-deviation'],
-  cambridge: [q1A, q1var, tenDice, q1bounds, shortcutProof],
+  cambridge: withUses([q1A, q1var, tenDice, q1bounds, shortcutProof], {
+    's2-q1-bounds': { sections: ['The definition'], note: t`Using that a variance is positive to bound a mean` },
+    's2-notes-shortcut': { sections: ['The definition', 'A quicker formula'], note: t`Expanding the definition into the quicker formula` },
+    's2-q1-var': { sections: ['A quicker formula'], note: t`A variance from the exponential series`, needs: ['an.exp-series'] },
+  }),
   // Best first: the bounds on the mean from the variance (STEP 2, 2003), the shortcut proved, then the
   // variance itself. The normalising constant is one step, and ten dice is np(1 - p) with numbers in.
   gate: ['s2-q1-bounds', 's2-notes-shortcut', 's2-q1-var'],

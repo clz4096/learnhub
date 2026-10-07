@@ -9,7 +9,7 @@
  * symmetric discrete variables with the same means and variances, which give the same
  * covariances as normals, and the orthant probability by simulation.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, normal } from '../partv-c';
@@ -335,7 +335,11 @@ export const bivariateNormal: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['bivariate-normal', 'normal-independence'],
   claims,
-  cambridge: [q12b, q7, q7proof, scheduleBivariate],
+  cambridge: withUses([q12b, q7, q7proof, scheduleBivariate], {
+    'ia-s4-q7': { sections: ['Building the bivariate normal', 'Uncorrelated means independent'], note: t`Rotating standard normals by the Jacobian` },
+    'ia-s4-q12-b-coefficient': { sections: ['Uncorrelated means independent'], note: t`Making two normals independent by zero covariance` },
+    'ia-s4-q7-correlation': { sections: ['The correlation coefficient'], note: t`A correlation after a rotation` },
+  }),
   gate: ['ia-s4-q7', 'ia-s4-q12-b-coefficient', 'ia-s4-q7-correlation'],
   recall: [
     { front: t`The correlation coefficient.`, back: t`${math`\rho(X, Y) = \frac{\operatorname{cov}(X, Y)}{\sqrt{\operatorname{var}(X)\operatorname{var}(Y)}}`}, between ${-1} and ${1}.` },

@@ -7,7 +7,7 @@
  * checked by exact algebra and simulation.
  */
 import { mulberry32 } from '@learnhub/mastery';
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, pick, q, str, type Rational } from '../math';
 import { expSample, integrateToInfinity, near, round } from '../partv-b';
 import { generator, type Misconception } from '../problem';
@@ -312,9 +312,12 @@ export const exponentialDistribution: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exponential-distribution', 'memoryless-property'],
   claims,
-  cambridge: [q4three, memorylessProof, q4firstWhich],
-  // Sheet 4 Q4: the independence of the winner and the time first, then the three bulbs.
-  gate: ['ia4-q4-which', 'ia4-q4-three'],
+  cambridge: withUses([q4three, memorylessProof, q4firstWhich], {
+    'ia4-q4-which': { sections: ['Racing clocks'], note: t`The winner of a race is independent of the time it takes`, needs: ['rv.joint-densities'] },
+    'ia4-q4-three': { sections: ['Racing clocks'], note: t`The first of three exponential clocks` },
+  }),
+  // The three bulbs. Sheet 4 Q4's independence of the winner and the time needs a joint density, taught next, so it is practice.
+  gate: ['ia4-q4-three'],
   recall: [
     { front: t`Density and survival function of ${math`\mathrm{Exp}(\lambda)`}?`, back: t`${math`\lambda e^{-\lambda x}`} and ${math`P(X > x) = e^{-\lambda x}`}, for ${math`x \ge ${0}`}.` },
     { front: t`Mean and variance of ${math`\mathrm{Exp}(\lambda)`}?`, back: t`${math`\frac{${1}}{\lambda}`} and ${math`\frac{${1}}{\lambda^{${2}}}`}.` },

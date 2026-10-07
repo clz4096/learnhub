@@ -6,7 +6,7 @@
  * exercise 4, the 1987 STEP divisibility question of STEP Support Assignment 17, Q4(iii),
  * and CST Discrete Mathematics supervision exercise 4.1.2 (tiling with L-shaped pieces).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, dmath, math, t, type Span } from '../rich';
@@ -314,7 +314,10 @@ export const smallestCounterexample: TopicContent = {
   generators: [failGen, stepGen, powGen, knowGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['well-ordering-principle', 'smallest-counterexample'],
-  cambridge: [f17q4, sw412, b94, b109, b1013],
+  cambridge: withUses([f17q4, sw412, b94, b109, b1013], {
+    'a17-q4-iii': { sections: ['A first example', 'Why it works, and when to use it'], note: t`A divisibility proof by the smallest counterexample` },
+    'sw-4-1-2': { sections: ['Why it works, and when to use it'], note: t`Tiling by taking the smallest board that fails` },
+  }),
   gate: ['a17-q4-iii', 'sw-4-1-2'],
   recall: [
     { front: t`State the well-ordering principle.`, back: t`Every non-empty subset of ${math`\mathbb{N}`} has a smallest element.` },

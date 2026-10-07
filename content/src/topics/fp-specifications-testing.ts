@@ -12,7 +12,7 @@
  *   is_odd (-3) = false for is_odd n = n mod 2 = 1; List.fold_left max 0 [-4; -2] = 0;
  *   the early-exit list_max [5; 3; 9] = 5; abs 1 = -1 for abs x = if x > 1 then x else -x
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { code, codeBlock, oc, showList } from '../ocaml-code';
 import { int, pick } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -377,7 +377,11 @@ export const fpSpecificationsTesting: TopicContent = {
   generators: [reveal, paths, precondition],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['specification', 'precondition', 'postcondition', 'black-box-testing', 'glass-box-testing'],
-  cambridge: [qcAvg, productTest, polySpec],
+  cambridge: withUses([qcAvg, productTest, polySpec], {
+    'cs3110-ex8-poly-spec': { sections: ['What does correct mean?'], note: t`Writing specifications for an interface` },
+    'cs3110-ex3-product-test': { sections: ['Choosing test cases'], note: t`Black-box test cases from a specification` },
+    'cs3110-ex8-qcheck-avg': { sections: ['Choosing test cases'], note: t`Finding an input that exposes a bug` },
+  }),
   gate: ['cs3110-ex8-poly-spec', 'cs3110-ex3-product-test', 'cs3110-ex8-qcheck-avg'],
   recall: [
     { front: t`What are a precondition and a postcondition?`, back: t`The precondition (Requires) is what the client guarantees about the inputs; the postcondition (Returns, Raises) is what the function guarantees about the result when the precondition holds.` },

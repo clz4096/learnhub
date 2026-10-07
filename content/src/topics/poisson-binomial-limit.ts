@@ -11,7 +11,7 @@
  * Exercise 17's printed 649741 comes from the Poisson approximation with a strict inequality; the
  * exact binomial answer is 649740, recorded as a mismatch.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q } from '../math';
 import { binomPmf, binomPmfProduct, fact, farApart, poissonCdf, poissonPmf, poissonPmfRec, sig } from '../partv-d';
 import { generator, type Misconception } from '../problem';
@@ -374,7 +374,11 @@ export const poissonBinomialLimit: TopicContent = {
   generators: [approx, limit, expLimit],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['poisson-approximation'],
-  cambridge: [notesAtMost, notesVar, general, when, gs5129, gs5117, gs5111],
+  cambridge: withUses([notesAtMost, notesVar, general, when, gs5129, gs5117, gs5111], {
+    's2-notes-when': { sections: ['The Poisson limit', 'Where it breaks'], note: t`When the Poisson approximation is good, and why` },
+    'gs-5-1-17': { sections: ['Using the approximation'], note: t`How many hands before a rare event is likely` },
+    'gs-5-1-29': { sections: ['Using the approximation'], note: t`At least one counterfeit coin` },
+  }),
   // The explanation the notes call for. The faulty-items estimate is one Poisson probability with
   // np put in, the variance substitution is one line, and the general limit is from the schedule.
   // Batch 7: the royal flush, where the exact binomial and the Poisson answers differ by one hand,

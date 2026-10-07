@@ -8,7 +8,7 @@
  * The cons counts are computed by running the FoCS code's operations in TypeScript,
  * counting one for the cons in enq and one per element reversed by norm.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
 import { codeOf, ml, mlBlock, mlList } from '../ocaml-code';
 import { generator, type Misconception } from '../problem';
@@ -299,7 +299,10 @@ export const functionalQueues: TopicContent = {
   generators: [queueTrace, naiveCost, batchCost],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['queue', 'amortised-cost'],
-  cambridge: [cst18, focsTwoN, queueOption, focs101],
+  cambridge: withUses([cst18, focsTwoN, queueOption, focs101], {
+    'cst-2018-p1-q2-b': { sections: ['Two lists, one reversed', 'Why it is fast: amortised cost'], note: t`A two-list deque with amortised constant operations` },
+    'focs-10-1': { sections: ['Why it is fast: amortised cost'], note: t`Comparing a tree queue with the two-list queue` },
+  }),
   // Best first: the 2018 Tripos deque (amortised constant time at both ends), then FoCS 10.1.
   gate: ['cst-2018-p1-q2-b', 'focs-10-1'],
   recall: [

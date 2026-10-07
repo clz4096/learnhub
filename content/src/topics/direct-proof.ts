@@ -10,7 +10,7 @@
  * consecutive composites) is Book of Proof's exercise 24 here, so it is not set twice.
  */
 import { gradeExpression, type Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { exprTex, math, t, type Rich } from '../rich';
@@ -529,7 +529,10 @@ export const directProof: TopicContent = {
   generators: [divides, factorialDivisor, errorStep],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['direct-proof', 'scratch-work', 'lemma'],
-  cambridge: [bop47, bop419, bop46, bop410, tmuaR3, tmua72, bop49, bop413, bop424, scratch, ns2q15],
+  cambridge: withUses([bop47, bop419, bop46, bop410, tmuaR3, tmua72, bop49, bop413, bop424, scratch, ns2q15], {
+    'ns2-q15': { sections: ['The method'], note: t`Finding multiples inside a block of consecutive numbers`, needs: ['pre.remainders'] },
+    'notes-35-scratch': { sections: ['What a proof is', 'The method'], note: t`Turning scratch work into a proof in sentences` },
+  }),
   // The IA block question first: a direct proof with a case the first idea misses. Then the CST
   // notes' scratch work turned into a written proof. The Book of Proof exercises are good practice but easier.
   gate: ['ns2-q15', 'notes-35-scratch'],

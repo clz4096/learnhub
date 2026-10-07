@@ -16,7 +16,7 @@ import { answerText, grade, readAnswer, sameAnswer, type Instance } from './prob
 import { computedMath, dmath, exprTex, ident, markedTerms, math, plain, setOf, t, texToPlain, type Rich, type Span } from './rich';
 import { TOPIC_CONTENT } from './topics';
 import { GATE_DOCS, formalNumbers, gateCandidates, lessonSections, proofOrderAnswer, proofOrderSpec, quickCheck, type Block, type TopicContent } from './topic';
-import { CITED_DOCS, citationText, type Citation } from './cambridge';
+import { CITED_DOCS, citationText, withUses, type Citation } from './cambridge';
 import { contentFor } from './all';
 import { CONTENT_IDS, TOPIC_LOADERS, catalogProblem, gateOf, hasContent, loadTopicContent } from './index';
 import { BOOK_ORDER } from './book/book';
@@ -87,6 +87,7 @@ function topicRich(c: TopicContent): Rich[] {
     ...c.examples.flatMap((e) => [e.title, e.prompt, ...e.steps, e.answer, ...(e.examiner === undefined ? [] : [e.examiner])]),
     ...(c.recall ?? []).flatMap((r) => [r.front, r.back]),
     ...(c.proofOrder ?? []).flatMap((o) => [o.title, ...o.steps]),
+    ...c.cambridge.flatMap((p) => (p.uses?.note === undefined ? [] : [p.uses.note])),
   ];
 }
 
@@ -589,6 +590,78 @@ describe('the Cambridge gate', () => {
     for (const d of GATE_DOCS) expect(Object.hasOwn(CITED_DOCS, d), d).toBe(true);
     const c = contentFor('proof.contradiction') as TopicContent;
     expect(gateCandidates(c.cambridge).every((id) => GATE_DOCS.has(c.cambridge.find((p) => p.id === id)?.source.doc ?? ''))).toBe(true);
+  });
+});
+
+describe('what each Cambridge problem draws on', () => {
+  const byId = new Map(topics.map((tp) => [tp.id, tp] as const));
+  /** Every topic a topic builds on, directly or through others. */
+  const closure = (id: string): Set<string> => {
+    const out = new Set<string>();
+    const todo = [...(byId.get(id)?.prereqs ?? [])];
+    for (let x = todo.pop(); x !== undefined; x = todo.pop()) {
+      if (out.has(x)) continue;
+      out.add(x);
+      todo.push(...(byId.get(x)?.prereqs ?? []));
+    }
+    return out;
+  };
+  /**
+   * Topics whose gate still needs a topic later in the book (gatefit audit, 2026-10-06): no
+   * fitting Cambridge-standard problem is on file. Explicit, so a new misfit fails here and a
+   * fixed one is taken off the list.
+   */
+  const GATE_NEEDS_LATER: ReadonlySet<string> = new Set(['comb.permutations', 'geom.circles', 'an.sequence-limits']);
+
+  it('every gate problem says what it draws on, from at least one section of its lesson', () => {
+    for (const c of TOPIC_CONTENT) {
+      for (const id of c.gate) {
+        const u = c.cambridge.find((p) => p.id === id)?.uses;
+        expect(u, `${c.topicId}/${id} has no uses`).toBeDefined();
+        expect(u?.sections.length, `${c.topicId}/${id} draws on no section`).toBeGreaterThan(0);
+        expect(plain(u?.note ?? []).trim().length, `${c.topicId}/${id} has no note`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('names real sections of its own lesson, and topics outside its prerequisites', () => {
+    for (const c of TOPIC_CONTENT) {
+      const titles = new Set(lessonSections(c.lesson).flatMap((s) => (s.title === null ? [] : [plain(s.title)])));
+      const before = closure(c.topicId);
+      for (const p of c.cambridge) {
+        const u = p.uses;
+        if (u === undefined) continue;
+        const where = `${c.topicId}/${p.id}`;
+        for (const s of u.sections) expect(titles.has(s), `${where}: "${s}" is not a section of the lesson`).toBe(true);
+        expect(new Set(u.sections).size, `${where}: a section is named twice`).toBe(u.sections.length);
+        for (const n of u.needs ?? []) {
+          expect(byId.has(n), `${where}: needs ${n}, not a graph topic`).toBe(true);
+          expect(n !== c.topicId && !before.has(n), `${where}: needs ${n}, which it already builds on`).toBe(true);
+        }
+        expect(new Set(u.needs ?? []).size, `${where}: a topic is needed twice`).toBe((u.needs ?? []).length);
+      }
+    }
+  });
+
+  it('no gate needs a topic later in the book, except the known gaps', () => {
+    const misfits = new Set<string>();
+    for (const c of TOPIC_CONTENT) {
+      for (const id of c.gate) {
+        const needs = c.cambridge.find((p) => p.id === id)?.uses?.needs ?? [];
+        if (needs.some((n) => BOOK_ORDER.indexOf(n) > BOOK_ORDER.indexOf(c.topicId))) misfits.add(c.topicId);
+      }
+    }
+    expect(misfits).toEqual(GATE_NEEDS_LATER);
+  });
+
+  it('withUses attaches each entry to its problem and rejects an unknown id', () => {
+    const c = contentFor('pre.fractions') as TopicContent;
+    const p = c.cambridge[0];
+    expect(p).toBeDefined();
+    const id = (p as { id: string }).id;
+    const uses = { sections: ['A section'], note: t`A note` };
+    expect(withUses(c.cambridge, { [id]: uses })[0]?.uses).toEqual(uses);
+    expect(() => withUses(c.cambridge, { nope: uses })).toThrow(/nope/);
   });
 });
 

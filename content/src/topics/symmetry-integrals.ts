@@ -4,7 +4,7 @@
  * functions integrate to 0 over [-a, a]. The Cambridge problems are STEP Support Foundation
  * Assignment 25, Q2(vi), Q3 (1994 STEP I Q8), and Q4(i), with the Assignment 25 hints.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -229,7 +229,10 @@ export const symmetryIntegrals: TopicContent = {
   generators: [king, oddEven, symmetricWeight],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['king-property'],
-  cambridge: [lnTan, zeroQ, cosRatio, stepFull],
+  cambridge: withUses([lnTan, zeroQ, cosRatio, stepFull], {
+    'a25-q3': { sections: ['Reflecting the range'], note: t`Integrals by reflecting the range` },
+    'a25-q3-i': { sections: ['Reflecting the range'], note: t`The log of one plus tan by reflecting the range` },
+  }),
   gate: ['a25-q3', 'a25-q3-i'],
   recall: [
     { front: t`What is ${math`\int_{${0}}^{a} \frac{f(x)}{f(x) + f(a - x)}\,dx`}?`, back: t`${math`\frac{a}{${2}}`}, when the denominator is never ${0}: reflect and add.` },

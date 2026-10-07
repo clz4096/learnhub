@@ -14,7 +14,7 @@
  *   p = {x = 3; y = 4}; q = {p with x = 10}; q.x * 2 + p.x = 23
  *   (7, "s", true) : int * string * bool; [(7, true); (8, false)] : (int * bool) list
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { code, codeBlock, oc } from '../ocaml-code';
 import { ex, source, typeOfExpr, type Ex } from '../fp-types';
 import { int } from '../math';
@@ -337,7 +337,11 @@ export const fpRecordsTuples: TopicContent = {
   generators: [tupleType, recordCopy, zipUnzip],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['tuple', 'record-type'],
-  cambridge: [pokerecord, dateBefore, focs43, focs46],
+  cambridge: withUses([pokerecord, dateBefore, focs43, focs46], {
+    'focs-4-3': { sections: ['Lists of pairs: zip and unzip'], note: t`What a non-exhaustive match does on lists of different lengths` },
+    'cs3110-ex3-date-before': { sections: ['Several values as one'], note: t`Comparing triples with a pattern` },
+    'focs-4-6': { sections: ['Several values as one'], note: t`What a polymorphic type says about a function` },
+  }),
   gate: ['focs-4-3', 'cs3110-ex3-date-before', 'focs-4-6'],
   recall: [
     { front: t`What is the type of a tuple ${code`(e${1}, e${2})`}?`, back: t`The product type ${math`\tau_{${1}} * \tau_{${2}}`} of the components' types, in order.` },

@@ -8,7 +8,7 @@
  * specification lists "the angle subtended by an arc at the centre is twice the angle it
  * subtends at the circumference" first among the circle theorems.
  */
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -281,8 +281,14 @@ export const euclideanProof: TopicContent = {
   generators: [centreAngle, radiiTriangle, holditchRing],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['congruent-triangles', 'isosceles-triangle', 'circle-chord'],
-  cambridge: [a1q4, a21q4, a16q4, a9q4, a21q4ii],
-  gate: ['a9-q4', 'a21-q4-ii', 'a16-q4', 'a21-q4'],
+  cambridge: withUses([a1q4, a21q4, a16q4, a9q4, a21q4ii], {
+    'a9-q4': { sections: ['The tools: congruent and isosceles triangles'], note: t`Chaining congruent triangles to prove the base angles equal` },
+    'a21-q4-ii': { sections: ['The tools: congruent and isosceles triangles'], note: t`Lengths in a square with an arc and an inscribed circle`, needs: ['geom.circles'] },
+    'a16-q4': { sections: ['The tools: congruent and isosceles triangles', 'Where it breaks'], note: t`Finding the false step in a convincing congruence argument` },
+    'a21-q4': { sections: ['The tools: congruent and isosceles triangles'], note: t`Equal tangent lengths and Pythagoras for an inscribed circle`, needs: ['geom.circles'] },
+  }),
+  // The two congruence proofs. Assignment 21 Q4 needs tangents to a circle and circle coordinates, not taught here, so it is practice.
+  gate: ['a9-q4', 'a16-q4'],
   recall: [
     { front: t`State the SSS and SAS congruence tests.`, back: t`Three pairs of equal sides, or two pairs of equal sides with the angles between them equal, make two triangles congruent.` },
     { front: t`What can you say about the base angles of an isosceles triangle?`, back: t`They are equal: if ${math`AB = BC`} then ${math`\angle BAC = \angle BCA`}, by congruence with the midpoint of ${math`AC`}.` },

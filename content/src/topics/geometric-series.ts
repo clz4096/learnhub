@@ -5,7 +5,7 @@
  * neither is 2^k - 1. Book of Proof Chapter 10, exercise 5 (the sum of powers of 2) is
  * added as practice, checked against its solution.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, computedTex, dmath, listOf, math, t } from '../rich';
@@ -305,7 +305,10 @@ export const geometricSeries: TopicContent = {
   generators: [sumGp, nthTerm, closed, mersenne],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['geometric-series', 'common-ratio'],
-  cambridge: [sw421b, bop105, sw421aProof, sw421bProof],
+  cambridge: withUses([sw421b, bop105, sw421aProof, sw421bProof], {
+    'sw-4-2-1-b-proof': { sections: ['A factorisation in disguise'], note: t`Reading the series formula backwards as a factorisation` },
+    'sw-4-2-1-a-proof': { sections: ['The formula', 'A factorisation in disguise'], note: t`Proving the series identity by multiplying and cancelling` },
+  }),
   // The two proofs of 4.2.1, (b) first since it needs (a) and care with k equal to 1.
   // The numerical divisor of 2 to the 15 minus 1 is one application, left out.
   gate: ['sw-4-2-1-b-proof', 'sw-4-2-1-a-proof'],

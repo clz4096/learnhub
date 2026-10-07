@@ -6,7 +6,7 @@
  * composite by an i with i^m ≢ i (mod m); and 2^340 ≡ 1 (mod 341) although 341 is not
  * prime).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { mod, powMod, powModSlow } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -259,7 +259,11 @@ export const modularExponentiation: TopicContent = {
   generators: [squareAndMultiply, multiplicationCount, squareChain],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['repeated-squaring'],
-  cambridge: [totd341, btw341, sheet225why, costWhy],
+  cambridge: withUses([totd341, btw341, sheet225why, costWhy], {
+    'sheet-2-2-5-flt': { sections: ['Squaring instead of counting'], note: t`A power modulo a composite by known congruences, and why Fermat is not contradicted`, needs: ['num.fermat-little'] },
+    'squaring-cost': { sections: ['Why it is fast'], note: t`Why repeated squaring needs few multiplications` },
+    'notes-131-btw-witness': { sections: ['Squaring instead of counting'], note: t`A witness that a number is composite` },
+  }),
   // The CST write-ups first. The 341 check is dropped: its prompt states the answer.
   gate: ['sheet-2-2-5-flt', 'squaring-cost', 'notes-131-btw-witness'],
   recall: [

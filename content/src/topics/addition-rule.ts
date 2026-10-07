@@ -5,7 +5,7 @@
  * are not divisible by 7 but divisible by 3 or 5, counted here by brute force), and an
  * addition-rule question on the data of STEP Support Assignment 6, Q4(i).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -261,7 +261,9 @@ export const additionRule: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['addition-rule'],
   claims: [{ what: 'a picture card or a heart', exact: q(22, 52), trial: (rng) => { const c = DECK[Math.floor(rng() * 52)] as Card; return c.rank >= 11 || c.suit === 1; } }],
-  cambridge: [ia4e, ia5a, a6or],
+  cambridge: withUses([ia4e, ia5a, a6or], {
+    'ia1-q5-a': { sections: ['Using it both ways'], note: t`Applying the addition rule twice to three events` },
+  }),
   gate: ['ia1-q5-a'],
   recall: [
     { front: t`State the addition rule for two events.`, back: t`${math`P(A \cup B) = P(A) + P(B) - P(A \cap B)`}.` },

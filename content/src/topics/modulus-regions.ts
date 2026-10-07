@@ -7,7 +7,7 @@
  * inequality at each point; areas by counting grid points (a Monte Carlo-free lattice
  * estimate) against the exact formula.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, sample } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, math, t } from '../rich';
@@ -273,7 +273,10 @@ export const modulusRegions: TopicContent = {
   generators: [diamondArea, regionPoints, boundaryPiece],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['boundary-curve'],
-  cambridge: [a21points, step1999, a21ivv],
+  cambridge: withUses([a21points, step1999, a21ivv], {
+    'a21-q3': { sections: ['Boundaries piece by piece', 'Shifts and other shapes'], note: t`Sketching four regions given by moduli` },
+    'a21-q2-iv-v': { sections: ['Boundaries piece by piece'], note: t`Boundaries of a modulus region quadrant by quadrant` },
+  }),
   gate: ['a21-q3', 'a21-q2-iv-v'],
   recall: [
     { front: t`What shape is ${math`|x| + |y| \le k`}?`, back: t`A square standing on a corner, vertices ${math`(\pm k, ${0})`}, ${math`(${0}, \pm k)`}, area ${math`${2}k^{${2}}`}.` },

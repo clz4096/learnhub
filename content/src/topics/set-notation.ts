@@ -5,12 +5,16 @@
  * 1.5, 1.6, and 1.7. The gates (batch 7) are IA Numbers and Sets Example Sheet 1, Q6 and Q13, and
  * CST supervision exercise 5.1.6 with its 2023-24 official solution, in the lesson's notation (A - B
  * for the sheets' A \ B, and a bar for the complement); exercise 5.1.3(b) is practice.
+ *
+ * The gates prove identities between sets, so the section "Proving two sets are equal" (2026-10-06)
+ * teaches it on the distributive law, which no gate asks for: following one element, and a
+ * membership table for three sets.
  */
-import { auto, cite, same, supervision, type AutoProblem } from '../cambridge';
+import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { dmath, math, setOf, t, type Rich, type Span } from '../rich';
-import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
+import { checkFrom, quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 type Op = 'union' | 'intersection';
 
@@ -488,6 +492,12 @@ const sw513 = auto({
 // ---------------------------------------------------------------- lesson
 
 const L = { n: 10, a: [1, 2, 3, 4, 6], b: [2, 4, 6, 8, 10], c: [1, 8, 9] };
+
+// "Proving two sets are equal": the membership table of A n (B u C) = (A n B) u (A n C), and the pitfall's sets.
+const inOut = (b: boolean): Rich => (b ? t`in` : t`out`);
+const MEMBER = [true, false].flatMap((a) => [true, false].flatMap((b) => [true, false].map((c) => ({ a, b, c }))));
+const memberRows = MEMBER.map(({ a, b, c }) => [inOut(a), inOut(b), inOut(c), inOut(a && (b || c)), inOut((a && b) || (a && c))]);
+const TRAP = { a: [1, 2], b: [2] };
 const LU = upTo(L.n);
 const venn = {
   onlyA: minus(L.a, L.b), both: inter(L.a, L.b), onlyB: minus(L.b, L.a), neither: minus(LU, union(L.a, L.b)),
@@ -499,7 +509,7 @@ export const setNotation: TopicContent = {
   goal: t`Read and use set notation for union, intersection, difference, and complement, and draw them as a Venn diagram.`,
   objective: t`Read and use union, intersection, difference and complement, and draw them on a Venn diagram.`,
   why: t`Events in probability are sets, so every probability rule is a rule about these operations.`,
-  minutes: 25,
+  minutes: 30,
   lesson: [
     { kind: 'section', title: t`Or, and, not` },
     { kind: 'hook', text: t`In a class, some students play chess and some play football. "Chess or football", "chess and football", "chess but not football", "neither": four different groups, and getting them mixed up is behind many wrong answers in probability. Set notation gives each one a precise name and a picture.` },
@@ -557,7 +567,35 @@ export const setNotation: TopicContent = {
     { kind: 'section', title: t`Three sets need brackets` },
     { kind: 'p', text: t`${math`A \cup B \cup C`} needs no brackets, and neither does ${math`A \cap B \cap C`}. Mixing the two does. Take ${math`C = ${setOf(L.c)}`}. Then ${math`(A \cup B) \cap C = ${setOf(inter(union(L.a, L.b), L.c))}`}, but ${math`A \cup (B \cap C) = ${setOf(union(L.a, inter(L.b, L.c)))}`}.` },
     { kind: 'pitfall', claim: t`${math`A \cup B \cap C`} is a set.`, counterexample: t`Without brackets it could mean ${math`(A \cup B) \cap C`} or ${math`A \cup (B \cap C)`}, and with ${math`C = ${setOf(L.c)}`} these differ. Shade each part in a diagram before combining, as Book of Proof does.` },
-    { kind: 'takeaway', text: t`Union is or, intersection is and, complement is not, difference is "but not"; and the overlap is counted once, not twice.` },
+    { kind: 'section', title: t`Proving two sets are equal` },
+    { kind: 'narrative', text: t`A Venn diagram suggests that two sets are equal, but it shows only the circles you drew. To prove an identity such as ${math`A \cap (B \cup C) = (A \cap B) \cup (A \cap C)`} for all sets, go back to what equal means: the same elements. So follow one element, call it ${math`x`}, through both sides.` },
+    { kind: 'rule', text: t`To prove ${math`X = Y`}, show that for every ${math`x`}, ${math`x \in X`} exactly when ${math`x \in Y`}: write out what membership of each side means, and show the two conditions say the same thing.` },
+    {
+      kind: 'p',
+      text: t`Two facts about "not" do much of the work. ${math`x \notin B \cup C`} means ${math`x`} is in neither set: ${math`x \notin B`} and ${math`x \notin C`}. And ${math`x \notin B \cap C`} means ${math`x`} misses at least one of them: ${math`x \notin B`} or ${math`x \notin C`}.`,
+      why: { q: t`Why does "not in the union" become "and"?`, a: t`${math`B \cup C`} holds everything in ${B} or in ${math`C`}, so to be outside it, ${math`x`} must be outside both. ${math`B \cap C`} holds only what is in both, so to be outside it, missing one is enough.` },
+    },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Unpack the left side`, text: t`${math`x \in A \cap (B \cup C)`} means ${math`x \in A`}, and ${math`x \in B`} or ${math`x \in C`}.`, plain: t`By the definitions of intersection and union.` },
+        { label: t`Share out the "and"`, text: t`That says the same as: ${math`x \in A`} and ${math`x \in B`}, or ${math`x \in A`} and ${math`x \in C`}.`, why: { q: t`Why may the "and" be shared out?`, a: t`If ${math`x \in A`}, both sentences say "${math`x \in B`} or ${math`x \in C`}". If ${math`x \notin A`}, both are false. So they agree in every case.` } },
+        { label: t`Pack up the right side`, text: t`That means ${math`x \in A \cap B`} or ${math`x \in A \cap C`}, that is, ${math`x \in (A \cap B) \cup (A \cap C)`}.` },
+        { label: t`Conclude`, text: t`Each step says the same thing in both directions, so ${math`x`} is in the left side exactly when it is in the right side. The two sets have the same elements, so they are equal.` },
+      ],
+    },
+    { kind: 'p', text: t`For a few sets there is a second way that always works: a membership table. An element is in or out of each of ${A}, ${B}, and ${math`C`}, which gives ${MEMBER.length} rows, one for each region of the Venn diagram. Work out each side in every row. If the two columns agree in every row, the sets are equal, because every element falls in exactly one row.` },
+    { kind: 'table', caption: t`A membership table for the same identity: the last two columns agree in every row.`, head: [t`${A}`, t`${B}`, t`${math`C`}`, t`${math`A \cap (B \cup C)`}`, t`${math`(A \cap B) \cup (A \cap C)`}`], rows: memberRows },
+    { kind: 'p', text: t`A table also finds counterexamples. In the row where ${math`x \in A`}, ${math`x \notin B`}, and ${math`x \notin C`}, the set ${math`(A \cup B) \cap C`} does not contain ${math`x`}, but ${math`A \cup (B \cap C)`} does: that is why the brackets matter.` },
+    quickCheck({
+      prompt: t`Which set equals ${math`A - (A \cap B)`} for all sets ${A} and ${B}?`,
+      answer: { kind: 'choice', options: [{ id: 'amb', label: t`${math`A - B`}` }, { id: 'bma', label: t`${math`B - A`}` }, { id: 'a', label: t`${A}` }, { id: 'none', label: t`${math`\varnothing`}` }], correct: 'amb' },
+      reference: ['amb'],
+      why: t`${math`x \in A - (A \cap B)`} means ${math`x \in A`} and ${math`x \notin A \cap B`}. Since ${math`x \in A`}, missing ${math`A \cap B`} means ${math`x \notin B`}: that is ${math`x \in A - B`}.`,
+    }),
+    { kind: 'pitfall', claim: t`${math`(A \cup B) - B = A`} for all sets, since it holds for ${math`A = \{${1}\}`} and ${math`B = \{${2}\}`}.`, counterexample: t`With ${math`A = ${setOf(TRAP.a)}`} and ${math`B = ${setOf(TRAP.b)}`}: ${math`(A \cup B) - B = ${setOf(minus(union(TRAP.a, TRAP.b), TRAP.b))}`}, not ${A}. One example cannot prove an identity: follow an element, or check every row of a table.` },
+    { kind: 'takeaway', text: t`Union is or, intersection is and, complement is not, difference is "but not"; the overlap is counted once; and to prove two sets equal, follow one element through both sides.` },
   ],
   examples: [
     worked(unionIntersection, { n: 10, a: [1, 3, 5, 7], b: [3, 4, 5, 6], op: 'intersection' }, t`An intersection`),
@@ -568,7 +606,11 @@ export const setNotation: TopicContent = {
   generators: [unionIntersection, complement, countRegions, difference],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['set', 'element', 'universal-set', 'union', 'intersection', 'set-difference', 'complement', 'empty-set', 'venn-diagram'],
-  cambridge: [bop15a, bop15c, bop15g, bop15i, bop16a, bop16g, bop16b2f, bop17_5, bop17_8, bop17_3, bop17_10, ns1q6, sw516, ns1q13, sw513],
+  cambridge: withUses([bop15a, bop15c, bop15g, bop15i, bop16a, bop16g, bop16b2f, bop17_5, bop17_8, bop17_3, bop17_10, ns1q6, sw516, ns1q13, sw513], {
+    'ns1-q6': { sections: ['The four operations', 'Proving two sets are equal'], note: t`Proving an identity between sets by following an element` },
+    'sw-5-1-6': { sections: ['The four operations', 'Proving two sets are equal'], note: t`Proving complement identities and De Morgan's laws for sets` },
+    'ns1-q13': { sections: ['The four operations', 'Three sets need brackets', 'Proving two sets are equal'], note: t`Expressing the symmetric difference, and proving it associative with a membership table` },
+  }),
   // Proofs of set identities, element by element: the IA sheet's difference of a union first, then
   // the CST complement laws and the symmetric difference. The reals and naturals question is
   // practice in reading set notation.

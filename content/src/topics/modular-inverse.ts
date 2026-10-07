@@ -6,7 +6,7 @@
  * exercises 2.2.6 (inverse tables), 3.2.10 (solving congruences), 3.2.11 (inverses of 2 in
  * Z_7, 7 in Z_40, and 13 in Z_23), and 3.2.12 (the inverse of [22^12001]_175).
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { egcd, factorise, gcd, inverseBySearch, mod, phi, powMod, primesTo } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -307,9 +307,16 @@ export const modularInverse: TopicContent = {
   generators: [inverseMod, solveCongruence, countUnits],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['modular-inverse', 'field'],
-  cambridge: [sheet3210a, sheet3210b, sheet3210c, sheet3212, sheet226, sheet3212proof, cor86],
-  // The CST proof and the multi-step congruences. Dropped: the one-step 3.2.10(a), the inverse table (drill), and Corollary 86, which needs Fermat's little theorem from a later lesson.
-  gate: ['sheet-3-2-12', 'sheet-3-2-10-c', 'sheet-3-2-10-b', 'sheet-3-2-12-inverse'],
+  cambridge: withUses([sheet3210a, sheet3210b, sheet3210c, sheet3212, sheet226, sheet3212proof, cor86], {
+    'sheet-3-2-12': { sections: ['When an inverse exists'], note: t`An inverse exists exactly when coprime` },
+    'sheet-3-2-10-c': { sections: ['Solving linear congruences'], note: t`A system of two congruences` },
+    'sheet-3-2-10-b': { sections: ['Solving linear congruences'], note: t`A linear congruence with a common factor` },
+    'sheet-3-2-12-inverse': { sections: ['Computing an inverse'], note: t`Reducing a huge power before inverting it`, needs: ['num.modular-exponentiation'] },
+  }),
+  // The CST proof and the multi-step congruences. Dropped: the one-step 3.2.10(a), the inverse table (drill),
+  // Corollary 86, which needs Fermat's little theorem from a later lesson, and the inverse of the huge power,
+  // which needs repeated squaring, also later.
+  gate: ['sheet-3-2-12', 'sheet-3-2-10-c', 'sheet-3-2-10-b'],
   recall: [
     { front: t`When does ${mn} have an inverse modulo ${mm}?`, back: t`Exactly when ${math`\gcd(m, n) = ${1}`}.` },
     { front: t`How do you compute ${math`n^{-${1}}`} in ${Z(mm)}?`, back: t`Extended Euclid gives ${math`sm + tn = ${1}`}; then ${math`n^{-${1}} = [t]_{m}`}.` },

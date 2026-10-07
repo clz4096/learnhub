@@ -6,7 +6,7 @@
  * whose hints multiply conditional probabilities along each queue that works).
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t, type Rich } from '../rich';
@@ -393,7 +393,12 @@ export const conditionalFormula: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['multiplication-rule'],
   claims,
-  cambridge: [a19i, raffle121, raffle11, raffle3, smokersReverse],
+  cambridge: withUses([a19i, raffle121, raffle11, raffle3, smokersReverse], {
+    'a12-q3-iii': { sections: ['The multiplication rule'], note: t`Listing the successful queues and multiplying conditional probabilities` },
+    'a6-q4-i-formula': { sections: ['The formula'], note: t`Writing two conditional probabilities as quotients and comparing them` },
+    'a19-q4-i-formula': { sections: ['The formula'], note: t`A conditional probability from a joint and a total probability` },
+    'a12-q3-ii-121': { sections: ['The multiplication rule'], note: t`Multiplying conditional probabilities along a queue` },
+  }),
   gate: ['a12-q3-iii', 'a6-q4-i-formula', 'a19-q4-i-formula', 'a12-q3-ii-121'],
   recall: [
     { front: t`Conditional probability.`, back: t`${math`P(A \mid B) = \frac{P(A \cap B)}{P(B)}`}, for ${math`P(B) > ${0}`}.` },

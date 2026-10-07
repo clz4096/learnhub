@@ -7,7 +7,7 @@
  * whatever the distribution). The sheet has no official solutions; each answer is checked
  * by exact arithmetic or by listing every outcome.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -316,7 +316,10 @@ export const weakLaw: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['weak-law', 'convergence-in-probability'],
   claims,
-  cambridge: [q4, q13b, uncorrelated],
+  cambridge: withUses([q4, q13b, uncorrelated], {
+    'ia-s3-q13-variance': { sections: ['Convergence in probability'], note: t`The weak law for the sample variance` },
+    'ia-s3-q4': { sections: ['How good is the bound?'], note: t`A sample size from Chebyshev for every distribution` },
+  }),
   // Best first: the weak law for the sample variance (a fourth moment), then the sample size
   // from Chebyshev. The uncorrelated version comes from the schedule, not a gate document.
   gate: ['ia-s3-q13-variance', 'ia-s3-q4'],

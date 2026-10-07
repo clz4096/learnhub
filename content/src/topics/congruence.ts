@@ -6,7 +6,7 @@
  * on squares and multiples). The problems add supervision exercises 2.1.1 and 3.2.4 with
  * their 2023-24 official solutions and Book of Proof Chapter 5, exercises 21 and 32.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
 import { gcd, mod } from '../numbers';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -266,8 +266,12 @@ export const congruence: TopicContent = {
   generators: [whichCongruent, witnessK, cancelFactor],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['congruent-mod'],
-  cambridge: [bop51, sheet324, sheet211, sheet324proof, bop521, bop532],
-  gate: ['sheet-2-1-1', 'sheet-3-2-4'],
+  cambridge: withUses([bop51, sheet324, sheet211, sheet324proof, bop521, bop532], {
+    'sheet-2-1-1': { sections: ['The definition', 'Like equality, almost'], note: t`Congruence is reflexive, symmetric, and transitive` },
+    'sheet-3-2-4': { sections: ['The definition'], note: t`Cancelling a factor in a congruence through the gcd`, needs: ['num.gcd', 'num.euclid-theorem'] },
+  }),
+  // Exercise 3.2.4 needs the gcd and Euclid's theorem, taught later, so it is practice.
+  gate: ['sheet-2-1-1'],
   recall: [
     { front: t`Define ${math`a \equiv b \pmod{m}`}.`, back: t`${math`m \mid (a - b)`}: ${math`a - b = km`} for some integer ${mk}.` },
     { front: t`Congruence in terms of remainders.`, back: t`${math`a \equiv b \pmod{m}`} exactly when ${math`a`} and ${math`b`} leave the same remainder on division by ${mm}.` },

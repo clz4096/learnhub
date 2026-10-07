@@ -7,7 +7,7 @@
  * (the bet on three dice, whose hints give the expected gain 17/216). Every official
  * answer is compared in the content checks.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, join, listOf, math, t, type Rich } from '../rich';
@@ -413,11 +413,18 @@ export const expectation: TopicContent = {
   generators: [fromTable, findK, expectedGain],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expectation', 'fair-game'],
-  cambridge: [q1b, a19, s2q3ii, q4iii, s3u3, s2q3iii, poissonMean],
-  // STEP questions, best first: the longest run of girls needs a distribution built before the mean;
-  // then the Poisson mean, the frog, the fair stake, the degenerate match, and the three-dice bet.
-  // Mixed Q1(i)(b) is one probability, not an expectation, left out.
-  gate: ['mixed-q4-iii', 's2-notes-poisson-mean', 's3-q1-ii-u3', 's2-q3-ii-fair-stake', 's2-q3-iii-p-zero', 'a19-q4-ii-gain'],
+  cambridge: withUses([q1b, a19, s2q3ii, q4iii, s3u3, s2q3iii, poissonMean], {
+    'mixed-q4-iii': { sections: ['The long-run average'], note: t`An expectation from a distribution given in parts` },
+    's2-notes-poisson-mean': { sections: ['A formula for a whole family'], note: t`The mean of the Poisson distribution from the exponential series`, needs: ['an.exp-series'] },
+    's3-q1-ii-u3': { sections: ['The long-run average'], note: t`An expected number of jumps by conditioning on the first jump`, needs: ['prob.first-step'] },
+    's2-q3-ii-fair-stake': { sections: ['Fair stakes'], note: t`A stake that makes the expected gain zero` },
+    's2-q3-iii-p-zero': { sections: ['Fair stakes'], note: t`Why no stake changes a game decided in advance` },
+    'a19-q4-ii-gain': { sections: ['Fair stakes'], note: t`An expected gain and the decision it supports` },
+  }),
+  // STEP questions, best first: the longest run of girls needs a distribution built before the mean; then the
+  // Poisson mean, the fair stake, the degenerate match, and the three-dice bet. The frog conditions on the first
+  // jump (prob.first-step, taught later), so it is practice. Mixed Q1(i)(b) is one probability, left out.
+  gate: ['mixed-q4-iii', 's2-notes-poisson-mean', 's2-q3-ii-fair-stake', 's2-q3-iii-p-zero', 'a19-q4-ii-gain'],
   recall: [
     { front: t`Define ${math`E(X)`} for a discrete random variable.`, back: t`${math`\sum_{x} x \, P(X = x)`}, over every value ${mx}.` },
     { front: t`What is a fair game?`, back: t`One whose expected gain is ${0}.` },

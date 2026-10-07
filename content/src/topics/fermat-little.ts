@@ -6,7 +6,7 @@
  * induction (pages 280 to 282), and the Theorem of the Day sheet (page 132). The problems
  * are supervision exercises 2.2.7 to 2.2.9 and 3.2.8 with their 2023-24 official solutions.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { mod, powMod, powModSlow } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -277,7 +277,12 @@ export const fermatLittle: TopicContent = {
   generators: [reduceExponent, pirates, fermatWitness],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fermats-little-theorem', 'freshmans-dream'],
-  cambridge: [totdCubes, sheet227, sheet229, sheet328, dropout],
+  cambridge: withUses([totdCubes, sheet227, sheet229, sheet328, dropout], {
+    'sheet-2-2-9': { sections: ['Using it'], note: t`Fermat's little theorem for three primes, combined` },
+    'sheet-3-2-8': { sections: ['Using it'], note: t`Fermat's little theorem for two primes, combined` },
+    'sheet-2-2-7': { sections: ['Using it'], note: t`Exponents that agree modulo one less than a prime` },
+    'notes-127-dropout': { sections: ["The Freshman's Dream", 'The proof'], note: t`The Dropout Lemmas by induction` },
+  }),
   // 2.2.9 first: Fermat three times and a combining lemma. The Theorem of the Day sheet is four
   // remainders, left out.
   gate: ['sheet-2-2-9', 'sheet-3-2-8', 'sheet-2-2-7', 'notes-127-dropout'],

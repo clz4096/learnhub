@@ -5,13 +5,17 @@
  * the worked example and the problems. Batch 7 adds IA Numbers and Sets Example Sheet 2, Q12
  * (second part): 2^91 - 1 is not prime, since 2^91 = (2^7)^13. CST exercise 4.2.1(a), the same idea
  * with a sum, needs sigma notation, which this topic does not assume, so it is not set.
+ *
+ * The IA gate also needs x - 1 to be a factor of x^n - 1, which the section "A power minus one"
+ * teaches (2026-10-06), on 2^6 - 1 and 2^15 - 1, never the gate's number. Assignment 12 Q1(iii)
+ * needs parity arguments from pre.algebraic-argument, so it is practice.
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, str } from '../math';
 import { generator, type Misconception } from '../problem';
-import { dmath, frac, ident, math, t } from '../rich';
-import { checkFrom, worked, workedProof, type TopicContent } from '../topic';
+import { computed, dmath, frac, ident, math, t } from '../rich';
+import { checkFrom, quickCheck, worked, workedProof, type TopicContent } from '../topic';
 
 const POS = { kind: 'real', min: 0.5, max: 3 } as const;
 const INT = { kind: 'integer', min: -4, max: 4 } as const;
@@ -260,12 +264,18 @@ const ns2q12ii = supervision({
 
 const [mm, mn] = [math`m`, math`n`];
 
+/** "A power minus one": the hook's number, 2^6 - 1, and the check's, 2^15 - 1. */
+const pm1 = { small: 6, d: 3, big: 15, dBig: 3, mBig: 5 } as const;
+const pm1Small = 2 ** pm1.small - 1;
+const pm1Big = 2 ** pm1.big - 1;
+const pm1Factors = Array.from({ length: pm1Big - 2 }, (_, i) => i + 2).filter((d) => pm1Big % d === 0);
+
 export const indices: TopicContent = {
   topicId: 'pre.indices',
   goal: t`Multiply, divide, and raise powers, including zero, negative, and fractional indices.`,
   objective: t`Multiply, divide, and raise powers, and say what zero, negative, and fractional indices mean.`,
   why: t`Every later topic writes numbers as powers; STEP questions turn on rewriting one power as another.`,
-  minutes: 20,
+  minutes: 25,
   lesson: [
     { kind: 'section', title: t`Copies of a number` },
     { kind: 'hook', text: t`${math`${2}^{${3}}`} means three ${2}s multiplied together. So what could ${math`${2}^{${0}}`} mean, zero ${2}s multiplied together? Or ${math`${2}^{-${1}}`}, minus one of them? Or ${math`${8}^{${2}/${3}}`}? None of these makes sense as counting copies. Yet each has exactly one sensible value, and the way to find it is to insist that the rules keep working.` },
@@ -304,6 +314,41 @@ export const indices: TopicContent = {
     { kind: 'p', text: t`Take the root first when you can: the numbers stay small. ${math`${8}^{${2}/${3}}`} the other way round is ${math`\sqrt[${3}]{${8}^{${2}}} = \sqrt[${3}]{${64}} = ${4}`}: the same, with a harder root.`, why: { q: t`Why does the definition need ${math`x > ${0}`}?`, a: t`Even roots of negative numbers are not real: there is no real ${math`(-${4})^{${1}/${2}}`}. Restricting to ${math`x > ${0}`} keeps every law true.` } },
     checkFrom(evaluate, { r: 4, qq: 2, p: -3 }, t`The ${2} in the denominator means a square root: ${math`\sqrt{${16}} = ${4}`}. Then the power ${math`-${3}`}: ${math`${4}^{-${3}} = \frac{${1}}{${64}}`}.`),
 
+    { kind: 'section', title: t`A power minus one` },
+    { kind: 'narrative', text: t`Is ${math`${2}^{${pm1.small}} - ${1} = ${pm1Small}`} prime? No: ${math`${pm1Small} = ${2 ** pm1.d - 1} \times ${pm1Small / (2 ** pm1.d - 1)}`}, and ${math`${2 ** pm1.d - 1} = ${2}^{${pm1.d}} - ${1}`}. That is no accident. Law (ii) says ${math`${2}^{${pm1.small}} = (${2}^{${pm1.d}})^{${pm1.small / pm1.d}}`}, and a power minus one always has a factor you can name.` },
+    { kind: 'theorem', name: t`A power minus one`, statement: t`For a real number ${mx} and a whole number ${math`n \ge ${2}`}, ${dmath`x^{n} - ${1} = (x - ${1})(x^{n - ${1}} + x^{n - ${2}} + \cdots + x + ${1}).`}` },
+    { kind: 'p', text: t`In plain words: the second bracket adds every power of ${mx} from ${math`x^{n - ${1}}`} down to ${math`x^{${0}} = ${1}`}, one of each. With ${math`n = ${3}`}: ${math`x^{${3}} - ${1} = (x - ${1})(x^{${2}} + x + ${1})`}; with ${math`x = ${2}`} that reads ${math`${2 ** 3 - 1} = ${1} \times ${2 ** 2 + 2 + 1}`}.` },
+    {
+      kind: 'steps',
+      proof: true,
+      steps: [
+        { label: t`Multiply by x`, text: t`${math`x(x^{n - ${1}} + x^{n - ${2}} + \cdots + x + ${1}) = x^{n} + x^{n - ${1}} + \cdots + x^{${2}} + x`}.`, plain: t`Each power goes up by one, by law (i): ${math`x \times x^{k} = x^{k + ${1}}`}.` },
+        { label: t`Multiply by minus one`, text: t`${math`-${1} \times (x^{n - ${1}} + x^{n - ${2}} + \cdots + x + ${1}) = -x^{n - ${1}} - x^{n - ${2}} - \cdots - x - ${1}`}.` },
+        { label: t`Add the two lines`, text: t`Every power from ${math`x^{n - ${1}}`} down to ${mx} appears once with a plus and once with a minus, so they cancel, and ${math`x^{n} - ${1}`} is left.`, plain: t`With ${math`n = ${3}`}: ${math`(x^{${3}} + x^{${2}} + x) + (-x^{${2}} - x - ${1}) = x^{${3}} - ${1}`}.` },
+      ],
+    },
+    {
+      kind: 'p',
+      text: t`Now combine it with law (ii). If ${math`n = dm`} for whole numbers ${math`d, m \ge ${2}`}, then ${math`x^{n} - ${1} = (x^{d})^{m} - ${1}`}, and the theorem with ${math`x^{d}`} in place of ${mx} shows that ${math`x^{d} - ${1}`} is a factor. For ${math`${2}^{${pm1.small}} - ${1}`}: ${math`d = ${pm1.d}`} gives the factor ${math`${2}^{${pm1.d}} - ${1} = ${2 ** pm1.d - 1}`}, and ${math`d = ${pm1.small / pm1.d}`} gives ${math`${2}^{${pm1.small / pm1.d}} - ${1} = ${2 ** (pm1.small / pm1.d) - 1}`}.`,
+      why: { q: t`Why is the other factor a whole number?`, a: t`When ${mx} is a whole number, the second bracket is a sum of whole powers of ${mx}, so it is a whole number too. So ${math`x^{d} - ${1}`} divides ${math`x^{n} - ${1}`} exactly, with no fraction left over.` },
+    },
+    quickCheck({
+      prompt: t`${math`${2}^{${pm1.big}} - ${1} = ${pm1Big}`}. Using ${math`${2}^{${pm1.big}} = (${2}^{${pm1.dBig}})^{${pm1.mBig}}`}, or another way of writing ${pm1.big} as a product, give a factor ${math`f`} of ${pm1Big} with ${math`${1} < f < ${pm1Big}`}.`,
+      answer: {
+        kind: 'witness', count: 1, names: ['f'], example: 'f = 7',
+        check: (vals) => {
+          const v = vals[0];
+          if (v === undefined || v.den !== 1n) return 'Give a whole number.';
+          const f = Number(v.num);
+          if (f <= 1 || f >= pm1Big) return `It must be bigger than 1 and smaller than ${pm1Big}.`;
+          return pm1Big % f === 0 ? null : `${f} does not divide ${pm1Big}.`;
+        },
+      },
+      reference: `f = ${2 ** pm1.dBig - 1}`,
+      why: t`${math`${2}^{${pm1.dBig}} - ${1} = ${2 ** pm1.dBig - 1}`} is a factor, and so is ${math`${2}^{${pm1.mBig}} - ${1} = ${2 ** pm1.mBig - 1}`}, from ${math`${2}^{${pm1.big}} = (${2}^{${pm1.mBig}})^{${pm1.dBig}}`}. The proper factors are ${computed(pm1Factors.join(', '))}.`,
+    }),
+    { kind: 'pitfall', claim: t`${math`x + ${1}`} is a factor of ${math`x^{n} + ${1}`}, just as ${math`x - ${1}`} is a factor of ${math`x^{n} - ${1}`}.`, counterexample: t`With ${math`x = ${2}`} and ${math`n = ${2}`}: ${math`${2}^{${2}} + ${1} = ${5}`}, and ${math`${2} + ${1} = ${3}`} does not divide ${5}. It works only when ${mn} is odd.` },
+
     { kind: 'section', title: t`Where it breaks` },
     { kind: 'pitfall', claim: t`${math`x^{m} + x^{n} = x^{m + n}`}.`, counterexample: t`${math`${2}^{${2}} + ${2}^{${3}} = ${4} + ${8} = ${4 + 8}`}, while ${math`${2}^{${5}} = ${32}`}. The laws are about multiplying powers, not adding them.` },
     { kind: 'pitfall', claim: t`A negative index makes the number negative.`, counterexample: t`${math`${2}^{-${1}} = ${q(1, 2)}`}, which is positive. A negative index means a reciprocal.` },
@@ -320,14 +365,19 @@ export const indices: TopicContent = {
   generators: [combine, powerOfPower, evaluate, newBase],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['power', 'base', 'index', 'zero-index', 'negative-index', 'fractional-index'],
-  cambridge: [sw123verdict, sw123witness, a12Q1iii, ns2q12ii],
-  // The IA question first (it needs the power of a power law to see the factor), then the STEP proof;
-  // the true or false verdict is dropped, since a guess passes it half the time.
-  gate: ['ns2-q12-ii', 'a12-q1-iii'],
+  cambridge: withUses([sw123verdict, sw123witness, a12Q1iii, ns2q12ii], {
+    'ns2-q12-ii': { sections: ['Powers and the three laws', 'A power minus one'], note: t`Writing a power as a power of a power, then factorising a power minus one` },
+    'a12-q1-iii': { sections: ['Powers and the three laws'], note: t`Factorising and arguing about consecutive integers`, needs: ['pre.algebraic-argument'] },
+  }),
+  // The IA question: the power of a power law, then the section on a power minus one, find the factor. Assignment 12
+  // Q1(iii) needs parity arguments, taught later, so it is practice; the true or false verdict is dropped, since a guess
+  // passes it half the time.
+  gate: ['ns2-q12-ii'],
   recall: [
     { front: t`The three laws of indices.`, back: t`${math`x^{m}x^{n} = x^{m + n}`}, ${math`(x^{m})^{n} = x^{mn}`}, ${math`x^{m}/x^{n} = x^{m - n}`}.` },
     { front: t`What are ${math`x^{${0}}`} and ${math`x^{-n}`}, for ${math`x \ne ${0}`}?`, back: t`${math`x^{${0}} = ${1}`} and ${math`x^{-n} = ${1}/x^{n}`}: the only values that keep the laws true.` },
     { front: t`What is ${math`x^{m/n}`}, for ${math`x > ${0}`}?`, back: t`${math`(\sqrt[n]{x})^{m}`}: the ${mn}th root, raised to the power ${mm}.` },
+    { front: t`Name a factor of ${math`x^{n} - ${1}`}.`, back: t`${math`x - ${1}`}: ${math`x^{n} - ${1} = (x - ${1})(x^{n - ${1}} + \cdots + x + ${1})`}. And ${math`x^{d} - ${1}`} whenever ${math`d`} divides ${mn}.` },
   ],
   proofOrder: [{
     title: t`Why ${math`x^{-n} = ${1}/x^{n}`}`,

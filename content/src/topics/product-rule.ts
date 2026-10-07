@@ -4,7 +4,7 @@
  * Bachet's weights (each weight in the pan or not gives 2^n choices; with two pans, 3^n).
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, computedMath as cm, dmath, listOf, math, t } from '../rich';
@@ -456,7 +456,12 @@ export const productRule: TopicContent = {
     worked(wholeNumbers, { k: 3, rule: 'odd' }, t`Odd three digit numbers`),
   ],
   generators: [menu, codes, wholeNumbers, weighings, bachet],
-  cambridge: [a7Five, a7TwoPans, a7Forty, a7ThreeWays, a7Unique, a7Bound, a7Bound3],
+  cambridge: withUses([a7Five, a7TwoPans, a7Forty, a7ThreeWays, a7Unique, a7Bound, a7Bound3], {
+    'a7-q4-ii-b-show': { sections: ['The rule, stated precisely'], note: t`Three choices for each weight, so at most a power of three loads` },
+    'a7-q4-i-c-show': { sections: ['Arrangements and yes or no choices'], note: t`Two choices for each weight, so at most a power of two loads` },
+    'a7-q4-i-a': { sections: ['Arrangements and yes or no choices'], note: t`Showing a choice of weights works and is the only one` },
+    'a7-q4-ii-c': { sections: ['The rule, stated precisely'], note: t`Choosing weights so every load from one up is reachable` },
+  }),
   // Best first: the two counting bounds (proofs), the unique three-weight choice, then the four
   // weights to 40. The 3^n count and the powers of two to 31 are one step each, and Q4(ii)(a) (the
   // weights 1 and 3) is too slight to gate.

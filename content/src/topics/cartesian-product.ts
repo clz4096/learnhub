@@ -6,7 +6,7 @@
  * statements about products, checked by brute force over small sets), and Book of Proof
  * Chapter 8, exercise 16.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, dmath, math, paren, t, type Span } from '../rich';
@@ -423,7 +423,9 @@ export const cartesianProduct: TopicContent = {
   generators: [sizeGen, pairsGen, rectGen, distGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ordered-pair', 'cartesian-product'],
-  cambridge: [sw524, sw524Proof, sw514, b125, b127, b128, b816],
+  cambridge: withUses([sw524, sw524Proof, sw514, b125, b127, b128, b816], {
+    'sw-5-2-4-proof': { sections: ['Order matters', 'Where it breaks'], note: t`Proving or disproving inclusions between products, unions, and subsets` },
+  }),
   gate: ['sw-5-2-4-proof'],
   recall: [
     { front: t`When is ${math`(a, b) = (c, d)`}?`, back: t`Exactly when ${math`a = c`} and ${math`b = d`}.` },

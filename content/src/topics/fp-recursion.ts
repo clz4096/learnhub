@@ -10,7 +10,7 @@
  *   (OCaml ints are 63 bits, max_int = 4611686018427387903)
  *   npower 2. 3 = 8.; summing 3 0 = 6
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { code, codeBlock } from '../ocaml-code';
 import { int, pick } from '../math';
 import { generator, type Misconception } from '../problem';
@@ -316,7 +316,10 @@ export const fpRecursion: TopicContent = {
   generators: [linearRec, fibCost, accumulator],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['recursive-function', 'tail-recursion', 'accumulator'],
-  cambridge: [cst24, fib30, focs21],
+  cambridge: withUses([cst24, fib30, focs21], {
+    'cst-2024-p1-q2-a': { sections: ['A function that calls itself'], note: t`A primality test by recursion over trial divisors` },
+    'focs-2-1': { sections: ['Iteration: carry the answer with you'], note: t`An iterative power with an accumulator and its invariant` },
+  }),
   // Best first: the 2024 Tripos question (trial division), then FoCS Exercise 2.1.
   gate: ['cst-2024-p1-q2-a', 'focs-2-1'],
   recall: [

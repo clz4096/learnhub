@@ -8,7 +8,7 @@
  * solutions; Sheet 4 has none, and its answer is checked by numerical integration.
  */
 import { mulberry32 } from '@learnhub/mastery';
-import { auto, cite, supervision } from '../cambridge';
+import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { integrateToInfinity, near, powQ, rootTex, simpson } from '../partv-b';
 import { generator, type Misconception } from '../problem';
@@ -395,8 +395,14 @@ export const cdfMethod: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['cdf-method'],
   claims,
-  cambridge: [q4cdf, q4t, q4tProof, squareRule],
-  gate: ['s3-notes-square', 's3-q4-tail', 's3-q4-density-t', 's2-q4-cdf'],
+  cambridge: withUses([q4cdf, q4t, q4tProof, squareRule], {
+    's3-notes-square': { sections: ['Two roots'], note: t`The density of a square, from two roots` },
+    's3-q4-tail': { sections: ['When the complement is easier', 'Monotone transformations'], note: t`A distribution function through a decreasing transformation` },
+    's3-q4-density-t': { sections: ['Monotone transformations'], note: t`The density of a reciprocal by differentiating its distribution function` },
+    's2-q4-cdf': { sections: ['The method'], note: t`A distribution function from a Poisson count of points`, needs: ['prob.poisson-distribution'] },
+  }),
+  // STEP 2 Statistics Q4's distribution function needs the Poisson distribution, taught later, so it is practice.
+  gate: ['s3-notes-square', 's3-q4-tail', 's3-q4-density-t'],
   recall: [
     { front: t`The distribution function method for ${math`Y = g(X)`}.`, back: t`Write ${math`F_{Y}(y) = P(g(X) \le y)`}, solve for ${mX}, use ${math`F_{X}`}, then differentiate.` },
     { front: t`The density of ${math`g(X)`} for strictly monotone ${math`g`} with inverse ${math`h`}.`, back: t`${math`f_{Y}(y) = f_{X}(h(y))\,|h'(y)|`}.` },

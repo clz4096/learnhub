@@ -7,7 +7,7 @@
  * solutions; the answers are checked by exact arithmetic over the cases.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -285,7 +285,10 @@ export const totalProbability: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['law-of-total-probability'],
   claims,
-  cambridge: [q9a, q8explain, totalProof],
+  cambridge: withUses([q9a, q8explain, totalProof], {
+    'ia-q8-reading': { sections: ['The law', 'More than two cases'], note: t`Which probabilities are for whom, by the law` },
+    'ia-q9-same-twice': { sections: ['The law'], note: t`A probability by conditioning on the party` },
+  }),
   // Best first: the readers' full distribution with its explanation, then the voting question.
   // The countable-partition proof comes from the schedule, not a gate document.
   gate: ['ia-q8-reading', 'ia-q9-same-twice'],

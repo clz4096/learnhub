@@ -6,7 +6,7 @@
  * are probabilities.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t, type Rich } from '../rich';
@@ -417,7 +417,11 @@ export const twoWayTables: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['two-way-table', 'conditional-probability'],
   claims,
-  cambridge: [a6regions, a6eWoman, a6diagram],
+  cambridge: withUses([a6regions, a6eWoman, a6diagram], {
+    'a6-q4-i-diagram': { sections: ['Restricting a table', 'Venn diagrams and percentages'], note: t`Reading a conditional probability from an area diagram` },
+    'a6-q4-i-e-woman': { sections: ['Restricting a table'], note: t`Restricting to the non-smokers and reading off a share` },
+    'a6-q4-i-regions': { sections: ['Venn diagrams and percentages'], note: t`The four regions of an area diagram as probabilities` },
+  }),
   // Best first: the explanation of both conditional probabilities from the diagram, then the
   // reversed condition (a non-smoker is a woman), then the four areas.
   gate: ['a6-q4-i-diagram', 'a6-q4-i-e-woman', 'a6-q4-i-regions'],

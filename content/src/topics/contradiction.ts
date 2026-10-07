@@ -7,7 +7,7 @@
  * Sections 6.1 to 6.4. The problems are Book of Proof Chapter 6, TMUA Exercise O, and
  * supervision exercise 2.3.2 (repunits) with its 2023-24 official solution.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { listOf, math, t, type Rich } from '../rich';
@@ -388,7 +388,10 @@ export const contradiction: TopicContent = {
   generators: [noSolutions, roots, assume],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['proof-by-contradiction', 'contradiction'],
-  cambridge: [sw232a, sw232base, bop11, bop10, sw232b, tmuaO1, tmuaO2, bop5, bop7],
+  cambridge: withUses([sw232a, sw232base, bop11, bop10, sw232b, tmuaO1, tmuaO2, bop5, bop7], {
+    'sw-2-3-2-b': { sections: ['The method', 'What exactly to assume'], note: t`Contradiction from the remainders of squares on division by four`, needs: ['pre.remainders'] },
+    'sw-2-3-2-base': { sections: ['The method'], note: t`Searching other bases for a square repunit` },
+  }),
   gate: ['sw-2-3-2-b', 'sw-2-3-2-base'],
   recall: [
     { front: t`Proof by contradiction.`, back: t`Assume ${math`\lnot P`}, deduce some ${math`Q`} and ${math`\lnot Q`}, and conclude ${math`P`}.` },

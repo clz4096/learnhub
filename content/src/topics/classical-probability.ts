@@ -7,7 +7,7 @@
  * exact enumeration.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -369,7 +369,14 @@ export const classicalProbability: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sample-space-classical'],
   claims,
-  cambridge: [q2b, q2c, q3, q11, q11proof, q2space],
+  cambridge: withUses([q2b, q2c, q3, q11, q11proof, q2space], {
+    'ia-q11-proof': { sections: ['Outcomes and events', 'Choosing the sample space'], note: t`A symmetry argument between heads and tails` },
+    'ia-q2-c': { sections: ['Choosing the sample space'], note: t`Meeting in some round of a knock-out` },
+    'ia-q3': { sections: ['Outcomes and events'], note: t`Splitting a deck evenly, by counting` },
+    'ia-q2-b': { sections: ['Choosing the sample space'], note: t`Meeting in the final of a knock-out` },
+    'ia-q2-space': { sections: ['Choosing the sample space'], note: t`One sample space for every part of a problem` },
+    'ia-q11': { sections: ['Outcomes and events'], note: t`Counting coin outcomes for two players` },
+  }),
   gate: ['ia-q11-proof', 'ia-q2-c', 'ia-q3', 'ia-q2-b', 'ia-q2-space', 'ia-q11'],
   recall: [
     { front: t`Classical probability of an event ${math`A`}.`, back: t`${math`P(A) = \frac{|A|}{|\Omega|}`}, for a finite sample space of equally likely outcomes.` },

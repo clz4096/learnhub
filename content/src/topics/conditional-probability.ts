@@ -10,7 +10,7 @@
  * not set.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, factorial, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, join, math, t, type Rich } from '../rich';
@@ -349,7 +349,10 @@ export const conditionalProbability: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['conditional-measure'],
   claims,
-  cambridge: [q10third, exchange, measure, gs4126],
+  cambridge: withUses([q10third, exchange, measure, gs4126], {
+    'ia-q10-exchangeable': { sections: ['Chaining along a process'], note: t`Every sequence of draws has the same probability, then counting sequences` },
+    'gs-4-1-26': { sections: ['Conditioning gives a probability measure'], note: t`An inequality from symmetric conditioning` },
+  }),
   gate: ['ia-q10-exchangeable', 'gs-4-1-26'],
   recall: [
     { front: t`What kind of object is ${math`A \mapsto \mathbb{P}(A \mid B)`}?`, back: t`A probability measure, for any ${mB} with ${math`\mathbb{P}(B) > ${0}`}, giving ${mB} probability ${1}.` },

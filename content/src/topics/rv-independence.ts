@@ -9,7 +9,7 @@
  * permutation.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { distinctFrom, draw, expect, permutations, type Dist } from '../partv-c';
@@ -400,7 +400,12 @@ export const rvIndependence: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['independent-random-variables', 'iid'],
   claims,
-  cambridge: [q12, q12proof, q5cProof, q7order],
+  cambridge: withUses([q12, q12proof, q5cProof, q7order], {
+    'ia-s2-q12-independent': { sections: ['The definition'], note: t`Proving record indicators independent by counting` },
+    'ia-s3-q7': { sections: ['Products of independent variables'], note: t`An inequality from two independent copies` },
+    'ia-s2-q5-c-why': { sections: ['What a small space can hold'], note: t`How many independent Bernoulli variables a small space can hold` },
+    'ia-s2-q12-two-records': { sections: ['The definition'], note: t`Two record years together` },
+  }),
   // Best first: the record indicators proved independent, the Chebyshev order inequality by
   // independent copies, the bound on independent bits, then the two-records number.
   gate: ['ia-s2-q12-independent', 'ia-s3-q7', 'ia-s2-q5-c-why', 'ia-s2-q12-two-records'],

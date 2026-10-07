@@ -10,7 +10,7 @@
  * right from the root is 1, 3, 6, 13. The generators search this tree by running a stack
  * and a queue in TypeScript.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick } from '../math';
 import { ml, mlBlock } from '../ocaml-code';
 import { generator, type Misconception } from '../problem';
@@ -253,7 +253,10 @@ export const search: TopicContent = {
   generators: [orderGen, firstGen, countGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['depth-first-search', 'breadth-first-search'],
-  cambridge: [depthOf, focs102, focs103, focs104],
+  cambridge: withUses([depthOf, focs102, focs103, focs104], {
+    'focs-10-4': { sections: ['Paying for breadth'], note: t`When iterative deepening costs too much` },
+    'focs-10-2': { sections: ['The data structure decides the search'], note: t`An array queue for breadth-first search` },
+  }),
   gate: ['focs-10-4', 'focs-10-2'],
   recall: [
     { front: t`Which data structure gives depth-first search, and which breadth-first?`, back: t`A stack (last in, first out) gives depth first; a queue (first in, first out) gives breadth first.` },

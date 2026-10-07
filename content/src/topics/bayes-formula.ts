@@ -7,7 +7,7 @@
  * sheet has no official solutions; the answers are checked by exact sums over the cases.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t, type Rich } from '../rich';
@@ -333,7 +333,10 @@ export const bayesFormula: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['bayes-formula', 'prior-posterior'],
   claims,
-  cambridge: [q9, q9why, bayesProof],
+  cambridge: withUses([q9, q9why, bayesProof], {
+    'ia-q9': { sections: ["Bayes's formula", 'Evidence that accumulates'], note: t`Updating on a first vote, then predicting the next` },
+    'ia-q9-explain': { sections: ['Evidence that accumulates'], note: t`What an observation says about the cause` },
+  }),
   gate: ['ia-q9', 'ia-q9-explain'],
   recall: [
     { front: t`Bayes's formula for a partition ${math`B_{${1}}, B_{${2}}, \ldots`}.`, back: t`${math`\mathbb{P}(B_{i} \mid A) = \frac{\mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i})}{\sum_{j} \mathbb{P}(A \mid B_{j})\mathbb{P}(B_{j})}`}.` },

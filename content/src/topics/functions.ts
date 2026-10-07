@@ -5,7 +5,7 @@
  * Q1, and Assignment 21 Q1 (C(x) and S(x)), and the NST Maths Workbook FC6. Values are
  * computed exactly; functional equations are checked at many points in floating point.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, exprTex, math, t } from '../rich';
@@ -273,7 +273,11 @@ export const functionsTopic: TopicContent = {
   generators: [composite, inverse, periodic],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['function-domain-range', 'composite-function', 'inverse-function', 'periodic-function'],
-  cambridge: [a16ii, a16v, a21],
+  cambridge: withUses([a16ii, a16v, a21], {
+    'a21-q1': { sections: ['Functions defined in other ways'], note: t`Proving identities for two functions from their definitions` },
+    'a16-q1-v': { sections: ['Functions defined in other ways'], note: t`Finding functions that satisfy an equation, one of them a logarithm`, needs: ['alg.exp-and-ln'] },
+    'a16-q1-ii': { sections: ['Composites and inverses', 'Functions defined in other ways'], note: t`Recovering a function from its value at a square` },
+  }),
   gate: ['a21-q1', 'a16-q1-v', 'a16-q1-ii'],
   recall: [
     { front: t`What does ${math`fg(x)`} mean?`, back: t`${math`f(g(x))`}: apply ${math`g`} first, then ${math`f`}.` },

@@ -9,7 +9,7 @@
  * and IA Numbers and Sets Example Sheet 2, Q9.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, factorial, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { choose } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -381,7 +381,11 @@ export const inclusionExclusion: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inclusion-exclusion-formula', 'derangement'],
   claims,
-  cambridge: [q7id, q7proof, ieProof, gs3234a, gs3115, ns2q9],
+  cambridge: withUses([q7id, q7proof, ieProof, gs3234a, gs3115, ns2q9], {
+    'ia-q7': { sections: ['The formula', 'When every overlap looks alike'], note: t`One probability two ways, and the identity that follows` },
+    'gs-3-2-34-a': { sections: ['When every overlap looks alike'], note: t`Collecting every picture` },
+    'gs-3-1-15': { sections: ['When every overlap looks alike'], note: t`Exactly one idle processor` },
+  }),
   // The sheet's question itself, then the coupon collector by inclusion-exclusion and the idle
   // processors. Evaluating the identity with numbers is arithmetic, and the count of numbers coprime
   // to 1001 follows the lesson's worked example (coprime to 30), so neither gates.

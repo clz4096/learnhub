@@ -12,7 +12,7 @@
  *   mul 0.1 10000 -. 1000.0         => 1.5882051229709759e-10  (JavaScript doubles agree)
  *   gamma 50                        => -0.61812184348574739    (JavaScript doubles agree)
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { code, codeBlock, oc } from '../ocaml-code';
 import { int, pick } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
@@ -516,8 +516,12 @@ export const fpExpressions: TopicContent = {
   generators: [intArith, typeOfExpr, ifValue],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ocaml-expression', 'ocaml-value', 'ocaml-type', 'structural-equality'],
-  cambridge: [valuesI, equality, focs15, focs16, focs13],
-  gate: ['focs-1-6', 'focs-1-3'],
+  cambridge: withUses([valuesI, equality, focs15, focs16, focs13], {
+    'focs-1-6': { sections: ['A calculator that knows types'], note: t`Iterating a float computation and watching rounding grow`, needs: ['fp.recursion'] },
+    'focs-1-3': { sections: ['Decisions: the if expression'], note: t`Simplifying an if expression on booleans` },
+  }),
+  // Exercise 1.6 iterates fifty times, which needs recursion, taught later, so it is practice.
+  gate: ['focs-1-3'],
   recall: [
     { front: t`What does ${code`a / b`} give on two ints?`, back: t`The exact quotient truncated towards zero; ${code`a mod b`} is the remainder ${math`a - b \times (a / b)`}, with the sign of ${math`a`}.` },
     { front: t`When is ${code`if b then e${1} else e${2}`} well typed?`, back: t`When ${math`b`} is a ${code`bool`} and ${math`e_{${1}}`}, ${math`e_{${2}}`} have the same type, which is the type of the whole.` },

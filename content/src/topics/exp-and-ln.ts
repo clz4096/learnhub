@@ -6,7 +6,7 @@
  * Questions Database). Answers are computed exactly where they are rational, and checked in
  * floating point with Math.exp and Math.log; first digits of powers by exact integers.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { div, int, mul, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t } from '../rich';
@@ -289,7 +289,12 @@ export const expAndLn: TopicContent = {
   generators: [logLaws, solvePower, lnEquation],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exponential-function', 'natural-logarithm', 'laws-of-logarithms'],
-  cambridge: [db18q2, db00q1, db00q1digits, fc5iii, fc5ii],
+  cambridge: withUses([db18q2, db00q1, db00q1digits, fc5iii, fc5ii], {
+    'step18-q2': { sections: ['The laws of logarithms', 'Other bases'], note: t`Bounding logarithms with the laws and the change of base` },
+    'step00-q1': { sections: ['The laws of logarithms', 'Other bases'], note: t`Using base ten logarithms to find a leading digit` },
+    'step00-q1-digits': { sections: ['The laws of logarithms', 'Other bases'], note: t`Leading digits from base ten logarithms` },
+    'nst-fc5-iii': { sections: ['Other bases'], note: t`Changing the base to solve a logarithm equation` },
+  }),
   // Best first: STEP I 2018 Q2 (bounds on ln pi), STEP I 2000 Q1 (first digits), its
   // auto-checked digits, then the NST Workbook's FC5(iii). The change of base proof that opens
   // 2018 Q2 is in the lesson, so the gate is its parts (i) to (iii).

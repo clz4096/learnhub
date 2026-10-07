@@ -6,7 +6,7 @@
  * 25 (squares modulo 4, printed pages 104 to 110), and Book of Proof Chapter 5, exercise 17,
  * and Chapter 6, exercise 17 with its remark. Exercise 2.2.4 is the worked example.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { mod, powMod, powModSlow } from '../numbers';
 import { generator, type Misconception } from '../problem';
@@ -311,7 +311,10 @@ export const modularArithmetic: TopicContent = {
   generators: [powerCycle, reduceFirst, digitTest],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['reduce-mod'],
-  cambridge: [bop617, bop517, sheet212, sheet222, bop617proof],
+  cambridge: withUses([bop617, bop517, sheet212, sheet222, bop617proof], {
+    'sheet-2-2-2': { sections: ['Congruence respects arithmetic', 'Digit tests'], note: t`Digit tests from congruences for powers of ten` },
+    'sheet-2-1-2': { sections: ['Congruence respects arithmetic'], note: t`Congruence respects sums, products, and powers` },
+  }),
   // Both are CST exercises: the digit tests need the rules applied, and 2.1.2 asks for the rules themselves.
   gate: ['sheet-2-2-2', 'sheet-2-1-2'],
   recall: [

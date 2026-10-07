@@ -5,7 +5,7 @@
  * the NST Maths Workbook A7. Q2(iv) is the first step of the gate Q2(iii), so it is not worked. Coefficients are found by the cover-up rule in the
  * solutions and checked by solving the linear system from equating coefficients.
  */
-import { auto, cite, same } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, math, t } from '../rich';
@@ -323,7 +323,11 @@ export const partialFractions: TopicContent = {
   generators: [twoFactors, threeFactors, telescope],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['partial-fractions', 'cover-up-rule'],
-  cambridge: [a17iiiN, a17iii200, nstA7ii, nstA7iii],
+  cambridge: withUses([a17iiiN, a17iii200, nstA7ii, nstA7iii], {
+    'nst-a7-iii': { sections: ['A repeated factor'], note: t`Partial fractions with a repeated factor` },
+    'a17-q2-iii-200': { sections: ['Telescoping sums'], note: t`Partial fractions, then a telescoping sum between two limits` },
+    'a17-q2-iii-n': { sections: ['Distinct linear factors', 'Telescoping sums'], note: t`Partial fractions, then a telescoping sum` },
+  }),
   gate: ['nst-a7-iii', 'a17-q2-iii-200', 'a17-q2-iii-n'],
   recall: [
     { front: t`State the cover-up rule.`, back: t`The coefficient over ${math`x - a`} is the rest of the fraction evaluated at ${math`x = a`}.` },

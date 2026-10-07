@@ -7,7 +7,7 @@
  * 21, and 22, and supervision exercises 1.2.10 and 1.3.2 (2023-24 official solutions).
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, math, t, type Rich } from '../rich';
@@ -427,10 +427,14 @@ export const quantifiers: TopicContent = {
   generators: [forallExists, witness, counterexample],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quantifier', 'witness', 'counterexample'],
-  cambridge: [tmuaM, bop271, prop21k, prop22, prop18, sw132, sw1210],
-  // The three supervision proofs. The Proposition 21 and 22 witnesses (52 as a difference of squares,
-  // the l with 2^l at most 1000) are lookups, so they do not gate.
-  gate: ['sw-1-3-2', 'notes-72-prop18', 'sw-1-2-10'],
+  cambridge: withUses([tmuaM, bop271, prop21k, prop22, prop18, sw132, sw1210], {
+    'sw-1-3-2': { sections: ['For all and there exists', 'Using quantified statements'], note: t`Moving a "there exists" across an arrow, both directions` },
+    'notes-72-prop18': { sections: ['A first proof of each', 'Using quantified statements'], note: t`Proving and using a "for all" about congruences`, needs: ['num.divisibility'] },
+    'sw-1-2-10': { sections: ['For all and there exists', 'A first proof of each', 'Two traps'], note: t`Proving and refuting statements about every number up to a bound` },
+  }),
+  // The supervision proofs. Proposition 18 needs divisibility and congruences, taught later, so it is practice.
+  // The Proposition 21 and 22 witnesses are lookups, so they do not gate.
+  gate: ['sw-1-3-2', 'sw-1-2-10'],
   recall: [
     { front: t`When is ${math`\forall x \in S.\ P(x)`} true?`, back: t`When ${math`P(a)`} is true for every ${math`a \in S`}.` },
     { front: t`When is ${math`\exists x \in S.\ P(x)`} true?`, back: t`When ${math`P(a)`} is true for at least one ${math`a \in S`}.` },

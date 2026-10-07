@@ -6,7 +6,7 @@
  * Q2(ii), whose equation the worked example solves. Every solution set is found again by the sign test or by testing every
  * candidate in the original equation.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { math, t } from '../rich';
@@ -259,7 +259,10 @@ export const modulus: TopicContent = {
   generators: [absEquation, absInequality, twoModuli],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['modulus'],
-  cambridge: [a21i, a5iii, a21sketch, eqns1],
+  cambridge: withUses([a21i, a5iii, a21sketch, eqns1], {
+    'a5-q2-iii': { sections: ['The modulus'], note: t`A square root of a square is a modulus` },
+    's2eqns-q1-iii': { sections: ['Several moduli: critical values', 'Sketching'], note: t`Counting the roots of a sum of moduli` },
+  }),
   gate: ['a5-q2-iii', 's2eqns-q1-iii'],
   recall: [
     { front: t`Define ${math`|x|`}.`, back: t`${math`x`} if ${math`x \ge ${0}`}, ${math`-x`} if ${math`x < ${0}`}.` },

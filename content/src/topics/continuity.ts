@@ -6,7 +6,7 @@
  * official solutions; the numerical answers are checked by exact sums and by simulation.
  */
 import type { Rng } from '@learnhub/mastery';
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { math, t, type Rich } from '../rich';
@@ -243,7 +243,11 @@ export const continuity: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['continuity-of-probability'],
   claims,
-  cambridge: [q6alt, q6cont, decreasingProof],
+  cambridge: withUses([q6alt, q6cont, decreasingProof], {
+    'ia-q6-continuity': { sections: ['Monotone sequences of events', 'Infinitely often and eventually'], note: t`"Eventually" as a limit of increasing events, and its dual` },
+    'ia-q4-f-decreasing': { sections: ['Monotone sequences of events'], note: t`Continuity from above, with an example` },
+    'ia-q6-alternating': { sections: ['Infinitely often and eventually'], note: t`Infinitely often but not eventually` },
+  }),
   gate: ['ia-q6-continuity', 'ia-q4-f-decreasing', 'ia-q6-alternating'],
   recall: [
     { front: t`Continuity from below.`, back: t`If ${math`A_{n} \subseteq A_{n + ${1}}`} for all ${mn}, then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcup A_{n}\right)`}.` },

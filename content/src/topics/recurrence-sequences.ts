@@ -5,7 +5,7 @@
  * x_(n+1) = f(x_n) ... periodic sequences") and STEP Support Assignments 11, Q1(i) and 15,
  * Q2 and Q3 (2006 STEP II Q1), all checked against the hints and by iterating.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, int, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { listOf, math, t } from '../rich';
@@ -353,7 +353,10 @@ export const recurrenceSequences: TopicContent = {
   generators: [iterGen, fixGen, perGen, kGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['recurrence-relation', 'fixed-point', 'periodic-sequence'],
-  cambridge: [a15q3c, a15q3sup, a11, a15ii, a15iii],
+  cambridge: withUses([a15q3c, a15q3sup, a11, a15ii, a15iii], {
+    'a15-q3-i': { sections: ['Periodic sequences'], note: t`Constant, period two, and period four sequences, excluding smaller periods` },
+    'a15-q3-i-c': { sections: ['Periodic sequences'], note: t`The value of a parameter for period four, by factorising a quartic`, needs: ['alg.polynomials'] },
+  }),
   gate: ['a15-q3-i', 'a15-q3-i-c'],
   recall: [
     { front: t`If ${math`u_{n + ${1}} = f(u_{n})`} and ${math`u_{n} \to l`}, what equation does ${ml} satisfy, and why?`, back: t`${math`l = f(l)`}: both ${math`u_{n + ${1}}`} and ${math`f(u_{n})`} tend to it.` },

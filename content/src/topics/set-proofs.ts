@@ -6,7 +6,7 @@
  * (four equivalent statements). Identity claims in the generators are decided by brute force
  * over every choice of subsets of a three-element set.
  */
-import { auto, cite, same, supervision } from '../cambridge';
+import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, sample } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { dmath, join, math, t, type Span } from '../rich';
@@ -359,7 +359,10 @@ export const setProofs: TopicContent = {
   generators: [lcmGen, identGen, startGen, memberGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['element-chasing', 'double-inclusion'],
-  cambridge: [sw516, sw523, b819, b828, b82, b88, b810, b826],
+  cambridge: withUses([sw516, sw523, b819, b828, b82, b88, b810, b826], {
+    'sw-5-1-6': { sections: ['An equality, both ways'], note: t`Proving complement identities by showing inclusion both ways` },
+    'sw-5-2-3': { sections: ['An inclusion, chased', 'An equality, both ways'], note: t`Proving four statements equivalent by chasing elements` },
+  }),
   gate: ['sw-5-1-6', 'sw-5-2-3'],
   recall: [
     { front: t`How do you prove ${math`A \subseteq B`}?`, back: t`Let ${math`a \in A`} be arbitrary; using the definitions, deduce ${math`a \in B`}.` },
