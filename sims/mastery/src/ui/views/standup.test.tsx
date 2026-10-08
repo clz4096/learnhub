@@ -3,7 +3,7 @@
  * settings in You, and the cohort's standing on the Story tab.
  */
 import 'fake-indexeddb/auto';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import { IDBFactory } from 'fake-indexeddb';
 import type { IdbFactoryLike } from '@learnhub/mastery';
@@ -15,6 +15,7 @@ import { STANDUP_CFG_KEY, reloadStandup, standup } from '@/model/standupStore';
 import { commit, init, setClock } from '@/model/store';
 import { reloadStory } from '@/model/storyStore';
 import { App } from '@/ui/App';
+import { standupCalendarUrl } from '@/ui/cohort/CalendarLink';
 import { pickVoices } from '@/ui/cohort/speech';
 import { StandupView } from '@/ui/views/Standup';
 
@@ -106,9 +107,45 @@ describe('the standup screen', () => {
     expect(document.querySelector('.su-status')?.textContent).toBe('No standup today, Yom Kippur. The next is Tuesday, September 22, 10:00 am.');
   });
 
-  it('offers the calendar subscription as a webcal link, with the iPhone alert note', () => {
+  it('offers Google Calendar first, then Apple Calendar', () => {
     render(<StandupView />);
-    const a = screen.getByRole('link', { name: 'Add standup to Calendar' });
+    const options = [...document.querySelectorAll('.su-cal-opt > summary')].map((s) => s.textContent);
+    expect(options).toEqual(['Google Calendar', 'Apple Calendar']);
+    const google = document.querySelector('.su-cal-opt') as HTMLElement;
+    expect(google.textContent).toContain('Next to Other calendars, click +, then From URL.');
+    expect(google.textContent).toContain('Under Event notifications, add 10 minutes.');
+    expect(google.textContent).toContain('iPhone Settings › Notifications › Google Calendar');
+    expect(google.textContent).toContain('up to a day');
+  });
+
+  it('shows Google the https address of standup.ics under the app, and Copy writes it', async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    try {
+      render(<StandupView />);
+      const want = new URL('standup.ics', document.baseURI).href;
+      expect(want).toMatch(/^https?:\/\/.*\/standup\.ics$/);
+      expect(standupCalendarUrl()).toBe(want);
+      expect(standupCalendarUrl('https://x.github.io/learnhub/mastery/#/standup')).toBe('https://x.github.io/learnhub/mastery/standup.ics');
+      expect((screen.getByRole('textbox', { name: 'Calendar address' }) as HTMLInputElement).value).toBe(want);
+      fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+      expect(writeText).toHaveBeenCalledWith(want);
+      await waitFor(() => expect(document.querySelector('.su-cal-copy [role="status"]')?.textContent).toBe('Copied'));
+    } finally {
+      Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined });
+    }
+  });
+
+  it('when the clipboard is refused, says to copy the address by hand', async () => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined });
+    render(<StandupView />);
+    fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+    await waitFor(() => expect(document.querySelector('.su-cal-copy [role="status"]')?.textContent).toContain('Select the address and copy it.'));
+  });
+
+  it('offers Apple Calendar the webcal link, with the iPhone alert note', () => {
+    render(<StandupView />);
+    const a = screen.getByRole('link', { name: 'Add standup to Apple Calendar' });
     expect(a.getAttribute('href')).toMatch(/^webcal:\/\/.*\/standup\.ics$/);
     expect(a.parentElement?.textContent).toContain('switch off Remove Alerts, or the alert won\'t fire');
   });
@@ -201,7 +238,7 @@ describe('the standup around the app', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Off' }));
     expect(standup.value.enabled).toBe(false);
     expect(JSON.parse(localStorage.getItem(STANDUP_CFG_KEY) as string)).toMatchObject({ minutes: 690, enabled: false });
-    expect(screen.getByRole('link', { name: 'Add standup to Calendar' }).getAttribute('href')).toMatch(/^webcal:.*standup\.ics$/);
+    expect(screen.getByRole('link', { name: 'Add standup to Apple Calendar' }).getAttribute('href')).toMatch(/^webcal:.*standup\.ics$/);
   });
 
   it('the Story tab shows where Albert stands in the cohort, next to the ratings', async () => {

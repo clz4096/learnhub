@@ -27,6 +27,17 @@ a.ds-standupline { color: var(--ink2); text-decoration: none; }
 .su-cal { margin: 8px 0 0; font-size: 13.5px; line-height: 1.5; }
 .su-cal-row { display: block; }
 .su-cal-row .su-cal { margin: 0; }
+.su-cal-h { margin: 0; }
+.su-cal-opt > summary { cursor: pointer; min-height: 32px; padding: 6px 0 0; color: var(--cam); }
+.su-cal-opt[open] > summary { color: var(--fg); }
+.su-cal-opt p, .su-cal-opt ol { margin: 6px 0 0; color: var(--ink2); }
+.su-cal-opt ol { padding-left: 1.4em; }
+.su-cal-copy { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 6px 0 4px; }
+.su-cal-url {
+  flex: 1 1 260px; min-width: 0; font: 12px var(--mono); color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 4px; padding: 7px 8px;
+}
+.su-cal-copy .ds-btn { min-height: 36px; padding: 6px 14px; font-size: 13px; }
 
 /* Today and the planner: a rest day (Shabbat, yom tov) */
 .ds-restline { color: var(--ink2); }
