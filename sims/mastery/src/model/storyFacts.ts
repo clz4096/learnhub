@@ -4,7 +4,7 @@
  * the time and the registry (it loads on demand, so it may not be there yet).
  */
 import { isStudyEntry, type Progress } from '@learnhub/mastery';
-import { gateOf } from '@learnhub/content';
+import { currentProblemKey, gateOf } from '@learnhub/content';
 import { BOOK } from '@learnhub/content/book';
 import {
   SUBJECT_NAMES, aLevelRows, offerConditions, paperName, stepRows, tmuaRows,
@@ -99,7 +99,7 @@ export function timedResults(adm: Admissions | null, c: Campaign | null, attempt
  * can only be low, never high, so no rating beat fires early.
  */
 export function storyRatings(p: Progress, c: Campaign | null, adm: Admissions | null, attempts: readonly LadderAttempt[]): Rating[] {
-  return ratings(ratingInputs(p, ALL_TOPICS, gateOf, timedResults(adm, c, attempts)));
+  return ratings(ratingInputs(p, ALL_TOPICS, gateOf, timedResults(adm, c, attempts), currentProblemKey));
 }
 
 /**

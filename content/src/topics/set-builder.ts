@@ -5,7 +5,7 @@
  * against the official 2023-24 solutions (the 2023-24 sheet is the same as 2025-26's).
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { gcd, int, pick, q, str, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { dmath, listOf, math, setOf, t, type Span } from '../rich';
@@ -306,14 +306,6 @@ const zeroDivisors = auto({
   misconceptions: [{ response: 'none', why: t`Dividing ${0} by ${math`d`} gives ${0}, a whole number, with nothing left over. Divisibility asks for ${math`${0} = kd`}, and ${math`k = ${0}`} works.` }],
 });
 
-const equalProof = supervision({
-  id: 'notes-205-equality',
-  source: cite(NOTES, 'printed pages 205 and 206, Set equality', true),
-  title: t`Proving two sets equal`,
-  prompt: t`Prove that ${math`\{x \in \mathbb{N} \mid ${2} \text{ divides } x \text{ and } x \text{ is prime}\} = \{${2}\}`}. Show both directions: every element of the left side is ${2}, and ${2} is an element of the left side.`,
-  writeUp: 'proof',
-});
-
 // ---------------------------------------------------------------- lesson
 
 const evens = upTo(10).filter((x) => x % 2 === 0);
@@ -391,13 +383,11 @@ export const setBuilder: TopicContent = {
   generators: [members, countMultiples, image, cd],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['set-builder', 'membership'],
-  cambridge: withUses([sheet311, interval, zeroDivisors, equalProof], {
-    'notes-205-equality': { sections: ['Set-builder notation', 'When are two sets equal?'], note: t`Proving two sets equal by showing each is inside the other`, needs: ['proof.direct'] },
+  cambridge: withUses([sheet311, interval, zeroDivisors], {
     'sw-3-1-1': { sections: ['Set-builder notation'], note: t`Listing a set given by a property` },
   }),
-  // The common divisors of 666 and 330. The set equality proved in both directions is a written proof, which
-  // proof.direct teaches later in the book, so it is practice (2026-10-08). Listing [-2..3] and the divisors of 0
-  // are too slight to gate.
+  // The common divisors of 666 and 330. The set equality proved in both directions is a written proof, so it is
+  // set in proof.set-proofs (Rule 1, 2026-10-08). Listing [-2..3] and the divisors of 0 are too slight to gate.
   gate: ['sw-3-1-1'],
   recall: [
     { front: t`When is ${math`a \in \{x \in A \mid P(x)\}`}?`, back: t`Exactly when ${math`a \in A`} and ${math`P(a)`} is true.` },

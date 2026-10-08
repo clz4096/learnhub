@@ -3,9 +3,10 @@
  * supervision exercise 4.2.1: (a) (2^n - 1) Σ_{i<m} 2^{in} = 2^{mn} - 1, which the 2023-24
  * official solution proves first by telescoping, as here; and (b) if k is not prime, then
  * neither is 2^k - 1. Book of Proof Chapter 10, exercise 5 (the sum of powers of 2) is
- * added as practice, checked against its solution.
+ * added as practice, checked against its solution. The written proofs of 4.2.1 are in
+ * proof.direct (Rule 1, 2026-10-08).
  */
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, computedTex, dmath, listOf, math, t } from '../rich';
@@ -222,23 +223,6 @@ const bop105 = auto({
   official: { source: cite('bop', 'Solutions, Chapter 10, exercise 5'), answer: '2^(n + 1) - 2', agrees: true },
 });
 
-const sw421aProof = supervision({
-  id: 'sw-4-2-1-a-proof',
-  source: cite(SW, 'Exercises 4, 4.2.1(a)'),
-  title: t`Establish the identity`,
-  prompt: t`Establish: for all positive integers ${math`m`} and ${mn}, ${math`(${2}^{n} - ${1}) \cdot \sum_{i = ${0}}^{m - ${1}} ${2}^{i \cdot n} = ${2}^{m \cdot n} - ${1}`}. Give a direct proof by telescoping, and, once induction is taught, an inductive one.`,
-  writeUp: 'proof',
-  official: cite(SOLS, '4.2.1(a)'),
-});
-const sw421bProof = supervision({
-  id: 'sw-4-2-1-b-proof',
-  source: cite(SW, 'Exercises 4, 4.2.1(b)'),
-  title: t`Composite exponents`,
-  prompt: t`Suppose ${math`k`} is a positive integer that is not prime. Prove that ${math`${2}^{k} - ${1}`} is not prime. Take care with ${math`k = ${1}`}, which is not prime either.`,
-  writeUp: 'proof',
-  official: cite(SOLS, '4.2.1(b)'),
-});
-
 // ---------------------------------------------------------------- lesson
 
 const EX = { a: 3, r: 2, n: 6 };
@@ -305,13 +289,11 @@ export const geometricSeries: TopicContent = {
   generators: [sumGp, nthTerm, closed, mersenne],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['geometric-series', 'common-ratio'],
-  cambridge: withUses([sw421b, bop105, sw421aProof, sw421bProof], {
-    'sw-4-2-1-b-proof': { sections: ['A factorisation in disguise'], note: t`Reading the series formula backwards as a factorisation`, needs: ['proof.direct'] },
-    'sw-4-2-1-a-proof': { sections: ['The formula', 'A factorisation in disguise'], note: t`Proving the series identity by multiplying and cancelling`, needs: ['proof.direct'] },
+  cambridge: withUses([sw421b, bop105], {
     'sw-4-2-1-b': { sections: ['A factorisation in disguise'], note: t`Splitting the exponent and reading the series formula backwards as a factorisation` },
   }),
-  // The two proofs of 4.2.1 need proof writing, which proof.direct teaches later in the book, so they are
-  // practice (2026-10-08). The divisor of 2 to the 15 minus 1, the factorisation applied, gates.
+  // The two proofs of 4.2.1 are set in proof.direct, the first topic that teaches writing one (Rule 1,
+  // 2026-10-08). The divisor of 2 to the 15 minus 1, the factorisation applied, gates.
   gate: ['sw-4-2-1-b'],
   recall: [
     { front: t`Sum of a finite geometric series, ${math`r \neq ${1}`}?`, back: t`${math`a + ar + \cdots + ar^{n - ${1}} = \frac{a(${1} - r^{n})}{${1} - r}`}.` },

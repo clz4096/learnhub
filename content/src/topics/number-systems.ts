@@ -4,11 +4,10 @@
  * which elements have inverses. From the CST notes, printed pages 158 to 175 (addition and
  * multiplication, cancellation on page 167, the remark on inverses on page 173, and the
  * extension to Z and Q on page 174), Book of Proof Section 1.9, and supervision exercises
- * 1.1.6 and 3.2.5, whose 2023-24 official solutions are cited for the supervisor. The second
- * gate (batch 9) is 2008 STEP I Q1: closure of the rationals, read backwards, says that an
- * irrational product or sum needs an irrational ingredient. The paper asks for proofs "by
- * contradiction", a method taught later in the book; the prompt asks only for proofs, and the
- * closure theorem gives each in a line.
+ * 3.2.5, whose 2023-24 official solution is cited for the supervisor. The proof of exercise 1.1.6
+ * is in proof.direct, and 2008 STEP I Q1 (closure of the rationals, read backwards: an irrational
+ * product or sum needs an irrational ingredient; at most one of four numbers is rational) in
+ * proof.contradiction (Rule 1, 2026-10-08).
  */
 import type { Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision, withUses } from '../cambridge';
@@ -397,14 +396,6 @@ const notes167 = auto({
   misconceptions: [{ response: 'k = 2, m = 1, n = 2', why: t`${math`${2} \cdot ${1} = ${2}`} but ${math`${2} \cdot ${2} = ${4}`}: with ${math`k \ne ${0}`} cancellation works. Use ${math`k = ${0}`}.` }],
 });
 
-const sw116 = supervision({
-  id: 'sw-1-1-6',
-  source: cite('cst-dm-sw1', 'Exercises 1, 1.1.6'),
-  title: t`The sum of two rationals`,
-  prompt: t`Prove or disprove: the addition of two rational numbers is a rational number. Start from the definition: a real number is rational if it is ${math`\frac{m}{n}`} for integers ${math`m`} and ${math`n`} with ${math`n \ne ${0}`}.`,
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-1', '1.1.6'),
-});
 const sw325 = supervision({
   id: 'sw-3-2-5',
   source: cite('cst-dm-sw1', 'Exercises 3, 3.2.5'),
@@ -412,16 +403,6 @@ const sw325 = supervision({
   prompt: t`Prove that for all positive integers ${math`m, n, p, q`} with ${math`\gcd(m, n) = \gcd(p, q) = ${1}`}, if ${math`q \cdot m = p \cdot n`} then ${math`m = p`} and ${math`n = q`}. That is: a positive rational has only one way of being written in lowest terms. (This uses the gcd, taught later; come back to it then.)`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-3', '3.2.5'),
-});
-
-// 2008 STEP I Q1: irrational sums and products.
-const step08Irrational = supervision({
-  id: 'step08-q1',
-  source: cite('stepdb-08-s1', 'Q1', true),
-  title: t`Irrational sums and products`,
-  prompt: t`What does it mean to say that a number ${math`x`} is irrational? Prove statements A and B below, where ${math`p`} and ${math`q`} are real numbers. A: if ${math`pq`} is irrational, then at least one of ${math`p`} and ${math`q`} is irrational. B: if ${math`p + q`} is irrational, then at least one of ${math`p`} and ${math`q`} is irrational. Disprove by means of a counterexample statement C below, where ${math`p`} and ${math`q`} are real numbers. C: if ${math`p`} and ${math`q`} are irrational, then ${math`p + q`} is irrational. If the numbers ${math`e`}, ${math`\pi`}, ${math`\pi^{${2}}`}, ${math`e^{${2}}`}, and ${math`e\pi`} are irrational, prove that at most one of the numbers ${math`\pi + e`}, ${math`\pi - e`}, ${math`\pi^{${2}} - e^{${2}}`}, ${math`\pi^{${2}} + e^{${2}}`} is rational.`,
-  writeUp: 'proof',
-  official: cite('stepdb-08-s1-sol', 'Question 1 (pages 2 to 4)'),
 });
 
 // ---------------------------------------------------------------- lesson
@@ -480,14 +461,12 @@ export const numberSystems: TopicContent = {
   generators: [closure, which, smallest, inverse],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['natural-number', 'integer', 'rational-number', 'closed', 'additive-inverse'],
-  cambridge: withUses([notes174z, notes174q, notes167, sw116, sw325, step08Irrational], {
-    'step08-q1': { sections: ['Three number systems', 'Closure'], note: t`Using closure of the rationals to rule out cases, and one example to break a false claim`, needs: ['proof.direct'] },
+  cambridge: withUses([notes174z, notes174q, notes167, sw325], {
     'sw-3-2-5': { sections: ['Three number systems'], note: t`Uniqueness of lowest terms, which needs the greatest common divisor`, needs: ['num.gcd', 'num.euclid-theorem'] },
-    'sw-1-1-6': { sections: ['Three number systems', 'Closure'], note: t`Proving the rationals closed under addition from the definition`, needs: ['proof.direct'] },
     'notes-167-cancel': { sections: ['Three number systems', 'Inverses'], note: t`Finding the case a cancellation law must exclude` },
   }),
-  // The CST proof of 1.1.6 and 2008 STEP I Q1 need proof writing, which proof.direct teaches later in the book,
-  // so they are practice (2026-10-08). That leaves the cancellation witness, a single step but not a guess; the
+  // The CST proof of 1.1.6 is set in proof.direct and 2008 STEP I Q1 in proof.contradiction, where the proof
+  // writing they need has been taught (Rule 1, 2026-10-08). That leaves the cancellation witness, a single step but not a guess; the
   // three-way choices from the notes are guessable. Exercise 3.2.5 needs the gcd, taught later, so it is practice.
   gate: ['notes-167-cancel'],
   recall: [

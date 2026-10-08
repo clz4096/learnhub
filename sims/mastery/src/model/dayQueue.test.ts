@@ -29,6 +29,8 @@ describe('dayItems', () => {
     const redo = (from: string, due: number, doneAt: number | null) => ({ problem: KEY, from, setAt: T0 - 2 * DAY_MS, due, doneAt });
     const p = {
       ...base,
+      // A was set by a supervisor (its attempt is in the document); C by a missed problem.
+      supervision: [{ problem: KEY, nonce: 'A', writeUp: '', copiedAt: T0 - 3 * DAY_MS, result: null, importedAt: null }],
       redos: [redo('A', T0 - DAY_MS, null), redo('B', T0 + 3 * DAY_MS, null), redo('C', T0 - DAY_MS, T0 - 1000), redo('D', T0 - DAY_MS, T0 - 2 * DAY_MS)],
     };
     const items = dayItems(p, T0);
@@ -36,6 +38,7 @@ describe('dayItems', () => {
     expect(items[0]).toMatchObject({ kind: 'redo', minutes: REDO_MINUTES, done: false, to: { view: 'problem', topicId: 'prob.event-spaces', problemId: 'q4-a-finite' } });
     expect(items[0]?.title.startsWith('Redo: ')).toBe(true);
     expect(items[1]?.done).toBe(true);
+    expect(items[1]?.title.startsWith('Try again: ')).toBe(true);
   });
 });
 

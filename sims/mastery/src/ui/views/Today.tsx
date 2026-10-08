@@ -12,6 +12,7 @@
  */
 import { useEffect, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
+import { currentProblemKey } from '@learnhub/content';
 import type { Progress, SessionTask } from '@learnhub/mastery';
 import { BOOK, placeOf } from '@learnhub/content/book';
 import { hereChapter } from '@/model/book';
@@ -43,7 +44,7 @@ import { standup, withStandup } from '@/model/standupStore';
 const dayFixed = withStandup(campaignFixedFor);
 
 const KIND: Record<SessionTask['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz' };
-const ITEM_KIND: Record<DayItem['kind'], string> = { lesson: 'Lesson', review: 'Review', quiz: 'Quiz', redo: 'Supervision redo', mixed: 'Blind mixed review' };
+const ITEM_KIND: Record<DayItem['kind'], string> = { lesson: 'Lesson', review: 'Review', quiz: 'Quiz', redo: 'Redo', mixed: 'Blind mixed review' };
 const OPEN_KEY = 'mastery.wholeday.v1';
 
 function taskTitle(t: SessionTask): string {
@@ -157,7 +158,7 @@ function RestLine({ date, nowMin }: { date: string; nowMin: number }) {
   const today = yomTovOf(date);
   const tomorrow = yomTovOf(addDays(date, 1));
   const text = today !== null && nowMin < sunset
-    ? <>{today}: a rest day until sundown, <b>{fmtLong(sunset)}</b>. Nothing is planned before then.</>
+    ? <>{today}. Nothing scheduled until {today} ends.</>
     : tomorrow !== null
       ? <>{tomorrow} begins at sundown, <b>{fmtLong(sunset)}</b>. Nothing is planned after it.</>
       : null;
@@ -338,7 +339,7 @@ export function Today() {
   }, [p === null, p?.session?.day, today]);
   // Download today's lessons in the background, so a session started online carries on offline.
   const planned = p?.session?.tasks.filter((t) => !t.done).flatMap((t) => t.topicIds) ?? [];
-  const redoTopics = p?.redos.filter((d) => d.doneAt === null).map((d) => d.problem.slice(0, d.problem.indexOf('/'))) ?? [];
+  const redoTopics = p?.redos.filter((d) => d.doneAt === null).map((d) => currentProblemKey(d.problem)).map((k) => k.slice(0, k.indexOf('/'))) ?? [];
   useEffect(() => prefetchContent([...planned, ...redoTopics]), [[...planned, ...redoTopics].join()]);
   const [log, setLog] = useState<DayLog>(loadDays);
   // Sync may bring days planned or ticked on another device: read them again when it writes.
@@ -381,7 +382,7 @@ export function Today() {
         {planner}
         <section class="page today" aria-labelledby="session-title">
           <div class="sec-h"><h2 id="session-title">Today's session</h2></div>
-          <p class="small muted">Your daily time is {p.settings.budgetMinutes} minutes.</p>
+          <p class="small muted">Daily time: {p.settings.budgetMinutes} minutes.</p>
           <ContinueReading p={p} />
           <div class="today-summary">
             <div class="stat"><span class="stat-value">{time.left}</span><span class="stat-label">minutes left</span></div>
@@ -397,7 +398,7 @@ export function Today() {
             })}
           </div>
 
-          {s.tasks.length === 0 && <p>Nothing is due and nothing new fits today. Come back tomorrow, or change your daily time in You.</p>}
+          {s.tasks.length === 0 && <p>Nothing is due and nothing new fits today. More is ready tomorrow; the daily time can be changed in You.</p>}
 
           <ol class="tasks">
             {s.tasks.map((t, i) => (
@@ -427,12 +428,12 @@ export function Today() {
           {nextIndex < 0 && s.tasks.length > 0 && (
             <div class="done-today">
               <h3>Done for today</h3>
-              <p>Well done. Reviews and new lessons will be ready tomorrow. If you have time now, you can plan another session.</p>
+              <p>Well done. Reviews and new lessons will be ready tomorrow. With time to spare now, another session can be planned.</p>
               <button type="button" class="btn" onClick={() => void commit(planMore(p, now()))}>Plan another session</button>
             </div>
           )}
           <p class="small muted">
-            Changed your daily time or the course split?{' '}
+            Daily time or the course split changed?{' '}
             <button type="button" class="linklike" onClick={() => void commit(replanToday(p, now()))}>Plan the rest of today again</button>
           </p>
         </section>

@@ -225,14 +225,14 @@ export function App() {
   }, []);
 
   let body;
-  if (loadState.value === 'loading') body = <p class="page">Loading your progress.</p>;
+  if (loadState.value === 'loading') body = <p class="page">Loading progress.</p>;
   else if (loadState.value === 'error') {
     body = (
       <section class="page">
-        <h1>Your saved progress could not be read</h1>
+        <h1>The saved progress could not be read</h1>
         <p>Nothing has been changed or erased. What is wrong:</p>
         <ul class="error small">{loadErrors.value.map((e, i) => <li key={i}>{e}</li>)}</ul>
-        <p>If you have an exported progress file, you can start over here and then import it in Progress.</p>
+        <p>With an exported progress file, start over here and then import it in Progress.</p>
         <StartOver />
       </section>
     );
@@ -297,7 +297,7 @@ export function App() {
             </button>
           )}
           {volatile.value && <p class="banner warning small">This browser does not offer storage here, so progress will be lost when the tab closes. Export a file in You to keep it.</p>}
-          {saveError.value !== null && <p class="banner error small" role="alert">Saving failed: {saveError.value}. Export a progress file to keep your work.</p>}
+          {saveError.value !== null && <p class="banner error small" role="alert">Saving failed: {saveError.value}. Export a progress file to keep the work.</p>}
           {loadWarnings.value.length > 0 && <p class="banner warning small">Some saved data was out of date and was dropped: {loadWarnings.value.slice(0, 3).join('; ')}.</p>}
           <main id="main" tabIndex={-1}>{body}</main>
         </div>

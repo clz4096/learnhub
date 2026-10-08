@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DAY_MS, newMemory } from './memory';
 import { canonicalJson, mergeProgress, sameProgress } from './merge';
+import { gateEvidence } from './gate';
 import {
   CHOICE_FIELDS, exportProgress, importProgress, newProgress, resetProgress, withChoices,
   type HistoryEntry, type Progress, type SessionTask, type SupervisionResult,
@@ -39,7 +40,8 @@ function step(rng: Rng, p: Progress): Progress {
     case 0: {
       const h: HistoryEntry = { at: time(rng), kind: pick(rng, KINDS), topicId: pick(rng, TOPICS), correct: rng() < 0.7 };
       // Item data, as version 5 records it, from a small set so copies collide on it.
-      if (rng() < 0.5) h.item = { id: pick(rng, PROBLEMS), hints: randInt(rng, 0, 1), attempt: randInt(rng, 1, 2), ...(rng() < 0.5 ? { seed: randInt(rng, 0, 3) } : {}), ...(rng() < 0.5 ? { ms: randInt(rng, 0, 2) * 1000 } : {}) };
+      // Version 6 adds the solution flag: a Cambridge "Show me the solution".
+      if (rng() < 0.5) h.item = { id: pick(rng, PROBLEMS), hints: randInt(rng, 0, 1), attempt: randInt(rng, 1, 2), ...(rng() < 0.5 ? { seed: randInt(rng, 0, 3) } : {}), ...(rng() < 0.5 ? { ms: randInt(rng, 0, 2) * 1000 } : {}), ...(rng() < 0.25 ? { solution: true as const } : {}) };
       q.history.push(h);
       if (h.kind === 'lesson' && h.correct) q.learnedSinceQuiz = [...q.learnedSinceQuiz.filter((x) => x !== h.topicId), h.topicId];
       break;
@@ -178,6 +180,24 @@ describe('merge is a join (property tests over random divergent copies)', () => 
     for (let s = 0; s < RUNS; s++) {
       const [a, b, c] = devices(s);
       valid(mergeProgress(mergeProgress(a, b), c));
+    }
+  });
+
+  it('the gate reads the same from every merge order, and a solution shown on either copy still stops its problem counting', () => {
+    const gates = PROBLEMS.map((k) => ({ topic: k.slice(0, k.indexOf('/')), id: k.slice(k.indexOf('/') + 1), key: k }));
+    for (let s = 0; s < RUNS; s++) {
+      const [a, b, c] = devices(s);
+      const left = mergeProgress(mergeProgress(a, b), c);
+      const right = mergeProgress(a, mergeProgress(c, b));
+      for (const g of gates) {
+        const ev = gateEvidence(left, g.topic, [g.id]);
+        expect(ev).toEqual(gateEvidence(right, g.topic, [g.id]));
+        if (ev === null || ev.kind !== 'auto' || a.resetAt !== b.resetAt || b.resetAt !== c.resetAt) continue;
+        // Evidence from an answer means no copy showed the solution at or before it.
+        for (const d of [a, b, c]) {
+          expect(d.history.some((h) => h.kind === 'cambridge' && h.item?.id === g.key && h.item.solution === true && h.at <= ev.at)).toBe(false);
+        }
+      }
     }
   });
 

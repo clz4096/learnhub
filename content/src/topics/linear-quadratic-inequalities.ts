@@ -3,7 +3,8 @@
  * a(x - α)(x - β), never multiplying by a quantity of unknown sign. Sources: STEP Support
  * Foundation Assignment 1 Q2(iii) and Q3 (2005 STEP I Q3), Assignment 4 Q2(i), Assignment
  * 22 Q3(i), the NST Maths Workbook A5, and STEP I Specimen Q1(i) and STEP I 2006 Q3(i), (ii)
- * (STEP Questions Database). Every solution set is found twice: by the
+ * (STEP Questions Database). Assignment 1 Q3 and the written proof of Specimen Q1(i) are in
+ * proof.direct (Rule 1, 2026-10-08). Every solution set is found twice: by the
  * factor argument in the worked solution, and by a sign test at and between the critical
  * values (prep-a.ts, setWhere).
  */
@@ -266,27 +267,10 @@ const nstA5 = setProblem({
   critical: [q(-1), q(4), q(0), q(3)],
 });
 
-const step2005 = supervision({
-  id: 'a1-q3',
-  source: cite('step-f01', 'Q3 (2005 STEP I Q3)'),
-  title: t`Two fractions equal to one`,
-  prompt: t`In this question ${math`a`} and ${math`b`} are distinct, non-zero real numbers, and ${math`c`} is a real number. (i) Show that, if ${math`a`} and ${math`b`} are either both positive or both negative, then the equation ${math`\frac{x}{x - a} + \frac{x}{x - b} = ${1}`} has two distinct real solutions. (ii) Show that, if ${math`c \ne ${1}`}, the equation ${math`\frac{x}{x - a} + \frac{x}{x - b} = ${1} + c`} has exactly one real solution if ${math`c^{${2}} = -\frac{${4}ab}{(a - b)^{${2}}}`}. Show that this condition can be written ${math`c^{${2}} = ${1} - \left(\frac{a + b}{a - b}\right)^{${2}}`}, and deduce that it can only hold if ${math`${0} < c^{${2}} \le ${1}`}.`,
-  writeUp: 'proof',
-  official: cite('step-f01-hints', 'Q3'),
-});
-
 // STEP I Specimen Paper Q1(i) and STEP I 2006 Q3(i), (ii) (STEP Questions Database): the
 // discriminant as an inequality. 2006 Q3(iii) is about cubics, a later topic.
 const SPEC = 'stepdb-spec-s1' as const;
 const DB06 = 'stepdb-06-s1' as const;
-
-const specQ1 = supervision({
-  id: 'stepspec-q1-i',
-  source: cite(SPEC, 'Q1(i)'),
-  title: t`Where a conic can be`,
-  prompt: t`The real numbers ${math`x`} and ${math`y`} satisfy the equation ${math`${4}x^{${2}} + ${16}xy + y^{${2}} + ${24}x = ${0}`}. Prove that either ${math`x \le ${0}`} or ${math`x \ge \frac{${2}}{${5}}`}, and, similarly, find restrictions on the values of ${math`y`}.`,
-  writeUp: 'proof',
-});
 
 const specQ1y = setProblem({
   id: 'stepspec-q1-i-y',
@@ -388,15 +372,13 @@ export const linearQuadraticInequalities: TopicContent = {
   generators: [linear, quadratic, noRealRoots],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inequality', 'critical-value'],
-  cambridge: withUses([specQ1, db06q3, specQ1y, a4q2i, a22q3i, nstA5, step2005], {
-    'a1-q3': { sections: ['Quadratic inequalities', 'When a quadratic has no real roots'], note: t`Clearing fractions to reach a quadratic and using the discriminant`, needs: ['proof.direct'] },
+  cambridge: withUses([db06q3, specQ1y, a4q2i, a22q3i, nstA5], {
     'step06-q3': { sections: ['Quadratic inequalities'], note: t`Conditions for distinct real roots, stated as necessary and sufficient`, needs: ['logic.iff'] },
-    'stepspec-q1-i': { sections: ['Quadratic inequalities', 'When a quadratic has no real roots'], note: t`Treating an equation as a quadratic in one letter and using the discriminant`, needs: ['proof.direct'] },
     'stepspec-q1-i-y': { sections: ['Quadratic inequalities', 'When a quadratic has no real roots'], note: t`The discriminant condition for a real solution` },
   }),
   // The auto-checked restriction on y from the STEP I Specimen Q1(i) gates. Assignment 1 Q3 (2005 STEP I Q3) and
-  // the Specimen Q1(i) in full are written proofs, which proof.direct teaches later in the book, so they are practice
-  // (2026-10-08). STEP I 2006 Q3 is framed by necessary and sufficient conditions, taught later, so it is practice.
+  // the Specimen Q1(i) in full are written proofs, so they are set in proof.direct, the first topic that teaches
+  // writing one (Rule 1, 2026-10-08). STEP I 2006 Q3 is framed by necessary and sufficient conditions, taught later, so it is practice.
   gate: ['stepspec-q1-i-y'],
   recall: [
     { front: t`When does multiplying an inequality reverse it?`, back: t`When the multiplier is negative. If you do not know its sign, do not multiply by it.` },

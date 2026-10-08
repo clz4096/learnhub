@@ -7,8 +7,8 @@
  * The reading is keyword matching, nothing cleverer. A claim is a past-tense "done" word
  * ("finished", "passed", "did") near words from a topic's title; the topic is the one whose
  * title shares the most words with the claim. A claim the record does not back is a gap,
- * worded with the learner's own words: "You said you finished sequences; its Cambridge
- * problem is still open." It also asks for whichever of the three standup questions
+ * worded neutrally with the learner's own words (mastery/APP-LANGUAGE.md): "Sequences: said
+ * finished, but its Cambridge problem is still open." It also asks for whichever of the three standup questions
  * (yesterday, today, blocked on) the transcript does not touch.
  *
  * Speech recognition gives no punctuation, so a claim's reach is a window of words that
@@ -62,6 +62,8 @@ export interface FactLookups {
   /** Where a learned topic stands against the gate; called only for topics in the memory. */
   stageOf: (topicId: string) => MasteryStage;
   paperLabel: (paperId: string) => string;
+  /** The topic that sets a Cambridge problem now, by its key (old keys of moved problems too); without it, the entry's own topic. */
+  topicOfProblem?: (key: string) => string;
 }
 
 /** Since the previous standup's check, or the 24 hours before `until` when there is none. */
@@ -78,7 +80,9 @@ export function gatherFacts(x: FactInputs, look: FactLookups): StandupFacts {
       const was = lessons.get(h.topicId);
       if (was === undefined || h.at >= was.at) lessons.set(h.topicId, h);
     } else if (h.kind === 'cambridge') {
-      cambridge.set(h.topicId, (cambridge.get(h.topicId) ?? false) || h.correct);
+      // An answer under the old key of a moved problem is news about the topic that sets it now.
+      const id = h.item === undefined || look.topicOfProblem === undefined ? h.topicId : look.topicOfProblem(h.item.id);
+      cambridge.set(id, (cambridge.get(id) ?? false) || h.correct);
     }
   }
   const open = new Map<string, { at: number; stage: LessonStage; section: number | null }>();
@@ -138,9 +142,9 @@ function whereIn(o: NonNullable<TopicFact['open']>): string {
 export type StandupQuestion = 'yesterday' | 'today' | 'blocked';
 
 export const QUESTION_PROMPTS: Readonly<Record<StandupQuestion, string>> = {
-  yesterday: 'Say what you did yesterday.',
-  today: 'Say what you will do today.',
-  blocked: 'Say what is blocking you, or that nothing is.',
+  yesterday: 'Say what was done yesterday.',
+  today: 'Say what is planned for today.',
+  blocked: 'Say what is blocking progress, or that nothing is.',
 };
 
 export interface StandupCheck {
@@ -240,10 +244,11 @@ const active = (t: TopicFact): number => (t.lesson !== null || t.open !== null |
 /** The gap for a claimed topic, or null when the record backs it. */
 function gapFor(said: string, t: TopicFact): string | null {
   if (t.stage === 'mastered') return null;
-  if (t.stage === 'needs-gate') return `You said you finished ${said}; its Cambridge problem is still open.`;
-  if (t.open !== null) return `You said you finished ${said}; the lesson on ${t.title} is still in progress, ${whereIn(t.open)}.`;
-  if (t.lesson === 'failed') return `You said you finished ${said}; the last lesson run on ${t.title} did not pass.`;
-  return `You said you finished ${said}; nothing since your last standup shows ${t.title} done.`;
+  const head = `${said.charAt(0).toUpperCase()}${said.slice(1)}: said finished, but`;
+  if (t.stage === 'needs-gate') return `${head} its Cambridge problem is still open.`;
+  if (t.open !== null) return `${head} the lesson on ${t.title} is still in progress, ${whereIn(t.open)}.`;
+  if (t.lesson === 'failed') return `${head} the last lesson run on ${t.title} did not pass.`;
+  return `${head} nothing since the last standup shows ${t.title} done.`;
 }
 
 export function checkStandup(transcript: string, facts: StandupFacts): StandupCheck {
@@ -278,8 +283,8 @@ export function checkStandup(transcript: string, facts: StandupFacts): StandupCh
     if (c.at.some((j) => TIMED.has(ws[j]!.stem)) && !facts.timed.some((w) => w.finished)) {
       const running = facts.timed[0];
       add(running === undefined
-        ? 'You mentioned timed work; none is logged since your last standup.'
-        : `You mentioned timed work; ${running.label} is started but not finished.`);
+        ? 'Timed work: mentioned, but none is logged since the last standup.'
+        : `Timed work: mentioned, but ${running.label} is started and not finished.`);
     }
   }
   const stems = new Set(ws.map((w) => w.stem));

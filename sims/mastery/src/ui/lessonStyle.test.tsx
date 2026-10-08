@@ -225,6 +225,9 @@ describe('the Cambridge stage after practice', () => {
     render(<LessonRunner topicId={TOPIC} salt="test" onEnd={onEnd} onSkip={() => undefined} />);
     // The sections, in the order of the main path: the Cambridge problem after practice.
     expect([...document.querySelectorAll('ol.outline li button')].map((x) => x.textContent).slice(-2)).toEqual(['Try one yourself', 'The Cambridge problem']);
+    // The run's end says so neutrally (mastery/APP-LANGUAGE.md): "Practice passed."
+    expect((await screen.findByRole('heading', { name: 'Practice passed.' })).textContent).toBe('Practice passed.');
+    expect(document.querySelector('.feedback.end')?.textContent).not.toMatch(/\byou\b/i);
     fireEvent.click(await screen.findByRole('button', { name: 'Next: the Cambridge problem' }));
     expect(onEnd).not.toHaveBeenCalled();
     expect(screen.getByRole('heading', { name: 'The Cambridge problem' })).toBeTruthy();
@@ -235,7 +238,7 @@ describe('the Cambridge stage after practice', () => {
     expect(card.getByText(/gate problem/)).toBeTruthy();
     fireEvent.input(card.getByLabelText('Your answer'), { target: { value: gateAuto.instance.reference as string } });
     fireEvent.click(card.getByRole('button', { name: 'Check' }));
-    await card.findByText('Correct');
+    await card.findByText(/^Right: .+\.$/);
     // Logged before moving on.
     await waitFor(() => expect(progress.value?.history.some((h) => h.kind === 'cambridge')).toBe(true));
     const entry = progress.value?.history.find((h) => h.kind === 'cambridge');

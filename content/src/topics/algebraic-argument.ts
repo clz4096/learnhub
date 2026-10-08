@@ -4,9 +4,10 @@
  * warm-up: products of consecutive integers; n - 1 = 3k, so n³ - 1 is a multiple of 9) and
  * Book of Proof Sections 4.1 to 4.5 with Chapter 4, exercises 1 to 5 (parity by direct
  * proof), checked against the hints and the book's solutions to odd exercises. Batch 7 adds IA
- * Numbers and Sets Example Sheet 1, Q1 and Q4, and CST supervision exercise 1.3.1(d) with its
- * 2023-24 official solution. (Sheet 1, Q2, the primes 41, 43, 47, ..., is this lesson's pitfall,
- * and CST 3.2.7(b) is proof.direct's theorem, so neither is set.)
+ * Numbers and Sets Example Sheet 1, Q4 (the largest product). (Sheet 1, Q2, the primes 41, 43, 47,
+ * ..., is this lesson's pitfall, and CST 3.2.7(b) is proof.direct's theorem, so neither is set.)
+ * The written proofs once set here (Sheet 1 Q1 and Q4, Assignment 12 Q1(ii), CST 1.3.1(d)) are in
+ * proof.direct and proof.cases (Rule 1, 2026-10-08).
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, upTo } from '../math';
@@ -329,14 +330,6 @@ const bop44 = supervision({
   prompt: t`Suppose ${math`x, y \in \mathbb{Z}`}. Use direct proof to prove: if ${math`x`} and ${math`y`} are odd, then ${math`xy`} is odd. Use different letters in ${math`x = ${2}a + ${1}`} and ${math`y = ${2}b + ${1}`}: why does it matter?`,
   writeUp: 'proof',
 });
-const a12ii = supervision({
-  id: 'a12-q1-ii-six',
-  source: cite('step-f12', 'Q1(ii)'),
-  title: t`${math`n^{${3}} - n`} and ${6}`,
-  prompt: t`Factorise ${math`n^{${3}} - n`} completely, and deduce that it is divisible by ${6} for every positive integer ${mn}.`,
-  writeUp: 'proof',
-  official: cite('step-f12-hints', 'Q1(ii)'),
-});
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
 
@@ -373,55 +366,6 @@ const ns1q4 = auto({
     { response: `3^${THREES + 1}`, why: t`${THREES + 1} threes add to ${3 * (THREES + 1)}, so a part ${1} is left over, and it adds nothing to the product. Trade the ${3} and the ${1} for two ${2}s.` },
     { response: `2^${SUM / 2}`, why: t`Two ${2}s give ${4} but cost ${4}; a ${3} and a ${3} give ${9} for ${6}, more than three ${2}s for the same ${6}. Use as many ${3}s as you can.` },
   ],
-});
-
-/*
- * Outline for marking ns1-q4-proof (20 marks):
- * 1. A best choice exists: finitely many ways to write 100 as a sum of positive integers (2).
- * 2. No part of 5 or more: 2(k - 2) > k for k >= 5; a 4 may be replaced by 2 + 2 (5).
- * 3. No part 1: merge it with another part (3).
- * 4. At most two 2s: 2 + 2 + 2 becomes 3 + 3, product 8 to 9 (4).
- * 5. So all 3s and at most two 2s; 100 = 3 x 32 + 4 forces thirty-two 3s and two 2s (one 2 would
- *    need 98 to be a multiple of 3; none would need 100 to be) (4).
- * 6. Answer 4 x 3^32 stated (2).
- */
-const ns1q4Proof = supervision({
-  id: 'ns1-q4-proof',
-  source: cite('ia-ns-sheet-1', 'Q4'),
-  title: t`Why that product is the largest`,
-  prompt: t`Suppose that we have some positive integers (not necessarily distinct) whose sum is ${SUM}. How large can their product be? Prove that no choice of integers does better than your answer.`,
-  writeUp: 'proof',
-});
-
-/*
- * Outline for marking ns1-q1 (20 marks):
- * 1. Answer: yes (2).
- * 2. Contrapositive or cases: if n is not a multiple of 3, then n = 3q + 1 or n = 3q + 2 (4).
- * 3. (3q + 1)^2 = 3(3q^2 + 2q) + 1 and (3q + 2)^2 = 3(3q^2 + 4q + 1) + 1, each with the bracket an
- *    integer (8).
- * 4. So n^2 leaves remainder 1, not a multiple of 3; hence if n^2 is a multiple of 3 so is n (6).
- */
-const ns1q1 = supervision({
-  id: 'ns1-q1',
-  source: cite('ia-ns-sheet-1', 'Q1'),
-  title: t`Squares that are multiples of three`,
-  prompt: t`If ${math`n^{${2}}`} is a multiple of ${3}, must ${mn} be a multiple of ${3}? Prove your answer.`,
-  writeUp: 'proof',
-});
-
-/*
- * Outline for marking sw-1-3-1-d (20 marks):
- * 1. Names two consecutive triangular numbers t_k and t_(k+1) for a natural number k (4).
- * 2. t_k + t_(k+1) = k(k + 1)/2 + (k + 1)(k + 2)/2 = (k + 1)(2k + 2)/2 (8).
- * 3. = (k + 1)^2, a square of a natural number (6). Each step shown, no division left unexplained (2).
- */
-const sw131d = supervision({
-  id: 'sw-1-3-1-d',
-  source: cite('cst-dm-sw1', 'Exercises 1, 1.3.1(d)', true),
-  title: t`Two triangular numbers make a square`,
-  prompt: t`A natural number is triangular if it is ${math`t_k = ${0} + ${1} + \cdots + k`} for some natural number ${mk}; for example ${math`t_{${0}} = ${0}`}, ${math`t_{${1}} = ${1}`}, ${math`t_{${2}} = ${3}`}. Using ${math`t_k = \frac{k(k + ${1})}{${2}}`}, show that the sum of every two consecutive triangular numbers is a square. (Nicomachus, around ${100} BC.)`,
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-1', '1.3.1(d)'),
 });
 
 // ---------------------------------------------------------------- lesson
@@ -525,16 +469,12 @@ export const algebraicArgument: TopicContent = {
   generators: [writeTwoM, divides, parity, substitute],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['parity', 'consecutive'],
-  cambridge: withUses([bop41, bop43, bop45, bop42, bop44, a12ii, ns1q4, ns1q4Proof, ns1q1, sw131d], {
-    'ns1-q4-proof': { sections: ['A new letter for each number'], note: t`Improving any choice step by step until only twos and threes remain`, needs: ['proof.direct'] },
-    'a12-q1-ii-six': { sections: ['Consecutive integers and divisibility'], note: t`Factorising into three consecutive integers`, needs: ['proof.direct'] },
-    'ns1-q1': { sections: ['A new letter for each number', 'Consecutive integers and divisibility'], note: t`Writing a number by its remainder on division by three and squaring`, needs: ['proof.direct'] },
-    'sw-1-3-1-d': { sections: ['A new letter for each number'], note: t`Adding two consecutive triangular numbers by algebra`, needs: ['proof.direct'] },
+  cambridge: withUses([bop41, bop43, bop45, bop42, bop44, ns1q4], {
     'ns1-q4': { sections: ['A new letter for each number'], note: t`Finding the largest product for a fixed sum` },
   }),
-  // The written proofs (the IA largest-product argument, the STEP warm-up, the squares, the triangular
-  // numbers) need proof writing, which proof.direct teaches later in the book, so they are practice
-  // (proof gate audit, 2026-10-08). The auto-checked largest product gates alone, though trial finds it.
+  // The written proofs (the IA largest-product argument, the STEP warm-up, the triangular numbers) are set in
+  // proof.direct, and the squares that are multiples of three in proof.cases, where proof writing has been
+  // taught (Rule 1, 2026-10-08). The auto-checked largest product gates alone, though trial finds it.
   gate: ['ns1-q4'],
   recall: [
     { front: t`Define even and odd integers.`, back: t`${mn} is even if ${math`n = ${2}k`}, and odd if ${math`n = ${2}k + ${1}`}, for some ${math`k \in \mathbb{Z}`}.` },

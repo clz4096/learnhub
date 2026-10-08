@@ -6,8 +6,9 @@
  * the CST notes' equivalences for negation (printed page 134). The problems are Book of
  * Proof's exercises for Section 2.10, checked against the solutions to odd exercises, and
  * supervision exercise 1.1.5 with its 2023-24 official solution. Batch 7 adds IA Numbers and
- * Sets Example Sheet 1, Q5, and Exercise 16 of the CST Logic and Proof notes (the part by
- * equivalences). Their Exercise 14, first line, is the lesson's theorem, so it is not set.
+ * Sets Example Sheet 1, Q5. Exercise 16 of the CST Logic and Proof notes (the part by
+ * equivalences) is a written proof, so it is in proof.direct (Rule 1, 2026-10-08). The notes'
+ * Exercise 14, first line, is the lesson's theorem, so it is not set.
  */
 import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { int, upTo } from '../math';
@@ -452,25 +453,6 @@ const ns1q5 = supervision({
   writeUp: 'explanation',
 });
 
-/*
- * Outline for marking lp-ex-16 (20 marks):
- * 1. Push the negation in: not forall y [..] is exists y not[(Q(a) or Q(b)) and not Q(y)] (4).
- * 2. De Morgan and double negation: exists y [(not Q(a) and not Q(b)) or Q(y)] (4).
- * 3. Pull the quantifier past the part without y (y is not free there):
- *    (not Q(a) and not Q(b)) or exists y Q(y) (4).
- * 4. Q(a) implies exists y Q(y), and so does Q(b); so exists y Q(y) is equivalent to
- *    exists y Q(y) or Q(a) or Q(b) (4).
- * 5. Then the formula contains (not Q(a) and not Q(b)) or (Q(a) or Q(b)), which is true by De
- *    Morgan and excluded middle; so the whole formula is valid (4).
- */
-const lp16 = supervision({
-  id: 'lp-ex-16',
-  source: cite('cst-lp-notes', 'Section 5, Exercise 16, the proof by equivalences (page 14)', true),
-  title: t`A valid negated "for all"`,
-  prompt: t`Let ${math`Q`} be a one-place predicate and ${math`a`}, ${math`b`} constants, in a non-empty domain. Prove ${math`\lnot \forall y\, [(Q(a) \lor Q(b)) \land \lnot Q(y)]`} using equivalences: rewrite it step by step, naming the law used at each step, until it is plainly true whatever the domain, the predicate ${math`Q`}, and the constants are.`,
-  writeUp: 'proof',
-});
-
 // ---------------------------------------------------------------- lesson
 
 const mP = math`P(x)`;
@@ -547,13 +529,12 @@ export const negatingQuantifiers: TopicContent = {
   generators: [negateSymbols, whichTrue, negateWords],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['negation-of-quantifier'],
-  cambridge: withUses([bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12, ns1q5, lp16], {
+  cambridge: withUses([bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12, ns1q5], {
     'ns1-q5': { sections: ['The two laws', 'Several quantifiers', 'Negating the inside'], note: t`Negating a statement with four quantifiers and an implication` },
-    'lp-ex-16': { sections: ['The two laws', 'Negating the inside'], note: t`Rewriting a negated "for all" by named equivalences`, needs: ['proof.direct'] },
   }),
   // The IA sheet's two negations (four quantifiers, and an implication in words). The Logic and Proof
-  // equivalences are a written proof, which proof.direct teaches later in the book, so they are practice
-  // (2026-10-08). The CST proof 1.1.5 does not gate: the practice problems on the
+  // equivalences are a written proof, so they are set in proof.direct, the first topic that teaches writing one
+  // (Rule 1, 2026-10-08). The CST proof 1.1.5 does not gate: the practice problems on the
   // same exercise give its negation and its witness. The Book of Proof items are not Cambridge
   // standard.
   gate: ['ns1-q5'],

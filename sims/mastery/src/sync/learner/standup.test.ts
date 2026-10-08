@@ -80,7 +80,7 @@ describe('standups in the learner envelope', () => {
 
   it('merges per date across devices and survives JSON; the audio is never in it', () => {
     const phone = withStandup(entry('2026-10-06', T0, 'Did fractions.'));
-    const mac = withStandup(entry('2026-10-07', T0 + MIN, 'Did sequences.', ['Say what is blocking you, or that nothing is.']));
+    const mac = withStandup(entry('2026-10-07', T0 + MIN, 'Did sequences.', ['Say what is blocking progress, or that nothing is.']));
     const m = mergeLearner(phone, mac);
     eq(m, mergeLearner(mac, phone));
     expect(Object.keys(learnerValues(m).standup)).toEqual(['2026-10-06', '2026-10-07']);

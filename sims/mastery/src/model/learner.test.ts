@@ -5,7 +5,8 @@ import { gateOf } from '@learnhub/content';
 import { ALL_TOPICS, closureOf, closureTopics } from '@/model/courses';
 import {
   COURSE_OPTIONS, DEFAULT_COURSES, completeGymItem, completeLesson, completeQuiz, completeReview, courseStats, drillItemId, ensureSession,
-  finishOpenPlacement, finishPlacement, hasContent, hubSummary, localDay, masteryOf, planMore, recordCambridgeAnswer, recordDrill, replanToday,
+  MISS_RETURN_DAYS, cambridgeState, finishOpenPlacement, finishPlacement, hasContent, hubSummary, localDay, masteryOf, planMore, recordCambridgeAnswer,
+  recordDrill, redoFromMiss, replanToday,
   sessionTime, skipTask, startLearner, statusMap, withoutSelfReport,
 } from '@/model/learner';
 
@@ -217,20 +218,62 @@ describe('the Cambridge gate and item data', () => {
     expect(masteryOf(r.value, 'pre.fractions')).toMatchObject({ stage: 'needs-gate', candidates: gateOf('pre.fractions').length });
   });
 
-  it('a Cambridge answer is logged with its attempt number, and only a first right answer meets the gate', () => {
+  it('a Cambridge answer is logged with its attempt number; a right answer after a miss and hints meets the gate', () => {
     let p = recordCambridgeAnswer(learned1(), GATE_KEY, false, { hints: 0, ms: 90_000 }, T0 + 1);
-    p = recordCambridgeAnswer(p, GATE_KEY, true, { hints: 0, ms: 30_000 }, T0 + 2);
+    p = recordCambridgeAnswer(p, GATE_KEY, true, { hints: 2, ms: 30_000 }, T0 + 2);
     expect(p.history.filter((h) => h.kind === 'cambridge').map((h) => h.item)).toEqual([
       { id: GATE_KEY, hints: 0, ms: 90_000, attempt: 1 },
-      { id: GATE_KEY, hints: 0, ms: 30_000, attempt: 2 },
+      { id: GATE_KEY, hints: 2, ms: 30_000, attempt: 2 },
     ]);
-    expect(masteryOf(p, 'pre.fractions').stage).toBe('needs-gate');
+    expect(masteryOf(p, 'pre.fractions')).toMatchObject({ stage: 'mastered', evidence: { kind: 'auto', problem: GATE_KEY, at: T0 + 2, hints: 2 } });
     expect(importProgress(exportProgress(p)).ok).toBe(true);
+  });
+
+  it('a miss sets the problem to come back in a few days, once; a right answer closes it', () => {
+    let p = recordCambridgeAnswer(learned1(), GATE_KEY, false, { hints: 0 }, T0 + 1);
+    expect(p.redos).toHaveLength(1);
+    const d = p.redos[0]!;
+    expect(d).toMatchObject({ problem: GATE_KEY, setAt: T0 + 1, due: T0 + 1 + MISS_RETURN_DAYS * DAY_MS, doneAt: null });
+    expect(redoFromMiss(p, d)).toBe(true);
+    // A second miss keeps the open redo and its due time.
+    p = recordCambridgeAnswer(p, GATE_KEY, false, { hints: 1 }, T0 + MISS_RETURN_DAYS * DAY_MS + 5);
+    expect(p.redos).toHaveLength(1);
+    p = recordCambridgeAnswer(p, GATE_KEY, true, { hints: 1 }, T0 + 2 * MISS_RETURN_DAYS * DAY_MS + 5);
+    expect(p.redos[0]?.doneAt).toBe(T0 + 2 * MISS_RETURN_DAYS * DAY_MS + 5);
+    expect(importProgress(exportProgress(p)).ok).toBe(true);
+  });
+
+  it('the miss redo avoids every nonce in the document, so it never reads as a supervisor\'s', () => {
+    const p = recordCambridgeAnswer(learned1(), GATE_KEY, false, { hints: 0 }, T0 + 1);
+    const nonce = p.redos[0]!.from;
+    const taken = { ...learned1(), supervision: [{ problem: GATE_KEY, nonce, writeUp: '', copiedAt: T0, result: null, importedAt: null }] };
+    const q = recordCambridgeAnswer(taken, GATE_KEY, false, { hints: 0 }, T0 + 1);
+    expect(q.redos[0]?.from).not.toBe(nonce);
+    expect(redoFromMiss(q, q.redos[0]!)).toBe(true);
+  });
+
+  it('cambridgeState: a miss rests the problem until it comes back; then it takes an answer again', () => {
+    const p = recordCambridgeAnswer(learned1(), GATE_KEY, false, { hints: 1 }, T0);
+    const back = T0 + MISS_RETURN_DAYS * DAY_MS;
+    expect(cambridgeState(p, GATE_KEY, T0 + 1)).toEqual({ solved: false, revealed: false, returnsAt: back, hints: 1 });
+    expect(cambridgeState(p, GATE_KEY, back).returnsAt).toBeNull();
+    expect(cambridgeState(learned1(), GATE_KEY, T0)).toEqual({ solved: false, revealed: false, returnsAt: null, hints: 0 });
+  });
+
+  it('showing the solution: the problem never counts, is not scheduled again, and takes answers at once', () => {
+    let p = recordCambridgeAnswer(learned1(), GATE_KEY, false, { hints: 0, solution: true }, T0 + 1);
+    expect(p.history.at(-1)?.item).toEqual({ id: GATE_KEY, hints: 0, attempt: 1, solution: true });
+    expect(p.redos).toEqual([]);
+    expect(cambridgeState(p, GATE_KEY, T0 + 2)).toMatchObject({ revealed: true, returnsAt: null });
+    p = recordCambridgeAnswer(p, GATE_KEY, true, { hints: 0 }, T0 + 2);
+    expect(masteryOf(p, 'pre.fractions').stage).toBe('needs-gate');
+    // A miss after the solution was seen schedules nothing either.
+    expect(recordCambridgeAnswer(p, GATE_KEY, false, { hints: 0 }, T0 + 3).redos).toEqual([]);
   });
 
   it('a right Cambridge answer closes the problem\'s open redos', () => {
     const p = { ...learned1(), redos: [{ problem: GATE_KEY, from: 'ABCDEFGH', setAt: T0, due: T0 + DAY_MS, doneAt: null }] };
-    expect(recordCambridgeAnswer(p, GATE_KEY, false, { hints: 0 }, T0 + 1).redos[0]?.doneAt).toBeNull();
+    expect(recordCambridgeAnswer(p, GATE_KEY, false, { hints: 0 }, T0 + 1).redos.map((d) => d.doneAt)).toEqual([null]);
     expect(recordCambridgeAnswer(p, GATE_KEY, true, { hints: 0 }, T0 + 1).redos[0]?.doneAt).toBe(T0 + 1);
   });
 

@@ -96,8 +96,8 @@ describe('a lesson across two devices', () => {
     sync(phone.env);
     // Still where the learner is reading.
     expect(here()).toBe('Worked examples');
-    expect(screen.getByRole('status').textContent).toMatch(/On your other device, this lesson is at Try one yourself/);
-    fireEvent.click(screen.getByRole('button', { name: 'Continue where you left off on your other device' }));
+    expect(screen.getByRole('status').textContent).toMatch(/On another device, this lesson is at Try one yourself/);
+    fireEvent.click(screen.getByRole('button', { name: 'Continue from the other device\'s place' }));
     expect(here()).toBe('Try one yourself');
     expect(document.querySelector('.practice')).not.toBeNull();
     expect(loadPlace(KEY)?.practice.attempts).toBe(1);

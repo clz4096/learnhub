@@ -22,7 +22,10 @@ import { importSummary } from '@/ui/Supervision';
 await Promise.all(CONTENT_IDS.map((id) => contentStore.load(id)));
 
 const T0 = new Date(2026, 9, 1, 9, 0).getTime();
+/** Albert's 12 of 20 was on this key; the problem has since moved to proof.direct (`MOVED_PROBLEMS`), where it is a gate. */
 const UNIT = 'pre.fractions/step00-q1-unit';
+/** A proof set as further practice (not a gate) in a topic before the first proof lesson. */
+const PRACTICE = 'pre.indices/a12-q1-iii';
 const VALUE = 'pre.fractions/a6-q1-i-value';
 const GATE_PROOF = 'prob.event-spaces/q4-a-finite';
 const NONCE = 'K7Q2XMPA';
@@ -49,16 +52,21 @@ describe('the audit in the catalog', () => {
 describe('what a supervision result counts against', () => {
   it('a miss on a gate problem counts; on further practice, or with a GAP, it does not; a pass always counts', () => {
     expect(lapseExcluded(GATE_PROOF, res())).toBe(false);
-    expect(lapseExcluded(UNIT, res())).toBe(true);
+    expect(lapseExcluded(PRACTICE, res())).toBe(true);
     expect(lapseExcluded(GATE_PROOF, res({ gap: FIRST_PROOF_TOPIC }))).toBe(true);
-    expect(lapseExcluded(UNIT, res({ mark: 14 }))).toBe(false);
+    expect(lapseExcluded(PRACTICE, res({ mark: 14 }))).toBe(false);
+    // An old key is read as the current one: the unit-fraction proof is a proof.direct gate now.
+    expect(lapseExcluded(UNIT, res())).toBe(false);
   });
 
   it('a GAP applies only below the pass mark, to a topic not mastered, other than the problem\'s own', () => {
     const p = learned();
-    expect(effectiveGap(p, UNIT, res({ gap: FIRST_PROOF_TOPIC }))).toBe(FIRST_PROOF_TOPIC);
-    expect(effectiveGap(p, UNIT, res({ mark: 15, gap: FIRST_PROOF_TOPIC }))).toBeUndefined();
-    expect(effectiveGap(p, UNIT, res({ gap: 'pre.fractions' }))).toBeUndefined();
+    expect(effectiveGap(p, PRACTICE, res({ gap: FIRST_PROOF_TOPIC }))).toBe(FIRST_PROOF_TOPIC);
+    expect(effectiveGap(p, PRACTICE, res({ mark: 15, gap: FIRST_PROOF_TOPIC }))).toBeUndefined();
+    expect(effectiveGap(p, PRACTICE, res({ gap: 'pre.indices' }))).toBeUndefined();
+    // The problem's own topic is its current one: proof.direct, for the old fractions key.
+    expect(effectiveGap(p, UNIT, res({ gap: FIRST_PROOF_TOPIC }))).toBeUndefined();
+    expect(effectiveGap(p, UNIT, res({ gap: 'pre.fractions' }))).toBe('pre.fractions');
     // Fractions mastered: its gate solved unaided.
     const m = recordCambridgeAnswer(p, VALUE, true, { hints: 0 }, T0 + 2 * DAY_MS);
     expect(isMastered(m, 'pre.fractions')).toBe(true);
@@ -121,17 +129,17 @@ describe('importing a result with a GAP', () => {
   });
 
   it('says what it did in plain words', () => {
-    const p = learned();
-    const withGap = importSummary(p, UNIT, res({ gap: FIRST_PROOF_TOPIC }));
-    expect(withGap).toMatch(/earlier skill, Direct proof, so it does not count against Fractions and ratios\. Recommended next: Direct proof\./);
+    const p = completeLesson(learned(), 'pre.indices', true, T0, null, 20);
+    const withGap = importSummary(p, PRACTICE, res({ gap: FIRST_PROOF_TOPIC, redo: [PRACTICE] }));
+    expect(withGap).toMatch(/earlier skill, Direct proof, so it does not count against Laws of indices\. Recommended next: Direct proof\./);
     expect(withGap).toMatch(/Its redo waits until Direct proof is mastered\./);
-    expect(importSummary(p, UNIT, res())).toMatch(/further practice, not a gate problem, so it does not count against Fractions and ratios/);
+    expect(importSummary(p, PRACTICE, res())).toMatch(/further practice, not a gate problem, so it does not count against Laws of indices/);
     expect(withGap).not.toMatch(/[–—]/);
   });
 });
 
 describe('the GAP line', () => {
-  const block = (gap: string | null, mark = 12, problem = UNIT): string => {
+  const block = (gap: string | null, mark = 12, problem = PRACTICE): string => {
     const text = formatResult(parsedFor(problem, { mark }));
     return gap === null ? text.replace(/^GAP: .*\n/m, '') : text.replace(/^GAP: .*$/m, `GAP: ${gap}`);
   };
@@ -153,23 +161,26 @@ describe('the GAP line', () => {
   });
 
   it('round-trips a result with a GAP', () => {
-    const r = parsedFor(UNIT, { gap: FIRST_PROOF_TOPIC });
+    const r = parsedFor(PRACTICE, { gap: FIRST_PROOF_TOPIC });
     expect(ok(formatResult(r))).toEqual(r);
   });
 
   it('rejects an unknown topic, the problem\'s own topic, a GAP with a pass, and the template, plainly', () => {
     expect(err(block('Writing proofs'))).toMatch(/GAP names "Writing proofs", which is not a topic in this app/);
-    expect(err(block('pre.fractions'))).toMatch(/GAP names the problem's own topic/);
+    expect(err(block('pre.indices'))).toMatch(/GAP names the problem's own topic/);
+    // The own topic of an old key is the topic the problem moved to.
+    expect(err(block(FIRST_PROOF_TOPIC, 12, UNIT))).toMatch(/GAP names the problem's own topic/);
+    expect(ok(block('pre.fractions', 12, UNIT)).result.gap).toBe('pre.fractions');
     expect(err(block(FIRST_PROOF_TOPIC, 15))).toMatch(/GAP is only for a mark below 14\. With 15\/20, write GAP: none/);
     expect(err(block('<one topic id>'))).toMatch(/GAP is empty/);
-    for (const e of [err(block('x.y')), err(block('pre.fractions'))]) expect(e).not.toMatch(/[–—]/);
+    for (const e of [err(block('x.y')), err(block('pre.indices'))]) expect(e).not.toMatch(/[–—]/);
   });
 });
 
 describe('the copied block for a proof', () => {
   it('lists what a proof needs, the proof marking rule, and the gap list with the first proof lesson', () => {
-    const p = copy(learned(), UNIT, T0 + DAY_MS);
-    const text = buildPacket({ key: UNIT, nonce: NONCE, writeUp: 'my proof', copiedAt: T0 + DAY_MS, progress: p });
+    const p = copy(learned(), PRACTICE, T0 + DAY_MS);
+    const text = buildPacket({ key: PRACTICE, nonce: NONCE, writeUp: 'my proof', copiedAt: T0 + DAY_MS, progress: p });
     expect(text).toContain('--- A PROOF NEEDS ---');
     for (const x of PROOF_CHECKLIST) expect(text).toContain(x);
     expect(text).toContain(PROOF_RULE);

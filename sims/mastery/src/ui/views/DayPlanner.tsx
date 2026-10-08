@@ -28,7 +28,7 @@ import { commit, now } from '@/model/store';
 import { DEFAULT_WAKE, WEEK_TARGET_HOURS, budgetFor, dayView, weekMinutes, yomTovOfWeek, type Next } from '@/ui/views/dayView';
 import type { LadderSuggestion } from '@/ui/ladderShared';
 
-const KIND: Record<DayItem['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz', redo: 'Supervision redo', mixed: 'Blind mixed review' };
+const KIND: Record<DayItem['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz', redo: 'Redo', mixed: 'Blind mixed review' };
 const BAR_MAX_HOURS = 8;
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 /** Up next shows this many items until Show all. */
@@ -41,7 +41,7 @@ const longDate = (date: string, o: Intl.DateTimeFormatOptions): string =>
   new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { ...o, timeZone: 'UTC' });
 const hours = (m: number): string => (m / 60).toFixed(1);
 const PLURAL: Record<DayItem['kind'], [string, string]> = {
-  lesson: ['new lesson', 'new lessons'], review: ['review', 'reviews'], quiz: ['quiz', 'quizzes'], redo: ['supervision redo', 'supervision redos'],
+  lesson: ['new lesson', 'new lessons'], review: ['review', 'reviews'], quiz: ['quiz', 'quizzes'], redo: ['redo', 'redos'],
   mixed: ['mixed review', 'mixed reviews'],
 };
 /** What a block holds, in a few words: "4 new lessons, 1 quiz". */
@@ -305,7 +305,7 @@ export function DayPlanner({ p, fixed = NO_FIXED, log: shared, onLog, ladder = n
           <div class="w">
             <div class="it">{rest.tomorrow !== null ? `${rest.tomorrow} begins` : 'Wind down · bed at 1:00 am'}</div>
             {rest.tomorrow !== null && (
-              <div class="sub">{rest.tomorrow === 'Shabbat' && rest.today === null ? 'Nothing scheduled until Saturday sundown' : 'Nothing scheduled until it ends at sundown'}</div>
+              <div class="sub">Nothing scheduled until {rest.tomorrow} ends.</div>
             )}
           </div>
         </li>

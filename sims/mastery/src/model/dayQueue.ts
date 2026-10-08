@@ -11,6 +11,7 @@
  * changed. Tasks past the session are a forecast until `withDayTasks` adds them to it,
  * when the learner opens one or plans the day.
  */
+import { currentProblemKey } from '@learnhub/content';
 import type { Progress, SessionTask } from '@learnhub/mastery';
 import type { Fillable } from './day';
 import { titleOf } from './courses';
@@ -118,11 +119,14 @@ export function dayItems(p: Progress, now: number, budget = 0, mixedDone = false
     const open = d.doneAt === null && d.due < dayEnd && redoWaitsFor(p, d) === undefined;
     const doneToday = d.doneAt !== null && d.doneAt >= dayStart;
     if (!open && !doneToday) continue;
-    const topicId = topicOfKey(d.problem);
+    // A redo stored under the key of a problem that has since moved opens it where it is now.
+    const key = currentProblemKey(d.problem);
+    const topicId = topicOfKey(key);
     items.push({
       key: `redo-${d.problem}-${d.from}`, kind: 'redo', minutes: REDO_MINUTES,
-      title: `Redo: ${catalogTitle(d.problem) ?? d.problem}`,
-      to: { view: 'problem', topicId, problemId: d.problem.slice(d.problem.indexOf('/') + 1) },
+      // A redo with no supervision attempt behind it is a missed problem coming back (`recordCambridgeAnswer`).
+      title: `${p.supervision.some((a) => a.nonce === d.from) ? 'Redo' : 'Try again'}: ${catalogTitle(key) ?? key}`,
+      to: { view: 'problem', topicId, problemId: key.slice(key.indexOf('/') + 1) },
       done: d.doneAt !== null, forecast: false,
     });
   }

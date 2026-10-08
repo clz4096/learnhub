@@ -2,9 +2,11 @@
  * The Cambridge gate (decisions of 2026-10-05, mastery/TEACHING-STYLE.md): a topic is
  * mastered only when its drills are passed (it has a memory state) AND one of its gate
  * problems is done to Cambridge standard. That is either
- * - an auto-checked gate problem solved unaided: the first answer the document holds to
- *   that problem is right, with no hints. Any earlier answer showed the worked solution
- *   (a miss and "show the solution" both do), so a later right answer is not unaided; or
+ * - an auto-checked gate problem solved unaided: a right answer given before the worked
+ *   solution was ever shown (mastery/HOW-A-TOPIC-WORKS.md, rule 3, approved 2026-10-08). A
+ *   miss shows a nudge and, on request, hints, never the solution, so a right answer after
+ *   misses and hints still counts; the hints it used are kept in the evidence. "Show me the
+ *   solution" (`ItemData.solution`) means the problem can no longer count; or
  * - a supervised write-up of a gate problem marked `GATE_PASS_MARK` or more out of 20.
  *
  * Mastery is read from evidence in the document, never stored: so a merge of two copies
@@ -16,16 +18,20 @@
  * supervision results are read here.
  *
  * The gate problems of a topic come from its content (`TopicContent.gate`); this module
- * takes them as problem ids so the engine stays independent of the content package.
+ * takes them as problem ids so the engine stays independent of the content package. For the
+ * same reason it takes the content's map of moved problems as a `KeyResolver`: a problem that
+ * moved topic keeps its old key in the history and supervision it already holds, and every
+ * read here sees that key as the current one. The document is never rewritten, so a merge
+ * stays a join whatever map either copy was written under.
  */
 import { SUPERVISION_PASS_MARK, type HistoryEntry, type Progress } from './progress';
 
 /** A supervised write-up of a gate problem passes the gate at this mark or above: the supervision pass mark, 14 of 20. */
 export const GATE_PASS_MARK = SUPERVISION_PASS_MARK;
 
-/** What met the gate: the problem key ("topic id/problem id") and when. */
+/** What met the gate: the problem key ("topic id/problem id") and when; for an auto-checked answer, the hints it used. */
 export type GateEvidence =
-  | { kind: 'auto'; problem: string; at: number }
+  | { kind: 'auto'; problem: string; at: number; hints: number }
   | { kind: 'supervision'; problem: string; at: number; mark: number };
 
 /**
@@ -47,43 +53,69 @@ export interface GateStatus {
 /** The document fields the gate reads. */
 export type GateDoc = Pick<Progress, 'memory' | 'history' | 'supervision'>;
 
+/** The current key of a problem key: the key itself, or where the problem moved to. */
+export type KeyResolver = (key: string) => string;
+
+/** The resolver for documents and content with no moved problem. */
+export const sameKey: KeyResolver = (key) => key;
+
 /** A Cambridge problem's key across the app, as `PROBLEM_KEY_RE` reads it. */
 export const gateKey = (topicId: string, problemId: string): string => `${topicId}/${problemId}`;
 
 /**
- * Whether the answers to one problem show it solved unaided: the first answer is right with
- * no hints. Answers at the same millisecond put a miss first, so a tie never helps.
+ * The answer that solved one problem unaided, from all the `cambridge` entries on it: the
+ * earliest right answer, if it came strictly before the first entry that showed the solution.
+ * A reveal at the same millisecond as a right answer counts as first, so a tie never helps.
+ * Of several right answers at that earliest time, the one with fewest hints. Undefined when
+ * none counts. Read from the whole history, so it is the same after any merge.
  */
-function firstAnswer(entries: readonly HistoryEntry[]): HistoryEntry | undefined {
-  let first: HistoryEntry | undefined;
+export function unaidedAnswer(entries: readonly HistoryEntry[]): HistoryEntry | undefined {
+  let right: HistoryEntry | undefined;
+  let reveal = Infinity;
   for (const h of entries) {
-    if (first === undefined || h.at < first.at || (h.at === first.at && first.correct && !h.correct)) first = h;
+    if (h.item?.solution === true) reveal = Math.min(reveal, h.at);
+    if (h.correct && (right === undefined || h.at < right.at || (h.at === right.at && (h.item?.hints ?? 0) < (right.item?.hints ?? 0)))) right = h;
   }
-  return first;
+  return right !== undefined && right.at < reveal ? right : undefined;
+}
+
+/** Whether `entries` (the `cambridge` entries on one problem) ever showed its solution. */
+export const solutionShown = (entries: readonly HistoryEntry[]): boolean => entries.some((h) => h.item?.solution === true);
+
+/** The `cambridge` entries on one problem, under its current key or any old one, in document order. */
+export function cambridgeEntries(history: readonly HistoryEntry[], key: string, resolve: KeyResolver = sameKey): HistoryEntry[] {
+  const k = resolve(key);
+  return history.filter((h) => h.kind === 'cambridge' && h.item !== undefined && resolve(h.item.id) === k);
 }
 
 /**
  * The earliest evidence that `topicId` met its gate, given its gate problem ids; null when
- * there is none. Reads `cambridge` history entries and imported supervision results only.
+ * there is none. Reads `cambridge` history entries and imported supervision results only,
+ * each by the current key of the problem it names (`resolve`), which the evidence reports.
  */
-export function gateEvidence(p: Pick<GateDoc, 'history' | 'supervision'>, topicId: string, gate: readonly string[]): GateEvidence | null {
+export function gateEvidence(
+  p: Pick<GateDoc, 'history' | 'supervision'>, topicId: string, gate: readonly string[], resolve: KeyResolver = sameKey,
+): GateEvidence | null {
   const keys = new Set(gate.map((id) => gateKey(topicId, id)));
   if (keys.size === 0) return null;
   const found: GateEvidence[] = [];
   const byKey = new Map<string, HistoryEntry[]>();
   for (const h of p.history) {
-    if (h.kind !== 'cambridge' || h.item === undefined || !keys.has(h.item.id)) continue;
-    const list = byKey.get(h.item.id);
-    if (list === undefined) byKey.set(h.item.id, [h]);
+    if (h.kind !== 'cambridge' || h.item === undefined) continue;
+    const key = resolve(h.item.id);
+    if (!keys.has(key)) continue;
+    const list = byKey.get(key);
+    if (list === undefined) byKey.set(key, [h]);
     else list.push(h);
   }
   for (const [problem, entries] of byKey) {
-    const first = firstAnswer(entries);
-    if (first !== undefined && first.correct && first.item?.hints === 0) found.push({ kind: 'auto', problem, at: first.at });
+    const right = unaidedAnswer(entries);
+    if (right !== undefined) found.push({ kind: 'auto', problem, at: right.at, hints: right.item?.hints ?? 0 });
   }
   for (const a of p.supervision) {
-    if (a.result === null || a.importedAt === null || !keys.has(a.problem) || a.result.mark < GATE_PASS_MARK) continue;
-    found.push({ kind: 'supervision', problem: a.problem, at: a.importedAt, mark: a.result.mark });
+    if (a.result === null || a.importedAt === null || a.result.mark < GATE_PASS_MARK) continue;
+    const key = resolve(a.problem);
+    if (keys.has(key)) found.push({ kind: 'supervision', problem: key, at: a.importedAt, mark: a.result.mark });
   }
   // Earliest first; ties by problem key, then auto before supervision, so the pick is deterministic.
   found.sort((x, y) => x.at - y.at || (x.problem < y.problem ? -1 : x.problem > y.problem ? 1 : 0) || (x.kind === y.kind ? 0 : x.kind === 'auto' ? -1 : 1));
@@ -91,18 +123,18 @@ export function gateEvidence(p: Pick<GateDoc, 'history' | 'supervision'>, topicI
 }
 
 /** Where `topicId` stands against the gate. */
-export function gateStatus(p: GateDoc, topicId: string, gate: readonly string[]): GateStatus {
-  const evidence = gateEvidence(p, topicId, gate);
+export function gateStatus(p: GateDoc, topicId: string, gate: readonly string[], resolve: KeyResolver = sameKey): GateStatus {
+  const evidence = gateEvidence(p, topicId, gate, resolve);
   const stage: MasteryStage = p.memory[topicId] === undefined ? 'unlearned' : evidence === null ? 'needs-gate' : 'mastered';
   return { stage, evidence, candidates: new Set(gate).size };
 }
 
 /** Whether `topicId` is mastered: drills passed and the gate met. */
-export function isMastered(p: GateDoc, topicId: string, gate: readonly string[]): boolean {
-  return gateStatus(p, topicId, gate).stage === 'mastered';
+export function isMastered(p: GateDoc, topicId: string, gate: readonly string[], resolve: KeyResolver = sameKey): boolean {
+  return gateStatus(p, topicId, gate, resolve).stage === 'mastered';
 }
 
 /** The learned topics still waiting for their gate, in id order. */
-export function needsGate(p: GateDoc, gateOf: (topicId: string) => readonly string[]): string[] {
-  return Object.keys(p.memory).filter((id) => gateEvidence(p, id, gateOf(id)) === null).sort();
+export function needsGate(p: GateDoc, gateOf: (topicId: string) => readonly string[], resolve: KeyResolver = sameKey): string[] {
+  return Object.keys(p.memory).filter((id) => gateEvidence(p, id, gateOf(id), resolve) === null).sort();
 }

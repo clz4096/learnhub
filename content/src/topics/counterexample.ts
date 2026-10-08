@@ -5,7 +5,9 @@
  * are odd"; "if x < y then x^2 < y^2") and the commentary in the CST 2023-24 official
  * solutions to Exercises 1 (sanity-check first; a counterexample must be shown to be one,
  * and must fall under the statement). The problems are TMUA Exercise P and supervision
- * exercises 1.1.1, 1.2.5, 1.2.9, and 2.2.1, checked against the official solutions.
+ * exercises 1.1.1, 1.2.5, 1.2.9, and 2.2.1, checked against the official solutions. Logic and
+ * Proof Exercise 12 with reasons (lp-ex-12-why) moved here from Nested quantifiers (Rule 1,
+ * 2026-10-08): a counterexample for each axiom that fails.
  */
 import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { int, upTo } from '../math';
@@ -418,6 +420,25 @@ const p2f = supervision({
   writeUp: 'explanation',
 });
 
+// ---------------------------------------------------------------- Cambridge problems moved here (Rule 1, 2026-10-08)
+
+// From Nested quantifiers, which set it before disproof by counterexample was taught. The prompt is
+// the one beside the auto-checked verdicts there (lp-ex-12), written out in full.
+/*
+ * Outline for marking lp-ex-12-why (20 marks): for each of the 6 relations, the verdict on each
+ * axiom (1 mark each, 18) with the reason: a counterexample for every failure (empty: 0 ~ 0 fails;
+ * sum 100: 0 ~ 0 fails, then 0 ~ 100 and 100 ~ 0 without 0 ~ 0; x <= y: 0 <= 1 but not 1 <= 0) and a
+ * line for every success (vacuous truth for the empty relation; x + z = (x + y) + (y + z) - 2y for
+ * the even sums). 2 marks for saying why the empty relation passes (2) and (3) vacuously.
+ */
+const lp12Why = supervision({
+  id: 'lp-ex-12-why',
+  source: cite('cst-lp-notes', 'Section 4, Exercise 12 (page 11)'),
+  title: t`Which axioms hold, with reasons`,
+  prompt: t`Let ${math`\approx`} be a two-place predicate symbol, written ${math`x \approx y`}. Consider the axioms ${math`(${1})\ \forall x.\ x \approx x`}, ${math`(${2})\ \forall x\, y.\ (x \approx y \Rightarrow y \approx x)`}, and ${math`(${3})\ \forall x\, y\, z.\ (x \approx y \land y \approx z \Rightarrow x \approx z)`}. Let the universe be the set of natural numbers, ${math`\mathbb{N} = \{${0}, ${1}, ${2}, \ldots\}`}. Which axioms hold if ${math`\approx`} is interpreted as: the empty relation ${math`\varnothing`}; the universal relation ${math`\{(x, y) \mid x, y \in \mathbb{N}\}`}; the equality relation ${math`\{(x, x) \mid x \in \mathbb{N}\}`}; the relation ${math`\{(x, y) \mid x, y \in \mathbb{N} \land x + y \text{ is even}\}`}; the relation ${math`\{(x, y) \mid x, y \in \mathbb{N} \land x + y = ${100}\}`}; the relation ${math`\{(x, y) \mid x, y \in \mathbb{N} \land x \le y\}`}? For every axiom that fails give a counterexample, and for every axiom that holds say why.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EULER = CLAIMS[0] as Claim;
@@ -463,7 +484,8 @@ export const counterexample: TopicContent = {
   generators: [conditional, smallestFail, anyFail],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['disproof'],
-  cambridge: withUses([sw111, sw125, sw129, sw221, p2a, p2b, p2c, p2d, p2e, p1, p2f], {
+  cambridge: withUses([sw111, sw125, sw129, sw221, p2a, p2b, p2c, p2d, p2e, p1, p2f, lp12Why], {
+    'lp-ex-12-why': { sections: ['What a counterexample is', 'Writing it up'], note: t`Checking reflexive, symmetric, and transitive axioms, with a counterexample for each failure`, needs: ['logic.nested-quantifiers'] },
     'sw-2-2-1': { sections: ['What a counterexample is'], note: t`Finding numbers that break a claim about powers` },
     'sw-1-1-1': { sections: ['What a counterexample is'], note: t`Finding a counterexample among non-primes` },
     'sw-1-2-9': { sections: ['What a counterexample is', 'Compound statements'], note: t`A counterexample to an implication with an "or"` },

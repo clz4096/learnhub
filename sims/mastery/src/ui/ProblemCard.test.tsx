@@ -40,13 +40,13 @@ const announced = (): string => screen.getByTestId('announce').textContent ?? ''
 const block = (): HTMLElement | null => document.querySelector('.result-block');
 
 describe('ProblemCard', () => {
-  it('accepts the right answer, says Correct, and focuses the button that moves on', async () => {
+  it('accepts the right answer, says "Right: <answer>.", and focuses the button that moves on', async () => {
     const inst = need(add).instance(11);
     const done = card(inst);
     type(inst.reference as string);
     fireEvent.click(screen.getByRole('button', { name: 'Check' }));
-    expect(await screen.findByText('Correct')).toBeTruthy();
-    expect(announced()).toBe('Correct.');
+    expect(await screen.findByText(/^Right: .+\.$/)).toBeTruthy();
+    expect(announced()).toBe(`Right: ${inst.reference as string}.`);
     const next = screen.getByRole('button', { name: 'Next problem' });
     expect(document.activeElement).toBe(next);
     fireEvent.click(next);
@@ -63,7 +63,7 @@ describe('ProblemCard', () => {
       clock.mockReturnValue(8_500);
       type(inst.reference as string);
       fireEvent.click(screen.getByRole('button', { name: 'Check' }));
-      expect(await screen.findByText('Correct')).toBeTruthy();
+      expect(await screen.findByText(/^Right: .+\.$/)).toBeTruthy();
       expect(answered).toHaveBeenCalledTimes(1);
       expect(answered).toHaveBeenCalledWith({ outcome: 'correct', correct: true, response: inst.reference, ms: 7_500 });
       expect(done).not.toHaveBeenCalled();
@@ -193,7 +193,7 @@ describe('ProblemCard', () => {
     const right = inst.reference as string[];
     for (const id of right) fireEvent.click(document.querySelector(`input[value="${id}"]`) as HTMLInputElement);
     fireEvent.click(screen.getByRole('button', { name: 'Check' }));
-    expect(await screen.findByText('Correct')).toBeTruthy();
+    expect(await screen.findByText(/^Right: .+\.$/)).toBeTruthy();
     expect(screen.getAllByText('Correct, you chose it')).toHaveLength(right.length);
   });
 
@@ -234,7 +234,7 @@ describe('ProblemCard', () => {
     const done = card(broken);
     type('1');
     enter();
-    expect(screen.getByRole('heading', { name: /This problem is broken, not your answer/ })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /This problem is broken, not the answer given/ })).toBeTruthy();
     expect(screen.queryByText('Incorrect')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Get a fresh problem' }));
     expect(done).toHaveBeenCalledWith({ outcome: 'problem-error', correct: false, response: '1', ms: expect.any(Number) });
@@ -263,4 +263,87 @@ describe('every written problem', () => {
       }
     }
   }, 60_000);
+});
+
+describe('lesson practice: one more try after a miss (mastery/APP-LANGUAGE.md, round 4)', () => {
+  const practice = (inst: Instance, consequence?: (o: string) => { effect: string }) => {
+    const done = vi.fn();
+    render(<ProblemCard topicId="pre.fractions" instance={inst} mode="practice" oneMoreTry index={0} onDone={done} consequence={consequence} />);
+    return done;
+  };
+  const head = (): string => document.querySelector('.result-head > span:last-child')?.textContent ?? '';
+
+  it('a first miss shows the likely slip and offers one more try, without the answer or the solution', () => {
+    const inst = need(add).instance(11);
+    const slip = need(inst.misconceptions[0]);
+    const done = practice(inst);
+    type(slip.response as string);
+    enter();
+    expect(head()).toBe('Not right yet');
+    expect(screen.getByText(/It looks like you added the tops and added the bottoms/)).toBeTruthy();
+    expect(screen.queryByText('Correct answer')).toBeNull();
+    expect(document.querySelector('.result-solution')).toBeNull();
+    expect(announced()).toBe('Not right yet. One more try.');
+    fireEvent.click(screen.getByRole('button', { name: 'Try once more' }));
+    expect(done).not.toHaveBeenCalled();
+    expect(document.querySelector('.result-block')).toBeNull();
+    expect(input().value).toBe('');
+    expect(input().disabled).toBe(false);
+  });
+
+  it('still wrong: the answer and the worked solution; the run hears one miss', () => {
+    const inst = need(add).instance(11);
+    const slip = need(inst.misconceptions[0]);
+    const done = practice(inst);
+    type(slip.response as string);
+    enter();
+    fireEvent.click(screen.getByRole('button', { name: 'Try once more' }));
+    type(slip.response as string);
+    enter();
+    expect(head()).toBe('Incorrect');
+    expect(document.querySelectorAll('.result-solution li')).toHaveLength(inst.problem.solution.length);
+    fireEvent.click(screen.getByRole('button', { name: 'Next problem' }));
+    expect(done).toHaveBeenCalledTimes(1);
+    expect(done).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'wrong', correct: false }));
+  });
+
+  it('right on the one more try says "Right: <answer>." but the first answer is the one that counts', () => {
+    const inst = need(add).instance(11);
+    const slip = need(inst.misconceptions[0]);
+    const effects: string[] = [];
+    const done = practice(inst, (o) => { effects.push(o); return { effect: `effect of ${o}` }; });
+    type(slip.response as string);
+    enter();
+    // No consequence yet: the problem is not over.
+    expect(document.querySelector('.result-effect')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Try once more' }));
+    type(inst.reference as string);
+    enter();
+    expect(head()).toMatch(/^Right: .+\.$/);
+    expect(document.querySelector('.result-effect')?.textContent).toBe('effect of wrong');
+    fireEvent.click(screen.getByRole('button', { name: 'Next problem' }));
+    expect(done).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'wrong', correct: false, response: inst.reference }));
+  });
+
+  it('right first time counts as right', () => {
+    const inst = need(add).instance(11);
+    const done = practice(inst);
+    type(inst.reference as string);
+    enter();
+    fireEvent.click(screen.getByRole('button', { name: 'Next problem' }));
+    expect(done).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'correct', correct: true }));
+  });
+
+  it('a missed choice problem does not mark the right options before the one more try', () => {
+    const inst = need(sets).instance(5);
+    const right = inst.reference as string[];
+    const a = inst.problem.answer;
+    if (a.kind !== 'choice') throw new Error('not a choice problem');
+    const wrong = need(a.options.find((o) => !right.includes(o.id)));
+    render(<ProblemCard topicId="pre.set-notation" instance={inst} mode="practice" oneMoreTry index={0} onDone={() => undefined} />);
+    fireEvent.click(document.querySelector(`input[value="${wrong.id}"]`) as HTMLInputElement);
+    fireEvent.click(screen.getByRole('button', { name: 'Check' }));
+    expect(screen.queryByText('Correct, you missed it')).toBeNull();
+    expect(document.querySelector('.choice.right')).toBeNull();
+  });
 });

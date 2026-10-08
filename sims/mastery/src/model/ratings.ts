@@ -21,7 +21,7 @@
  * so a merge of two documents needs no rule of its own, and two devices with the same
  * evidence show the same numbers.
  */
-import { SUPERVISION_MARK_MAX, SUPERVISION_PASS_MARK, isMastered, type GateDoc, type MemoryState } from '@learnhub/mastery';
+import { SUPERVISION_MARK_MAX, SUPERVISION_PASS_MARK, isMastered, sameKey, type GateDoc, type KeyResolver, type MemoryState } from '@learnhub/mastery';
 
 export type DomainId = 'analysis' | 'algebra' | 'probability' | 'proof' | 'programming';
 export type RatingId = DomainId | 'temperament';
@@ -162,10 +162,12 @@ const topicOfKey = (key: string): string => key.slice(0, Math.max(0, key.indexOf
 
 /**
  * The inputs from a progress document: `topics` are the graph's (id and area), `gateOf` a
- * topic's gate problem ids (the content catalog), `timed` the timed papers' results.
+ * topic's gate problem ids (the content catalog), `timed` the timed papers' results, `resolve`
+ * the current key of a problem that moved topic (the catalog's `currentProblemKey`).
  */
 export function ratingInputs(
   p: GateDoc, topics: readonly { id: string; area: string }[], gateOf: (topicId: string) => readonly string[], timed: readonly TimedResult[],
+  resolve: KeyResolver = sameKey,
 ): RatingInputs {
   const empty = (): DomainEvidence => ({ topics: 0, practice: [], mastered: [], supervision: [] });
   const domains: Record<DomainId, DomainEvidence> = { analysis: empty(), algebra: empty(), probability: empty(), proof: empty(), programming: empty() };
@@ -180,11 +182,11 @@ export function ratingInputs(
     if (m === undefined) continue;
     const s = strengthOf(m);
     e.practice.push(s);
-    if (isMastered(p, t.id, gateOf(t.id))) e.mastered.push(s);
+    if (isMastered(p, t.id, gateOf(t.id), resolve)) e.mastered.push(s);
   }
   for (const a of p.supervision) {
     if (a.result === null || a.importedAt === null || a.result.mark < SUPERVISION_PASS_MARK) continue;
-    const d = domainById.get(topicOfKey(a.problem));
+    const d = domainById.get(topicOfKey(resolve(a.problem)));
     if (d !== undefined) domains[d].supervision.push(a.result.mark);
   }
   return { domains, timed };

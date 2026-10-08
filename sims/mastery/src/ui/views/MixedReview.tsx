@@ -65,8 +65,8 @@ export function MixedReviewView() {
             <div class="ds-eyebrow">Blind mixed review</div>
             <h1 id="mixed-title" class="ds-h1">Not enough to mix yet</h1>
             <p class="ds-note">
-              A mixed review needs at least {MIXED_MIN_TOPICS} mastered topics, so that the problem does not give its topic away. You have
-              {' '}{topics.length}. Master more topics (learn each, then meet its Cambridge gate), and the review appears in Today.
+              A mixed review needs at least {MIXED_MIN_TOPICS} mastered topics, so that the problem does not give its topic away. Mastered so
+              far: {topics.length}. Master more topics (learn each, then meet its Cambridge gate), and the review appears in Today.
             </p>
           </>
         )
@@ -75,7 +75,7 @@ export function MixedReviewView() {
             <>
               <div class="ds-eyebrow">Blind mixed review</div>
               <h1 id="mixed-title" class="ds-h1">Mixed review</h1>
-              <p class="ds-note">Getting your topics ready.</p>
+              <p class="ds-note">Getting the topics ready.</p>
             </>
           )
           : <MixedRun contents={contents} />}
@@ -94,7 +94,7 @@ function MixedRun({ contents }: { contents: readonly TopicContent[] }) {
       <>
         <div class="ds-eyebrow">Blind mixed review</div>
         <h1 id="mixed-title" class="ds-h1">Nothing to mix</h1>
-        <p class="ds-note">Your mastered topics have no generated problems that could be loaded. Try again later.</p>
+        <p class="ds-note">The mastered topics have no generated problems that could be loaded. Try again later.</p>
       </>
     );
   }

@@ -367,7 +367,7 @@ export function MapView({ topicId }: { topicId: string | null }) {
         <aside class={`map-details${topicId !== null ? ' open' : ''}`} aria-label="Topic details">
           {topicId !== null && <button type="button" class="btn btn-small sheet-close" onClick={() => go({ view: 'map', topicId: null })}>Close</button>}
           {topicId === null
-            ? <p class="small muted">Choose a topic to see what it covers, where it is taught, and where you are with it.</p>
+            ? <p class="small muted">Choose a topic to see what it covers, where it is taught, and how far it has got.</p>
             : <Details p={p} id={topicId} status={status.get(topicId)} />}
         </aside>
       </div>

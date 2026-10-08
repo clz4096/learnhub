@@ -276,3 +276,6 @@ export function gateOf(topicId: string): readonly string[] {
 }
 
 export type { CatalogProblem };
+
+/** Old problem keys ("topicId/problemId") of problems that moved topic, and the resolver to the current key. */
+export { MOVED_PROBLEMS, currentProblemKey } from './catalog.generated';

@@ -5,7 +5,9 @@
  * proof by contrapositive (page 69: "if x cubed is odd then x is odd"), and Book of Proof
  * Sections 5.1 and 5.3. The problems are Book of Proof's Chapter 5 exercises, checked
  * against the solutions to odd exercises, supervision exercises 1.1.2 and 1.1.8 with the
- * 2023-24 official solutions, and TMUA Exercise K.
+ * 2023-24 official solutions, and TMUA Exercise K. Supervision exercise 1.1.3 (n squared is even
+ * if and only if n is even) moved here from If and only if (Rule 1, 2026-10-08); it is practice,
+ * since its harder direction is this lesson's own worked proof.
  */
 import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { int, upTo } from '../math';
@@ -375,6 +377,18 @@ const tmuaK3 = supervision({
   writeUp: 'explanation',
 });
 
+// ---------------------------------------------------------------- Cambridge problems moved here (Rule 1, 2026-10-08)
+
+// From If and only if, which set it before proof by contrapositive was taught.
+const sw113 = supervision({
+  id: 'sw-1-1-3',
+  source: cite('cst-dm-sw1', 'Exercises 1, 1.1.3'),
+  title: t`${math`n^{${2}}`} is even if and only if ${math`n`} is even`,
+  prompt: t`Prove: for an integer ${math`n`}, ${math`n^{${2}}`} is even if and only if ${math`n`} is even. Write the two directions separately, each starting with what it assumes.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-1', '1.1.3'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const [mP, mQ] = [math`P`, math`Q`];
@@ -441,7 +455,8 @@ export const contrapositive: TopicContent = {
   generators: [writeContrapositive, withDeMorgan, fourStatements],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['proof-by-contrapositive'],
-  cambridge: withUses([bop1, bop9, bop7, sw112, sw118, bop25, sw112proof, sw118proof, corollary41, tmuaK3], {
+  cambridge: withUses([bop1, bop9, bop7, sw112, sw118, bop25, sw112proof, sw118proof, corollary41, tmuaK3, sw113], {
+    'sw-1-1-3': { sections: ['Proof by contrapositive'], note: t`Proving each direction separately, the harder one by its contrapositive` },
     'cst-corollary-41': { sections: ['The contrapositive', 'Proof by contrapositive'], note: t`Stating and proving the contrapositive about irrational numbers` },
     'sw-1-1-8': { sections: ['Proof by contrapositive', 'Negating compound parts'], note: t`The contrapositive of an implication with an "or", by De Morgan's law` },
     'sw-1-1-2': { sections: ['Proof by contrapositive', 'Negating compound parts'], note: t`Taking the contrapositive of only part of a statement` },

@@ -3,8 +3,9 @@
  * the CST notes on bi-implication (printed pages 57 to 62: the proof pattern, Definition 12
  * and Proposition 16, using an iff as two implications), Book of Proof Section 2.4, and the
  * TMUA notes on swapping A and B (page 40) and on necessary and sufficient (pages 51 to 54).
- * The problems are Book of Proof's exercises for Section 2.4, supervision exercises 1.1.3,
- * 1.2.2, and 1.2.7 (with the 2023-24 official solutions), and TMUA Exercise I. The second gate
+ * The problems are Book of Proof's exercises for Section 2.4, supervision exercises 1.1.3 (its
+ * verdict; the proof is in proof.contrapositive, Rule 1, 2026-10-08), 1.2.2, and 1.2.7 (with the
+ * 2023-24 official solutions), and TMUA Exercise I. The second gate
  * (batch 9) is STEP Support Assignment 10, Q2(v): five "if and only if" statements to judge,
  * each false one by a single example, checked against the hints and by search.
  */
@@ -378,14 +379,6 @@ const tmuaBoth = auto({
   official: { source: cite('tmua-logic-proof', 'page 54, the summary table'), answer: 'A <=> B', agrees: true },
 });
 
-const sw113 = supervision({
-  id: 'sw-1-1-3',
-  source: cite('cst-dm-sw1', 'Exercises 1, 1.1.3'),
-  title: t`${math`n^{${2}}`} is even if and only if ${mn} is even`,
-  prompt: t`Prove: for an integer ${mn}, ${math`n^{${2}}`} is even if and only if ${mn} is even. Write the two directions separately, each starting with what it assumes.`,
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-1', '1.1.3'),
-});
 const sw122 = supervision({
   id: 'sw-1-2-2',
   source: cite('cst-dm-sw1', 'Exercises 1, 1.2.2'),
@@ -556,14 +549,13 @@ export const iff: TopicContent = {
   generators: [necSuff, iffTable, iffWitness],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['biconditional', 'sufficient-condition', 'necessary-condition'],
-  cambridge: withUses([bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, sw113, sw122, sw127, a10Iff, tmuaI3], {
+  cambridge: withUses([bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, sw122, sw127, a10Iff, tmuaI3], {
     'sw-1-2-7': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
     'sw-1-2-2': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
-    'sw-1-1-3': { sections: ['Proving both directions'], note: t`Proving each direction separately, from what it assumes`, needs: ['proof.direct'] },
     'a10-q2-v': { sections: ['Two arrows at once', 'Necessary and sufficient'], note: t`Testing both directions of each statement, and breaking a false one with a single example` },
   }),
-  // The two-way proof of 1.1.3 needs proof writing, which proof.direct teaches later in the book, so it is
-  // practice (2026-10-08). 1.2.7 and 1.2.2 need divisibility, taught later, so they are practice. The true-or-false
+  // The two-way proof of 1.1.3 is set in proof.contrapositive, where its harder direction is taught (Rule 1,
+  // 2026-10-08). 1.2.7 and 1.2.2 need divisibility, taught later, so they are practice. The true-or-false
   // version of 1.1.3 is left out: a two-option guess does not test the topic. Assignment 10 Q2(v) has five
   // statements to judge, so a guess passes it one time in 32.
   gate: ['a10-q2-v'],

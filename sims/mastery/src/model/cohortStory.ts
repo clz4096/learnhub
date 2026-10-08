@@ -7,7 +7,7 @@
  * Story tab's locked list gives nothing away.
  */
 import { isMastered, type GateDoc } from '@learnhub/mastery';
-import { gateOf } from '@learnhub/content';
+import { currentProblemKey, gateOf } from '@learnhub/content';
 import { BOOK_ORDER } from '@learnhub/content/book';
 import {
   CLASSMATES, campaignEvents, eventsBy, farBehind, standing,
@@ -27,7 +27,7 @@ export function albertCounts(p: GateDoc | null): { learned: number; gated: numbe
   for (const id of BOOK_ORDER) {
     if (p.memory[id] === undefined) continue;
     learned++;
-    if (isMastered(p, id, gateOf(id))) gated++;
+    if (isMastered(p, id, gateOf(id), currentProblemKey)) gated++;
   }
   return { learned, gated };
 }

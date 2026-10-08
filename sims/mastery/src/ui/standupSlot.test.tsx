@@ -137,19 +137,19 @@ describe('StandupSlot', () => {
     expect(r.running).toBe(false);
     expect(textarea().value).toBe('Yesterday I finished sequences. and some');
     expect(flags()).toEqual([
-      'You said you finished sequences; its Cambridge problem is still open.',
-      'Say what you will do today.',
-      'Say what is blocking you, or that nothing is.',
+      'Sequences: said finished, but its Cambridge problem is still open.',
+      'Say what is planned for today.',
+      'Say what is blocking progress, or that nothing is.',
     ]);
     expect(document.body.textContent).toContain('Passed the lesson on Sequences and nth term rules.');
     fireEvent.input(textarea(), { target: { value: 'Yesterday I finished sequences. Today I will do its Cambridge problem. Nothing is blocking me.' } });
-    expect(flags()).toEqual(['You said you finished sequences; its Cambridge problem is still open.']);
+    expect(flags()).toEqual(['Sequences: said finished, but its Cambridge problem is still open.']);
     fireEvent.click(screen.getByRole('button', { name: 'Submit standup' }));
     expect(onDone).toHaveBeenCalledTimes(1);
     const e = loadStandups()[DATE];
     expect(e).toEqual({
       date: DATE, transcript: 'Yesterday I finished sequences. Today I will do its Cambridge problem. Nothing is blocking me.',
-      checkedAt: T0, flags: ['You said you finished sequences; its Cambridge problem is still open.'], duration: 30,
+      checkedAt: T0, flags: ['Sequences: said finished, but its Cambridge problem is still open.'], duration: 30,
     });
     // It rides in the learner envelope's values; the audio does not.
     expect(storedValues().standup[DATE]).toEqual(e);
@@ -208,14 +208,14 @@ describe('StandupSlot', () => {
 
   it('shows "Done for today" with his entry when the date is already submitted', () => {
     withRecorder();
-    saveStandup({ date: DATE, transcript: 'All done.', checkedAt: T0 - 2 * H, flags: ['Say what you will do today.'], duration: 72 });
+    saveStandup({ date: DATE, transcript: 'All done.', checkedAt: T0 - 2 * H, flags: ['Say what is planned for today.'], duration: 72 });
     const onDone = vi.fn();
     render(<StandupSlot date={DATE} onDone={onDone} />);
     expect(screen.getByRole('heading', { name: 'Done for today' })).toBeTruthy();
     expect(document.body.textContent).toContain('All done.');
     expect(document.body.textContent).toContain('Submitted at 7:00 am');
     expect(document.body.textContent).toContain('1:12 recorded');
-    expect(flags()).toEqual(['Say what you will do today.']);
+    expect(flags()).toEqual(['Say what is planned for today.']);
     expect(screen.queryByRole('button', { name: 'Record' })).toBeNull();
     expect(onDone).not.toHaveBeenCalled();
   });

@@ -328,7 +328,7 @@ describe('migrations', () => {
     expect(r.value.session).toEqual(sample().session);
   });
 
-  it('migrates version 4 to 5 changing nothing but the version: memory and the review schedule are kept', () => {
+  it('migrates version 4 to 5 (and on) changing nothing but the version: memory and the review schedule are kept', () => {
     const r = importProgress(JSON.stringify(sampleV4()));
     expect(r).toEqual({ ok: true, value: sample(), warnings: [] });
   });
@@ -354,6 +354,32 @@ describe('migrations', () => {
     // A build that reads only up to this version refuses a newer document whole instead of dropping entries.
     d.version = PROGRESS_VERSION + 1;
     expect(importProgress(d)).toEqual({ ok: false, errors: [`$.version: ${PROGRESS_VERSION + 1} was written by a newer build (this one reads up to ${PROGRESS_VERSION}); update the app`] });
+  });
+
+  it('migrates version 5 to 6: every Cambridge miss showed the solution, so its problem stays not counting', () => {
+    const d = JSON.parse(exportProgress(sampleV5()));
+    d.version = 5;
+    d.history.push(
+      { at: NOW + 7000, kind: 'cambridge', topicId: 'pre.indices', correct: false, item: { id: 'pre.indices/a12-q1-iii', hints: 0, attempt: 1 } },
+      { at: NOW + 8000, kind: 'cambridge', topicId: 'pre.indices', correct: true, item: { id: 'pre.indices/a12-q1-iii', hints: 0, attempt: 2 } },
+      { at: NOW + 9000, kind: 'drill', topicId: 'pre.indices', correct: false, item: { id: 'pre.indices/laws', hints: 0, attempt: 3 } },
+    );
+    const r = importProgress(d);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const h = r.value.history;
+    // The miss is marked; the right answer, the drill miss, and every other entry are as they were.
+    expect(h.filter((e) => e.item?.solution === true).map((e) => e.at)).toEqual([NOW + 7000]);
+    expect(h.filter((e) => e.item?.solution !== true)).toEqual(d.history.filter((e: { at: number }) => e.at !== NOW + 7000));
+    // Under the old rule the right answer after the miss did not count; it still does not.
+    expect(gateStatus(r.value, 'pre.indices', ['a12-q1-iii']).stage).toBe('needs-gate');
+    // A first answer that was right still counts.
+    expect(gateStatus(r.value, 'pre.fractions', ['a6-q1']).evidence).toEqual({ kind: 'auto', problem: 'pre.fractions/a6-q1', at: NOW + 4000, hints: 0 });
+  });
+
+  it('the version 5 to 6 migration leaves malformed history to validation', () => {
+    expect(MIGRATIONS[5]?.({ version: 5, history: 3 })).toEqual({ version: 6, history: 3 });
+    expect(MIGRATIONS[5]?.({ version: 5, history: [null, { kind: 'cambridge', correct: false }] })).toEqual({ version: 6, history: [null, { kind: 'cambridge', correct: false }] });
   });
 
   it('migrates through every version in turn and validates the result', () => {
@@ -400,6 +426,7 @@ describe('item data (version 5)', () => {
     ['fractional hints', { id: 'a', hints: 0.5, attempt: 1 }, /\.item\.hints/],
     ['missing hints', { id: 'a', attempt: 1 }, /\.item\.hints/],
     ['attempt 0', { id: 'a', hints: 0, attempt: 0 }, /\.item\.attempt/],
+    ['a solution flag that is not true', { id: 'a', hints: 0, attempt: 1, solution: false }, /\.item\.solution/],
   ];
   for (const [name, item, re] of bad) {
     it(`rejects ${name}`, () => {
@@ -408,6 +435,12 @@ describe('item data (version 5)', () => {
       if (!r.ok) expect(r.errors.join('\n')).toMatch(re);
     });
   }
+
+  it('round-trips a Cambridge entry that showed the solution', () => {
+    const p = sampleV5();
+    p.history.push({ at: NOW + 7000, kind: 'cambridge', topicId: 'pre.fractions', correct: false, item: { id: 'pre.fractions/a6-q1', hints: 2, attempt: 2, solution: true } });
+    expect(importProgress(exportProgress(p))).toEqual({ ok: true, value: p, warnings: [] });
+  });
 
   it('warns about an unknown item field and drops it', () => {
     const r = importProgress(withItem({ id: 'a', hints: 0, attempt: 1, mood: 'good' }));

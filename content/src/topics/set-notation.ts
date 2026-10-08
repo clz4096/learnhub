@@ -2,13 +2,13 @@
  * pre.set-notation: Sets and Venn diagrams. The lesson follows Book of Proof Sections 1.1
  * and 1.5 to 1.7 (added to the batch by decision 9), with the TMUA notes' diagrams for
  * not, and, or (pages 12 to 20); the problems are Book of Proof's exercises for Sections
- * 1.5, 1.6, and 1.7. The gates (batch 7) are IA Numbers and Sets Example Sheet 1, Q6 and Q13, and
- * CST supervision exercise 5.1.6 with its 2023-24 official solution, in the lesson's notation (A - B
- * for the sheets' A \ B, and a bar for the complement); exercise 5.1.3(b) is practice.
+ * 1.5, 1.6, and 1.7. The gate is CST supervision exercise 5.1.3(b). The proofs of IA Numbers and
+ * Sets Example Sheet 1, Q6 and Q13, and CST exercise 5.1.6, once set here, are in proof.set-proofs
+ * (Rule 1, 2026-10-08), which already set 5.1.6.
  *
- * The gates prove identities between sets, so the section "Proving two sets are equal" (2026-10-06)
- * teaches it on the distributive law, which no gate asks for: following one element, and a
- * membership table for three sets.
+ * The section "Proving two sets are equal" (2026-10-06) shows the idea on the distributive law:
+ * following one element, and a membership table for three sets. Writing such a proof is taught
+ * in proof.set-proofs.
  */
 import { auto, type AutoProblem, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample, upTo } from '../math';
@@ -404,60 +404,6 @@ const bop17_10 = supervision({
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
 
-/*
- * Outline for marking ns1-q6 (20 marks):
- * 1. Two sets are equal when they have the same elements: show x is in the left side exactly when
- *    it is in the right side (or show each side is inside the other) (4).
- * 2. x in A - (B u C) means x in A and not (x in B or x in C) (4); by De Morgan for "or", x in A and
- *    x not in B and x not in C (4).
- * 3. Regroup: (x in A and x not in B) and (x in A and x not in C), that is x in (A - B) n (A - C) (6).
- * 4. Every step reversible, said explicitly, so both inclusions follow (2).
- */
-const ns1q6 = supervision({
-  id: 'ns1-q6',
-  source: cite('ia-ns-sheet-1', 'Q6', true),
-  title: t`A difference from a union`,
-  prompt: t`Prove that ${math`A - (B \cup C) = (A - B) \cap (A - C)`} for all sets ${A}, ${B}, ${math`C`}.`,
-  writeUp: 'proof',
-});
-
-/*
- * Outline for marking ns1-q13 (20 marks):
- * 1. A triangle B = (A - B) u (B - A), or equally (A u B) - (A n B), with a line of justification (5).
- * 2. Key fact: x is in A triangle B exactly when x is in an odd number of A, B (one of them) (4).
- * 3. Then x is in (A triangle B) triangle C exactly when x is in exactly one of A triangle B and C,
- *    that is, when x is in an odd number of A, B, C; check the cases (6).
- * 4. The condition is symmetric in A, B, C, so A triangle (B triangle C) is the same set:
- *    the operation is associative (5). (A check of the 8 regions of a three-set Venn diagram,
- *    region by region, earns full credit.)
- */
-const ns1q13 = supervision({
-  id: 'ns1-q13',
-  source: cite('ia-ns-sheet-1', 'Q13', true),
-  title: t`The symmetric difference`,
-  prompt: t`The symmetric difference ${math`A \mathbin{\triangle} B`} of two sets ${A} and ${B} is the set of elements that belong to exactly one of ${A} and ${B}. Express this in terms of ${math`\cap`}, ${math`\cup`}, and ${math`-`}. Prove that ${math`\triangle`} is associative: ${math`(A \mathbin{\triangle} B) \mathbin{\triangle} C = A \mathbin{\triangle} (B \mathbin{\triangle} C)`} for all sets ${A}, ${B}, ${math`C`}.`,
-  writeUp: 'proof',
-});
-
-/*
- * Outline for marking sw-5-1-6 (20 marks):
- * (a) 8 marks. If the complement of A is B: every x in U is in A or not in A, so A u B = U; no x is
- *     both, so A n B is empty. Conversely, A u B = U puts every x outside A into B; A n B empty puts
- *     every x in B outside A; so B is exactly the complement.
- * (b) 4 marks. By (a) with the roles swapped, or element by element: x is outside the complement of
- *     A exactly when x is in A.
- * (c) 8 marks. Each De Morgan law element by element ("not (P or Q)" is "not P and not Q"), or from
- *     (a): check union and intersection with the claimed complement are U and the empty set.
- */
-const sw516 = supervision({
-  id: 'sw-5-1-6',
-  source: cite('cst-dm-sw1', 'Exercises 5, 5.1.6', true),
-  title: t`Complements and De Morgan's laws`,
-  prompt: t`Let ${math`U`} be a set, and let ${A} and ${B} be subsets of ${math`U`}, with complements taken in ${math`U`}. Prove that: (a) ${math`\overline{A} = B`} if and only if ${math`A \cup B = U`} and ${math`A \cap B = \varnothing`}; (b) ${math`\overline{\overline{A}} = A`}; (c) ${math`\overline{A \cup B} = \overline{A} \cap \overline{B}`} and ${math`\overline{A \cap B} = \overline{A} \cup \overline{B}`}.`,
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-5', '5.1.6'),
-});
-
 /** CST 5.1.3(b): C = {x in R | x > 7} and D = {x in N | x > 5}, N = {0, 1, 2, ...}. */
 const inC513 = (x: number): boolean => x > 7;
 const inD513 = (x: number): boolean => Number.isInteger(x) && x >= 0 && x > 5;
@@ -606,15 +552,12 @@ export const setNotation: TopicContent = {
   generators: [unionIntersection, complement, countRegions, difference],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['set', 'element', 'universal-set', 'union', 'intersection', 'set-difference', 'complement', 'empty-set', 'venn-diagram'],
-  cambridge: withUses([bop15a, bop15c, bop15g, bop15i, bop16a, bop16g, bop16b2f, bop17_5, bop17_8, bop17_3, bop17_10, ns1q6, sw516, ns1q13, sw513], {
-    'ns1-q6': { sections: ['The four operations', 'Proving two sets are equal'], note: t`Proving an identity between sets by following an element`, needs: ['proof.direct'] },
-    'sw-5-1-6': { sections: ['The four operations', 'Proving two sets are equal'], note: t`Proving complement identities and De Morgan's laws for sets`, needs: ['proof.direct'] },
-    'ns1-q13': { sections: ['The four operations', 'Three sets need brackets', 'Proving two sets are equal'], note: t`Expressing the symmetric difference, and proving it associative with a membership table`, needs: ['proof.direct'] },
+  cambridge: withUses([bop15a, bop15c, bop15g, bop15i, bop16a, bop16g, bop16b2f, bop17_5, bop17_8, bop17_3, bop17_10, sw513], {
     'sw-5-1-3': { sections: ['Sets and the universal set', 'The four operations'], note: t`Reading two sets from their properties, then deciding membership, an intersection, and a union` },
   }),
-  // The proofs of set identities (the IA sheet's difference of a union, the CST complement laws, the symmetric
-  // difference) need proof writing, which proof.direct teaches later in the book, so they are practice
-  // (2026-10-08). The reals and naturals question gates: five verdicts, and a guess passes one time in 32.
+  // The proofs of set identities (the IA sheet's difference of a union and symmetric difference, the CST
+  // complement laws) are set in proof.set-proofs, where proofs about sets are taught (Rule 1, 2026-10-08). The
+  // reals and naturals question gates: five verdicts, and a guess passes one time in 32.
   gate: ['sw-5-1-3'],
   recall: [
     { front: t`Define ${math`A \cup B`}, ${math`A \cap B`}, ${math`A - B`} and ${math`\overline{A}`}.`, back: t`In ${A} or ${B}; in both; in ${A} but not ${B}; in ${U} but not ${A}.` },

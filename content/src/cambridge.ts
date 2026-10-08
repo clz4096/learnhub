@@ -246,6 +246,21 @@ export interface ProblemUses {
   needs?: readonly string[];
 }
 
+/**
+ * The words of a personal voice: "you" and "we" in their forms. Problem statements, hints,
+ * nudges, and solutions are neutral (mastery/APP-LANGUAGE.md, "Voice"); practice feedback on
+ * a generated problem's misconception is the one exception and is not checked.
+ */
+const PERSONAL = /\b(?:you|your|yours|yourself|yourselves|we|our|ours|ourselves|us|let's)\b/gi;
+
+/** The personal-voice words in a text's prose (not its mathematics), lower case, in order. */
+export function personalWords(r: Rich): string[] {
+  return r.flatMap((s) => (s.kind === 'text' ? [...s.text.matchAll(PERSONAL)].map((m) => m[0].toLowerCase()) : []));
+}
+
+/** A problem has at most this many hints (mastery/APP-LANGUAGE.md: three escalating questions). */
+export const MAX_HINTS = 3;
+
 interface CambridgeBase {
   /** Unique within the topic, for example "a6-q4-ii". */
   id: string;
@@ -253,6 +268,18 @@ interface CambridgeBase {
   /** Short title, for lists. */
   title: Rich;
   uses?: ProblemUses;
+  /**
+   * Up to `MAX_HINTS` hints, in order, each a question in the supervisor's voice that
+   * nudges one step further than the last and never gives the answer (mastery/
+   * APP-LANGUAGE.md). A single-answer problem shows the next one on request after a miss.
+   */
+  hints?: readonly Rich[];
+  /**
+   * The line under "Not right yet" after a miss on a single-answer problem: one short
+   * pointer toward a faster or better route, never the answer. Without one the app shows a
+   * neutral generic line.
+   */
+  nudge?: Rich;
 }
 
 export interface AutoProblem extends CambridgeBase {
@@ -307,6 +334,10 @@ export interface AutoSpec {
   misconceptions?: readonly Misconception[];
   official?: Official;
   uses?: ProblemUses;
+  /** See `CambridgeBase.hints`. */
+  hints?: readonly Rich[];
+  /** See `CambridgeBase.nudge`. */
+  nudge?: Rich;
 }
 
 /** An auto-checked Cambridge problem, as an instance the graders and checks treat like any other. */
@@ -322,6 +353,8 @@ export function auto(spec: AutoSpec): AutoProblem {
   const out: AutoProblem = { id: spec.id, source: spec.source, title: spec.title, mode: 'auto', instance, verify: spec.verify };
   if (spec.official !== undefined) out.official = spec.official;
   if (spec.uses !== undefined) out.uses = spec.uses;
+  if (spec.hints !== undefined) out.hints = spec.hints;
+  if (spec.nudge !== undefined) out.nudge = spec.nudge;
   return out;
 }
 

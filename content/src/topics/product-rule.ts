@@ -4,7 +4,7 @@
  * Bachet's weights (each weight in the pan or not gives 2^n choices; with two pans, 3^n).
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { factorial, int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, computedMath as cm, dmath, listOf, math, t } from '../rich';
@@ -351,31 +351,6 @@ const a7ThreeWays = auto({
   official: { source: cite('step-f07-hints', 'Q4(ii)(b)'), answer: '3^n', agrees: true },
 });
 
-const a7Unique = supervision({
-  id: 'a7-q4-i-a',
-  source: cite(A7, 'Q4(i)(a)'),
-  title: t`Three weights, and only one choice`,
-  prompt: t`If I can only put the weights in one of the scale pans, show that I can choose just three weights to measure every whole number of ounces from ${1} to ${7}, and that there is only one such choice.`,
-  writeUp: 'proof',
-  official: cite('step-f07-hints', 'Q4(i)(a)'),
-});
-const a7Bound = supervision({
-  id: 'a7-q4-i-c-show',
-  source: cite(A7, 'Q4(i)(c)'),
-  title: t`At most ${math`${2}^n`} loads`,
-  prompt: t`Show that if I have only ${math`n`} weights and one pan, I cannot weigh more than ${math`${2}^n`} different weights, including zero ounces. How can I choose the weights to measure every whole number from ${1} to ${math`${2}^n - ${1}`}?`,
-  writeUp: 'proof',
-  official: cite('step-f07-hints', 'Q4(i)(c)'),
-});
-const a7Bound3 = supervision({
-  id: 'a7-q4-ii-b-show',
-  source: cite(A7, 'Q4(ii)(b)'),
-  title: t`At most ${math`${3}^n`} loads`,
-  prompt: t`Show that if I have only ${math`n`} weights and may use either pan, I cannot weigh more than ${math`${3}^n`} different weights, including zero ounces.`,
-  writeUp: 'proof',
-  official: cite('step-f07-hints', 'Q4(ii)(b)'),
-});
-
 // ---------------------------------------------------------------- lesson
 
 const shirts = ['red', 'blue', 'green'];
@@ -456,14 +431,11 @@ export const productRule: TopicContent = {
     worked(wholeNumbers, { k: 3, rule: 'odd' }, t`Odd three digit numbers`),
   ],
   generators: [menu, codes, wholeNumbers, weighings, bachet],
-  cambridge: withUses([a7Five, a7TwoPans, a7Forty, a7ThreeWays, a7Unique, a7Bound, a7Bound3], {
-    'a7-q4-ii-b-show': { sections: ['The rule, stated precisely'], note: t`Three choices for each weight, so at most a power of three loads`, needs: ['proof.direct'] },
-    'a7-q4-i-c-show': { sections: ['Arrangements and yes or no choices'], note: t`Two choices for each weight, so at most a power of two loads`, needs: ['proof.direct'] },
-    'a7-q4-i-a': { sections: ['Arrangements and yes or no choices'], note: t`Showing a choice of weights works and is the only one`, needs: ['proof.direct'] },
+  cambridge: withUses([a7Five, a7TwoPans, a7Forty, a7ThreeWays], {
     'a7-q4-ii-c': { sections: ['The rule, stated precisely'], note: t`Choosing weights so every load from one up is reachable` },
   }),
   // The four weights to 40. The two counting bounds and the unique three-weight choice are written proofs,
-  // which proof.direct teaches later in the book, so they are practice (2026-10-08). The 3^n count and the
+  // so they are set in proof.direct, the first topic that teaches writing one (Rule 1, 2026-10-08). The 3^n count and the
   // powers of two to 31 are one step each, and Q4(ii)(a) (the weights 1 and 3) is too slight to gate.
   gate: ['a7-q4-ii-c'],
   mastery: { correctInARow: 3, maxProblems: 10 },

@@ -41,7 +41,7 @@ function Courses({ p }: { p: Progress }) {
           );
         })}
       </div>
-      <p class="small muted">Topics shared by both courses count in each. You learn them once.</p>
+      <p class="small muted">Topics shared by both courses count in each. Each is learned once.</p>
     </section>
   );
 }
@@ -174,8 +174,8 @@ export function ImportFile({ onDone }: { onDone?: () => void }) {
         <div class="warning" role="alert">
           <p>
             This file has {Object.keys(pending.doc.memory).length} topics learned and {pending.doc.history.length} answers, saved{' '}
-            {new Date(pending.doc.updatedAt).toLocaleString('en-GB')}. Importing replaces your progress in this browser
-            {pending.learner === null ? '.' : ', along with your campaign, story, day plans, and timed work.'}
+            {new Date(pending.doc.updatedAt).toLocaleString('en-GB')}. Importing replaces the progress in this browser
+            {pending.learner === null ? '.' : ', along with the campaign, story, day plans, and timed work.'}
           </p>
           {pending.warnings.length > 0 && <ul class="small">{pending.warnings.slice(0, 8).map((w, i) => <li key={i}>{w}</li>)}</ul>}
           <div class="actions">
@@ -230,9 +230,9 @@ export function StartOver() {
     <details class="start-over card">
       <summary>Start over</summary>
       <p class="small">
-        This erases every learned topic, your review schedule, and your history in this browser, and the
-        learnhub catalog shows no progress. It cannot be undone. Export a file first if you might want it back.
-        {syncSignedIn() ? ' You are signed in to sync, so this also erases your progress on your other devices when they next sync.' : ''}
+        This erases every learned topic, the review schedule, and the history in this browser, and the
+        learnhub catalog shows no progress. It cannot be undone. Export a file first to keep a copy.
+        {syncSignedIn() ? ' Sync is signed in, so this also erases the progress on the other devices when they next sync.' : ''}
       </p>
       <label class="field small" for="start-over-confirm">
         <span>Type <strong>{CONFIRM_PHRASE}</strong> to confirm</span>

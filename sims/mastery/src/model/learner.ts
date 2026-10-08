@@ -3,7 +3,7 @@
  * functions: each takes a Progress and returns a new one, so the views stay thin and these
  * rules are tested without a browser.
  *
- * One document per learner (the engine's Progress, version 5), holding the chosen
+ * One document per learner (the engine's Progress, version 6), holding the chosen
  * courses, placement answers from earlier builds, memory, history, lesson minutes per
  * course for the planner's split, today's session, supervision attempts with the
  * problems they set to redo, and the times of choices and resets that sync merges by.
@@ -11,11 +11,17 @@
  * Mastery (decisions of 2026-10-05): passing a lesson's practice makes a topic learned (it
  * gets a memory state, is reviewed, and unlocks what builds on it); it is mastered once its
  * Cambridge gate is met as well (`masteryOf`, the engine's gate.ts).
+ *
+ * A Cambridge problem that moved topic (`MOVED_PROBLEMS` in the content) keeps its old key in
+ * the history, supervision attempts and redos already stored. Every read here resolves a key
+ * to the current one (`currentProblemKey`), so old work counts on the problem where it is now;
+ * the stored document is never rewritten, so merging copies stays a join.
  */
-import { FIRST_PROOF_TOPIC, gateOf, hasContent as written } from '@learnhub/content';
+import { FIRST_PROOF_TOPIC, currentProblemKey, gateOf, hasContent as written } from '@learnhub/content';
 import {
-  DAY_MS, SUPERVISION_PASS_MARK, classify, dueTopics, frontier, gateStatus, newProgress, nextAttempt, placedMemory, placementGraph,
-  placementResult, planSession, recordGym, recordLesson, recordLessonFailure, recordReview, replayMemory, sameMemoryState, topoOrder, withChoices,
+  DAY_MS, NONCE_ALPHABET, NONCE_LENGTH, SUPERVISION_PASS_MARK, cambridgeEntries, classify, dueTopics, frontier, gateStatus, newProgress, nextAttempt, placedMemory, placementGraph,
+  placementResult, planSession, recordGym, recordLesson, recordLessonFailure, recordReview, replayMemory, sameMemoryState, solutionShown, topoOrder,
+  unaidedAnswer, withChoices,
   type GateStatus, type GymCandidate, type HistoryEntry, type ItemData, type MemoryMap, type MemoryState, type PlacementGraph, type Progress, type Redo,
   type SessionPlan, type SessionRecord, type SessionTask, type SupervisionAttempt, type SupervisionResult, type Topic,
 } from '@learnhub/mastery';
@@ -218,9 +224,11 @@ export function completeLesson(
 export type ItemInput = Omit<ItemData, 'attempt'> & { attempt?: number };
 
 function itemOf(p: Progress, kind: HistoryEntry['kind'], item: ItemInput): ItemData {
-  const out: ItemData = { id: item.id, hints: item.hints, attempt: item.attempt ?? nextAttempt(p.history, kind, item.id) };
+  const resolve = kind === 'cambridge' ? currentProblemKey : undefined;
+  const out: ItemData = { id: item.id, hints: item.hints, attempt: item.attempt ?? nextAttempt(p.history, kind, item.id, resolve) };
   if (item.seed !== undefined) out.seed = item.seed;
   if (item.ms !== undefined) out.ms = Math.max(0, Math.round(item.ms));
+  if (item.solution === true) out.solution = true;
   return out;
 }
 
@@ -236,15 +244,77 @@ export function recordDrill(p: Progress, topicId: string, correct: boolean, item
 }
 
 /**
+ * A missed single-answer Cambridge problem comes back this many days later
+ * (mastery/HOW-A-TOPIC-WORKS.md, rule 3): long enough that it is answered cold, not by a
+ * string of guesses. Until then it shows its nudge and hints but takes no answer.
+ */
+export const MISS_RETURN_DAYS = 3;
+
+/**
+ * The nonce of the redo a miss sets: made from the problem, the time, and the document, so
+ * recording stays a pure function. It avoids every nonce the document holds, so a miss's
+ * redo never reads as set by a supervisor (`redoSource` finds nothing for it).
+ */
+function missNonce(p: Progress, key: string, now: number): string {
+  const used = new Set([...p.supervision.map((a) => a.nonce), ...p.redos.map((d) => d.from)]);
+  for (let salt = 0; ; salt++) {
+    // FNV-1a over the text, stretched to the nonce's length by hashing again per letter.
+    let h = 0x811c9dc5;
+    for (const ch of `${key}@${now}#${salt}`) h = Math.imul(h ^ ch.charCodeAt(0), 0x01000193) >>> 0;
+    let out = '';
+    for (let i = 0; i < NONCE_LENGTH; i++) {
+      h = Math.imul(h ^ (i + 1), 0x01000193) >>> 0;
+      out += NONCE_ALPHABET[h % NONCE_ALPHABET.length];
+    }
+    if (!used.has(out)) return out;
+  }
+}
+
+/**
  * One answer to an auto-checked Cambridge problem, the gate's evidence: logged with its
  * item data (the item id is the problem key), its attempt number counted from the history.
- * A right answer also closes the problem's open redos (`completeRedoByCheck`).
+ * `item.solution` says the worked solution was shown with it: "Show me the solution", or an
+ * answer after the solution had been seen. The rules (mastery/HOW-A-TOPIC-WORKS.md, rule 3):
+ * - A right answer closes the problem's open redos (`completeRedoByCheck`).
+ * - A miss that did not show the solution sets the problem to come back `MISS_RETURN_DAYS`
+ *   later, as a redo on Today, unless the problem already has an open redo (it keeps its
+ *   earlier due time). Once the solution is shown, nothing more is scheduled: the problem
+ *   can no longer count.
  */
 export function recordCambridgeAnswer(p: Progress, key: string, correct: boolean, item: Omit<ItemInput, 'id'>, now: number): Progress {
+  const current = currentProblemKey(key);
   const entry: HistoryEntry = { at: now, kind: 'cambridge', topicId: topicOfKey(key), correct, item: itemOf(p, 'cambridge', { ...item, id: key }) };
   const next = touch({ ...p, history: log(p, [entry]) }, now);
-  return correct ? completeRedoByCheck(next, key, now) : next;
+  if (correct) return completeRedoByCheck(next, key, now);
+  if (item.solution === true || solutionShown(cambridgeEntries(p.history, key, currentProblemKey)) || p.redos.some((d) => currentProblemKey(d.problem) === current && d.doneAt === null)) return next;
+  return { ...next, redos: [...next.redos, { problem: key, from: missNonce(p, key, now), setAt: now, due: now + MISS_RETURN_DAYS * DAY_MS, doneAt: null }] };
 }
+
+/**
+ * Where one auto-checked Cambridge problem stands for the learner:
+ * - `solved`: answered right before its solution was ever shown (it counts, if a gate problem);
+ * - `revealed`: its solution has been shown, so it can no longer count;
+ * - `returnsAt`: after a miss, when it takes an answer again; null when it takes one now;
+ * - `hints`: the most hints any answer to it used.
+ */
+export interface CambridgeState {
+  solved: boolean;
+  revealed: boolean;
+  returnsAt: number | null;
+  hints: number;
+}
+
+export function cambridgeState(p: Progress, key: string, now: number): CambridgeState {
+  const entries = cambridgeEntries(p.history, key, currentProblemKey);
+  const solved = unaidedAnswer(entries) !== undefined;
+  const revealed = solutionShown(entries);
+  const last = entries.reduce<HistoryEntry | undefined>((a, h) => (a === undefined || h.at >= a.at ? h : a), undefined);
+  const back = last === undefined || last.correct || solved || revealed ? null : last.at + MISS_RETURN_DAYS * DAY_MS;
+  return { solved, revealed, returnsAt: back !== null && now < back ? back : null, hints: Math.max(0, ...entries.map((h) => h.item?.hints ?? 0)) };
+}
+
+/** Whether a redo came back from a miss in the app rather than from a supervisor's result. */
+export const redoFromMiss = (p: Progress, d: Redo): boolean => redoSource(p, d) === undefined;
 
 /**
  * One gym item done (the engine's gym.ts): its effect on memory (`recordGym`), and a `gym`
@@ -260,7 +330,7 @@ export function completeGymItem(
 
 /** Where a topic stands against the Cambridge gate, with its gate problems from the catalog. */
 export function masteryOf(p: Progress, topicId: string): GateStatus {
-  return gateStatus(p, topicId, gateOf(topicId));
+  return gateStatus(p, topicId, gateOf(topicId), currentProblemKey);
 }
 
 /** Learned (drills passed) and the gate met. */
@@ -331,13 +401,14 @@ export const topicOfKey = (key: string): string => key.slice(0, key.indexOf('/')
 export function recordSupervisionCopy(
   p: Progress, key: string, writeUp: string, now: number, makeNonce: () => string,
 ): { progress: Progress; attempt: SupervisionAttempt } {
-  const same = [...p.supervision].reverse().find((a) => a.problem === key && a.result === null && a.writeUp === writeUp);
+  const current = currentProblemKey(key);
+  const same = [...p.supervision].reverse().find((a) => currentProblemKey(a.problem) === current && a.result === null && a.writeUp === writeUp);
   if (same !== undefined) return { progress: p, attempt: same };
   const used = new Set(p.supervision.map((a) => a.nonce));
   let nonce = makeNonce();
   while (used.has(nonce)) nonce = makeNonce();
   const attempt: SupervisionAttempt = { problem: key, nonce, writeUp, copiedAt: now, result: null, importedAt: null };
-  const pending = p.supervision.filter((a) => a.problem === key && a.result === null);
+  const pending = p.supervision.filter((a) => currentProblemKey(a.problem) === current && a.result === null);
   const drop = new Set(pending.slice(0, Math.max(0, pending.length + 1 - MAX_PENDING_COPIES)).map((a) => a.nonce));
   return { progress: touch({ ...p, supervision: [...p.supervision.filter((a) => !drop.has(a.nonce)), attempt] }, now), attempt };
 }
@@ -357,7 +428,8 @@ export function recordSupervisionCopy(
 export function lapseExcluded(problem: string, r: Readonly<SupervisionResult>): boolean {
   if (r.mark >= SUPERVISION_PASS_MARK) return false;
   if (r.gap !== undefined) return true;
-  return !gateOf(topicOfKey(problem)).includes(problem.slice(problem.indexOf('/') + 1));
+  const k = currentProblemKey(problem);
+  return !gateOf(topicOfKey(k)).includes(k.slice(k.indexOf('/') + 1));
 }
 
 /**
@@ -367,7 +439,7 @@ export function lapseExcluded(problem: string, r: Readonly<SupervisionResult>): 
  */
 export function effectiveGap(p: Progress, problem: string, r: Readonly<SupervisionResult>): string | undefined {
   const g = r.gap;
-  if (g === undefined || r.mark >= SUPERVISION_PASS_MARK || g === topicOfKey(problem) || isMastered(p, g)) return undefined;
+  if (g === undefined || r.mark >= SUPERVISION_PASS_MARK || g === topicOfKey(currentProblemKey(problem)) || isMastered(p, g)) return undefined;
   return g;
 }
 
@@ -388,10 +460,11 @@ export function effectiveGap(p: Progress, problem: string, r: Readonly<Supervisi
  * Returns the document unchanged when the attempt is missing or already has a result.
  */
 export function importSupervisionResult(p: Progress, r: ParsedResult, now: number): Progress {
-  const at = p.supervision.findIndex((a) => a.nonce === r.nonce && a.problem === r.problem && a.result === null);
+  const key = currentProblemKey(r.problem);
+  const at = p.supervision.findIndex((a) => a.nonce === r.nonce && currentProblemKey(a.problem) === key && a.result === null);
   const attempt = p.supervision[at];
   if (attempt === undefined) return p;
-  const topicId = topicOfKey(r.problem);
+  const topicId = topicOfKey(key);
   const passed = r.result.mark >= SUPERVISION_PASS_MARK;
   const gap = effectiveGap(p, r.problem, r.result);
   const { gap: _asked, ...rest } = r.result;
@@ -400,10 +473,10 @@ export function importSupervisionResult(p: Progress, r: ParsedResult, now: numbe
   const counts = !lapseExcluded(r.problem, result);
   const memory = p.memory[topicId] === undefined || !counts ? p.memory : recordReview(p.memory, ALL_TOPICS, topicId, passed, now).memory;
 
-  const redos: Redo[] = p.redos.map((d) => (d.doneAt === null && d.problem === r.problem && d.setAt <= attempt.copiedAt ? { ...d, doneAt: now } : d));
-  for (const key of r.result.redo) {
-    if (redos.some((d) => d.problem === key && d.doneAt === null)) continue;
-    redos.push({ problem: key, from: r.nonce, setAt: now, due: now + REDO_DUE_DAYS * DAY_MS, doneAt: null });
+  const redos: Redo[] = p.redos.map((d) => (d.doneAt === null && currentProblemKey(d.problem) === key && d.setAt <= attempt.copiedAt ? { ...d, doneAt: now } : d));
+  for (const set of r.result.redo) {
+    if (redos.some((d) => currentProblemKey(d.problem) === currentProblemKey(set) && d.doneAt === null)) continue;
+    redos.push({ problem: set, from: r.nonce, setAt: now, due: now + REDO_DUE_DAYS * DAY_MS, doneAt: null });
   }
   return touch({
     ...p,
@@ -418,9 +491,11 @@ export function importSupervisionResult(p: Progress, r: ParsedResult, now: numbe
  * An auto-checked Cambridge problem answered right in the app: that is a measured redo, so
  * its open redos are closed. A wrong answer leaves them open.
  */
-export function completeRedoByCheck(p: Progress, key: string, now: number): Progress {
-  if (!p.redos.some((d) => d.problem === key && d.doneAt === null && d.setAt <= now)) return p;
-  return touch({ ...p, redos: p.redos.map((d) => (d.problem === key && d.doneAt === null && d.setAt <= now ? { ...d, doneAt: now } : d)) }, now);
+export function completeRedoByCheck(p: Progress, asked: string, now: number): Progress {
+  const key = currentProblemKey(asked);
+  const open = (d: Redo): boolean => currentProblemKey(d.problem) === key && d.doneAt === null && d.setAt <= now;
+  if (!p.redos.some(open)) return p;
+  return touch({ ...p, redos: p.redos.map((d) => (open(d) ? { ...d, doneAt: now } : d)) }, now);
 }
 
 /**
@@ -431,7 +506,7 @@ export function completeRedoByCheck(p: Progress, key: string, now: number): Prog
 export function redoWaitsFor(p: Progress, d: Redo): string | undefined {
   const a = redoSource(p, d);
   const g = a?.result?.gap;
-  if (a === undefined || g === undefined || a.problem !== d.problem || isMastered(p, g)) return undefined;
+  if (a === undefined || g === undefined || currentProblemKey(a.problem) !== currentProblemKey(d.problem) || isMastered(p, g)) return undefined;
   return g;
 }
 
@@ -465,7 +540,7 @@ export function recommendedNext(p: Progress, topicId?: string): string[] {
   const gaps = new Set<string>();
   for (const a of p.supervision) {
     const g = a.result?.gap;
-    if (g === undefined || (topicId !== undefined && topicOfKey(a.problem) !== topicId) || isMastered(p, g)) continue;
+    if (g === undefined || (topicId !== undefined && topicOfKey(currentProblemKey(a.problem)) !== topicId) || isMastered(p, g)) continue;
     gaps.add(g);
   }
   return [...gaps].sort((x, y) => (order.get(x) ?? Infinity) - (order.get(y) ?? Infinity) || (x < y ? -1 : x > y ? 1 : 0));
@@ -475,8 +550,9 @@ export function recommendedNext(p: Progress, topicId?: string): string[] {
 export function waitingCopies(p: Progress): SupervisionAttempt[] {
   const seen = new Set<string>();
   return [...p.supervision].reverse().filter((a) => {
-    if (a.result !== null || seen.has(a.problem)) return false;
-    seen.add(a.problem);
+    const key = currentProblemKey(a.problem);
+    if (a.result !== null || seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
 }
@@ -641,7 +717,8 @@ export function withoutSelfReport(p: Progress): { progress: Progress; dropped: s
  * mark on a problem that is not a gate, or that names a prerequisite gap, does not count as a
  * missed review (`lapseExcluded`). A result imported before this build did count: a 12 of 20
  * on the fractions unit-fraction proof halved the fractions interval and brought the review
- * back sooner. This takes such lapses back out.
+ * back sooner. This takes such lapses back out, and so a lapse on a problem that has since
+ * moved to another topic (`MOVED_PROBLEMS`): it was a review of a topic that no longer sets it.
  *
  * The schedule is stored, not derived, but every change to it is logged in the history, so it
  * is rebuilt (`replayMemory`) twice: from every entry, and without the supervision entries the
@@ -663,9 +740,13 @@ export function withoutStaleLapses(p: Progress): Progress {
   const left = new Set<number>();
   p.history.forEach((h, i) => {
     if (h.kind !== 'supervision' || h.correct) return;
-    const a = p.supervision.find((x) => x.importedAt === h.at && x.result !== null && topicOfKey(x.problem) === h.topicId
+    // Matched by the topic at import: the stored key's, or, imported after its problem moved, the current key's.
+    const a = p.supervision.find((x) => x.importedAt === h.at && x.result !== null
+      && (topicOfKey(x.problem) === h.topicId || topicOfKey(currentProblemKey(x.problem)) === h.topicId)
       && x.result.mark < SUPERVISION_PASS_MARK);
-    if (a !== undefined && a.result !== null && lapseExcluded(a.problem, a.result)) left.add(i);
+    // A result on a problem that has since moved topic was a review of the old topic, which no
+    // longer sets the problem, so that lapse is left out too.
+    if (a !== undefined && a.result !== null && (lapseExcluded(a.problem, a.result) || topicOfKey(currentProblemKey(a.problem)) !== h.topicId)) left.add(i);
   });
   if (left.size === 0) return p;
   const all = replayMemory(p.history, ALL_TOPICS);

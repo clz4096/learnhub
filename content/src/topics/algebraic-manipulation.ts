@@ -409,22 +409,6 @@ const tmuaQ = auto({
   misconceptions: [{ response: '-1/2', why: t`That root came from squaring. Put it back in the original equation: ${math`\sqrt{${7}x + ${4}}`} is not even defined there.` }],
 });
 
-const a7Show = supervision({
-  id: 'a7-q2-i-ii',
-  source: cite(A7, 'Q2(i) and (ii)'),
-  title: t`Roots and coefficients without the formula`,
-  prompt: t`Forget the quadratic formula. Show that if ${math`\alpha \ne \beta`} both satisfy ${math`x^{${2}} + bx + c = ${0}`}, then ${math`b = -(\alpha + \beta)`}, find ${math`c`} in terms of ${math`\alpha`} and ${math`\beta`}, and hence show that ${math`(x - \alpha)(x - \beta) \equiv x^{${2}} + bx + c`}. Then, starting from the identity instead, substitute ${math`x = ${0}`} and ${math`x = ${1}`} to find ${math`\alpha\beta`} and ${math`\alpha + \beta`}.`,
-  writeUp: 'proof',
-  official: cite('step-f07-hints', 'Q2(i), (ii)'),
-});
-const a7ShowCubic = supervision({
-  id: 'a7-q2-iv',
-  source: cite(A7, 'Q2(iv)'),
-  title: t`Three substitutions`,
-  prompt: t`It is given that ${math`x^{${3}} + bx^{${2}} + cx + d \equiv (x - \alpha)(x - \beta)(x - \gamma)`}. By substituting three different values of ${math`x`}, show that ${math`\alpha\beta\gamma = -d`}, ${math`(${1} - \alpha)(${1} - \beta)(${1} - \gamma) = ${1} + b + c + d`}, and ${math`(${1} + \alpha)(${1} + \beta)(${1} + \gamma) = ${1} - b + c - d`}.`,
-  writeUp: 'proof',
-  official: cite('step-f07-hints', 'Q2(iv)'),
-});
 const a7ShowGeneral = supervision({
   id: 'a7-q3-show',
   source: cite(A7, 'Q3, first part (2002 STEP I Q5)'),
@@ -522,17 +506,15 @@ export const algebraicManipulation: TopicContent = {
   generators: [expand, factorise, cancel, collect, vieta, cubic],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expression', 'coefficient', 'like-terms', 'identity', 'expand', 'factorise'],
-  cambridge: withUses([a7Three, a7Quart, a12FracA, a12FracB, tmuaQ, a7Show, a7ShowCubic, a7ShowGeneral], {
+  cambridge: withUses([a7Three, a7Quart, a12FracA, a12FracB, tmuaQ, a7ShowGeneral], {
     'a7-q3-show': { sections: ['Expressions and identities'], note: t`Substituting into an identity for a polynomial of any degree`, needs: ['alg.polynomials'] },
     'a7-q3': { sections: ['Expressions and identities', 'Factorising'], note: t`Finding the integer roots of a quartic from its coefficients`, needs: ['alg.polynomials'] },
-    'a7-q2-iv': { sections: ['Expressions and identities', 'Factorising'], note: t`Substituting chosen values into an identity`, needs: ['proof.direct'] },
-    'a7-q2-i-ii': { sections: ['Expressions and identities', 'Factorising'], note: t`Comparing coefficients and substituting into an identity`, needs: ['proof.direct'] },
     'a7-q2-v': { sections: ['Expressions and identities', 'Factorising'], note: t`Using an identity to pin down three integer roots` },
     'a12-q2-i-b': { sections: ['Algebraic fractions'], note: t`Multiplying and adding algebraic fractions and cancelling common factors` },
   }),
   // A7 Q2 and A12 Q2 need only this lesson. A7 Q3 (a polynomial of any degree, then a quartic) needs
   // alg.polynomials, so it is practice here; alg.roots-coefficients gates on it. A7 Q2(i), (ii), and (iv)
-  // are written proofs, which proof.direct teaches later in the book, so they are practice (2026-10-08).
+  // are written proofs, so they are set in proof.direct, the first topic that teaches writing one (Rule 1, 2026-10-08).
   gate: ['a7-q2-v', 'a12-q2-i-b'],
   recall: [
     { front: t`What is the difference between an identity and an equation?`, back: t`An identity ${math`A \equiv B`} holds for every value of the letters; an equation ${math`A = B`} holds only for some, which you solve for.` },

@@ -30,6 +30,8 @@ function card(inst: Instance, topicId: string) {
   render(<ProblemCard topicId={topicId} instance={inst} mode="cambridge" index={0} onDone={done} />);
   return done;
 }
+/** The result heading's text: "Right: <answer>." holds rendered mathematics, which jsdom cannot name by role. */
+const resultHead = (): string => document.querySelector('.result-head > span:last-child')?.textContent ?? '';
 const submit = (): void => { fireEvent.submit(document.querySelector('form.answer') as HTMLFormElement); };
 const cellInputs = (): HTMLInputElement[] => [...document.querySelectorAll('.cell-input')] as HTMLInputElement[];
 const fill = (values: readonly string[]): void => cellInputs().forEach((el, i) => fireEvent.input(el, { target: { value: values[i] ?? '' } }));
@@ -44,7 +46,7 @@ describe('a table answer', () => {
     expect(cellInputs()[0]?.getAttribute('aria-label')).toMatch(/female smoker, probability/);
     fill(['18/100', '0.62', '3/10']);
     submit();
-    expect(screen.getByRole('heading', { name: 'Correct' })).toBeTruthy();
+    expect(resultHead()).toMatch(/^Right/);
     expect(document.querySelectorAll('.cell-right')).toHaveLength(3);
     fireEvent.click(screen.getByRole('button', { name: 'Try it again' }));
     expect(done).toHaveBeenCalledWith({ outcome: 'correct', correct: true, response: ['18/100', '0.62', '3/10'], ms: expect.any(Number) });
@@ -70,7 +72,7 @@ describe('a table answer', () => {
       });
     });
     submit();
-    expect(screen.getByRole('heading', { name: 'Correct' })).toBeTruthy();
+    expect(resultHead()).toMatch(/^Right/);
   });
 
   it('never marks a table with an empty or unreadable cell', () => {
@@ -96,7 +98,7 @@ describe('a witness answer', () => {
     fireEvent.input(box, { target: { value: '27, 9, 3, 1' } });
     expect(document.querySelector('.preview')?.getAttribute('data-state')).toBe('read');
     submit();
-    expect(screen.getByRole('heading', { name: 'Correct' })).toBeTruthy();
+    expect(resultHead()).toMatch(/^Right/);
   });
 
   it('a failing witness gets the check\'s reason', () => {
@@ -116,7 +118,7 @@ describe('a formula answer', () => {
     fireEvent.input(box, { target: { value: '~(~P | Q)' } });
     expect(document.querySelector('.preview .katex')).not.toBeNull();
     submit();
-    expect(screen.getByRole('heading', { name: 'Correct' })).toBeTruthy();
+    expect(resultHead()).toMatch(/^Right/);
   });
 
   it('a wrong formula is told a row where it differs', () => {
@@ -235,8 +237,9 @@ describe('what a Cambridge problem draws on', () => {
   });
 
   it('a proof shows what a proof needs, and before the first proof lesson says that lesson comes later', async () => {
-    await open('pre.fractions');
-    const proof = uses('step00-q1-unit');
+    // Laws of indices sets a proof as further practice, before the book reaches Direct proof.
+    await open('pre.indices');
+    const proof = uses('a12-q1-iii');
     expect(within(proof).getByText('A proof needs')).toBeTruthy();
     const points = [...proof.querySelectorAll('ol.proof-needs li')].map((li) => li.textContent);
     expect(points).toEqual([
@@ -246,10 +249,9 @@ describe('what a Cambridge problem draws on', () => {
       'End by stating what you have proved.',
     ]);
     expect(proof.textContent).toMatch(/Writing proofs is taught in Direct proof, which comes later in the course\./);
-    expect(within(proof).getByRole('link', { name: 'Direct proof' })).toBeTruthy();
-    // Moved off the gate by the 2026-10-08 audit: further practice now.
-    expect(document.querySelector('[data-problem="step00-q1-unit"] .citation')?.textContent).not.toMatch(/gate problem/);
-    expect(within(uses('a6-q1-i-value')).queryByText('A proof needs')).toBeNull();
+    expect(within(proof).queryByRole('link', { name: 'Direct proof' })).toBeNull();
+    expect(document.querySelector('[data-problem="a12-q1-iii"] .citation')?.textContent).not.toMatch(/gate problem/);
+    expect(within(uses('nst-a1')).queryByText('A proof needs')).toBeNull();
   });
 
   it('after the first proof lesson in the book, a proof links to it', async () => {

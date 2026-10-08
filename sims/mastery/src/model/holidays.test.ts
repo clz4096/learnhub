@@ -113,7 +113,7 @@ describe('yom tov kept like Shabbat', () => {
     // Monday 2026-09-21, Yom Kippur.
     const yk = planFor('2026-09-21', 480);
     expect(yk.start).toBe(sunsetMinutes('2026-09-21'));
-    expect(yk.notes[0]).toBe(`Yom Kippur: the plan starts after sundown, ${fmt(yk.start).replace(/(am|pm)$/, ' $1')}.`);
+    expect(yk.notes[0]).toBe('Yom Kippur. Nothing scheduled until Yom Kippur ends.');
     expect(yk.slots.every((s) => s.start >= yk.start)).toBe(true);
     // Sunday 2026-09-20, its eve.
     const eve = planFor('2026-09-20', 480);
@@ -124,13 +124,13 @@ describe('yom tov kept like Shabbat', () => {
     const both = planFor('2026-04-03', 480);
     expect(both.slots).toEqual([]);
     expect(both.core).toBe(0);
-    expect(both.notes[0]).toBe('Pesach, then Shabbat from sundown: a rest day, nothing is planned.');
+    expect(both.notes[0]).toBe('Pesach, then Shabbat. Nothing scheduled until Shabbat ends.');
     // Saturday 2026-09-12, Rosh Hashanah on Shabbat, then the second day: nothing.
     expect(planFor('2026-09-12', 480).slots).toEqual([]);
   });
 
   it('an ordinary Friday and Saturday plan as before', () => {
     expect(planFor('2026-10-09', 480).notes[0]).toMatch(/^Friday: the plan ends at sundown, /);
-    expect(planFor('2026-10-10', 480).notes[0]).toMatch(/^Shabbat: the plan starts after sundown, /);
+    expect(planFor('2026-10-10', 480).notes[0]).toBe('Shabbat. Nothing scheduled until Shabbat ends.');
   });
 });

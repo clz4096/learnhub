@@ -5,7 +5,9 @@
  * root of 2; the proof pattern; scratch work), the TMUA notes (pages 67 and 68: the same
  * proof, and the general structure, "not A leads to B and not B"), and Book of Proof
  * Sections 6.1 to 6.4. The problems are Book of Proof Chapter 6, TMUA Exercise O, and
- * supervision exercise 2.3.2 (repunits) with its 2023-24 official solution.
+ * supervision exercise 2.3.2 (repunits) with its 2023-24 official solution. 2008 STEP I Q1
+ * (irrational sums and products) moved here from Number systems (Rule 1, 2026-10-08): its last
+ * part, at most one of four numbers is rational, is a proof by contradiction.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, upTo } from '../math';
@@ -315,6 +317,19 @@ const bop7 = supervision({
   official: cite('bop', 'Solutions, Chapter 6, exercise 7'),
 });
 
+// ---------------------------------------------------------------- Cambridge problems moved here (Rule 1, 2026-10-08)
+
+// From Number systems, which set it before proof by contradiction was taught.
+// 2008 STEP I Q1: irrational sums and products.
+const step08Irrational = supervision({
+  id: 'step08-q1',
+  source: cite('stepdb-08-s1', 'Q1', true),
+  title: t`Irrational sums and products`,
+  prompt: t`What does it mean to say that a number ${math`x`} is irrational? Prove statements A and B below, where ${math`p`} and ${math`q`} are real numbers. A: if ${math`pq`} is irrational, then at least one of ${math`p`} and ${math`q`} is irrational. B: if ${math`p + q`} is irrational, then at least one of ${math`p`} and ${math`q`} is irrational. Disprove by means of a counterexample statement C below, where ${math`p`} and ${math`q`} are real numbers. C: if ${math`p`} and ${math`q`} are irrational, then ${math`p + q`} is irrational. If the numbers ${math`e`}, ${math`\pi`}, ${math`\pi^{${2}}`}, ${math`e^{${2}}`}, and ${math`e\pi`} are irrational, prove that at most one of the numbers ${math`\pi + e`}, ${math`\pi - e`}, ${math`\pi^{${2}} - e^{${2}}`}, ${math`\pi^{${2}} + e^{${2}}`} is rational.`,
+  writeUp: 'proof',
+  official: cite('stepdb-08-s1-sol', 'Question 1 (pages 2 to 4)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const r2 = math`\sqrt{${2}}`;
@@ -388,7 +403,8 @@ export const contradiction: TopicContent = {
   generators: [noSolutions, roots, assume],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['proof-by-contradiction', 'contradiction'],
-  cambridge: withUses([sw232a, sw232base, bop11, bop10, sw232b, tmuaO1, tmuaO2, bop5, bop7], {
+  cambridge: withUses([sw232a, sw232base, bop11, bop10, sw232b, tmuaO1, tmuaO2, bop5, bop7, step08Irrational], {
+    'step08-q1': { sections: ['The method', 'What exactly to assume'], note: t`Using closure of the rationals to rule out cases, one example to break a false claim, and a contradiction for "at most one"`, needs: ['num.number-systems', 'proof.counterexample'] },
     'sw-2-3-2-b': { sections: ['The method', 'What exactly to assume'], note: t`Contradiction from the remainders of squares on division by four` },
     'sw-2-3-2-base': { sections: ['The method'], note: t`Searching other bases for a square repunit` },
   }),

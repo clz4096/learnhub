@@ -11,7 +11,7 @@ import { withDefaults } from './options';
 import type { PlacementAnswer } from './placement';
 
 /** Bump when the shape changes, and add the migration from the previous version. */
-export const PROGRESS_VERSION = 5;
+export const PROGRESS_VERSION = 6;
 
 export interface Settings {
   budgetMinutes: number;
@@ -71,10 +71,17 @@ export interface ItemData {
   hints: number;
   /**
    * 1 for the first answer to this item, 2 for the next, and so on. For a Cambridge problem
-   * it counts every answer the document holds (`nextAttempt`); for a generated problem, the
-   * answers to that seed.
+   * it counts every answer the document holds (`nextAttempt`), a "Show me the solution"
+   * included; for a generated problem, the answers to that seed.
    */
   attempt: number;
+  /**
+   * Set on a `cambridge` entry when the worked solution was shown with it: "Show me the
+   * solution", or any result once the solution had been seen. From that moment the problem
+   * can no longer meet the gate (gate.ts). Absent otherwise; never false, so an entry has
+   * one spelling.
+   */
+  solution?: true;
 }
 
 export interface HistoryEntry {
@@ -86,9 +93,16 @@ export interface HistoryEntry {
   item?: ItemData;
 }
 
-/** The attempt number the next answer to `itemId` gets: one more than the entries of `kind` on it. */
-export function nextAttempt(history: readonly HistoryEntry[], kind: HistoryKind, itemId: string): number {
-  return history.filter((h) => h.kind === kind && h.item?.id === itemId).length + 1;
+/**
+ * The attempt number the next answer to `itemId` gets: one more than the entries of `kind` on
+ * it. `resolve` maps an item id to its current one (a Cambridge problem that moved topic), so
+ * answers under an old key count; the default leaves ids as they are.
+ */
+export function nextAttempt(
+  history: readonly HistoryEntry[], kind: HistoryKind, itemId: string, resolve: (id: string) => string = (id) => id,
+): number {
+  const id = resolve(itemId);
+  return history.filter((h) => h.kind === kind && h.item !== undefined && resolve(h.item.id) === id).length + 1;
 }
 
 /**
@@ -249,6 +263,13 @@ export type Migration = (doc: Record<string, unknown>) => Record<string, unknown
  * supervision results it holds are evidence already, so one of 14 or more on a gate problem
  * still meets the gate. The bump is what keeps a version 4 build from loading a document
  * with the new kinds, which it would reject entry by entry.
+ * 5 to 6: a missed Cambridge problem gives a nudge and hints, not the solution (mastery/
+ * HOW-A-TOPIC-WORKS.md, rule 3), so a later right answer can still count; only seeing the
+ * solution stops it (`ItemData.solution`). Every version 5 miss on a Cambridge problem showed
+ * the solution, so the migration marks each one `solution: true`: a problem missed before
+ * this build stays not counting, exactly as it did. The bump keeps a version 5 build, which
+ * would drop the unknown field and so count a right answer after a revealed solution, from
+ * loading the document.
  */
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: (d) => {
@@ -269,7 +290,14 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
     return { ...d, version: 4, changedAt, resetAt: 0 };
   },
   4: (d) => ({ ...d, version: 5 }),
+  5: (d) => ({ ...d, version: 6, history: Array.isArray(d.history) ? d.history.map(solutionSeen) : d.history }),
 };
+
+/** A version 5 history entry as version 6 reads it: a Cambridge miss showed the solution. */
+function solutionSeen(h: unknown): unknown {
+  if (!isObj(h) || h.kind !== 'cambridge' || h.correct !== false || !isObj(h.item)) return h;
+  return { ...h, item: { ...h.item, solution: true } };
+}
 
 export interface ImportOptions {
   /** Topic ids in the current course. Memory for other ids is dropped with a warning (a topic was removed). */
@@ -484,7 +512,7 @@ function checkResult(c: Checker, x: unknown, path: string): SupervisionResult | 
   return result;
 }
 
-const ITEM_KEYS = ['id', 'seed', 'ms', 'hints', 'attempt'] as const;
+const ITEM_KEYS = ['id', 'seed', 'ms', 'hints', 'attempt', 'solution'] as const;
 
 /** An entry's item data, or null (with errors) when it does not validate. */
 function checkItem(c: Checker, x: unknown, path: string): ItemData | null {
@@ -497,11 +525,13 @@ function checkItem(c: Checker, x: unknown, path: string): ItemData | null {
     o.ms === undefined || c.need(isNum(o.ms) && o.ms >= 0 && o.ms <= MAX_ITEM_MS, `${path}.ms`, `ms in [0, ${MAX_ITEM_MS}]`, o.ms),
     c.need(isNat(o.hints) && (o.hints as number) <= MAX_ITEM_HINTS, `${path}.hints`, `a whole number from 0 to ${MAX_ITEM_HINTS}`, o.hints),
     c.need(Number.isInteger(o.attempt) && (o.attempt as number) >= 1 && (o.attempt as number) <= MAX_ITEM_ATTEMPT, `${path}.attempt`, `a whole number from 1 to ${MAX_ITEM_ATTEMPT}`, o.attempt),
+    o.solution === undefined || c.need(o.solution === true, `${path}.solution`, 'true, or no field', o.solution),
   ].every(Boolean);
   if (!ok) return null;
   const item: ItemData = { id: o.id as string, hints: o.hints as number, attempt: o.attempt as number };
   if (o.seed !== undefined) item.seed = o.seed as number;
   if (o.ms !== undefined) item.ms = o.ms as number;
+  if (o.solution === true) item.solution = true;
   return item;
 }
 
@@ -557,7 +587,7 @@ function checkRedos(c: Checker, x: unknown): Redo[] {
   return out;
 }
 
-function checkV5(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
+function checkV6(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
   const TOP = [
     'version', 'courseId', 'createdAt', 'updatedAt', 'settings', 'courses', 'placement', 'memory', 'learnedSinceQuiz', 'history',
     'courseMinutes', 'session', 'supervision', 'redos', 'changedAt', 'resetAt',
@@ -720,7 +750,7 @@ export function importProgress(input: unknown, options: ImportOptions = {}): Res
 
     const c = new Checker();
     const known = options.knownTopicIds === undefined ? null : new Set(options.knownTopicIds);
-    const p = checkV5(c, d, known);
+    const p = checkV6(c, d, known);
     return p === null ? { ok: false, errors: c.errors } : { ok: true, value: p, warnings: c.warnings };
   } catch (e) {
     // Validation is written not to throw; this is the backstop the contract promises.

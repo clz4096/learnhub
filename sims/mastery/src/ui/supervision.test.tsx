@@ -51,7 +51,7 @@ function openCambridge(topicId: string): void {
 }
 const item = (id: string): HTMLElement => document.querySelector(`[data-problem="${id}"]`) as HTMLElement;
 
-async function copyProof(writeUp = 'Pad the finite list with empty sets.', copiedText = /^Copied\. Paste it into your supervision session/): Promise<string> {
+async function copyProof(writeUp = 'Pad the finite list with empty sets.', copiedText = /^Copied\. Paste it into a supervision session/): Promise<string> {
   openCambridge('prob.event-spaces');
   const card = within(item('q4-a-finite'));
   fireEvent.input(card.getByLabelText('Your write-up'), { target: { value: writeUp } });
@@ -153,7 +153,7 @@ describe('Paste result', () => {
     render(<Today />);
     const line = await screen.findByRole('link', { name: /Recommended next: Direct proof/ });
     expect(line.getAttribute('href')).toMatch(/^#\/learn\/proof\.direct/);
-    expect((await screen.findByText(/waits until you master Direct proof/)).textContent).toMatch(/Redo of Finite unions and intersections/);
+    expect((await screen.findByText(/waits until Direct proof is mastered/)).textContent).toMatch(/Redo of Finite unions and intersections/);
     expect(document.querySelector('[data-redo]')).toBeNull();
   });
 
@@ -213,7 +213,9 @@ describe('a wrong auto-checked Cambridge problem', () => {
     // Every card in the stage numbers its input the same (a pre-existing id clash), so it is found inside the card.
     fireEvent.input(item('bop-2-2-9').querySelector('form.answer input') as HTMLInputElement, { target: { value: 'P & Q' } });
     fireEvent.submit(item('bop-2-2-9').querySelector('form.answer') as HTMLFormElement);
-    expect(card.getByRole('heading', { name: 'Incorrect' })).toBeTruthy();
+    // A gate miss says "Not right yet", never the answer.
+    expect(item('bop-2-2-9').querySelector('.result-head')?.textContent).toMatch(/Not right yet/);
+    expect(item('bop-2-2-9').querySelector('.result-solution')).toBeNull();
     fireEvent.input(card.getByLabelText('Your working (optional)'), { target: { value: 'I read minus as and.' } });
     fireEvent.click(card.getByRole('button', { name: 'Copy for supervision' }));
     await card.findByText(/^Copied\./);
@@ -221,8 +223,7 @@ describe('a wrong auto-checked Cambridge problem', () => {
     expect(text).toContain('PROBLEM: logic.connectives/bop-2-2-9');
     expect(text).toMatch(/My answer, marked wrong by the app: P ∧ Q/);
     expect(text).toContain('My working:\nI read minus as and.');
-    // Moving on keeps Paste result on the problem while the copy waits.
-    fireEvent.click(card.getByRole('button', { name: 'Try it again' }));
+    // Paste result stays on the problem while the copy waits.
     expect(card.getByRole('button', { name: 'Paste result' })).toBeTruthy();
   });
 

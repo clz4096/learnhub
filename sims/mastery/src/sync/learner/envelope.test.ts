@@ -189,7 +189,7 @@ function step(rng: Rng, dev: Device): Device {
       // A standup submitted, or submitted again, for one of a few dates.
       const d = pick(rng, DATES);
       const transcript = pick(rng, ['Finished sequences.', 'Stuck on induction.', '']);
-      setEntry(v.standup, d, { date: d, transcript, checkedAt: at, flags: transcript === '' ? ['Say what you did yesterday.'] : [], duration: randInt(rng, 0, 90) });
+      setEntry(v.standup, d, { date: d, transcript, checkedAt: at, flags: transcript === '' ? ['Say what was done yesterday.'] : [], duration: randInt(rng, 0, 90) });
       break;
     }
     case 7: {

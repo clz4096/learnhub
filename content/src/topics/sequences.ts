@@ -265,14 +265,6 @@ const sw131c = supervision({
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.3.1(c)'),
 });
-const sw131d = supervision({
-  id: 'sw-1-3-1-d',
-  source: cite(SW, 'Exercises 1, 1.3.1(d)'),
-  title: t`Two consecutive triangular numbers`,
-  prompt: t`Show that the sum of every two consecutive triangular numbers is square. (Nicomachus, about ${100} BC.)`,
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-1', '1.3.1(d)'),
-});
 
 // IA Numbers and Sets Example Sheet 1, Q2: 41, 43, 47, 53, 61, ..., each gap 2 more than the last.
 const EULER_START = 41;
@@ -386,13 +378,12 @@ export const sequences: TopicContent = {
   generators: [nthTerm, recursive, whichTerm, whichTriangular],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sequence', 'term', 'term-to-term', 'position-to-term', 'arithmetic-sequence', 'common-difference', 'triangular-number'],
-  cambridge: withUses([sw131b, sw131c, sw131d, ns1Q2], {
+  cambridge: withUses([sw131b, sw131c, ns1Q2], {
     'sw-1-3-1-c': { sections: ['Triangular numbers'], note: t`An if and only if proof about triangular numbers and odd squares`, needs: ['pre.algebraic-argument', 'logic.iff'] },
-    'sw-1-3-1-d': { sections: ['Triangular numbers'], note: t`Adding two triangular-number formulas and recognising a square`, needs: ['proof.direct'] },
     'ns1-q2': { sections: ['Sequences and their rules', 'Arithmetic sequences', 'Triangular numbers'], note: t`Finding the nth term when the differences grow, then choosing n to make a factor appear` },
   }),
-  // The IA nth term gates. 1.3.1(d), consecutive triangular numbers add to a square, is a written proof, which
-  // proof.direct teaches later in the book, so it is practice (2026-10-08). 1.3.1(c) is an if and only if proof by
+  // The IA nth term gates. 1.3.1(d), consecutive triangular numbers add to a square, is a written proof, so it is
+  // set in proof.direct, the first topic that teaches writing one (Rule 1, 2026-10-08). 1.3.1(c) is an if and only if proof by
   // parity, taught later, so it is practice. The formula for the kth triangular number is recall, so it does not gate.
   gate: ['ns1-q2'],
   recall: [

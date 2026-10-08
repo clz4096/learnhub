@@ -4,8 +4,8 @@
  * exercises, checked against the book's solutions to the odd ones, and CST Discrete
  * Mathematics supervision exercises 5.1.1 (inclusion is a partial order) and 5.2.2 (prove or
  * disprove five statements about power sets), checked by brute force over small sets. Batch 7 adds
- * exercises 5.2.3 (four ways to say A is inside B) and 5.1.2(b), with the 2023-24 official
- * solutions to sheet 5. Exercise 5.1.2(a), the empty set is a subset of every set, is the lesson's
+ * exercise 5.1.2(b), with the 2023-24 official solutions to sheet 5. The proofs of 5.2.2 and 5.2.3
+ * are in proof.set-proofs (Rule 1, 2026-10-08), which already set 5.2.3. Exercise 5.1.2(a), the empty set is a subset of every set, is the lesson's
  * theorem, so it is not set.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
@@ -401,14 +401,6 @@ const cstPowers = auto({
   ],
 });
 
-const cstPowersProof = supervision({
-  id: 'sw-5-2-2-proof',
-  source: cite('cst-dm-sw1', 'Exercises 5, 5.2.2'),
-  title: t`Prove or disprove the power set statements`,
-  prompt: t`Either prove or disprove that, for all sets ${mA} and ${mB}: (a) ${math`A \subseteq B \implies \mathcal{P}(A) \subseteq \mathcal{P}(B)`}; (b) ${math`\mathcal{P}(A \cup B) \subseteq \mathcal{P}(A) \cup \mathcal{P}(B)`}; (c) ${math`\mathcal{P}(A) \cup \mathcal{P}(B) \subseteq \mathcal{P}(A \cup B)`}; (d) ${math`\mathcal{P}(A \cap B) \subseteq \mathcal{P}(A) \cap \mathcal{P}(B)`}; (e) ${math`\mathcal{P}(A) \cap \mathcal{P}(B) \subseteq \mathcal{P}(A \cap B)`}.`,
-  writeUp: 'proof',
-});
-
 const cstPartialOrder = supervision({
   id: 'sw-5-1-1',
   source: cite('cst-dm-sw1', 'Exercises 5, 5.1.1'),
@@ -418,24 +410,6 @@ const cstPartialOrder = supervision({
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
-
-/*
- * Outline for marking sw-5-2-3 (20 marks): a cycle of implications, each by elements.
- * (a) => (b): A is inside A u B = B (4).
- * (b) => (c): A n B is inside A always; and A inside B gives A inside A n B; equal by two inclusions (4).
- * (c) => (d): if x is not in B, then x is not in A n B = A (4).
- * (d) => (b): x in A and x not in B would put x in the complement of B, so outside A: contradiction (4).
- * (b) => (a): B is inside A u B always; A and B inside B give A u B inside B (4).
- * (Any cycle, or pairs of implications, that links all four earns full credit.)
- */
-const sw523 = supervision({
-  id: 'sw-5-2-3',
-  source: cite('cst-dm-sw1', 'Exercises 5, 5.2.3'),
-  title: t`Four ways to say A is inside B`,
-  prompt: t`Let ${math`U`} be a set. For all subsets ${math`A, B`} of ${math`U`}, with complements taken in ${math`U`}, prove that the following statements are equivalent: (a) ${math`A \cup B = B`}; (b) ${math`A \subseteq B`}; (c) ${math`A \cap B = A`}; (d) ${math`B^{c} \subseteq A^{c}`}.`,
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-5', '5.2.3'),
-});
 
 /*
  * Outline for marking sw-5-1-2-b (20 marks):
@@ -520,14 +494,12 @@ export const subsetsTopic: TopicContent = {
   generators: [countGen, statGen, cardGen, withGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['subset', 'power-set'],
-  cambridge: withUses([cstPowers, cstPowersProof, cstPartialOrder, b1314, b1413, b1415, b1416, b1418, b1419, b1420, sw523, sw512b], {
-    'sw-5-2-2-proof': { sections: ['In it, or inside it?', 'All the subsets at once', 'Where it breaks'], note: t`Proving or disproving inclusions between power sets`, needs: ['proof.direct'] },
-    'sw-5-2-3': { sections: ['In it, or inside it?'], note: t`Proving four statements about inclusion equivalent`, needs: ['proof.direct'] },
+  cambridge: withUses([cstPowers, cstPartialOrder, b1314, b1413, b1415, b1416, b1418, b1419, b1420, sw512b], {
     'sw-5-2-2': { sections: ['In it, or inside it?', 'All the subsets at once'], note: t`Deciding which inclusions between power sets hold for every pair of sets` },
   }),
   // The verdicts on 5.2.2's five power-set inclusions gate. The CST proofs (power sets, the four equivalent forms
-  // of inclusion) need proof writing, which proof.direct teaches later in the book, so they are practice
-  // (2026-10-08). The empty set exercise is two short vacuous arguments, practice rather than a gate.
+  // of inclusion) are set in proof.set-proofs, where proofs about sets are taught (Rule 1, 2026-10-08). The empty
+  // set exercise is two short vacuous arguments, practice rather than a gate.
   gate: ['sw-5-2-2'],
   recall: [
     { front: t`Define ${math`A \subseteq B`}.`, back: t`Every element of ${mA} is an element of ${mB}: ${math`\forall x\,(x \in A \implies x \in B)`}.` },

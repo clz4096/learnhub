@@ -3,9 +3,10 @@
  * source is CST supervision exercise 1.3.1, whose triangular numbers t_k = 0 + 1 + ... + k
  * are arithmetic sums: parts (a) to (d) are set in pre.sequences, and parts (e) (Euler: if
  * n is triangular, so are 9n + 1, 25n + 3, 49n + 6, 81n + 10) and (f) (Jordan's
- * generalisation) are here, checked against the 2023-24 official solutions.
+ * generalisation) are here, checked against the 2023-24 official solutions. Their written
+ * proofs are in proof.direct (Rule 1, 2026-10-08).
  */
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { poly } from '../poly';
@@ -203,23 +204,6 @@ const f = auto({
   official: { source: cite(SOLS, '1.3.1(f)'), answer: '2nk + n + k', agrees: true },
 });
 
-const eProof = supervision({
-  id: 'sw-1-3-1-e',
-  source: cite(SW, 'Exercises 1, 1.3.1(e)'),
-  title: t`Euler's four maps`,
-  prompt: t`Show that, for all natural numbers ${mn}, if ${mn} is triangular, then so are ${math`${9}n + ${1}`}, ${math`${25}n + ${3}`}, ${math`${49}n + ${6}`}, and ${math`${81}n + ${10}`}. (Euler, ${1775}.)`,
-  writeUp: 'proof',
-  official: cite(SOLS, '1.3.1(e)'),
-});
-const fProof = supervision({
-  id: 'sw-1-3-1-f-proof',
-  source: cite(SW, 'Exercises 1, 1.3.1(f)'),
-  title: t`Prove Jordan's generalisation`,
-  prompt: t`Prove: for all natural numbers ${mn} and ${mk}, there exists a natural number ${math`q`} such that ${math`(${2}n + ${1})^{${2}} \cdot t_k + t_n = t_q`}. Name your witness ${math`q`} and check it by algebra.`,
-  writeUp: 'proof',
-  official: cite(SOLS, '1.3.1(f)'),
-});
-
 // ---------------------------------------------------------------- lesson
 
 const G = 100;
@@ -296,15 +280,13 @@ export const arithmeticSeries: TopicContent = {
   generators: [nthTerm, series, howMany, triangularMap],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arithmetic-series'],
-  cambridge: withUses([e25, e81, f, eProof, fProof], {
-    'sw-1-3-1-f-proof': { sections: ['Triangular numbers'], note: t`Naming a witness and checking it with the triangular-number formula`, needs: ['proof.direct'] },
-    'sw-1-3-1-e': { sections: ['Triangular numbers'], note: t`Turning each map into a triangular number by algebra`, needs: ['proof.direct'] },
+  cambridge: withUses([e25, e81, f], {
     'sw-1-3-1-f': { sections: ['Triangular numbers'], note: t`Finding the witness in terms of the two letters` },
     'sw-1-3-1-e-81': { sections: ['Triangular numbers'], note: t`Matching a triangular-number formula to find the new index` },
     'sw-1-3-1-e-25': { sections: ['Triangular numbers'], note: t`Matching a triangular-number formula to find the new index` },
   }),
-  // The two written proofs of 1.3.1(e) and (f) need proof writing, which proof.direct teaches later in the
-  // book, so they are practice (2026-10-08); their auto-checked parts gate.
+  // The two written proofs of 1.3.1(e) and (f) are set in proof.direct, the first topic that teaches writing
+  // one (Rule 1, 2026-10-08); their auto-checked parts gate.
   gate: ['sw-1-3-1-f', 'sw-1-3-1-e-81', 'sw-1-3-1-e-25'],
   recall: [
     { front: t`The ${mn}th term of an arithmetic sequence with first term ${ma} and difference ${md}.`, back: t`${math`a_{n} = a + (n - ${1})d`}.` },

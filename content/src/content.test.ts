@@ -16,10 +16,12 @@ import { answerText, grade, readAnswer, sameAnswer, type Instance } from './prob
 import { computedMath, dmath, exprTex, ident, markedTerms, math, plain, setOf, t, texToPlain, type Rich, type Span } from './rich';
 import { TOPIC_CONTENT } from './topics';
 import { GATE_DOCS, formalNumbers, gateCandidates, lessonSections, proofOrderAnswer, proofOrderSpec, quickCheck, type Block, type TopicContent } from './topic';
-import { CITED_DOCS, FIRST_PROOF_TOPIC, citationText, isProofWriteUp, withUses, type Citation } from './cambridge';
+import { CITED_DOCS, FIRST_PROOF_TOPIC, MAX_HINTS, citationText, isProofWriteUp, personalWords, withUses, type CambridgeProblem, type Citation } from './cambridge';
 import { contentFor } from './all';
 import { CONTENT_IDS, TOPIC_LOADERS, catalogProblem, gateOf, hasContent, loadTopicContent } from './index';
 import { BOOK_ORDER } from './book/book';
+import { MOVED_PROBLEMS } from './topics/moved';
+import { MOVED_PROBLEMS as CATALOG_MOVED, currentProblemKey } from './catalog.generated';
 
 const SEEDS = 1000;
 const DIGIT = /[0-9]/;
@@ -191,6 +193,37 @@ function checkCitation(cit: Citation, where: string): void {
  * gate ids name real Cambridge problems, and gym content is sound. Their text is checked
  * with the rest of the topic's (`topicRich`).
  */
+/**
+ * A Cambridge problem's hints and nudge (mastery/APP-LANGUAGE.md): at most `MAX_HINTS` hints,
+ * each a question; a nudge only on a single-answer problem; both in a neutral voice, with
+ * the usual text rules.
+ */
+function checkHelp(p: CambridgeProblem, where: string): void {
+  const hints = p.hints ?? [];
+  expect(hints.length, `${where}: at most ${MAX_HINTS} hints`).toBeLessThanOrEqual(MAX_HINTS);
+  hints.forEach((h, i) => {
+    checkRich(h, `${where} hint ${i + 1}`);
+    expect(plain(h).trim(), `${where} hint ${i + 1}: a hint is a question`).toMatch(/\?$/);
+    expect(personalWords(h), `${where} hint ${i + 1}: neutral voice`).toEqual([]);
+  });
+  if (p.nudge !== undefined) {
+    expect(p.mode, `${where}: a nudge is for a single-answer problem`).toBe('auto');
+    checkRich(p.nudge, `${where} nudge`);
+    expect(plain(p.nudge).trim(), `${where}: an empty nudge`).not.toBe('');
+    expect(personalWords(p.nudge), `${where} nudge: neutral voice`).toEqual([]);
+  }
+}
+
+/** The prose a Cambridge problem states and solves with: its prompt and, when checked here, its worked solution. */
+const statedText = (p: CambridgeProblem): Rich[] => (p.mode === 'auto' ? [p.instance.problem.prompt, ...p.instance.problem.solution] : [p.prompt]);
+
+/**
+ * Prompts and solutions written before the neutral-voice rule (2026-10-08) that still say
+ * "you" or "we", many of them quoting the Cambridge source. The count may only go down:
+ * new or reworded text is neutral, and a fix lowers this number.
+ */
+const PERSONAL_VOICE_BASELINE = 172;
+
 function checkTeachingFields(c: TopicContent): void {
   c.lesson.forEach((b, i) => {
     const where = `${c.topicId} block ${i}`;
@@ -398,6 +431,7 @@ describe('content topics', () => {
           const where = `${c.topicId}/${p.id}`;
           checkCitation(p.source, where);
           checkRich(p.title, `${where} title`);
+          checkHelp(p, where);
           if (p.mode === 'supervision') {
             checkRich(p.prompt, `${where} prompt`);
             expect(['proof', 'explanation', 'sketch']).toContain(p.writeUp);
@@ -477,7 +511,7 @@ describe('content topics', () => {
 /** The catalog the app reads instead of loading every topic: each topic's Cambridge problems, id, plain title, and mode. */
 function catalogSource(): string {
   const lines = [
-    '// Generated from TOPIC_CONTENT by the content checks (content.test.ts, "the catalog"). Do not edit by hand:',
+    '// Generated from TOPIC_CONTENT and topics/moved.ts by the content checks (content.test.ts, "the catalog"). Do not edit by hand:',
     '// after adding a topic or changing its Cambridge problems, run `npx vitest run -u` in content/ and review the diff.',
     '',
     '/** A Cambridge problem as the app lists it without loading its topic. */',
@@ -497,7 +531,22 @@ function catalogSource(): string {
     for (const p of c.cambridge) lines.push(`    { id: ${JSON.stringify(p.id)}, title: ${JSON.stringify(plain(p.title))}, mode: ${JSON.stringify(p.mode)}, gate: ${c.gate.includes(p.id)} },`);
     lines.push('  ],');
   }
-  lines.push('};', '');
+  lines.push(
+    '};',
+    '',
+    '/** Problems that moved topic: each old "topicId/problemId" key, as learner history may hold it, to the current one (topics/moved.ts). */',
+    'export const MOVED_PROBLEMS: Readonly<Record<string, string>> = {',
+  );
+  for (const [from, to] of Object.entries(MOVED_PROBLEMS)) lines.push(`  ${JSON.stringify(from)}: ${JSON.stringify(to)},`);
+  lines.push(
+    '};',
+    '',
+    '/** The current key for a problem key from learner history: the key it moved to, or the key itself. */',
+    'export function currentProblemKey(key: string): string {',
+    '  return (Object.hasOwn(MOVED_PROBLEMS, key) ? MOVED_PROBLEMS[key] : undefined) ?? key;',
+    '}',
+    '',
+  );
   return lines.join('\n');
 }
 
@@ -663,8 +712,10 @@ describe('what each Cambridge problem draws on', () => {
 
   /**
    * Topics before FIRST_PROOF_TOPIC whose gate is still a written proof. geom.euclidean-proof
-   * teaches proof in geometry itself and has no Cambridge-standard problem that is not a proof,
-   * so it keeps its proofs until Albert decides (move it after CS-0 Proof, or gate it without one).
+   * teaches proof in geometry itself: its gates (the base angles of an isosceles triangle by
+   * congruence, and the false step in a congruence argument) are proofs its own lesson teaches,
+   * so they need nothing from FIRST_PROOF_TOPIC (Rule 1, 2026-10-08). Moving the topic after
+   * CS-0 Proof would take it out of STEP Foundation Block 1, not a small local move, so it stays.
    * Explicit, so a new early proof gate fails here and a fixed one is taken off the list.
    */
   const EARLY_PROOF_GATES: ReadonlySet<string> = new Set(['geom.euclidean-proof']);
@@ -685,18 +736,33 @@ describe('what each Cambridge problem draws on', () => {
     expect(early).toEqual(EARLY_PROOF_GATES);
   });
 
-  it('a proof moved off an early gate says it needs the first proof lesson', () => {
+  it('no problem waits in a topic before the first proof lesson for that lesson (Rule 1)', () => {
     const first = BOOK_ORDER.indexOf(FIRST_PROOF_TOPIC);
-    // The proofs the 2026-10-08 audit moved: each says so, so the learner sees it leans on a later lesson.
-    const moved = ['pre.fractions/step00-q1-unit', 'pre.remainders/ns2-q13', 'sets.indexed/sw-5-3-1', 'logic.quantifiers/sw-1-3-2'];
-    for (const key of moved) {
-      const [topicId, id] = key.split('/') as [string, string];
-      const c = contentFor(topicId) as TopicContent;
+    const waiting: string[] = [];
+    for (const c of TOPIC_CONTENT) {
+      const at = BOOK_ORDER.indexOf(c.topicId);
+      if (at < 0 || at >= first) continue;
+      for (const p of c.cambridge) if ((p.uses?.needs ?? []).includes(FIRST_PROOF_TOPIC)) waiting.push(`${c.topicId}/${p.id}`);
+    }
+    expect(waiting).toEqual([]);
+  });
+
+  it('a moved problem is a written proof in a proof topic, later in the book, whose needs are earlier lessons', () => {
+    const first = BOOK_ORDER.indexOf(FIRST_PROOF_TOPIC);
+    expect(Object.keys(MOVED_PROBLEMS).length).toBeGreaterThan(40);
+    for (const [from, to] of Object.entries(MOVED_PROBLEMS)) {
+      const [fromTopic] = from.split('/') as [string, string];
+      const [toTopic, id] = to.split('/') as [string, string];
+      const c = contentFor(toTopic) as TopicContent;
       const p = c.cambridge.find((q) => q.id === id);
-      expect(p !== undefined && isProofWriteUp(p), key).toBe(true);
-      expect(c.gate, key).not.toContain(id);
-      expect(p?.uses?.needs, key).toContain(FIRST_PROOF_TOPIC);
-      expect(BOOK_ORDER.indexOf(topicId)).toBeLessThan(first);
+      expect(p !== undefined && isProofWriteUp(p), to).toBe(true);
+      expect(BOOK_ORDER.indexOf(fromTopic), from).toBeLessThan(first);
+      expect(BOOK_ORDER.indexOf(toTopic), to).toBeGreaterThanOrEqual(first);
+      expect(toTopic === FIRST_PROOF_TOPIC || closure(toTopic).has(FIRST_PROOF_TOPIC), `${to} does not build on ${FIRST_PROOF_TOPIC}`).toBe(true);
+      // Every topic it needs outside its new topic's prerequisites comes before it in the book, so it has been taught.
+      for (const n of p?.uses?.needs ?? []) expect(BOOK_ORDER.indexOf(n), `${to} needs ${n}`).toBeLessThan(BOOK_ORDER.indexOf(toTopic));
+      // A gate asks only for its own lesson and what it builds on.
+      if (c.gate.includes(id)) expect(p?.uses?.needs ?? [], `${to} gates but needs more`).toEqual([]);
     }
   });
 
@@ -805,6 +871,28 @@ describe('loading on demand', () => {
     expect(catalogProblem('constructor', 'x')).toBeUndefined();
     expect(gateOf(UNWRITTEN)).toEqual([]);
     expect(gateOf('constructor')).toEqual([]);
+  });
+
+  it('learner history under a moved problem\'s old key reads as its current key', () => {
+    expect(CATALOG_MOVED).toEqual(MOVED_PROBLEMS);
+    expect(currentProblemKey('pre.fractions/step00-q1-unit')).toBe('proof.direct/step00-q1-unit');
+    expect(currentProblemKey('pre.algebraic-argument/ns1-q1')).toBe('proof.cases/ns1-q1');
+    // Two copies of one exercise read as the one problem now set.
+    expect(currentProblemKey('pre.sequences/sw-1-3-1-d')).toBe('proof.direct/sw-1-3-1-d');
+    expect(currentProblemKey('pre.algebraic-argument/sw-1-3-1-d')).toBe('proof.direct/sw-1-3-1-d');
+    expect(currentProblemKey('pre.set-notation/sw-5-1-6')).toBe('proof.set-proofs/sw-5-1-6');
+    // A key that did not move, an unknown key, and names on every object's prototype are left alone.
+    for (const k of ['pre.fractions/a6-q1-i-value', 'proof.direct/step00-q1-unit', 'nope/nope', 'constructor', '__proto__', 'toString']) {
+      expect(currentProblemKey(k)).toBe(k);
+    }
+    for (const [from, to] of Object.entries(MOVED_PROBLEMS)) {
+      const [fromTopic, fromId] = from.split('/') as [string, string];
+      const [toTopic, toId] = to.split('/') as [string, string];
+      expect(catalogProblem(fromTopic, fromId), `${from} is still set`).toBeUndefined();
+      expect(catalogProblem(toTopic, toId), `${to} is not a problem`).toBeDefined();
+      expect(Object.hasOwn(MOVED_PROBLEMS, to), `${to} moved again`).toBe(false);
+      expect(toId, from).toBe(fromId);
+    }
   });
 
   it('every topic has a loader, in order, and it loads the same content as the static list', async () => {
@@ -989,3 +1077,30 @@ function wrappedTemplates(src: string): string[] {
   }
   return out;
 }
+
+describe('neutral voice in Cambridge problems (mastery/APP-LANGUAGE.md)', () => {
+  it('finds "you" and "we" in prose, not in mathematics', () => {
+    expect(personalWords(t`Show that you can; we know ${math`u + s`}.`)).toEqual(['you', 'we']);
+    expect(personalWords(t`Let's see. Your turn, then ours.`)).toEqual(["let's", 'your', 'ours']);
+    expect(personalWords(t`Evaluate the youngest weight.`)).toEqual([]);
+  });
+
+  it('checks hints and nudges: at most three questions, a nudge only on a single-answer problem, neutral voice', () => {
+    const all = TOPIC_CONTENT.flatMap((c) => c.cambridge);
+    const a = all.find((p) => p.mode === 'auto') as CambridgeProblem;
+    const s = all.find((p) => p.mode === 'supervision') as CambridgeProblem;
+    const q = (x: string): Rich => t`${x}`;
+    expect(() => checkHelp({ ...a, hints: [q('What is the first step?'), q('Which terms cancel?')], nudge: q('Not quite. Simplify first.') }, 'ok')).not.toThrow();
+    expect(() => checkHelp({ ...s, hints: [q('What is assumed?'), q('What is shown?'), q('What is left?')] }, 'ok')).not.toThrow();
+    expect(() => checkHelp({ ...a, hints: ['A?', 'B?', 'C?', 'D?'].map(q) }, 'four')).toThrow(/at most 3 hints/);
+    expect(() => checkHelp({ ...a, hints: [q('Simplify first.')] }, 'statement')).toThrow(/a hint is a question/);
+    expect(() => checkHelp({ ...a, hints: [q('What do you get?')] }, 'voice')).toThrow(/neutral voice/);
+    expect(() => checkHelp({ ...a, nudge: q('Not quite. Try what we did before.') }, 'voice')).toThrow(/neutral voice/);
+    expect(() => checkHelp({ ...s, nudge: q('Not quite.') }, 'proof')).toThrow(/single-answer/);
+  });
+
+  it(`prompts and solutions in a personal voice do not grow past the ${PERSONAL_VOICE_BASELINE} written before the rule`, () => {
+    const found = TOPIC_CONTENT.flatMap((c) => c.cambridge.flatMap((p) => statedText(p).filter((r) => personalWords(r).length > 0).map(() => `${c.topicId}/${p.id}`)));
+    expect(found.length, `texts in a personal voice: ${found.slice(-5).join(', ')}`).toBeLessThanOrEqual(PERSONAL_VOICE_BASELINE);
+  });
+});

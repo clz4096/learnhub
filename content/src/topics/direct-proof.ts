@@ -8,12 +8,20 @@
  * 13, 19, and 24 (solutions to odd ones), and TMUA Exercise R and the page 72 example. Batch 7
  * adds IA Numbers and Sets Example Sheet 2, Q15 (first part). That sheet's Q14 (a hundred
  * consecutive composites) is Book of Proof's exercise 24 here, so it is not set twice.
+ *
+ * Rule 1 (2026-10-08): twenty-five written proofs moved here from topics before this one, which
+ * set them before proof writing was taught: from Fractions, Indices, Algebraic manipulation, Surds,
+ * Linear and quadratic inequalities, Straight lines, Arithmetic and geometric series, Remainders,
+ * Algebraic argument, the floor function, Implication, the product rule, Number systems, and
+ * Negating quantifiers. Sequences set exercise 1.3.1(d) too, the same exercise as Algebraic
+ * argument's, so it is set once, here. A problem that also leans on an earlier lesson outside
+ * this topic's prerequisites names it in `needs` and is practice, not a gate.
  */
 import { gradeExpression, type Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, upTo } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
-import { exprTex, math, t, type Rich } from '../rich';
+import { dmath, exprTex, math, t, type Rich } from '../rich';
 import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [ma, mb, mc] = [math`a`, math`b`, math`c`];
@@ -439,6 +447,278 @@ const ns2q15 = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems moved here (Rule 1, 2026-10-08)
+
+/*
+ * Written proofs that sat in topics before this one (Rule 1 in how-a-topic-works): each needs
+ * this lesson, so it sits here, the earliest topic where everything it needs has been taught.
+ * Their ids are unchanged; MOVED_PROBLEMS (moved.ts) reads learner history under the old keys.
+ */
+// 2000 STEP II Q1, first paragraph: two unit fractions for every unit fraction.
+const unitPair = supervision({
+  id: 'step00-q1-unit',
+  source: cite('stepdb-00-s2', 'Q1, first paragraph'),
+  title: t`A unit fraction as two unit fractions`,
+  prompt: t`A number of the form ${math`\frac{${1}}{N}`}, where ${math`N`} is an integer greater than ${1}, is called a unit fraction. Noting that ${dmath`\frac{${1}}{${2}} = \frac{${1}}{${3}} + \frac{${1}}{${6}} \quad\text{and}\quad \frac{${1}}{${3}} = \frac{${1}}{${4}} + \frac{${1}}{${12}},`} guess a general result of the form ${math`\frac{${1}}{N} = \frac{${1}}{a} + \frac{${1}}{b}`}, and hence prove that any unit fraction can be expressed as the sum of two distinct unit fractions.`,
+  writeUp: 'proof',
+});
+
+const bananasShow = supervision({
+  id: 'a3-q4-i',
+  source: cite('step-f03', 'Q4(i)'),
+  title: t`The bananas: the equation`,
+  prompt: t`Arthur, Brenda, and Chandrima gather ${math`N`} bananas. In the night each in turn divides the pile into three equal piles with one left over, gives that one to the orangutan, hides one pile, and heaps the rest together. In the morning the remaining bananas divide into three equal shares of ${math`m`}, with one left over. Show that ${math`${8}N = ${81}m + ${65}`}. (It helps to note that the number left after Chandrima has taken her share is ${math`${3}m + ${1}`}.)`,
+  writeUp: 'proof',
+  official: cite('step-f03-hints', 'Q4'),
+});
+
+/*
+ * Outline for marking ns2-q13 (20 marks):
+ * 1. Writes n with digits d_k ... d_1 d_0: n = d_0 + 10 d_1 + 100 d_2 + ... + 10^k d_k, and s for the
+ *    digit sum (3).
+ * 2. n - s = 9 d_1 + 99 d_2 + ... + (10^k - 1) d_k, and each 10^i - 1 = 99...9 is a multiple of 9 (7).
+ * 3. So n and s leave the same remainder on division by 9 (4); in particular n is a multiple of 9
+ *    exactly when s is, both directions stated (3).
+ * 4. Clear "if and only if": both directions, or one argument that is reversible (3).
+ */
+const ns2q13 = supervision({
+  id: 'ns2-q13',
+  source: cite('ia-ns-sheet-2', 'Q13, first part'),
+  title: t`Nines and digit sums`,
+  prompt: t`Show that a positive integer ${math`n`} is a multiple of ${9} if and only if the sum of its digits is a multiple of ${9}.`,
+  writeUp: 'proof',
+});
+
+/*
+ * Outline for marking ns2-q12-i (20 marks):
+ * 1. Looks for a small divisor and tries 3 (2).
+ * 2. 4 leaves remainder 1 on division by 3, so 4^9 does, and 2^19 = 2 x 4^9 leaves remainder 2 (6).
+ * 3. 25 leaves remainder 1, so 5^40 = 25^20 leaves remainder 1 (6).
+ * 4. The sum leaves remainder 2 + 1 = 3, that is 0: 3 divides 2^19 + 5^40 (4).
+ * 5. The number is larger than 3, so 3 is a proper factor and it is not prime (2).
+ */
+const ns2q12i = supervision({
+  id: 'ns2-q12-i',
+  source: cite('ia-ns-sheet-2', 'Q12, first part'),
+  title: t`A sum of powers that is not prime`,
+  prompt: t`Show that ${math`${2}^{${19}} + ${5}^{${40}}`} is not prime.`,
+  writeUp: 'proof',
+});
+
+const a12ii = supervision({
+  id: 'a12-q1-ii-six',
+  source: cite('step-f12', 'Q1(ii)'),
+  title: t`${math`n^{${3}} - n`} and ${6}`,
+  prompt: t`Factorise ${math`n^{${3}} - n`} completely, and deduce that it is divisible by ${6} for every positive integer ${math`n`}.`,
+  writeUp: 'proof',
+  official: cite('step-f12-hints', 'Q1(ii)'),
+});
+
+/*
+ * Outline for marking ns1-q4-proof (20 marks):
+ * 1. A best choice exists: finitely many ways to write 100 as a sum of positive integers (2).
+ * 2. No part of 5 or more: 2(k - 2) > k for k >= 5; a 4 may be replaced by 2 + 2 (5).
+ * 3. No part 1: merge it with another part (3).
+ * 4. At most two 2s: 2 + 2 + 2 becomes 3 + 3, product 8 to 9 (4).
+ * 5. So all 3s and at most two 2s; 100 = 3 x 32 + 4 forces thirty-two 3s and two 2s (one 2 would
+ *    need 98 to be a multiple of 3; none would need 100 to be) (4).
+ * 6. Answer 4 x 3^32 stated (2).
+ */
+const ns1q4Proof = supervision({
+  id: 'ns1-q4-proof',
+  source: cite('ia-ns-sheet-1', 'Q4'),
+  title: t`Why that product is the largest`,
+  prompt: t`Suppose that we have some positive integers (not necessarily distinct) whose sum is ${100}. How large can their product be? Prove that no choice of integers does better than your answer.`,
+  writeUp: 'proof',
+});
+
+/*
+ * Outline for marking sw-1-3-1-d (20 marks):
+ * 1. Names two consecutive triangular numbers t_k and t_(k+1) for a natural number k (4).
+ * 2. t_k + t_(k+1) = k(k + 1)/2 + (k + 1)(k + 2)/2 = (k + 1)(2k + 2)/2 (8).
+ * 3. = (k + 1)^2, a square of a natural number (6). Each step shown, no division left unexplained (2).
+ */
+const sw131d = supervision({
+  id: 'sw-1-3-1-d',
+  source: cite('cst-dm-sw1', 'Exercises 1, 1.3.1(d)', true),
+  title: t`Two triangular numbers make a square`,
+  prompt: t`A natural number is triangular if it is ${math`t_k = ${0} + ${1} + \cdots + k`} for some natural number ${math`k`}; for example ${math`t_{${0}} = ${0}`}, ${math`t_{${1}} = ${1}`}, ${math`t_{${2}} = ${3}`}. Using ${math`t_k = \frac{k(k + ${1})}{${2}}`}, show that the sum of every two consecutive triangular numbers is a square. (Nicomachus, around ${100} BC.)`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-1', '1.3.1(d)'),
+});
+
+const a7Show = supervision({
+  id: 'a7-q2-i-ii',
+  source: cite('step-f07', 'Q2(i) and (ii)'),
+  title: t`Roots and coefficients without the formula`,
+  prompt: t`Forget the quadratic formula. Show that if ${math`\alpha \ne \beta`} both satisfy ${math`x^{${2}} + bx + c = ${0}`}, then ${math`b = -(\alpha + \beta)`}, find ${math`c`} in terms of ${math`\alpha`} and ${math`\beta`}, and hence show that ${math`(x - \alpha)(x - \beta) \equiv x^{${2}} + bx + c`}. Then, starting from the identity instead, substitute ${math`x = ${0}`} and ${math`x = ${1}`} to find ${math`\alpha\beta`} and ${math`\alpha + \beta`}.`,
+  writeUp: 'proof',
+  official: cite('step-f07-hints', 'Q2(i), (ii)'),
+});
+
+const a7ShowCubic = supervision({
+  id: 'a7-q2-iv',
+  source: cite('step-f07', 'Q2(iv)'),
+  title: t`Three substitutions`,
+  prompt: t`It is given that ${math`x^{${3}} + bx^{${2}} + cx + d \equiv (x - \alpha)(x - \beta)(x - \gamma)`}. By substituting three different values of ${math`x`}, show that ${math`\alpha\beta\gamma = -d`}, ${math`(${1} - \alpha)(${1} - \beta)(${1} - \gamma) = ${1} + b + c + d`}, and ${math`(${1} + \alpha)(${1} + \beta)(${1} + \gamma) = ${1} - b + c - d`}.`,
+  writeUp: 'proof',
+  official: cite('step-f07-hints', 'Q2(iv)'),
+});
+
+const thm11 = supervision({
+  id: 'notes-54-thm11',
+  source: cite('cst-dm-notes', 'printed pages 54 and 55, Theorem 11'),
+  title: t`Implication is transitive`,
+  prompt: t`Let ${math`P_{${1}}`}, ${math`P_{${2}}`}, and ${math`P_{${3}}`} be statements. Prove that if ${math`P_{${1}} \Rightarrow P_{${2}}`} and ${math`P_{${2}} \Rightarrow P_{${3}}`}, then ${math`P_{${1}} \Rightarrow P_{${3}}`}. Name each use of modus ponens.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-notes', 'printed pages 54 and 55, the scratch work'),
+});
+
+const a7Unique = supervision({
+  id: 'a7-q4-i-a',
+  source: cite('step-f07', 'Q4(i)(a)'),
+  title: t`Three weights, and only one choice`,
+  prompt: t`If I can only put the weights in one of the scale pans, show that I can choose just three weights to measure every whole number of ounces from ${1} to ${7}, and that there is only one such choice.`,
+  writeUp: 'proof',
+  official: cite('step-f07-hints', 'Q4(i)(a)'),
+});
+
+const a7Bound = supervision({
+  id: 'a7-q4-i-c-show',
+  source: cite('step-f07', 'Q4(i)(c)'),
+  title: t`At most ${math`${2}^n`} loads`,
+  prompt: t`Show that if I have only ${math`n`} weights and one pan, I cannot weigh more than ${math`${2}^n`} different weights, including zero ounces. How can I choose the weights to measure every whole number from ${1} to ${math`${2}^n - ${1}`}?`,
+  writeUp: 'proof',
+  official: cite('step-f07-hints', 'Q4(i)(c)'),
+});
+
+const a7Bound3 = supervision({
+  id: 'a7-q4-ii-b-show',
+  source: cite('step-f07', 'Q4(ii)(b)'),
+  title: t`At most ${math`${3}^n`} loads`,
+  prompt: t`Show that if I have only ${math`n`} weights and may use either pan, I cannot weigh more than ${math`${3}^n`} different weights, including zero ounces.`,
+  writeUp: 'proof',
+  official: cite('step-f07-hints', 'Q4(ii)(b)'),
+});
+
+const ns2q12ii = supervision({
+  id: 'ns2-q12-ii',
+  source: cite('ia-ns-sheet-2', 'Q12, second part'),
+  title: t`A large number that is not prime`,
+  prompt: t`Show that ${math`${2}^{${91}} - ${1}`} is not prime.`,
+  writeUp: 'proof',
+});
+
+const sw116 = supervision({
+  id: 'sw-1-1-6',
+  source: cite('cst-dm-sw1', 'Exercises 1, 1.1.6'),
+  title: t`The sum of two rationals`,
+  prompt: t`Prove or disprove: the addition of two rational numbers is a rational number. Start from the definition: a real number is rational if it is ${math`\frac{m}{n}`} for integers ${math`m`} and ${math`n`} with ${math`n \ne ${0}`}.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-1', '1.1.6'),
+});
+
+const eProof = supervision({
+  id: 'sw-1-3-1-e',
+  source: cite('cst-dm-sw1', 'Exercises 1, 1.3.1(e)'),
+  title: t`Euler's four maps`,
+  prompt: t`Show that, for all natural numbers ${math`n`}, if ${math`n`} is triangular, then so are ${math`${9}n + ${1}`}, ${math`${25}n + ${3}`}, ${math`${49}n + ${6}`}, and ${math`${81}n + ${10}`}. (Euler, ${1775}.)`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-1', '1.3.1(e)'),
+});
+
+const fProof = supervision({
+  id: 'sw-1-3-1-f-proof',
+  source: cite('cst-dm-sw1', 'Exercises 1, 1.3.1(f)'),
+  title: t`Prove Jordan's generalisation`,
+  prompt: t`Prove: for all natural numbers ${math`n`} and ${math`k`}, there exists a natural number ${math`q`} such that ${math`(${2}n + ${1})^{${2}} \cdot t_k + t_n = t_q`}. Name your witness ${math`q`} and check it by algebra.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-1', '1.3.1(f)'),
+});
+
+const sw421aProof = supervision({
+  id: 'sw-4-2-1-a-proof',
+  source: cite('cst-dm-sw1', 'Exercises 4, 4.2.1(a)'),
+  title: t`Establish the identity`,
+  prompt: t`Establish: for all positive integers ${math`m`} and ${math`n`}, ${math`(${2}^{n} - ${1}) \cdot \sum_{i = ${0}}^{m - ${1}} ${2}^{i \cdot n} = ${2}^{m \cdot n} - ${1}`}. Give a direct proof by telescoping, and, once induction is taught, an inductive one.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-4', '4.2.1(a)'),
+});
+
+const sw421bProof = supervision({
+  id: 'sw-4-2-1-b-proof',
+  source: cite('cst-dm-sw1', 'Exercises 4, 4.2.1(b)'),
+  title: t`Composite exponents`,
+  prompt: t`Suppose ${math`k`} is a positive integer that is not prime. Prove that ${math`${2}^{k} - ${1}`} is not prime. Take care with ${math`k = ${1}`}, which is not prime either.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-4', '4.2.1(b)'),
+});
+
+/*
+ * Outline for marking lp-ex-16 (20 marks):
+ * 1. Push the negation in: not forall y [..] is exists y not[(Q(a) or Q(b)) and not Q(y)] (4).
+ * 2. De Morgan and double negation: exists y [(not Q(a) and not Q(b)) or Q(y)] (4).
+ * 3. Pull the quantifier past the part without y (y is not free there):
+ *    (not Q(a) and not Q(b)) or exists y Q(y) (4).
+ * 4. Q(a) implies exists y Q(y), and so does Q(b); so exists y Q(y) is equivalent to
+ *    exists y Q(y) or Q(a) or Q(b) (4).
+ * 5. Then the formula contains (not Q(a) and not Q(b)) or (Q(a) or Q(b)), which is true by De
+ *    Morgan and excluded middle; so the whole formula is valid (4).
+ */
+const lp16 = supervision({
+  id: 'lp-ex-16',
+  source: cite('cst-lp-notes', 'Section 5, Exercise 16, the proof by equivalences (page 14)', true),
+  title: t`A valid negated "for all"`,
+  prompt: t`Let ${math`Q`} be a one-place predicate and ${math`a`}, ${math`b`} constants, in a non-empty domain. Prove ${math`\lnot \forall y\, [(Q(a) \lor Q(b)) \land \lnot Q(y)]`} using equivalences: rewrite it step by step, naming the law used at each step, until it is plainly true whatever the domain, the predicate ${math`Q`}, and the constants are.`,
+  writeUp: 'proof',
+});
+
+const largeX = supervision({
+  id: 'a2-q1-iii',
+  source: cite('step-f02', 'Q1(iii)'),
+  title: t`A difference of roots for large ${math`x`}`,
+  prompt: t`Show that ${math`\sqrt{${1} + x^{${2}}} - x = \frac{${1}}{\sqrt{${1} + x^{${2}}} + x}`}. Deduce that if ${math`x`} is very large, then ${math`\sqrt{${1} + x^{${2}}} - x`} is approximately equal to ${math`\frac{${1}}{${2}x}`}.`,
+  writeUp: 'proof',
+  official: cite('step-f02-hints', 'Q1(iii)'),
+});
+
+const step2005 = supervision({
+  id: 'a1-q3',
+  source: cite('step-f01', 'Q3 (2005 STEP I Q3)'),
+  title: t`Two fractions equal to one`,
+  prompt: t`In this question ${math`a`} and ${math`b`} are distinct, non-zero real numbers, and ${math`c`} is a real number. (i) Show that, if ${math`a`} and ${math`b`} are either both positive or both negative, then the equation ${math`\frac{x}{x - a} + \frac{x}{x - b} = ${1}`} has two distinct real solutions. (ii) Show that, if ${math`c \ne ${1}`}, the equation ${math`\frac{x}{x - a} + \frac{x}{x - b} = ${1} + c`} has exactly one real solution if ${math`c^{${2}} = -\frac{${4}ab}{(a - b)^{${2}}}`}. Show that this condition can be written ${math`c^{${2}} = ${1} - \left(\frac{a + b}{a - b}\right)^{${2}}`}, and deduce that it can only hold if ${math`${0} < c^{${2}} \le ${1}`}.`,
+  writeUp: 'proof',
+  official: cite('step-f01-hints', 'Q3'),
+});
+
+const specQ1 = supervision({
+  id: 'stepspec-q1-i',
+  source: cite('stepdb-spec-s1', 'Q1(i)'),
+  title: t`Where a conic can be`,
+  prompt: t`The real numbers ${math`x`} and ${math`y`} satisfy the equation ${math`${4}x^{${2}} + ${16}xy + y^{${2}} + ${24}x = ${0}`}. Prove that either ${math`x \le ${0}`} or ${math`x \ge \frac{${2}}{${5}}`}, and, similarly, find restrictions on the values of ${math`y`}.`,
+  writeUp: 'proof',
+});
+
+// 2004 STEP I Q6: medians and the orthocentre, with letters for the coordinates.
+const vertex = (i: number) => math`(p_{${i}}, q_{${i}})`;
+const step04Lines = supervision({
+  id: 'step04-q6',
+  source: cite('stepdb-04-s1', 'Q6'),
+  title: t`Lines through a triangle, in letters`,
+  prompt: t`The three points ${math`A`}, ${math`B`}, and ${math`C`} have coordinates ${vertex(1)}, ${vertex(2)}, and ${vertex(3)}, respectively. Find the point of intersection of the line joining ${math`A`} to the midpoint of ${math`BC`}, and the line joining ${math`B`} to the midpoint of ${math`AC`}. Verify that this point lies on the line joining ${math`C`} to the midpoint of ${math`AB`}. The point ${math`H`} has coordinates ${math`(p_{${1}} + p_{${2}} + p_{${3}}, q_{${1}} + q_{${2}} + q_{${3}})`}. Show that if the line ${math`AH`} intersects the line ${math`BC`} at right angles, then ${math`p_{${2}}^{${2}} + q_{${2}}^{${2}} = p_{${3}}^{${2}} + q_{${3}}^{${2}}`}, and write down a similar result if the line ${math`BH`} intersects the line ${math`AC`} at right angles. Deduce that if ${math`AH`} is perpendicular to ${math`BC`} and also ${math`BH`} is perpendicular to ${math`AC`}, then ${math`CH`} is perpendicular to ${math`AB`}.`,
+  writeUp: 'proof',
+  official: cite('stepdb-04-ha', 'STEP I, Q6 (page 7 of the STEP I hints)'),
+});
+
+const step2004 = supervision({
+  id: 'a3-q3',
+  source: cite('step-f03', 'Q3 (2004 STEP I Q2)'),
+  title: t`Integrals of the floor function`,
+  prompt: t`The notation ${math`[x]`} means the greatest integer less than or equal to ${math`x`}. (i) Sketch the graph of ${math`y = \sqrt{[x]}`} and show that ${math`\int_{${0}}^{a} \sqrt{[x]}\,dx = \sum_{r = ${0}}^{a - ${1}} \sqrt{r}`} when ${math`a`} is a positive integer. (ii) Show that ${math`\int_{${0}}^{a} ${2}^{[x]}\,dx = ${2}^{a} - ${1}`} when ${math`a`} is a positive integer. (iii) Determine an expression for ${math`\int_{${0}}^{a} ${2}^{[x]}\,dx`} when ${math`a`} is positive but not an integer.`,
+  writeUp: 'proof',
+  official: cite('step-f03-hints', 'Q3'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const [mn, mk, mm] = [math`n`, math`k`, math`m`];
@@ -529,13 +809,47 @@ export const directProof: TopicContent = {
   generators: [divides, factorialDivisor, errorStep],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['direct-proof', 'scratch-work', 'lemma'],
-  cambridge: withUses([bop47, bop419, bop46, bop410, tmuaR3, tmua72, bop49, bop413, bop424, scratch, ns2q15], {
+  cambridge: withUses([
+    bop47, bop419, bop46, bop410, tmuaR3, tmua72, bop49, bop413, bop424, scratch, ns2q15,
+    // Moved here (2026-10-08): first those that need only this lesson and what it builds on, then those that also lean on an earlier lesson outside it.
+    unitPair, ns2q12i, a12ii, a7Show, bananasShow, ns1q4Proof, sw131d, a7ShowCubic, thm11,
+    ns2q13, a7Unique, a7Bound, a7Bound3, ns2q12ii, sw116, eProof, fProof, sw421aProof, sw421bProof, lp16, largeX, step2005, specQ1, step04Lines, step2004,
+  ], {
     'ns2-q15': { sections: ['The method'], note: t`Finding multiples inside a block of consecutive numbers`, needs: ['pre.hcf-lcm'] },
     'notes-35-scratch': { sections: ['What a proof is', 'The method'], note: t`Turning scratch work into a proof in sentences` },
+    'step00-q1-unit': { sections: ['What a proof is', 'The method'], note: t`Spotting a pattern in two examples, then proving it for every unit fraction by adding fractions with letters` },
+    'ns2-q12-i': { sections: ['The method'], note: t`Finding the remainders of large powers to show a sum has a factor` },
+    'a12-q1-ii-six': { sections: ['The method'], note: t`Factorising into three consecutive integers, then finding the factors ${2} and ${3}` },
+    'a7-q2-i-ii': { sections: ['The method', 'Where proofs go wrong'], note: t`Subtracting two equations and dividing by ${math`\alpha - \beta`}, which is not zero, then substituting into an identity` },
+    'a3-q4-i': { sections: ['The method'], note: t`Writing each division with remainder as an equation and chaining them` },
+    'ns1-q4-proof': { sections: ['The method'], note: t`Improving any choice step by step until only twos and threes remain` },
+    'sw-1-3-1-d': { sections: ['The method'], note: t`Adding two consecutive triangular numbers by algebra` },
+    'a7-q2-iv': { sections: ['The method'], note: t`Substituting chosen values into an identity` },
+    'notes-54-thm11': { sections: ['The method'], note: t`Proving an implication by chaining modus ponens` },
+    'ns2-q13': { sections: ['The method'], note: t`Comparing a number and its digit sum by their remainders on division by nine, in both directions`, needs: ['logic.iff'] },
+    'a7-q4-i-a': { sections: ['The method'], note: t`Showing a choice of weights works and is the only one`, needs: ['pre.product-rule'] },
+    'a7-q4-i-c-show': { sections: ['The method'], note: t`Two choices for each weight, so at most a power of two loads`, needs: ['pre.product-rule'] },
+    'a7-q4-ii-b-show': { sections: ['The method'], note: t`Three choices for each weight, so at most a power of three loads`, needs: ['pre.product-rule'] },
+    'ns2-q12-ii': { sections: ['The method'], note: t`Writing a power as a power of a power, then factorising a power minus one`, needs: ['pre.indices'] },
+    'sw-1-1-6': { sections: ['What a proof is', 'The method'], note: t`Proving the rationals closed under addition from the definition`, needs: ['num.number-systems'] },
+    'sw-1-3-1-e': { sections: ['The method'], note: t`Turning each map into a triangular number by algebra`, needs: ['alg.arithmetic-series'] },
+    'sw-1-3-1-f-proof': { sections: ['The method'], note: t`Naming a witness and checking it with the triangular-number formula`, needs: ['alg.arithmetic-series'] },
+    'sw-4-2-1-a-proof': { sections: ['The method'], note: t`Proving the series identity by multiplying and cancelling`, needs: ['alg.geometric-series'] },
+    'sw-4-2-1-b-proof': { sections: ['The method', 'Where proofs go wrong'], note: t`Reading the series formula backwards as a factorisation, with care at ${math`k = ${1}`}`, needs: ['alg.geometric-series'] },
+    'lp-ex-16': { sections: ['The method'], note: t`Rewriting a negated "for all" by named equivalences`, needs: ['logic.negating-quantifiers'] },
+    'a2-q1-iii': { sections: ['The method'], note: t`Rationalising with a conjugate, then reading off the size for large values`, needs: ['alg.surds'] },
+    'a1-q3': { sections: ['The method', 'Where proofs go wrong'], note: t`Clearing fractions to reach a quadratic and using the discriminant`, needs: ['ineq.linear-quadratic'] },
+    'stepspec-q1-i': { sections: ['The method'], note: t`Treating an equation as a quadratic in one letter and using the discriminant`, needs: ['ineq.linear-quadratic'] },
+    'step04-q6': { sections: ['The method'], note: t`Equations of lines through points given in letters, where they meet, and the rule for perpendicular gradients`, needs: ['geom.straight-lines'] },
+    'a3-q3': { sections: ['The method'], note: t`Areas under step graphs as sums, including a geometric sum`, needs: ['fn.floor-function'] },
   }),
   // The IA block question first: a direct proof with a case the first idea misses. Then the CST
   // notes' scratch work turned into a written proof. The Book of Proof exercises are good practice but easier.
-  gate: ['ns2-q15', 'notes-35-scratch'],
+  // Then four proofs moved here from earlier topics (2026-10-08) that ask only for this lesson and what it
+  // builds on: the unit fractions guessed in scratch work, the factor of a sum of powers, n^3 - n and 6, and
+  // the roots of a quadratic, where dividing by alpha - beta needs it to be non-zero. The other moved
+  // proofs are practice: shorter, a step from an exercise, or leaning on an earlier lesson outside this one.
+  gate: ['ns2-q15', 'notes-35-scratch', 'step00-q1-unit', 'ns2-q12-i', 'a12-q1-ii-six', 'a7-q2-i-ii'],
   recall: [
     { front: t`What is a direct proof of "if ${math`P`} then ${math`Q`}"?`, back: t`Assume ${math`P`}, unpack the definitions, deduce step by step, and arrive at ${math`Q`}.` },
     { front: t`Define ${math`d \mid n`}.`, back: t`${math`n = d \cdot k`} for some integer ${mk}.` },

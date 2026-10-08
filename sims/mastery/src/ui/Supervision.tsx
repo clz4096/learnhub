@@ -8,6 +8,7 @@
  * here.
  */
 import { useRef, useState } from 'preact/hooks';
+import { currentProblemKey } from '@learnhub/content';
 import { DAY_MS, SUPERVISION_MARK_MAX, SUPERVISION_PASS_MARK, type Progress, type SupervisionResult } from '@learnhub/mastery';
 import { titleOf } from '@/model/courses';
 import {
@@ -89,10 +90,10 @@ export function CopyForSupervision({ problemKey, writeUp, checked, describedBy }
         )}
       </div>
       <p class="small muted" role="status">
-        {state.kind === 'copied' && 'Copied. Paste it into your supervision session in Claude Code (type /supervise first if the session has the command), then paste the result block back here.'}
+        {state.kind === 'copied' && 'Copied. Paste it into a supervision session in Claude Code (type /supervise first if the session has the command), then paste the result block back here.'}
         {state.kind === 'manual' && (state.copied
-          ? 'Copied. Paste it into your supervision session in Claude Code.'
-          : 'This browser did not let the app copy. Press Select all, then copy the selected text, and paste it into your supervision session.')}
+          ? 'Copied. Paste it into a supervision session in Claude Code.'
+          : 'This browser did not let the app copy. Press Select all, then copy the selected text, and paste it into a supervision session.')}
       </p>
       {boxShown && (
         <div class="sup-box">
@@ -117,7 +118,8 @@ export function CopyForSupervision({ problemKey, writeUp, checked, describedBy }
 }
 
 /** What an imported result did, in plain words: the same rules as `importSupervisionResult`. */
-export function importSummary(before: Readonly<Progress>, key: string, result: Readonly<SupervisionResult>): string {
+export function importSummary(before: Readonly<Progress>, asked: string, result: Readonly<SupervisionResult>): string {
+  const key = currentProblemKey(asked);
   const topicId = topicOfKey(key);
   const { mark, redo } = result;
   const learned = before.memory[topicId] !== undefined;
@@ -131,9 +133,9 @@ export function importSummary(before: Readonly<Progress>, key: string, result: R
   else if (passed) parts.push(`That is ${SUPERVISION_PASS_MARK} or more, so it counts as a passed review of ${titleOf(topicId)}.`);
   else if (lapseExcluded(key, kept)) parts.push(`It is further practice, not a gate problem, so it does not count against ${titleOf(topicId)}.`);
   else parts.push(`That is below ${SUPERVISION_PASS_MARK}, so it counts as a missed review of ${titleOf(topicId)}, and it comes back sooner.`);
-  const ready = redo.filter((k) => gap === undefined || k !== key);
+  const ready = redo.filter((k) => gap === undefined || currentProblemKey(k) !== key);
   if (ready.length > 0) parts.push(`To redo, from tomorrow on Today: ${ready.map(problemTitle).join(', ')}.`);
-  if (gap !== undefined && redo.includes(key)) parts.push(`Its redo waits until ${titleOf(gap)} is mastered.`);
+  if (gap !== undefined && redo.some((k) => currentProblemKey(k) === key)) parts.push(`Its redo waits until ${titleOf(gap)} is mastered.`);
   return parts.join(' ');
 }
 
@@ -202,11 +204,12 @@ export function dueLabel(t: number, due: number): string {
 }
 
 /** The route of a Cambridge problem on its own page. */
-export const problemRoute = (key: string): { view: 'problem'; topicId: string; problemId: string } => ({
-  view: 'problem', topicId: topicOfKey(key), problemId: key.slice(key.indexOf('/') + 1),
-});
+export function problemRoute(asked: string): { view: 'problem'; topicId: string; problemId: string } {
+  const key = currentProblemKey(asked);
+  return { view: 'problem', topicId: topicOfKey(key), problemId: key.slice(key.indexOf('/') + 1) };
+}
 
-/** Today's supervision part: redos set by supervisors, copies waiting for a result, and Paste result. */
+/** Today's supervision part: redos set by supervisors or by a missed Cambridge problem, copies waiting for a result, and Paste result. */
 export function SupervisionToday({ p }: { p: Progress }) {
   const redos = openRedos(p);
   const held = waitingRedos(p);
@@ -231,7 +234,11 @@ export function SupervisionToday({ p }: { p: Progress }) {
                   <span class="small muted">{dueLabel(t, d.due)}</span>
                 </div>
                 <h3 class="task-title">{problemTitle(d.problem)}</h3>
-                <p class="small reason">Set by a supervisor, in {titleOf(topicOfKey(d.problem))}. Redo it cold, without notes.</p>
+                <p class="small reason">
+                  {redoSource(p, d) === undefined
+                    ? <>Missed in {titleOf(topicOfKey(currentProblemKey(d.problem)))}, now back. A right answer still counts; its hints stay available.</>
+                    : <>Set by a supervisor, in {titleOf(topicOfKey(currentProblemKey(d.problem)))}. Redo it cold, without notes.</>}
+                </p>
                 {weak.length > 0 && (
                   <div class="small">
                     <p class="muted">Weak points from that supervision:</p>
@@ -250,7 +257,7 @@ export function SupervisionToday({ p }: { p: Progress }) {
         <ul class="small muted sup-held">
           {held.map((d) => (
             <li key={`${d.problem}-${d.from}`} data-held={d.problem}>
-              Redo of {problemTitle(d.problem)} waits until you master {titleOf(redoWaitsFor(p, d) as string)}.
+              Redo of {problemTitle(d.problem)} waits until {titleOf(redoWaitsFor(p, d) as string)} is mastered.
             </li>
           ))}
         </ul>

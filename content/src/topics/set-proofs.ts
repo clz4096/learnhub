@@ -5,6 +5,12 @@
  * Discrete Mathematics supervision exercises 5.1.6 (complements and De Morgan) and 5.2.3
  * (four equivalent statements). Identity claims in the generators are decided by brute force
  * over every choice of subsets of a three-element set.
+ *
+ * Rule 1 (2026-10-08): the written proofs about sets that topics before this one set, before
+ * proofs about sets were taught, moved here: IA Numbers and Sets Sheet 1 Q6 and Q13, the CST notes'
+ * set equality example and Proposition 109, and supervision exercises 5.2.2, 5.2.4, 5.2.6, 5.2.7,
+ * and 5.3.1. Set notation's copy of 5.1.6 and Subsets' copy of 5.2.3 were these gates, so they
+ * were removed there, and their official solutions and marking outlines are kept here.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { gcd, int, pick, sample } from '../math';
@@ -296,8 +302,145 @@ const b82 = sup('b8-2', 'Chapter 8, exercise 2', t`Multiples of ${6}`, t`Prove t
 const b88 = sup('b8-8', 'Chapter 8, exercise 8', t`Union over intersection`, t`If ${mA}, ${mB} and ${mC} are sets, prove that ${math`A \cup (B \cap C) = (A \cup B) \cap (A \cup C)`}.`);
 const b810 = sup('b8-10', 'Chapter 8, exercise 10', t`De Morgan for intersections`, t`If ${mA} and ${mB} are sets in a universal set ${math`U`}, prove that ${math`\overline{A \cap B} = \overline{A} \cup \overline{B}`}.`);
 const b826 = sup('b8-26', 'Chapter 8, exercise 26', t`Two descriptions of one set`, t`Prove that ${math`\{${4}k + ${5} : k \in \mathbb{Z}\} = \{${4}k + ${1} : k \in \mathbb{Z}\}`}.`);
-const sw516 = sup('sw-5-1-6', 'Exercises 5, 5.1.6', t`Complements and De Morgan`, t`Let ${math`U`} be a set. For all ${math`A, B \in \mathcal{P}(U)`}, prove that: (a) ${math`A^{c} = B \iff (A \cup B = U \wedge A \cap B = \varnothing)`}; (b) ${math`(A^{c})^{c} = A`}; (c) ${math`(A \cup B)^{c} = A^{c} \cap B^{c}`} and ${math`(A \cap B)^{c} = A^{c} \cup B^{c}`}.`, 'cst-dm-sw1');
-const sw523 = sup('sw-5-2-3', 'Exercises 5, 5.2.3', t`Four ways to say A is inside B`, t`Let ${math`U`} be a set. For all ${math`A, B \in \mathcal{P}(U)`}, prove that the following are equivalent: (a) ${math`A \cup B = B`}; (b) ${math`A \subseteq B`}; (c) ${math`A \cap B = A`}; (d) ${math`B^{c} \subseteq A^{c}`}.`, 'cst-dm-sw1');
+/*
+ * Outline for marking sw-5-1-6 (20 marks):
+ * (a) 8 marks. If the complement of A is B: every x in U is in A or not in A, so A u B = U; no x is
+ *     both, so A n B is empty. Conversely, A u B = U puts every x outside A into B; A n B empty puts
+ *     every x in B outside A; so B is exactly the complement.
+ * (b) 4 marks. By (a) with the roles swapped, or element by element: x is outside the complement of
+ *     A exactly when x is in A.
+ * (c) 8 marks. Each De Morgan law element by element ("not (P or Q)" is "not P and not Q"), or from
+ *     (a): check union and intersection with the claimed complement are U and the empty set.
+ */
+const sw516 = { ...sup('sw-5-1-6', 'Exercises 5, 5.1.6', t`Complements and De Morgan`, t`Let ${math`U`} be a set. For all ${math`A, B \in \mathcal{P}(U)`}, prove that: (a) ${math`A^{c} = B \iff (A \cup B = U \wedge A \cap B = \varnothing)`}; (b) ${math`(A^{c})^{c} = A`}; (c) ${math`(A \cup B)^{c} = A^{c} \cap B^{c}`} and ${math`(A \cap B)^{c} = A^{c} \cup B^{c}`}.`, 'cst-dm-sw1'), official: cite('cst-dm-sols-2324-5', '5.1.6') };
+/*
+ * Outline for marking sw-5-2-3 (20 marks): a cycle of implications, each by elements.
+ * (a) => (b): A is inside A u B = B (4).
+ * (b) => (c): A n B is inside A always; and A inside B gives A inside A n B; equal by two inclusions (4).
+ * (c) => (d): if x is not in B, then x is not in A n B = A (4).
+ * (d) => (b): x in A and x not in B would put x in the complement of B, so outside A: contradiction (4).
+ * (b) => (a): B is inside A u B always; A and B inside B give A u B inside B (4).
+ * (Any cycle, or pairs of implications, that links all four earns full credit.)
+ */
+const sw523 = { ...sup('sw-5-2-3', 'Exercises 5, 5.2.3', t`Four ways to say A is inside B`, t`Let ${math`U`} be a set. For all ${math`A, B \in \mathcal{P}(U)`}, prove that the following are equivalent: (a) ${math`A \cup B = B`}; (b) ${math`A \subseteq B`}; (c) ${math`A \cap B = A`}; (d) ${math`B^{c} \subseteq A^{c}`}.`, 'cst-dm-sw1'), official: cite('cst-dm-sols-2324-5', '5.2.3') };
+
+// ---------------------------------------------------------------- Cambridge problems moved here (Rule 1, 2026-10-08)
+
+// From Set notation, Set-builder notation, Subsets, Cartesian products, and Indexed sets, which set
+// them before proofs about sets were taught.
+/*
+ * Outline for marking ns1-q6 (20 marks):
+ * 1. Two sets are equal when they have the same elements: show x is in the left side exactly when
+ *    it is in the right side (or show each side is inside the other) (4).
+ * 2. x in A - (B u C) means x in A and not (x in B or x in C) (4); by De Morgan for "or", x in A and
+ *    x not in B and x not in C (4).
+ * 3. Regroup: (x in A and x not in B) and (x in A and x not in C), that is x in (A - B) n (A - C) (6).
+ * 4. Every step reversible, said explicitly, so both inclusions follow (2).
+ */
+const ns1q6 = supervision({
+  id: 'ns1-q6',
+  source: cite('ia-ns-sheet-1', 'Q6', true),
+  title: t`A difference from a union`,
+  prompt: t`Prove that ${math`A - (B \cup C) = (A - B) \cap (A - C)`} for all sets ${mA}, ${mB}, ${math`C`}.`,
+  writeUp: 'proof',
+});
+
+/*
+ * Outline for marking ns1-q13 (20 marks):
+ * 1. A triangle B = (A - B) u (B - A), or equally (A u B) - (A n B), with a line of justification (5).
+ * 2. Key fact: x is in A triangle B exactly when x is in an odd number of A, B (one of them) (4).
+ * 3. Then x is in (A triangle B) triangle C exactly when x is in exactly one of A triangle B and C,
+ *    that is, when x is in an odd number of A, B, C; check the cases (6).
+ * 4. The condition is symmetric in A, B, C, so A triangle (B triangle C) is the same set:
+ *    the operation is associative (5). (A check of the 8 regions of a three-set Venn diagram,
+ *    region by region, earns full credit.)
+ */
+const ns1q13 = supervision({
+  id: 'ns1-q13',
+  source: cite('ia-ns-sheet-1', 'Q13', true),
+  title: t`The symmetric difference`,
+  prompt: t`The symmetric difference ${math`A \mathbin{\triangle} B`} of two sets ${mA} and ${mB} is the set of elements that belong to exactly one of ${mA} and ${mB}. Express this in terms of ${math`\cap`}, ${math`\cup`}, and ${math`-`}. Prove that ${math`\triangle`} is associative: ${math`(A \mathbin{\triangle} B) \mathbin{\triangle} C = A \mathbin{\triangle} (B \mathbin{\triangle} C)`} for all sets ${mA}, ${mB}, ${math`C`}.`,
+  writeUp: 'proof',
+});
+
+const equalProof = supervision({
+  id: 'notes-205-equality',
+  source: cite('cst-dm-notes', 'printed pages 205 and 206, Set equality', true),
+  title: t`Proving two sets equal`,
+  prompt: t`Prove that ${math`\{x \in \mathbb{N} \mid ${2} \text{ divides } x \text{ and } x \text{ is prime}\} = \{${2}\}`}. Show both directions: every element of the left side is ${2}, and ${2} is an element of the left side.`,
+  writeUp: 'proof',
+});
+
+const cstPowersProof = supervision({
+  id: 'sw-5-2-2-proof',
+  source: cite('cst-dm-sw1', 'Exercises 5, 5.2.2'),
+  title: t`Prove or disprove the power set statements`,
+  prompt: t`Either prove or disprove that, for all sets ${mA} and ${mB}: (a) ${math`A \subseteq B \implies \mathcal{P}(A) \subseteq \mathcal{P}(B)`}; (b) ${math`\mathcal{P}(A \cup B) \subseteq \mathcal{P}(A) \cup \mathcal{P}(B)`}; (c) ${math`\mathcal{P}(A) \cup \mathcal{P}(B) \subseteq \mathcal{P}(A \cup B)`}; (d) ${math`\mathcal{P}(A \cap B) \subseteq \mathcal{P}(A) \cap \mathcal{P}(B)`}; (e) ${math`\mathcal{P}(A) \cap \mathcal{P}(B) \subseteq \mathcal{P}(A \cap B)`}.`,
+  writeUp: 'proof',
+});
+
+const sw524Proof = supervision({
+  id: 'sw-5-2-4-proof',
+  source: cite('cst-dm-sw1', 'Exercises 5, 5.2.4'),
+  title: t`Prove or disprove three product statements`,
+  prompt: t`For sets ${mA}, ${mB}, ${mC}, ${math`D`}, prove or disprove at least three of: (a) ${math`(A \subseteq C \wedge B \subseteq D) \implies A \times B \subseteq C \times D`}; (b) ${math`(A \cup C) \times (B \cup D) \subseteq (A \times B) \cup (C \times D)`}; (c) ${math`(A \times C) \cup (B \times D) \subseteq (A \cup B) \times (C \cup D)`}; (d) ${math`A \times (B \cup C) \subseteq (A \times B) \cup (A \times C)`}; (e) ${math`(A \times B) \cup (A \times D) \subseteq A \times (B \cup D)`}.`,
+  writeUp: 'proof',
+});
+
+// CST notes, Proposition 109 (with Proposition 108 as the fact it may use): the set-built ordered pair.
+const prop109 = supervision({
+  id: 'notes-353-prop109',
+  source: cite('cst-dm-notes', 'printed pages 348 to 353, Propositions 108 and 109', true),
+  title: t`An ordered pair made of sets`,
+  prompt: t`Sets forget order, but an ordered pair can be built from them. For any ${math`a`} and ${math`b`}, define ${math`\langle a, b \rangle = \{\{a\}, \{a, b\}\}`}. Prove that for all ${math`a, b, x, y`}: if ${math`\langle a, b \rangle = \langle x, y \rangle`}, then ${math`a = x`} and ${math`b = y`}. You may use the fact that ${math`\{c, u\} = \{c, v\}`} implies ${math`u = v`}, for any ${math`c`}, ${math`u`}, ${math`v`} (sets included).`,
+  writeUp: 'proof',
+  official: cite('cst-dm-notes', 'printed page 353, the proof of Proposition 109'),
+});
+
+const sw526 = supervision({
+  id: 'sw-5-2-6',
+  source: cite('cst-dm-sw1', 'Exercises 5, 5.2.6'),
+  title: t`Big unions and intersections`,
+  prompt: t`Let ${math`\mathcal{F} \subseteq \mathcal{P}(A)`} be a family of subsets of a set ${math`A`}. Prove: (a) for all ${math`U \subseteq A`}, ${math`(\forall X \in \mathcal{F}.\ X \subseteq U) \iff \bigcup \mathcal{F} \subseteq U`}; (b) for all ${math`L \subseteq A`}, ${math`(\forall X \in \mathcal{F}.\ L \subseteq X) \iff L \subseteq \bigcap \mathcal{F}`}. (For (b), take ${math`\bigcap \mathcal{F}`} to mean the elements of ${math`A`} in every member of ${math`\mathcal{F}`}.)`,
+  writeUp: 'proof',
+});
+
+/*
+ * Outline for marking sw-5-2-7 (20 marks):
+ * (a) 10 marks. The union of F is in the family U: every S in F is inside it (3). So the
+ *     intersection of U is inside the union of F (3). Conversely every U in the family contains each
+ *     S in F, so contains their union (exercise 5.2.6(a)); hence the union of F is inside the
+ *     intersection of U (4).
+ * (b) 10 marks. L = {L inside A : L is inside every S in F} (3). The intersection of F is in L, so it
+ *     is inside the union of L (3); every L in L is inside the intersection of F (exercise 5.2.6(b)), so
+ *     the union of L is inside it (4).
+ */
+const sw527 = supervision({
+  id: 'sw-5-2-7',
+  source: cite('cst-dm-sw1', 'Exercises 5, 5.2.7'),
+  title: t`Unions as intersections`,
+  prompt: t`Let ${math`A`} be a set. (a) For a family ${math`\mathcal{F} \subseteq \mathcal{P}(A)`}, let ${math`\mathcal{U} = \{U \subseteq A \mid \forall S \in \mathcal{F}.\ S \subseteq U\}`}. Prove that ${math`\bigcup \mathcal{F} = \bigcap \mathcal{U}`}. (b) Analogously, define a family ${math`\mathcal{L} \subseteq \mathcal{P}(A)`} such that ${math`\bigcap \mathcal{F} = \bigcup \mathcal{L}`}, and prove this statement.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-5', '5.2.7'),
+});
+
+/*
+ * Outline for marking sw-5-3-1 (20 marks):
+ * 1. x is in the union of F_1 or in the union of F_2 iff x is in some member of F_1 or some member of
+ *    F_2 iff x is in some member of F_1 u F_2 (8).
+ * 2. States the analogue: for non-empty F_1 and F_2, the intersection of F_1 n the intersection of
+ *    F_2 equals the intersection of F_1 u F_2 (4).
+ * 3. Proves it the same way with "every member" in place of "some member" (6), and says why
+ *    non-empty is needed (the intersection of an empty family is not a set of elements of A) (2).
+ */
+const sw531 = supervision({
+  id: 'sw-5-3-1',
+  source: cite('cst-dm-sw1', 'Exercises 5, 5.3.1'),
+  title: t`Unions of two families`,
+  prompt: t`Prove that for all families of sets ${math`\mathcal{F}_{${1}}`} and ${math`\mathcal{F}_{${2}}`}, ${math`\left(\bigcup \mathcal{F}_{${1}}\right) \cup \left(\bigcup \mathcal{F}_{${2}}\right) = \bigcup \left(\mathcal{F}_{${1}} \cup \mathcal{F}_{${2}}\right)`}. State and prove the analogous property for intersections of non-empty families of sets.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-5', '5.3.1'),
+});
 
 // ---------------------------------------------------------------- lesson
 
@@ -359,11 +502,23 @@ export const setProofs: TopicContent = {
   generators: [lcmGen, identGen, startGen, memberGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['element-chasing', 'double-inclusion'],
-  cambridge: withUses([sw516, sw523, b819, b828, b82, b88, b810, b826], {
+  cambridge: withUses([sw516, sw523, b819, b828, b82, b88, b810, b826, ns1q6, ns1q13, equalProof, cstPowersProof, sw524Proof, prop109, sw526, sw527, sw531], {
+    'ns1-q6': { sections: ['An equality, both ways'], note: t`Proving an identity between sets by following an element` },
+    'ns1-q13': { sections: ['An equality, both ways'], note: t`Expressing the symmetric difference, and proving it associative with a membership table` },
+    'notes-205-equality': { sections: ['Three things to prove', 'An equality, both ways'], note: t`Proving two sets equal by showing each is inside the other` },
+    'sw-5-2-2-proof': { sections: ['An inclusion, chased'], note: t`Proving or disproving inclusions between power sets`, needs: ['proof.counterexample'] },
+    'sw-5-2-4-proof': { sections: ['An inclusion, chased'], note: t`Proving or disproving inclusions between products, unions, and subsets`, needs: ['sets.cartesian-product', 'proof.counterexample'] },
+    'notes-353-prop109': { sections: ['An equality, both ways'], note: t`Proving from set equality that a pair built from sets remembers its order`, needs: ['sets.cartesian-product'] },
+    'sw-5-2-6': { sections: ['An inclusion, chased'], note: t`Unions and intersections of a family, proved both ways`, needs: ['sets.indexed', 'logic.quantifiers', 'logic.iff'] },
+    'sw-5-2-7': { sections: ['An inclusion, chased', 'An equality, both ways'], note: t`Writing a union of a family as an intersection of supersets`, needs: ['sets.indexed', 'logic.quantifiers'] },
+    'sw-5-3-1': { sections: ['An equality, both ways'], note: t`Unions of two families, and the matching statement for intersections`, needs: ['sets.indexed'] },
     'sw-5-1-6': { sections: ['An equality, both ways'], note: t`Proving complement identities by showing inclusion both ways` },
     'sw-5-2-3': { sections: ['An inclusion, chased', 'An equality, both ways'], note: t`Proving four statements equivalent by chasing elements` },
   }),
-  gate: ['sw-5-1-6', 'sw-5-2-3'],
+  // The two CST exercises, then two IA identities moved here from Set notation (2026-10-08). The other moved
+  // proofs are practice: set-builder equality is a short exercise, and the rest lean on an earlier lesson outside
+  // this topic's prerequisites (counterexamples, products, indexed families).
+  gate: ['sw-5-1-6', 'sw-5-2-3', 'ns1-q6', 'ns1-q13'],
   recall: [
     { front: t`How do you prove ${math`A \subseteq B`}?`, back: t`Let ${math`a \in A`} be arbitrary; using the definitions, deduce ${math`a \in B`}.` },
     { front: t`How do you prove ${math`A = B`}?`, back: t`Prove ${math`A \subseteq B`} and ${math`B \subseteq A`}.` },

@@ -190,7 +190,7 @@ export function BookView() {
                   {!isHere && st.peek.length > 0 && <span class="ds-peek">{st.peek.join(' · ')}</span>}
                   <span class="visually-hidden">{y.label}</span>
                 </summary>
-                {y.afterPreparation && <p class="book-note">You can read ahead; nothing is locked.</p>}
+                {y.afterPreparation && <p class="book-note">Reading ahead is fine; nothing is locked.</p>}
                 <StageChapters y={y} p={p} here={here} />
               </details>
             </li>
@@ -231,7 +231,7 @@ export function ChapterView({ chapterId }: { chapterId: string }) {
       </p>
       {ch.overlap !== '' && <p class="book-note">{ch.overlap}.</p>}
       {ch.why !== '' && <p class="book-note">{ch.why}.</p>}
-      {year?.afterPreparation === true && <p class="book-note">{AFTER_PREP}. You can read ahead; nothing is locked.</p>}
+      {year?.afterPreparation === true && <p class="book-note">{AFTER_PREP}. Reading ahead is fine; nothing is locked.</p>}
       {c.steps > 0 && (
         <div class="d-progress">
           <div class="d-bar"><i style={{ width: `${pct}%` }} /></div>

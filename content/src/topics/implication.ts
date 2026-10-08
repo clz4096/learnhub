@@ -534,14 +534,6 @@ const prop10 = supervision({
   writeUp: 'proof',
   official: cite('cst-dm-notes', 'printed page 51, the notes\' proof'),
 });
-const thm11 = supervision({
-  id: 'notes-54-thm11',
-  source: cite('cst-dm-notes', 'printed pages 54 and 55, Theorem 11'),
-  title: t`Implication is transitive`,
-  prompt: t`Let ${math`P_{${1}}`}, ${math`P_{${2}}`}, and ${math`P_{${3}}`} be statements. Prove that if ${math`P_{${1}} \Rightarrow P_{${2}}`} and ${math`P_{${2}} \Rightarrow P_{${3}}`}, then ${math`P_{${1}} \Rightarrow P_{${3}}`}. Name each use of modus ponens.`,
-  writeUp: 'proof',
-  official: cite('cst-dm-notes', 'printed pages 54 and 55, the scratch work'),
-});
 const tmuaE1 = supervision({
   id: 'tmua-e-1-2',
   source: cite('tmua-logic-proof', 'Exercise E, questions 1 and 2', true),
@@ -708,13 +700,13 @@ export const implication: TopicContent = {
   generators: [fillColumn, findValues, rewrite],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['implication', 'converse', 'modus-ponens'],
-  cambridge: withUses([bop25_1, bop25_7, bop25_10, bop25_11, bop23_3, bop23_5, bop23_7, bop23_11, tmuaE4, tmua29, prop10, thm11, a4Cards, tmuaE1, tmuaJ], {
+  cambridge: withUses([bop25_1, bop25_7, bop25_10, bop25_11, bop23_3, bop23_5, bop23_7, bop23_11, tmuaE4, tmua29, prop10, a4Cards, tmuaE1, tmuaJ], {
     'notes-50-prop10': { sections: ['Proving and using an implication'], note: t`Proving an implication about rational numbers`, needs: ['num.number-systems'] },
-    'notes-54-thm11': { sections: ['Proving and using an implication'], note: t`Proving an implication by chaining modus ponens`, needs: ['proof.direct'] },
     'a4-q4-i': { sections: ['A promise', 'Many ways to say it'], note: t`Finding the only cases in which an implication can be false` },
   }),
-  // The cards test when an implication is false. Theorem 11 is a written proof, which proof.direct teaches later
-  // in the book, so it is practice (2026-10-08). Proposition 10 needs rational numbers, taught later, so it is practice.
+  // The cards test when an implication is false. Theorem 11 is a written proof, so it is set in proof.direct, the
+  // first topic that teaches writing one (Rule 1, 2026-10-08). Proposition 10 needs rational numbers, taught later,
+  // so it is practice.
   gate: ['a4-q4-i'],
   recall: [
     { front: t`When is ${IMP} false?`, back: t`Only when ${mP} is true and ${mQ} is false. In the other three cases it is true.` },

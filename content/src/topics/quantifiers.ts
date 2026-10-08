@@ -3,8 +3,9 @@
  * universal and existential quantification (printed pages 63 to 76 and 85 to 103: proving
  * and using each, universal instantiation, witnesses, Propositions 21 and 22), the TMUA
  * notes on quantifiers (pages 56 to 58), and Book of Proof Section 2.7. The problems are
- * TMUA Exercise M, Book of Proof's exercise 1 for Section 2.7, the notes' Propositions 18,
- * 21, and 22, and supervision exercises 1.2.10 and 1.3.2 (2023-24 official solutions).
+ * TMUA Exercise M, Book of Proof's exercise 1 for Section 2.7, and the notes' Propositions 18,
+ * 21, and 22. Supervision exercises 1.2.10 and 1.3.2 are in proof.quantifier-patterns (Rule 1,
+ * 2026-10-08).
  */
 import type { Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision, withUses } from '../cambridge';
@@ -330,22 +331,6 @@ const prop18 = supervision({
   writeUp: 'proof',
   official: cite('cst-dm-notes', 'printed page 73, the notes\' proof'),
 });
-const sw132 = supervision({
-  id: 'sw-1-3-2',
-  source: cite('cst-dm-sw1', 'Exercises 1, 1.3.2'),
-  title: t`A "there exists" on the left of an arrow`,
-  prompt: t`Let ${math`P(x)`} be a predicate on a variable ${mx} and let ${math`Q`} be a statement not mentioning ${mx}. Show that ${dmath`\big(\exists x.\ P(x)\big) \Rightarrow Q \quad\text{if and only if}\quad \forall x.\ \big(P(x) \Rightarrow Q\big).`}`,
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-1', '1.3.2'),
-});
-const sw1210 = supervision({
-  id: 'sw-1-2-10',
-  source: cite('cst-dm-sw1', 'Exercises 1, 1.2.10'),
-  title: t`Everything up to ${mn}`,
-  prompt: t`Let ${math`P(m)`} be a statement for ${math`m`} ranging over the natural numbers, and let ${math`P^{\#}(n)`} be ${math`\forall k \in \mathbb{N}.\ ${0} \le k \le n \Rightarrow P(k)`}. (a) Show that for all natural numbers ${math`\ell`}, ${math`P^{\#}(\ell) \Rightarrow P(\ell)`}. (b) Exhibit a concrete statement ${math`P(m)`} and a natural number ${mn} for which ${math`P(n) \Rightarrow P^{\#}(n)`} does not hold. (c) Prove ${math`P^{\#}(${0}) \Leftrightarrow P(${0})`}, and ${math`\big(\forall m.\ P^{\#}(m)\big) \Leftrightarrow \big(\forall m.\ P(m)\big)`}.`,
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-1', '1.2.10'),
-});
 
 // ---------------------------------------------------------------- lesson
 
@@ -427,14 +412,12 @@ export const quantifiers: TopicContent = {
   generators: [forallExists, witness, counterexample],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quantifier', 'witness', 'counterexample'],
-  cambridge: withUses([tmuaM, bop271, prop21k, prop22, prop18, sw132, sw1210], {
-    'sw-1-3-2': { sections: ['For all and there exists', 'Using quantified statements'], note: t`Moving a "there exists" across an arrow, both directions`, needs: ['proof.direct'] },
+  cambridge: withUses([tmuaM, bop271, prop21k, prop22, prop18], {
     'notes-72-prop18': { sections: ['A first proof of each', 'Using quantified statements'], note: t`Proving and using a "for all" about congruences`, needs: ['num.divisibility'] },
-    'sw-1-2-10': { sections: ['For all and there exists', 'A first proof of each', 'Two traps'], note: t`Proving and refuting statements about every number up to a bound`, needs: ['proof.direct'] },
     'notes-93-prop21': { sections: ['For all and there exists', 'A first proof of each'], note: t`Giving a witness for one case of a "for all, there exists" statement` },
   }),
-  // The supervision proofs need proof writing, which proof.direct teaches later in the book, so they are practice
-  // (2026-10-08). Proposition 21's witness for k = 13 gates: it asks for a pair, and the misconception catches the
+  // The supervision proofs (1.2.10 and 1.3.2) are set in proof.quantifier-patterns, where proving quantified
+  // statements is taught (Rule 1, 2026-10-08). Proposition 21's witness for k = 13 gates: it asks for a pair, and the misconception catches the
   // near miss. Proposition 22's is a lookup. Proposition 18 needs divisibility and congruences, taught later.
   gate: ['notes-93-prop21'],
   recall: [

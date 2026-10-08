@@ -26,8 +26,8 @@ function gated(d: DomainId): { topic: string; key: string } {
   return { topic: t.id, key: gateKey(t.id, gateOf(t.id)[0] as string) };
 }
 
-const answer = (key: string, topicId: string, at: number, correct: boolean, hints = 0, kind: HistoryEntry['kind'] = 'cambridge'): HistoryEntry =>
-  ({ at, kind, topicId, correct, item: { id: key, hints, attempt: 1 } });
+const answer = (key: string, topicId: string, at: number, correct: boolean, hints = 0, kind: HistoryEntry['kind'] = 'cambridge', solution = false): HistoryEntry =>
+  ({ at, kind, topicId, correct, item: { id: key, hints, attempt: 1, ...(solution ? { solution: true as const } : {}) } });
 
 function supervised(key: string, mark: number, nonce: string, at = T0): SupervisionAttempt {
   return { problem: key, nonce, writeUp: 'x', copiedAt: at, importedAt: at, result: { mark, weakPoints: ['a', 'b', 'c'], redo: [], summary: 's' } };
@@ -53,11 +53,12 @@ describe('ratings', () => {
   it('drills and gym alone stop at the cap, however strong the memory and however many answers', () => {
     const p = drilledAll();
     const g = gated('proof');
-    // Gym and drill entries on the gate problem, and a hinted right answer: none meets the gate.
+    // Gym and drill entries on the gate problem, and a right answer after the solution was shown: none meets the gate.
     const history = [
       answer(g.key, g.topic, T0, true, 0, 'gym'),
       answer(g.key, g.topic, T0 + 1, true, 0, 'drill'),
-      answer(g.key, g.topic, T0 + 2, true, 1),
+      answer(g.key, g.topic, T0 + 2, false, 0, 'cambridge', true),
+      answer(g.key, g.topic, T0 + 3, true, 1),
     ];
     const r = byId({ ...p, history });
     for (const d of DOMAIN_IDS) expect(r[d], d).toBe(DRILL_CAP);
@@ -73,11 +74,13 @@ describe('ratings', () => {
     for (const d of DOMAIN_IDS.filter((x) => x !== 'proof')) expect(r[d], d).toBe(DRILL_CAP);
   });
 
-  it('a wrong first answer is not unaided, so it does not lift the rating', () => {
+  it('a right answer after the solution was shown does not lift the rating; one after a miss and hints does', () => {
     const p = drilledAll();
     const g = gated('proof');
-    const r = byId({ ...p, history: [answer(g.key, g.topic, T0, false), answer(g.key, g.topic, T0 + 1, true)] });
-    expect(r.proof).toBe(DRILL_CAP);
+    const shown = byId({ ...p, history: [answer(g.key, g.topic, T0, false, 0, 'cambridge', true), answer(g.key, g.topic, T0 + 1, true)] });
+    expect(shown.proof).toBe(DRILL_CAP);
+    const hinted = byId({ ...p, history: [answer(g.key, g.topic, T0, false), answer(g.key, g.topic, T0 + 1, true, 2)] });
+    expect(hinted.proof).toBeGreaterThan(DRILL_CAP);
   });
 
   it('passed supervisions count; a failed one does not', () => {

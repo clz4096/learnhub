@@ -99,7 +99,7 @@ describe('sync switched on', () => {
     render(<ProgressView />);
     await waitFor(() => expect(document.querySelector('[data-sync-user]')?.textContent).toBe(`Signed in as ${EMAIL}.`));
     expect(document.querySelector('[data-sync-last]')?.textContent).toMatch(/^Last synced: /);
-    expect(document.body.textContent).toMatch(/also erases your progress on your other devices/);
+    expect(document.body.textContent).toMatch(/also erases the progress on the other devices/);
     expect(server.rows.size).toBe(1);
 
     fireEvent.click(screen.getByRole('button', { name: 'Sync now' }));

@@ -1,11 +1,11 @@
 /**
  * fn.floor-function: [x], the greatest integer at most x; step graphs; areas under them as
  * sums of rectangles. Sources: STEP Support Foundation Assignment 3 Q2(ii) to (v) and Q3
- * (2004 STEP I Q2). Floors are computed exactly for rationals (and by integer search for
+ * (2004 STEP I Q2), whose written proof in full is in proof.direct (Rule 1, 2026-10-08). Floors are computed exactly for rationals (and by integer search for
  * square roots); areas by adding the rectangles one unit at a time, and checked by a
  * Riemann sum in floating point.
  */
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { add, int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { math, t } from '../rich';
@@ -258,15 +258,6 @@ const a3q3ii = auto({
   official: { source: cite(F03H, 'Q3(ii)'), answer: '2^a - 1', agrees: true },
 });
 
-const step2004 = supervision({
-  id: 'a3-q3',
-  source: cite(F03, 'Q3 (2004 STEP I Q2)'),
-  title: t`Integrals of the floor function`,
-  prompt: t`The notation ${math`[x]`} means the greatest integer less than or equal to ${math`x`}. (i) Sketch the graph of ${math`y = \sqrt{[x]}`} and show that ${math`\int_{${0}}^{a} \sqrt{[x]}\,dx = \sum_{r = ${0}}^{a - ${1}} \sqrt{r}`} when ${math`a`} is a positive integer. (ii) Show that ${math`\int_{${0}}^{a} ${2}^{[x]}\,dx = ${2}^{a} - ${1}`} when ${math`a`} is a positive integer. (iii) Determine an expression for ${math`\int_{${0}}^{a} ${2}^{[x]}\,dx`} when ${math`a`} is positive but not an integer.`,
-  writeUp: 'proof',
-  official: cite(F03H, 'Q3'),
-});
-
 // ---------------------------------------------------------------- lesson
 
 export const floorFunction: TopicContent = {
@@ -320,13 +311,12 @@ export const floorFunction: TopicContent = {
   generators: [floorValue, floorArea, floorEquation],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['floor-function', 'step-function'],
-  cambridge: withUses([a3q2iv, a3q2v, a3q3ii, step2004], {
-    'a3-q3': { sections: ['The definition', 'The staircase and its area'], note: t`Areas under step graphs as sums, including a geometric sum`, needs: ['proof.direct'] },
+  cambridge: withUses([a3q2iv, a3q2v, a3q3ii], {
     'a3-q3-ii': { sections: ['The staircase and its area'], note: t`The area under a step graph as a geometric sum` },
     'a3-q2-v': { sections: ['The definition', 'The staircase and its area'], note: t`Sketching a product with the floor function and adding the areas piece by piece` },
   }),
-  // 2004 STEP I Q2 in full is a written proof, which proof.direct teaches later in the book, so it is practice
-  // (2026-10-08); its auto-checked part (ii) gates.
+  // 2004 STEP I Q2 in full is a written proof, so it is set in proof.direct, the first topic that teaches writing
+  // one (Rule 1, 2026-10-08); its auto-checked part (ii) gates.
   gate: ['a3-q3-ii', 'a3-q2-v'],
   recall: [
     { front: t`Define ${math`[x]`}.`, back: t`The greatest integer at most ${math`x`}: the integer ${math`n`} with ${math`n \le x < n + ${1}`}.` },

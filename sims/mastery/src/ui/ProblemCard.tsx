@@ -10,9 +10,18 @@
  * - A broken problem is never the learner's miss: the runner replaces it.
  *
  * The result block sits directly under the answer and above the buttons, and is scrolled
- * into view. A wrong answer shows "Incorrect", the learner's answer beside the correct
- * one, the likely slip, the full worked solution, and one line on what it does to
- * progress (from the runner, which owns the rules).
+ * into view. A right answer says "Right: <answer>." A wrong answer shows "Incorrect", the
+ * learner's answer beside the correct one, the likely slip, the full worked solution, and
+ * one line on what it does to progress (from the runner, which owns the rules).
+ *
+ * Two kinds of problem hold the solution back (mastery/HOW-A-TOPIC-WORKS.md and
+ * APP-LANGUAGE.md, approved 2026-10-08):
+ * - Lesson practice (`oneMoreTry`): a first miss shows the likely slip and the rule, then
+ *   one more try at the same problem; only a second miss shows the answer and the worked
+ *   solution. The first answer is the one the run counts.
+ * - A single-answer Cambridge problem (`help`): a miss says "Not right yet" with the
+ *   problem's nudge, then its hints one at a time on request, never the solution. "Show me
+ *   the solution" is always there; while the problem can still count it asks first.
  *
  * A screen reader hears one short assertive line ("Incorrect. Your answer 10. Correct
  * answer 5."). After a right answer focus goes to the button that moves on, so the fast
@@ -26,6 +35,7 @@ import {
   answerText, grade, plain, readAnswer, tableNotice, texToPlain, type AnswerReading, type Feedback, type Instance, type Response,
 } from '@learnhub/content';
 import { isProblemError } from '@learnhub/mastery';
+import type { Rich as RichText } from '@learnhub/content';
 import { AnswerInput } from '@/ui/AnswerInput';
 import { Rich } from '@/ui/Rich';
 import { FilledTable, TableAnswer } from '@/ui/TableAnswer';
@@ -55,6 +65,45 @@ export interface Consequence {
 /** Enter is ignored this long after a result appears. */
 export const ENTER_GUARD_MS = 500;
 
+/** "Not right yet" without a nudge of the problem's own: neutral, and no help with the answer. */
+export const GENERIC_NUDGE = 'Not quite. Check each step against what the question asks.';
+/** What "Show me the solution" costs while the problem can still count. */
+export const REVEAL_WARNING = 'This problem will no longer count.';
+
+/** A single-answer Cambridge problem's help on a miss (mastery/HOW-A-TOPIC-WORKS.md, rule 3). */
+export interface CambridgeHelp {
+  /** The line under "Not right yet"; `GENERIC_NUDGE` when absent. */
+  nudge?: RichText;
+  hints: readonly RichText[];
+  /** Hints already opened, on an earlier visit; shown above the answer. */
+  opened: number;
+  /** The problem was missed before, so the next hint may be opened before answering again. */
+  missed: boolean;
+  /** A hint was opened: `n` are open now. */
+  onHint: (n: number) => void;
+  /** The solution was shown before, so the problem no longer counts: a miss shows it again, as plain practice. */
+  revealed: boolean;
+  /** "Show me the solution" asks first (`REVEAL_WARNING`): the problem could still count. */
+  confirmReveal: boolean;
+}
+
+/** The hints opened so far, and the button for the next one while any are left. */
+function Hints({ hints, open, onMore, id }: { hints: readonly RichText[]; open: number; onMore?: () => void; id: string }) {
+  if (hints.length === 0) return null;
+  return (
+    <div class="hints">
+      {open > 0 && (
+        <ol class="hint-list" aria-label="Hints">
+          {hints.slice(0, open).map((h, i) => <Rich key={i} as="li" text={h} />)}
+        </ol>
+      )}
+      {onMore !== undefined && open < hints.length && (
+        <button type="button" class="btn" id={`${id}-hint`} onClick={onMore}>{open === 0 ? 'Show a hint' : 'Show the next hint'}</button>
+      )}
+    </div>
+  );
+}
+
 function choiceHint(correct: string | readonly string[]): string {
   return typeof correct === 'string' ? 'Choose one.' : 'Choose every one that applies.';
 }
@@ -82,7 +131,7 @@ function reveal(block: HTMLElement): void {
 
 type Shown = 'right' | 'wrong' | 'gave-up' | 'broken';
 
-export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, onAnswer, consequence, afterWrong }: {
+export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, onAnswer, consequence, afterWrong, oneMoreTry = false, help }: {
   /** With the generator id and seed (data attributes), enough to reproduce the problem in a bug report. */
   topicId: string;
   instance: Instance;
@@ -105,6 +154,10 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
   consequence?: (o: CardOutcome) => Consequence;
   /** Shown in the result of a wrong answer, given the answer as read: a Cambridge problem offers supervision here. */
   afterWrong?: (given: string) => ComponentChildren;
+  /** Lesson practice: a first miss gets the slip and one more try before the solution. The first answer counts. */
+  oneMoreTry?: boolean;
+  /** A single-answer Cambridge problem: a miss gets a nudge and hints, never the solution. */
+  help?: CambridgeHelp;
 }) {
   const a = instance.problem.answer;
   const [text, setText] = useState('');
@@ -119,6 +172,12 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
   const [unread, setUnread] = useState<string | null>(null);
   /** A reading with a form note, waiting for Edit or Check anyway. */
   const [confirm, setConfirm] = useState<AnswerReading | null>(null);
+  /** Lesson practice: the first answer missed, and the one more try is under way or done. */
+  const [missedFirst, setMissedFirst] = useState(false);
+  /** Hints open on a Cambridge problem. */
+  const [hintsOpen, setHintsOpen] = useState(help?.opened ?? 0);
+  /** "Show me the solution" pressed, waiting for the learner to confirm it. */
+  const [asking, setAsking] = useState(false);
   /** The live announcement; `n` changes so a repeated message is announced again. */
   const [said, setSaid] = useState({ n: 0, text: '' });
   const inputRef = useRef<HTMLInputElement>(null);
@@ -141,6 +200,8 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
     setGaveUp(false);
     setUnread(null);
     setConfirm(null);
+    setMissedFirst(false);
+    setAsking(false);
     setSaid({ n: 0, text: '' });
     startedAt.current = Date.now();
     answeredAt.current = null;
@@ -152,12 +213,16 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
     : gaveUp ? 'gave-up'
       : fb !== null && isProblemError(fb) ? 'broken'
         : fb?.correct === true ? 'right' : 'wrong';
+  // A first practice miss waits for the one more try; its result is not the problem's yet.
+  const retryNext = oneMoreTry && shown === 'wrong' && !missedFirst;
+  // A Cambridge miss that can still count: the nudge and hints, and the solution held back.
+  const holdBack = mode === 'cambridge' && help !== undefined && !help.revealed;
 
   useEffect(() => {
     if (shown === null) return;
     shownAt.current = Date.now();
     answeredAt.current ??= shownAt.current;
-    onAnswer?.(resultOf(shown));
+    if (!retryNext) onAnswer?.(resultOf(shown));
     if (blockRef.current !== null) reveal(blockRef.current);
     if (shown === 'right') nextRef.current?.focus({ preventScroll: true });
     else headRef.current?.focus({ preventScroll: true });
@@ -180,10 +245,11 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
     : a.kind === 'table' ? filled.map((c) => c.trim()).join(', ')
       : reading === null ? text.trim() : texToPlain(reading.tex);
 
-  // Read inside effects and handlers, after every value above is set.
+  // Read inside effects and handlers, after every value above is set. A right answer on the
+  // one more try still counts as the miss the first answer was.
   const resultOf = (sh: Shown): CardResult => ({
-    outcome: sh === 'right' ? 'correct' : sh === 'broken' ? 'problem-error' : sh === 'gave-up' ? 'gave-up' : 'wrong',
-    correct: sh === 'right',
+    outcome: sh === 'right' ? (missedFirst ? 'wrong' : 'correct') : sh === 'broken' ? 'problem-error' : sh === 'gave-up' ? 'gave-up' : 'wrong',
+    correct: sh === 'right' && !missedFirst,
     response: gaveUp ? null : response,
     ms: Math.max(0, (answeredAt.current ?? Date.now()) - startedAt.current),
   });
@@ -213,18 +279,49 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
     setConfirm(null);
     const f = grade(instance.problem, response, instance.misconceptions);
     setFb(f);
-    if (isProblemError(f)) announce('This problem is broken, not your answer. You get a fresh one.');
-    else announce(f.correct ? 'Correct.' : `Incorrect. Your answer ${yoursPlain}. Correct answer ${correctPlain}.`);
+    if (isProblemError(f)) announce('This problem is broken, not the answer given. A fresh one replaces it.');
+    else if (f.correct) announce(a.kind === 'table' ? 'Right.' : `Right: ${yoursPlain}.`);
+    else if (holdBack) announce('Not right yet.');
+    else if (oneMoreTry && !missedFirst) announce('Not right yet. One more try.');
+    else announce(`Incorrect. Your answer ${yoursPlain}. Correct answer ${correctPlain}.`);
   };
   const giveUp = (): void => {
+    if (holdBack && help?.confirmReveal === true && !asking) {
+      setAsking(true);
+      return;
+    }
+    setAsking(false);
+    // The solution replaces a held-back miss, so it is shown as the problem's end.
+    setFb(null);
     setGaveUp(true);
     setConfirm(null);
     setUnread(null);
     setTableNote(null);
     announce(`Correct answer ${correctPlain}.`);
   };
+  /** The one more try in lesson practice: the same problem, an empty answer. */
+  const tryAgain = (): void => {
+    setMissedFirst(true);
+    setFb(null);
+    setText('');
+    setPicks([]);
+    setCells([]);
+    setTableNote(null);
+    answeredAt.current = null;
+    inputRef.current?.focus({ preventScroll: true });
+  };
+  const moreHint = (): void => {
+    if (help === undefined) return;
+    const n = Math.min(help.hints.length, hintsOpen + 1);
+    setHintsOpen(n);
+    help.onHint(n);
+  };
   const finish = (): void => {
     if (shown === null) return;
+    if (retryNext) {
+      tryAgain();
+      return;
+    }
     onDone(resultOf(shown));
   };
   const edit = (): void => {
@@ -244,9 +341,12 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
     else setPicks((cur) => (cur.includes(opt) ? cur.filter((x) => x !== opt) : [...cur, opt]));
   };
   const many = a.kind === 'choice' && a.options.length > 6;
-  const outcome: CardOutcome | null = shown === 'right' ? 'correct' : shown === 'wrong' ? 'wrong' : shown === 'gave-up' ? 'gave-up' : null;
+  const outcome: CardOutcome | null = shown === null || shown === 'broken' || retryNext ? null : resultOf(shown).outcome as CardOutcome;
   const effect = outcome === null ? undefined : consequence?.(outcome);
-  const nextLabel = shown === 'broken' ? 'Get a fresh problem' : effect?.next ?? (mode === 'cambridge' ? 'Try it again' : 'Next problem');
+  const nextLabel = shown === 'broken' ? 'Get a fresh problem' : retryNext ? 'Try once more' : effect?.next ?? (mode === 'cambridge' ? 'Try it again' : 'Next problem');
+  // A held-back Cambridge miss rests until the problem comes back: there is nothing to move on to here.
+  const resting = holdBack && shown === 'wrong';
+  const marked = checked && !resting && !retryNext;
 
   const notice = unread !== null
     ? <p class="small error-text">Could not read <code>{unread}</code>. Finish it or use the keypad.</p>
@@ -276,29 +376,65 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
       : a.kind === 'witness' ? <span>for example <Rich text={answerText(a)} /></span>
         : correctRich;
 
+  // "Show me the solution": always there on a Cambridge problem; while it could still count, it asks first.
+  const revealButton = mode !== 'cambridge' ? null : asking
+    ? (
+      <div class="confirm-form reveal-confirm">
+        <p id={`${id}-reveal`} class="small">{REVEAL_WARNING}</p>
+        <div class="actions">
+          <button type="button" class="btn" aria-describedby={`${id}-reveal`} onClick={giveUp}>Show the solution</button>
+          <button type="button" class="btn btn-primary" onClick={() => setAsking(false)}>Keep trying</button>
+        </div>
+      </div>
+    )
+    : <div class="actions"><button type="button" class="btn" onClick={giveUp}>Show me the solution</button></div>;
+
   const headId = `${id}-result`;
   let block = null;
   if (shown !== null) {
     const tone = shown === 'right' ? 'good' : shown === 'wrong' ? 'bad' : 'neutral';
     const icon = shown === 'right' ? '✓' : shown === 'wrong' ? '✕' : 'i';
-    let head;
-    if (shown === 'broken') head = 'This problem is broken, not your answer';
-    else if (shown === 'right') head = 'Correct';
-    else head = shown === 'wrong' ? 'Incorrect' : 'Solution';
+    // A miss that leads to another go (practice's one more try, a Cambridge problem's return) is "not right yet".
+    const notYet = shown === 'wrong' && (retryNext || holdBack);
+    let head: ComponentChildren;
+    if (shown === 'broken') head = 'This problem is broken, not the answer given';
+    // "Right: 5/12." repeats the answer as given: for a witness or an equivalent form that is the learner's own.
+    else if (shown === 'right') head = a.kind === 'table' ? 'Right.' : <>Right: {yours}.</>;
+    else head = shown === 'wrong' ? (notYet ? 'Not right yet' : 'Incorrect') : 'Solution';
+    const slip = fb?.misconception !== undefined
+      ? <p class="result-why"><strong>The likely slip:</strong> <Rich text={fb.misconception} /></p>
+      : fb?.feedback !== undefined && <p class="result-why">{fb.feedback}</p>;
     block = (
       <div ref={blockRef} class={`result-block ${tone}`} role="group" aria-labelledby={headId} data-result={shown}>
-        <h3 ref={headRef} id={headId} class="result-head" tabIndex={-1}>
+        {/* The answer in the heading is typeset; its name is plain text, as a screen reader should say it. */}
+        <h3 ref={headRef} id={headId} class="result-head" tabIndex={-1} aria-label={shown === 'right' ? (a.kind === 'table' ? 'Right.' : `Right: ${yoursPlain}.`) : undefined}>
           <span class={`result-icon ${tone}`} aria-hidden="true">{icon}</span>
           <span>{head}</span>
         </h3>
         {shown === 'broken' && <p>It does not count. A fresh problem on the same topic replaces it. ({fb?.feedback})</p>}
         {shown === 'right' && fb?.feedback !== undefined && <p>{fb.feedback}</p>}
-        {shown === 'wrong' && a.kind === 'table' && (
+        {notYet && holdBack && (
+          <>
+            {help?.nudge !== undefined ? <Rich as="p" class="result-why" text={help.nudge} /> : <p class="result-why">{GENERIC_NUDGE}</p>}
+            {a.kind !== 'table' && (
+              <div class="result-pair one">
+                <div><span>Your answer</span><strong>{yours}</strong></div>
+              </div>
+            )}
+          </>
+        )}
+        {notYet && retryNext && (
+          <>
+            {slip}
+            <p class="small">One more try at the same problem. The answer and the worked solution come after it if it is still not right.</p>
+          </>
+        )}
+        {shown === 'wrong' && !notYet && a.kind === 'table' && (
           <div class="result-pair one">
             <div><span>Correct answer</span><strong>{correctShown}</strong></div>
           </div>
         )}
-        {shown === 'wrong' && a.kind !== 'table' && (
+        {shown === 'wrong' && !notYet && a.kind !== 'table' && (
           <div class="result-pair">
             <div><span>Your answer</span><strong>{yours}</strong></div>
             <div><span>Correct answer</span><strong>{correctShown}</strong></div>
@@ -309,16 +445,16 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
             <div><span>Correct answer</span><strong>{correctShown}</strong></div>
           </div>
         )}
-        {shown === 'wrong' && (fb?.misconception !== undefined
-          ? <p class="result-why"><strong>The likely slip:</strong> <Rich text={fb.misconception} /></p>
-          : fb?.feedback !== undefined && <p class="result-why">{fb.feedback}</p>)}
-        {(shown === 'wrong' || shown === 'gave-up') && (
+        {shown === 'wrong' && !notYet && slip}
+        {(shown === 'wrong' && !notYet) || shown === 'gave-up' ? (
           <div class="result-solution">
             <h4>Worked solution</h4>
             <ol>{instance.problem.solution.map((s, i) => <Rich key={i} as="li" text={s} />)}</ol>
           </div>
-        )}
-        {effect !== undefined && <p class="result-effect">{effect.effect}</p>}
+        ) : null}
+        {effect !== undefined && effect.effect !== '' && <p class="result-effect">{effect.effect}</p>}
+        {resting && help !== undefined && <Hints hints={help.hints} open={hintsOpen} onMore={moreHint} id={id} />}
+        {resting && revealButton}
         {shown === 'wrong' && afterWrong?.(yoursPlain)}
       </div>
     );
@@ -327,6 +463,9 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
   return (
     <div class={`problem problem-${mode}`} data-topic={topicId} data-generator={instance.generatorId} data-seed={instance.seed}>
       <Rich as="p" class="prompt" text={instance.problem.prompt} />
+      {holdBack && !resting && help !== undefined && (hintsOpen > 0 || help.missed) && (
+        <Hints hints={help.hints} open={hintsOpen} onMore={help.missed && !checked ? moreHint : undefined} id={id} />
+      )}
       <form
         class="answer"
         onSubmit={(e) => {
@@ -366,12 +505,13 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
             {a.options.map((o) => {
               const on = picks.includes(o.id);
               const right = typeof a.correct === 'string' ? a.correct === o.id : a.correct.includes(o.id);
-              // Text, not only the border colour, says how each option came out.
-              const mark = !checked ? null
+              // Text, not only the border colour, says how each option came out. A miss that gets
+              // another go does not mark the options: that would give the answer away.
+              const mark = !marked ? null
                 : right ? (on ? 'Correct, you chose it' : gaveUp ? 'Correct answer' : 'Correct, you missed it')
                   : on ? 'Not correct, you chose it' : null;
               return (
-                <label key={o.id} class={`choice${on ? ' on' : ''}${checked && right ? ' right' : ''}${checked && on && !right ? ' wrong' : ''}`}>
+                <label key={o.id} class={`choice${on ? ' on' : ''}${marked && right ? ' right' : ''}${checked && on && !right ? ' wrong' : ''}`}>
                   <input
                     type={typeof a.correct === 'string' ? 'radio' : 'checkbox'}
                     name={`${id}-choice`}
@@ -409,11 +549,11 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
             <>
               <button type="submit" class="btn btn-primary" disabled={empty}>Check</button>
               {mode === 'practice' && <button type="button" class="btn" onClick={giveUp}>Show me how (counts as a miss)</button>}
-              {mode === 'cambridge' && <button type="button" class="btn" onClick={giveUp}>Show the solution</button>}
             </>
           )}
-          {checked && <button ref={nextRef} type="submit" class="btn btn-primary">{nextLabel}</button>}
+          {checked && !resting && <button ref={nextRef} type="submit" class="btn btn-primary">{nextLabel}</button>}
         </div>
+        {!checked && confirm === null && revealButton}
       </form>
       <div class="visually-hidden" aria-live="assertive" aria-atomic="true" data-testid="announce">
         {said.text !== '' && <span key={said.n}>{said.text}</span>}

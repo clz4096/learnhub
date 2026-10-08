@@ -25,7 +25,7 @@ describe('checkStandup: claims against the record', () => {
 
   it('a finished lesson whose Cambridge problem is open is a gap, in the learner\'s words', () => {
     const r = checkStandup(`Yesterday I finished sequences. ${FULL}`, facts([seq({ stage: 'needs-gate', lesson: 'passed' }), ind()]));
-    expect(r.gaps).toEqual(['You said you finished sequences; its Cambridge problem is still open.']);
+    expect(r.gaps).toEqual(['Sequences: said finished, but its Cambridge problem is still open.']);
     expect(r.missing).toEqual([]);
     expect(r.flags).toEqual(r.gaps);
   });
@@ -36,25 +36,25 @@ describe('checkStandup: claims against the record', () => {
 
   it('a lesson still in progress, a failed run, and no record at all are each named', () => {
     const open = checkStandup(`I finished sequences ${FULL}`, facts([seq({ open: { stage: 'learn', section: 2 } })]));
-    expect(open.gaps).toEqual(['You said you finished sequences; the lesson on Sequences and nth term rules is still in progress, reading, section 3.']);
+    expect(open.gaps).toEqual(['Sequences: said finished, but the lesson on Sequences and nth term rules is still in progress, reading, section 3.']);
     const failed = checkStandup(`I passed sequences ${FULL}`, facts([seq({ lesson: 'failed' })]));
-    expect(failed.gaps).toEqual(['You said you finished sequences; the last lesson run on Sequences and nth term rules did not pass.']);
+    expect(failed.gaps).toEqual(['Sequences: said finished, but the last lesson run on Sequences and nth term rules did not pass.']);
     const none = checkStandup(`done with sequences ${FULL}`, facts([seq()]));
-    expect(none.gaps).toEqual(['You said you finished sequences; nothing since your last standup shows Sequences and nth term rules done.']);
+    expect(none.gaps).toEqual(['Sequences: said finished, but nothing since the last standup shows Sequences and nth term rules done.']);
   });
 
   it('one claim naming two topics checks both', () => {
     const r = checkStandup(`I finished sequences and induction ${FULL}`, facts([seq({ stage: 'needs-gate' }), ind({ stage: 'needs-gate' })]));
     expect(r.gaps).toEqual([
-      'You said you finished sequences; its Cambridge problem is still open.',
-      'You said you finished induction; its Cambridge problem is still open.',
+      'Sequences: said finished, but its Cambridge problem is still open.',
+      'Induction: said finished, but its Cambridge problem is still open.',
     ]);
   });
 
   it('plans, negations, and words past a change of subject are not claims (no punctuation needed)', () => {
     const f = facts([seq({ stage: 'needs-gate' }), ind()]);
     expect(checkStandup(`yesterday I finished sequences but today I will start induction ${FULL}`, f).gaps)
-      .toEqual(['You said you finished sequences; its Cambridge problem is still open.']);
+      .toEqual(['Sequences: said finished, but its Cambridge problem is still open.']);
     expect(checkStandup(`I didn't finish sequences and I haven't finished induction ${FULL}`, f).gaps).toEqual([]);
     expect(checkStandup(`I'll have finished sequences by tonight ${FULL}`, f).gaps).toEqual([]);
     expect(checkStandup(`I want to have sequences done ${FULL}`, f).gaps).toEqual([]);
@@ -63,9 +63,9 @@ describe('checkStandup: claims against the record', () => {
   });
 
   it('timed work said but not logged, or logged but not finished', () => {
-    expect(checkStandup(`I sat a timed paper ${FULL}`, facts([])).gaps).toEqual(['You mentioned timed work; none is logged since your last standup.']);
+    expect(checkStandup(`I sat a timed paper ${FULL}`, facts([])).gaps).toEqual(['Timed work: mentioned, but none is logged since the last standup.']);
     expect(checkStandup(`I did a mock ${FULL}`, facts([], [{ id: 'x@1', label: 'STEP 2 2019', finished: false }])).gaps)
-      .toEqual(['You mentioned timed work; STEP 2 2019 is started but not finished.']);
+      .toEqual(['Timed work: mentioned, but STEP 2 2019 is started and not finished.']);
     expect(checkStandup(`I sat a timed paper ${FULL}`, facts([], [{ id: 'x@1', label: 'STEP 2 2019', finished: true }])).gaps).toEqual([]);
   });
 
@@ -142,7 +142,7 @@ describe('gatherFacts', () => {
     const lookups: FactLookups = { topics: ALL_TOPICS, stageOf: (t) => masteryOf(p, t).stage, paperLabel: (x) => x };
     const f = gatherFacts({ progress: p, ladder: [], campaign: null, places: {}, since: sinceOf(null, T0), until: T0 }, lookups);
     const r = checkStandup(`Yesterday I finished sequences. ${FULL}`, f);
-    expect(r.gaps).toEqual(['You said you finished sequences; its Cambridge problem is still open.']);
+    expect(r.gaps).toEqual(['Sequences: said finished, but its Cambridge problem is still open.']);
     // Once its Cambridge problem is right, the claim stands.
     const q = recordCambridgeAnswer(p, `${id}/${gateOf(id)[0]}`, true, { hints: 0 }, T0 - H / 2);
     const g = gatherFacts({ progress: q, ladder: [], campaign: null, places: {}, since: sinceOf(null, T0), until: T0 }, { ...lookups, stageOf: (t) => masteryOf(q, t).stage });

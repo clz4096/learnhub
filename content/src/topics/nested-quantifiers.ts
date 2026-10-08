@@ -337,21 +337,6 @@ const lp12 = auto({
   }],
 });
 
-/*
- * Outline for marking lp-ex-12-why (20 marks): for each of the 6 relations, the verdict on each
- * axiom (1 mark each, 18) with the reason: a counterexample for every failure (empty: 0 ~ 0 fails;
- * sum 100: 0 ~ 0 fails, then 0 ~ 100 and 100 ~ 0 without 0 ~ 0; x <= y: 0 <= 1 but not 1 <= 0) and a
- * line for every success (vacuous truth for the empty relation; x + z = (x + y) + (y + z) - 2y for
- * the even sums). 2 marks for saying why the empty relation passes (2) and (3) vacuously.
- */
-const lp12Why = supervision({
-  id: 'lp-ex-12-why',
-  source: cite('cst-lp-notes', 'Section 4, Exercise 12 (page 11)'),
-  title: t`Which axioms hold, with reasons`,
-  prompt: t`${LP12_PROMPT} Which axioms hold if ${math`\approx`} is interpreted as: the empty relation ${math`\varnothing`}; the universal relation ${(LP12[1] as { rel: Span }).rel}; the equality relation ${(LP12[2] as { rel: Span }).rel}; the relation ${(LP12[3] as { rel: Span }).rel}; the relation ${(LP12[4] as { rel: Span }).rel}; the relation ${(LP12[5] as { rel: Span }).rel}? For every axiom that fails give a counterexample, and for every axiom that holds say why.`,
-  writeUp: 'proof',
-});
-
 // ---------------------------------------------------------------- lesson
 
 const TRUE_FALSE: ChoiceOption[] = [{ id: 'true', label: t`True` }, { id: 'false', label: t`False` }];
@@ -429,12 +414,11 @@ export const nestedQuantifiers: TopicContent = {
   generators: [order, construct, translate],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['dependent-witness'],
-  cambridge: withUses([tmuaN, bop27_9, bop27_10, bop29_7, bop29_5, s1s2, bop29_13, lp12, lp12Why], {
-    'lp-ex-12-why': { sections: ['Who chooses first', 'From words to symbols'], note: t`Checking reflexive, symmetric, and transitive axioms, with a counterexample for each failure`, needs: ['proof.direct'] },
+  cambridge: withUses([tmuaN, bop27_9, bop27_10, bop29_7, bop29_5, s1s2, bop29_13, lp12], {
     'lp-ex-12': { sections: ['Who chooses first', 'From words to symbols'], note: t`Checking which axioms hold for each relation` },
   }),
   // Logic and Proof Exercise 12: nested quantifiers in the axioms, checked on six interpretations. Its written
-  // justification is a proof, which proof.direct teaches later in the book, so it is practice (2026-10-08).
+  // justification is a proof, so it is set in proof.counterexample (Rule 1, 2026-10-08).
   gate: ['lp-ex-12'],
   recall: [
     { front: t`What may the witness depend on in ${math`\forall x\ \exists y.\ P(x, y)`}?`, back: t`On ${mx}: ${my} is chosen after ${mx}.` },

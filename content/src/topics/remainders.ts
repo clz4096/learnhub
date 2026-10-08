@@ -4,9 +4,11 @@
  * remainder of a combination. Sources: the GCSE subject content (DfE 2013), and STEP
  * Support Foundation Assignment 3 Q4 (the shipwrecked bananas). Every quotient and
  * remainder is found by brute force: counting how many times the divisor fits. Batch 7 adds IA
- * Numbers and Sets Example Sheet 2, Q12 (first part) and Q13: remainders of powers and digit sums.
+ * Numbers and Sets Example Sheet 2, Q13 (second part): the missing digit of 2^29. The written proofs
+ * that came with it (Q12 first part, Q13 first part, and the bananas' equation) are in proof.direct
+ * (Rule 1, 2026-10-08).
  */
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { int, pick, q } from '../math';
 import { generator, type Misconception } from '../problem';
 import { math, t } from '../rich';
@@ -14,7 +16,6 @@ import { checkFrom, workedCambridge, worked, type TopicContent } from '../topic'
 import { named, namedAnswer, withExaminer } from '../prep-a';
 
 const F03 = 'step-f03' as const;
-const F03H = 'step-f03-hints' as const;
 const QR = ['q', 'r'] as const;
 
 /** Quotient and remainder by stepping: the largest multiple of d not above n. */
@@ -163,33 +164,7 @@ const bananas79 = auto({
   misconceptions: [{ response: 'a = 26, b = 26, c = 26, m = 7', why: t`Each castaway divides the pile he finds, which has shrunk: the second finds ${52}, not ${79}.` }],
 });
 
-const bananasShow = supervision({
-  id: 'a3-q4-i',
-  source: cite(F03, 'Q4(i)'),
-  title: t`The bananas: the equation`,
-  prompt: t`Arthur, Brenda, and Chandrima gather ${math`N`} bananas. In the night each in turn divides the pile into three equal piles with one left over, gives that one to the orangutan, hides one pile, and heaps the rest together. In the morning the remaining bananas divide into three equal shares of ${math`m`}, with one left over. Show that ${math`${8}N = ${81}m + ${65}`}. (It helps to note that the number left after Chandrima has taken her share is ${math`${3}m + ${1}`}.)`,
-  writeUp: 'proof',
-  official: cite(F03H, 'Q4'),
-});
-
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
-
-/*
- * Outline for marking ns2-q13 (20 marks):
- * 1. Writes n with digits d_k ... d_1 d_0: n = d_0 + 10 d_1 + 100 d_2 + ... + 10^k d_k, and s for the
- *    digit sum (3).
- * 2. n - s = 9 d_1 + 99 d_2 + ... + (10^k - 1) d_k, and each 10^i - 1 = 99...9 is a multiple of 9 (7).
- * 3. So n and s leave the same remainder on division by 9 (4); in particular n is a multiple of 9
- *    exactly when s is, both directions stated (3).
- * 4. Clear "if and only if": both directions, or one argument that is reversible (3).
- */
-const ns2q13 = supervision({
-  id: 'ns2-q13',
-  source: cite('ia-ns-sheet-2', 'Q13, first part'),
-  title: t`Nines and digit sums`,
-  prompt: t`Show that a positive integer ${math`n`} is a multiple of ${9} if and only if the sum of its digits is a multiple of ${9}.`,
-  writeUp: 'proof',
-});
 
 const POW = 29;
 const powDigits = (BigInt(2) ** BigInt(POW)).toString();
@@ -202,7 +177,7 @@ const ns2q13Digit = auto({
   prompt: t`You may use this fact: a whole number and the sum of its digits leave the same remainder on division by ${9}. The number ${math`${2}^{${POW}}`} has nine distinct digits. Which digit is missing? (Use remainders on division by ${9}, not a calculator.)`,
   answer: { kind: 'exact', expected: MISSING[0] as string },
   solution: [
-    t`A number and its digit sum leave the same remainder on division by ${9}, as the question allows (the problem Nines and digit sums proves the multiple-of-${9} case). The digits ${0} to ${9} add to ${45}, a multiple of ${9}; leaving out the digit ${math`d`} gives the sum ${math`${45} - d`}.`,
+    t`A number and its digit sum leave the same remainder on division by ${9}, as the question allows (the problem Nines and digit sums, in Direct proof, proves the multiple-of-${9} case). The digits ${0} to ${9} add to ${45}, a multiple of ${9}; leaving out the digit ${math`d`} gives the sum ${math`${45} - d`}.`,
     t`${math`${2}^{${3}} = ${8}`} leaves remainder ${8}, one less than ${9}. So ${math`${2}^{${6}} = ${8} \times ${8}`} leaves remainder ${1}, and so does every power ${math`${2}^{${6}k}`}. Then ${math`${2}^{${POW}} = ${2}^{${24}} \times ${2}^{${5}}`} leaves the remainder of ${math`${2}^{${5}} = ${32}`}, which is ${32 % 9}.`,
     t`So ${math`${45} - d`} leaves remainder ${32 % 9}: ${math`${45} - d = ${40}`}, since ${math`d`} is between ${0} and ${9}. The missing digit is ${Number(MISSING[0])}. (Indeed ${math`${2}^{${POW}} = ${2 ** POW}`}.)`,
   ],
@@ -213,22 +188,6 @@ const ns2q13Digit = auto({
     return same('the missing digit by remainders', (9 - ((2 ** POW) % 9)) % 9, MISSING[0]);
   },
   misconceptions: [{ response: String((2 ** POW) % 9), why: t`That is the remainder of ${math`${2}^{${POW}}`} itself. The digits present add to ${math`${45} - d`}, and that is what leaves this remainder; solve for the missing digit ${math`d`}.` }],
-});
-
-/*
- * Outline for marking ns2-q12-i (20 marks):
- * 1. Looks for a small divisor and tries 3 (2).
- * 2. 4 leaves remainder 1 on division by 3, so 4^9 does, and 2^19 = 2 x 4^9 leaves remainder 2 (6).
- * 3. 25 leaves remainder 1, so 5^40 = 25^20 leaves remainder 1 (6).
- * 4. The sum leaves remainder 2 + 1 = 3, that is 0: 3 divides 2^19 + 5^40 (4).
- * 5. The number is larger than 3, so 3 is a proper factor and it is not prime (2).
- */
-const ns2q12i = supervision({
-  id: 'ns2-q12-i',
-  source: cite('ia-ns-sheet-2', 'Q12, first part'),
-  title: t`A sum of powers that is not prime`,
-  prompt: t`Show that ${math`${2}^{${19}} + ${5}^{${40}}`} is not prime.`,
-  writeUp: 'proof',
 });
 
 // ---------------------------------------------------------------- lesson
@@ -278,15 +237,12 @@ export const remainders: TopicContent = {
   generators: [divide, negative, combination],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quotient', 'remainder'],
-  cambridge: withUses([bananasShow, ns2q13, ns2q13Digit, ns2q12i], {
-    'ns2-q13': { sections: ['Remainders of combinations'], note: t`Comparing a number and its digit sum by their remainders on division by nine`, needs: ['proof.direct'] },
-    'a3-q4-i': { sections: ['Division with remainder'], note: t`Writing each division with remainder as an equation and chaining them`, needs: ['proof.direct'] },
-    'ns2-q12-i': { sections: ['Remainders of combinations'], note: t`Finding the remainders of large powers to show a sum has a factor`, needs: ['proof.direct'] },
+  cambridge: withUses([ns2q13Digit], {
     'ns2-q13-missing': { sections: ['Remainders of combinations'], note: t`Finding the remainder of a large power on division by nine, then the digit that remainder forces` },
   }),
-  // The digit sum rule, the bananas, and the sum of powers are written proofs, which proof.direct teaches later
-  // in the book, so they are practice (2026-10-08). The missing digit gates: the rule is given in its prompt,
-  // so it asks for the remainder of a power, a combination this lesson teaches.
+  // The digit sum rule, the bananas, and the sum of powers are written proofs, so they are set in proof.direct,
+  // the first topic that teaches writing one (Rule 1, 2026-10-08). The missing digit gates: the rule is given in
+  // its prompt, so it asks for the remainder of a power, a combination this lesson teaches.
   gate: ['ns2-q13-missing'],
   recall: [
     { front: t`State division with remainder.`, back: t`For integers ${math`n`} and ${math`d \ge ${1}`} there are unique ${math`q, r`} with ${math`n = dq + r`} and ${math`${0} \le r < d`}.` },

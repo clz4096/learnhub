@@ -23,7 +23,7 @@
  * themselves is out of scope.
  */
 import {
-  answerText, catalogProblem, citationText, FIRST_PROOF_TOPIC, isProofWriteUp, MARK, plain,
+  answerText, catalogProblem, citationText, currentProblemKey, FIRST_PROOF_TOPIC, isProofWriteUp, MARK, plain,
   type AnswerSpec, type CambridgeProblem, type Rich, type TopicContent,
 } from '@learnhub/content';
 import {
@@ -43,14 +43,18 @@ export const RESULT_END = 'END LEARNHUB RESULT';
 /** "prob.event-spaces/q4-definitions": the topic id and the problem's id within the topic. */
 export const problemKey = (topicId: string, problemId: string): string => `${topicId}/${problemId}`;
 
+const topicOfKey = (key: string): string => key.slice(0, key.indexOf('/'));
+
 export interface FoundProblem {
   key: string;
   topic: TopicContent;
   problem: CambridgeProblem;
 }
 
-function splitKey(key: string): [topicId: string, problemId: string] | undefined {
-  if (!PROBLEM_KEY_RE.test(key)) return undefined;
+/** A key's topic and problem ids, read at the problem's current key: an old key of a moved problem finds it. */
+function splitKey(asked: string): [topicId: string, problemId: string] | undefined {
+  if (!PROBLEM_KEY_RE.test(asked)) return undefined;
+  const key = currentProblemKey(asked);
   const slash = key.indexOf('/');
   return [key.slice(0, slash), key.slice(slash + 1)];
 }
@@ -77,7 +81,7 @@ export function findProblem(key: string): FoundProblem | undefined {
   if (k === undefined) return undefined;
   const topic = contentStore.loaded(k[0]);
   const problem = topic?.cambridge.find((p) => p.id === k[1]);
-  return topic === undefined || problem === undefined ? undefined : { key, topic, problem };
+  return topic === undefined || problem === undefined ? undefined : { key: `${k[0]}/${k[1]}`, topic, problem };
 }
 
 /** A fresh nonce. `random` returns integers in [0, n); the default is the browser's crypto. */
@@ -137,17 +141,18 @@ const day = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
 export function recentAttempts(p: Readonly<Progress>, topicId: string, limit = 8): string[] {
   const lines: { at: number; text: string }[] = [];
   for (const h of p.history) {
-    if (h.topicId !== topicId || h.kind === 'supervision' || h.kind === 'placement' || h.kind === 'drill' || h.kind === 'gym') continue;
+    const on = h.kind === 'cambridge' && h.item !== undefined ? topicOfKey(currentProblemKey(h.item.id)) : h.topicId;
+    if (on !== topicId || h.kind === 'supervision' || h.kind === 'placement' || h.kind === 'drill' || h.kind === 'gym') continue;
     const what = h.kind === 'lesson' ? (h.correct ? 'lesson passed' : 'lesson not passed yet')
       : h.kind === 'cambridge' ? `Cambridge problem ${h.item?.id ?? ''} answered ${h.correct ? 'right' : 'wrong'}${h.item === undefined ? '' : ` (attempt ${h.item.attempt})`}`
         : `${h.kind} ${h.correct ? 'passed' : 'missed'}`;
     lines.push({ at: h.at, text: `${day(h.at)} ${what}` });
   }
   for (const a of p.supervision) {
-    if (a.result === null || a.importedAt === null || !a.problem.startsWith(`${topicId}/`)) continue;
+    if (a.result === null || a.importedAt === null || !currentProblemKey(a.problem).startsWith(`${topicId}/`)) continue;
     lines.push({
       at: a.importedAt,
-      text: `${day(a.importedAt)} supervision of ${a.problem}: ${a.result.mark}/${SUPERVISION_MARK_MAX}. Weak points: ${a.result.weakPoints.join('; ')}`,
+      text: `${day(a.importedAt)} supervision of ${currentProblemKey(a.problem)}: ${a.result.mark}/${SUPERVISION_MARK_MAX}. Weak points: ${a.result.weakPoints.join('; ')}`,
     });
   }
   return lines.sort((x, y) => x.at - y.at).slice(-limit).map((l) => l.text);
@@ -437,7 +442,7 @@ export function parseResult(text: string): ParseResult {
   if (!/^none\.?$/i.test(gapText)) {
     if (gapText === '' || /^<.*>$/.test(gapText)) return fail('GAP is empty. It should be a topic id from the gap list, or say none.');
     if (topicOf(gapText) === undefined) return fail(`GAP names "${gapText.slice(0, 60)}", which is not a topic in this app. Use an id from the gap list in the copied block, or none.`);
-    if (gapText === problem.slice(0, problem.indexOf('/'))) return fail('GAP names the problem\'s own topic. GAP is for an earlier skill; for a shortfall in this topic, write GAP: none.');
+    if (gapText === topicOfKey(currentProblemKey(problem))) return fail('GAP names the problem\'s own topic. GAP is for an earlier skill; for a shortfall in this topic, write GAP: none.');
     if (mark >= SUPERVISION_PASS_MARK) return fail(`GAP is only for a mark below ${SUPERVISION_PASS_MARK}. With ${mark}/${SUPERVISION_MARK_MAX}, write GAP: none.`);
     gap = gapText;
   }
@@ -456,7 +461,7 @@ export function parseResult(text: string): ParseResult {
  * of the expected problem when one is expected, and not be imported already.
  */
 export function checkResultFor(p: Readonly<Progress>, r: ParsedResult, expected?: string): string | null {
-  if (expected !== undefined && r.problem !== expected) {
+  if (expected !== undefined && currentProblemKey(r.problem) !== currentProblemKey(expected)) {
     return `This result is for ${r.problem}, not for this problem (${expected}). Paste it on Today, or on that problem.`;
   }
   if (!problemExists(r.problem)) return `There is no problem ${r.problem} in this app.`;
@@ -464,7 +469,7 @@ export function checkResultFor(p: Readonly<Progress>, r: ParsedResult, expected?
   if (a === undefined) {
     return `No copy with NONCE ${r.nonce} was made in this browser. Results can only be pasted where the problem was copied; copy it again here and supervise that copy.`;
   }
-  if (a.problem !== r.problem) return `The NONCE ${r.nonce} belongs to a copy of ${a.problem}, but the result says ${r.problem}. The result was mixed up; ask Claude to print it again.`;
+  if (currentProblemKey(a.problem) !== currentProblemKey(r.problem)) return `The NONCE ${r.nonce} belongs to a copy of ${a.problem}, but the result says ${r.problem}. The result was mixed up; ask Claude to print it again.`;
   if (a.result !== null) return `This result was already imported${a.importedAt === null ? '' : ` on ${day(a.importedAt)}`}.`;
   return null;
 }

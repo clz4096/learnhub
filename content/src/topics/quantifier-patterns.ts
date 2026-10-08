@@ -5,7 +5,8 @@
  * existential quantification and unique existence (printed pages 63 to 103) and the
  * commentary in the 2023-24 official solutions to Exercises 1. The problems are
  * supervision exercises 1.1.4 and 1.1.7 with those solutions, and Book of Proof Chapter 4,
- * exercise 26 and Chapter 7, exercises 12, 17, and 20.
+ * exercise 26 and Chapter 7, exercises 12, 17, and 20. Supervision exercises 1.2.10 and 1.3.2
+ * moved here from Quantifiers (Rule 1, 2026-10-08): each proves quantified statements.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, q, upTo } from '../math';
@@ -294,6 +295,27 @@ const bop426proof = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems moved here (Rule 1, 2026-10-08)
+
+// From Quantifiers, which set them before proving quantified statements was taught.
+const sw132 = supervision({
+  id: 'sw-1-3-2',
+  source: cite('cst-dm-sw1', 'Exercises 1, 1.3.2'),
+  title: t`A "there exists" on the left of an arrow`,
+  prompt: t`Let ${math`P(x)`} be a predicate on a variable ${math`x`} and let ${math`Q`} be a statement not mentioning ${math`x`}. Show that ${dmath`\big(\exists x.\ P(x)\big) \Rightarrow Q \quad\text{if and only if}\quad \forall x.\ \big(P(x) \Rightarrow Q\big).`}`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-1', '1.3.2'),
+});
+
+const sw1210 = supervision({
+  id: 'sw-1-2-10',
+  source: cite('cst-dm-sw1', 'Exercises 1, 1.2.10'),
+  title: t`Everything up to ${math`n`}`,
+  prompt: t`Let ${math`P(m)`} be a statement for ${math`m`} ranging over the natural numbers, and let ${math`P^{\#}(n)`} be ${math`\forall k \in \mathbb{N}.\ ${0} \le k \le n \Rightarrow P(k)`}. (a) Show that for all natural numbers ${math`\ell`}, ${math`P^{\#}(\ell) \Rightarrow P(\ell)`}. (b) Exhibit a concrete statement ${math`P(m)`} and a natural number ${math`n`} for which ${math`P(n) \Rightarrow P^{\#}(n)`} does not hold. (c) Prove ${math`P^{\#}(${0}) \Leftrightarrow P(${0})`}, and ${math`\big(\forall m.\ P^{\#}(m)\big) \Leftrightarrow \big(\forall m.\ P(m)\big)`}.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-1', '1.2.10'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const TRIPLE = [3, 5, 7];
@@ -379,7 +401,9 @@ export const quantifierPatterns: TopicContent = {
   generators: [firstMove, existsPower, unique],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arbitrary-element', 'unique-existence'],
-  cambridge: withUses([sw117, bop717, bop712, bop720, bop426, sw117proof, sw114proof, bop426proof], {
+  cambridge: withUses([sw117, bop717, bop712, bop720, bop426, sw117proof, sw114proof, bop426proof, sw132, sw1210], {
+    'sw-1-3-2': { sections: ['Proving "for all"', 'Using quantified assumptions'], note: t`Moving a "there exists" across an arrow, both directions`, needs: ['logic.iff'] },
+    'sw-1-2-10': { sections: ['Proving "for all"', 'Using quantified assumptions'], note: t`Proving and refuting statements about every number up to a bound`, needs: ['logic.iff'] },
     'sw-1-1-7-proof': { sections: ['Proving "there exists"', 'Exactly one'], note: t`Existence and uniqueness, written as two parts` },
     'sw-1-1-4-proof': { sections: ['Proving "for all"', 'Proving "there exists"'], note: t`Writing an existence proof with the witness first` },
   }),

@@ -240,9 +240,9 @@ export function GymView() {
       </div>
       <div id="gym-panel" role="tabpanel" aria-labelledby={`gt-${cur}`}>
         {contents === null
-          ? <p class="ds-note">Getting your topics ready.</p>
+          ? <p class="ds-note">Getting the topics ready.</p>
           : learned.length === 0
-            ? <p class="ds-note">The gym works on topics you have learned. Learn a lesson first, and its cards come here.</p>
+            ? <p class="ds-note">The gym works on learned topics. Learn a lesson first, and its cards come here.</p>
             : item === undefined || content === undefined
               ? <p class="ds-note">{plan.length === 0 ? 'Nothing is left for the gym today. Well done.' : `Nothing left in ${GYM_TABS.find((x) => x.id === cur)?.label}. Try another tab.`}</p>
               : (

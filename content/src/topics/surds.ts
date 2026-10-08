@@ -1,11 +1,11 @@
 /**
  * alg.surds: simplify surds, multiply out brackets with them, and rationalise a
  * denominator. Sources: STEP Support Foundation Assignment 1 Q1 (the warm-up on surds),
- * Assignment 2 Q1(iii), Assignment 10 Q4(iv) (an 1858 Local Examinations question), and
- * Assignment 14 Q2(i), (ii). Every answer is computed: by exact arithmetic on pairs
+ * Assignment 10 Q4(iv) (an 1858 Local Examinations question), and Assignment 14 Q2(i), (ii).
+ * Assignment 2 Q1(iii) is a written proof, so it is in proof.direct (Rule 1, 2026-10-08). Every answer is computed: by exact arithmetic on pairs
  * (a, b) standing for a + b√n, and checked by floating point.
  */
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, math, t } from '../rich';
@@ -305,15 +305,6 @@ const local1858 = auto({
   misconceptions: [{ response: '3', why: t`The square root of ${math`${12} + ${6}\sqrt{${3}}`} is ${math`${3} + \sqrt{${3}}`}, and dividing by ${math`\sqrt{${3}} + ${1}`} leaves ${math`\sqrt{${3}}`}, not ${3}.` }],
 });
 
-const largeX = supervision({
-  id: 'a2-q1-iii',
-  source: cite('step-f02', 'Q1(iii)'),
-  title: t`A difference of roots for large ${math`x`}`,
-  prompt: t`Show that ${math`\sqrt{${1} + x^{${2}}} - x = \frac{${1}}{\sqrt{${1} + x^{${2}}} + x}`}. Deduce that if ${math`x`} is very large, then ${math`\sqrt{${1} + x^{${2}}} - x`} is approximately equal to ${math`\frac{${1}}{${2}x}`}.`,
-  writeUp: 'proof',
-  official: cite('step-f02-hints', 'Q1(iii)'),
-});
-
 // ---------------------------------------------------------------- lesson
 
 const SIM_EX: SimP = { a: 5, b: 2, d: 1, m: 3 };
@@ -411,14 +402,13 @@ export const surds: TopicContent = {
   generators: [simplifySum, squareSurd, rationalise],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['surd', 'conjugate', 'rationalise-denominator'],
-  cambridge: withUses([simplest, threeTerms, hidden, conjugates, geometric, local1858, largeX], {
-    'a2-q1-iii': { sections: ['Rationalising a denominator'], note: t`Rationalising with a conjugate, then reading off the size for large values`, needs: ['proof.direct'] },
+  cambridge: withUses([simplest, threeTerms, hidden, conjugates, geometric, local1858], {
     'a14-q2-ii': { sections: ['Rationalising a denominator'], note: t`Summing an infinite geometric series with a surd ratio`, needs: ['alg.geometric-sum-to-infinity'] },
     'a1-q1-iv': { sections: ['Multiplying out'], note: t`Solving a quadratic in disguise with surd roots`, needs: ['pre.quadratic-equations'] },
     'a1-q1-iii': { sections: ['Multiplying out'], note: t`Squaring a sum of three surd terms and collecting like surds` },
   }),
-  // Assignment 1 Q1(iii). Assignment 2 Q1(iii) is a written proof, which proof.direct teaches later in the book, so
-  // it is practice (2026-10-08). Assignment 14 Q2(ii) and Assignment 1 Q1(iv) need the sum to infinity and quadratic
+  // Assignment 1 Q1(iii). Assignment 2 Q1(iii) is a written proof, so it is set in proof.direct, the
+  // first topic that teaches writing one (Rule 1, 2026-10-08). Assignment 14 Q2(ii) and Assignment 1 Q1(iv) need the sum to infinity and quadratic
   // equations, taught later, so they are practice.
   gate: ['a1-q1-iii'],
   recall: [

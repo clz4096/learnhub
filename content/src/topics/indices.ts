@@ -2,13 +2,14 @@
  * pre.indices: Laws of indices. No Cambridge source teaches indices from the start, so the
  * explanation is written from scratch (decision 11); STEP Support Assignment 12 Q1(iv)
  * (2^(2n) is 4^n) and CST supervision exercise 1.2.3 (2^0 = 1, and N starts at 0) supply
- * the worked example and the problems. Batch 7 adds IA Numbers and Sets Example Sheet 2, Q12
- * (second part): 2^91 - 1 is not prime, since 2^91 = (2^7)^13. CST exercise 4.2.1(a), the same idea
- * with a sum, needs sigma notation, which this topic does not assume, so it is not set.
+ * the worked example and the problems. IA Numbers and Sets Example Sheet 2, Q12 (second part, batch
+ * 7: 2^91 - 1 is not prime, since 2^91 = (2^7)^13) is a written proof, so it is in proof.direct
+ * (Rule 1, 2026-10-08). CST exercise 4.2.1(a), the same idea with a sum, needs sigma notation,
+ * which this topic does not assume, so it is not set.
  *
- * The IA gate also needs x - 1 to be a factor of x^n - 1, which the section "A power minus one"
- * teaches (2026-10-06), on 2^6 - 1 and 2^15 - 1, never the gate's number. Assignment 12 Q1(iii)
- * needs parity arguments from pre.algebraic-argument, so it is practice.
+ * The section "A power minus one" (2026-10-06) teaches that x - 1 is a factor of x^n - 1, on
+ * 2^6 - 1 and 2^15 - 1. Assignment 12 Q1(iii) needs parity arguments from
+ * pre.algebraic-argument, so it is practice.
  *
  * The second gate (batch 9) is the NST Mathematics Workbook, A1: a quotient of powers and roots
  * with fractional indices, which every law of the lesson is needed to simplify; its printed
@@ -288,14 +289,6 @@ const nstA1 = auto({
   official: { source: cite('nst-workbook', 'Answers, A1'), answer: str(A1_INDEX), agrees: true },
 });
 
-const ns2q12ii = supervision({
-  id: 'ns2-q12-ii',
-  source: cite('ia-ns-sheet-2', 'Q12, second part'),
-  title: t`A large number that is not prime`,
-  prompt: t`Show that ${math`${2}^{${91}} - ${1}`} is not prime.`,
-  writeUp: 'proof',
-});
-
 // ---------------------------------------------------------------- lesson
 
 const [mm, mn] = [math`m`, math`n`];
@@ -401,13 +394,12 @@ export const indices: TopicContent = {
   generators: [combine, powerOfPower, evaluate, newBase],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['power', 'base', 'index', 'zero-index', 'negative-index', 'fractional-index'],
-  cambridge: withUses([sw123verdict, sw123witness, a12Q1iii, ns2q12ii, nstA1], {
+  cambridge: withUses([sw123verdict, sw123witness, a12Q1iii, nstA1], {
     'nst-a1': { sections: ['Powers and the three laws', 'Zero and negative indices', 'Fractional indices'], note: t`Writing every root and power as a power of x, then combining them with all three laws` },
-    'ns2-q12-ii': { sections: ['Powers and the three laws', 'A power minus one'], note: t`Writing a power as a power of a power, then factorising a power minus one`, needs: ['proof.direct'] },
     'a12-q1-iii': { sections: ['Powers and the three laws'], note: t`Factorising and arguing about consecutive integers`, needs: ['pre.algebraic-argument'] },
   }),
-  // The NST simplification gates. The IA question (show 2^91 - 1 is not prime) is a written proof, which proof.direct
-  // teaches later in the book, so it is practice (2026-10-08). Assignment 12 Q1(iii) needs parity arguments, taught
+  // The NST simplification gates. The IA question (show 2^91 - 1 is not prime) is a written proof, so it is set in
+  // proof.direct, the first topic that teaches writing one (Rule 1, 2026-10-08). Assignment 12 Q1(iii) needs parity arguments, taught
   // later, so it is practice; the true or false verdict is dropped, since a guess passes it half the time.
   gate: ['nst-a1'],
   recall: [

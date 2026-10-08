@@ -209,7 +209,7 @@ function buildOnce(g: number | null, c: Ctx): Built {
         u += len;
       } else if (need <= 0 && pending.length === 0 && optional < OPTIONAL && room >= MIN_LIGHT) {
         const len = Math.min(room, BLOCK, OPTIONAL - optional);
-        items.push({ start: u, end: u + len, kind: 'optional', title: 'Light study', detail: 'Reviews and reading ahead. Skip it if you are tired.', heavy: false });
+        items.push({ start: u, end: u + len, kind: 'optional', title: 'Light study', detail: 'Reviews and reading ahead. Skip it when tired.', heavy: false });
         optional += len;
         u += len;
       } else break;
@@ -270,7 +270,8 @@ export function planDay(
   let stop = BED - WIND_DOWN;
   const notes: string[] = [];
   if (rest.today !== null && rest.tomorrow !== null) {
-    notes.push(`${rest.today}, then ${rest.tomorrow} from sundown: a rest day, nothing is planned.`);
+    // Plain, no wishes (mastery/APP-LANGUAGE.md): "Shabbat. Nothing scheduled until Shabbat ends."
+    notes.push(`${rest.today}, then ${rest.tomorrow}. Nothing scheduled until ${rest.tomorrow} ends.`);
     start = Math.max(start, sunset);
     stop = Math.min(stop, sunset);
   } else {
@@ -281,7 +282,7 @@ export function planDay(
         : `${rest.tomorrow} begins at sundown: the plan ends then, ${fmtLong(sunset)}.`);
     }
     if (rest.today !== null && start < sunset) {
-      notes.push(`${rest.today}: the plan starts after sundown, ${fmtLong(sunset)}.`);
+      notes.push(`${rest.today}. Nothing scheduled until ${rest.today} ends.`);
       start = sunset;
     }
   }

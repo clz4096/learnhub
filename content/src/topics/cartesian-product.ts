@@ -4,9 +4,9 @@
  * the problems are its exercises (checked against the book's solutions to the odd ones),
  * CST Discrete Mathematics supervision exercises 5.1.4 and 5.2.4 (prove or disprove five
  * statements about products, checked by brute force over small sets), and Book of Proof
- * Chapter 8, exercise 16. The second gate (batch 9) is Proposition 109 of the CST notes: the
- * pair built from sets as {{a}, {a, b}} has the defining property of an ordered pair, which
- * answers the lesson's opening question of how sets, which forget order, can remember it.
+ * Chapter 8, exercise 16. Proposition 109 of the CST notes (the pair built from sets as
+ * {{a}, {a, b}} has the defining property of an ordered pair) and the proofs of 5.2.4 are in
+ * proof.set-proofs (Rule 1, 2026-10-08).
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, sample } from '../math';
@@ -329,14 +329,6 @@ const sw524 = auto({
   ],
 });
 
-const sw524Proof = supervision({
-  id: 'sw-5-2-4-proof',
-  source: cite('cst-dm-sw1', 'Exercises 5, 5.2.4'),
-  title: t`Prove or disprove three product statements`,
-  prompt: t`For sets ${mA}, ${mB}, ${mC}, ${math`D`}, prove or disprove at least three of: (a) ${math`(A \subseteq C \wedge B \subseteq D) \implies A \times B \subseteq C \times D`}; (b) ${math`(A \cup C) \times (B \cup D) \subseteq (A \times B) \cup (C \times D)`}; (c) ${math`(A \times C) \cup (B \times D) \subseteq (A \cup B) \times (C \cup D)`}; (d) ${math`A \times (B \cup C) \subseteq (A \times B) \cup (A \times C)`}; (e) ${math`(A \times B) \cup (A \times D) \subseteq A \times (B \cup D)`}.`,
-  writeUp: 'proof',
-});
-
 const b816 = supervision({
   id: 'b8-16',
   source: cite('bop', 'Chapter 8, exercise 16'),
@@ -362,16 +354,6 @@ const b127 = auto({
     { response: '5', why: t`A product multiplies the sizes ${1}, ${2}, ${2}.` },
   ],
   official: { source: cite('bop', 'Solutions, Section 1.2, exercise 7'), answer: '4', agrees: true },
-});
-
-// CST notes, Proposition 109 (with Proposition 108 as the fact it may use): the set-built ordered pair.
-const prop109 = supervision({
-  id: 'notes-353-prop109',
-  source: cite('cst-dm-notes', 'printed pages 348 to 353, Propositions 108 and 109', true),
-  title: t`An ordered pair made of sets`,
-  prompt: t`Sets forget order, but an ordered pair can be built from them. For any ${math`a`} and ${math`b`}, define ${math`\langle a, b \rangle = \{\{a\}, \{a, b\}\}`}. Prove that for all ${math`a, b, x, y`}: if ${math`\langle a, b \rangle = \langle x, y \rangle`}, then ${math`a = x`} and ${math`b = y`}. You may use the fact that ${math`\{c, u\} = \{c, v\}`} implies ${math`u = v`}, for any ${math`c`}, ${math`u`}, ${math`v`} (sets included).`,
-  writeUp: 'proof',
-  official: cite('cst-dm-notes', 'printed page 353, the proof of Proposition 109'),
 });
 
 // ---------------------------------------------------------------- lesson
@@ -435,13 +417,11 @@ export const cartesianProduct: TopicContent = {
   generators: [sizeGen, pairsGen, rectGen, distGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ordered-pair', 'cartesian-product'],
-  cambridge: withUses([sw524, sw524Proof, sw514, b125, b127, b128, b816, prop109], {
-    'sw-5-2-4-proof': { sections: ['Order matters', 'Where it breaks'], note: t`Proving or disproving inclusions between products, unions, and subsets`, needs: ['proof.direct'] },
-    'notes-353-prop109': { sections: ['Order matters'], note: t`Proving from set equality that a pair built from sets remembers its order`, needs: ['proof.direct'] },
+  cambridge: withUses([sw524, sw514, b125, b127, b128, b816], {
     'sw-5-2-4': { sections: ['Order matters', 'Where it breaks'], note: t`Deciding which inclusions between products and unions hold for all sets` },
   }),
-  // The proofs (5.2.4 and Proposition 109) need proof writing, which proof.direct teaches later in the book,
-  // so they are practice (2026-10-08); the verdicts on 5.2.4's five inclusions gate, a guess passing one time in 32.
+  // The proofs (5.2.4 and Proposition 109) are set in proof.set-proofs, where proofs about sets are taught
+  // (Rule 1, 2026-10-08); the verdicts on 5.2.4's five inclusions gate, a guess passing one time in 32.
   gate: ['sw-5-2-4'],
   recall: [
     { front: t`When is ${math`(a, b) = (c, d)`}?`, back: t`Exactly when ${math`a = c`} and ${math`b = d`}.` },

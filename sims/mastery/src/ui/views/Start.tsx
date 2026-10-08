@@ -29,8 +29,8 @@ export function Start() {
       <h1 id="start-title">Welcome</h1>
       <p>
         This course teaches Cambridge mathematics from the ground up, one small topic at a time. Each day it plans a
-        session for you: new lessons, short reviews so nothing fades, and the odd quiz. A topic counts as learned once you
-        solve its practice problems, not before.
+        session: new lessons, short reviews so nothing fades, and the odd quiz. A topic counts as learned once its practice
+        problems are solved, not before.
       </p>
       <form onSubmit={(e) => { e.preventDefault(); begin(); }}>
         <fieldset class="fieldset">
@@ -43,7 +43,7 @@ export function Start() {
           ))}
           <p class="small muted">
             {closureOf(option.courses).size} topics in all, from before A level up to the Tripos. Shared foundations are
-            learned once, and each day splits new lessons evenly between the courses; you can change the split later.
+            learned once, and each day splits new lessons evenly between the courses; the split can be changed later.
           </p>
         </fieldset>
         <div class="field narrow">

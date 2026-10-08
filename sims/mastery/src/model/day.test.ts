@@ -76,7 +76,7 @@ describe('planDay, the prototype cases', () => {
     expect(p.start).toBe(sunsetMinutes(SAT));
     expect(Math.min(...p.slots.map((s) => s.start))).toBe(p.start);
     expect(p.gym).toBeNull();
-    expect(p.notes).toEqual([`Shabbat: the plan starts after sundown, ${fmt(p.start).replace(/(am|pm)$/, ' $1')}.`]);
+    expect(p.notes).toEqual(['Shabbat. Nothing scheduled until Shabbat ends.']);
     expect(p.core).toBe(270);
   });
 

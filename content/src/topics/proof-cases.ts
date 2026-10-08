@@ -6,7 +6,9 @@
  * generality"), and the STEP Support hints to Assignment 6 Q3 (2005 STEP I Q1: be
  * systematic, cases by the number of nines, and show there are no more). The problems are
  * Assignment 6 Q3, Book of Proof Chapter 4 exercises 14 to 16, and supervision exercises
- * 1.2.8, 2.2.3, 2.3.1, and 3.2.7, with the 2023-24 official solutions.
+ * 1.2.8, 2.2.3, 2.3.1, and 3.2.7, with the 2023-24 official solutions. IA Numbers and Sets Example
+ * Sheet 1, Q1 (squares that are multiples of three) moved here from Algebraic argument (Rule 1,
+ * 2026-10-08): its proof is by cases on the remainder.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { factorial, int, pick, upTo } from '../math';
@@ -346,6 +348,25 @@ const bop16 = supervision({
   writeUp: 'proof',
 });
 
+// ---------------------------------------------------------------- Cambridge problems moved here (Rule 1, 2026-10-08)
+
+// From Algebraic argument, which set it before proof by cases was taught.
+/*
+ * Outline for marking ns1-q1 (20 marks):
+ * 1. Answer: yes (2).
+ * 2. Contrapositive or cases: if n is not a multiple of 3, then n = 3q + 1 or n = 3q + 2 (4).
+ * 3. (3q + 1)^2 = 3(3q^2 + 2q) + 1 and (3q + 2)^2 = 3(3q^2 + 4q + 1) + 1, each with the bracket an
+ *    integer (8).
+ * 4. So n^2 leaves remainder 1, not a multiple of 3; hence if n^2 is a multiple of 3 so is n (6).
+ */
+const ns1q1 = supervision({
+  id: 'ns1-q1',
+  source: cite('ia-ns-sheet-1', 'Q1'),
+  title: t`Squares that are multiples of three`,
+  prompt: t`If ${math`n^{${2}}`} is a multiple of ${3}, must ${math`n`} be a multiple of ${3}? Prove your answer.`,
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 const bopTable = upTo(7).map((n) => [n, 1 + (n % 2 === 0 ? 1 : -1) * (2 * n - 1)] as const);
@@ -422,7 +443,8 @@ export const proofCases: TopicContent = {
   generators: [residues, parityCases, digitSums],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exhaustive-cases', 'without-loss-of-generality'],
-  cambridge: withUses([a6ii, lemma26, odd8, bop14, bop15, bop44, sw223, sw128, sw231, sw327, bop16], {
+  cambridge: withUses([a6ii, lemma26, odd8, bop14, bop15, bop44, sw223, sw128, sw231, sw327, bop16, ns1q1], {
+    'ns1-q1': { sections: ['Proof by cases', 'Squares and remainders'], note: t`Writing a number by its remainder on division by three and squaring each case` },
     'sw-2-3-1': { sections: ['Proof by cases', 'Squares and remainders'], note: t`Both directions by cases on remainders, written as congruences`, needs: ['num.congruence'] },
     'sw-3-2-7': { sections: ['Squares and remainders'], note: t`Squares modulo three and eight, then combining for primes`, needs: ['num.congruence'] },
     'a6-q3-ii': { sections: ['Show there are no more'], note: t`Counting by the shortfall from all nines, case by case` },
@@ -431,8 +453,9 @@ export const proofCases: TopicContent = {
   }),
   // The STEP count, then the proofs by cases. Exercises 2.3.1 and 3.2.7 are written with congruences, taught later,
   // so they are practice. The auto-checked remainders (0 or 1; 1 for odd squares mod 8) can be guessed, so they do
-  // not gate.
-  gate: ['a6-q3-ii', 'sw-1-2-8', 'sw-2-2-3'],
+  // not gate. IA Numbers and Sets Q1 (moved here from Algebraic argument, 2026-10-08) is the same move as
+  // Squares and remainders, on division by three.
+  gate: ['a6-q3-ii', 'sw-1-2-8', 'sw-2-2-3', 'ns1-q1'],
   recall: [
     { front: t`State proof by cases.`, back: t`If ${math`P_{${1}}, \ldots, P_{k}`} are exhaustive and each ${math`P_{i}`} implies ${mQ}, then ${mQ} holds.` },
     { front: t`What does it mean for cases to be exhaustive?`, back: t`At least one of them always holds: ${math`P_{${1}} \lor \cdots \lor P_{k}`}.` },

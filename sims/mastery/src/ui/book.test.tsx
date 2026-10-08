@@ -64,7 +64,7 @@ describe('the Course tab: the degree as a book', () => {
     const ia = document.querySelectorAll('details.book-yr')[1] as HTMLElement;
     expect(ia.querySelector('details.book-opt > summary')?.textContent).toBe('3 optional');
     expect(ia.textContent).toContain('Left out: Mechanics.');
-    expect(ia.textContent).toContain('You can read ahead; nothing is locked.');
+    expect(ia.textContent).toContain('Reading ahead is fine; nothing is locked.');
     fireEvent.click(screen.getByText('Prerequisite map'));
     expect(location.hash).toBe('#/map');
   });
@@ -92,7 +92,7 @@ describe('the Course tab: the degree as a book', () => {
     render(<App />);
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Discrete Mathematics');
     expect(text()).toContain('Part IA · Michaelmas · Computer Science');
-    expect(text()).toContain('Opens after the Preparation campaign. You can read ahead; nothing is locked.');
+    expect(text()).toContain('Opens after the Preparation campaign. Reading ahead is fine; nothing is locked.');
     // Proof is recall since CS-0 Proof teaches it (graph/reviews/cambridge-prep.md); Numbers keeps 13 steps.
     expect(text()).toMatch(/0 of 13 steps learned/);
     const secs = [...document.querySelectorAll('.book-sec')].map((s) => s.querySelector('.t')?.textContent);

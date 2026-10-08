@@ -20,22 +20,26 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import {
-  answerText, citationText, FIRST_PROOF_TOPIC, formalNumbers, grade, hasContent, isProofWriteUp, lessonSections, plain, readAnswer, type Block, type CambridgeProblem,
+  answerText, citationText, FIRST_PROOF_TOPIC, type AutoProblem, formalNumbers, grade, hasContent, isProofWriteUp, lessonSections, plain, readAnswer, type Block, type CambridgeProblem,
   type MasteryRule, type QuickCheck, type SupervisionProblem, type TopicContent, type WorkedExample, type Why,
+  currentProblemKey,
 } from '@learnhub/content';
 import { placeOf } from '@learnhub/content/book';
-import { GATE_PASS_MARK } from '@learnhub/mastery';
+import { DAY_MS, GATE_PASS_MARK, cambridgeEntries } from '@learnhub/mastery';
 import { journeyOf } from '@/model/book';
 import { lessonOutline, outlineIndex, type OutlineEntry } from '@/model/lessonOutline';
 import { LEVEL_NAMES, sourceLinks, titleOf, topicOf } from '@/model/courses';
-import { drillItemId, masteryOf, proofLessonReached, recommendedNext, recordCambridgeAnswer, recordDrill, waitingCopies } from '@/model/learner';
+import {
+  MISS_RETURN_DAYS, cambridgeState, drillItemId, masteryOf, proofLessonReached, recommendedNext, recordCambridgeAnswer, recordDrill, waitingCopies,
+} from '@/model/learner';
+import { loadHints, saveHints } from '@/model/hintsStore';
 import { commit, now, progress } from '@/model/store';
 import { PROOF_CHECKLIST, problemKey } from '@/model/supervision';
 import { CopyForSupervision, PasteResult } from '@/ui/Supervision';
 import { learnerSynced } from '@/model/learnerChange';
 import { clearPlace, loadPlace, loadWriteUp, placeEntry, savePlace, saveWriteUp, type LessonPlace, type LessonStage } from '@/model/lessonState';
 import { answer, freshPractice, instanceAt, outcomeOf, type PracticeState } from '@/model/practice';
-import { ProblemCard, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
+import { ProblemCard, REVEAL_WARNING, type CambridgeHelp, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
 import type { Route } from '@/model/route';
 import { BackLink } from '@/ui/BackLink';
 import { BookLink } from '@/ui/views/Book';
@@ -297,10 +301,10 @@ function Practice({ c, salt, initial, onChange, onEnd }: {
     return ended
       ? (
         <div class="feedback good end">
-          <h3>Topic learned</h3>
+          <h3>Practice passed.</h3>
           <p>
-            {c.mastery.correctInARow} right in a row. It is now part of what you know, and it will come back as a short review to make
-            it stick. One step is left to master it: a Cambridge problem.
+            {c.mastery.correctInARow} right in a row: the topic is learned. It comes back as a short review to make it stick. One step
+            is left to master it: a Cambridge problem.
           </p>
           <button type="button" class="btn btn-primary" onClick={() => onEnd(true)}>Next: the Cambridge problem</button>
         </div>
@@ -323,14 +327,15 @@ function Practice({ c, salt, initial, onChange, onEnd }: {
       {/* Said once, before the first problem, so it does not push every later problem down. */}
       {k === 0 && (
         <p class="small muted">
-          You can leave and come back, even after closing the app: your place and your right-in-a-row count are kept, and
-          sync, if you use it, carries them to your other devices.
+          Leaving and coming back is fine, even after closing the app: the place and the right-in-a-row count are kept, and
+          sync, when on, carries them to the other devices.
         </p>
       )}
       <ProblemCard
         key={`${k}-${n}`}
         index={k}
         mode="practice"
+        oneMoreTry
         topicId={c.topicId}
         instance={inst}
         consequence={(o) => practiceConsequence(s, c.mastery, o)}
@@ -361,7 +366,7 @@ const WRITE_UP_KIND: Readonly<Record<SupervisionProblem['writeUp'], string>> = {
 
 /** The latest imported supervision result for a problem, in one line. */
 function LastResult({ k }: { k: string }) {
-  const a = [...(progress.value?.supervision ?? [])].reverse().find((x) => x.problem === k && x.result !== null);
+  const a = [...(progress.value?.supervision ?? [])].reverse().find((x) => currentProblemKey(x.problem) === k && x.result !== null);
   if (a === undefined || a.result === null || a.importedAt === null) return null;
   return (
     <p class="small sup-last">
@@ -394,7 +399,7 @@ function SupervisionCard({ topicId, p }: { topicId: string; p: SupervisionProble
         }}
       />
       <p id={`${box}-how`} class="small muted">
-        Copy for supervision copies the problem, its source, your write-up, and your recent attempts. Paste it into a supervision
+        Copy for supervision copies the problem, its source, the write-up, and the recent attempts. Paste it into a supervision
         session in Claude Code, then paste the result block it prints back here with Paste result.
       </p>
       <CopyForSupervision problemKey={k} writeUp={text} describedBy={`${box}-how`} />
@@ -410,7 +415,7 @@ function WrongAnswerSupervision({ k, given }: { k: string; given: string }) {
   const id = `sup-wrong-${k.replace(/[^a-z0-9]/g, '-')}`;
   return (
     <div class="sup-wrong">
-      <p class="small">Not sure why? A supervision session can go through it with you.</p>
+      <p class="small">Not sure why? A supervision session can go through it.</p>
       <label for={id} class="small">Your working (optional)</label>
       <textarea id={id} rows={3} value={working} onInput={(e) => setWorking((e.currentTarget as HTMLTextAreaElement).value)} />
       <CopyForSupervision problemKey={k} writeUp={working} checked={{ given }} />
@@ -485,57 +490,168 @@ export function ProblemUsesView({ c, p, onSection }: { c: TopicContent; p: Cambr
   );
 }
 
+/** The day a missed problem comes back, as "Sunday 11 October". */
+export const returnDay = (at: number): string => new Date(at).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+
 /**
  * One Cambridge problem. An auto-checked answer is logged as soon as its result shows
  * (`recordCambridgeAnswer`): it is the gate's evidence, and a right one closes the
  * problem's open redos. A gate problem says so. What it draws on is shown above it.
+ *
+ * A miss on a single-answer problem (mastery/HOW-A-TOPIC-WORKS.md, rule 3) shows "Not right
+ * yet" with the problem's nudge and, on request, its hints, never the solution. The problem
+ * then rests until it comes back (`MISS_RETURN_DAYS`, a redo on Today): until then it shows
+ * the hints and "Show me the solution" but takes no answer, so a run of guesses cannot meet
+ * the gate. Showing the solution asks first while the problem could still count, and from
+ * then on the problem is plain practice.
  */
 export function CambridgeItem({ c, p, n, onSection }: { c: TopicContent; p: CambridgeProblem; n: number; onSection?: (section: number) => void }) {
   // A new key remounts the card, so "Try it again" starts with an empty answer.
   const [round, setRound] = useState(0);
   const [last, setLast] = useState<string | null>(null);
+  // A miss given on this screen keeps its card (the nudge and hints) instead of the resting view.
+  const [missedHere, setMissedHere] = useState(false);
+  // "Show me the solution" pressed while the problem rested: the solution shows until "Try it again".
+  const [revealedHere, setRevealedHere] = useState(false);
   const k = problemKey(c.topicId, p.id);
   const doc = progress.value;
+  const t = now();
+  const st = doc === null ? null : cambridgeState(doc, k, t);
+  const hints = p.hints ?? [];
+  const opened = Math.min(hints.length, Math.max(loadHints(k), st?.hints ?? 0));
+  const isGate = c.gate.includes(p.id);
   // Once offered, Paste result stays, so its message survives the import that ends the wait.
   const offered = useRef(false);
-  if (p.mode === 'auto' && doc !== null && waitingCopies(doc).some((a) => a.problem === k)) offered.current = true;
+  if (p.mode === 'auto' && doc !== null && waitingCopies(doc).some((a) => currentProblemKey(a.problem) === k)) offered.current = true;
   const waiting = offered.current;
+  const help: CambridgeHelp | undefined = st === null ? undefined : {
+    hints,
+    opened,
+    onHint: (m) => saveHints(k, m),
+    revealed: st.revealed,
+    confirmReveal: isGate && !st.solved,
+    missed: doc !== null && cambridgeEntries(doc.history, k, currentProblemKey).some((h) => !h.correct),
+    ...(p.nudge === undefined ? {} : { nudge: p.nudge }),
+  };
+  const resting = p.mode === 'auto' && st !== null && st.returnsAt !== null && !missedHere;
   return (
     <article class="cambridge-problem" data-problem={p.id} aria-labelledby={`cam-${p.id}`}>
       <h3 id={`cam-${p.id}`}>Problem {n}: <Rich text={p.title} /></h3>
-      <p class="citation small">{citationText(p.source)}{p.mode === 'supervision' ? ' · for supervision' : ' · checked here'}{c.gate.includes(p.id) && ' · gate problem'}{last !== null && <span class={`badge badge-${last === 'correct' ? 'good' : 'muted'}`}>{last === 'correct' ? 'Solved' : 'Tried'}</span>}</p>
+      <p class="citation small">{citationText(p.source)}{p.mode === 'supervision' ? ' · for supervision' : ' · checked here'}{isGate && ' · gate problem'}{last !== null && <span class={`badge badge-${last === 'correct' ? 'good' : 'muted'}`}>{last === 'correct' ? 'Solved' : 'Tried'}</span>}</p>
       <ProblemUsesView c={c} p={p} onSection={onSection} />
+      {st?.revealed === true && p.mode === 'auto' && isGate && !st.solved && <p class="small muted">The solution has been shown, so this problem no longer counts towards the gate. The topic's other gate problems still can.</p>}
       {p.mode === 'supervision'
         ? <SupervisionCard topicId={c.topicId} p={p} />
-        : (
-          <ProblemCard
-            key={round}
-            index={round}
-            idBase={`cam-${p.id}-answer`}
-            mode="cambridge"
-            topicId={c.topicId}
-            instance={p.instance}
-            afterWrong={(given) => <WrongAnswerSupervision k={k} given={given} />}
-            onAnswer={(r) => {
-              if (r.outcome === 'problem-error') return;
-              // Logged now, not on moving on: the worked solution is on screen from here.
-              const cur = progress.value;
-              if (cur !== null) void commit(recordCambridgeAnswer(cur, k, r.correct, { hints: 0, ms: r.ms }, now()));
-            }}
-            onDone={(r) => {
-              if (r.outcome !== 'problem-error') setLast(r.correct ? 'correct' : 'tried');
-              setRound(round + 1);
-            }}
-          />
-        )}
+        : resting && st?.returnsAt != null
+          ? <RestingProblem k={k} p={p} returnsAt={st.returnsAt} help={help as CambridgeHelp} onReveal={() => setRevealedHere(true)} />
+          : revealedHere
+            ? <SolutionView p={p} onAgain={() => { setRevealedHere(false); setRound(round + 1); }} />
+            : (
+            <ProblemCard
+              key={round}
+              index={round}
+              idBase={`cam-${p.id}-answer`}
+              mode="cambridge"
+              topicId={c.topicId}
+              instance={p.instance}
+              help={help}
+              consequence={(o) => (o === 'wrong' && help !== undefined && !help.revealed
+                ? { effect: `It comes back on ${returnDay(now() + MISS_RETURN_DAYS * DAY_MS)}, and a right answer then still counts.` }
+                : { effect: '' })}
+              afterWrong={(given) => <WrongAnswerSupervision k={k} given={given} />}
+              onAnswer={(r) => {
+                if (r.outcome === 'problem-error') return;
+                // Logged now, not on moving on: a miss sets the problem's return, a reveal shows the solution from here.
+                const cur = progress.value;
+                if (cur === null) return;
+                const seen = r.outcome === 'gave-up' || cambridgeState(cur, k, now()).revealed;
+                if (r.outcome === 'wrong' && !seen) setMissedHere(true);
+                const item = { hints: Math.min(hints.length, Math.max(loadHints(k), opened)), ms: r.ms, ...(seen ? { solution: true as const } : {}) };
+                void commit(recordCambridgeAnswer(cur, k, r.correct, item, now()));
+              }}
+              onDone={(r) => {
+                if (r.outcome !== 'problem-error') setLast(r.correct ? 'correct' : 'tried');
+                setMissedHere(false);
+                setRound(round + 1);
+              }}
+            />
+          )}
       {waiting && <PasteResult expected={k} id={`sup-${p.id}`} />}
     </article>
   );
 }
 
+/** The answer and worked solution of a problem whose solution was asked for, then another go (which no longer counts). */
+function SolutionView({ p, onAgain }: { p: AutoProblem; onAgain: () => void }) {
+  const ref = useRef<HTMLHeadingElement>(null);
+  useEffect(() => ref.current?.focus({ preventScroll: true }), []);
+  return (
+    <div class="problem problem-cambridge">
+      <Rich as="p" class="prompt" text={p.instance.problem.prompt} />
+      <div class="result-block neutral" role="group" aria-labelledby={`sol-${p.id}`} data-result="gave-up">
+        <h3 ref={ref} id={`sol-${p.id}`} class="result-head" tabIndex={-1}><span class="result-icon neutral" aria-hidden="true">i</span><span>Solution</span></h3>
+        <div class="result-pair one"><div><span>Correct answer</span><strong><Rich text={answerText(p.instance.problem.answer)} /></strong></div></div>
+        <div class="result-solution">
+          <h4>Worked solution</h4>
+          <ol>{p.instance.problem.solution.map((x, i) => <Rich key={i} as="li" text={x} />)}</ol>
+        </div>
+      </div>
+      <div class="actions"><button type="button" class="btn btn-primary" onClick={onAgain}>Try it again</button></div>
+    </div>
+  );
+}
+
+/**
+ * A missed problem waiting to come back: when, the hints so far and the next on request, and
+ * "Show me the solution", which asks first while the problem could still count.
+ */
+function RestingProblem({ k, p, returnsAt, help, onReveal }: { k: string; p: AutoProblem; returnsAt: number; help: CambridgeHelp; onReveal: () => void }) {
+  const [open, setOpen] = useState(help.opened);
+  const [asking, setAsking] = useState(false);
+  const reveal = (): void => {
+    if (help.confirmReveal && !asking) {
+      setAsking(true);
+      return;
+    }
+    setAsking(false);
+    const cur = progress.value;
+    if (cur === null) return;
+    onReveal();
+    void commit(recordCambridgeAnswer(cur, k, false, { hints: open, solution: true }, now()));
+  };
+  const id = `rest-${k.replace(/[^a-z0-9]/g, '-')}`;
+  return (
+    <div class="problem problem-resting" data-resting={k}>
+      <Rich as="p" class="prompt" text={p.instance.problem.prompt} />
+      <p class="result-why" role="status">Not right yet. It comes back on {returnDay(returnsAt)}, and a right answer then still counts.</p>
+      {help.hints.length > 0 && (
+        <div class="hints">
+          {open > 0 && <ol class="hint-list" aria-label="Hints">{help.hints.slice(0, open).map((h, i) => <Rich key={i} as="li" text={h} />)}</ol>}
+          {open < help.hints.length && (
+            <button type="button" class="btn" id={`${id}-hint`} onClick={() => { const m = open + 1; setOpen(m); help.onHint(m); }}>
+              {open === 0 ? 'Show a hint' : 'Show the next hint'}
+            </button>
+          )}
+        </div>
+      )}
+      {asking
+        ? (
+          <div class="confirm-form reveal-confirm">
+            <p id={`${id}-reveal`} class="small">{REVEAL_WARNING}</p>
+            <div class="actions">
+              <button type="button" class="btn" aria-describedby={`${id}-reveal`} onClick={reveal}>Show the solution</button>
+              <button type="button" class="btn btn-primary" onClick={() => setAsking(false)}>Keep trying</button>
+            </div>
+          </div>
+        )
+        : <div class="actions"><button type="button" class="btn" onClick={reveal}>Show me the solution</button></div>}
+    </div>
+  );
+}
+
 /** What the gate asks, in one paragraph, for the Cambridge stage and the map. */
 export function gateRule(): string {
-  return `Solve one gate problem without help: the first answer you give to a problem is the one that counts, and the worked solution is shown after it. Or write one up for supervision: a mark of ${GATE_PASS_MARK} or more out of 20 counts too.`;
+  return `Solve one gate problem without seeing its solution. A miss gets a nudge and hints, and the problem comes back in ${MISS_RETURN_DAYS} days, when a right answer still counts. Showing the solution means that problem no longer counts. Or write one up for supervision: a mark of ${GATE_PASS_MARK} or more out of 20 counts too.`;
 }
 
 /**
@@ -554,7 +670,8 @@ function CambridgeStage({ c, passed, onFinish, onPractice, onSection }: { c: Top
       {evidence !== null
         ? (
           <p class="gate-met" role="status">
-            {evidence.kind === 'auto' ? 'Gate met: solved unaided.' : `Gate met: a supervision mark of ${evidence.mark} out of 20.`}
+            {evidence.kind === 'supervision' ? `Gate met: a supervision mark of ${evidence.mark} out of 20.`
+              : evidence.hints === 0 ? 'Gate met: solved unaided.' : `Gate met: solved with ${evidence.hints} hint${evidence.hints === 1 ? '' : 's'}, without the solution.`}
             {passed ? ' With the practice passed, the topic is mastered.' : ' Pass the practice as well to master the topic.'}
           </p>
         )
@@ -770,9 +887,9 @@ function LessonBody({ salt, onEnd, c, head, title }: LessonProps & { c: TopicCon
       {head(pos)}
       {offer !== null && (
         <div class="ds-note other-device" role="status">
-          <p>On your other device, this lesson is at <Rich text={(outline[outlineIndex(outline, offer.stage, offer.section ?? 0)] ?? entry).title} />.</p>
+          <p>On another device, this lesson is at <Rich text={(outline[outlineIndex(outline, offer.stage, offer.section ?? 0)] ?? entry).title} />.</p>
           <div class="actions">
-            <button type="button" class="btn btn-primary" onClick={() => adopt(offer)}>Continue where you left off on your other device</button>
+            <button type="button" class="btn btn-primary" onClick={() => adopt(offer)}>Continue from the other device's place</button>
             <button type="button" class="btn" onClick={() => setOffer(null)}>Stay here</button>
           </div>
         </div>

@@ -10,12 +10,13 @@
  * with the rest of the learner's state.
  */
 import type { JSX } from 'preact';
+import { currentProblemKey } from '@learnhub/content';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { admissions } from '@/ui/campaignShared';
 import { paperName } from '@/model/campaign';
 import { campaign } from '@/model/campaignStore';
 import { ALL_TOPICS } from '@/model/courses';
-import { masteryOf } from '@/model/learner';
+import { masteryOf, topicOfKey } from '@/model/learner';
 import { learnerSynced } from '@/model/learnerChange';
 import { LADDER_KEY } from '@/model/ladderStore';
 import { loadPlaces } from '@/model/lessonState';
@@ -102,6 +103,7 @@ function factsFor(date: string): StandupFacts {
     {
       topics: ALL_TOPICS,
       stageOf: (id) => (p === null ? 'unlearned' : masteryOf(p, id).stage),
+      topicOfProblem: (key) => topicOfKey(currentProblemKey(key)),
       paperLabel: (id) => {
         const paper = adm?.registryPaper(id);
         return paper === undefined ? id : paperName(paper);
@@ -311,7 +313,7 @@ export function StandupSlot({ date, onDone }: { date: string /* YYYY-MM-DD */; o
       <h2 id="su-title" class="ds-su-h">Sixty to ninety seconds</h2>
       {phase === 'ready' && (
         <>
-          <p class="ds-su-p">Say what you did yesterday, what you will do today, and what is blocking you. It is checked against your record since your last standup.</p>
+          <p class="ds-su-p">Say what was done yesterday, what is planned for today, and what is blocking progress. It is checked against the record since the last standup.</p>
           {recordable ? (
             <>
               <p class="ds-note">When you press Record, the browser asks to use the microphone. The recording stays on this device for 14 days and is never uploaded; only the words sync.</p>
@@ -376,7 +378,7 @@ export function StandupSlot({ date, onDone }: { date: string /* YYYY-MM-DD */; o
 function Flags({ flags }: { flags: readonly string[] }) {
   if (flags.length === 0) return <p class="ds-su-ok">Matches your record. Nothing missing.</p>;
   return (
-    <ul class="ds-su-flags" aria-label="Check against your record">
+    <ul class="ds-su-flags" aria-label="Check against the record">
       {flags.map((f) => <li key={f}><span class="ds-dot" aria-hidden="true" />{f}</li>)}
     </ul>
   );
