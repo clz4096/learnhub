@@ -11,9 +11,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { catalogProblem, gateOf, hasContent } from '@learnhub/content';
 import { AREAS } from '@learnhub/graph';
-import { LEVELS, type Progress, type Topic } from '@learnhub/mastery';
+import { LEVELS, retestPassRate, type Progress, type Topic } from '@learnhub/mastery';
 import { AREA_NAMES, LEVEL_NAMES, closureTopics, coursesWith, shortName, titleOf, topicOf } from '@/model/courses';
-import { daysFrom, masteryOf, statusMap, type TopicStatus } from '@/model/learner';
+import { daysFrom, masteryOf, retestOf, statusMap, type TopicStatus } from '@/model/learner';
 import { NODE_H, NODE_W, layout } from '@/model/layout';
 import { go } from '@/model/route';
 import { now, progress } from '@/model/store';
@@ -22,6 +22,7 @@ import { TexText } from '@/ui/Tex';
 
 export const STATUS_TEXT: Record<TopicStatus, string> = {
   mastered: 'Mastered',
+  review: 'Needs review: a cold retest was missed',
   gate: 'Learned: needs the Cambridge problem',
   due: 'Learned, review due',
   ready: 'Ready to learn',
@@ -112,6 +113,26 @@ function GateLinks({ id }: { id: string }) {
   );
 }
 
+const dayText = (ms: number): string => new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+/** Where a mastered topic stands on its cold retests (rule 6): the next one, the last result, and any skipped. */
+function RetestLine({ p, id }: { p: Progress; id: string }) {
+  const r = retestOf(p, id);
+  if (r.phase === 'unmastered') return null;
+  const last = r.log.filter((x) => x.at <= now()).at(-1);
+  const skipped = r.log.filter((x) => x.outcome === 'skipped' && x.at <= now());
+  const lines: string[] = [];
+  if (r.phase === 'needs-review') lines.push('Needs review: a cold retest was missed. Solving the next Cambridge problem masters it again.');
+  else if (r.next !== null) lines.push(`Cold retest ${r.next.due <= now() ? 'due now' : `due ${dayText(r.next.due)}`}: a different Cambridge problem, with no lesson first.`);
+  else if (r.log.length > 0) lines.push('No more cold retests are due.');
+  if (last !== undefined && last.outcome !== 'skipped') lines.push(`Last retest ${last.outcome === 'passed' ? 'passed' : 'missed'} on ${dayText(last.at)}.`);
+  for (const s of skipped) {
+    lines.push(`The ${s.step === 1 ? '7-day' : '30-day'} retest was skipped: ${s.reason === 'only-problem-seen' ? 'the only Cambridge problem had its solution shown' : 'every other Cambridge problem had its solution shown'}.`);
+  }
+  if (lines.length === 0) return null;
+  return <p class="small muted retest-line">{lines.join(' ')}</p>;
+}
+
 function Details({ p, id, status }: { p: Progress; id: string; status: TopicStatus | undefined }) {
   const t = topicOf(id);
   if (t === undefined) return null;
@@ -141,6 +162,7 @@ function Details({ p, id, status }: { p: Progress; id: string; status: TopicStat
         <button type="button" class="btn btn-primary" onClick={() => go({ view: 'learn', topicId: id })}>Learn it now</button>
       )}
       {mem !== undefined && masteryOf(p, id).stage === 'needs-gate' && <GateLinks id={id} />}
+      {mem !== undefined && <RetestLine p={p} id={id} />}
       {needs.length > 0 && (<><h3 class="small">Builds on</h3><ul class="small links">{needs.map(link)}</ul></>)}
       {neededBy.length > 0 && (<><h3 class="small">Needed for</h3><ul class="small links">{neededBy.map(link)}</ul></>)}
       <Sources topicId={id} />
@@ -229,6 +251,8 @@ export function MapView({ topicId }: { topicId: string | null }) {
     }
   }
   const counts = (s: TopicStatus): number => shown.filter((t) => status.get(t.id) === s).length;
+  // Rule 6: how much of what was mastered is still remembered, from the cold retests taken.
+  const retests = p === null ? null : retestPassRate(shown.filter((t) => p.memory[t.id] !== undefined).map((t) => retestOf(p, t.id)));
 
   return (
     <section class="page map" aria-labelledby="map-title">
@@ -263,6 +287,7 @@ export function MapView({ topicId }: { topicId: string | null }) {
       </div>
       <p class="legend small">
         <span class="status-chip st-mastered">Mastered {counts('mastered')}</span>
+        <span class="status-chip st-review">Needs review {counts('review')}</span>
         <span class="status-chip st-gate">Needs the Cambridge problem {counts('gate')}</span>
         <span class="status-chip st-due">Review due {counts('due')}</span>
         <span class="status-chip st-ready">Ready {counts('ready')}</span>
@@ -270,6 +295,7 @@ export function MapView({ topicId }: { topicId: string | null }) {
         <span class="status-chip st-locked">Locked {counts('locked')}</span>
         <span class="muted">
           {shown.length} topics. A dot marks a written lesson.
+          {retests !== null && ` Cold retests passed: ${retests.passed} of ${retests.taken}.`}
           {mode === 'graph' && !allEdges && (topicId === null ? ' Choose a topic to see its connections.' : ' Lines show what the chosen topic builds on and what builds on it.')}
         </span>
       </p>

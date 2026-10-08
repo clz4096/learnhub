@@ -36,7 +36,7 @@ const TASKS: SessionTask[] = [
 /** One random change, of the kinds the app makes, so a device's copy drifts from the base. */
 function step(rng: Rng, p: Progress): Progress {
   const q: Progress = JSON.parse(JSON.stringify(p)) as Progress;
-  switch (randInt(rng, 0, 11)) {
+  switch (randInt(rng, 0, 12)) {
     case 0: {
       const h: HistoryEntry = { at: time(rng), kind: pick(rng, KINDS), topicId: pick(rng, TOPICS), correct: rng() < 0.7 };
       // Item data, as version 5 records it, from a small set so copies collide on it.
@@ -110,6 +110,10 @@ function step(rng: Rng, p: Progress): Progress {
       break;
     case 11:
       if (rng() < 0.15) return resetProgress('mastery', time(rng));
+      break;
+    case 12:
+      // A version 6 copy migrated on this device: its retest anchor.
+      q.retestsFrom = time(rng);
       break;
   }
   q.updatedAt = Math.max(q.updatedAt, time(rng));

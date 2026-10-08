@@ -31,8 +31,8 @@
 import type { RegistryPaper } from '@learnhub/content/admissions';
 import { SUPERVISION_MARK_MAX, SUPERVISION_PASS_MARK } from '@learnhub/mastery';
 import {
-  STEP_COUNTED, STEP_MARKS_PER_QUESTION, TMUA_OPTIONS, marked, paperLink,
-  type Admissions, type Campaign, type Score,
+  STEP_COUNTED, STEP_MARKS_PER_QUESTION, TMUA_OPTIONS, marked, paperLink, parseForecast,
+  type Admissions, type Campaign, type Forecast, type Score,
 } from './campaign';
 
 export type Exam = RegistryPaper['exam'];
@@ -69,6 +69,8 @@ export interface LadderAttempt {
   /** A level: the mark from supervision, and what the offered questions are out of (from the mark scheme). */
   total?: number;
   outOf?: number;
+  /** The app's prediction at the start (rule 8); absent for an attempt begun before it was recorded. */
+  forecast?: Forecast;
 }
 
 // ---------------------------------------------------------------- the shape of a rung
@@ -269,11 +271,15 @@ export function activeAttempt(attempts: readonly LadderAttempt[]): LadderAttempt
 }
 
 /** Starts an attempt; unchanged while another runs, or when the set is not one the rung offers on that paper. */
-export function startAttempt(adm: Admissions, attempts: readonly LadderAttempt[], paperId: string, rung: PartRung, questions: readonly number[], now: number): LadderAttempt[] {
+export function startAttempt(
+  adm: Admissions, attempts: readonly LadderAttempt[], paperId: string, rung: PartRung, questions: readonly number[], now: number, forecast?: Forecast,
+): LadderAttempt[] {
   const paper = adm.registryPaper(paperId);
   if (paper === undefined || activeAttempt(attempts) !== undefined) return [...attempts];
   if (!rungSets(paper, rung).some((s) => s.join(',') === questions.join(','))) return [...attempts];
-  return [...attempts, { id: `${paperId}/${rung}/${questions.join('-')}@${now}`, paperId, rung, questions: [...questions], startedAt: now, finishedAt: null }];
+  const a: LadderAttempt = { id: `${paperId}/${rung}/${questions.join('-')}@${now}`, paperId, rung, questions: [...questions], startedAt: now, finishedAt: null };
+  if (forecast !== undefined) a.forecast = { ...forecast };
+  return [...attempts, a];
 }
 
 export function finishAttempt(attempts: readonly LadderAttempt[], id: string, now: number): LadderAttempt[] {
@@ -300,7 +306,11 @@ export function removeAttempt(attempts: readonly LadderAttempt[], id: string): L
   return attempts.filter((a) => a.id !== id);
 }
 
-const stripMarks = (a: LadderAttempt): LadderAttempt => ({ id: a.id, paperId: a.paperId, rung: a.rung, questions: a.questions, startedAt: a.startedAt, finishedAt: a.finishedAt });
+const stripMarks = (a: LadderAttempt): LadderAttempt => {
+  const out: LadderAttempt = { id: a.id, paperId: a.paperId, rung: a.rung, questions: a.questions, startedAt: a.startedAt, finishedAt: a.finishedAt };
+  if (a.forecast !== undefined) out.forecast = a.forecast;
+  return out;
+};
 
 /** The attempt with only the marks its paper takes, each valid; null when a given mark is invalid. */
 function clean(a: LadderAttempt, paper: RegistryPaper): LadderAttempt | null {
@@ -351,6 +361,8 @@ export function parseLadder(adm: Admissions, raw: string | null): LadderAttempt[
     const questions = x.questions as number[];
     if (paper === undefined || !rungSets(paper, x.rung).some((s) => s.join(',') === questions.join(','))) continue;
     const a: LadderAttempt = { id: x.id, paperId: x.paperId, rung: x.rung, questions: [...questions], startedAt: x.startedAt, finishedAt: x.finishedAt as number | null };
+    const forecast = parseForecast(x.forecast);
+    if (forecast !== undefined) a.forecast = forecast;
     const withMarks: LadderAttempt = { ...a };
     if (Array.isArray(x.answers)) withMarks.answers = x.answers as (string | null)[];
     if (Array.isArray(x.marks)) withMarks.marks = x.marks as (number | null)[];

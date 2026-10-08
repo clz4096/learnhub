@@ -13,3 +13,4 @@ export * from './replay';
 export * from './mixed';
 export * from './idb';
 export * from './grade';
+export * from './retest';

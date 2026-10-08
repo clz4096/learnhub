@@ -96,6 +96,15 @@ describe('the Cambridge gate', () => {
     expect(gateEvidence({ ...learned(), supervision: [{ ...supervised('q7', 20, NOW), result: null, importedAt: null }] }, T, GATE)).toBeNull();
   });
 
+  it('a supervised write-up imported after the solution or outline was shown does not meet it; one imported before still does', () => {
+    const after = { ...learned(), history: [reveal(NOW + 1, 'q4-ii')], supervision: [supervised('q4-ii', 18, NOW + 9)] };
+    expect(gateEvidence(after, T, GATE)).toBeNull();
+    const tie = { ...learned(), history: [reveal(NOW + 9, 'q4-ii')], supervision: [supervised('q4-ii', 18, NOW + 9)] };
+    expect(gateEvidence(tie, T, GATE)).toBeNull();
+    const before = { ...learned(), history: [reveal(NOW + 10, 'q4-ii')], supervision: [supervised('q4-ii', 18, NOW + 9)] };
+    expect(gateEvidence(before, T, GATE)).toEqual({ kind: 'supervision', problem: `${T}/q4-ii`, at: NOW + 9, mark: 18 });
+  });
+
   it('reports the earliest evidence', () => {
     const p = { ...learned(), history: [cam(NOW + 50, 'q7', true)], supervision: [supervised('q4-ii', 18, NOW + 10)] };
     expect(gateEvidence(p, T, GATE)?.kind).toBe('supervision');
@@ -192,7 +201,8 @@ describe('problems that moved topic: old keys read as the current one', () => {
   });
 
   it('merging stays commutative, associative, and idempotent: the documents are never rewritten', () => {
-    const a = { ...learned(), supervision: [supOld(12, NOW + 5)], history: [camOld(NOW + 1, false, true)] };
+    // The reveal comes after b's passing write-up was imported, so that write-up still counts (rule 7).
+    const a = { ...learned(), supervision: [supOld(12, NOW + 5)], history: [camOld(NOW + 8, false, true)] };
     const b = { ...learned(), supervision: [supervised('q9', GATE_PASS_MARK, NOW + 7, 'WXYZ2345')] };
     const c = { ...learned(), history: [cam(NOW + 9, 'q9', true)] };
     const ab = mergeProgress(a, b);

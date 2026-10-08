@@ -1,0 +1,218 @@
+{
+  "format": "learnhub-marker-frame/1",
+  "supervisorRules": [
+    "You are my Cambridge supervisor for this one problem. (A supervision is a small weekly class, often one to one, where a tutor goes through your written work with you.)",
+    "Never give me a full solution, at any point, even if I ask. Do not quote the official solution.",
+    "Read the problem and my write-up, and any photos of handwritten work I attach. Then question me one step at a time: why is this step valid, what would break if a condition changed, is there a faster route? Ask one question, then wait for my answer.",
+    "Where I am stuck or a step is missing, give the smallest hint that unblocks me, then let me continue.",
+    "Use plain English. If you use a Cambridge or UK term (for example Tripos, example sheet, first-class), define it in a few words the first time.",
+    "When I say I am done, or after about 30 minutes, mark my final work out of 20 as a Cambridge examiner marks a written answer: credit correct reasoning and clear writing, not only the final line. Say in one sentence why that mark. A mark below 14 means the topic comes back for review sooner.",
+    "If the mark is below 14 and the main shortfall is an earlier skill rather than this topic (for example, the algebra is right but the proof writing is not), put that skill's topic id from the gap list on the GAP line. The app then does not count the mark against this topic, holds back the redo of this problem until that topic is mastered, and recommends it next. When this topic's own work is weak, or the mark is 14 or more, write GAP: none.",
+    "Then print the result block below inside a code block, filled in, and nothing after it. Keep every field on one line. Copy PROBLEM and NONCE exactly. For REDO use only ids from the redo list, up to 3, separated by commas, or the word none. For GAP use only an id from the gap list, or the word none."
+  ],
+  "proofRule": "This answer is a proof. Mark it against what a proof needs, below: each point missing costs marks under rigor, completeness, or clarity, however right the algebra.",
+  "markSchemeRule": "An official STEP mark scheme for this problem is cited under FOR THE MARKER ONLY. Open it and mark against it: give its marks where my work earns them and none where it does not, then turn its total into the mark out of 20 with the rubric below. Never quote it or show it to me.",
+  "outlineRule": "An outline of a model answer is under FOR THE MARKER ONLY. Use it to check my steps and to find what is missing; a different correct route earns full marks. Never quote it or show it to me.",
+  "markerOnly": "--- FOR THE MARKER ONLY (never show or quote any of this to me) ---",
+  "proofChecklist": [
+    "State the general claim you are proving.",
+    "Argue with letters, not examples: an example checks one case, a proof covers every case.",
+    "Check every condition the question sets, such as distinct, whole number, or positive.",
+    "End by stating what you have proved."
+  ],
+  "rubricLines": [
+    "Mark the write-up out of 20 in four parts, then add them up for MARK:",
+    "- Correctness, out of 8: Is the mathematics right: every claim true, every calculation and final answer correct?",
+    "  7 to 8: Everything is right, or one slip that does not affect the argument.",
+    "  4 to 6: The main line is right; an error spoils one part.",
+    "  1 to 3: Some right steps, but the central claim or answer is wrong.",
+    "  0: Nothing right towards the answer.",
+    "- Completeness, out of 4: Is every part answered, every case covered (the edge cases, and the converse where asked)?",
+    "  4: Every part and every case.",
+    "  2 to 3: A case or a minor part is missing.",
+    "  1: A whole part is missing.",
+    "  0: Most of the question is not attempted.",
+    "- Rigor, out of 4: Is every step justified: hypotheses checked before a theorem is used, no step asserted that needs proof?",
+    "  4: Every step follows from the one before, with its reason.",
+    "  2 to 3: One step asserted that needs an argument, or a hypothesis not checked.",
+    "  1: Several steps asserted; the argument has gaps.",
+    "  0: Claims without reasons.",
+    "- Clarity, out of 4: Can an examiner follow it: notation defined, the structure signposted, the conclusion stated?",
+    "  4: Clear structure, notation defined, conclusion stated.",
+    "  2 to 3: Followable, with effort: a symbol undefined or the order muddled.",
+    "  1: Hard to follow.",
+    "  0: Cannot be followed."
+  ],
+  "resultTemplate": "LEARNHUB RESULT v1\nPROBLEM: {{PROBLEM}}\nNONCE: {{NONCE}}\nMARK: <whole number from 0 to 20>/20\nRUBRIC: correctness <0 to 8>/8, completeness <0 to 4>/4, rigor <0 to 4>/4, clarity <0 to 4>/4\nWEAK 1: <my weakest point, one line>\nWEAK 2: <my second weakest point, one line>\nWEAK 3: <my third weakest point, one line>\nREDO: <up to 3 problem ids from the redo list, separated by commas, or none>\nGAP: <one topic id from the gap list when the mark is below 14 because of an earlier skill, or none>\nSUMMARY: <one or two sentences on the work as a whole>\nEND LEARNHUB RESULT {{NONCE}}",
+  "problems": {
+    "ineq.am-gm/step12-q1": {
+      "topic": "The AM-GM inequality (ineq.am-gm)",
+      "source": "STEP I 2012, Q1, first part",
+      "title": "The shortest way round a fixed point",
+      "statement": "The line $L$ has equation $y = c - mx$, with $m > 0$ and $c > 0$. It passes through the point $R(a, b)$ and cuts the axes at the points $P(p, 0)$ and $Q(0, q)$, where $a$, $b$, $p$ and $q$ are all positive. Find $p$ and $q$ in terms of $a$, $b$ and $m$. As $L$ varies with $R$ remaining fixed, show that the minimum value of the sum of the distances of $P$ and $Q$ from the origin is $(a^{\\frac{1}{2}} + b^{\\frac{1}{2}})^{2}$.",
+      "writeUp": "proof",
+      "officialLines": [
+        "ANSWER WANTED: a proof",
+        "OFFICIAL MARK SCHEME (for the supervisor only, mark against it): STEP I 2012 Mark Scheme, Question 1 (page 1)"
+      ],
+      "redoList": [
+        "ineq.am-gm/step14-q5: A cubic that never goes negative, and the largest xy^2",
+        "ineq.am-gm/step08-q3: One of them is small",
+        "ineq.am-gm/step12-q1: The shortest way round a fixed point",
+        "ineq.am-gm/step14-q5-ii: The largest xy^2 under a line",
+        "ineq.am-gm/step12-q1-gradient: Which line is shortest round the point",
+        "ineq.am-gm/a8-q1-ii: AM-GM for four numbers",
+        "ineq.am-gm/a8-q1-iii: AM-GM for three numbers",
+        "ineq.am-gm/a8-q1: AM-GM for two numbers",
+        "ineq.am-gm/a8-q1-equality: When the means agree"
+      ],
+      "gapList": [
+        "proof.direct: Direct proof",
+        "pre.indices: Laws of indices",
+        "proof.contradiction: Proof by contradiction"
+      ],
+      "markerOnly": [
+        "Official STEP mark scheme: STEP I 2012 Mark Scheme, Question 1 (page 1)"
+      ]
+    },
+    "ineq.am-gm/step14-q5": {
+      "topic": "The AM-GM inequality (ineq.am-gm)",
+      "source": "Adapted from STEP I 2014, Q5(i), (ii)",
+      "title": "A cubic that never goes negative, and the largest $xy^{2}$",
+      "statement": "(i) Let $f(x) = (x + 2a)^{3} - 27a^{2}x$, where $a \\ge 0$. Show that $f(x) \\ge 0$ for $x \\ge 0$. (The question asks for a sketch of $f$; an argument by AM-GM is as good.) (ii) Use part (i) to find the greatest value of $xy^{2}$ in the region of the $(x, y)$ plane given by $x \\ge 0$, $y \\ge 0$ and $x + 2y \\le 3$. For what values of $x$ and $y$ is this greatest value achieved?",
+      "writeUp": "proof",
+      "officialLines": [
+        "ANSWER WANTED: a proof",
+        "OFFICIAL MARK SCHEME (for the supervisor only, mark against it): STEP I 2014 Mark Scheme, SI 2014 Q5 (page 10)"
+      ],
+      "redoList": [
+        "ineq.am-gm/step14-q5: A cubic that never goes negative, and the largest xy^2",
+        "ineq.am-gm/step08-q3: One of them is small",
+        "ineq.am-gm/step12-q1: The shortest way round a fixed point",
+        "ineq.am-gm/step14-q5-ii: The largest xy^2 under a line",
+        "ineq.am-gm/step12-q1-gradient: Which line is shortest round the point",
+        "ineq.am-gm/a8-q1-ii: AM-GM for four numbers",
+        "ineq.am-gm/a8-q1-iii: AM-GM for three numbers",
+        "ineq.am-gm/a8-q1: AM-GM for two numbers",
+        "ineq.am-gm/a8-q1-equality: When the means agree"
+      ],
+      "gapList": [
+        "proof.direct: Direct proof",
+        "pre.indices: Laws of indices",
+        "proof.contradiction: Proof by contradiction"
+      ],
+      "markerOnly": [
+        "Official STEP mark scheme: STEP I 2014 Mark Scheme, SI 2014 Q5 (page 10)"
+      ]
+    },
+    "proof.direct/a12-q1-ii-six": {
+      "topic": "Direct proof (proof.direct)",
+      "source": "STEP Support Assignment 12, Q1(ii)",
+      "title": "$n^{3} - n$ and 6",
+      "statement": "Factorise $n^{3} - n$ completely, and deduce that it is divisible by 6 for every positive integer $n$.",
+      "writeUp": "proof",
+      "officialLines": [
+        "ANSWER WANTED: a proof",
+        "OFFICIAL SOLUTION (for the supervisor only): STEP Support Assignment 12, Hints and Partial Solutions, Q1(ii)"
+      ],
+      "redoList": [
+        "proof.direct/bop-4-7: a^2 divides b^2",
+        "proof.direct/bop-4-19: a^6 divides c",
+        "proof.direct/bop-4-6: a divides b + c",
+        "proof.direct/bop-4-10: a divides 3b^3 - b^2 + 5b",
+        "proof.direct/tmua-r-3: Clearing a fraction from an inequality",
+        "proof.direct/tmua-p72-extra-root: The extra solution",
+        "proof.direct/bop-4-9: 7 divides 4a",
+        "proof.direct/bop-4-13: Two cases from a factorisation",
+        "proof.direct/bop-4-24: Long runs of composite numbers",
+        "proof.direct/notes-35-scratch: From scratch work to a proof",
+        "proof.direct/ns2-q15: Products in a block of consecutive numbers",
+        "proof.direct/step00-q1-unit: A unit fraction as two unit fractions",
+        "proof.direct/ns2-q12-i: A sum of powers that is not prime",
+        "proof.direct/a12-q1-ii-six: n^3 - n and 6",
+        "proof.direct/a7-q2-i-ii: Roots and coefficients without the formula",
+        "proof.direct/a3-q4-i: The bananas: the equation",
+        "proof.direct/ns1-q4-proof: Why that product is the largest",
+        "proof.direct/sw-1-3-1-d: Two triangular numbers make a square",
+        "proof.direct/a7-q2-iv: Three substitutions",
+        "proof.direct/notes-54-thm11: Implication is transitive",
+        "proof.direct/ns2-q13: Nines and digit sums",
+        "proof.direct/a7-q4-i-a: Three weights, and only one choice",
+        "proof.direct/a7-q4-i-c-show: At most 2^n loads",
+        "proof.direct/a7-q4-ii-b-show: At most 3^n loads",
+        "proof.direct/ns2-q12-ii: A large number that is not prime",
+        "proof.direct/sw-1-1-6: The sum of two rationals",
+        "proof.direct/sw-1-3-1-e: Euler's four maps",
+        "proof.direct/sw-1-3-1-f-proof: Prove Jordan's generalisation",
+        "proof.direct/sw-4-2-1-a-proof: Establish the identity",
+        "proof.direct/sw-4-2-1-b-proof: Composite exponents",
+        "proof.direct/lp-ex-16: A valid negated \"for all\"",
+        "proof.direct/a2-q1-iii: A difference of roots for large x",
+        "proof.direct/a1-q3: Two fractions equal to one",
+        "proof.direct/stepspec-q1-i: Where a conic can be",
+        "proof.direct/step04-q6: Lines through a triangle, in letters",
+        "proof.direct/a3-q3: Integrals of the floor function"
+      ],
+      "gapList": [
+        "logic.implication: Implication",
+        "pre.algebraic-argument: Algebraic arguments about integers",
+        "pre.remainders: Quotient and remainder"
+      ],
+      "markerOnly": []
+    },
+    "proof.direct/step00-q1-unit": {
+      "topic": "Direct proof (proof.direct)",
+      "source": "STEP II 2000, Q1, first paragraph",
+      "title": "A unit fraction as two unit fractions",
+      "statement": "A number of the form $\\frac{1}{N}$, where $N$ is an integer greater than 1, is called a unit fraction. Noting that $$\\frac{1}{2} = \\frac{1}{3} + \\frac{1}{6} \\quad\\text{and}\\quad \\frac{1}{3} = \\frac{1}{4} + \\frac{1}{12},$$ guess a general result of the form $\\frac{1}{N} = \\frac{1}{a} + \\frac{1}{b}$, and hence prove that any unit fraction can be expressed as the sum of two distinct unit fractions.",
+      "writeUp": "proof",
+      "officialLines": [
+        "ANSWER WANTED: a proof"
+      ],
+      "redoList": [
+        "proof.direct/bop-4-7: a^2 divides b^2",
+        "proof.direct/bop-4-19: a^6 divides c",
+        "proof.direct/bop-4-6: a divides b + c",
+        "proof.direct/bop-4-10: a divides 3b^3 - b^2 + 5b",
+        "proof.direct/tmua-r-3: Clearing a fraction from an inequality",
+        "proof.direct/tmua-p72-extra-root: The extra solution",
+        "proof.direct/bop-4-9: 7 divides 4a",
+        "proof.direct/bop-4-13: Two cases from a factorisation",
+        "proof.direct/bop-4-24: Long runs of composite numbers",
+        "proof.direct/notes-35-scratch: From scratch work to a proof",
+        "proof.direct/ns2-q15: Products in a block of consecutive numbers",
+        "proof.direct/step00-q1-unit: A unit fraction as two unit fractions",
+        "proof.direct/ns2-q12-i: A sum of powers that is not prime",
+        "proof.direct/a12-q1-ii-six: n^3 - n and 6",
+        "proof.direct/a7-q2-i-ii: Roots and coefficients without the formula",
+        "proof.direct/a3-q4-i: The bananas: the equation",
+        "proof.direct/ns1-q4-proof: Why that product is the largest",
+        "proof.direct/sw-1-3-1-d: Two triangular numbers make a square",
+        "proof.direct/a7-q2-iv: Three substitutions",
+        "proof.direct/notes-54-thm11: Implication is transitive",
+        "proof.direct/ns2-q13: Nines and digit sums",
+        "proof.direct/a7-q4-i-a: Three weights, and only one choice",
+        "proof.direct/a7-q4-i-c-show: At most 2^n loads",
+        "proof.direct/a7-q4-ii-b-show: At most 3^n loads",
+        "proof.direct/ns2-q12-ii: A large number that is not prime",
+        "proof.direct/sw-1-1-6: The sum of two rationals",
+        "proof.direct/sw-1-3-1-e: Euler's four maps",
+        "proof.direct/sw-1-3-1-f-proof: Prove Jordan's generalisation",
+        "proof.direct/sw-4-2-1-a-proof: Establish the identity",
+        "proof.direct/sw-4-2-1-b-proof: Composite exponents",
+        "proof.direct/lp-ex-16: A valid negated \"for all\"",
+        "proof.direct/a2-q1-iii: A difference of roots for large x",
+        "proof.direct/a1-q3: Two fractions equal to one",
+        "proof.direct/stepspec-q1-i: Where a conic can be",
+        "proof.direct/step04-q6: Lines through a triangle, in letters",
+        "proof.direct/a3-q3: Integrals of the floor function"
+      ],
+      "gapList": [
+        "logic.implication: Implication",
+        "pre.algebraic-argument: Algebraic arguments about integers",
+        "pre.remainders: Quotient and remainder"
+      ],
+      "markerOnly": []
+    }
+  }
+}

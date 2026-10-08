@@ -20,9 +20,9 @@
 import { FIRST_PROOF_TOPIC, currentProblemKey, gateOf, hasContent as written } from '@learnhub/content';
 import {
   DAY_MS, NONCE_ALPHABET, NONCE_LENGTH, SUPERVISION_PASS_MARK, cambridgeEntries, classify, dueTopics, frontier, gateStatus, newProgress, nextAttempt, placedMemory, placementGraph,
-  placementResult, planSession, recordGym, recordLesson, recordLessonFailure, recordReview, replayMemory, sameMemoryState, solutionShown, topoOrder,
+  placementResult, planSession, recordGym, recordLesson, recordLessonFailure, recordReview, replayMemory, sameMemoryState, retestState, solutionShown, topoOrder,
   unaidedAnswer, withChoices,
-  type GateStatus, type GymCandidate, type HistoryEntry, type ItemData, type MemoryMap, type MemoryState, type PlacementGraph, type Progress, type Redo,
+  type GateStatus, type RetestState, type GymCandidate, type HistoryEntry, type ItemData, type MemoryMap, type MemoryState, type PlacementGraph, type Progress, type Redo,
   type SessionPlan, type SessionRecord, type SessionTask, type SupervisionAttempt, type SupervisionResult, type Topic,
 } from '@learnhub/mastery';
 import { BOOK_ORDER } from '@learnhub/content/book';
@@ -313,6 +313,26 @@ export function cambridgeState(p: Progress, key: string, now: number): Cambridge
   return { solved, revealed, returnsAt: back !== null && now < back ? back : null, hints: Math.max(0, ...entries.map((h) => h.item?.hints ?? 0)) };
 }
 
+/**
+ * A supervision problem's model outline (`SupervisionProblem.outline`, rule 7): `passed` when a
+ * supervision of it was marked at the pass mark or more, `seen` once the outline was shown.
+ */
+export function outlineState(p: Progress, key: string): { passed: boolean; seen: boolean } {
+  const k = currentProblemKey(key);
+  const passed = p.supervision.some((a) => a.result !== null && a.result.mark >= SUPERVISION_PASS_MARK && currentProblemKey(a.problem) === k);
+  return { passed, seen: solutionShown(cambridgeEntries(p.history, key, currentProblemKey)) };
+}
+
+/**
+ * Shows a supervision problem's outline: logged as "Show me the solution" is (a `cambridge`
+ * entry with `solution`), so from then on the problem no longer counts for the gate or as a
+ * cold retest. Unchanged when it was already shown.
+ */
+export function showOutline(p: Progress, key: string, now: number): Progress {
+  if (outlineState(p, key).seen) return p;
+  return recordCambridgeAnswer(p, key, false, { hints: 0, solution: true }, now);
+}
+
 /** Whether a redo came back from a miss in the app rather than from a supervisor's result. */
 export const redoFromMiss = (p: Progress, d: Redo): boolean => redoSource(p, d) === undefined;
 
@@ -333,8 +353,13 @@ export function masteryOf(p: Progress, topicId: string): GateStatus {
   return gateStatus(p, topicId, gateOf(topicId), currentProblemKey);
 }
 
-/** Learned (drills passed) and the gate met. */
+/** Learned (drills passed), the gate met, and no cold retest missed since (rule 6). */
 export const isMastered = (p: Progress, topicId: string): boolean => masteryOf(p, topicId).stage === 'mastered';
+
+/** A topic's cold retests (the engine's retest.ts), with its gate problems from the catalog. */
+export function retestOf(p: Progress, topicId: string): RetestState {
+  return retestState(p, topicId, gateOf(topicId), currentProblemKey);
+}
 
 /** An explicit review. A topic that is not mastered (the document changed elsewhere) is skipped. */
 export function completeReview(p: Progress, topicId: string, correct: boolean, now: number, taskIndex: number | null): Progress {
@@ -569,10 +594,12 @@ export function redoSource(p: Progress, d: Redo): SupervisionAttempt | undefined
  * - `gate`: learned, but its Cambridge gate is not met yet: "needs the Cambridge problem".
  *   Topics learned before the gate existed start here (re-gating) and keep their schedule.
  * - `mastered`: learned and the gate met.
+ * - `review`: mastered once, then a cold retest was missed (rule 6): "needs review" until the
+ *   next gate problem is solved.
  * - `unwritten`: on the frontier, but its lesson is not written yet, so it cannot be learned or scheduled.
  * Learned topics, gated or not, unlock what builds on them.
  */
-export type TopicStatus = 'mastered' | 'gate' | 'due' | 'ready' | 'unwritten' | 'locked';
+export type TopicStatus = 'mastered' | 'review' | 'gate' | 'due' | 'ready' | 'unwritten' | 'locked';
 
 export function statusMap(p: Progress, now: number, within: readonly Topic[] = closureTopics(p.courses)): Map<string, TopicStatus> {
   const learned = new Set(Object.keys(p.memory));
@@ -580,7 +607,10 @@ export function statusMap(p: Progress, now: number, within: readonly Topic[] = c
   const ready = new Set(frontier(within, learned));
   const of = (id: string): TopicStatus => {
     if (due.has(id)) return 'due';
-    if (learned.has(id)) return isMastered(p, id) ? 'mastered' : 'gate';
+    if (learned.has(id)) {
+      const stage = masteryOf(p, id).stage;
+      return stage === 'mastered' ? 'mastered' : stage === 'needs-review' ? 'review' : 'gate';
+    }
     if (ready.has(id)) return hasContent(id) ? 'ready' : 'unwritten';
     return 'locked';
   };

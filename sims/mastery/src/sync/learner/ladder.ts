@@ -11,6 +11,7 @@
  * The running attempt follows the campaign's rule (campaign.ts): two attempts started
  * offline on two devices both stay; the ladder shows the earlier first.
  */
+import { parseForecast } from '@/model/campaign';
 import type { LadderAttempt } from '@/model/ladder';
 import { mergeTimed, resultsOf, timedDefault } from './campaign';
 import { cmp, isObj, isTime, mergeStamps, parseStamps, plain, put, rec, sortedRec, stampAfter } from './join';
@@ -91,6 +92,8 @@ export function parseAttemptShape(x: unknown): LadderAttempt | null {
   if (isMarkList(x.marks, (y) => Number.isInteger(y))) a.marks = [...(x.marks as (number | null)[])];
   if (Number.isInteger(x.total)) a.total = x.total as number;
   if (Number.isInteger(x.outOf)) a.outOf = x.outOf as number;
+  const forecast = parseForecast(x.forecast);
+  if (forecast !== undefined) a.forecast = forecast;
   return a;
 }
 

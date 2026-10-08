@@ -44,7 +44,7 @@ import { standup, withStandup } from '@/model/standupStore';
 const dayFixed = withStandup(campaignFixedFor);
 
 const KIND: Record<SessionTask['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz' };
-const ITEM_KIND: Record<DayItem['kind'], string> = { lesson: 'Lesson', review: 'Review', quiz: 'Quiz', redo: 'Redo', mixed: 'Blind mixed review' };
+const ITEM_KIND: Record<DayItem['kind'], string> = { lesson: 'Lesson', review: 'Review', quiz: 'Quiz', redo: 'Redo', mixed: 'Blind mixed review', retest: 'Cold retest' };
 const OPEN_KEY = 'mastery.wholeday.v1';
 
 function taskTitle(t: SessionTask): string {

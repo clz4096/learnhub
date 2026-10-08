@@ -246,6 +246,7 @@ function gapFor(said: string, t: TopicFact): string | null {
   if (t.stage === 'mastered') return null;
   const head = `${said.charAt(0).toUpperCase()}${said.slice(1)}: said finished, but`;
   if (t.stage === 'needs-gate') return `${head} its Cambridge problem is still open.`;
+  if (t.stage === 'needs-review') return `${head} it needs review: its last cold retest was missed.`;
   if (t.open !== null) return `${head} the lesson on ${t.title} is still in progress, ${whereIn(t.open)}.`;
   if (t.lesson === 'failed') return `${head} the last lesson run on ${t.title} did not pass.`;
   return `${head} nothing since the last standup shows ${t.title} done.`;

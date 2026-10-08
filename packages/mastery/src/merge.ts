@@ -25,6 +25,8 @@
  *   are under-counted, never double counted.
  * - Topics learned since the last quiz: unioned. A quiz taken on one device does not clear
  *   the other's list; the cost is a topic quizzed once more, never one left unquizzed.
+ * - Retest anchor (`retestsFrom`): the later. A copy migrated later anchors its old
+ *   masteries' retests later; never earlier than either device promised.
  * - Today's session: the later day wins; on the same day the earlier plan wins (the first
  *   plan of the day is the one both devices should show), and its tasks are merged index
  *   by index, a done task staying done.
@@ -212,6 +214,7 @@ function mergeSameEpoch(a: Readonly<Progress>, b: Readonly<Progress>): Progress 
     supervision,
     redos,
     resetAt: a.resetAt,
+    retestsFrom: Math.max(a.retestsFrom, b.retestsFrom),
   };
 }
 

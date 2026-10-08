@@ -1,0 +1,74 @@
+{
+  "format": "learnhub-marker-cases/1",
+  "about": "Calibration cases for the proof marker (rule 7). See mastery/MARKER-CALIBRATION.md. Each pair is a model answer (expect high) and a copy with one deliberate flaw (expect low). origin 'reference': written for this harness and checked by hand; replace or add 'official' cases typed from the cited mark schemes.",
+  "cases": [
+    {
+      "id": "unit-fraction-model",
+      "problem": "proof.direct/step00-q1-unit",
+      "expect": "high",
+      "origin": "reference",
+      "pair": "unit-fraction",
+      "writeUp": "Guess: the examples have $a = N + 1$ and $b = N(N + 1)$ (for $N = 2$: $3$ and $6$; for $N = 3$: $4$ and $12$).\n\nClaim: for every integer $N > 1$, $\\frac{1}{N} = \\frac{1}{N + 1} + \\frac{1}{N(N + 1)}$, and the two fractions on the right are distinct unit fractions.\n\nProof. Let $N$ be an integer with $N > 1$. Over the common denominator $N(N + 1)$,\n$\\frac{1}{N + 1} + \\frac{1}{N(N + 1)} = \\frac{N}{N(N + 1)} + \\frac{1}{N(N + 1)} = \\frac{N + 1}{N(N + 1)} = \\frac{1}{N}$,\nwhere the last step divides top and bottom by $N + 1 \\neq 0$.\n\nBoth $N + 1$ and $N(N + 1)$ are integers greater than 1, since $N > 1$; so both fractions are unit fractions.\n\nThey are distinct: $N(N + 1) - (N + 1) = (N - 1)(N + 1) > 0$ because $N > 1$, so $N(N + 1) > N + 1$ and the denominators differ.\n\nHence every unit fraction $\\frac{1}{N}$ is the sum of the two distinct unit fractions $\\frac{1}{N + 1}$ and $\\frac{1}{N(N + 1)}$."
+    },
+    {
+      "id": "unit-fraction-examples",
+      "problem": "proof.direct/step00-q1-unit",
+      "expect": "low",
+      "origin": "reference",
+      "pair": "unit-fraction",
+      "flaw": "The general result is checked on examples only: no argument covers every N, and distinctness is never shown.",
+      "writeUp": "Guess: $\\frac{1}{N} = \\frac{1}{N + 1} + \\frac{1}{N(N + 1)}$.\n\nCheck: $N = 2$: $\\frac{1}{3} + \\frac{1}{6} = \\frac{1}{2}$. $N = 3$: $\\frac{1}{4} + \\frac{1}{12} = \\frac{1}{3}$. $N = 4$: $\\frac{1}{5} + \\frac{1}{20} = \\frac{5}{20} = \\frac{1}{4}$. $N = 5$: $\\frac{1}{6} + \\frac{1}{30} = \\frac{6}{30} = \\frac{1}{5}$.\n\nIt works every time, so the formula is true for all $N$, and so any unit fraction is the sum of two distinct unit fractions."
+    },
+    {
+      "id": "n-cubed-minus-n-model",
+      "problem": "proof.direct/a12-q1-ii-six",
+      "expect": "high",
+      "origin": "reference",
+      "pair": "n-cubed-minus-n",
+      "writeUp": "Factorise: $n^3 - n = n(n^2 - 1) = n(n - 1)(n + 1) = (n - 1)n(n + 1)$.\n\nClaim: for every positive integer $n$, $6 \\mid n^3 - n$.\n\nProof. Let $n$ be a positive integer. By the factorisation, $n^3 - n$ is the product of the three consecutive integers $n - 1$, $n$, $n + 1$.\n\nDivisible by 2: of two consecutive integers $n - 1$ and $n$, one is even, so the product has a factor 2.\n\nDivisible by 3: $n$ leaves remainder 0, 1, or 2 on division by 3. Remainder 0: $3 \\mid n$. Remainder 1: $3 \\mid n - 1$. Remainder 2: $3 \\mid n + 1$. In every case one of the three factors is a multiple of 3, so the product is.\n\nSince $2 \\mid n^3 - n$ and $3 \\mid n^3 - n$, and 2 and 3 have no common factor other than 1, their product $6$ divides $n^3 - n$. (Write $n^3 - n = 2k$; then $3 \\mid 2k$ and $\\gcd(2, 3) = 1$ give $3 \\mid k$, so $n^3 - n = 6(k/3)$.)\n\nHence $n^3 - n$ is divisible by 6 for every positive integer $n$."
+    },
+    {
+      "id": "n-cubed-minus-n-false-step",
+      "problem": "proof.direct/a12-q1-ii-six",
+      "expect": "low",
+      "origin": "reference",
+      "pair": "n-cubed-minus-n",
+      "flaw": "The divisibility rests on a false claim: one of three consecutive integers need not be divisible by 6 (take 1, 2, 3).",
+      "writeUp": "Factorise: $n^3 - n = n(n^2 - 1) = (n - 1)n(n + 1)$.\n\nClaim: for every positive integer $n$, $6 \\mid n^3 - n$.\n\nProof. Let $n$ be a positive integer. Then $n^3 - n$ is the product of the three consecutive integers $n - 1$, $n$, $n + 1$. Among any three consecutive integers one is a multiple of 6, so that factor is $6k$ for some integer $k$, and the product is $6k$ times the other two factors, a multiple of 6.\n\nHence $n^3 - n$ is divisible by 6 for every positive integer $n$."
+    },
+    {
+      "id": "shortest-sum-model",
+      "problem": "ineq.am-gm/step12-q1",
+      "expect": "high",
+      "origin": "reference",
+      "pair": "shortest-sum",
+      "writeUp": "Since $R(a, b)$ is on $L$, $b = c - ma$, so $c = b + ma$ and $L$ is $y = b + ma - mx$.\n\n$Q$: put $x = 0$: $q = b + am$. $P$: put $y = 0$: $mx = b + ma$, so $p = a + \\frac{b}{m}$ (dividing by $m > 0$).\n\nBoth are positive for every $m > 0$, so the distances from the origin are $OP = p$ and $OQ = q$, and\n$OP + OQ = a + b + \\frac{b}{m} + am$.\n\nClaim: the least value of $OP + OQ$ over $m > 0$ is $(a^{1/2} + b^{1/2})^2$.\n\nThe terms $\\frac{b}{m}$ and $am$ are positive. By AM-GM for two non-negative numbers, $\\frac{b}{m} + am \\geq 2\\sqrt{\\frac{b}{m} \\cdot am} = 2\\sqrt{ab}$, for every $m > 0$. So $OP + OQ \\geq a + b + 2\\sqrt{ab} = (\\sqrt{a} + \\sqrt{b})^2$ for every line through $R$ of this form.\n\nThe bound is attained: equality in AM-GM holds when the two terms are equal, $\\frac{b}{m} = am$, that is $m = \\sqrt{b/a}$, which is positive and so allowed. There $OP + OQ = a + b + 2\\sqrt{ab}$.\n\nHence the minimum of $OP + OQ$ is $(a^{1/2} + b^{1/2})^2$, reached when $m = \\sqrt{b/a}$."
+    },
+    {
+      "id": "shortest-sum-assumed-minimum",
+      "problem": "ineq.am-gm/step12-q1",
+      "expect": "low",
+      "origin": "reference",
+      "pair": "shortest-sum",
+      "flaw": "The minimum is assumed: the value at m = sqrt(b/a) is computed, but nothing shows no other m gives less.",
+      "writeUp": "Since $R(a, b)$ is on $L$, $c = b + ma$. Then $q = b + am$ and $p = a + \\frac{b}{m}$, so\n$OP + OQ = a + b + \\frac{b}{m} + am$.\n\nThe shortest case is the symmetric one, where the two terms that depend on $m$ are equal: $\\frac{b}{m} = am$, so $m = \\sqrt{b/a}$.\n\nThen $\\frac{b}{m} = \\sqrt{ab}$ and $am = \\sqrt{ab}$, so $OP + OQ = a + b + 2\\sqrt{ab} = (a^{1/2} + b^{1/2})^2$.\n\nHence the minimum value is $(a^{1/2} + b^{1/2})^2$."
+    },
+    {
+      "id": "cubic-bound-model",
+      "problem": "ineq.am-gm/step14-q5",
+      "expect": "high",
+      "origin": "reference",
+      "pair": "cubic-bound",
+      "writeUp": "(i) Claim: for $a \\geq 0$ and $x \\geq 0$, $f(x) = (x + 2a)^3 - 27a^2x \\geq 0$.\n\nProof. The numbers $x$, $a$, $a$ are non-negative. By AM-GM for three non-negative numbers, $\\frac{x + a + a}{3} \\geq \\sqrt[3]{x \\cdot a \\cdot a}$. Both sides are non-negative, and cubing is increasing on non-negative numbers, so $\\frac{(x + 2a)^3}{27} \\geq a^2x$, that is $(x + 2a)^3 \\geq 27a^2x$. Hence $f(x) \\geq 0$ for $x \\geq 0$. Equality holds exactly when the three numbers are equal, $x = a$.\n\n(Check by expanding: $f(x) = x^3 + 6ax^2 - 15a^2x + 8a^3 = (x - a)^2(x + 8a)$, which is a square times a non-negative number.)\n\n(ii) Let $(x, y)$ be in the region: $x \\geq 0$, $y \\geq 0$, $x + 2y \\leq 3$. Part (i) with $a = y \\geq 0$ gives $(x + 2y)^3 \\geq 27y^2x$, so $xy^2 \\leq \\frac{(x + 2y)^3}{27}$. Since $0 \\leq x + 2y \\leq 3$ and cubing is increasing on non-negative numbers, $(x + 2y)^3 \\leq 27$. So $xy^2 \\leq 1$ throughout the region.\n\nThe bound is reached: at $x = y = 1$, the point is in the region ($1 + 2 = 3$) and $xy^2 = 1$. It is reached only there: equality needs equality in (i), $x = a = y$, and $x + 2y = 3$, so $x = y = 1$.\n\nHence the greatest value of $xy^2$ in the region is 1, achieved only at $x = 1$, $y = 1$."
+    },
+    {
+      "id": "cubic-bound-false-inequality",
+      "problem": "ineq.am-gm/step14-q5",
+      "expect": "low",
+      "origin": "reference",
+      "pair": "cubic-bound",
+      "flaw": "Part (i) rests on a false step: 8(2ax)^(3/2) >= 27a^2x does not hold for all x >= 0 (it fails for small positive x), so (i) is not proved and (ii) inherits the gap.",
+      "writeUp": "(i) Claim: for $a \\geq 0$ and $x \\geq 0$, $(x + 2a)^3 \\geq 27a^2x$.\n\nBy AM-GM for the two numbers $x$ and $2a$: $x + 2a \\geq 2\\sqrt{2ax}$. Cubing both sides, $(x + 2a)^3 \\geq 8(2ax)^{3/2} \\geq 27a^2x$. Hence $f(x) \\geq 0$ for $x \\geq 0$.\n\n(ii) Let $(x, y)$ be in the region. Part (i) with $a = y$ gives $(x + 2y)^3 \\geq 27y^2x$, so $xy^2 \\leq \\frac{(x + 2y)^3}{27} \\leq \\frac{27}{27} = 1$, as $0 \\leq x + 2y \\leq 3$.\n\nAt $x = y = 1$ the point is in the region and $xy^2 = 1$, so the greatest value is 1, achieved at $x = 1$, $y = 1$."
+    }
+  ]
+}

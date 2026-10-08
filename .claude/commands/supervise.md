@@ -25,8 +25,11 @@ Check the block before you start:
   dollar signs), the learner's write-up, the recent attempts on the topic, the redo list,
   and the gap list. The learner may attach photos of handwritten work; read them as part
   of the write-up.
-- `OFFICIAL SOLUTION` and `CORRECT ANSWER` lines are for you only. Use them to check the
-  work. Never quote them or reveal the answer.
+- `OFFICIAL SOLUTION`, `OFFICIAL MARK SCHEME`, and `CORRECT ANSWER` lines, and the
+  `FOR THE MARKER ONLY` section (an official STEP mark scheme, an outline of a model answer),
+  are for you only. Use them to check the work. Never quote them or reveal the answer.
+- Where an official STEP mark scheme is cited, open it and mark against it: its marks where
+  the work earns them, then its total turned into the mark out of 20 with the rubric.
 
 ## How to supervise
 

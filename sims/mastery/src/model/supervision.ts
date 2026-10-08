@@ -23,7 +23,7 @@
  * themselves is out of scope.
  */
 import {
-  answerText, catalogProblem, citationText, currentProblemKey, FIRST_PROOF_TOPIC, isProofWriteUp, MARK, plain,
+  answerText, catalogProblem, citationText, currentProblemKey, FIRST_PROOF_TOPIC, isMarkScheme, isProofWriteUp, MARK, plain,
   type AnswerSpec, type CambridgeProblem, type Rich, type TopicContent,
 } from '@learnhub/content';
 import {
@@ -198,6 +198,42 @@ export const SUPERVISOR_RULES: readonly string[] = [
   'Then print the result block below inside a code block, filled in, and nothing after it. Keep every field on one line. Copy PROBLEM and NONCE exactly. For REDO use only ids from the redo list, up to 3, separated by commas, or the word none. For GAP use only an id from the gap list, or the word none.',
 ];
 
+/**
+ * Rule 7 (mastery/HOW-A-TOPIC-WORKS.md): where the problem cites an official STEP mark scheme,
+ * the supervisor is given it and marks against it. The block can only cite it (the scheme's
+ * text is not in the app), so the rule says where it is and how to use it.
+ */
+export const MARK_SCHEME_RULE = 'An official STEP mark scheme for this problem is cited under FOR THE MARKER ONLY. Open it and mark against it: give its marks where my work earns them and none where it does not, then turn its total into the mark out of 20 with the rubric below. Never quote it or show it to me.';
+
+/** The instruction an outline adds: a model answer's steps, to check against, never to show. */
+export const OUTLINE_RULE = 'An outline of a model answer is under FOR THE MARKER ONLY. Use it to check my steps and to find what is missing; a different correct route earns full marks. Never quote it or show it to me.';
+
+/** The heading of the material only the supervisor reads (rule 7): never shown to the learner in the app. */
+export const MARKER_ONLY = '--- FOR THE MARKER ONLY (never show or quote any of this to me) ---';
+
+/** The marker-only lines for a problem: its official mark scheme, and its outline; empty when it has neither. */
+export function markerOnly(problem: CambridgeProblem): string[] {
+  if (problem.mode !== 'supervision') return [];
+  const out: string[] = [];
+  if (problem.official !== undefined && isMarkScheme(problem.official)) out.push(`Official STEP mark scheme: ${citationText(problem.official)}`);
+  if (problem.outline !== undefined && problem.outline.length > 0) {
+    out.push('Outline of a model answer:', ...problem.outline.map((l, i) => `${i + 1}. ${richToText(l)}`));
+  }
+  return out;
+}
+
+/**
+ * The block as the app may show it to the learner ("Show the copied text"): the marker-only
+ * section replaced by one line, as it is never shown in the app. The copied text keeps it.
+ */
+export function withoutMarkerOnly(block: string): string {
+  const lines = block.split('\n');
+  const at = lines.indexOf(MARKER_ONLY);
+  if (at < 0) return block;
+  const end = lines.indexOf('', at);
+  return [...lines.slice(0, at), '--- FOR THE MARKER ONLY: in the copied text, not shown here ---', ...lines.slice(end < 0 ? lines.length : end)].join('\n');
+}
+
 /** The instructions a proof adds: mark against what a proof needs. */
 export const PROOF_RULE = 'This answer is a proof. Mark it against what a proof needs, below: each point missing costs marks under rigor, completeness, or clarity, however right the algebra.';
 
@@ -237,6 +273,34 @@ export function resultTemplate(key: string, nonce: string, rubric = false): stri
   ].join('\n');
 }
 
+/** The head lines naming the official material, for the supervisor only: a mark scheme, a solution, or the correct answer. */
+export function officialLines(problem: CambridgeProblem): string[] {
+  if (problem.mode === 'auto') {
+    return [
+      'ANSWER WANTED: a value or expression, checked by the app. The app marked my answer wrong.',
+      `CORRECT ANSWER (for the supervisor only, do not tell me): ${richToText(answerText(problem.instance.problem.answer))}`,
+    ];
+  }
+  const wanted = `ANSWER WANTED: ${WRITE_UP_WANTED[problem.writeUp] ?? problem.writeUp}`;
+  if (problem.official === undefined) return [wanted];
+  return [wanted, isMarkScheme(problem.official)
+    ? `OFFICIAL MARK SCHEME (for the supervisor only, mark against it): ${citationText(problem.official)}`
+    : `OFFICIAL SOLUTION (for the supervisor only): ${citationText(problem.official)}`];
+}
+
+/** The redo list: the topic's Cambridge problems, each "key: title". */
+export const redoList = (topic: TopicContent): string[] => topic.cambridge.map((c) => `${problemKey(topic.topicId, c.id)}: ${plain(c.title)}`);
+
+/** The gap list: `gapCandidates`, each "id: title". */
+export const gapList = (topicId: string, problem: CambridgeProblem): string[] => gapCandidates(topicId, problem).map((id) => `${id}: ${titleOf(id)}`);
+
+/** The supervisor's numbered instructions for a problem: the shared rules, then what a proof, a mark scheme, or an outline adds. */
+export function supervisorRules(problem: CambridgeProblem): string[] {
+  const scheme = problem.mode === 'supervision' && problem.official !== undefined && isMarkScheme(problem.official);
+  const outlined = problem.mode === 'supervision' && (problem.outline?.length ?? 0) > 0;
+  return [...SUPERVISOR_RULES, ...(isProofWriteUp(problem) ? [PROOF_RULE] : []), ...(scheme ? [MARK_SCHEME_RULE] : []), ...(outlined ? [OUTLINE_RULE] : [])];
+}
+
 /** The block "Copy for supervision" copies. */
 export function buildPacket(input: PacketInput): string {
   const found = findProblem(input.key);
@@ -249,15 +313,9 @@ export function buildPacket(input: PacketInput): string {
     `NONCE: ${input.nonce}`,
     `SOURCE: ${citationText(problem.source)}`,
     `TOPIC: ${titleOf(topicId)} (${topicId})`,
+    ...officialLines(problem),
+    `COPIED: ${stamp(input.copiedAt)}`,
   ];
-  if (problem.mode === 'supervision') {
-    head.push(`ANSWER WANTED: ${WRITE_UP_WANTED[problem.writeUp] ?? problem.writeUp}`);
-    if (problem.official !== undefined) head.push(`OFFICIAL SOLUTION (for the supervisor only): ${citationText(problem.official)}`);
-  } else {
-    head.push('ANSWER WANTED: a value or expression, checked by the app. The app marked my answer wrong.');
-    head.push(`CORRECT ANSWER (for the supervisor only, do not tell me): ${richToText(answerText(problem.instance.problem.answer))}`);
-  }
-  head.push(`COPIED: ${stamp(input.copiedAt)}`);
 
   const prompt = problem.mode === 'supervision' ? problem.prompt : problem.instance.problem.prompt;
   const statement = [richToText(problem.title), richToText(prompt)];
@@ -272,8 +330,10 @@ export function buildPacket(input: PacketInput): string {
   const recent = recentAttempts(input.progress, topicId);
   const writeUpWanted = problem.mode === 'supervision';
   const proof = isProofWriteUp(problem);
-  const redoList = topic.cambridge.map((c) => `${problemKey(topicId, c.id)}: ${plain(c.title)}`);
-  const gapList = gapCandidates(topicId, problem).map((id) => `${id}: ${titleOf(id)}`);
+  const redo = redoList(topic);
+  const gaps = gapList(topicId, problem);
+  const marker = markerOnly(problem);
+  const rules = supervisorRules(problem);
 
   return [
     ...head,
@@ -288,14 +348,15 @@ export function buildPacket(input: PacketInput): string {
     ...(recent.length === 0 ? ['None yet.'] : recent),
     '',
     '--- REDO LIST (problems you may set me to redo) ---',
-    ...redoList,
+    ...redo,
     '',
     '--- GAP LIST (earlier topics you may name on the GAP line) ---',
-    ...(gapList.length === 0 ? ['None: write GAP: none.'] : gapList),
+    ...(gaps.length === 0 ? ['None: write GAP: none.'] : gaps),
     '',
     '--- INSTRUCTIONS FOR THE SUPERVISOR ---',
-    ...[...SUPERVISOR_RULES, ...(proof ? [PROOF_RULE] : [])].map((r, i) => `${i + 1}. ${r}`),
+    ...rules.map((r, i) => `${i + 1}. ${r}`),
     '',
+    ...(marker.length > 0 ? [MARKER_ONLY, ...marker, ''] : []),
     ...(proof ? ['--- A PROOF NEEDS ---', ...PROOF_CHECKLIST.map((x, i) => `${i + 1}. ${x}`), ''] : []),
     ...(writeUpWanted ? ['--- MARKING RUBRIC ---', ...rubricLines(), ''] : []),
     '--- RESULT FORMAT ---',

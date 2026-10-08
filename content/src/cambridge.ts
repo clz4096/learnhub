@@ -199,6 +199,18 @@ export const CITED_DOCS = {
 
 export type CitedDoc = keyof typeof CITED_DOCS;
 
+/**
+ * The cited documents that are official STEP mark schemes (rule 7, mastery/HOW-A-TOPIC-WORKS.md):
+ * a supervision problem whose `official` cites one is marked against it. The others are hints
+ * or solutions, which the supervisor uses to check the work, not as a scheme of marks.
+ */
+export const MARK_SCHEME_DOCS: ReadonlySet<CitedDoc> = new Set<CitedDoc>([
+  'stepdb-10-s1-sol', 'stepdb-12-s1-ms', 'stepdb-14-s1-ms', 'stepdb-16-ms', 'stepdb-18-s1-er',
+]);
+
+/** Whether a citation is to an official STEP mark scheme. */
+export const isMarkScheme = (c: Citation): boolean => MARK_SCHEME_DOCS.has(c.doc);
+
 export interface Citation {
   /** The source id in scripts/sources/batch-1.json, batch-2.json, batch-6.json, batch-7.json, batch-8.json, or batch-9.json (and so in sources/manifest.json). */
   doc: CitedDoc;
@@ -303,6 +315,13 @@ export interface SupervisionProblem extends CambridgeBase {
   writeUp: WriteUp;
   /** Where the official hints or solution are, for the supervisor; never shown before an attempt. */
   official?: Citation;
+  /**
+   * The outline of a model answer: its steps in a few lines, in the solution style
+   * (mastery/APP-LANGUAGE.md). Marker-only material in the supervision block. The learner sees
+   * it only after a pass, or on choosing to see it, which retires the problem as "Show me the
+   * solution" does (rule 3).
+   */
+  outline?: readonly Rich[];
 }
 
 export type CambridgeProblem = AutoProblem | SupervisionProblem;

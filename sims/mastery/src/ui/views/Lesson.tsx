@@ -30,7 +30,8 @@ import { journeyOf } from '@/model/book';
 import { lessonOutline, outlineIndex, type OutlineEntry } from '@/model/lessonOutline';
 import { LEVEL_NAMES, sourceLinks, titleOf, topicOf } from '@/model/courses';
 import {
-  MISS_RETURN_DAYS, cambridgeState, drillItemId, masteryOf, proofLessonReached, recommendedNext, recordCambridgeAnswer, recordDrill, waitingCopies,
+  MISS_RETURN_DAYS, cambridgeState, drillItemId, masteryOf, outlineState, proofLessonReached, recommendedNext, recordCambridgeAnswer, recordDrill, showOutline,
+  waitingCopies,
 } from '@/model/learner';
 import { loadHints, saveHints } from '@/model/hintsStore';
 import { commit, now, progress } from '@/model/store';
@@ -376,6 +377,46 @@ function LastResult({ k }: { k: string }) {
 }
 
 /**
+ * A supervision problem's model outline (rule 7): offered after a pass, or on request before
+ * one, which asks first because seeing it retires the problem, as "Show me the solution" does.
+ */
+function ModelOutline({ k, p }: { k: string; p: SupervisionProblem }) {
+  const [asking, setAsking] = useState(false);
+  const doc = progress.value;
+  if (p.outline === undefined || p.outline.length === 0 || doc === null) return null;
+  const st = outlineState(doc, k);
+  if (st.seen) {
+    return (
+      <div class="result-solution model-outline">
+        <h4>Outline of a model answer</h4>
+        <ol>{p.outline.map((x, i) => <Rich key={i} as="li" text={x} />)}</ol>
+      </div>
+    );
+  }
+  const show = (): void => {
+    if (!st.passed && !asking) {
+      setAsking(true);
+      return;
+    }
+    setAsking(false);
+    const cur = progress.value;
+    if (cur !== null) void commit(showOutline(cur, k, now()));
+  };
+  const id = `outline-${k.replace(/[^a-z0-9]/g, '-')}`;
+  return asking
+    ? (
+      <div class="confirm-form reveal-confirm">
+        <p id={id} class="small">{REVEAL_WARNING}</p>
+        <div class="actions">
+          <button type="button" class="btn" aria-describedby={id} onClick={show}>Show the outline</button>
+          <button type="button" class="btn btn-primary" onClick={() => setAsking(false)}>Keep trying</button>
+        </div>
+      </div>
+    )
+    : <div class="actions"><button type="button" class="btn" onClick={show}>{st.passed ? 'Show the outline of a model answer' : 'Show me the outline'}</button></div>;
+}
+
+/**
  * A problem whose answer is a write-up. The box keeps it on the device and syncs it; Copy for supervision
  * copies it with the problem for a Claude Code session, and Paste result brings the mark back.
  */
@@ -405,6 +446,7 @@ function SupervisionCard({ topicId, p }: { topicId: string; p: SupervisionProble
       <CopyForSupervision problemKey={k} writeUp={text} describedBy={`${box}-how`} />
       <PasteResult expected={k} id={box} />
       <LastResult k={k} />
+      <ModelOutline k={k} p={p} />
     </div>
   );
 }

@@ -17,7 +17,7 @@ import {
 } from '@/model/learner';
 import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
-import { buildPacket, catalogTitle, checkResultFor, newNonce, parseResult, type CheckedAnswer } from '@/model/supervision';
+import { buildPacket, catalogTitle, checkResultFor, newNonce, parseResult, withoutMarkerOnly, type CheckedAnswer } from '@/model/supervision';
 import { rubricSummary } from '@/model/rubric';
 
 /** A problem's title as plain text, or its key when it is no longer in the app. */
@@ -98,7 +98,8 @@ export function CopyForSupervision({ problemKey, writeUp, checked, describedBy }
       {boxShown && (
         <div class="sup-box">
           <label for={`${problemKey}-packet`} class="small">The supervision block</label>
-          <textarea id={`${problemKey}-packet`} ref={boxRef} class="sup-text" readOnly rows={10} value={text} />
+          {/* Copied already: shown without the marker-only material. Not copied: the whole block, as it must be selected to copy it. */}
+          <textarea id={`${problemKey}-packet`} ref={boxRef} class="sup-text" readOnly rows={10} value={state.kind === 'copied' ? withoutMarkerOnly(text) : text} />
           <button
             type="button"
             class="btn btn-small"

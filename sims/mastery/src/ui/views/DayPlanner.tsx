@@ -28,7 +28,7 @@ import { commit, now } from '@/model/store';
 import { DEFAULT_WAKE, WEEK_TARGET_HOURS, budgetFor, dayView, weekMinutes, yomTovOfWeek, type Next } from '@/ui/views/dayView';
 import type { LadderSuggestion } from '@/ui/ladderShared';
 
-const KIND: Record<DayItem['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz', redo: 'Redo', mixed: 'Blind mixed review' };
+const KIND: Record<DayItem['kind'], string> = { lesson: 'New lesson', review: 'Review', quiz: 'Quiz', redo: 'Redo', mixed: 'Blind mixed review', retest: 'Retest' };
 const BAR_MAX_HOURS = 8;
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 /** Up next shows this many items until Show all. */
@@ -42,11 +42,11 @@ const longDate = (date: string, o: Intl.DateTimeFormatOptions): string =>
 const hours = (m: number): string => (m / 60).toFixed(1);
 const PLURAL: Record<DayItem['kind'], [string, string]> = {
   lesson: ['new lesson', 'new lessons'], review: ['review', 'reviews'], quiz: ['quiz', 'quizzes'], redo: ['redo', 'redos'],
-  mixed: ['mixed review', 'mixed reviews'],
+  mixed: ['mixed review', 'mixed reviews'], retest: ['retest', 'retests'],
 };
 /** What a block holds, in a few words: "4 new lessons, 1 quiz". */
 function kinds(items: readonly DayItem[]): string {
-  return (['lesson', 'review', 'mixed', 'quiz', 'redo'] as const)
+  return (['retest', 'lesson', 'review', 'mixed', 'quiz', 'redo'] as const)
     .map((k) => [k, items.filter((x) => x.kind === k).length] as const)
     .filter(([, n]) => n > 0)
     .map(([k, n]) => `${n} ${PLURAL[k][n === 1 ? 0 : 1]}`)

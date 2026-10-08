@@ -10,7 +10,8 @@ import { courseInputs } from '@/model/campaignSummary';
 import type { Exam } from '@/model/ladder';
 import { ladderNext, nextDetail, suggestedExam } from '@/model/ladderNext';
 import { ensureLadder, ladder } from '@/model/ladderStore';
-import { readiness, unlockLine } from '@/model/readiness';
+import { unlockLine } from '@/model/readiness';
+import { learnedReadiness } from '@/model/readinessBar';
 import type { Route } from '@/model/route';
 import { progress } from '@/model/store';
 import { admissions } from '@/ui/campaignShared';
@@ -37,7 +38,7 @@ export function ladderSuggestion(): LadderSuggestion | null {
   if (adm === null) return null;
   const exam = suggestedExam(adm, ladder.value, campaignExam());
   const p = progress.value;
-  const n = ladderNext(adm, campaign.value, ladder.value, exam, p === null ? null : readiness(p, exam));
+  const n = ladderNext(adm, campaign.value, ladder.value, exam, p === null ? null : learnedReadiness(p, exam, adm, campaign.value, ladder.value));
   if (n === null) return null;
   return { title: n.state === 'locked' ? n.title : `${exam} ladder: ${n.title}`, detail: nextDetail(n), to: n.to };
 }
@@ -50,7 +51,7 @@ export function campaignUnlockLine(): string | null {
   const exam = campaignExam();
   const p = progress.value;
   if (exam === null || p === null) return null;
-  const r = readiness(p, exam);
+  const r = learnedReadiness(p, exam, admissions.value, campaign.value, ladder.value);
   return r.ready ? null : unlockLine(r);
 }
 

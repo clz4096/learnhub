@@ -13,7 +13,8 @@
  * - A level: STEP Foundation Blocks 1 to 6 and CS-0 Maths (the pure core through calculus).
  * - STEP: STEP Foundation Blocks 1 to 6 and the Stage B STEP 2 modules.
  *
- * The rule: ready once `READY_SHARE` of those topics are mastered. The thresholds above the
+ * The rule: ready once a share of those topics are mastered: `READY_SHARE` to start, then the
+ * bar learned from timed results (rule 8, readinessBar.ts), passed in as `bar`. The thresholds above the
  * first rung are the ladder's own (two timed questions passed open the half, a timed half
  * passed opens the full paper). Pure: no clock, storage, or app state.
  */
@@ -23,7 +24,7 @@ import type { Progress } from '@learnhub/mastery';
 import type { Exam, LadderStatus } from './ladder';
 import { isMastered } from './learner';
 
-/** "Mostly mastered": this share of the syllabus topics with lessons. */
+/** "Mostly mastered": this share of the syllabus topics with lessons, before any timed result moves it (readinessBar.ts). */
 export const READY_SHARE = 0.6;
 
 const FOUNDATION = [
@@ -69,17 +70,20 @@ export interface Readiness {
   ready: boolean;
   /** Syllabus topics mastered, and how many must be. */
   mastered: number;
+  /** The share of the syllabus that must be mastered: the bar used. */
+  bar: number;
   need: number;
   total: number;
   /** Plain words: where the topics come from. */
   source: string;
 }
 
-export function readiness(p: Progress, exam: Exam): Readiness {
+export function readiness(p: Progress, exam: Exam, bar: number = READY_SHARE): Readiness {
   const topics = syllabusTopics(exam);
   const mastered = topics.filter((id) => isMastered(p, id)).length;
-  const need = Math.ceil(READY_SHARE * topics.length);
-  return { exam, ready: topics.length > 0 && mastered >= need, mastered, need, total: topics.length, source: `the book's ${SYLLABUS_NAMES[exam]}` };
+  // Rounded to a part in a million first, so a bar like 0.55 times 20 does not need 12 for floating-point error.
+  const need = Math.ceil(Math.round(bar * topics.length * 1e6) / 1e6);
+  return { exam, ready: topics.length > 0 && mastered >= need, mastered, bar, need, total: topics.length, source: `the book's ${SYLLABUS_NAMES[exam]}` };
 }
 
 /** "First timed TMUA question unlocks after 12 more topics mastered (of 58 in its syllabus)." */

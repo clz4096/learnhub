@@ -17,6 +17,7 @@ export type StepState = TopicStatus | 'towrite';
 
 export const STEP_TEXT: Readonly<Record<StepState, string>> = {
   mastered: 'mastered',
+  review: 'needs review',
   gate: 'needs the Cambridge problem',
   due: 'review due',
   ready: 'ready',

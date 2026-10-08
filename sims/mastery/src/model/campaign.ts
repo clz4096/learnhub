@@ -24,6 +24,29 @@ export type InterviewShape = 'pre-reading' | 'induction';
 export type LetterId = 'received' | 'invitation' | 'offer' | 'results';
 export type ALevelGrade = 'A*' | 'A' | 'B' | 'C' | 'D' | 'E' | 'U';
 
+/**
+ * What the app predicted before a timed sitting or ladder rung began (rule 8, readinessBar.ts).
+ * Recorded at the start and never changed, so the real mark can be set against it later.
+ */
+export interface Forecast {
+  /** The predicted share of the marks, 0 to 1. */
+  predicted: number;
+  /** `outcome`: the outcome model's mean of timed results on this paper; `mastery`: with none, the share of the exam's syllabus mastered. */
+  from: 'outcome' | 'mastery';
+  /** The share of the exam's syllabus topics mastered at the start, 0 to 1. */
+  mastered: number;
+}
+
+const isShare = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1;
+
+/** A stored forecast, or undefined when it is missing or malformed. */
+export function parseForecast(v: unknown): Forecast | undefined {
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) return undefined;
+  const o = v as Record<string, unknown>;
+  if (!isShare(o.predicted) || !isShare(o.mastered) || (o.from !== 'outcome' && o.from !== 'mastery')) return undefined;
+  return { predicted: o.predicted, from: o.from, mastered: o.mastered };
+}
+
 /** One timed sitting of a registry paper. Marks are absent until entered. */
 export interface Sitting {
   id: string;
@@ -38,6 +61,8 @@ export interface Sitting {
   questionMarks?: (number | null)[];
   /** A level: the paper's total from supervision. */
   total?: number;
+  /** The app's prediction at the start (rule 8); absent for a sitting begun before it was recorded. */
+  forecast?: Forecast;
 }
 
 export interface InterviewRecord {
@@ -236,9 +261,11 @@ export function activeSitting(c: Campaign): Sitting | undefined {
   return c.sittings.find((s) => s.finishedAt === null);
 }
 
-export function startSitting(c: Campaign, paperId: string, act: number, now: number): Campaign {
+export function startSitting(c: Campaign, paperId: string, act: number, now: number, forecast?: Forecast): Campaign {
   if (activeSitting(c) !== undefined) return c;
-  return { ...c, sittings: [...c.sittings, { id: `${paperId}@${now}`, paperId, act, startedAt: now, finishedAt: null }] };
+  const s: Sitting = { id: `${paperId}@${now}`, paperId, act, startedAt: now, finishedAt: null };
+  if (forecast !== undefined) s.forecast = { ...forecast };
+  return { ...c, sittings: [...c.sittings, s] };
 }
 
 export function finishSitting(c: Campaign, id: string, now: number): Campaign {
@@ -252,6 +279,7 @@ export function recordMarks(c: Campaign, id: string, marks: Pick<Sitting, 'answe
     sittings: c.sittings.map((s) => {
       if (s.id !== id || s.finishedAt === null) return s;
       const next: Sitting = { id: s.id, paperId: s.paperId, act: s.act, startedAt: s.startedAt, finishedAt: s.finishedAt };
+      if (s.forecast !== undefined) next.forecast = s.forecast;
       if (marks.answers !== undefined) next.answers = [...marks.answers];
       if (marks.questionMarks !== undefined) next.questionMarks = [...marks.questionMarks];
       if (marks.total !== undefined) next.total = marks.total;
@@ -697,6 +725,8 @@ function parseSitting(v: unknown): Sitting | null {
     s.questionMarks = v.questionMarks as (number | null)[];
   }
   if (Number.isInteger(v.total) && (v.total as number) >= 0) s.total = v.total as number;
+  const forecast = parseForecast(v.forecast);
+  if (forecast !== undefined) s.forecast = forecast;
   return s;
 }
 

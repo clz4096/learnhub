@@ -20,7 +20,8 @@ import {
 } from '@/model/ladder';
 import { examOf, partName, unmarkedAttempts } from '@/model/ladderNext';
 import { discardAttempt, ladder, loadLadder, saveLadder } from '@/model/ladderStore';
-import { readiness, withReadiness } from '@/model/readiness';
+import { withReadiness } from '@/model/readiness';
+import { forecastFor, learnedReadiness } from '@/model/readinessBar';
 import { go } from '@/model/route';
 import { now, progress } from '@/model/store';
 import { AppLink, CopyBlock, WithAdmissions, shortStamp } from '@/ui/campaignShared';
@@ -58,7 +59,7 @@ function LadderBody({ adm, exam }: { adm: Admissions; exam: Exam }) {
   }
 
   const p = progress.value;
-  const ready = p === null ? null : readiness(p, exam);
+  const ready = p === null ? null : learnedReadiness(p, exam, adm, c, attempts);
   const status = ready === null ? ladderStatus(adm, c, attempts, exam) : withReadiness(ladderStatus(adm, c, attempts, exam), ready);
   const unmarked = unmarkedAttempts(adm, attempts, exam);
   const results = ladderResults(adm, attempts, exam).reverse();
@@ -178,7 +179,13 @@ function SitNext({ adm, c, attempts, exam, rungs, disabled }: {
             <button
               type="button" class="ds-li" disabled={disabled}
               aria-label={`Start the clock: ${RUNG_NAMES[rung]}, ${partName(next.paper, rung, next.questions)}, ${minutes} minutes`}
-              onClick={() => saveLadder(startAttempt(adm, ladder.peek(), next.paper.id, rung, next.questions, now()))}
+              onClick={() => {
+                // Rule 8: the prediction is recorded before the clock starts.
+                const doc = progress.peek();
+                const all = ladder.peek();
+                const forecast = doc === null ? undefined : forecastFor(adm, doc, campaign.peek(), all, next.paper);
+                saveLadder(startAttempt(adm, all, next.paper.id, rung, next.questions, now(), forecast));
+              }}
             >
               {body}
             </button>

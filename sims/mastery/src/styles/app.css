@@ -305,6 +305,7 @@ input[aria-invalid='true'] { border: 2px solid var(--error); }
 .status-chip.st-mastered { background: var(--st-mastered); border-color: var(--st-mastered-line); }
 .status-chip.st-gate { background: var(--st-mastered); border-color: var(--st-mastered-line); border-style: dashed; }
 .status-chip.st-due { background: var(--st-due); border-color: var(--st-due-line); }
+.status-chip.st-review { background: var(--st-due); border-color: var(--st-due-line); border-style: dashed; }
 .status-chip.st-ready { background: var(--st-ready); border-color: var(--st-ready-line); }
 .status-chip.st-unwritten { background: var(--st-locked); border-color: var(--st-ready-line); border-style: dashed; }
 .status-chip.st-locked { background: var(--st-locked); border-color: var(--st-locked-line); }
@@ -325,6 +326,7 @@ input[aria-invalid='true'] { border: 2px solid var(--error); }
 .node.st-mastered rect { fill: var(--st-mastered); stroke: var(--st-mastered-line); }
 .node.st-gate rect { fill: var(--st-mastered); stroke: var(--st-mastered-line); stroke-dasharray: 5 3; }
 .node.st-due rect { fill: var(--st-due); stroke: var(--st-due-line); stroke-width: 2.5; }
+.node.st-review rect { fill: var(--st-due); stroke: var(--st-due-line); stroke-width: 2.5; stroke-dasharray: 5 3; }
 .node.st-ready rect { fill: var(--st-ready); stroke: var(--st-ready-line); stroke-width: 2.5; }
 .node.st-unwritten rect { fill: var(--st-locked); stroke: var(--st-ready-line); stroke-dasharray: 5 3; }
 .node.st-locked rect { fill: var(--st-locked); stroke: var(--st-locked-line); }
@@ -347,6 +349,7 @@ input[aria-invalid='true'] { border: 2px solid var(--error); }
 .status-dot.st-mastered { background: var(--st-mastered-line); border-color: var(--st-mastered-line); }
 .status-dot.st-gate { background: var(--st-mastered); border-color: var(--st-mastered-line); border-style: dashed; }
 .status-dot.st-due { background: var(--st-due-line); border-color: var(--st-due-line); }
+.status-dot.st-review { background: var(--st-due); border-color: var(--st-due-line); border-style: dashed; }
 .status-dot.st-ready { background: var(--st-ready); border-color: var(--st-ready-line); }
 .status-dot.st-unwritten { background: var(--st-locked); border-color: var(--st-ready-line); border-style: dashed; }
 .status-dot.st-locked { background: var(--st-locked); border-color: var(--st-locked-line); }
@@ -826,6 +829,7 @@ ol.book-steps { margin: 0 0 8px; }
 .book-steps .st-mastered .book-dot, .book-steps .st-due .book-dot { background: var(--cam); border-color: var(--cam); }
 .book-steps .st-due .book-dot { background: var(--bg); }
 .book-steps .st-gate .book-dot { border-color: var(--cam); border-style: dashed; }
+.book-steps .st-review .book-dot { background: var(--bg); border-color: var(--st-due-line); border-style: dashed; }
 .book-steps .st-ready .book-dot { border-color: var(--fg); }
 .book-steps .st-towrite, .book-steps .st-unwritten { color: var(--mute); }
 .book-steps li.here .book-dot { width: 11px; height: 11px; background: var(--cam); border-color: var(--cam); box-shadow: 0 0 0 4px var(--cam-soft); }

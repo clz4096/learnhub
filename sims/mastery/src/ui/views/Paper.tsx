@@ -19,6 +19,7 @@ import { RUNG_NAMES, activeAttempt } from '@/model/ladder';
 import { examOf } from '@/model/ladderNext';
 import { ensureLadder, ladder } from '@/model/ladderStore';
 import { learnerSynced } from '@/model/learnerChange';
+import { forecastFor } from '@/model/readinessBar';
 import { progress, now } from '@/model/store';
 import { AppLink, CopyBlock, WithAdmissions, shortStamp } from '@/ui/campaignShared';
 import { BackLink } from '@/ui/BackLink';
@@ -119,7 +120,12 @@ function PaperBody({ adm, c, paperId }: { adm: Admissions; c: Campaign; paperId:
             <div class="c-card c-pad">
               <h2>Sit it timed</h2>
               <p class="c-body">The clock runs from Start to Finish with no pause, as in the exam hall. Nothing is marked until you finish.</p>
-              <button type="button" class="c-btn" disabled={link === null} onClick={() => { if (activeAttempt(ladder.peek()) === undefined) update((x) => startSitting(x, paperId, act, now())); }}>Start the clock</button>
+              <button type="button" class="c-btn" disabled={link === null} onClick={() => {
+                if (activeAttempt(ladder.peek()) !== undefined) return;
+                // Rule 8: the prediction is recorded before the clock starts.
+                const doc = progress.peek();
+                update((x) => startSitting(x, paperId, act, now(), doc === null ? undefined : forecastFor(adm, doc, x, ladder.peek(), paper)));
+              }}>Start the clock</button>
               {link === null && <p class="c-tiny">This paper is not published yet.</p>}
             </div>
           )}

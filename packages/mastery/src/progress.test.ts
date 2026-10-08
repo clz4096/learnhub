@@ -57,6 +57,7 @@ function sampleV5(): Progress {
 function sampleV4(): Record<string, any> {
   const d = JSON.parse(exportProgress(sample()));
   d.version = 4;
+  delete d.retestsFrom;
   return d;
 }
 
@@ -66,6 +67,7 @@ function sampleV3(): Record<string, any> {
   d.version = 3;
   delete d.changedAt;
   delete d.resetAt;
+  delete d.retestsFrom;
   return d;
 }
 
@@ -272,6 +274,9 @@ describe('warnings for recoverable input', () => {
 });
 
 describe('migrations', () => {
+  // The time of the import: version 7 stamps it as the retest anchor of old masteries.
+  const MIG = NOW + 99_000;
+  const at = { now: MIG };
   // A test-only version 0 that lacked settings, chained onto the shipped migrations.
   const migrations = {
     ...MIGRATIONS,
@@ -279,13 +284,13 @@ describe('migrations', () => {
   };
 
   it('migrates version 1 to 2 with no courses, even weights, no minutes, and no session', () => {
-    const r = importProgress(JSON.stringify(sampleV1()));
+    const r = importProgress(JSON.stringify(sampleV1()), at);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.warnings).toEqual([]);
     expect(r.value).toEqual({
       ...sample(), courses: [], courseMinutes: {}, session: null, settings: { ...sample().settings, courseWeights: {} },
-      history: sampleV2().history, supervision: [], redos: [],
+      history: sampleV2().history, supervision: [], redos: [], retestsFrom: MIG,
     });
   });
 
@@ -293,15 +298,15 @@ describe('migrations', () => {
   const chosen = { budgetMinutes: 0, implicitCredit: 0, courseWeights: NOW, courses: NOW };
 
   it('migrates version 2 to 3 with no supervision attempts and no redos', () => {
-    const r = importProgress(JSON.stringify(sampleV2()));
+    const r = importProgress(JSON.stringify(sampleV2()), at);
     expect(r).toEqual({
-      ok: true, value: { ...sample(), history: sampleV2().history, supervision: [], redos: [], changedAt: chosen }, warnings: [],
+      ok: true, value: { ...sample(), history: sampleV2().history, supervision: [], redos: [], changedAt: chosen, retestsFrom: MIG }, warnings: [],
     });
   });
 
   it('migrates version 3 to 4: choices that differ from the default are dated to the last change, defaults to 0', () => {
-    const r = importProgress(JSON.stringify(sampleV3()));
-    expect(r).toEqual({ ok: true, value: { ...sample(), changedAt: chosen }, warnings: [] });
+    const r = importProgress(JSON.stringify(sampleV3()), at);
+    expect(r).toEqual({ ok: true, value: { ...sample(), changedAt: chosen, retestsFrom: MIG }, warnings: [] });
     const fresh = JSON.parse(exportProgress(newProgress('x', NOW)));
     fresh.version = 3;
     delete fresh.changedAt;
@@ -329,8 +334,8 @@ describe('migrations', () => {
   });
 
   it('migrates version 4 to 5 (and on) changing nothing but the version: memory and the review schedule are kept', () => {
-    const r = importProgress(JSON.stringify(sampleV4()));
-    expect(r).toEqual({ ok: true, value: sample(), warnings: [] });
+    const r = importProgress(JSON.stringify(sampleV4()), at);
+    expect(r).toEqual({ ok: true, value: { ...sample(), retestsFrom: MIG }, warnings: [] });
   });
 
   it('re-gates a version 4 document: its learned topics need the Cambridge problem, and keep their schedule', () => {
@@ -377,9 +382,31 @@ describe('migrations', () => {
     expect(gateStatus(r.value, 'pre.fractions', ['a6-q1']).evidence).toEqual({ kind: 'auto', problem: 'pre.fractions/a6-q1', at: NOW + 4000, hints: 0 });
   });
 
+  it('migrates version 6 to 7: nothing changes but the retest anchor, the time of the migration', () => {
+    const d = JSON.parse(exportProgress(sampleV5()));
+    d.version = 6;
+    delete d.retestsFrom;
+    const r = importProgress(d, at);
+    expect(r).toEqual({ ok: true, value: { ...sampleV5(), retestsFrom: MIG }, warnings: [] });
+    // Without a time given, the clock.
+    const before = Date.now();
+    const c = importProgress(d);
+    expect(c.ok && c.value.retestsFrom).toBeGreaterThanOrEqual(before);
+    // A current document keeps its own anchor; a fresh one has none.
+    expect(newProgress('x', NOW).retestsFrom).toBe(0);
+    expect(importProgress(exportProgress({ ...sampleV5(), retestsFrom: NOW }), at)).toEqual({ ok: true, value: { ...sampleV5(), retestsFrom: NOW }, warnings: [] });
+    expect(MIGRATIONS[6]?.({ version: 6 }, 5)).toEqual({ version: 7, retestsFrom: 5 });
+  });
+
+  it('rejects a bad retest anchor', () => {
+    const r = importProgress(mutate((d) => { d.retestsFrom = -1; }));
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors.join('\n')).toMatch(/\$\.retestsFrom/);
+  });
+
   it('the version 5 to 6 migration leaves malformed history to validation', () => {
-    expect(MIGRATIONS[5]?.({ version: 5, history: 3 })).toEqual({ version: 6, history: 3 });
-    expect(MIGRATIONS[5]?.({ version: 5, history: [null, { kind: 'cambridge', correct: false }] })).toEqual({ version: 6, history: [null, { kind: 'cambridge', correct: false }] });
+    expect(MIGRATIONS[5]?.({ version: 5, history: 3 }, 0)).toEqual({ version: 6, history: 3 });
+    expect(MIGRATIONS[5]?.({ version: 5, history: [null, { kind: 'cambridge', correct: false }] }, 0)).toEqual({ version: 6, history: [null, { kind: 'cambridge', correct: false }] });
   });
 
   it('migrates through every version in turn and validates the result', () => {

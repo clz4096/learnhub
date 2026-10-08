@@ -11,7 +11,7 @@ import { withDefaults } from './options';
 import type { PlacementAnswer } from './placement';
 
 /** Bump when the shape changes, and add the migration from the previous version. */
-export const PROGRESS_VERSION = 6;
+export const PROGRESS_VERSION = 7;
 
 export interface Settings {
   budgetMinutes: number;
@@ -236,14 +236,23 @@ export interface Progress {
    * being undone by the other device's copy.
    */
   resetAt: number;
+  /**
+   * Cold retests (retest.ts) of a topic mastered before this time are scheduled from this
+   * time, not from its mastery: set when a version 6 document is migrated, so its old
+   * masteries are not all retested at once. 0 for a document begun at version 7 or later.
+   */
+  retestsFrom: number;
 }
 
 export type Result<T> =
   | { ok: true; value: T; warnings: string[] }
   | { ok: false; errors: string[] };
 
-/** Upgrades a document from version n to n + 1. May throw; import catches it. */
-export type Migration = (doc: Record<string, unknown>) => Record<string, unknown>;
+/**
+ * Upgrades a document from version n to n + 1. May throw; import catches it. `now` is the
+ * time of the import, for a migration that must date what it adds.
+ */
+export type Migration = (doc: Record<string, unknown>, now: number) => Record<string, unknown>;
 
 /**
  * Version n to the migration from n to n + 1.
@@ -270,6 +279,11 @@ export type Migration = (doc: Record<string, unknown>) => Record<string, unknown
  * this build stays not counting, exactly as it did. The bump keeps a version 5 build, which
  * would drop the unknown field and so count a right answer after a revealed solution, from
  * loading the document.
+ * 6 to 7: cold retests (mastery/HOW-A-TOPIC-WORKS.md, rule 6) are read from evidence like the
+ * gate, so nothing in a version 6 document changes but one stamp: `retestsFrom`, the time of
+ * the migration. A topic mastered before it has its retests at 7 and 30 days from then, not
+ * from its mastery, which for most would be due at once. The bump keeps a version 6 build,
+ * which knows no "needs review", from loading a document whose topics may be in it.
  */
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: (d) => {
@@ -291,6 +305,7 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   },
   4: (d) => ({ ...d, version: 5 }),
   5: (d) => ({ ...d, version: 6, history: Array.isArray(d.history) ? d.history.map(solutionSeen) : d.history }),
+  6: (d, now) => ({ ...d, version: 7, retestsFrom: now }),
 };
 
 /** A version 5 history entry as version 6 reads it: a Cambridge miss showed the solution. */
@@ -305,6 +320,8 @@ export interface ImportOptions {
   migrations?: Readonly<Record<number, Migration>>;
   /** Larger input is rejected before parsing. */
   maxBytes?: number;
+  /** The time of the import, given to migrations (`Migration`); the clock when absent. */
+  now?: number;
 }
 
 /** Ten times a year of daily history; a real file is far smaller. */
@@ -317,7 +334,7 @@ export function newProgress(courseId: string, now: number, settings: Partial<Set
     // A copy, so documents never share the default's weights object.
     settings: { ...s, courseWeights: { ...s.courseWeights } },
     courses: [], placement: null, memory: {}, learnedSinceQuiz: [], history: [], courseMinutes: {}, session: null,
-    supervision: [], redos: [], changedAt: noChoices(), resetAt: 0,
+    supervision: [], redos: [], changedAt: noChoices(), resetAt: 0, retestsFrom: 0,
   };
 }
 
@@ -587,10 +604,10 @@ function checkRedos(c: Checker, x: unknown): Redo[] {
   return out;
 }
 
-function checkV6(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
+function checkV7(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
   const TOP = [
     'version', 'courseId', 'createdAt', 'updatedAt', 'settings', 'courses', 'placement', 'memory', 'learnedSinceQuiz', 'history',
-    'courseMinutes', 'session', 'supervision', 'redos', 'changedAt', 'resetAt',
+    'courseMinutes', 'session', 'supervision', 'redos', 'changedAt', 'resetAt', 'retestsFrom',
   ];
   c.extraKeys(d, TOP, '$');
   c.need(typeof d.courseId === 'string' && d.courseId.trim() !== '' && d.courseId.length <= 200, '$.courseId', 'a non-empty string', d.courseId);
@@ -700,12 +717,13 @@ function checkV6(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progres
     }
   }
   c.need(isNum(d.resetAt) && d.resetAt >= 0, '$.resetAt', 'a time in ms, 0 or more', d.resetAt);
+  c.need(isNum(d.retestsFrom) && d.retestsFrom >= 0, '$.retestsFrom', 'a time in ms, 0 or more', d.retestsFrom);
 
   if (c.errors.length > 0) return null;
   return {
     version: PROGRESS_VERSION, courseId: d.courseId as string, createdAt: d.createdAt as number, updatedAt: d.updatedAt as number,
     settings, courses, placement, memory, learnedSinceQuiz, history, courseMinutes, session, supervision, redos,
-    changedAt, resetAt: d.resetAt as number,
+    changedAt, resetAt: d.resetAt as number, retestsFrom: d.retestsFrom as number,
   };
 }
 
@@ -739,7 +757,8 @@ export function importProgress(input: unknown, options: ImportOptions = {}): Res
       const m = migrations[from];
       if (m === undefined) return { ok: false, errors: [`$.version: no migration from version ${from}`] };
       try {
-        d = m(d);
+        // Only a migration that dates what it adds reads the clock; the import itself is pure.
+        d = m(d, options.now ?? Date.now());
       } catch (e) {
         return { ok: false, errors: [`migration from version ${from} failed: ${e instanceof Error ? e.message : String(e)}`] };
       }
@@ -750,7 +769,7 @@ export function importProgress(input: unknown, options: ImportOptions = {}): Res
 
     const c = new Checker();
     const known = options.knownTopicIds === undefined ? null : new Set(options.knownTopicIds);
-    const p = checkV6(c, d, known);
+    const p = checkV7(c, d, known);
     return p === null ? { ok: false, errors: c.errors } : { ok: true, value: p, warnings: c.warnings };
   } catch (e) {
     // Validation is written not to throw; this is the backstop the contract promises.

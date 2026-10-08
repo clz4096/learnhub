@@ -72,4 +72,25 @@ describe('OutcomePanel', () => {
     expect(card.getByText(/No official grade boundaries or score conversion exist for past TMUA papers/)).toBeTruthy();
     expect(document.body.textContent).not.toMatch(DASH);
   });
+
+  it('rule 8: each timed sitting\'s prediction beside its real result, the mean gap, and the bar it learned', () => {
+    const forecast = { predicted: 0.6, from: 'mastery' as const, mastered: 0.5 };
+    let list = startAttempt(adm, [], 'step-2025-2', 'question', [1], T0, forecast);
+    list = recordAttemptMarks(adm, finishAttempt(list, list[0]!.id, T0 + 25 * MIN), list[0]!.id, { marks: [16] });
+    localStorage.setItem(LADDER_KEY, JSON.stringify(list));
+    render(<OutcomePanel />);
+    expect(screen.getByRole('heading', { name: 'Predicted and real' })).toBeTruthy();
+    const card = within(screen.getByRole('article', { name: 'STEP predictions and results' }));
+    // 16 of 20 is 80 percent, 20 points over a 60 percent prediction; passed with half the syllabus mastered, so the bar moves to 55.
+    expect(card.getByText('predicted 60%, real 80%')).toBeTruthy();
+    expect(card.getByText(/Real results average 20 points over the prediction\./)).toBeTruthy();
+    expect(card.getByText('55%', { selector: 'b' })).toBeTruthy();
+    expect(card.getByText(/Passed: 14 of 20 or better\./)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(DASH);
+  });
+
+  it('rule 8: no sitting with a prediction yet', () => {
+    render(<OutcomePanel />);
+    expect(screen.getByText('No timed sitting with a prediction yet.')).toBeTruthy();
+  });
 });

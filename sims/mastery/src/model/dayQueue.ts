@@ -2,7 +2,8 @@
  * The day planner's queue: today's session tasks (new lessons, reviews, quizzes, in the
  * session's order), then more of the same planned for the day's study minutes, then the
  * day's blind mixed review once three topics are mastered, then supervision redos due today. Done items stay in the queue, so finishing one never moves
- * the others between blocks.
+ * the others between blocks. Cold retests due today (rule 6) and topics that need review
+ * after a missed one come last in the list; the planner puts them first in a block.
  *
  * The session is planned for the learner's daily budget (60 minutes by default); the day
  * planner has 6 to 8 hours to fill. `dayTasks` plans the rest with the app's own
@@ -11,17 +12,19 @@
  * changed. Tasks past the session are a forecast until `withDayTasks` adds them to it,
  * when the learner opens one or plans the day.
  */
-import { currentProblemKey } from '@learnhub/content';
-import type { Progress, SessionTask } from '@learnhub/mastery';
+import { currentProblemKey, gateOf } from '@learnhub/content';
+import { cambridgeEntries, solutionShown, type Progress, type SessionTask } from '@learnhub/mastery';
 import type { Fillable } from './day';
 import { titleOf } from './courses';
 import { catalogTitle } from './supervision';
-import { completeLesson, completeQuiz, completeReview, ensureSession, localDay, planMore, redoWaitsFor, topicOfKey } from './learner';
+import { completeLesson, completeQuiz, completeReview, ensureSession, localDay, planMore, redoWaitsFor, retestOf, topicOfKey } from './learner';
 import { MIXED_MINUTES, mixedReady } from './mixedReview';
 import type { Route } from './route';
 
 /** A redo has no planned length; this is an assumption for packing it into a block. */
 export const REDO_MINUTES = 30;
+/** Nor has a retest: one Cambridge problem, cold. An assumption, as `REDO_MINUTES`. */
+export const RETEST_MINUTES = 20;
 /** Rounds of `planMore` at most; each round only takes what the one before unlocks. */
 const MAX_ROUNDS = 40;
 
@@ -130,5 +133,44 @@ export function dayItems(p: Progress, now: number, budget = 0, mixedDone = false
       done: d.doneAt !== null, forecast: false,
     });
   }
+  items.push(...retestItems(p, dayStart, dayEnd));
   return items;
+}
+
+const problemRoute = (key: string): Route => ({ view: 'problem', topicId: topicOfKey(key), problemId: key.slice(key.indexOf('/') + 1) });
+
+/**
+ * Rule 6 on Today: "Retest: <topic>" for each cold retest due by the end of today, opening its
+ * best candidate problem with no lesson first, and kept (done) once decided today; "Needs
+ * review: <topic>" for a topic whose retest was missed, opening the missed problem again
+ * (hints as usual) while its solution has not been shown, else another gate problem.
+ */
+export function retestItems(p: Progress, dayStart: number, dayEnd: number): DayItem[] {
+  const out: DayItem[] = [];
+  for (const topicId of Object.keys(p.memory).sort()) {
+    const r = retestOf(p, topicId);
+    if (r.phase === 'unmastered') continue;
+    const title = titleOf(topicId);
+    const decided = r.log.filter((x) => x.outcome !== 'skipped' && x.at >= dayStart && x.at < dayEnd && x.problem !== null);
+    for (const x of decided) {
+      out.push({ key: `retest-${topicId}-${x.step}-${x.at}`, kind: 'retest', minutes: RETEST_MINUTES, title: `Retest: ${title}`, to: problemRoute(x.problem as string), done: true, forecast: false });
+    }
+    if (r.phase === 'mastered' && r.next !== null && r.next.due < dayEnd) {
+      const key = r.next.problems[0] as string;
+      out.push({ key: `retest-${topicId}-${r.next.step}`, kind: 'retest', minutes: RETEST_MINUTES, title: `Retest: ${title}`, to: problemRoute(key), done: false, forecast: false });
+    }
+    if (r.phase === 'needs-review' && r.missed !== null) {
+      const key = reviewProblem(p, topicId, r.missed);
+      if (key !== undefined) out.push({ key: `review-${topicId}`, kind: 'retest', minutes: RETEST_MINUTES, title: `Needs review: ${title}`, to: problemRoute(key), done: false, forecast: false });
+    }
+  }
+  return out;
+}
+
+/** The problem that can master a topic in review again: the missed one unless its solution was shown, else a gate problem never solved and never shown. */
+function reviewProblem(p: Progress, topicId: string, missed: string): string | undefined {
+  const entries = (key: string) => cambridgeEntries(p.history, key, currentProblemKey);
+  if (!solutionShown(entries(missed))) return missed;
+  return gateOf(topicId).map((id) => `${topicId}/${id}`)
+    .find((key) => key !== missed && !solutionShown(entries(key)) && entries(key).every((h) => !h.correct));
 }

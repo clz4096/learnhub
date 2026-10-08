@@ -17,7 +17,7 @@ import { planDate, type FixedBlock } from './day';
 import type { DayLog } from './dayLog';
 import { RUNG_NAMES, activeAttempt, rungMinutes, rungSets, type LadderAttempt } from './ladder';
 import { ladderNext, partName } from './ladderNext';
-import { readiness } from './readiness';
+import { learnedReadiness } from './readinessBar';
 
 export interface CourseInputs extends ActInputs, StatInputs {
   lessonMinutesLeft: number;
@@ -108,7 +108,7 @@ export function campaignFixed(
     || attempts.some((a) => a.finishedAt !== null && planDate(a.finishedAt) === date);
   const paper = timed === null ? undefined : adm.registryPaper(timed.paperIds[0] as string);
   const exam = paper?.exam ?? null;
-  const ready = exam === null ? null : readiness(p, exam);
+  const ready = exam === null ? null : learnedReadiness(p, exam, adm, c, attempts);
   if (running !== undefined) {
     const sat = adm.registryPaper(running.paperId);
     if (sat !== undefined) out.push({ minutes: sat.duration_minutes, title: `Timed paper: ${paperName(sat)}`, detail: 'Running now, no pause', to: { view: 'paper', paperId: sat.id } });
@@ -132,7 +132,7 @@ export function campaignFixed(
       }
     }
   }
-  if (effects.some((e) => e.id === 'timed-drill') && readiness(p, exam ?? 'STEP').ready) {
+  if (effects.some((e) => e.id === 'timed-drill') && learnedReadiness(p, exam ?? 'STEP', adm, c, attempts).ready) {
     out.push({ minutes: DRILL_MINUTES, title: 'Timed drill', detail: 'One past-paper question to the clock (Under time is below 40)' });
   }
   return out;

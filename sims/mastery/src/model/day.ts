@@ -431,8 +431,12 @@ export function clockValue(m: number): string {
 
 // ---------------------------------------------------------------- filling the blocks
 
-/** `mixed`: the day's blind mixed review (mixedReview.ts), a review block of its own. */
-export type ItemKind = 'lesson' | 'review' | 'quiz' | 'redo' | 'mixed';
+/**
+ * `mixed`: the day's blind mixed review (mixedReview.ts), a review block of its own.
+ * `retest`: a cold retest of a mastered topic, or a topic that needs review after one
+ * (rule 6, the engine's retest.ts): one Cambridge problem, no lesson first.
+ */
+export type ItemKind = 'lesson' | 'review' | 'quiz' | 'redo' | 'mixed' | 'retest';
 
 export interface Fillable {
   kind: ItemKind;
@@ -445,8 +449,9 @@ export interface Block {
   optional: boolean;
 }
 
-const HEAVY_ORDER: readonly ItemKind[] = ['lesson', 'redo', 'quiz'];
-const LIGHT_ORDER: readonly ItemKind[] = ['review', 'mixed', 'quiz', 'redo'];
+// A retest comes first in either kind of block: it is short, and only fair cold, before the day's lessons.
+const HEAVY_ORDER: readonly ItemKind[] = ['retest', 'lesson', 'redo', 'quiz'];
+const LIGHT_ORDER: readonly ItemKind[] = ['retest', 'review', 'mixed', 'quiz', 'redo'];
 
 /**
  * Puts the queue into the day's study blocks, keeping each kind's order. Full core blocks
@@ -458,7 +463,7 @@ const LIGHT_ORDER: readonly ItemKind[] = ['review', 'mixed', 'quiz', 'redo'];
  * `left` holds what fits nowhere.
  */
 export function fillBlocks<T extends Fillable>(blocks: readonly Block[], items: readonly T[]): { filled: T[][]; left: T[] } {
-  const queue = new Map<ItemKind, T[]>((['lesson', 'review', 'mixed', 'quiz', 'redo'] as const).map((k) => [k, items.filter((x) => x.kind === k)]));
+  const queue = new Map<ItemKind, T[]>((['retest', 'lesson', 'review', 'mixed', 'quiz', 'redo'] as const).map((k) => [k, items.filter((x) => x.kind === k)]));
   const filled: T[][] = blocks.map(() => []);
   const used: number[] = blocks.map(() => 0);
   const take = (i: number, kinds: readonly ItemKind[]): void => {
@@ -474,7 +479,7 @@ export function fillBlocks<T extends Fillable>(blocks: readonly Block[], items: 
     }
   };
   blocks.forEach((b, i) => take(i, b.heavy ? HEAVY_ORDER : LIGHT_ORDER));
-  const rest: readonly ItemKind[] = ['lesson', 'redo', 'quiz', 'review', 'mixed'];
+  const rest: readonly ItemKind[] = ['retest', 'lesson', 'redo', 'quiz', 'review', 'mixed'];
   const order = [...blocks.keys()].sort((a, b) => Number((blocks[a] as Block).optional) - Number((blocks[b] as Block).optional) || a - b);
   for (const i of order) take(i, rest);
   return { filled, left: [...queue.values()].flat() };

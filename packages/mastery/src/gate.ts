@@ -7,7 +7,9 @@
  *   miss shows a nudge and, on request, hints, never the solution, so a right answer after
  *   misses and hints still counts; the hints it used are kept in the evidence. "Show me the
  *   solution" (`ItemData.solution`) means the problem can no longer count; or
- * - a supervised write-up of a gate problem marked `GATE_PASS_MARK` or more out of 20.
+ * - a supervised write-up of a gate problem marked `GATE_PASS_MARK` or more out of 20,
+ *   imported before the problem's solution or model outline was ever shown (rule 7: seeing
+ *   the outline of a supervision problem retires it as "Show me the solution" does).
  *
  * Mastery is read from evidence in the document, never stored: so a merge of two copies
  * needs no rule of its own (history and supervision already merge as joins), and the
@@ -25,6 +27,7 @@
  * stays a join whatever map either copy was written under.
  */
 import { SUPERVISION_PASS_MARK, type HistoryEntry, type Progress } from './progress';
+import { retestState } from './retest';
 
 /** A supervised write-up of a gate problem passes the gate at this mark or above: the supervision pass mark, 14 of 20. */
 export const GATE_PASS_MARK = SUPERVISION_PASS_MARK;
@@ -38,9 +41,11 @@ export type GateEvidence =
  * - `unlearned`: the drills are not passed (no memory state).
  * - `needs-gate`: the drills are passed, but no gate problem is done yet. The topic is
  *   reviewed and unlocks what builds on it, but does not count as mastered.
- * - `mastered`: both.
+ * - `mastered`: both, and no cold retest since has been missed (retest.ts, rule 6).
+ * - `needs-review`: mastered once, then a cold retest was missed; the next gate problem
+ *   solved masters it again. Shown plainly as "needs review", and not counted as mastered.
  */
-export type MasteryStage = 'unlearned' | 'needs-gate' | 'mastered';
+export type MasteryStage = 'unlearned' | 'needs-gate' | 'mastered' | 'needs-review';
 
 export interface GateStatus {
   stage: MasteryStage;
@@ -50,8 +55,8 @@ export interface GateStatus {
   candidates: number;
 }
 
-/** The document fields the gate reads. */
-export type GateDoc = Pick<Progress, 'memory' | 'history' | 'supervision'>;
+/** The document fields the gate reads. `retestsFrom` absent reads as 0 (retest.ts). */
+export type GateDoc = Pick<Progress, 'memory' | 'history' | 'supervision'> & Partial<Pick<Progress, 'retestsFrom'>>;
 
 /** The current key of a problem key: the key itself, or where the problem moved to. */
 export type KeyResolver = (key: string) => string;
@@ -108,28 +113,33 @@ export function gateEvidence(
     if (list === undefined) byKey.set(key, [h]);
     else list.push(h);
   }
+  const firstReveal = new Map<string, number>();
   for (const [problem, entries] of byKey) {
     const right = unaidedAnswer(entries);
     if (right !== undefined) found.push({ kind: 'auto', problem, at: right.at, hints: right.item?.hints ?? 0 });
+    for (const h of entries) if (h.item?.solution === true) firstReveal.set(problem, Math.min(firstReveal.get(problem) ?? Infinity, h.at));
   }
   for (const a of p.supervision) {
     if (a.result === null || a.importedAt === null || a.result.mark < GATE_PASS_MARK) continue;
     const key = resolve(a.problem);
-    if (keys.has(key)) found.push({ kind: 'supervision', problem: key, at: a.importedAt, mark: a.result.mark });
+    // A reveal at the same millisecond counts first, as for an answer.
+    if (keys.has(key) && a.importedAt < (firstReveal.get(key) ?? Infinity)) found.push({ kind: 'supervision', problem: key, at: a.importedAt, mark: a.result.mark });
   }
   // Earliest first; ties by problem key, then auto before supervision, so the pick is deterministic.
   found.sort((x, y) => x.at - y.at || (x.problem < y.problem ? -1 : x.problem > y.problem ? 1 : 0) || (x.kind === y.kind ? 0 : x.kind === 'auto' ? -1 : 1));
   return found[0] ?? null;
 }
 
-/** Where `topicId` stands against the gate. */
+/** Where `topicId` stands against the gate, its cold retests included (retest.ts). */
 export function gateStatus(p: GateDoc, topicId: string, gate: readonly string[], resolve: KeyResolver = sameKey): GateStatus {
   const evidence = gateEvidence(p, topicId, gate, resolve);
-  const stage: MasteryStage = p.memory[topicId] === undefined ? 'unlearned' : evidence === null ? 'needs-gate' : 'mastered';
+  const stage: MasteryStage = p.memory[topicId] === undefined ? 'unlearned'
+    : evidence === null ? 'needs-gate'
+      : retestState(p, topicId, gate, resolve).phase === 'needs-review' ? 'needs-review' : 'mastered';
   return { stage, evidence, candidates: new Set(gate).size };
 }
 
-/** Whether `topicId` is mastered: drills passed and the gate met. */
+/** Whether `topicId` is mastered: drills passed, the gate met, and no cold retest missed since. */
 export function isMastered(p: GateDoc, topicId: string, gate: readonly string[], resolve: KeyResolver = sameKey): boolean {
   return gateStatus(p, topicId, gate, resolve).stage === 'mastered';
 }
