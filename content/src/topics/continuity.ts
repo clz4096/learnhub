@@ -158,9 +158,16 @@ const q6alt = auto({
   title: t`Infinitely often but not eventually`,
   prompt: t`Toss a fair coin until the first head; ${math`X`} is the number of tosses. Let ${math`A_{n} = \{X \le n\}`} for even ${mn} and ${math`A_{n} = \{X > n\}`} for odd ${mn}. With Q${6}'s ${math`A = \{A_{n} \text{ infinitely often}\}`} and ${math`B = \{A_{n} \text{ for all sufficiently large } n\}`}, find ${math`\mathbb{P}(A)`} and ${math`\mathbb{P}(B)`}.`,
   answer: { kind: 'table', cell: 'exact', columns: [t`event`, t`probability`], rows: [[t`${mA}, infinitely often`, null], [t`${math`B`}, eventually`, null]], expected: ['1', '0'] },
+  hints: [
+    t`For an outcome with ${math`X = x`}, in which ${math`A_{n}`} with ${math`n \ge x`} does it lie, even ${mn} or odd ${mn}?`,
+    t`Is such an outcome in ${math`A_{n}`} infinitely often, and is it in ${math`A_{n}`} for all large ${mn}?`,
+    t`What is the probability that ${math`X`} is finite?`,
+  ],
+  nudge: t`Not quite. Fix one outcome and follow it through even and odd ${mn} beyond ${math`X`}.`,
   solution: [
     t`Fix an outcome with ${math`X = x`}, a finite number. For every even ${math`n \ge x`} it is in ${math`A_{n}`}, and for every odd ${math`n \ge x`} it is not. So it is in ${math`A_{n}`} infinitely often, but not for all large ${mn}: ${math`A`} contains every outcome with ${math`X`} finite, and ${math`B`} none.`,
     t`${math`X`} is finite with probability ${1}: ${math`\mathbb{P}(X \le n) = ${1} - ${2}^{-n} \to ${1}`}, by continuity. So ${math`\mathbb{P}(A) = ${1}`} and ${math`\mathbb{P}(B) = ${0}`}.`,
+    t`Decide each limiting event outcome by outcome, then measure it.`,
   ],
   reference: ['1', '0'],
   verify: () => {
@@ -177,6 +184,11 @@ const q6cont = supervision({
   source: cite(S1, 'Q6', true),
   title: t`"Eventually" as a limit`,
   prompt: t`With ${math`B = \bigcup_{n} \bigcap_{k \ge n} A_{k}`} as in Q${6}(a), show that the events ${math`C_{n} = \bigcap_{k \ge n} A_{k}`} increase with ${mn}, and deduce ${math`\mathbb{P}(B) = \lim_{n} \mathbb{P}(C_{n})`}. Then state and prove the dual for the decreasing events ${math`D_{n} = \bigcup_{k \ge n} A_{k}`}, by taking complements.`,
+  hints: [
+    t`If ${math`\omega \in C_{n}`}, why is ${math`\omega \in C_{n + ${1}}`}?`,
+    t`Which continuity result applies to an increasing sequence of events, and what is its union here?`,
+    t`What are the complements of the ${math`D_{n}`}, and which of the earlier results do they satisfy?`,
+  ],
   writeUp: 'proof',
 });
 const decreasingProof = supervision({
@@ -184,6 +196,11 @@ const decreasingProof = supervision({
   source: cite(S1, 'Q4(f)', true),
   title: t`Continuity from above`,
   prompt: t`Deduce from Q${4}(f) that if ${math`A_{n} \supseteq A_{n + ${1}}`} for all ${mn}, then ${math`\mathbb{P}(A_{n}) \to \mathbb{P}\left(\bigcap_{n} A_{n}\right)`}. Give an example of decreasing events with ${math`\bigcap_{n} A_{n} = \varnothing`} but every ${math`A_{n}`} nonempty, and explain why the probabilities still tend to ${0}.`,
+  hints: [
+    t`If the ${math`A_{n}`} decrease, how do their complements behave?`,
+    t`What is the union of the complements, by De Morgan's law, and what does Q${4}(f) give for it?`,
+    t`For the example, which sequence of nonempty sets shrinking to nothing, such as tails of a countable sample space, has probabilities tending to ${0}?`,
+  ],
   writeUp: 'proof',
 });
 

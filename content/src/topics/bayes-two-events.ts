@@ -235,9 +235,16 @@ const a6e = auto({
   title: t`A man, given a non-smoker`,
   prompt: t`${smokingIntro} Given that the person picked is a non-smoker, find the probability that he or she is a man.`,
   answer: { kind: 'exact', expected: str(smokers(true, false)) },
+  hints: [
+    t`How many of the ${100} people are non-smokers, men and women separately?`,
+    t`Given a non-smoker, which group is the count restricted to?`,
+    t`What share of that group are men?`,
+  ],
+  nudge: t`Not quite. Restrict to the non-smokers first: the condition decides the denominator.`,
   solution: [
     t`Non-smokers: ${smokeCounts[1]} men and ${smokeCounts[3]} women, ${smokeCounts[1] + smokeCounts[3]} in all.`,
     t`So ${math`P(\text{man} \mid \text{non-smoker}) = \frac{${smokeCounts[1]}}{${smokeCounts[1] + smokeCounts[3]}} = ${q(smokeCounts[1], smokeCounts[1] + smokeCounts[3])}`}.`,
+    t`The condition fixes the denominator.`,
   ],
   reference: str(q(smokeCounts[1], smokeCounts[1] + smokeCounts[3])),
   verify: () => same('A6 Q4(i)(e) two ways', str(smokers(true, false)), str(q(smokeCounts[1], smokeCounts[1] + smokeCounts[3]))),
@@ -255,10 +262,17 @@ const a6abc = auto({
     rows: [[t`(a) a female smoker`, null], [t`(b) a non-smoker`, null], [t`(c) a smoker, given a woman`, null]],
     expected: [str(mul(sub(q(1), MEN), SMOKE_WOMEN)), str(add(mul(MEN, sub(q(1), SMOKE_MEN)), mul(sub(q(1), MEN), sub(q(1), SMOKE_WOMEN)))), str(SMOKE_WOMEN)],
   },
+  hints: [
+    t`How many of the ${100} people are women who smoke?`,
+    t`How many non-smokers are there among the men, and among the women?`,
+    t`For (c), which group does the condition restrict to, and what share of it smokes?`,
+  ],
+  nudge: t`Not quite. Fill in the table of ${100} people first; each answer is then a count over a count.`,
   solution: [
     t`(a) Women and smokers: ${smokeCounts[2]} of ${100}, ${q(smokeCounts[2], 100)}.`,
     t`(b) Non-smokers: ${math`${smokeCounts[1]} + ${smokeCounts[3]} = ${smokeCounts[1] + smokeCounts[3]}`} of ${100}, ${q(smokeCounts[1] + smokeCounts[3], 100)}.`,
     t`(c) Among the ${60} women, ${smokeCounts[2]} smoke: ${q(smokeCounts[2], 60)}, which is the given ${30}%.`,
+    t`Count a population: every probability becomes a count over a count.`,
   ],
   reference: [`${smokeCounts[2]}/${100}`, str(q(smokeCounts[1] + smokeCounts[3], 100)), str(q(smokeCounts[2], 60))],
   verify: () => same('A6 Q4(i)(a) to (c) by counting', [q(smokeCounts[2], 100), q(smokeCounts[1] + smokeCounts[3], 100), q(smokeCounts[2], 60)].map(str).join(), '9/50,31/50,3/10'),
@@ -274,10 +288,17 @@ const a6ii = auto({
   title: t`How worried should you be?`,
   prompt: t`The disease "Mathmotitus" affects ${0.1}% of the population. There is a blood test that gives the correct result in ${99}% of people who do have the disease and ${98}% of people who do not have the disease. You have just tested positive. What is the probability that you have the disease? Give it as a fraction.`,
   answer: { kind: 'exact', expected: str(reverse(MATH_D, pct(99), pct(2))) },
+  hints: [
+    t`Out of ${100000} people, how many have the disease, and how many do not?`,
+    t`How many in each of those two groups test positive?`,
+    t`Among everyone who tests positive, what fraction has the disease?`,
+  ],
+  nudge: t`Not quite. Count a large population, such as ${100000} people, and split the positives into true and false ones.`,
   solution: [
     t`Take ${100000} people, as the hints do: ${MC[0] + MC[1]} have the disease and ${MC[2] + MC[3]} do not.`,
     t`Of the ${MC[0] + MC[1]}, ${99}% test positive: ${MC[0]}. Of the ${MC[2] + MC[3]}, ${2}% test positive: ${MC[2]}, the false positives.`,
     t`So ${math`${MC[0]} + ${MC[2]} = ${MC[0] + MC[2]}`} test positive, and ${MC[0]} of them have the disease: ${math`\frac{${MC[0]}}{${MC[0] + MC[2]}} \approx ${MC[0] / (MC[0] + MC[2])}`}. Under ${5}%, although the test looks very accurate.`,
+    t`With a rare condition, false positives from the large healthy group dominate.`,
   ],
   reference: '99/2097',
   verify: () => {
@@ -296,6 +317,11 @@ const a6discussion = supervision({
   source: cite(A6, 'Q4, Discussion', true),
   title: t`Which probability matters?`,
   prompt: t`For the blood test above, explain the difference between ${math`P(\text{positive} \mid \text{disease})`} and ${math`P(\text{disease} \mid \text{positive})`}, and which one matters to a patient who has just tested positive. Then explain, in the same terms, why a court must consider ${math`P(\text{innocent} \mid \text{matching DNA evidence})`} rather than ${math`P(\text{matching DNA evidence} \mid \text{innocent})`}: the prosecutor's fallacy.`,
+  hints: [
+    t`For the blood test, which of the two conditional probabilities measures the test's accuracy, and which answers the patient's question?`,
+    t`Why can ${math`P(\text{disease} \mid \text{positive})`} be small even when ${math`P(\text{positive} \mid \text{disease})`} is large?`,
+    t`In court, which event plays the part of the disease and which the positive test, and which probability bears on guilt?`,
+  ],
   writeUp: 'explanation',
   official: cite('step-f06-hints', 'Q4(ii)'),
 });

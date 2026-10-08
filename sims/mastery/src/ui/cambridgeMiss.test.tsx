@@ -113,7 +113,9 @@ describe('a missed single-answer Cambridge problem', () => {
   });
 
   it('without a nudge of its own, the miss shows a neutral generic line', async () => {
-    show({ ...gate });
+    // The content's own nudge is dropped: this is about a problem written without one.
+    const { nudge: _own, ...bare } = gate;
+    show(bare);
     answer(WRONG);
     expect(head()).toBe('Not right yet');
     expect(document.querySelector('.result-block')?.textContent).toContain(GENERIC_NUDGE);

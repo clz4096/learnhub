@@ -172,11 +172,18 @@ const a11q3i = auto({
   source: cite('step-f11', 'Q3(i) (2013 STEP I Q1)'),
   title: t`A substitution for the root`,
   prompt: t`Use the substitution ${math`\sqrt{x} = y`}, where ${math`y \ge ${0}`}, to find the real root of ${math`x + ${3}\sqrt{x} - \frac{${1}}{${2}} = ${0}`}. (Type a square root as sqrt.)`,
+  nudge: t`Not quite. Solve for ${math`y = \sqrt{x}`} first, keep only the allowed root, then square.`,
+  hints: [
+    t`With ${math`\sqrt{x} = y`}, what quadratic in ${math`y`} results?`,
+    t`Which root of that quadratic satisfies ${math`y \ge ${0}`}?`,
+    t`What is ${math`x = y^{${2}}`}, simplified?`,
+  ],
   answer: { kind: 'expression', expected: '(10 - 3sqrt(11))/2', variables: [] },
   solution: [
     t`${math`y^{${2}} + ${3}y - \frac{${1}}{${2}} = ${0}`}, so ${math`y = \frac{-${3} \pm \sqrt{${9} + ${2}}}{${2}} = \frac{-${3} \pm \sqrt{${11}}}{${2}}`}.`,
     t`${math`y \ge ${0}`}, and ${math`\sqrt{${11}} > ${3}`}, so ${math`y = \frac{\sqrt{${11}} - ${3}}{${2}}`}; the other root is negative.`,
     t`${math`x = y^{${2}} = \frac{${11} - ${6}\sqrt{${11}} + ${9}}{${4}} = \frac{${10} - ${3}\sqrt{${11}}}{${2}}`}.`,
+    t`Substitute for the root, solve, keep the allowed sign, then undo the substitution.`,
   ],
   reference: '(10 - 3sqrt(11))/2',
   verify: () => { const x = (10 - 3 * Math.sqrt(11)) / 2; return x > 0 && near(x + 3 * Math.sqrt(x), 0.5) ? null : 'does not satisfy the equation'; },
@@ -189,10 +196,17 @@ const a11q3iia = auto({
   source: cite('step-f11', 'Q3(ii)(a) (2013 STEP I Q1)'),
   title: t`A root of ${math`x + ${2}`}`,
   prompt: t`Find all real roots of ${math`x + ${10}\sqrt{x + ${2}} - ${22} = ${0}`}.`,
+  nudge: t`Not quite. Substitute for the square root and reject the impossible value.`,
+  hints: [
+    t`With ${math`y = \sqrt{x + ${2}}`}, what is ${math`x`} in terms of ${math`y`}, and what quadratic in ${math`y`} results?`,
+    t`Which root of that quadratic is allowed, given ${math`y \ge ${0}`}?`,
+    t`What is ${math`x`} for that ${math`y`}, and does it satisfy the original equation?`,
+  ],
   answer: { kind: 'exact', expected: '2' },
   solution: [
     t`Put ${math`y = \sqrt{x + ${2}}`}, so ${math`x = y^{${2}} - ${2}`} and ${math`y \ge ${0}`}: ${math`y^{${2}} + ${10}y - ${24} = (y + ${12})(y - ${2}) = ${0}`}.`,
     t`${math`y = -${12}`} is impossible, so ${math`y = ${2}`} and ${math`x = ${4} - ${2} = ${2}`}. Check: ${math`${2} + ${10} \times ${2} - ${22} = ${0}`}.`,
+    t`A square root is never negative; reject the root that would need it to be.`,
   ],
   reference: '2',
   verify: () => (near(2 + 10 * Math.sqrt(4) - 22, 0) ? null : 'x = 2 fails'),
@@ -204,11 +218,18 @@ const a11q3iib = auto({
   source: cite('step-f11', 'Q3(ii)(b) (2013 STEP I Q1)'),
   title: t`A root of a quadratic expression`,
   prompt: t`Find all real roots of ${math`x^{${2}} - ${4}x + \sqrt{${2}x^{${2}} - ${8}x - ${3}} - ${9} = ${0}`}, and give the larger. (Type a square root as sqrt.)`,
+  nudge: t`Not quite. Write ${math`x^{${2}} - ${4}x`} through the expression under the root, then substitute.`,
+  hints: [
+    t`With ${math`y = \sqrt{${2}x^{${2}} - ${8}x - ${3}}`}, how is ${math`x^{${2}} - ${4}x`} written in terms of ${math`y`}?`,
+    t`What quadratic in ${math`y`} results, and which of its roots is allowed?`,
+    t`With ${math`y`} known, what quadratic in ${math`x`} results, and do both its roots satisfy the original equation?`,
+  ],
   answer: { kind: 'expression', expected: '2 + sqrt(10)', variables: [] },
   solution: [
     t`Put ${math`y = \sqrt{${2}x^{${2}} - ${8}x - ${3}}`}, so ${math`x^{${2}} - ${4}x = \frac{y^{${2}} + ${3}}{${2}}`}. The equation becomes ${math`\frac{y^{${2}} + ${3}}{${2}} + y - ${9} = ${0}`}, that is ${math`y^{${2}} + ${2}y - ${15} = (y + ${5})(y - ${3}) = ${0}`}.`,
     t`${math`y \ge ${0}`}, so ${math`y = ${3}`}: ${math`${2}x^{${2}} - ${8}x - ${3} = ${9}`}, so ${math`x^{${2}} - ${4}x - ${6} = ${0}`} and ${math`x = ${2} \pm \sqrt{${10}}`}.`,
     t`Both check: there ${math`x^{${2}} - ${4}x = ${6}`} and the root is ${3}, so ${math`${6} + ${3} - ${9} = ${0}`}. The larger is ${math`${2} + \sqrt{${10}}`}.`,
+    t`Spot the expression under the root elsewhere in the equation, and substitute for it.`,
   ],
   reference: '2 + sqrt(10)',
   verify: () => {
@@ -223,6 +244,11 @@ const step2013 = supervision({
   source: cite('step-f11', 'Q3 (2013 STEP I Q1)'),
   title: t`Three equations with square roots`,
   prompt: t`(i) Use the substitution ${math`\sqrt{x} = y`} (where ${math`y \ge ${0}`}) to find the real root of ${math`x + ${3}\sqrt{x} - \frac{${1}}{${2}} = ${0}`}. (ii) Find all real roots of the following equations: (a) ${math`x + ${10}\sqrt{x + ${2}} - ${22} = ${0}`}; (b) ${math`x^{${2}} - ${4}x + \sqrt{${2}x^{${2}} - ${8}x - ${3}} - ${9} = ${0}`}.`,
+  hints: [
+    t`For (i), with ${math`\sqrt{x} = y`}, what quadratic in ${math`y`} results, and which root is allowed?`,
+    t`For (a), which substitution turns the equation into a quadratic in a square root, and which root is rejected?`,
+    t`For (b), how can ${math`x^{${2}} - ${4}x`} be expressed through the expression under the root, and does each candidate ${math`x`} check?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f11-hints', 'Q3'),
 });

@@ -226,7 +226,17 @@ const q4e = auto({
   title: t`The addition rule with numbers`,
   prompt: t`Q${4}(e) proves ${math`\mathbb{P}(A_{${1}} \cup A_{${2}}) = \mathbb{P}(A_{${1}}) + \mathbb{P}(A_{${2}}) - \mathbb{P}(A_{${1}} \cap A_{${2}})`}. If ${math`\mathbb{P}(A_{${1}}) = ${Q4A}`}, ${math`\mathbb{P}(A_{${2}}) = ${Q4B}`}, and ${math`\mathbb{P}(A_{${1}} \cup A_{${2}}) = ${Q4U}`}, what is ${math`\mathbb{P}(A_{${1}} \cap A_{${2}})`}?`,
   answer: { kind: 'exact', expected: str(sub(add(Q4A, Q4B), Q4U)) },
-  solution: [t`Rearrange: ${math`\mathbb{P}(A_{${1}} \cap A_{${2}}) = ${Q4A} + ${Q4B} - ${Q4U} = ${sub(add(Q4A, Q4B), Q4U)}`}.`],
+  hints: [
+    t`Which quantity in the addition rule is the unknown here?`,
+    t`How does the addition rule rearrange to give ${math`\mathbb{P}(A_{${1}} \cap A_{${2}})`} on its own?`,
+    t`What are the three given values over a common denominator?`,
+  ],
+  nudge: t`Not quite. The events need not be independent; rearrange the addition rule instead.`,
+  solution: [
+    t`Rearrange the addition rule: ${math`\mathbb{P}(A_{${1}} \cap A_{${2}}) = \mathbb{P}(A_{${1}}) + \mathbb{P}(A_{${2}}) - \mathbb{P}(A_{${1}} \cup A_{${2}})`}.`,
+    t`${math`= ${Q4A} + ${Q4B} - ${Q4U} = ${sub(add(Q4A, Q4B), Q4U)}`}.`,
+    t`The addition rule holds for any two events; rearrange it for the overlap.`,
+  ],
   reference: str(sub(add(Q4A, Q4B), Q4U)),
   verify: () => {
     // A twelve-point model: A1 = {0, ..., 5}, A2 = {5, 6, 7, 8}; the union has 9 of 12 points.
@@ -243,13 +253,23 @@ const q4b = supervision({
   source: cite(S1, 'Q4(b)'),
   title: t`The complement rule`,
   prompt: t`Show, starting from the definitions, that ${math`\mathbb{P}(\varnothing) = ${0}`} and ${math`\mathbb{P}(A_{${1}}^{c}) = ${1} - \mathbb{P}(A_{${1}})`}. Which axioms does each part use?`,
+  hints: [
+    t`Which sequence of pairwise disjoint events has union ${math`\varnothing`}?`,
+    t`What would countable additivity force if ${math`\mathbb{P}(\varnothing)`} were positive?`,
+    t`Which two disjoint events make up ${math`\Omega`}, and what does additivity then give?`,
+  ],
   writeUp: 'proof',
 });
 const q4eproof = supervision({
   id: 'ia-q4-e',
   source: cite(S1, 'Q4(e)'),
   title: t`The addition rule for two events`,
-  prompt: t`Show, starting from the definitions, that ${math`\mathbb{P}(A_{${1}} \cup A_{${2}}) = \mathbb{P}(A_{${1}}) + \mathbb{P}(A_{${2}}) - \mathbb{P}(A_{${1}} \cap A_{${2}})`}. Hint: split ${math`A_{${1}} \cup A_{${2}}`} and ${math`A_{${2}}`} into disjoint pieces.`,
+  prompt: t`Show, starting from the definitions, that ${math`\mathbb{P}(A_{${1}} \cup A_{${2}}) = \mathbb{P}(A_{${1}}) + \mathbb{P}(A_{${2}}) - \mathbb{P}(A_{${1}} \cap A_{${2}})`}.`,
+  hints: [
+    t`How can ${math`A_{${1}} \cup A_{${2}}`} be split into disjoint pieces, one of them ${math`A_{${1}}`}?`,
+    t`How can ${math`A_{${2}}`} be split into disjoint pieces, one of them ${math`A_{${1}} \cap A_{${2}}`}?`,
+    t`What does finite additivity give for each split, and what follows when one equation is subtracted from the other?`,
+  ],
   writeUp: 'proof',
 });
 const boundsProof = supervision({
@@ -257,6 +277,11 @@ const boundsProof = supervision({
   source: cite(S1, 'Q4(d), (e)', true),
   title: t`The Bonferroni bounds for two events`,
   prompt: t`Using only parts (b) to (e), prove that ${math`\max(${0}, \mathbb{P}(A) + \mathbb{P}(B) - ${1}) \le \mathbb{P}(A \cap B) \le \min(\mathbb{P}(A), \mathbb{P}(B))`}, and show by examples on a finite space that both bounds can be attained.`,
+  hints: [
+    t`Which subset relations between ${math`A \cap B`}, ${math`A`}, and ${math`B`} give the upper bound by monotonicity?`,
+    t`Why is ${math`\mathbb{P}(A \cup B) \le ${1}`}, and how does the addition rule turn that into the lower bound?`,
+    t`On a small finite space, such as one roll of a fair die, which pairs of events make each bound an equality?`,
+  ],
   writeUp: 'proof',
 });
 

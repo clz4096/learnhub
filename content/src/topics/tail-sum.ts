@@ -188,10 +188,17 @@ const q2tail = auto({
   source: cite(MIX, 'Q2'),
   title: t`The penguins: at least four boxes`,
   prompt: t`With the penguins as in the worked example (daddy with probability ${math`p`}, mummy with ${math`q = ${1} - p`}), find ${math`P(X \ge ${4})`} in terms of ${math`p`}.`,
+  nudge: t`Not quite. Decide which first boxes force at least four boxes.`,
+  hints: [
+    t`If ${math`X \ge ${4}`}, what must be true of the first three boxes?`,
+    t`In which ways can the first three boxes all be the same, and with what probabilities?`,
+    t`Does the fourth box matter to the event ${math`X \ge ${4}`}?`,
+  ],
   answer: { kind: 'expression', expected: 'p^3 + (1 - p)^3', variables: ['p'], domains: P_DOM },
   solution: [
     t`At least four boxes are needed exactly when the first three hold only one kind: all daddies, ${math`p^{${3}}`}, or all mummies, ${math`q^{${3}}`}.`,
     t`${math`P(X \ge ${4}) = p^{${3}} + q^{${3}} = p^{${3}} + (${1} - p)^{${3}}`}.`,
+    t`Translate a tail event into what the first few trials must look like.`,
   ],
   reference: 'p^3 + (1 - p)^3',
   verify: () => {
@@ -210,10 +217,17 @@ const q2min = auto({
   source: cite(MIX, 'Q2'),
   title: t`The penguins: the least possible mean`,
   prompt: t`For the penguins, ${math`E(X) = \frac{${1}}{pq} - ${1}`} with ${math`p + q = ${1}`}. What is the least value ${math`E(X)`} can take, over all ${math`p`} with ${math`${0} < p < ${1}`}?`,
+  nudge: t`Not quite. Make ${math`pq`} as large as possible, subject to ${math`p + q = ${1}`}.`,
+  hints: [
+    t`Which product must be as large as possible to make ${math`E(X)`} small?`,
+    t`Completing the square, what is the greatest value of ${math`p(${1} - p)`}?`,
+    t`What is ${math`E(X)`} at that ${math`p`}?`,
+  ],
   answer: { kind: 'exact', expected: '3' },
   solution: [
     t`${math`E(X)`} is least when ${math`pq = p(${1} - p)`} is greatest. Completing the square, ${math`p(${1} - p) = \frac{${1}}{${4}} - \left(p - \frac{${1}}{${2}}\right)^{${2}} \le \frac{${1}}{${4}}`}, with equality at ${math`p = \frac{${1}}{${2}}`}.`,
-    t`So ${math`E(X) \ge ${4} - ${1} = ${3}`}, the value at ${math`p = \frac{${1}}{${2}}`}: ${math`E(X) \ge ${3}`}, as the question asks you to show.`,
+    t`So ${math`E(X) \ge ${4} - ${1} = ${3}`}, the value at ${math`p = \frac{${1}}{${2}}`}: ${math`E(X) \ge ${3}`}, as the question states.`,
+    t`Minimise a reciprocal by maximising what is underneath.`,
   ],
   reference: '3',
   verify: () => {
@@ -230,7 +244,12 @@ const q2proof = supervision({
   id: 'mixed-q2-proof',
   source: cite(MIX, 'Q2'),
   title: t`Define ${math`E(X)`} and prove the tail-sum formula`,
-  prompt: t`A discrete random variable ${math`X`} takes only positive integer values. Define ${math`E(X)`}, and show that ${math`E(X) = \sum_{n = ${1}}^{\infty} P(X \ge n)`}. The discussion suggests writing ${math`${3} \times P(X = ${3})`} as ${math`P(X = ${3}) + P(X = ${3}) + P(X = ${3})`}. Say why rearranging the terms of the sum is allowed here.`,
+  prompt: t`A discrete random variable ${math`X`} takes only positive integer values. Define ${math`E(X)`}, and show that ${math`E(X) = \sum_{n = ${1}}^{\infty} P(X \ge n)`}. The discussion suggests writing ${math`${3} \times P(X = ${3})`} as ${math`P(X = ${3}) + P(X = ${3}) + P(X = ${3})`}. State why rearranging the terms of the sum is allowed here.`,
+  hints: [
+    t`What is ${math`E(X)`} for a variable on the positive integers, written as a sum?`,
+    t`Writing ${math`nP(X = n)`} as ${math`n`} copies of ${math`P(X = n)`}, which terms collect into ${math`P(X \ge ${1})`}, ${math`P(X \ge ${2})`}, and so on?`,
+    t`Why does rearranging a series of non-negative terms leave its sum unchanged?`,
+  ],
   writeUp: 'proof',
   official: cite(MIXS, 'Q2'),
 });

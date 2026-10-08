@@ -226,9 +226,16 @@ const c1ii = auto({
   title: t`The roots of ${math`z^{${2}} - ${2}z + ${2} = ${0}`}, and their modulus`,
   prompt: t`Find the roots of ${math`z^{${2}} - ${2}z + ${2} = ${0}`}, and determine the modulus and argument of each. Enter the modulus (the same for both roots). Write square roots as sqrt.`,
   answer: { kind: 'expression', expected: 'sqrt(2)', variables: [] },
+  hints: [
+    t`What is the discriminant of ${math`z^{${2}} - ${2}z + ${2}`}?`,
+    t`What are the two roots, written as ${math`x + iy`}?`,
+    t`What is ${math`|x + iy|`} for those roots?`,
+  ],
+  nudge: t`Not quite. Find the roots with the quadratic formula, then use ${math`|x + iy| = \sqrt{x^{${2}} + y^{${2}}}`}.`,
   solution: [
     t`The discriminant is ${math`${4} - ${8} = -${4}`}, so ${math`z = \frac{${2} \pm ${2}i}{${2}} = ${1} \pm i`}.`,
     t`${math`|${1} \pm i| = \sqrt{${1} + ${1}} = \sqrt{${2}}`}. The arguments are ${math`\pm\frac{\pi}{${4}}`}: ${math`${1} + i`} is on the diagonal of the first quadrant, ${math`${1} - i`} its mirror image.`,
+    t`The modulus is ${math`\sqrt{x^{${2}} + y^{${2}}}`}: keep the square root.`,
   ],
   reference: 'sqrt(2)',
   verify: () => {
@@ -246,10 +253,16 @@ const a2iv = auto({
   title: t`${math`x^{${4}} + ${1}`} as a product of two quadratics`,
   prompt: t`Simplify ${math`(x^{${2}} - \sqrt{${2}}x + ${1})(x^{${2}} + \sqrt{${2}}x + ${1})`}. Write square roots as sqrt.`,
   answer: { kind: 'expression', expected: 'x^4 + 1', variables: ['x'] },
+  hints: [
+    t`Which expression appears in both brackets?`,
+    t`With each bracket written as ${math`(x^{${2}} + ${1}) \mp \sqrt{${2}}x`}, which identity applies?`,
+    t`What is ${math`(\sqrt{${2}}x)^{${2}}`}?`,
+  ],
+  nudge: t`Not quite. Spot a difference of two squares before expanding term by term.`,
   solution: [
     t`Write it as ${math`\left((x^{${2}} + ${1}) - \sqrt{${2}}x\right)\left((x^{${2}} + ${1}) + \sqrt{${2}}x\right)`}, a difference of two squares.`,
     t`${math`= (x^{${2}} + ${1})^{${2}} - ${2}x^{${2}} = x^{${4}} + ${2}x^{${2}} + ${1} - ${2}x^{${2}} = x^{${4}} + ${1}`}.`,
-    t`So ${math`x^{${4}} + ${1} = ${0}`} splits into ${math`x^{${2}} \pm \sqrt{${2}}x + ${1} = ${0}`}, each with discriminant ${math`${2} - ${4} = -${2}`}: the four roots are ${math`x = \frac{\pm\sqrt{${2}} \pm i\sqrt{${2}}}{${2}}`}.`,
+    t`Group the common part, then use the difference of two squares.`,
   ],
   reference: 'x^4 + 1',
   verify: () => {
@@ -266,6 +279,11 @@ const a14iv = supervision({
   source: cite('step-f14', 'Q1(iv)'),
   title: t`The four values with ${math`x^{${4}} = -${1}`}`,
   prompt: t`Simplify ${math`(x^{${2}} + y^{${2}} - \sqrt{${2}}xy)(x^{${2}} + y^{${2}} + \sqrt{${2}}xy)`}. Use this result to find the four values of ${math`x`} that satisfy ${math`x^{${4}} = -${1}`}, and show that each has modulus ${1}. Mark them on an Argand diagram and say what their arguments are.`,
+  hints: [
+    t`Which difference of two squares does the product become?`,
+    t`With ${math`y = ${1}`}, which two quadratics multiply to ${math`x^{${4}} + ${1}`}, and what are their roots?`,
+    t`What is the modulus of each root, and at which angles to the real axis do they lie?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f14-hints', 'Q1(iv)'),
 });

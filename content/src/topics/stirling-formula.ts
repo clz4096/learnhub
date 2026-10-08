@@ -140,10 +140,17 @@ const q14 = auto({
   source: cite('ia-prob-sheet-1', 'Q14(a)', true),
   title: t`The random walk returns to ${0}`,
   prompt: t`A simple symmetric random walk on ${math`\mathbb{Z}`} starts at ${0}. Question ${14}(a) shows ${math`P(X_{n} = ${0}) \sim \frac{h}{\sqrt{${2}\pi}}`} with ${math`h = ${2} / \sqrt{n}`}, for even ${mn}. Evaluate this approximation for ${math`n = ${N14}`}, to four decimal places.`,
+  nudge: t`Not quite. Substitute ${math`h = ${2} / \sqrt{n}`} with ${math`n = ${N14}`} and keep four decimal places.`,
+  hints: [
+    t`What is ${math`h`} when ${math`n = ${N14}`}?`,
+    t`What is ${math`\sqrt{${2}\pi}`}, to enough places?`,
+    t`What is ${math`h / \sqrt{${2}\pi}`}, rounded to four decimal places?`,
+  ],
   answer: { kind: 'numeric', expected: round(2 / Math.sqrt(N14) / Math.sqrt(2 * Math.PI), 4), absTol: 0.00006, relTol: 0 },
   solution: [
     t`${math`h = ${2} / \sqrt{${N14}} = ${2 / Math.sqrt(N14)}`}, so ${math`h / \sqrt{${2}\pi} \approx ${round(2 / Math.sqrt(N14) / Math.sqrt(2 * Math.PI), 4)}`}.`,
     t`Exactly, ${math`P(X_{${N14}} = ${0}) = \binom{${N14}}{${N14 / 2}} / ${2}^{${N14}} \approx ${round(centralProb(N14 / 2), 4)}`}: the walk returns to ${0} when exactly half the steps go right. Stirling's formula gives ${math`\sqrt{${2} / (\pi n)}`}, the same as ${math`h / \sqrt{${2}\pi}`}.`,
+    t`Evaluate an asymptotic formula by substituting, then compare with the exact value.`,
   ],
   reference: String(round(2 / Math.sqrt(N14) / Math.sqrt(2 * Math.PI), 4)),
   verify: () => same('the two forms of the estimate', (2 / Math.sqrt(N14) / Math.sqrt(2 * Math.PI)).toFixed(6), Math.sqrt(2 / (Math.PI * N14)).toFixed(6)),
@@ -155,6 +162,11 @@ const q3proof = supervision({
   source: cite('ia-prob-sheet-1', 'Q3'),
   title: t`Deriving the deck estimate`,
   prompt: t`Show from Stirling's formula that ${math`\binom{${2}m}{m} \sim \frac{${4}^{m}}{\sqrt{\pi m}}`}, and deduce that the probability in Q${3} is approximately ${math`\frac{${2}}{\sqrt{${26}\pi}}`}. Explain what "${math`\sim`}" claims and what it does not claim about the error for ${math`m = ${13}`}.`,
+  hints: [
+    t`Writing ${math`\frac{(${2}m)!}{(m!)^{${2}}}`} with Stirling's formula for each factorial, which factors cancel?`,
+    t`With ${math`m = ${13}`} and ${math`m = ${26}`}, how do the powers of ${4} cancel in the ratio?`,
+    t`Does ${math`a \sim b`} say that ${math`a - b`} is small, or that ${math`\frac{a}{b} \to ${1}`}?`,
+  ],
   writeUp: 'proof',
 });
 const q14a = supervision({
@@ -162,6 +174,11 @@ const q14a = supervision({
   source: cite('ia-prob-sheet-1', 'Q14(a)'),
   title: t`The local limit at ${0}`,
   prompt: t`Let ${math`(X_{n})`} be a simple symmetric random walk on ${math`\mathbb{Z}`} from ${0}. Show that, for ${math`h = ${2}/\sqrt{n}`}, in the limit ${math`n \to \infty`} with ${mn} even, ${math`P(X_{n} = ${0}) \sim \frac{${1}}{\sqrt{${2}\pi}} h`}.`,
+  hints: [
+    t`For the walk to be at ${0} after ${mn} steps, how many steps go each way, and what is ${math`P(X_{n} = ${0})`} exactly?`,
+    t`What does Stirling's formula give for the central binomial coefficient, with ${math`n = ${2}m`}?`,
+    t`How does the result compare with ${math`\frac{h}{\sqrt{${2}\pi}}`} when ${math`h = ${2}/\sqrt{n}`}?`,
+  ],
   writeUp: 'proof',
 });
 const q14b = supervision({
@@ -169,6 +186,11 @@ const q14b = supervision({
   source: cite('ia-prob-sheet-1', 'Q14(b)'),
   title: t`The local limit everywhere`,
   prompt: t`Show further that for all ${math`x \in \mathbb{R}`}, ${math`P(X_{n}/\sqrt{n} \in [x, x + h)) \sim \frac{${1}}{\sqrt{${2}\pi}} h e^{-x^{${2}}/${2}}`}. Hints: ${math`X_{n}/\sqrt{n}`} takes exactly one value in ${math`[x, x + h)`}; and ${math`(${1} + ${1}/y)^{y} \to e`} as ${math`y \to \pm\infty`}.`,
+  hints: [
+    t`Which value ${math`k`} of ${math`X_{n}`} has ${math`\frac{k}{\sqrt{n}} \in [x, x + h)`}, and how many steps go right for it?`,
+    t`Writing that probability as a multiple of ${math`P(X_{n} = ${0})`}, what product of fractions appears?`,
+    t`Taking logarithms, or using ${math`(${1} + ${1}/y)^{y} \to e`}, what does that product tend to?`,
+  ],
   writeUp: 'proof',
 });
 

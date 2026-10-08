@@ -217,9 +217,16 @@ const q9 = auto({
   title: t`Successes in trials of different difficulty`,
   prompt: t`In a sequence of ${3} independent trials the probabilities of success are ${Q9_PS[0] as Rational}, ${Q9_PS[1] as Rational}, and ${Q9_PS[2] as Rational}. Let ${math`N`} be the total number of successes. Find ${math`\operatorname{var}(N)`}.`,
   answer: { kind: 'exact', expected: str(q9Var) },
+  hints: [
+    t`How can ${math`N`} be written as a sum of indicators?`,
+    t`What is the variance of one indicator with success probability ${math`p`}?`,
+    t`Why may the variances be added here?`,
+  ],
+  nudge: t`Not quite. Write ${math`N`} as a sum of independent indicators and add their variances, not their means.`,
   solution: [
     t`${math`N`} is a sum of independent indicators, so ${math`\mathbb{E}(N) = \sum_{i} p_{i}`} and ${math`\operatorname{var}(N) = \sum_{i} p_{i}(${1} - p_{i})`}.`,
     t`${math`${Q9_PS[0] as Rational} \cdot ${sub(q(1), Q9_PS[0] as Rational)} + ${Q9_PS[1] as Rational} \cdot ${sub(q(1), Q9_PS[1] as Rational)} + ${Q9_PS[2] as Rational} \cdot ${sub(q(1), Q9_PS[2] as Rational)} = ${q9Var}`}.`,
+    t`For independent indicators, the variances add.`,
   ],
   reference: str(q9Var),
   verify: () => same('var(N) over the 8 outcomes', indicatorVariance.at({ ps: Q9_PS }).reference, str(q9Var)),
@@ -238,9 +245,16 @@ const q12a = auto({
   title: t`Covariance of two linear combinations`,
   prompt: t`Let ${math`X_{${1}}, X_{${2}}, X_{${3}}`} be independent with means ${listMu()} and common variance ${math`\sigma^{${2}} = ${SIG2}`}. Let ${computedTex(`Y_{${1}} = ${lin(A12)}`)} and ${computedTex(`Y_{${2}} = ${lin(B12)}`)}. Find ${math`\operatorname{cov}(Y_{${1}}, Y_{${2}})`}.`,
   answer: { kind: 'exact', expected: str(q12aVal) },
+  hints: [
+    t`What is ${math`\operatorname{cov}(X_{i}, X_{j})`} when ${math`i = j`}, and when ${math`i \ne j`}?`,
+    t`Expanding ${math`\operatorname{cov}(Y_{${1}}, Y_{${2}})`} by bilinearity, which terms survive?`,
+    t`Do the means ${math`\mu_{i}`} affect the covariance?`,
+  ],
+  nudge: t`Not quite. Expand by bilinearity; independence removes every cross term, and the means play no part.`,
   solution: [
     t`Covariance is bilinear, and ${math`\operatorname{cov}(X_{i}, X_{j})`} is ${math`\sigma^{${2}}`} when ${math`i = j`} and ${0} otherwise, by independence. The means do not matter.`,
     t`So ${math`\operatorname{cov}(Y_{${1}}, Y_{${2}}) = \sigma^{${2}} \sum_{i} a_{i} b_{i}`} ${computedTex(`= ${SIG2.num} \\cdot (${A12.map((a, i) => `${a < 0 ? `(${a})` : a} \\cdot ${(B12[i] as number) < 0 ? `(${B12[i] as number})` : B12[i] as number}`).join(' + ')})`)} ${math`= ${q12aVal}`}.`,
+    t`Covariance is bilinear; independence removes the cross terms.`,
   ],
   reference: str(q12aVal),
   verify: () => {
@@ -269,6 +283,11 @@ const q12aProof = supervision({
   source: cite(S4, 'Q12(a)'),
   title: t`Bilinearity of covariance`,
   prompt: t`Let ${math`X_{${1}}, \ldots, X_{n}`} be independent with ${math`\mathbb{E}(X_{i}) = \mu_{i}`} and ${math`\operatorname{var}(X_{i}) = \sigma^{${2}} < \infty`}, and let ${math`Y_{${1}} = \sum_{i} a_{i} X_{i}`}, ${math`Y_{${2}} = \sum_{i} b_{i} X_{i}`}. Show that ${math`\operatorname{cov}(Y_{${1}}, Y_{${2}}) = \sigma^{${2}} \sum_{i = ${1}}^{n} a_{i} b_{i}`}. Where is independence used, and what is the answer without it?`,
+  hints: [
+    t`What is ${math`\operatorname{cov}(X_{i}, X_{j})`} for ${math`i \ne j`}, and for ${math`i = j`}?`,
+    t`How does bilinearity expand ${math`\operatorname{cov}\left(\sum_{i} a_{i}X_{i}, \sum_{j} b_{j}X_{j}\right)`}?`,
+    t`Without independence, which extra terms remain?`,
+  ],
   writeUp: 'proof',
 });
 const q9proof = supervision({
@@ -276,6 +295,11 @@ const q9proof = supervision({
   source: cite(S2, 'Q9'),
   title: t`Mean and variance of a count of successes`,
   prompt: t`In a sequence of ${math`n`} independent trials the probability of a success at trial ${math`i`} is ${math`p_{i}`}, and ${math`N`} is the total number of successes. Find ${math`\mathbb{E}(N)`} and ${math`\operatorname{var}(N)`}. For a fixed mean ${math`\sum_{i} p_{i}`}, which choice of the ${math`p_{i}`} makes the variance largest?`,
+  hints: [
+    t`How is ${math`N`} a sum of indicators, and what are the mean and variance of each?`,
+    t`Why do the variances add?`,
+    t`For a fixed sum of the ${math`p_{i}`}, which choice makes ${math`\sum_{i} p_{i}^{${2}}`} smallest, and which inequality shows it?`,
+  ],
   writeUp: 'proof',
 });
 const scheduleCorrelation = supervision({
@@ -283,6 +307,11 @@ const scheduleCorrelation = supervision({
   source: cite('tripos-schedules', 'IA Probability, Continuous random variables: "Correlation coefficient"', true),
   title: t`The correlation coefficient lies in ${math`[-${1}, ${1}]`}`,
   prompt: t`For random variables with positive finite variances, define ${math`\rho(X, Y) = \operatorname{cov}(X, Y)/\sqrt{\operatorname{var}(X)\operatorname{var}(Y)}`}. By considering ${math`\operatorname{var}(tX + Y) \ge ${0}`} for every real ${math`t`}, prove that ${math`|\rho| \le ${1}`}, and that ${math`|\rho| = ${1}`} exactly when ${math`Y = aX + b`} with probability ${1} for some constants ${math`a \ne ${0}`} and ${math`b`}.`,
+  hints: [
+    t`What is ${math`\operatorname{var}(tX + Y)`} as a quadratic in ${math`t`}?`,
+    t`What does a quadratic that is never negative say about its discriminant?`,
+    t`When the discriminant is ${0}, what does ${math`\operatorname{var}(tX + Y) = ${0}`} at the double root say about ${math`tX + Y`}?`,
+  ],
   writeUp: 'proof',
 });
 

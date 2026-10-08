@@ -214,7 +214,7 @@ function modelCheck<M>(models: readonly M[], stmt: (m: M) => boolean, options: R
   return null;
 }
 
-function negChoice(o: { id: string; at: string; doc?: 'bop' | 'tmua-logic-proof' | 'cst-dm-sw1'; title: Rich; prompt: Rich; options: readonly [Rich, Rich, Rich, Rich]; steps: Rich[]; verify: () => string | null; official?: { doc: 'bop' | 'tmua-logic-proof' | 'cst-dm-sols-2324-1'; at: string }; why: readonly [Rich, Rich, Rich] }): AutoProblem {
+function negChoice(o: { id: string; at: string; doc?: 'bop' | 'tmua-logic-proof' | 'cst-dm-sw1'; title: Rich; prompt: Rich; options: readonly [Rich, Rich, Rich, Rich]; steps: Rich[]; verify: () => string | null; official?: { doc: 'bop' | 'tmua-logic-proof' | 'cst-dm-sols-2324-1'; at: string }; why: readonly [Rich, Rich, Rich]; hints?: readonly Rich[]; nudge?: Rich }): AutoProblem {
   const spec: Parameters<typeof auto>[0] = {
     id: o.id,
     source: cite(o.doc ?? 'bop', o.at, true),
@@ -231,6 +231,8 @@ function negChoice(o: { id: string; at: string; doc?: 'bop' | 'tmua-logic-proof'
     ],
   };
   if (o.official !== undefined) spec.official = { source: cite(o.official.doc, o.official.at), answer: 'right', agrees: true };
+  if (o.hints !== undefined) spec.hints = o.hints;
+  if (o.nudge !== undefined) spec.nudge = o.nudge;
   return auto(spec);
 }
 
@@ -280,6 +282,7 @@ const bop7 = negChoice({
   steps: [
     t`The sentence is "for every thing ${mx}, if ${mx} has a face, then I don't eat ${mx}". Its negation: there is a thing with a face that I eat.`,
     t`Book of Proof's solution adds that "I will eat anything that has a face" is wrong, "both morally and mathematically": it is far stronger than the negation.`,
+    t`The negation of "every P is Q" is "some P is not Q": one counterexample, no more.`,
   ],
   verify: () => {
     // Every model with three things, each with or without a face and eaten or not.
@@ -293,6 +296,12 @@ const bop7 = negChoice({
   },
   why: [t`That says I eat every thing with a face; denying the original needs only one.`, t`That does not deny the original: the original already says I eat none of them.`, t`Things without a face say nothing about the original.`],
   official: { doc: 'bop', at: 'Solutions, Section 2.10, exercise 7' },
+  nudge: t`Not quite. Write the sentence with its hidden "for every thing, if it has a face" first, then negate.`,
+  hints: [
+    t`Which hidden quantifier and which "if ... then" does the sentence contain?`,
+    t`What is the negation of "for every ${mx}, if ${math`P(x)`} then ${math`Q(x)`}"?`,
+    t`Does denying the original need every thing with a face, or just one?`,
+  ],
 });
 
 const bop11 = negChoice({
@@ -303,6 +312,7 @@ const bop11 = negChoice({
   steps: [
     t`It is ${math`\forall x\ \forall y.\ \text{you can fool } x \text{ at time } y`}. Negating swaps both quantifiers: ${math`\exists x\ \exists y.\ \text{you cannot fool } x \text{ at time } y`}.`,
     t`In words: there is a person you can't fool all the time. (Lincoln said it better.)`,
+    t`Negation swaps every quantifier: "for all, for all" becomes "there is, there is".`,
   ],
   verify: () => {
     // Every model with two people and two times.
@@ -316,6 +326,12 @@ const bop11 = negChoice({
   },
   why: [t`That says every person is never fooled, much stronger than the negation.`, t`That is consistent with the original. The negation needs a person who escapes being fooled at some time.`, t`That is another true-or-false statement about the same people, but it can hold together with the original.`],
   official: { doc: 'bop', at: 'Solutions, Section 2.10, exercise 11' },
+  nudge: t`Not quite. Two "for all" quantifiers are hidden here, one over people and one over times; both must change.`,
+  hints: [
+    t`Which two quantifiers are hidden in "all of the people all of the time"?`,
+    t`What does negating "for all ${mx}, for all ${my}" give?`,
+    t`Does the negation need a person who is never fooled, or only one who escapes at some time?`,
+  ],
 });
 
 const S1 = 6;
@@ -332,6 +348,7 @@ const tmuaN1 = negChoice({
   steps: [
     t`${mN1} says it is not the case that ${math`x^{${2}} > ${S1}`} for all real ${mx}: so there is some ${mx} for which ${math`x^{${2}} > ${S1}`} is not the case, that is, ${math`x^{${2}} \le ${S1}`}.`,
     t`${mS1} is false (try ${math`x = ${2}`}), so ${mN1} is true.`,
+    t`The negation of ${math`>`} is ${math`\le`}, not ${math`<`}.`,
   ],
   verify: () => {
     // On grids of reals, as finite models, including x^2 = 6 exactly (x = √6 is irrational, so use sets with and without that value).
@@ -347,6 +364,12 @@ const tmuaN1 = negChoice({
   },
   why: [t`"There exists" is right, but the inequality must be negated too.`, t`"Not for all" is "there exists ... not", not "for all ... not".`, t`The negation of ${math`x^{${2}} > ${S1}`} is ${math`x^{${2}} \le ${S1}`}: it includes equality.`],
   official: { doc: 'tmua-logic-proof', at: 'page 62, N1newest' },
+  nudge: t`Not quite. Both the quantifier and the inequality must change, and the opposite of ${math`>`} includes equality.`,
+  hints: [
+    t`What does "not for all ${mx}" become?`,
+    t`What is the negation of ${math`x^{${2}} > ${S1}`}?`,
+    t`Is equality included in that negation?`,
+  ],
 });
 
 const sw115neg = negChoice({
@@ -362,6 +385,7 @@ const sw115neg = negChoice({
   steps: [
     t`Push the "not" through the three quantifiers: ${math`\forall x\ \forall y\ \exists z`} becomes ${math`\exists x\ \exists y\ \forall z`}, and the equation becomes ${math`x + z \ne y - z`}.`,
     t`In words: there are integers ${mx} and ${my} for which there is no integer ${math`z`} with ${math`x + z = y - z`}. The official solution proves exactly this, with ${math`x = ${0}`} and ${math`y = ${1}`}.`,
+    t`Push the negation through one quantifier at a time, then negate what is left.`,
   ],
   verify: () => {
     // Models: x and y from small ranges, z over a range wide enough to contain every solution.
@@ -376,6 +400,12 @@ const sw115neg = negChoice({
   },
   why: [t`The quantifiers are swapped, but the equation is not negated.`, t`"For all ${mx} and ${my}" must become "there are ${mx} and ${my}", and "there is ${math`z`}" must become "for every ${math`z`}".`, t`"There is an integer ${math`z`}" must become "for every integer ${math`z`}" too: every quantifier swaps.`],
   official: { doc: 'cst-dm-sols-2324-1', at: '1.1.5' },
+  nudge: t`Not quite. Every quantifier swaps, and the equation itself is negated.`,
+  hints: [
+    t`How many quantifiers does the statement have, and in what order?`,
+    t`What does each quantifier become when the negation is pushed past it?`,
+    t`What happens to the equation ${math`x + z = y - z`} at the end?`,
+  ],
 });
 
 const sw115 = auto({
@@ -394,6 +424,7 @@ const sw115 = auto({
   solution: [
     t`The negation is ${math`\exists x\ \exists y\ \forall z.\ x + z \ne y - z`}: find ${mx} and ${my} that no ${math`z`} fits.`,
     t`${math`x + z = y - z`} means ${math`${2}z = y - x`}, which has an integer solution exactly when ${math`y - x`} is even. So take ${math`y - x`} odd: ${math`x = ${0}`}, ${math`y = ${1}`}, where ${math`z = \frac{${1}}{${2}}`} is not an integer.`,
+    t`Rearrange to see exactly when a solution exists; any case outside that is a counterexample.`,
   ],
   reference: 'x = 0, y = 1',
   verify: () => {
@@ -407,6 +438,12 @@ const sw115 = auto({
   },
   misconceptions: [{ response: 'x = 0, y = 2', why: t`With ${math`y - x`} even there is an integer ${math`z`}: here ${math`z = ${1}`}. Choose ${mx} and ${my} so that ${math`y - x`} is odd.` }],
   official: { source: cite('cst-dm-sols-2324-1', '1.1.5'), answer: 'x = 0, y = 1', agrees: true },
+  nudge: t`Not quite. Rearranging ${math`x + z = y - z`} shows exactly which pairs ${mx}, ${my} allow an integer ${math`z`}.`,
+  hints: [
+    t`What does ${math`x + z = y - z`} become when solved for ${math`${2}z`}?`,
+    t`For which ${mx} and ${my} is there an integer ${math`z`} with ${math`${2}z = y - x`}?`,
+    t`Which pair of small integers makes ${math`y - x`} fail that condition?`,
+  ],
 });
 
 const sw115proof = supervision({
@@ -416,6 +453,11 @@ const sw115proof = supervision({
   prompt: t`Prove that it is not the case that for all integers ${mx} and ${my} there is an integer ${math`z`} with ${math`x + z = y - z`}. Write the negation first, then prove it. Explain why "let ${math`x = ${0}`}, ${math`y = ${1}`}; then ${math`z = \frac{${1}}{${2}}`}, which is not an integer" is not yet a proof.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.1.5'),
+  hints: [
+    t`What is the negation, with all three quantifiers moved past the "not"?`,
+    t`What does ${math`x + z = y - z`} say about the parity of ${math`y - x`}?`,
+    t`Why does finding ${math`z = \frac{${1}}{${2}}`} not yet show that no integer ${math`z`} works, and which argument covers every integer ${math`z`} at once?`,
+  ],
 });
 const bop5 = supervision({
   id: 'bop-2-10-5',
@@ -424,6 +466,11 @@ const bop5 = supervision({
   prompt: t`Negate: "For every positive number ${math`\varepsilon`} there is a positive number ${math`M`} for which ${math`|f(x) - b| < \varepsilon`} whenever ${math`x > M`}." First write it in symbols, then push the negation through each quantifier and the "whenever", and finally write the negation in words.`,
   writeUp: 'explanation',
   official: cite('bop', 'Solutions, Section 2.10, exercise 5'),
+  hints: [
+    t`In symbols, which quantifiers appear, and how is "whenever ${math`x > M`}" a hidden "for every ${mx}, if ${math`x > M`} then"?`,
+    t`What does each quantifier become under negation, and what is the negation of "if P then Q"?`,
+    t`What is the negation of ${math`|f(x) - b| < \varepsilon`}?`,
+  ],
 });
 const bop12 = supervision({
   id: 'bop-2-10-12',
@@ -431,6 +478,11 @@ const bop12 = supervision({
   title: t`Two evils`,
   prompt: t`Negate: "Whenever I have to choose between two evils, I choose the one I haven't tried yet." (Mae West.) Say what the hidden quantifier is, and explain each step of the negation.`,
   writeUp: 'explanation',
+  hints: [
+    t`Over what does "whenever" range, and which quantifier is it?`,
+    t`What is the negation of "for every choice between two evils, the untried one is chosen"?`,
+    t`What is the negation of "I choose the one I haven't tried yet"?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
@@ -451,6 +503,11 @@ const ns1q5 = supervision({
   title: t`Two negations from the first IA sheet`,
   prompt: t`Write down the negation of the following assertions (where ${math`m, n, a, b \in \mathbb{N}`}): (i) ${math`\forall m\, \exists n\, \forall a\, \forall b\ (n \ge m) \land [(a = ${1}) \lor (b = ${1}) \lor (ab \ne n)]`}; (ii) if Bumrah is not a faster bowler than Tait, then Australia is worse than England in cricket.`,
   writeUp: 'explanation',
+  hints: [
+    t`In (i), what does each of the quantifiers ${math`\forall m\, \exists n\, \forall a\, \forall b`} become under negation?`,
+    t`What is the negation of a conjunction, and of a disjunction of three statements?`,
+    t`In (ii), what is the negation of "if P then Q"?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

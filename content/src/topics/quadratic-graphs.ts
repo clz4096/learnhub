@@ -219,11 +219,18 @@ const a2q2iv = auto({
   solution: [
     t`The vertex ${math`x = ${1}`} is inside the range, so the least value is ${0}.`,
     t`The greatest is at the end farther from ${1}: ${math`x = -${2}`}, giving ${math`(-${3})^{${2}} = ${9}`}.`,
+    t`On an interval, the least value is at the vertex when it lies inside, and the greatest is at the farther end.`,
   ],
   reference: 'g = 9, l = 0',
   verify: () => same('grid extremes', key(gridExtremes([1, -2, 1], -2, 2)), '9,0'),
   misconceptions: [{ response: 'g = 9, l = 1', why: t`The least is at the vertex ${math`x = ${1}`}, inside the range, where the value is ${0}, not at the end ${math`x = ${2}`}.` }],
   official: { source: cite(F02H, 'Q2(iv)'), answer: 'g = 9, l = 0', agrees: true },
+  nudge: t`Not quite. The vertex lies inside the range, so the least value is there, not at an end.`,
+  hints: [
+    t`Where is the vertex of ${math`y = (x - ${1})^{${2}}`}, and is it inside the range?`,
+    t`What is the value at the vertex?`,
+    t`Which end of the range is farther from the vertex, and what is the value there?`,
+  ],
 });
 
 const a2q2v = auto({
@@ -235,11 +242,18 @@ const a2q2v = auto({
   solution: [
     t`The vertex ${math`x = ${3}`} is outside the range, and the curve falls all the way from ${math`x = -${2}`} to ${math`x = ${2}`}.`,
     t`So ${math`g = (-${5})^{${2}} = ${25}`} at ${math`x = -${2}`} and ${math`l = (-${1})^{${2}} = ${1}`} at ${math`x = ${2}`}.`,
+    t`With the vertex outside the interval, both extremes are at the ends.`,
   ],
   reference: 'g = 25, l = 1',
   verify: () => same('grid extremes', key(gridExtremes([1, -6, 9], -2, 2)), '25,1'),
   misconceptions: [{ response: 'g = 25, l = 0', why: t`${0} is the value at the vertex ${math`x = ${3}`}, which is outside the range.` }],
   official: { source: cite(F02H, 'Q2(v)'), answer: 'g = 25, l = 1', agrees: true },
+  nudge: t`Not quite. The vertex lies outside the range, so both extremes are at the ends.`,
+  hints: [
+    t`Where is the vertex of ${math`y = (x - ${3})^{${2}}`}, and is it inside ${math`-${2} \le x \le ${2}`}?`,
+    t`Is the curve rising or falling across the whole range?`,
+    t`What are the values at the two ends?`,
+  ],
 });
 
 const a2q2vii = auto({
@@ -252,6 +266,7 @@ const a2q2vii = auto({
     t`${math`x^{${2}} + ${2}kx = (x + k)^{${2}} - k^{${2}}`}: the vertex is at ${math`x = -k`}, inside the range since ${math`-${2} < k < ${2}`}, so the least value is ${math`-k^{${2}}`}.`,
     t`The greatest is at the end farther from ${math`-k`}. The ends give ${math`${4} - ${4}k`} at ${math`x = -${2}`} and ${math`${4} + ${4}k`} at ${math`x = ${2}`}.`,
     t`The larger of ${math`${4} + ${4}k`} and ${math`${4} - ${4}k`} is ${math`${4} + ${4}|k|`}. (For ${math`k > ${2}`} the vertex is outside: the greatest is ${math`${4} + ${4}k`} and the least ${math`${4} - ${4}k`}.)`,
+    t`When the answer depends on a sign, ${math`|k|`} often writes both cases at once.`,
   ],
   reference: '4 + 4abs(k)',
   verify: () => {
@@ -264,6 +279,12 @@ const a2q2vii = auto({
   },
   misconceptions: [{ response: '4 + 4k', why: t`For ${math`k < ${0}`} the far end is ${math`x = -${2}`}, giving ${math`${4} - ${4}k`}. Combine both cases with ${math`|k|`}.` }],
   official: { source: cite(F02H, 'Q2(vii)'), answer: '4 + 4abs(k)', agrees: true },
+  nudge: t`Not quite. The greatest value is at the end farther from the vertex, and which end that is depends on the sign of ${math`k`}.`,
+  hints: [
+    t`Completing the square, where is the vertex, and is it inside the range?`,
+    t`What are the values at ${math`x = -${2}`} and ${math`x = ${2}`}?`,
+    t`Which of those is larger when ${math`k > ${0}`}, and when ${math`k < ${0}`}, and how can ${math`|k|`} combine the two?`,
+  ],
 });
 
 const nstA4 = auto({
@@ -276,6 +297,7 @@ const nstA4 = auto({
     t`${math`x^{${2}} - ${2}x + ${6} = (x - ${1})^{${2}} + ${5}`}, least ${5} at ${math`x = ${1}`}: ${math`p = ${5}`}.`,
     t`${math`x^{${4}} + ${2}x^{${2}} + ${2} = (x^{${2}} + ${1})^{${2}} + ${1}`}. Since ${math`x^{${2}} \ge ${0}`}, ${math`x^{${2}} + ${1} \ge ${1}`}, so the value is at least ${math`${1} + ${1} = ${2}`}, reached at ${math`x = ${0}`}: ${math`q = ${2}`}.`,
     t`On ${math`${2} \le x \le ${3}`} the vertex ${math`x = ${1}`} is outside, and the curve rises, so the least value is at ${math`x = ${2}`}: ${math`r = ${1} + ${5} = ${6}`}.`,
+    t`A completed square is least when the bracket is as close to zero as it is allowed to be.`,
   ],
   reference: 'p = 5, q = 2, r = 6',
   verify: () => {
@@ -285,6 +307,12 @@ const nstA4 = auto({
     return same('grid minima', key([l1, l2, l3]), '5,2,6');
   },
   misconceptions: [{ response: 'p = 5, q = 1, r = 5', why: t`${math`(x^{${2}} + ${1})^{${2}}`} is at least ${1}, not ${0}, because ${math`x^{${2}} + ${1} \ge ${1}`}; and on ${math`${2} \le x \le ${3}`} the vertex is out of reach.` }],
+  nudge: t`Not quite. Complete each square; for the quartic, ${math`x^{${2}} + ${1}`} is never below ${1}, and on the interval check whether the vertex is inside.`,
+  hints: [
+    t`How does ${math`x^{${2}} - ${2}x + ${6}`} complete the square?`,
+    t`Treating ${math`x^{${4}} + ${2}x^{${2}} + ${2}`} as a quadratic in ${math`x^{${2}}`}, how does it complete the square, and what is the least value of ${math`x^{${2}} + ${1}`}?`,
+    t`Is the vertex of the first quadratic inside ${math`${2} \le x \le ${3}`}, and if not, at which end is the minimum?`,
+  ],
 });
 
 const step1999 = supervision({
@@ -294,6 +322,11 @@ const step1999 = supervision({
   prompt: t`(i) Find the greatest and least values of ${math`bx + a`} for ${math`-${10} \le x \le ${10}`}, distinguishing carefully between the cases ${math`b > ${0}`}, ${math`b = ${0}`}, and ${math`b < ${0}`}. (ii) Find the greatest and least values of ${math`cx^{${2}} + bx + a`}, where ${math`c \ge ${0}`}, for ${math`-${10} \le x \le ${10}`}, distinguishing carefully between the cases that can arise for different values of ${math`b`} and ${math`c`}.`,
   writeUp: 'explanation',
   official: cite(F02H, 'Q3'),
+  hints: [
+    t`For (i), where does a linear function take its greatest and least values on an interval, and how does the sign of ${math`b`} decide which end is which?`,
+    t`For (ii) with ${math`c > ${0}`}, where is the vertex, and when is it inside ${math`-${10} \le x \le ${10}`}?`,
+    t`When the vertex is inside, which end gives the greatest value, and what happens when ${math`c = ${0}`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

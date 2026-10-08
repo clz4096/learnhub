@@ -201,6 +201,7 @@ const a12q2 = auto({
     t`"Same flavour" splits into two mutually exclusive cases: two mints, or two lemons.`,
     t`Two mints: ${math`\frac{${9}}{${15}} \times \frac{${8}}{${14}} = ${q(72, 210)}`}. Two lemons: ${math`\frac{${6}}{${15}} \times \frac{${5}}{${14}} = ${q(30, 210)}`}. The second fraction in each is conditional: one sweet is gone.`,
     t`Add the cases: ${math`${q(72, 210)} + ${q(30, 210)} = ${q(102, 210)}`}. Or by counting pairs: ${math`\frac{\binom{${9}}{${2}} + \binom{${6}}{${2}}}{\binom{${15}}{${2}}} = \frac{${36} + ${15}}{${105}}`}, the same.`,
+    t`Split into exclusive cases, find each one, then add.`,
   ],
   reference: '17/35',
   verify: () => {
@@ -215,6 +216,12 @@ const a12q2 = auto({
     { response: str(mul(q(9, 15), q(8, 14))), why: t`That is two mints only. Two lemons is also "the same flavour": add that exclusive case.` },
   ],
   official: { source: cite('step-f12-hints', 'Assignment 12, Q2(ii)'), answer: '17/35', agrees: true },
+  nudge: t`Not quite. Split "same flavour" into its two exclusive cases, and remember that the first sweet is not put back.`,
+  hints: [
+    t`Into which two mutually exclusive cases does "same flavour" split?`,
+    t`After one mint is eaten, how many sweets remain, and how many of them are mints?`,
+    t`How are the probabilities of the two cases combined?`,
+  ],
 });
 
 /** The probability that every buyer gets change, with m one-pound people and n two-pound people, over all queues. */
@@ -246,6 +253,7 @@ const a12q3i = auto({
     t`The only way to fail is to meet the ${math`\pounds ${2}`} person with no coins in hand, which happens exactly when that person is first. If anyone else is first, I hold at least one ${math`\pounds ${1}`} coin from then on.`,
     t`The two events "the ${math`\pounds ${2}`} person is first" and "a ${math`\pounds ${1}`} person is first" are mutually exclusive and exhaustive. The ${math`\pounds ${2}`} person is equally likely to be in any of the ${math`m + ${1}`} places, so the first has probability ${math`\frac{${1}}{m + ${1}}`}.`,
     t`So the probability of success is ${math`${1} - \frac{${1}}{m + ${1}} = \frac{m}{m + ${1}}`}.`,
+    t`When failure has one simple form, find its probability and subtract from ${1}.`,
   ],
   reference: 'm/(m + 1)',
   verify: () => {
@@ -258,15 +266,26 @@ const a12q3i = auto({
     { response: '1/2', why: t`The ${math`\pounds ${2}`} person is one of ${math`m + ${1}`}, so being first has probability ${math`\frac{${1}}{m + ${1}}`}, not ${math`\frac{${1}}{${2}}`}.` },
   ],
   official: { source: cite('step-f12-hints', 'Assignment 12, Q3(i)'), answer: 'm/(m + 1)', agrees: true },
+  nudge: t`Not quite. Ask exactly when a sale fails; with one ${math`\pounds ${2}`} coin there is only one way.`,
+  hints: [
+    t`With a single ${math`\pounds ${2}`} person in the queue, when can no change be given?`,
+    t`Where in the queue must the ${math`\pounds ${2}`} person be for that to happen?`,
+    t`How likely is the ${math`\pounds ${2}`} person to be in that place, given that every arrangement is equally likely?`,
+  ],
 });
 
 const a12q3ii = supervision({
   id: 'a12-q3-ii',
   source: cite('step-f12', 'Assignment 12, Q3(ii)'),
   title: t`Two ${math`\pounds ${2}`} coins`,
-  prompt: t`In the raffle queue above, show by considering the first three people in the queue that the probability that I am able to sell one ticket to each person in the case ${math`n = ${2}`} and ${math`m \ge ${2}`} is ${math`\frac{m - ${1}}{m + ${1}}`}. Make clear which cases you add, and why they are mutually exclusive and cover every successful queue.`,
+  prompt: t`In the raffle queue above, show by considering the first three people in the queue that the probability that I am able to sell one ticket to each person in the case ${math`n = ${2}`} and ${math`m \ge ${2}`} is ${math`\frac{m - ${1}}{m + ${1}}`}. State which cases are added, and why they are mutually exclusive and cover every successful queue.`,
   writeUp: 'proof',
   official: cite('step-f12-hints', 'Assignment 12, Q3(ii)'),
+  hints: [
+    t`If the first person has a ${math`\pounds ${2}`} coin, can a ticket be sold?`,
+    t`If the first two people both have ${math`\pounds ${1}`} coins, why does every order of the rest succeed?`,
+    t`If the first has ${math`\pounds ${1}`} and the second ${math`\pounds ${2}`}, what must the third have, and why does every order after that succeed?`,
+  ],
 });
 
 // 2016 STEP I Q12: Alice and Bob toss coins.
@@ -277,6 +296,11 @@ const step16Coins = supervision({
   prompt: t`(i) Alice tosses a fair coin twice and Bob tosses a fair coin three times. Calculate the probability that Bob gets more heads than Alice. (ii) Alice tosses a fair coin three times and Bob tosses a fair coin four times. Calculate the probability that Bob gets more heads than Alice. (iii) Let ${math`p_{${1}}`} be the probability that Bob gets the same number of heads as Alice, and let ${math`p_{${2}}`} be the probability that Bob gets more heads than Alice, when Alice and Bob each toss a fair coin ${math`n`} times. Alice tosses a fair coin ${math`n`} times and Bob tosses a fair coin ${math`n + ${1}`} times. Express the probability that Bob gets more heads than Alice in terms of ${math`p_{${1}}`} and ${math`p_{${2}}`}, and hence obtain a generalisation of the results of parts (i) and (ii).`,
   writeUp: 'proof',
   official: cite('stepdb-16-sol', 'STEP I, Question 12 (page 17)'),
+  hints: [
+    t`For (i), split Bob's tosses into his first two and his last one: in which cases does Bob get more heads than Alice?`,
+    t`By symmetry between Alice's tosses and Bob's first ${math`n`}, what is the probability that Alice gets more, and how does that relate ${math`p_{${2}}`} to ${math`p_{${1}}`}?`,
+    t`Bob gets more heads overall when he was already ahead, or they were level and his last toss is a head: what probability does that give, and what does it simplify to?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

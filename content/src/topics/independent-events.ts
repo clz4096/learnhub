@@ -255,6 +255,7 @@ const a19two = auto({
   solution: [
     t`One pattern, say six, six, not six, has probability ${math`${SIX} \times ${SIX} \times ${NOT} = ${mul(pow(SIX, 2), NOT)}`} by independence.`,
     t`The non-six can be any of the ${3} dice, so ${math`${3} \times ${mul(pow(SIX, 2), NOT)} = ${twoSixes}`}. The hints' expected gain has this term as ${math`${3} \times \left(\frac{${1}}{${6}}\right)^{${2}} \frac{${5}}{${6}}`}, that is ${math`\frac{${30}}{${216}}`} once multiplied by the ${2} pounds at stake.`,
+    t`Price one pattern, then multiply by the number of patterns.`,
   ],
   reference: str(twoSixes),
   verify: () => {
@@ -264,6 +265,12 @@ const a19two = auto({
   },
   misconceptions: [{ response: str(mul(pow(SIX, 2), NOT)), why: t`That is one order only. The die without a six could be the first, second, or third.` }],
   official: { source: cite('step-f19-hints', 'Q4(ii)'), answer: '15/216', agrees: true },
+  nudge: t`Not quite. One particular order of the dice is easy to price; the remaining step is counting the orders.`,
+  hints: [
+    t`Why may the probabilities for the separate dice be multiplied?`,
+    t`What is the probability of one particular pattern, such as six, six, then not a six?`,
+    t`In how many positions can the one die that is not a six sit?`,
+  ],
 });
 
 const GOG = q(1, 4);
@@ -277,10 +284,17 @@ const a12one = auto({
   solution: [
     t`The first child only: ${math`${GOG} \times ${sub(q(1), GOG)} \times ${sub(q(1), GOG)} = ${mul(GOG, pow(sub(q(1), GOG), 2))}`}, multiplying by independence.`,
     t`As the hints say of part (c), what matters is which child: any of the three could be the one, so ${math`${3} \times ${mul(GOG, pow(sub(q(1), GOG), 2))} = ${exactlyOne}`}.`,
+    t`Fix who, find the chance, then count the choices of who.`,
   ],
   reference: str(exactlyOne),
   verify: () => same('the three-child pattern count', repeated.at({ s: 1, d: 4, n: 3, k: 1 }).reference as string, str(exactlyOne)),
   misconceptions: [{ response: str(mul(GOG, pow(sub(q(1), GOG), 2))), why: t`That is one particular child having goggles. Exactly one could be any of the three.` }],
+  nudge: t`Not quite. Fixing which child has the goggles first, then counting the choices of child, is the quick route.`,
+  hints: [
+    t`What is the probability that a given child does not have goggles?`,
+    t`What is the probability that the first child has goggles and the other two do not, and why may the three factors be multiplied?`,
+    t`How many different children could be the one with goggles?`,
+  ],
 });
 
 const pFirst = GOG;
@@ -294,6 +308,7 @@ const a12dep = auto({
   solution: [
     t`${math`P(A) = ${pFirst}`} (part (b)) and ${math`P(B) = ${pAtLeast}`} (part (a)). If the first child has goggles, at least one does, so ${math`P(A \cap B) = P(A) = ${pFirst}`}.`,
     t`${math`P(A)P(B) = ${mul(pFirst, pAtLeast)}`}, smaller than ${pFirst}: not independent. The children are independent of each other, but these two events about them are not.`,
+    t`Independent ingredients can still make dependent events: test the product rule itself.`,
   ],
   reference: 'more',
   verify: () => {
@@ -313,15 +328,26 @@ const a12dep = auto({
     return same('P(A and B) against P(A)P(B)', [str(pab), str(mul(pa, pb)), toFloat(pab) > toFloat(mul(pa, pb))].join(), `${str(pFirst)},${str(mul(pFirst, pAtLeast))},true`);
   },
   misconceptions: [{ response: 'independent', why: t`Knowing the first child has goggles makes "at least one" certain, which changes its probability from ${pAtLeast} to ${1}.` }],
+  nudge: t`Not quite. Independence of the children does not settle it; compare ${math`P(A \cap B)`} with ${math`P(A)P(B)`}.`,
+  hints: [
+    t`What is ${math`P(A)`}, and what is ${math`P(B)`} by way of its complement, nobody having goggles?`,
+    t`When ${mA} happens, must ${mB} happen too?`,
+    t`How does ${math`P(A \cap B)`} then compare with the product ${math`P(A)P(B)`}?`,
+  ],
 });
 
 const a19bet = supervision({
   id: 'a19-q4-ii-independence',
   source: cite('step-f19', 'Q4(ii)', true),
   title: t`Where independence was used`,
-  prompt: t`For three fair dice, work out the probabilities of no, one, two, and three sixes. Say exactly where you use independence of the dice, and check that the four probabilities add up to ${1}. Then explain why the event "two sixes" needs a factor ${3} but "three sixes" does not.`,
+  prompt: t`For three fair dice, work out the probabilities of no, one, two, and three sixes. State exactly where independence of the dice is used, and check that the four probabilities add up to ${1}. Then explain why the event "two sixes" needs a factor ${3} but "three sixes" does not.`,
   writeUp: 'explanation',
   official: cite('step-f19-hints', 'Q4(ii)'),
+  hints: [
+    t`For no sixes, what is the chance that one die is not a six, and what justifies multiplying across the three dice?`,
+    t`For one six or two sixes, how many dice could play the odd role, and why does each pattern have the same probability?`,
+    t`For three sixes, how many patterns are there, and what do the four probabilities add up to?`,
+  ],
 });
 const disjointNotIndependent = supervision({
   id: 'a12-q2-iv-disjoint',
@@ -329,6 +355,11 @@ const disjointNotIndependent = supervision({
   title: t`Disjoint is not independent`,
   prompt: t`For the three children, let ${mA} be "nobody has goggles" and ${mB} be "everybody has goggles". Are ${mA} and ${mB} independent? Explain, and explain in general why two events that cannot happen together, each with positive probability, are never independent.`,
   writeUp: 'explanation',
+  hints: [
+    t`Can "nobody has goggles" and "everybody has goggles" happen together, and what then is ${math`P(A \cap B)`}?`,
+    t`Is ${math`P(A)P(B)`} zero here?`,
+    t`In general, if ${mA} and ${mB} cannot happen together and each has positive probability, how do ${math`P(A \cap B)`} and ${math`P(A)P(B)`} compare?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -254,9 +254,16 @@ const q4cdf = auto({
   title: t`The distribution function of the distance to a supermarket`,
   prompt: t`The number of supermarkets in any region is Poisson with mean ${math`k`} times the area of the region. ${mY} is the distance from a randomly chosen point to the nearest supermarket. Find ${math`P(Y < y)`} for ${math`y > ${0}`}.`,
   answer: { kind: 'expression', expected: '1 - e^(-k pi y^2)', variables: ['k', 'y'], domains: { k: { kind: 'real', min: 0.1, max: 3 }, y: { kind: 'real', min: 0.1, max: 2 } } },
+  hints: [
+    t`What does ${math`Y \ge y`} say about supermarkets in the disc of radius ${math`y`} around the point?`,
+    t`What is the probability that a Poisson count with mean ${math`k\pi y^{${2}}`} is ${0}?`,
+    t`How is ${math`P(Y < y)`} related to ${math`P(Y \ge y)`}?`,
+  ],
+  nudge: t`Not quite. Work with the complement: ${math`Y \ge y`} means an empty disc.`,
   solution: [
     t`${math`Y \ge y`} means no supermarket within the circle of radius ${math`y`}, whose area is ${math`\pi y^{${2}}`}. The number there is Poisson with mean ${math`k\pi y^{${2}}`}, so ${math`P(Y \ge y) = e^{-k\pi y^{${2}}}`}.`,
     t`So ${math`P(Y < y) = ${1} - e^{-k\pi y^{${2}}}`}, and differentiating gives the density ${math`${2}\pi k y\,e^{-\pi k y^{${2}}}`}.`,
+    t`When the complement is a simple event, find it first.`,
   ],
   reference: '1 - e^(-k pi y^2)',
   verify: () => {
@@ -287,10 +294,17 @@ const q4t = auto({
     kind: 'expression', expected: '(2a + 1)!/(a! a!) k^(a + 1) s^(a + 1) t^a/(s + k t)^(2a + 2)', variables: ['t', 's', 'k', 'a'],
     domains: { t: { kind: 'real', min: 0.2, max: 3 }, s: { kind: 'real', min: 0.5, max: 3 }, k: { kind: 'real', min: 0.5, max: 3 }, a: { kind: 'integer', min: 1, max: 4 } },
   },
+  hints: [
+    t`Since ${math`T = s/V`} decreases as ${math`V`} increases, which event about ${math`V`} is ${math`T \le t`}?`,
+    t`Differentiating that probability with respect to ${math`t`}, which chain-rule factor appears?`,
+    t`After substituting ${math`s/t`} into the density of ${math`V`} and multiplying by that factor, which powers of ${math`t`} cancel?`,
+  ],
+  nudge: t`Not quite. The density of ${math`T`} at ${math`t`} is not ${math`f_{V}(s/t)`}; differentiate the distribution function and keep the chain-rule factor.`,
   solution: [
-    t`${math`T < t`} exactly when ${math`V > s/t`}: the transformation is decreasing, so the inequality turns over. ${math`P(T < t) = \int_{s/t}^{\infty} \frac{C k^{a + ${1}} x^{a}}{(x + k)^{${2}a + ${2}}}\,dx`}.`,
-    t`Substitute ${math`u = s/x`}, so ${math`dx = -\frac{s}{u^{${2}}}\,du`} and the limits ${math`s/t`} and ${math`\infty`} become ${math`t`} and ${0}: ${math`P(T < t) = \int_{${0}}^{t} \frac{C k^{a + ${1}} s^{a + ${1}} u^{a}}{(s + ku)^{${2}a + ${2}}}\,du`}.`,
-    t`The integrand is the density: ${math`f_{T}(t) = \frac{C k^{a + ${1}} s^{a + ${1}} t^{a}}{(s + kt)^{${2}a + ${2}}}`}, the density of ${math`V`} with ${math`k`} replaced by ${math`s/k`}.`,
+    t`${math`T = s/V`} is decreasing in ${math`V`}, so ${math`P(T \le t) = P(V \ge s/t) = ${1} - F_{V}(s/t)`}.`,
+    t`Differentiate: ${math`f_{T}(t) = f_{V}(s/t)\,\frac{s}{t^{${2}}}`}.`,
+    t`${math`f_{V}(s/t) = \frac{C k^{a + ${1}} s^{a} t^{a + ${2}}}{(s + kt)^{${2}a + ${2}}}`}, so ${math`f_{T}(t) = \frac{C k^{a + ${1}} s^{a + ${1}} t^{a}}{(s + kt)^{${2}a + ${2}}}`}: the density of ${math`V`} with ${math`k`} replaced by ${math`s/k`}.`,
+    t`For a decreasing map, differentiate ${math`${1} - F`}; keep the chain-rule factor.`,
   ],
   reference: '(2a + 1)!/(a! a!) k^(a + 1) s^(a + 1) t^a/(s + k t)^(2a + 2)',
   verify: () => {
@@ -315,6 +329,11 @@ const q4tProof = supervision({
   source: cite(S3, 'Q4'),
   title: t`The time through the tail of the speed`,
   prompt: t`With ${math`T = s/V`}, show that ${math`P(T < t) = \int_{s/t}^{\infty} \frac{C k^{a + ${1}} x^{a}}{(x + k)^{${2}a + ${2}}}\,dx`}, and explain why the limits run from ${math`s/t`} to ${math`\infty`} rather than from ${0} to ${math`s/t`}.`,
+  hints: [
+    t`Why is the event ${math`T < t`} the same as ${math`V > s/t`}, given ${math`V > ${0}`} and ${math`s > ${0}`}?`,
+    t`Which integral of the density of ${math`V`} gives ${math`P(V > s/t)`}?`,
+    t`What would the integral from ${0} to ${math`s/t`} compute instead?`,
+  ],
   writeUp: 'proof',
   official: cite('step-s3-stats-solutions', 'Q4'),
 });
@@ -323,6 +342,11 @@ const squareRule = supervision({
   source: cite('step-s3-stats-notes', 'page 1', true),
   title: t`The density of ${math`X^{${2}}`} in general`,
   prompt: t`${mX} has a continuous density ${math`f`}. Show that ${math`Y = X^{${2}}`} has density ${math`\frac{f(\sqrt{y}) + f(-\sqrt{y})}{${2}\sqrt{y}}`} for ${math`y > ${0}`}, and explain where each of the two terms comes from. What does the formula give when ${mX} is uniform on ${math`[-${1}, ${1}]`}?`,
+  hints: [
+    t`For ${math`y > ${0}`}, which interval of values of ${mX} gives ${math`X^{${2}} \le y`}?`,
+    t`What is ${math`F_{Y}(y)`} in terms of ${math`F_{X}`}, and what does differentiating it give?`,
+    t`With ${math`f = \frac{${1}}{${2}}`} on ${math`[-${1}, ${1}]`}, what does the formula give, and on which interval is the result nonzero?`,
+  ],
   writeUp: 'proof',
 });
 

@@ -296,6 +296,13 @@ const q12i = auto({
   solution: [
     t`P is chosen on the first pair with probability ${math`\frac{${1}}{${4}}`}; on the second pair after TT with probability ${math`\frac{${1}}{${16}}`}; and so on: ${math`\frac{${1}}{${4}}\left(${1} + \frac{${1}}{${4}} + \frac{${1}}{${16}} + \cdots\right) = \frac{${q(1, 4)}}{${1} - ${q(1, 4)}} = ${q(1, 3)}`}.`,
     t`By first-step analysis instead: ${math`x = \frac{${1}}{${4}} + \frac{${1}}{${4}}x`}, so ${math`x = ${q(1, 3)}`}. By symmetry Q and R also have ${q(1, 3)}: a fair way to choose among three with a coin.`,
+    t`When the process can restart, condition on the first step.`,
+  ],
+  nudge: t`Not quite. TT starts the whole procedure again; condition on the first pair.`,
+  hints: [
+    t`What is the probability that P is chosen on the first pair of tosses?`,
+    t`After TT, what is the probability that P is chosen eventually?`,
+    t`Which equation does ${math`x`}, the probability that P is chosen, satisfy?`,
   ],
   reference: '1/3',
   verify: () => {
@@ -316,6 +323,13 @@ const q12ii = auto({
   solution: [
     t`Condition on the first toss. If it is a head, the next toss gives HH or HT, so P or Q is chosen. If it is a tail, the tosses go on until the first head, which makes TH: R is chosen for certain.`,
     t`So ${math`P(R) = \frac{${1}}{${2}}`}, and ${math`P(P) = P(Q) = \frac{${1}}{${4}}`}. Unlike part (i), this method is not fair.`,
+    t`Patterns are not equally likely to come first: condition on the first toss.`,
+  ],
+  nudge: t`Not quite. Condition on the first toss and ask what can follow a tail.`,
+  hints: [
+    t`If the first toss is a head, which patterns can the second toss make?`,
+    t`If the first toss is a tail, which pattern appears when the first head arrives?`,
+    t`What is the probability that the first toss is a tail?`,
   ],
   reference: '1/2',
   verify: () => same('the race on the last toss', race(['HH', 'HT', 'TH'], HALF).map(str).join(','), '1/4,1/4,1/2'),
@@ -332,6 +346,13 @@ const q13i = auto({
   solution: [
     t`If either of the first two tosses is a tail, THH must come before HHT: any HH after that tail is preceded by a T, so THH completes first.`,
     t`So A wins exactly when the first two tosses are HH, and then HHT certainly comes first. ${math`P(A) = \frac{${1}}{${4}}`}.`,
+    t`Ask what must come just before each pattern when it completes.`,
+  ],
+  nudge: t`Not quite. Ask what must happen if a tail appears before the first HH.`,
+  hints: [
+    t`If a T appears somewhere before the first HH, what toss comes just before that HH?`,
+    t`Then which sequence is completed first, HHT or THH?`,
+    t`For which first two tosses can HHT come first, and with what probability?`,
   ],
   reference: '1/4',
   verify: () => same('the race on the last two tosses', str(race(['HHT', 'THH'], HALF)[0] as Rational), '1/4'),
@@ -344,11 +365,18 @@ const q13ii = auto({
   id: 'mixed-q13-ii',
   source: cite(MIX, 'Q13(ii)'),
   title: t`All four players`,
-  prompt: t`Four players choose HHT (A), THH (B), TTH (C), and HTT (D). A fair coin is tossed until one of these sequences appears. Give each player's probability of winning.`,
+  prompt: t`Four players choose HHT (A), THH (B), TTH (C), and HTT (D). A fair coin is tossed until one of these sequences appears. Find each player's probability of winning.`,
   answer: { kind: 'table', cell: 'exact', columns: [t`player`, t`probability of winning`], rows: [[t`A`, null], [t`B`, null], [t`C`, null], [t`D`, null]], expected: race(FOUR, HALF).map(str) },
   solution: [
     t`A wins exactly when the first two tosses are HH, and C exactly when they are TT: ${math`\frac{${1}}{${4}}`} each.`,
     t`B and D are mirror images (swap H and T), so they share what is left equally: ${math`\frac{${1}}{${4}}`} each. The game never ends only on HTHT... or THTH..., which has probability ${0}.`,
+    t`Condition on the first tosses, then let symmetry share out the rest.`,
+  ],
+  nudge: t`Not quite. Condition on the first two tosses, and look for a symmetry.`,
+  hints: [
+    t`Which player must win if the first two tosses are the same, HH or TT?`,
+    t`If the first two tosses differ, which two players are left in the race?`,
+    t`Which swap of H and T turns one of those players' sequences into the other's?`,
   ],
   reference: ['1/4', '1/4', '1/4', '1/4'],
   verify: () => same('the race on the last two tosses', race(FOUR, HALF).map(str).join(','), '1/4,1/4,1/4,1/4'),
@@ -366,6 +394,13 @@ const s2q3i = auto({
   solution: [
     t`In one game, Younis wins with YY or XYY: ${math`(${1} - p)p + p(${1} - p)p = (${1} - p^{${2}})p`}. The game is drawn with XYX or YXY: ${math`p(${1} - p)^{${2}} + (${1} - p)^{${3}} = (${1} - p)^{${2}}`}.`,
     t`Condition on the first game: ${math`w = (${1} - p^{${2}})p + (${1} - p)^{${2}} w`}, so ${math`w = \frac{(${1} - p^{${2}})p}{${1} - (${1} - p)^{${2}}} = \frac{(${1} - p^{${2}})p}{${2}p - p^{${2}}} = \frac{${1} - p^{${2}}}{${2} - p}`}.`,
+    t`A process that starts afresh gives an equation for its own probability.`,
+  ],
+  nudge: t`Not quite. Find the chances of a win and of a draw in one game, then condition on the first game.`,
+  hints: [
+    t`In one game, which sequences of points give Younis the match, and with what probabilities?`,
+    t`Which sequences give a drawn game, and what is the probability of a draw?`,
+    t`Conditioning on the first game, which equation does ${math`w`} satisfy?`,
   ],
   reference: '(1 - p^2)/(2 - p)',
   verify: () => {
@@ -390,6 +425,13 @@ const darts = auto({
   solution: [
     t`Condition on the first round: A hits, or A misses and B hits, or both miss and the contest starts afresh: ${math`x = a + (${1} - a)(${1} - b)x`}.`,
     t`So ${math`x = \frac{a}{${1} - (${1} - a)(${1} - b)} = \frac{a}{a + b - ab}`}.`,
+    t`A contest that starts afresh gives an equation for its own probability.`,
+  ],
+  nudge: t`Not quite. Condition on the first round: after two misses, the contest starts afresh.`,
+  hints: [
+    t`In the first round, what are the probabilities that A hits, and that A and B both miss?`,
+    t`If both miss, what is A's probability of winning from then on?`,
+    t`Which equation for ${math`x`}, the probability that A wins, follows?`,
   ],
   reference: 'a/(a + b - a b)',
   verify: () => {
@@ -411,6 +453,11 @@ const s2q3proof = supervision({
   title: t`Who is favoured, and is ${math`w`} monotonic?`,
   prompt: t`With ${math`w = \frac{${1} - p^{${2}}}{${2} - p}`} for ${math`p \ne ${0}`}, show that ${math`w > \frac{${1}}{${2}}`} if ${math`p < \frac{${1}}{${2}}`} and ${math`w < \frac{${1}}{${2}}`} if ${math`p > \frac{${1}}{${2}}`}. Does ${math`w`} increase whenever ${math`p`} decreases? Justify the answer.`,
   writeUp: 'proof',
+  hints: [
+    t`What is ${math`w - \frac{${1}}{${2}}`} as a single fraction?`,
+    t`For ${math`${0} < p \le ${1}`}, which factor of that fraction decides its sign?`,
+    t`What is ${math`\frac{dw}{dp}`}, and does its sign stay the same for ${math`${0} < p < ${1}`}?`,
+  ],
   official: cite('step-s2-stats-solutions', 'Q3(i)'),
 });
 const evenSuccesses = supervision({
@@ -419,6 +466,11 @@ const evenSuccesses = supervision({
   title: t`An even number of successes`,
   prompt: t`Independent trials are performed, each with probability ${math`p`} of success. Let ${math`P_{n}`} be the probability that ${math`n`} trials result in an even number of successes. Show that ${math`P_{n} = \frac{${1}}{${2}}\left(${1} + (${1} - ${2}p)^{n}\right)`}: condition on the first trial to get a recurrence for ${math`P_{n}`}, and solve it. Then give a second proof with the binomial theorem.`,
   writeUp: 'proof',
+  hints: [
+    t`If the first trial is a success, what must the other ${math`n - ${1}`} trials give for the total to be even?`,
+    t`Which recurrence for ${math`P_{n}`} in terms of ${math`P_{n - ${1}}`} follows, and what is ${math`P_{${0}}`}?`,
+    t`With ${math`q = ${1} - p`}, which terms survive when ${math`(q + p)^{n}`} and ${math`(q - p)^{n}`} are added?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

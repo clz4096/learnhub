@@ -158,13 +158,23 @@ const drawComplete = supervision({
   source: cite('cs3110-ex9', 'Exercise: RB draw complete'),
   title: t`Three colourings of one tree`,
   prompt: t`Draw the perfect binary tree on the values ${1}, ${2}, ..., ${15}. Colour its nodes in three different ways so that each is a red-black tree and the three have black heights ${2}, ${3}, and ${4}. Explain why each colouring satisfies both invariants.`,
+  hints: [
+    t`What do the two invariants say: about the children of a red node, and about the black nodes on paths from the root down?`,
+    t`In a perfect tree every path from the root down has the same length, so which whole levels could be red without breaking the red rule?`,
+    t`What happens to every path's black count when a whole level is coloured red, and which levels can be red at the same time?`,
+  ],
   writeUp: 'sketch',
 });
 const drawInsertSketch = supervision({
   id: 'cs3110-9-rb-draw-insert',
   source: cite('cs3110-ex9', 'Exercise: RB draw insert'),
   title: t`Draw every step of an insertion sequence`,
-  prompt: t`Draw the red-black tree after each insertion of the characters ${ml`D A T A S T R U C T U R E`} into an empty tree, marking each rotation by ${ml`balance`} and each recolouring of the root. Check your final tree against the implementation.`,
+  prompt: t`Draw the red-black tree after each insertion of the characters ${ml`D A T A S T R U C T U R E`} into an empty tree, marking each rotation by ${ml`balance`} and each recolouring of the root. Check the final tree against the implementation.`,
+  hints: [
+    t`Where does each new key go by comparison alone, and what colour does it start with?`,
+    t`Which of the four red-under-red shapes does each repair match, and what does ${ml`balance`} build from it?`,
+    t`After each insertion, what colour does the root get, and does every path still have the same number of black nodes?`,
+  ],
   writeUp: 'sketch',
 });
 

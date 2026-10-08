@@ -215,10 +215,17 @@ const b94 = auto({
   source: cite('bop', 'Chapter 9, exercise 4'),
   title: t`The smallest counterexample to a prime formula`,
   prompt: t`Disprove: for every natural number ${mn}, ${math`n^{${2}} + ${17}n + ${17}`} is prime. Give the smallest counterexample ${mn}.`,
+  nudge: t`Not quite. Start from the smallest natural number and test upwards.`,
+  hints: [
+    t`What is the smallest natural number?`,
+    t`What is ${math`n^{${2}} + ${17}n + ${17}`} at that ${mn}?`,
+    t`Does that value have a factor other than ${1} and itself?`,
+  ],
   answer: { kind: 'exact', expected: '1' },
   solution: [
     t`Start at the smallest natural number: ${math`n = ${1}`} gives ${math`${1} + ${17} + ${17} = ${35} = ${5} \times ${7}`}, not prime.`,
-    t`So the statement is false, and the smallest counterexample is ${math`n = ${1}`}. Always test the first case first.`,
+    t`So the statement is false, and the smallest counterexample is ${math`n = ${1}`}.`,
+    t`Test the first case first.`,
   ],
   reference: '1',
   verify: () => same('first composite', Array.from({ length: 20 }, (_, i) => i + 1).find((n) => !isPrime(n * n + 17 * n + 17)), 1),
@@ -233,6 +240,11 @@ const f17q4 = supervision({
   source: cite('step-f17', 'Assignment 17, Q4(iii)'),
   title: t`A ${1987} STEP divisibility`,
   prompt: t`(${1987} STEP.) Show that ${math`${2}^{${3}n + ${1}} + ${3} \times ${5}^{${2}n + ${1}}`} is divisible by ${17} for every natural number ${mn}. Write the proof by smallest counterexample: check ${math`n = ${1}`}, take the smallest ${math`k > ${1}`} for which it fails, and use the case ${math`k - ${1}`}. (Hint: ${math`${2}^{${3}} = ${8}`} and ${math`${5}^{${2}} = ${25} = ${8} + ${17}`}.)`,
+  hints: [
+    t`For ${math`n = ${1}`}, what is ${math`${2}^{${4}} + ${3} \times ${5}^{${3}}`}, and is it a multiple of ${17}?`,
+    t`Writing the expression for ${mk} through the powers for ${math`k - ${1}`}, which factors ${8} and ${25} appear?`,
+    t`Using ${math`${25} = ${8} + ${17}`}, how can the expression for ${mk} be written as ${8} times the expression for ${math`k - ${1}`} plus a multiple of ${17}?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f17-hints', 'Assignment 17, Q4(iii)'),
 });
@@ -242,6 +254,11 @@ const sw412 = supervision({
   source: cite('cst-dm-sw1', 'Exercises 4, 4.1.2'),
   title: t`Tiling with L-shaped pieces`,
   prompt: t`Prove that, for any positive integer ${mn}, a ${math`${2}^{n} \times ${2}^{n}`} square grid with any one square removed can be tiled with L-shaped pieces of ${3} squares. Write it as a proof by smallest counterexample: suppose some ${mn} fails, take the smallest, and split its board into four quarters.`,
+  hints: [
+    t`For ${math`n = ${1}`}, how is a ${math`${2} \times ${2}`} grid with one square removed tiled?`,
+    t`Splitting a ${math`${2}^{k} \times ${2}^{k}`} board into four quarters, which quarter holds the removed square, and what do the other three lack?`,
+    t`Where can one L-shaped piece go at the centre so that every quarter has exactly one square removed?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-4', '4.1.2'),
 });
@@ -251,6 +268,11 @@ const b109 = supervision({
   source: cite('bop', 'Chapter 10, exercise 9'),
   title: t`${math`${24} \mid ${5}^{${2}n} - ${1}`}`,
   prompt: t`Prove that ${math`${24} \mid ${5}^{${2}n} - ${1}`} for every integer ${math`n \ge ${0}`}, by smallest counterexample.`,
+  hints: [
+    t`For ${math`n = ${0}`}, does ${24} divide ${math`${5}^{${0}} - ${1}`}?`,
+    t`If ${math`${5}^{${2}(k - ${1})} - ${1} = ${24}a`}, what is ${math`${5}^{${2}k} - ${1}`} after multiplying by ${25}?`,
+    t`How does ${math`${25}(${24}a + ${1}) - ${1}`} split into a multiple of ${24}?`,
+  ],
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 10, exercise 9'),
 });
@@ -259,7 +281,12 @@ const b1013 = supervision({
   id: 'b10-13',
   source: cite('bop', 'Chapter 10, exercise 13'),
   title: t`${math`${6} \mid n^{${3}} - n`}`,
-  prompt: t`Prove that ${math`${6} \mid n^{${3}} - n`} for every integer ${math`n \ge ${0}`}, by smallest counterexample. (You will need ${math`(k - ${1})^{${3}} - (k - ${1})`} to relate to ${math`k^{${3}} - k`}.)`,
+  prompt: t`Prove that ${math`${6} \mid n^{${3}} - n`} for every integer ${math`n \ge ${0}`}, by smallest counterexample. (The proof relates ${math`(k - ${1})^{${3}} - (k - ${1})`} to ${math`k^{${3}} - k`}.)`,
+  hints: [
+    t`For ${math`n = ${0}`}, does ${6} divide ${math`${0}^{${3}} - ${0}`}?`,
+    t`After expanding, what is ${math`k^{${3}} - k`} minus ${math`(k - ${1})^{${3}} - (k - ${1})`}?`,
+    t`Why is that difference always a multiple of ${6}?`,
+  ],
   writeUp: 'proof',
 });
 

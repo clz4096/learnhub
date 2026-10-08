@@ -296,10 +296,17 @@ const a19three = auto({
   source: cite('step-f19', 'Q4(ii)'),
   title: t`Three sixes`,
   prompt: t`I am about to throw three fair dice. What is the probability of three sixes?`,
+  nudge: t`Not quite. All three dice must show six at once; count outcomes of the whole throw.`,
+  hints: [
+    t`How many equally likely ordered outcomes do three dice have?`,
+    t`How many of those outcomes are three sixes?`,
+    t`Equivalently, how do the three independent chances of a six combine?`,
+  ],
   answer: { kind: 'exact', expected: str(sixes(3)) },
   solution: [
     t`The sample space is every ordered triple of scores: ${math`${6} \times ${6} \times ${6} = ${216}`} equally likely outcomes.`,
     t`Exactly one of them is three sixes, so the probability is ${sixes(3)}.`,
+    t`List the whole sample space of ordered outcomes, then count.`,
   ],
   reference: str(sixes(3)),
   verify: () => same('three sixes, listed and by the rule', str(sixes(3)), str(sixesByRule(3))),
@@ -313,10 +320,17 @@ const a19one = auto({
   source: cite('step-f19', 'Q4(ii)'),
   title: t`Exactly one six`,
   prompt: t`I am about to throw three fair dice. What is the probability of exactly one six?`,
+  nudge: t`Not quite. Count ordered outcomes, and check which die can carry the six.`,
+  hints: [
+    t`How many equally likely ordered outcomes do three dice have?`,
+    t`If the first die is the only six, how many outcomes are there?`,
+    t`On how many different dice could the single six appear?`,
+  ],
   answer: { kind: 'exact', expected: str(sixes(1)) },
   solution: [
     t`Of the ${216} ordered outcomes, count those with one six: choose which die shows it (${3} ways), and each of the other two dice shows one of ${5} other scores.`,
     t`That is ${math`${3} \times ${5} \times ${5} = ${75}`} outcomes, so the probability is ${math`\frac{${75}}{${216}} = ${sixes(1)}`}.`,
+    t`Choose where the special result goes, then fill the rest.`,
   ],
   reference: str(sixes(1)),
   verify: () => same('one six, listed and by the rule', str(sixes(1)), str(sixesByRule(1))),
@@ -333,6 +347,12 @@ const a19table = auto({
   source: cite('step-f19', 'Q4(ii)', true),
   title: t`Every number of sixes`,
   prompt: t`Three fair dice are thrown. Fill in the probability of each number of sixes, as a fraction.`,
+  nudge: t`Not quite. Count ordered outcomes for each number of sixes; the four counts must add to ${216}.`,
+  hints: [
+    t`How many ordered outcomes have no six at all?`,
+    t`For exactly ${math`j`} sixes, in how many ways can the dice showing them be chosen, and how many scores can each other die show?`,
+    t`Do the four counts add up to the total number of outcomes?`,
+  ],
   answer: {
     kind: 'table', cell: 'exact',
     columns: [t`number of sixes`, t`probability`],
@@ -342,6 +362,7 @@ const a19table = auto({
   solution: [
     t`Count ordered outcomes out of ${216}: no sixes, ${math`${5}^{${3}} = ${125}`}; one six, ${math`${3} \times ${25} = ${75}`}; two sixes, ${math`${3} \times ${5} = ${15}`}; three sixes, ${1}.`,
     t`Check: ${math`${125} + ${75} + ${15} + ${1} = ${216}`}, so every outcome is counted once.`,
+    t`Count every case on one sample space, and check that the counts add to the total.`,
   ],
   reference: [0, 1, 2, 3].map((k) => str(sixes(k))),
   verify: () => same('all four counts, listed and by the rule', [0, 1, 2, 3].map((k) => str(sixes(k))).join(' '), [0, 1, 2, 3].map((k) => str(sixesByRule(k))).join(' ')),
@@ -353,7 +374,12 @@ const a19bet = supervision({
   id: 'a19-q4-ii-bet',
   source: cite('step-f19', 'Q4(ii)'),
   title: t`Should I accept the bet?`,
-  prompt: t`I am about to throw three fair dice. My friend offers to give me £${1} if I throw no sixes, provided I give her £${1} if I throw one six, £${2} if I throw two sixes, and £${3} if I throw three sixes. Should I accept? Explain using the sample space, for example by what you would expect to happen over ${216} games.`,
+  prompt: t`I am about to throw three fair dice. My friend offers to give me £${1} if I throw no sixes, provided I give her £${1} if I throw one six, £${2} if I throw two sixes, and £${3} if I throw three sixes. Should I accept? Explain using the sample space, for example by the expected result over ${216} games.`,
+  hints: [
+    t`How many of the ${216} equally likely outcomes give no six, one six, two sixes, and three sixes?`,
+    t`Over ${216} games, how much is won on the outcomes with no six, and how much paid out on the rest?`,
+    t`Is the net amount over those games positive or negative, and what does that say about the offer?`,
+  ],
   writeUp: 'explanation',
   official: cite('step-f19-hints', 'Q4(ii)'),
 });

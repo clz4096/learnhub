@@ -171,6 +171,7 @@ const notesAtMost = auto({
   solution: [
     t`${math`\lambda = np = ${N2} \times ${P2} = ${L2}`}.`,
     t`${math`P(X \le ${2}) \approx e^{-${L2}}\left(${1} + ${L2} + \frac{${L2}^{${2}}}{${2}}\right) = ${5}e^{-${2}} \approx ${s4(poissonCdf(L2, 2))}`}. The exact binomial value is ${s4([0, 1, 2].reduce((s, k) => s + binomPmf(N2, k, P2), 0))}.`,
+    t`"At most ${math`k`}" means adding every case from ${0} to ${math`k`}.`,
   ],
   reference: String(s4(5 * Math.exp(-2))),
   verify: () => {
@@ -181,6 +182,12 @@ const notesAtMost = auto({
   misconceptions: [
     { response: String(s4(poissonPmf(L2, 2))), why: t`That is exactly ${2}. At most ${2} adds the probabilities of ${0}, ${1}, and ${2}.` },
     { response: String(s4(poissonCdf(P2, 2))), why: t`The Poisson mean is ${math`np = ${L2}`}, not ${math`p`}.` },
+  ],
+  nudge: t`Not quite. "At most ${2}" is a sum of three Poisson probabilities, with mean ${math`np`}.`,
+  hints: [
+    t`What is the Poisson parameter ${math`\lambda = np`} here?`,
+    t`Which values of the count make up "at most ${2}"?`,
+    t`What is ${math`P(X = k)`} for a Poisson variable, and what do the three terms add to?`,
   ],
 });
 
@@ -194,6 +201,7 @@ const notesVar = auto({
   solution: [
     t`${math`np = \lambda`} and ${math`${1} - p = ${1} - \lambda/n`}, so ${math`\operatorname{Var}(X_{n}) = \lambda\left(${1} - \frac{\lambda}{n}\right)`}.`,
     t`It tends to ${ml}, the variance of ${math`\text{Po}(\lambda)`}, as ${math`n \to \infty`}. The mean is ${ml} for every ${mn}; the variance is short of ${ml} by the factor ${math`${1} - p`}, which is why ${math`p`} must be small.`,
+    t`The mean is exactly ${ml}; the variance falls short by the factor ${math`${1} - p`}.`,
   ],
   reference: 'lambda - lambda^2/n',
   verify: () => {
@@ -207,6 +215,12 @@ const notesVar = auto({
     return null;
   },
   misconceptions: [{ response: 'lambda', why: t`${ml} is the limit. For finite ${mn} the variance is ${math`np(${1} - p)`}, slightly less.` }],
+  nudge: t`Not quite. Substitute ${math`p = \lambda/n`} into ${math`np(${1} - p)`} directly.`,
+  hints: [
+    t`What is ${math`np`} when ${math`p = \lambda/n`}?`,
+    t`What is ${math`${1} - p`}?`,
+    t`What is their product?`,
+  ],
 });
 
 const proof = workedProof({
@@ -226,8 +240,13 @@ const general = supervision({
   id: 'schedule-general',
   source: SCHEDULE,
   title: t`The limit when only ${math`np_{n}`} converges`,
-  prompt: t`Suppose ${math`X_{n} \sim B(n, p_{n})`} where ${math`np_{n} \to \lambda > ${0}`}, not necessarily with ${math`p_{n} = \lambda/n`}. Prove that ${math`P(X_{n} = k) \to e^{-\lambda}\lambda^{k}/k!`} for each fixed ${mk}. You may use that ${math`\left(${1} + \frac{x_{n}}{n}\right)^{n} \to e^{x}`} whenever ${math`x_{n} \to x`}.`,
+  prompt: t`Suppose ${math`X_{n} \sim B(n, p_{n})`} where ${math`np_{n} \to \lambda > ${0}`}, not necessarily with ${math`p_{n} = \lambda/n`}. Prove that ${math`P(X_{n} = k) \to e^{-\lambda}\lambda^{k}/k!`} for each fixed ${mk}. The fact that ${math`\left(${1} + \frac{x_{n}}{n}\right)^{n} \to e^{x}`} whenever ${math`x_{n} \to x`} may be used.`,
   writeUp: 'proof',
+  hints: [
+    t`How does ${math`P(X_{n} = k) = \binom{n}{k}p_{n}^{k}(${1} - p_{n})^{n - k}`} split into a factor with ${math`\frac{n!}{(n - k)!}`} and the rest?`,
+    t`Why does ${math`n(n - ${1})\cdots(n - k + ${1})p_{n}^{k}`} tend to ${math`\lambda^{k}`} when ${math`np_{n} \to \lambda`}?`,
+    t`How does ${math`(${1} - p_{n})^{n}`} behave, written as ${math`\left(${1} + \frac{x_{n}}{n}\right)^{n}`} with ${math`x_{n} = -np_{n}`}, and what about the extra factor ${math`(${1} - p_{n})^{-k}`}?`,
+  ],
 });
 
 const when = supervision({
@@ -236,6 +255,11 @@ const when = supervision({
   title: t`Large ${mn} and small ${math`p`}`,
   prompt: t`The notes ask for ${mn} "large" and ${math`p`} "very small". Explain why each condition is needed: compare the means and variances of ${math`B(n, p)`} and ${math`\text{Po}(np)`}, and compute ${math`P(X = ${0})`} both ways for ${math`B(${10}, ${0.5})`} and for ${math`B(${1000}, ${0.005})`}. Which approximation is good, and why?`,
   writeUp: 'explanation',
+  hints: [
+    t`What are the means and variances of ${math`B(n, p)`} and ${math`\text{Po}(np)`}, and when are the variances close?`,
+    t`What are ${math`(${1} - p)^{n}`} and ${math`e^{-np}`} for ${math`B(${10}, ${0.5})`}?`,
+    t`What are they for ${math`B(${1000}, ${0.005})`}, and which pair agrees?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
@@ -255,6 +279,7 @@ const gs5129 = auto({
   solution: [
     t`Each test finds a fake with probability ${q(1, BOXES)}, independently, so the number of fakes found is ${math`B(${BOXES}, \tfrac{${1}}{${BOXES}})`}.`,
     t`Exactly: ${math`${1} - \left(${1} - \tfrac{${1}}{${BOXES}}\right)^{${BOXES}} \approx ${round3(KING)}`}. The Poisson approximation with ${math`\lambda = np = ${1}`} gives ${math`${1} - e^{-${1}} \approx ${round3(1 - Math.exp(-1))}`}: the two agree to three places.`,
+    t`For "at least one", subtract the chance of none from ${1}.`,
   ],
   reference: round3(KING).toFixed(3),
   verify: () => {
@@ -266,6 +291,12 @@ const gs5129 = auto({
   },
   misconceptions: [{ response: round3(1 - KING).toFixed(3), why: t`That is the chance of finding no fake. The question asks for at least one: take it from ${1}.` }],
   official: { source: cite('gs-answers-odd', 'Section 5.1, Exercise 29'), answer: '0.632', agrees: true },
+  nudge: t`Not quite. "At least one" is easiest through its complement: no fake found in any box.`,
+  hints: [
+    t`What is the probability that one test misses the fake?`,
+    t`Why may the misses in the different boxes be multiplied?`,
+    t`What is ${1} minus the probability of missing every time?`,
+  ],
 });
 
 /** A royal flush has probability 1/649740; the smallest n with (1 - p)^n < 1/e. */
@@ -282,6 +313,7 @@ const gs5117 = auto({
     t`${math`n = N`} works: ${math`\ln(${1} - x) < -x`} for ${math`${0} < x < ${1}`}, so ${math`N \ln\left(${1} - \tfrac{${1}}{N}\right) < -${1}`}, that is ${math`(${1} - p)^{N} < e^{-${1}}`}.`,
     t`${math`n = N - ${1}`} does not: ${math`\ln(${1} + y) < y`} for ${math`y > ${0}`}; with ${math`y = \frac{${1}}{N - ${1}}`}, ${math`\ln \frac{N}{N - ${1}} < \frac{${1}}{N - ${1}}`}, which rearranges to ${math`(N - ${1}) \ln\left(${1} - \tfrac{${1}}{N}\right) > -${1}`}, that is ${math`(${1} - p)^{N - ${1}} > e^{-${1}}`}.`,
     t`So the smallest ${math`n`} is ${math`N = ${ROYAL}`}. The Poisson approximation ${math`e^{-np} < e^{-${1}}`} asks for ${math`np > ${1}`}, giving ${ROYAL + 1}; the exact binomial probability is already below ${math`\frac{${1}}{e}`} one hand sooner.`,
+    t`An approximation can miss by one at a boundary: settle it with exact inequalities.`,
   ],
   reference: String(smallestN()),
   verify: () => {
@@ -295,6 +327,12 @@ const gs5117 = auto({
     source: cite('gs-answers-odd', 'Section 5.1, Exercise 17'), answer: String(ROYAL + 1), agrees: false,
     note: 'The printed 649741 is the Poisson answer: e^(-np) < 1/e needs np > 1, so n > 649740. The exact probability (1 - p)^n is below 1/e already at n = 1/p = 649740, since (1 - 1/N)^N < 1/e for every N, and above it at n = 649739. The exact answer, 649740, is used.',
   },
+  nudge: t`Not quite. Work with the exact probability ${math`(${1} - p)^{n}`}; the Poisson approximation is off by one at this boundary.`,
+  hints: [
+    t`What is the probability of no royal flush in ${math`n`} independent hands?`,
+    t`Taking logarithms, which condition on ${math`n`} makes ${math`(${1} - p)^{n} < \frac{${1}}{e}`}?`,
+    t`With ${math`N = \frac{${1}}{p}`}, which inequalities for ${math`\ln(${1} - x)`} and ${math`\ln(${1} + y)`} decide whether ${math`n = N`} and ${math`n = N - ${1}`} work?`,
+  ],
 });
 
 /*
@@ -312,6 +350,11 @@ const gs5111 = supervision({
   title: t`Calls in a longer interval`,
   prompt: t`Suppose that ${math`X`} is a random variable which represents the number of calls coming in to a police station in a one-minute interval, modelled by a Poisson distribution with parameter ${math`\lambda`}, the average number of incoming calls per minute. Now suppose that ${math`Y`} is a random variable which represents the number of incoming calls in an interval of length ${math`t`}. Show that ${math`P(Y = k) = e^{-\lambda t} \frac{(\lambda t)^{k}}{k!}`}, that is, ${math`Y`} is Poisson with parameter ${math`\lambda t`}. (Hint: suppose a Martian observes the police station, and the basic time interval used on Mars is exactly ${math`t`} Earth minutes. What would she write down for the distribution of ${math`Y`}?)`,
   writeUp: 'explanation',
+  hints: [
+    t`What is the Martian's basic time interval, and what is the average number of calls in it?`,
+    t`Which assumptions behind the Poisson model for one minute hold equally for an interval of ${math`t`} minutes?`,
+    t`So what distribution would the Martian write down, and with which parameter?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

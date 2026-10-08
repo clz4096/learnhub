@@ -218,8 +218,15 @@ const q1b = auto({
   prompt: t`The random variable ${mX} has ${math`P(X = x) = kx`} for ${math`x = ${1}, ${2}, ${3}, ${4}`}, and ${0} otherwise. Find ${math`P(X \ge ${3})`}.`,
   answer: { kind: 'exact', expected: str(q(7, 10)) },
   solution: [
-    t`As in the worked example, ${math`k = ${q(1, 10)}`}.`,
+    t`The probabilities add to ${1}: ${math`k + ${2}k + ${3}k + ${4}k = ${10}k = ${1}`}, so ${math`k = ${q(1, 10)}`}.`,
     t`${math`P(X \ge ${3}) = P(X = ${3}) + P(X = ${4}) = ${q(3, 10)} + ${q(4, 10)} = ${q(7, 10)}`}.`,
+    t`Fix the constant from the total probability first.`,
+  ],
+  nudge: t`Not quite. Find ${math`k`} from the total probability first, then add the probabilities needed.`,
+  hints: [
+    t`What must ${math`k, ${2}k, ${3}k, ${4}k`} add to?`,
+    t`Which values of ${mX} satisfy ${math`X \ge ${3}`}?`,
+    t`Once ${math`k`} is known, what are ${math`P(X = ${3})`} and ${math`P(X = ${4})`}?`,
   ],
   reference: '7/10',
   verify: () => same('P(X >= 3) from the distribution', str(rsum(q1Dist.filter(([x]) => x.num >= 3n).map(([, p]) => p))), '7/10'),
@@ -238,7 +245,15 @@ const a19 = auto({
   answer: { kind: 'exact', expected: str(a19Gain) },
   solution: [
     t`The number of sixes is ${math`B(${3}, ${q(1, 6)})`}: no sixes ${math`\frac{${125}}{${216}}`}, one ${math`\frac{${75}}{${216}}`}, two ${math`\frac{${15}}{${216}}`}, three ${math`\frac{${1}}{${216}}`}.`,
-    t`The gain is ${1}, ${math`-${1}`}, ${math`-${2}`}, ${math`-${3}`} in those cases, so its expectation is ${math`\frac{${125} - ${75} - ${30} - ${3}}{${216}} = ${a19Gain}`}. It is positive, so accept: over ${216} games I expect to be about £${17} ahead.`,
+    t`The gain is ${1}, ${math`-${1}`}, ${math`-${2}`}, ${math`-${3}`} in those cases, so its expectation is ${math`\frac{${125} - ${75} - ${30} - ${3}}{${216}} = ${a19Gain}`}.`,
+    t`It is positive, so accept: over ${216} games the expected total gain is £${17}.`,
+    t`Expected gain: each amount times its probability, signs included.`,
+  ],
+  nudge: t`Not quite. Weight each amount by the probability of its number of sixes, and mind the signs.`,
+  hints: [
+    t`What distribution does the number of sixes in three throws have?`,
+    t`What are the probabilities of no, one, two, and three sixes?`,
+    t`Multiplying each gain, with its sign, by its probability, what is the sum?`,
   ],
   reference: str(a19Gain),
   verify: () => same('the hints\' terms', str(q(125 - 75 - 2 * 15 - 3 * 1, 216)), str(a19Gain)),
@@ -262,6 +277,13 @@ const s2q3ii = auto({
   solution: [
     t`With ${math`p = ${P23}`}: ${math`w = \frac{${1} - ${q(4, 9)}}{${2} - ${P23}} = ${w23}`}, and Xavier wins with probability ${math`${1} - w = ${sub(q(1), w23)}`}.`,
     t`Fair means Younis's expected gain is ${0}: ${math`k \times ${w23} - ${1} \times ${sub(q(1), w23)} = ${0}`}, so ${math`k = ${kFair}`}.`,
+    t`Fair means an expected gain of zero.`,
+  ],
+  nudge: t`Not quite. Set Younis's expected gain to zero, and check which stake goes with which probability.`,
+  hints: [
+    t`What is ${math`w`} when ${math`p = ${P23}`}?`,
+    t`What is the probability that Xavier wins the match?`,
+    t`Which equation says that Younis's expected gain is ${0}?`,
   ],
   reference: str(kFair),
   verify: () => {
@@ -296,6 +318,13 @@ const q4iii = auto({
   solution: [
     t`${math`K`} is ${1}, ${2}, or ${3}, so ${math`P(K = ${2}) = ${1} - \frac{n(n - ${1}) + ${6}}{(n + ${2})(n + ${3})} = \frac{${6}n}{(n + ${2})(n + ${3})}`}.`,
     t`${math`E(K) = \frac{n(n - ${1}) + ${12}n + ${18}}{(n + ${2})(n + ${3})} = \frac{(n + ${9})(n + ${2})}{(n + ${2})(n + ${3})} = \frac{n + ${9}}{n + ${3}}`}, between ${1} and ${3} as it must be.`,
+    t`A missing probability comes from the total; factorise before simplifying.`,
+  ],
+  nudge: t`Not quite. Find ${math`P(K = ${2})`} from the total probability, then look for a common factor.`,
+  hints: [
+    t`Which values can ${math`K`} take, and what must their probabilities add to?`,
+    t`What is ${math`P(K = ${2})`} as a single fraction?`,
+    t`Does the numerator of ${math`E(K)`} factorise so that something cancels with the denominator?`,
   ],
   reference: '(n + 9)/(n + 3)',
   verify: () => {
@@ -319,6 +348,13 @@ const s3u3 = auto({
   solution: [
     t`From ${math`${2}\frac{${1}}{${2}}`} m the frog needs two or three jumps. Two jumps when the first is ${2} m (probability ${math`q`}), or ${1} m then ${2} m (probability ${math`pq`}): ${math`P(\text{two}) = q + pq`}. Three jumps when the first two are ${1} m: probability ${math`p^{${2}}`}. They add to ${1}.`,
     t`${math`u_{${3}} = ${2}(q + pq) + ${3}p^{${2}}`}, and with ${math`p = ${1} - q`} this is ${math`${2}q + ${2}q - ${2}q^{${2}} + ${3} - ${6}q + ${3}q^{${2}} = ${3} - ${2}q + q^{${2}}`}.`,
+    t`List the ways to finish, weight each by its probability, then eliminate ${math`p`}.`,
+  ],
+  nudge: t`Not quite. List the jump sequences that first reach the pond from ${math`${2}\frac{${1}}{${2}}`} m, with their probabilities.`,
+  hints: [
+    t`From ${math`${2}\frac{${1}}{${2}}`} m, what are the fewest and the most jumps the frog can need?`,
+    t`Which sequences of jumps reach the pond for the first time after exactly two jumps?`,
+    t`With those probabilities, what is the expected number of jumps, written in terms of ${math`q`} alone?`,
   ],
   reference: '3 - 2q + q^2',
   verify: () => {
@@ -338,14 +374,24 @@ const s2q3iii = supervision({
   title: t`The match when ${math`p = ${0}`}`,
   prompt: t`In the match of three-point games, what happens when ${math`p = ${0}`}? Work out who wins each point of a game, explain why the formula ${math`w = \frac{${1} - p^{${2}}}{${2} - p}`} no longer gives the probability that Younis wins, and why no stake can make the match fair or unfair.`,
   writeUp: 'explanation',
+  hints: [
+    t`When ${math`p = ${0}`}, who wins the first point, and who wins each point after it?`,
+    t`How does every game then end, and what happens to the match?`,
+    t`If the match never ends, does any money change hands, and does the formula's value of ${math`w`} describe anything?`,
+  ],
   official: cite('step-s2-stats-solutions', 'Q3(iii)'),
 });
 const poissonMean = supervision({
   id: 's2-notes-poisson-mean',
   source: cite('step-s2-stats-notes', 'page 4'),
   title: t`The mean of a Poisson distribution`,
-  prompt: t`The topic notes show that ${math`\sum_{n = ${0}}^{\infty} \frac{e^{-\lambda}\lambda^{n}}{n!} = ${1}`} by the exponential series, and suggest you show that ${math`E(X) = \lambda`}. Prove it: write ${math`E(X)`} as a series, explain why the ${math`n = ${0}`} term vanishes, and use the same series again.`,
+  prompt: t`The topic notes show that ${math`\sum_{n = ${0}}^{\infty} \frac{e^{-\lambda}\lambda^{n}}{n!} = ${1}`} by the exponential series. For ${math`X \sim \mathrm{Po}(\lambda)`}, prove that ${math`E(X) = \lambda`}.`,
   writeUp: 'proof',
+  hints: [
+    t`How is ${math`E(X)`} written as a series over ${math`n`}?`,
+    t`Why does the ${math`n = ${0}`} term vanish, and what does ${math`\frac{n}{n!}`} simplify to for ${math`n \ge ${1}`}?`,
+    t`After taking out a factor ${math`\lambda`} and shifting the index, which known series remains?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -201,6 +201,13 @@ const q1unequal = auto({
   solution: [
     t`The arrival times are a uniform point in the square ${math`[${0}, ${60}]^{${2}}`}. They miss when Bob comes more than ${10} minutes after Alice, or Alice more than ${20} minutes after Bob: corner triangles with legs ${50} and ${40}.`,
     t`${math`P(\text{meet}) = ${1} - \frac{\tfrac{${1}}{${2}}(${50}^{${2}} + ${40}^{${2}})}{${3600}} = ${1} - \frac{${2050}}{${3600}} = ${meetProb({ T: 60, w1: 10, w2: 20 })}`}.`,
+    t`Two uniform times: a probability is an area in the square.`,
+  ],
+  nudge: t`Not quite. Draw the square of arrival times; the two waits cut off different corners.`,
+  hints: [
+    t`In the square of arrival times, which region means that they meet?`,
+    t`Where do they miss, and what shapes are those regions?`,
+    t`What are the legs of the two corner triangles, and what fraction of the square do they cover?`,
   ],
   reference: str(meetProb({ T: 60, w1: 10, w2: 20 })),
   verify: () => {
@@ -229,6 +236,13 @@ const buffonAuto = auto({
   solution: [
     t`The distance ${mX} from the centre to the nearest line is uniform on ${math`[${0}, ${2}]`}, the angle ${math`\Theta`} uniform on ${math`[${0}, \pi/${2}]`}. The needle crosses when ${math`X \le \tfrac{${3}}{${2}}\sin\Theta`}.`,
     t`${math`P = \frac{${2}\ell}{\pi d} = \frac{${6}}{${4}\pi} \approx ${r4(buffon({ l: 3, d: 4 }))}`}.`,
+    t`For a needle no longer than the gap, the crossing probability is ${math`\frac{${2}\ell}{\pi d}`}.`,
+  ],
+  nudge: t`Not quite. Average over the angle as well as the distance; the needle does not always lie across the lines.`,
+  hints: [
+    t`Which two random quantities fix the needle's position relative to the nearest line, and how is each distributed?`,
+    t`For a given angle ${math`\theta`}, how close must the centre be to the line for the needle to cross?`,
+    t`What is the area of the crossing region divided by the area of all positions?`,
   ],
   reference: String(r4(buffon({ l: 3, d: 4 }))),
   verify: () => {
@@ -251,6 +265,11 @@ const q10a = supervision({
   title: t`A uniform direction onto a plate`,
   prompt: t`A radioactive source emits particles in a random direction, all directions equally likely. It is held at distance ${math`a`} from a vertical infinite plane photographic plate. Show that, given the particle hits the plate, the horizontal coordinate of its point of impact (with the point nearest the source as origin) has the Cauchy density ${math`\frac{a}{\pi(a^{${2}} + x^{${2}})}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`For a uniform direction, how is the horizontal angle ${math`\phi`}, measured from the perpendicular to the plate, distributed, and for which ${math`\phi`} does the particle hit?`,
+    t`Given a hit, how is the horizontal coordinate ${math`x`} of the impact related to ${math`a`} and ${math`\phi`}?`,
+    t`Which change of variables turns the density of ${math`\phi`} into a density for ${math`x`}?`,
+  ],
 });
 const q10b = supervision({
   id: 'ia4-q10-b',
@@ -258,6 +277,11 @@ const q10b = supervision({
   title: t`The Cauchy density has no mean`,
   prompt: t`Can you compute the mean of the Cauchy density ${math`\frac{a}{\pi(a^{${2}} + x^{${2}})}`}? Explain what goes wrong with ${math`\int x f(x)\,dx`}, and why the symmetric limit ${math`\lim_{M \to \infty}\int_{-M}^{M} x f(x)\,dx = ${0}`} does not make ${0} the mean.`,
   writeUp: 'explanation',
+  hints: [
+    t`Does ${math`\int_{${0}}^{\infty} x f(x)\,dx`} converge?`,
+    t`For a mean to exist, which integral must be finite?`,
+    t`Does the limit change if the range is taken as ${math`[-M, ${2}M]`} instead of ${math`[-M, M]`}?`,
+  ],
 });
 const bertrand = supervision({
   id: 'schedule-bertrand',
@@ -265,13 +289,23 @@ const bertrand = supervision({
   title: t`Bertrand's paradox`,
   prompt: t`A chord of a circle is chosen "at random". Find the probability that it is longer than a side of the inscribed equilateral triangle when (i) its two endpoints are independent and uniform on the circle, (ii) its distance from the centre is uniform along a radius, and (iii) its midpoint is uniform in the disc. Explain why the three answers differ, and what the paradox says about the phrase "at random".`,
   writeUp: 'explanation',
+  hints: [
+    t`In (i), with one endpoint fixed, on which arc must the other endpoint land?`,
+    t`In (ii), how far from the centre is a chord exactly as long as a side of the triangle?`,
+    t`In (iii), inside which smaller disc must the midpoint lie, and what fraction of the area is that?`,
+  ],
 });
 const buffonProof = supervision({
   id: 'schedule-buffon-proof',
   source: cite(SCHED, 'IA Probability, Continuous random variables: "Buffon\'s needle"', true),
   title: t`Buffon's needle, and an estimate of ${math`\pi`}`,
-  prompt: t`A needle of length ${math`\ell`} is dropped on a floor with parallel lines ${math`d \ge \ell`} apart. Stating your model for "dropped at random", show that it crosses a line with probability ${math`\frac{${2}\ell}{\pi d}`}. If the needle crosses ${math`k`} times in ${math`n`} drops, what estimate of ${math`\pi`} does this suggest?`,
+  prompt: t`A needle of length ${math`\ell`} is dropped on a floor with parallel lines ${math`d \ge \ell`} apart. State a model for "dropped at random", and show that the needle crosses a line with probability ${math`\frac{${2}\ell}{\pi d}`}. If the needle crosses ${math`k`} times in ${math`n`} drops, what estimate of ${math`\pi`} does this suggest?`,
   writeUp: 'proof',
+  hints: [
+    t`Which two random quantities fix the needle's position, and how are they distributed in the model?`,
+    t`For a given angle, when does the needle cross a line?`,
+    t`Integrating over the angle, what is the crossing probability, and how does solving for ${math`\pi`} turn ${math`k/n`} into an estimate?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson: Bertrand's three chords

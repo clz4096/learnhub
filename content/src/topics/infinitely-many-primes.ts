@@ -219,10 +219,17 @@ const firstComposite = auto({
   solution: [
     t`${math`q_{${4}} = ${PRIMORIAL(4) + 1}`} and ${math`q_{${5}} = ${PRIMORIAL(5) + 1}`} are prime too. But ${math`q_{${6}} = ${computedTex(String(N6))} = ${59} \times ${509}`}.`,
     t`So the answer is ${6}: the sheet's example is the first. The proof never claims ${math`q_{k}`} is prime, only that its prime factors are new.`,
+    t`The proof produces new prime factors, not new primes.`,
   ],
   reference: '6',
   verify: () => same('primality of q1 to q6', upTo(6).map((k) => isPrime(PRIMORIAL(k) + 1)).join(), 'true,true,true,true,true,false'),
   misconceptions: [{ response: '5', why: t`${math`q_{${5}} = ${PRIMORIAL(5) + 1}`} is prime: it has no factor up to its square root.` }],
+  nudge: t`Not quite. Work upwards from ${math`k = ${1}`}, testing each ${math`q_{k}`} by trial division up to its square root.`,
+  hints: [
+    t`What are ${math`q_{${4}}`}, ${math`q_{${5}}`}, and ${math`q_{${6}}`} as numbers?`,
+    t`To test whether a number is prime, how large must the trial divisors go?`,
+    t`Does the proof that there are infinitely many primes ever claim that ${math`q_{k}`} itself is prime?`,
+  ],
 });
 
 const notPrime = supervision({
@@ -231,6 +238,11 @@ const notPrime = supervision({
   title: t`What the argument does and does not show`,
   prompt: t`The Theorem of the Day sheet argues that ${math`q = ${1} + p_{${1}} \cdots p_{N}`} "cannot be divided exactly by any prime in our list", and concludes that ${mq} is prime. Its remark (${2}) then shows ${math`${1} + ${2} \times ${3} \times ${5} \times ${7} \times ${11} \times ${13}`} is not prime. Explain why there is no conflict: what exactly does the argument prove about ${mq}, and where does the assumption that the list contains every prime enter? Then rewrite the proof so that it never claims ${mq} is prime.`,
   writeUp: 'explanation',
+  hints: [
+    t`Under the assumption that ${math`p_{${1}}, \ldots, p_{N}`} are all the primes, what does "no prime in the list divides ${mq}" imply?`,
+    t`Without that assumption, what does the argument show about the prime factors of ${mq}?`,
+    t`How can the proof end with "some prime factor of ${mq} is missing from the list" in place of "${mq} is prime"?`,
+  ],
 });
 const bopVersion = supervision({
   id: 'bop-6-1-primes',
@@ -238,6 +250,11 @@ const bopVersion = supervision({
   title: t`Book of Proof's version`,
   prompt: t`Book of Proof's proof divides ${math`a = p_{${1}} p_{${2}} \cdots p_{n} + ${1}`} by a prime divisor ${math`p_{k}`} and gets ${math`\frac{${1}}{p_{k}} = c - (p_{${1}} \cdots p_{k - ${1}} p_{k + ${1}} \cdots p_{n})`}, an integer on the right and not on the left. Compare this with the CST notes' ending, "${math`p_{i}`} divides ${1}". Are they the same contradiction? Which fact about natural numbers greater than ${1} do both rely on?`,
   writeUp: 'explanation',
+  hints: [
+    t`In each version, which integer is shown to be divisible by the chosen prime?`,
+    t`Why is ${math`\frac{${1}}{p_{k}}`} not an integer, and why can no prime divide ${1}?`,
+    t`Which fact guarantees that a natural number greater than ${1} has a prime divisor at all?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
@@ -257,8 +274,13 @@ const ns2q5 = supervision({
   id: 'ns2-q5',
   source: cite('ia-ns-sheet-2', 'Q5, second and third parts', true),
   title: t`Infinitely many primes of the form ${math`${4}n - ${1}`}`,
-  prompt: t`By considering numbers of the form ${math`${4}p_{${1}}p_{${2}} \cdots p_{k} - ${1}`}, prove that there are infinitely many primes of the form ${math`${4}n - ${1}`}. What would go wrong if we tried a similar proof to show that there are infinitely many primes of the form ${math`${4}n + ${1}`}?`,
+  prompt: t`By considering numbers of the form ${math`${4}p_{${1}}p_{${2}} \cdots p_{k} - ${1}`}, prove that there are infinitely many primes of the form ${math`${4}n - ${1}`}. What goes wrong with a similar proof that there are infinitely many primes of the form ${math`${4}n + ${1}`}?`,
   writeUp: 'proof',
+  hints: [
+    t`If ${math`p_{${1}}, \ldots, p_{k}`} are all the primes of the form ${math`${4}n - ${1}`}, why is ${math`N = ${4}p_{${1}} \cdots p_{k} - ${1}`} odd and divisible by none of the ${math`p_{i}`}?`,
+    t`What form does a product of numbers of the form ${math`${4}n + ${1}`} take?`,
+    t`Why must ${math`N`} then have a prime factor of the form ${math`${4}n - ${1}`}, and does the same step work with the two forms swapped?`,
+  ],
 });
 
 /*
@@ -276,6 +298,11 @@ const ns2q6 = supervision({
   title: t`Distinct prime factors of a tower`,
   prompt: t`Prove that ${math`${2}^{${2}^{n}} - ${1}`} has at least ${math`n`} distinct prime factors.`,
   writeUp: 'proof',
+  hints: [
+    t`How does ${math`${2}^{${2}^{n}} - ${1}`} factorise as a difference of two squares?`,
+    t`Applying that factorisation repeatedly, which factors of the form ${math`${2}^{${2}^{k}} + ${1}`} appear?`,
+    t`Why do two different numbers of the form ${math`${2}^{${2}^{k}} + ${1}`} have no common factor greater than ${1}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

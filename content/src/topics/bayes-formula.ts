@@ -219,9 +219,17 @@ const q9 = auto({
   title: t`Voting the same way again`,
   prompt: t`Parliament contains a proportion ${math`p`} of Labour members, who are incapable of changing their minds about anything, and a proportion ${math`${1} - p`} of Conservative members, who change their minds completely at random, with probability ${math`r`}, between successive votes on the same issue. A randomly chosen member is noticed to have voted twice in succession in the same way. What is the probability that this member will vote in the same way next time? Give an expression in ${math`p`} and ${math`r`}.`,
   answer: { kind: 'expression', expected: '(p + (1 - p)*(1 - r)^2)/(p + (1 - p)*(1 - r))', variables: ['p', 'r'], domains: P_DOM },
+  hints: [
+    t`With ${math`S_{${2}}`} the event of the same vote twice, what is ${math`\mathbb{P}(S_{${2}})`} by total probability over the party?`,
+    t`What is ${math`\mathbb{P}(S_{${3}})`} for the same vote three times, and how is ${math`S_{${3}}`} related to ${math`S_{${2}}`}?`,
+    t`Which conditional probability is wanted, and how does ${math`S_{${3}} \subseteq S_{${2}}`} simplify it?`,
+  ],
+  nudge: t`Not quite. The observation changes the odds of the member's party; condition on it.`,
   solution: [
-    t`Let ${math`S_{${2}}`} be "the same way twice" and ${math`S_{${3}}`} "the same way three times". By total probability over the party, ${math`\mathbb{P}(S_{${2}}) = p + (${1} - p)(${1} - r)`} and ${math`\mathbb{P}(S_{${3}}) = p + (${1} - p)(${1} - r)^{${2}}`}.`,
-    t`We want ${math`\mathbb{P}(S_{${3}} \mid S_{${2}}) = \mathbb{P}(S_{${3}}) / \mathbb{P}(S_{${2}})`}, since ${math`S_{${3}} \subseteq S_{${2}}`}: ${math`\frac{p + (${1} - p)(${1} - r)^{${2}}}{p + (${1} - p)(${1} - r)}`}. Equivalently, Bayes's formula gives the member's party given ${math`S_{${2}}`}, and the next vote is averaged over it.`,
+    t`Let ${math`S_{${2}}`} be the same vote twice and ${math`S_{${3}}`} the same vote three times. By total probability over the party, ${math`\mathbb{P}(S_{${2}}) = p + (${1} - p)(${1} - r)`} and ${math`\mathbb{P}(S_{${3}}) = p + (${1} - p)(${1} - r)^{${2}}`}.`,
+    t`${math`S_{${3}} \subseteq S_{${2}}`}, so ${math`\mathbb{P}(S_{${3}} \mid S_{${2}}) = \frac{\mathbb{P}(S_{${3}})}{\mathbb{P}(S_{${2}})} = \frac{p + (${1} - p)(${1} - r)^{${2}}}{p + (${1} - p)(${1} - r)}`}.`,
+    t`Equivalently: Bayes's formula gives the party given ${math`S_{${2}}`}, and the next vote is averaged over it.`,
+    t`Condition on what was observed: it shifts the odds of the cause.`,
   ],
   reference: '(p + (1 - p)(1 - r)^2)/(p + (1 - p)(1 - r))',
   verify: () => {
@@ -244,7 +252,12 @@ const q9why = supervision({
   id: 'ia-q9-explain',
   source: cite(S1, 'Q9'),
   title: t`What the observation tells you`,
-  prompt: t`In Q${9}, explain in words why the answer is larger than ${math`p + (${1} - p)(${1} - r)`}, the chance that a random member votes the same way twice. Compute the posterior probability that the member is Labour, given two votes the same way, and show that averaging the next vote over the two parties with these weights gives the same answer as ${math`\mathbb{P}(S_{${3}})/\mathbb{P}(S_{${2}})`}.`,
+  prompt: t`In Q${9}, explain in words why the answer is larger than the chance that a random member votes the same way twice. Compute the posterior probability that the member is Labour, given two votes the same way, and show that averaging the next vote over the two parties with these weights gives the same answer as conditioning directly.`,
+  hints: [
+    t`Which party makes two votes the same way more likely?`,
+    t`By Bayes's formula, what is the probability that the member is Labour, given two votes the same way?`,
+    t`Averaging the chance of the same vote next time over the two parties with those weights, what expression results, and does it match the direct answer?`,
+  ],
   writeUp: 'explanation',
 });
 const bayesProof = supervision({
@@ -252,6 +265,11 @@ const bayesProof = supervision({
   source: cite('tripos-schedules', 'IA Probability, Axiomatic approach: "Conditional probability, Bayes\'s formula"', true),
   title: t`Bayes's formula for a partition`,
   prompt: t`Let ${math`B_{${1}}, B_{${2}}, \ldots`} be a countable partition into events of positive probability, and ${math`A`} an event with ${math`\mathbb{P}(A) > ${0}`}. Prove ${math`\mathbb{P}(B_{i} \mid A) = \frac{\mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i})}{\sum_{j} \mathbb{P}(A \mid B_{j})\mathbb{P}(B_{j})}`}. Then explain how STEP Support Assignment ${6}'s two-event version, with ${math`B`} and ${math`B^{c}`}, is the special case.`,
+  hints: [
+    t`How is ${math`\mathbb{P}(B_{i} \mid A)`} defined, and what is its numerator in terms of ${math`\mathbb{P}(A \mid B_{i})`}?`,
+    t`Why is ${math`\mathbb{P}(A) = \sum_{j} \mathbb{P}(A \cap B_{j})`}, and what does each term become?`,
+    t`With the partition ${math`B, B^{c}`}, what does the formula reduce to?`,
+  ],
   writeUp: 'proof',
 });
 

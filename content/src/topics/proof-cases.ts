@@ -210,11 +210,18 @@ const a6ii = auto({
     t`The shortfall from ${45} is ${6}. Take the cases by the number of nines, from four down to none.`,
     ...digitCases(5, 6).map((ds) => t`Digits ${listOf(ds)}: ${arrangements(ds)} numbers.`),
     t`Total: ${math`${computedTex(digitCases(5, 6).map((ds) => arrangements(ds)).join(' + '))} = ${digitCases(5, 6).reduce((s, ds) => s + arrangements(ds), 0)}`}.`,
+    t`Count the complement when it is smaller: here, the shortfall from all nines.`,
   ],
   reference: String(digitCases(5, 6).reduce((s, ds) => s + arrangements(ds), 0)),
   verify: () => same('A6 Q3(ii) by brute force', digitSums.at({ k: 5, d: 6 }).reference, digitCases(5, 6).reduce((s, ds) => s + arrangements(ds), 0)),
   misconceptions: [{ response: String(digitCases(5, 6).length), why: t`That is the number of cases. Each case is several numbers: count the arrangements in each.` }],
   official: { source: cite('step-f06-hints', 'Q3(ii)'), answer: '210', agrees: true },
+  nudge: t`Not quite. Count by the shortfall from ${45}, the largest possible digit sum, rather than by the digits themselves.`,
+  hints: [
+    t`What is the largest digit sum of a five-digit number, and how far short of it is ${39}?`,
+    t`In how many ways can that shortfall be shared among the five digits, listed by the number of nines?`,
+    t`For each set of digits, how many different orders are there, with repeated digits counted once?`,
+  ],
 });
 
 const lemma26 = auto({
@@ -230,6 +237,7 @@ const lemma26 = auto({
   solution: [
     t`Even: ${math`n^{${2}} = ${4}m^{${2}}`}, remainder ${0}.`,
     t`Odd: ${math`n^{${2}} = ${4}m^{${2}} + ${4}m + ${1} = ${4}m(m + ${1}) + ${1}`}, remainder ${1}. Every integer is even or odd, so the remainder is always ${0} or ${1}.`,
+    t`Split by parity, then expand: the remainder can be read off.`,
   ],
   reference: ['0', '1'],
   verify: () => {
@@ -239,6 +247,12 @@ const lemma26 = auto({
   misconceptions: [{ response: ['0', '0'], why: t`An odd square is not a multiple of ${4}: ${math`(${2}m + ${1})^{${2}}`} is ${math`${4}m(m + ${1}) + ${1}`}.` }],
   // The official solution: "This is Lemma 26 of the notes", which gives 0 for even n and 1 for odd n.
   official: { source: cite('cst-dm-notes', 'printed page 110, Lemma 26'), answer: ['0', '1'], agrees: true },
+  nudge: t`Not quite. Expand the square in each case and look for a multiple of ${4}.`,
+  hints: [
+    t`What is ${math`n^{${2}}`} when ${math`n = ${2}m`}?`,
+    t`What is ${math`n^{${2}}`} when ${math`n = ${2}m + ${1}`}, expanded?`,
+    t`Which part of each expansion is a multiple of ${4}, and what is left over?`,
+  ],
 });
 
 const odd8 = auto({
@@ -250,11 +264,18 @@ const odd8 = auto({
   solution: [
     t`Write ${math`n = ${2}k + ${1}`}. Then ${math`n^{${2}} = ${4}k(k + ${1}) + ${1}`}.`,
     t`Two cases, as the official solution takes: ${mk} even or ${mk} odd. Either way one of ${mk} and ${math`k + ${1}`} is even, so ${math`${4}k(k + ${1})`} is a multiple of ${8}, and the remainder is ${1}.`,
+    t`A product of consecutive integers is even, and that extra factor ${2} often decides a remainder.`,
   ],
   reference: '1',
   verify: () => same('every odd n from -99 to 99', [...new Set(upTo(199).map((i) => i - 100).filter((n) => mod(n, 2) === 1).map((n) => mod(n * n, 8)))].join(), '1'),
   misconceptions: [{ response: '4', why: t`${math`${4}k(k + ${1})`} is a multiple of ${8}, not only of ${4}: one of ${mk} and ${math`k + ${1}`} is even. Try ${math`n = ${3}`}: ${9} leaves ${1}.` }],
   official: { source: cite('cst-dm-sols-2324-3', '3.2.7(b)'), answer: '1', agrees: true },
+  nudge: t`Not quite. Write ${math`n = ${2}k + ${1}`} and look closely at ${math`k(k + ${1})`}.`,
+  hints: [
+    t`With ${math`n = ${2}k + ${1}`}, what is ${math`n^{${2}}`} expanded?`,
+    t`Why is ${math`k(k + ${1})`} always even?`,
+    t`So what can be said of ${math`${4}k(k + ${1})`} modulo ${8}?`,
+  ],
 });
 
 function bopParity(o: { n: number; p: ParP; official?: Parity }) {
@@ -266,10 +287,16 @@ function bopParity(o: { n: number; p: ParP; official?: Parity }) {
     title: t`The parity of ${polyText(o.p)}`,
     prompt: t`${mn} is an integer. Which is true of ${polyText(o.p)}? (Try cases.)`,
     answer: { kind: 'choice', options: PARITY_OPTIONS, correct: verdict },
-    solution: parityCases.at(o.p).problem.solution,
+    solution: [...parityCases.at(o.p).problem.solution, t`Split by parity; in each case only the parity of each term matters.`],
     reference: verdict,
     verify: () => same(`Book of Proof ${at} by evaluation`, (parityCases.at(o.p).reference as string[])[0], verdict),
     misconceptions: parityCases.at(o.p).misconceptions,
+    nudge: t`Not quite. Two cases, ${mn} even and ${mn} odd, settle it; check the parity of each term in both.`,
+    hints: [
+      t`When ${mn} is even, what is the parity of each term?`,
+      t`When ${mn} is odd, what is the parity of each term?`,
+      t`In each case, what is the parity of the sum?`,
+    ],
   };
   if (o.official !== undefined) spec.official = { source: cite('bop', `Solutions, ${at}`), answer: o.official, agrees: true };
   return auto(spec);
@@ -295,6 +322,7 @@ const bop44 = auto({
   solution: [
     t`${K44} is ${math`${4}a`} with ${math`a = ${K44 / 4}`}, which is negative: Case ${3} of the proof. It takes ${math`n = ${1} - ${2}a = ${1 - K44 / 2}`}, an odd number, so ${math`(-${1})^{n} = -${1}`}.`,
     t`Check: ${math`${1} - (${2} \times ${1 - K44 / 2} - ${1}) = ${1 - (2 * (1 - K44 / 2) - 1)}`}. For a positive multiple the proof takes an even ${mn} (Case ${2}), and for ${0} it takes ${math`n = ${1}`} (Case ${1}).`,
+    t`Choose the case first; inside it, the formula is a simple equation.`,
   ],
   reference: `n = ${1 - K44 / 2}`,
   verify: () => {
@@ -306,15 +334,26 @@ const bop44 = auto({
     return null;
   },
   misconceptions: [{ response: `n = ${-K44 / 2}`, why: t`That is the even case's choice, ${math`n = ${2}a`}, which works for a positive multiple. For a negative one ${mn} must be odd, so that ${math`(-${1})^{n} = -${1}`}.` }],
+  nudge: t`Not quite. The multiple here is negative, so the case with ${mn} odd applies.`,
+  hints: [
+    t`Writing the multiple as ${math`${4}a`}, is ${math`a`} positive, zero, or negative?`,
+    t`When ${mn} is odd, what does ${math`${1} + (-${1})^{n}(${2}n - ${1})`} simplify to?`,
+    t`Setting that equal to ${K44}, what is ${mn}?`,
+  ],
 });
 
 const sw223 = supervision({
   id: 'sw-2-2-3',
   source: cite('cst-dm-sw1', 'Exercises 2, 2.2.3'),
   title: t`Squares leave ${0} or ${1} modulo ${4}`,
-  prompt: t`Show that for every integer ${mn}, the remainder when ${math`n^{${2}}`} is divided by ${4} is either ${0} or ${1}. Say what your cases are and why they cover every integer.`,
+  prompt: t`Show that for every integer ${mn}, the remainder when ${math`n^{${2}}`} is divided by ${4} is either ${0} or ${1}. State the cases and why they cover every integer.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-2', '2.2.3'),
+  hints: [
+    t`Which two cases cover every integer?`,
+    t`What is ${math`n^{${2}}`} when ${math`n = ${2}m`}, and when ${math`n = ${2}m + ${1}`}?`,
+    t`Which multiple of ${4} can be taken out in each case?`,
+  ],
 });
 const sw128 = supervision({
   id: 'sw-1-2-8',
@@ -323,6 +362,11 @@ const sw128 = supervision({
   prompt: t`Show that for all integers ${math`m`} and ${mn}, ${math`(m \mid n \land n \mid m) \Rightarrow (m = n \lor m = -n)`}. Hint: the case ${math`m = ${0}`} needs its own argument.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.2.8'),
+  hints: [
+    t`If ${math`m = ${0}`} and ${math`m`} divides ${mn}, what must ${mn} be?`,
+    t`If ${math`m \ne ${0}`}, writing ${math`n = am`} and ${math`m = bn`}, what does substituting one into the other give?`,
+    t`Which integers ${math`a`} and ${math`b`} satisfy ${math`ab = ${1}`}?`,
+  ],
 });
 const sw231 = supervision({
   id: 'sw-2-3-1',
@@ -331,6 +375,11 @@ const sw231 = supervision({
   prompt: t`Prove that for all integers ${mn}, there exist natural numbers ${math`i`} and ${math`j`} such that ${math`n = i^{${2}} - j^{${2}}`} if and only if ${math`n \equiv ${0}`}, ${math`n \equiv ${1}`}, or ${math`n \equiv ${3} \pmod{${4}}`}. Both directions go by cases: for one, use the remainders of ${math`i^{${2}}`} and ${math`j^{${2}}`}; for the other, odd ${mn} and multiples of ${4}.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-2', '2.3.1'),
+  hints: [
+    t`For one direction, which remainders can ${math`i^{${2}}`} and ${math`j^{${2}}`} leave modulo ${4}, and so which can ${math`i^{${2}} - j^{${2}}`} leave?`,
+    t`For odd ${math`n = ${2}k + ${1}`}, which two consecutive squares differ by ${mn}?`,
+    t`For ${math`n = ${4}k`}, which ${math`i`} and ${math`j`} with ${math`i - j = ${2}`} give ${math`i^{${2}} - j^{${2}} = n`}, and how do negative values of ${mn} fit?`,
+  ],
 });
 const sw327 = supervision({
   id: 'sw-3-2-7',
@@ -339,13 +388,23 @@ const sw327 = supervision({
   prompt: t`Let ${mn} be an integer. (a) Prove that if ${mn} is not divisible by ${3}, then ${math`n^{${2}} \equiv ${1} \pmod{${3}}`}. (b) Show that if ${mn} is odd, then ${math`n^{${2}} \equiv ${1} \pmod{${8}}`}. (c) Conclude that if ${math`p`} is a prime greater than ${3}, then ${math`p^{${2}} - ${1}`} is divisible by ${24}.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-3', '3.2.7'),
+  hints: [
+    t`For (a), if ${3} does not divide ${mn}, what are the two possible remainders, and what is ${math`n^{${2}}`} modulo ${3} in each case?`,
+    t`For (b), with ${math`n = ${2}k + ${1}`}, why is ${math`n^{${2}} - ${1} = ${4}k(k + ${1})`} a multiple of ${8}?`,
+    t`For (c), why does a prime greater than ${3} meet both conditions, and why do ${3} and ${8} together give ${24}?`,
+  ],
 });
 const bop16 = supervision({
   id: 'bop-4-16',
   source: cite('bop', 'Chapter 4, exercise 16'),
   title: t`Same parity, even sum`,
-  prompt: t`Prove: if two integers have the same parity, then their sum is even. (Try cases.) Then say whether "without loss of generality" could shorten your proof, as in Book of Proof Section ${4.5}, and why or why not.`,
+  prompt: t`Prove: if two integers have the same parity, then their sum is even. (Try cases.) Then say whether "without loss of generality" could shorten the proof, as in Book of Proof Section ${4.5}, and why or why not.`,
   writeUp: 'proof',
+  hints: [
+    t`Which two cases does "the same parity" allow?`,
+    t`In each case, writing the integers as ${math`${2}a`} and ${math`${2}b`}, or ${math`${2}a + ${1}`} and ${math`${2}b + ${1}`}, what is the sum?`,
+    t`Could one case be obtained from the other just by renaming, which is what "without loss of generality" needs?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems moved here (Rule 1, 2026-10-08)
@@ -365,6 +424,11 @@ const ns1q1 = supervision({
   title: t`Squares that are multiples of three`,
   prompt: t`If ${math`n^{${2}}`} is a multiple of ${3}, must ${math`n`} be a multiple of ${3}? Prove your answer.`,
   writeUp: 'proof',
+  hints: [
+    t`Which remainders can ${mn} leave on division by ${3}?`,
+    t`What is ${math`n^{${2}}`} modulo ${3} in each case?`,
+    t`Which of those cases give a multiple of ${3}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -147,12 +147,19 @@ const a20cass = auto({
   id: 'a20-q3-cassini',
   source: cite(F20, 'Assignment 20, Q3'),
   title: t`Guess and prove a Fibonacci identity`,
-  prompt: t`(${1996} STEP II, Question ${3}.) The Fibonacci numbers satisfy ${math`F_{${0}} = ${0}`}, ${math`F_{${1}} = ${1}`} and ${math`F_{n + ${1}} = F_{n} + F_{n - ${1}}`} for ${math`n \ge ${1}`}. Compute ${math`F_{n + ${1}}F_{n - ${1}} - F_{n}^{${2}}`} for a few values of ${mn}, and guess a general formula, in terms of ${mn}.`,
+  prompt: t`The Fibonacci numbers satisfy ${math`F_{${0}} = ${0}`}, ${math`F_{${1}} = ${1}`} and ${math`F_{n + ${1}} = F_{n} + F_{n - ${1}}`} for ${math`n \ge ${1}`}. Compute ${math`F_{n + ${1}}F_{n - ${1}} - F_{n}^{${2}}`} for a few values of ${mn}, and find the general formula, in terms of ${mn}, that the values suggest.`,
   answer: { kind: 'expression', expected: '(-1)^n', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 20 } } },
   solution: [
     t`Tabulate: ${math`n = ${1}`}: ${math`F_{${2}}F_{${0}} - F_{${1}}^{${2}} = ${0} - ${1} = -${1}`}. ${math`n = ${2}`}: ${math`${2} \times ${1} - ${1} = ${1}`}. ${math`n = ${3}`}: ${math`${3} \times ${1} - ${4} = -${1}`}. ${math`n = ${4}`}: ${math`${5} \times ${2} - ${9} = ${1}`}. Guess: ${math`(-${1})^{n}`}.`,
     t`Proof by induction. True for ${math`n = ${1}`}. Assume ${math`F_{k + ${1}}F_{k - ${1}} - F_{k}^{${2}} = (-${1})^{k}`}. Using the recurrence twice, ${math`F_{k + ${2}}F_{k} - F_{k + ${1}}^{${2}} = (F_{k + ${1}} + F_{k})F_{k} - F_{k + ${1}}(F_{k} + F_{k - ${1}}) = F_{k}^{${2}} - F_{k + ${1}}F_{k - ${1}}`}.`,
     t`That is ${math`-\left(F_{k + ${1}}F_{k - ${1}} - F_{k}^{${2}}\right) = -(-${1})^{k} = (-${1})^{k + ${1}}`}, the case ${math`k + ${1}`}. So the formula holds for every ${math`n \ge ${1}`}.`,
+    t`Tabulate small cases, guess, then prove by induction.`,
+  ],
+  nudge: t`Not quite. Compute the expression for ${math`n = ${1}, ${2}, ${3}, ${4}`} and watch the sign.`,
+  hints: [
+    t`What is ${math`F_{${2}}F_{${0}} - F_{${1}}^{${2}}`}?`,
+    t`What are the values for ${math`n = ${2}`}, ${3}, and ${4}?`,
+    t`Which simple expression in ${mn} produces that pattern of values?`,
   ],
   reference: '(-1)^n',
   verify: () => {
@@ -170,9 +177,18 @@ const a20f7 = auto({
   id: 'a20-q3-f7',
   source: cite(F20, 'Assignment 20, Q3'),
   title: t`The first Fibonacci numbers`,
-  prompt: t`With ${math`F_{${0}} = ${0}`}, ${math`F_{${1}} = ${1}`} and ${math`F_{n + ${1}} = F_{n} + F_{n - ${1}}`}, show that ${math`F_{${2}} = ${1}`}, ${math`F_{${3}} = ${2}`}, ${math`F_{${4}} = ${3}`}, and compute ${math`F_{${7}}`}.`,
+  prompt: t`With ${math`F_{${0}} = ${0}`}, ${math`F_{${1}} = ${1}`} and ${math`F_{n + ${1}} = F_{n} + F_{n - ${1}}`}, compute ${math`F_{${7}}`}.`,
   answer: { kind: 'exact', expected: String(F(7)) },
-  solution: [t`${math`F_{${2}} = F_{${1}} + F_{${0}} = ${1}`}, ${math`F_{${3}} = ${2}`}, ${math`F_{${4}} = ${3}`}, ${math`F_{${5}} = ${5}`}, ${math`F_{${6}} = ${8}`}, ${math`F_{${7}} = ${5} + ${8} = ${13}`}.`],
+  solution: [
+    t`${math`F_{${2}} = F_{${1}} + F_{${0}} = ${1}`}, ${math`F_{${3}} = ${2}`}, ${math`F_{${4}} = ${3}`}, ${math`F_{${5}} = ${5}`}, ${math`F_{${6}} = ${8}`}, ${math`F_{${7}} = ${5} + ${8} = ${13}`}.`,
+    t`Index carefully: the count starts at ${math`F_{${0}}`}.`,
+  ],
+  nudge: t`Not quite. Write the terms out one by one, starting from ${math`F_{${0}} = ${0}`}.`,
+  hints: [
+    t`What are ${math`F_{${2}}`}, ${math`F_{${3}}`}, and ${math`F_{${4}}`}?`,
+    t`What are ${math`F_{${5}}`} and ${math`F_{${6}}`}?`,
+    t`Which two terms add to give ${math`F_{${7}}`}?`,
+  ],
   reference: '13',
   verify: () => same('F_7', F(7), 13),
   misconceptions: [{ response: '8', why: t`That is ${math`F_{${6}}`}. Count from ${math`F_{${0}} = ${0}`}.` }],
@@ -183,8 +199,13 @@ const a20sup = supervision({
   id: 'a20-q3-addition',
   source: cite(F20, 'Assignment 20, Q3'),
   title: t`The addition formula`,
-  prompt: t`(${1996} STEP II, Question ${3}, last part.) By induction on ${mk}, or otherwise, show that ${math`F_{n + k} = F_{k}F_{n + ${1}} + F_{k - ${1}}F_{n}`} for all positive integers ${mn} and ${mk}. Say clearly which base cases your induction needs, and why.`,
+  prompt: t`(${1996} STEP II, Question ${3}, last part.) By induction on ${mk}, or otherwise, show that ${math`F_{n + k} = F_{k}F_{n + ${1}} + F_{k - ${1}}F_{n}`} for all positive integers ${mn} and ${mk}. State which base cases the induction needs, and why.`,
   writeUp: 'proof',
+  hints: [
+    t`What does the formula say when ${math`k = ${1}`}, and when ${math`k = ${2}`}?`,
+    t`If the formula holds for ${mk} and ${math`k - ${1}`}, how does adding the two cases give it for ${math`k + ${1}`}?`,
+    t`Since the step uses two earlier cases, how many base cases must be checked directly?`,
+  ],
   official: cite('step-f20-hints', 'Assignment 20, Q3'),
 });
 
@@ -192,12 +213,19 @@ const a14i = auto({
   id: 'a14-q3-i',
   source: cite(F14, 'Assignment 14, Q3(i)'),
   title: t`The two roots`,
-  prompt: t`(${2010} STEP II, Question ${3}.) The sequence ${math`F_{${0}} = ${0}, F_{${1}} = ${1}, F_{${2}} = ${1}, F_{${3}} = ${2}`} has general term ${math`F_{n} = a\lambda^{n} + b\mu^{n}`}, where ${math`a, b, \lambda, \mu`} do not depend on ${mn} and ${math`a > ${0}`}. One can show ${math`\lambda + \mu = ${1}`} and ${math`\lambda^{${2}} + \lambda\mu + \mu^{${2}} = ${2}`}. Find ${math`\lambda`}. (Type a square root as sqrt(${5}).)`,
+  prompt: t`The sequence ${math`F_{${0}} = ${0}, F_{${1}} = ${1}, F_{${2}} = ${1}, F_{${3}} = ${2}`} has general term ${math`F_{n} = a\lambda^{n} + b\mu^{n}`}, where ${math`a, b, \lambda, \mu`} do not depend on ${mn} and ${math`a > ${0}`}. One can show ${math`\lambda + \mu = ${1}`} and ${math`\lambda^{${2}} + \lambda\mu + \mu^{${2}} = ${2}`}. Find ${math`\lambda`}. (Type a square root as sqrt(${5}).)`,
   answer: { kind: 'expression', expected: '(1 + sqrt(5))/2', variables: [] },
   solution: [
     t`${math`F_{${0}} = ${0}`} gives ${math`a + b = ${0}`}, so ${math`F_{n} = a(\lambda^{n} - \mu^{n})`}. Then ${math`a(\lambda - \mu) = ${1}`}, and since ${math`a > ${0}`}, ${math`\lambda > \mu`}.`,
     t`Substitute ${math`\mu = ${1} - \lambda`} into ${math`\lambda^{${2}} + \lambda\mu + \mu^{${2}} = ${2}`}: ${math`\lambda^{${2}} + \lambda - \lambda^{${2}} + ${1} - ${2}\lambda + \lambda^{${2}} = ${2}`}, that is ${math`\lambda^{${2}} - \lambda - ${1} = ${0}`}.`,
     t`So ${math`\lambda = \frac{${1} \pm \sqrt{${5}}}{${2}}`}, and as ${math`\lambda > \mu`} take the larger: ${math`\lambda = \frac{${1} + \sqrt{${5}}}{${2}}`}, ${math`\mu = \frac{${1} - \sqrt{${5}}}{${2}}`}, ${math`a = \frac{${1}}{\sqrt{${5}}}`}, ${math`b = -\frac{${1}}{\sqrt{${5}}}`}.`,
+    t`Eliminate one unknown, solve the quadratic, then use the given sign to pick the root.`,
+  ],
+  nudge: t`Not quite. Eliminate ${math`\mu`} first, then use ${math`a > ${0}`} to choose the root.`,
+  hints: [
+    t`Substituting ${math`\mu = ${1} - \lambda`}, which quadratic does ${math`\lambda`} satisfy?`,
+    t`What are the two roots of that quadratic?`,
+    t`From ${math`F_{${0}} = ${0}`} and ${math`F_{${1}} = ${1}`}, what is ${math`a(\lambda - \mu)`}, and so which root is ${math`\lambda`}?`,
   ],
   reference: '(1 + sqrt(5))/2',
   verify: () => {
@@ -215,12 +243,19 @@ const a14ii = auto({
   id: 'a14-q3-ii',
   source: cite(F14, 'Assignment 14, Q3(ii)'),
   title: t`${math`F_{${6}}`} from the formula`,
-  prompt: t`Use ${math`F_{n} = \frac{${1}}{\sqrt{${5}}}\left(\lambda^{n} - \mu^{n}\right)`}, with ${math`\lambda, \mu = \frac{${1} \pm \sqrt{${5}}}{${2}}`}, to evaluate ${math`F_{${6}}`}. (The examiners want the formula used, not the recurrence.)`,
+  prompt: t`Use ${math`F_{n} = \frac{${1}}{\sqrt{${5}}}\left(\lambda^{n} - \mu^{n}\right)`}, with ${math`\lambda, \mu = \frac{${1} \pm \sqrt{${5}}}{${2}}`}, to evaluate ${math`F_{${6}}`}, using the formula rather than the recurrence.`,
   answer: { kind: 'exact', expected: '8' },
   solution: [
     t`${math`F_{${6}} = \frac{${1}}{\sqrt{${5}} \cdot ${2}^{${6}}}\left((${1} + \sqrt{${5}})^{${6}} - (${1} - \sqrt{${5}})^{${6}}\right)`}.`,
     t`By the binomial theorem the even powers of ${math`\sqrt{${5}}`} cancel and the odd ones double: ${math`${2}\left(\binom{${6}}{${1}}\sqrt{${5}} + \binom{${6}}{${3}}${5}\sqrt{${5}} + \binom{${6}}{${5}}${25}\sqrt{${5}}\right) = ${2}\sqrt{${5}}(${6} + ${100} + ${150}) = ${512}\sqrt{${5}}`}.`,
     t`So ${math`F_{${6}} = \frac{${512}\sqrt{${5}}}{${64}\sqrt{${5}}} = ${8}`}, as the recurrence also gives.`,
+    t`In a binomial expansion of conjugates, the even powers of the surd cancel.`,
+  ],
+  nudge: t`Not quite. Expand both sixth powers with the binomial theorem; most terms cancel.`,
+  hints: [
+    t`With ${math`\lambda = \frac{${1} + \sqrt{${5}}}{${2}}`}, how does ${math`\lambda^{${6}} - \mu^{${6}}`} look with the ${math`${2}^{${6}}`} taken out?`,
+    t`In ${math`(${1} + \sqrt{${5}})^{${6}} - (${1} - \sqrt{${5}})^{${6}}`}, which binomial terms cancel and which double?`,
+    t`What do the surviving terms add to, and what is left after dividing by ${math`\sqrt{${5}}`} and ${math`${2}^{${6}}`}?`,
   ],
   reference: '8',
   verify: () => same('F_6 by the formula', Math.round((PHI ** 6 - PSI ** 6) / Math.sqrt(5)), 8),
@@ -239,6 +274,11 @@ const misc5 = supervision({
   title: t`The sum of the reciprocal Fibonacci numbers`,
   prompt: t`The Fibonacci sequence ${math`F_{${1}}, F_{${2}}, F_{${3}}, \ldots`} is defined by ${math`F_{${1}} = ${1}`}, ${math`F_{${2}} = ${1}`} and ${math`F_{n + ${1}} = F_{n} + F_{n - ${1}}`} ${math`(n \ge ${2})`}. Write down the values of ${math`F_{${3}}, F_{${4}}, \ldots, F_{${10}}`}. Let ${math`S = \sum_{i = ${1}}^{\infty} \frac{${1}}{F_{i}}`}. (i) Show that ${math`\frac{${1}}{F_{i}} > \frac{${1}}{${2}F_{i - ${1}}}`} for ${math`i \ge ${4}`} and deduce that ${math`S > ${3}`}. Show also that ${math`S < ${3}\tfrac{${2}}{${3}}`}. (ii) Show further that ${math`${3.2} < S < ${3.5}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`For ${math`i \ge ${4}`}, why is ${math`F_{i} < ${2}F_{i - ${1}}`}, and what lower bound does comparison with a geometric series then give for ${math`S`}?`,
+    t`For an upper bound, how does ${math`F_{i}`} compare with ${math`F_{i - ${1}}`} plus a fraction of it, giving a geometric series that is larger?`,
+    t`For (ii), which first few terms should be added exactly before the geometric bounds are applied to the rest?`,
+  ],
   official: cite(MISCS, 'Q5'),
 });
 
@@ -248,6 +288,11 @@ const db13q6 = supervision({
   title: t`The ratios of neighbours stay between one and two`,
   prompt: t`The sequence ${math`u_{${1}}, u_{${2}}, \ldots`} is defined by ${math`u_{${1}} = ${1}`} and ${dmath`u_{n + ${1}} = ${1} + \frac{${1}}{u_{n}} \qquad (n \ge ${1}). \qquad (*)`} (i) Show that, for ${math`n \ge ${3}`}, ${dmath`u_{n + ${2}} - u_{n} = \frac{u_{n} - u_{n - ${2}}}{(${1} + u_{n})(${1} + u_{n - ${2}})}.`} (ii) Prove, by induction or otherwise, that ${math`${1} \le u_{n} \le ${2}`} for all ${math`n`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Applying ${math`(*)`} twice, what is ${math`u_{n + ${2}}`} in terms of ${math`u_{n}`}?`,
+    t`With that expression, how does ${math`u_{n + ${2}} - u_{n}`} combine over a common denominator?`,
+    t`For (ii), if ${math`${1} \le u_{n} \le ${2}`}, what bounds does ${math`(*)`} give on ${math`u_{n + ${1}}`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -237,6 +237,7 @@ const q1Mu = auto({
   solution: [
     t`${math`\mu = \sum_{k \ge ${1}} k\frac{A\lambda^{k}e^{-\lambda}}{k!} = A e^{-\lambda}\lambda\sum_{k \ge ${1}} \frac{\lambda^{k - ${1}}}{(k - ${1})!} = A e^{-\lambda}\lambda e^{\lambda} = A\lambda`}.`,
     t`With ${math`A = (${1} - e^{-\lambda})^{-${1}}`}, ${math`\mu = \frac{\lambda}{${1} - e^{-\lambda}}`}.`,
+    t`Cancel ${math`k`} into ${math`k!`}, shift the index, and recognise the exponential series.`,
   ],
   reference: 'lambda/(1 - exp(-lambda))',
   verify: () => {
@@ -245,6 +246,12 @@ const q1Mu = auto({
   },
   misconceptions: [{ response: 'lambda', why: t`${ml} is the mean of the full Poisson distribution. Removing the value ${0} pushes the mean up, by the factor ${math`A`}.` }],
   official: { source: cite('step-s2-stats-solutions', 'Q1'), answer: 'lambda/(1 - e^(-lambda))', agrees: true },
+  nudge: t`Not quite. Without the zero term, the constant ${math`A`} raises the mean above ${ml}; cancel ${math`k`} into ${math`k!`} and shift the index.`,
+  hints: [
+    t`What is ${math`A`}, given that the probabilities for ${math`k \ge ${1}`} must add to ${1}?`,
+    t`In ${math`\sum_{k} k\frac{A\lambda^{k}e^{-\lambda}}{k!}`}, what happens when ${math`k`} cancels against ${math`k!`}?`,
+    t`After shifting the index, which familiar series is left?`,
+  ],
 });
 
 const q1Var = auto({
@@ -256,6 +263,7 @@ const q1Var = auto({
   solution: [
     t`As for the mean, ${math`E(X(X - ${1})) = A e^{-\lambda}\lambda^{${2}} e^{\lambda} = A\lambda^{${2}}`}, so ${math`E(X^{${2}}) = A\lambda^{${2}} + A\lambda = A\lambda(${1} + \lambda)`}.`,
     t`${math`\operatorname{Var}(X) = E(X^{${2}}) - \mu^{${2}} = \mu(${1} + \lambda) - \mu^{${2}} = \mu(${1} - \mu + \lambda)`}, with ${math`\mu = \frac{\lambda}{${1} - e^{-\lambda}}`}.`,
+    t`With ${math`k!`} in the denominator, find ${math`E(X(X - ${1}))`} first.`,
   ],
   reference: 'lambda(1 + lambda)/(1 - exp(-lambda)) - (lambda/(1 - exp(-lambda)))^2',
   verify: () => {
@@ -270,6 +278,12 @@ const q1Var = auto({
   misconceptions: [{ response: 'lambda', why: t`Mean equals variance only for the full Poisson distribution. Compute ${math`E(X^{${2}}) - \mu^{${2}}`} for this one.` }],
   // The solutions give Var(X) = mu(1 - mu + lambda) with mu = lambda/(1 - e^(-lambda)); typed here with mu substituted.
   official: { source: cite('step-s2-stats-solutions', 'Q1'), answer: 'lambda/(1 - e^(-lambda)) * (1 - lambda/(1 - e^(-lambda)) + lambda)', agrees: true },
+  nudge: t`Not quite. ${math`E(X(X - ${1}))`} is easier than ${math`E(X^{${2}})`}; the variance then follows from it and the mean.`,
+  hints: [
+    t`By the same shift as for the mean, what is ${math`E(X(X - ${1}))`}?`,
+    t`How is ${math`E(X^{${2}})`} obtained from ${math`E(X(X - ${1}))`} and ${math`E(X)`}?`,
+    t`What is ${math`E(X^{${2}}) - \mu^{${2}}`} with ${math`\mu = \frac{\lambda}{${1} - e^{-\lambda}}`}?`,
+  ],
 });
 
 const q1Show = supervision({
@@ -279,15 +293,25 @@ const q1Show = supervision({
   prompt: t`${q1Intro} Show that ${math`A = (${1} - e^{-\lambda})^{-${1}}`}. Find the mean ${math`\mu`} in terms of ${ml} and show that ${math`\operatorname{Var}(X) = \mu(${1} - \mu + \lambda)`}. Deduce that ${math`\lambda < \mu < ${1} + \lambda`}.`,
   writeUp: 'proof',
   official: cite('step-s2-stats-solutions', 'Q1'),
+  hints: [
+    t`Why must ${math`A\sum_{k \ge ${1}} \frac{\lambda^{k}e^{-\lambda}}{k!} = ${1}`}, and what is that sum?`,
+    t`Which shifts of the summation index give ${math`E(X)`} and ${math`E(X(X - ${1}))`}?`,
+    t`Since ${math`\operatorname{Var}(X) > ${0}`} and ${math`A > ${1}`}, which inequalities follow?`,
+  ],
 });
 
 const q1Normal = supervision({
   id: 's2-q1-normal',
   source: cite(S2, 'Q1 (2003 S2 Q13)'),
   title: t`A normal approximation for ${math`\lambda = ${100}`}`,
-  prompt: t`For the distribution of Q${1} with ${math`\lambda = ${100}`}, use a normal approximation to find ${math`P(X = \lambda)`}, to two decimal places. Explain why the missing zero hardly matters here, which normal distribution you use, and why the continuity correction is needed.`,
+  prompt: t`For the distribution of Q${1} with ${math`\lambda = ${100}`}, use a normal approximation to find ${math`P(X = \lambda)`}, to two decimal places. Explain why the missing zero hardly matters here, which normal distribution is used, and why the continuity correction is needed.`,
   writeUp: 'explanation',
   official: cite('step-s2-stats-solutions', 'Q1'),
+  hints: [
+    t`How large is ${math`e^{-${100}}`}, and so how close is ${math`A`} to ${1}?`,
+    t`Which normal distribution has the same mean and variance as ${math`\text{Po}(${100})`}?`,
+    t`With the continuity correction, which interval stands for ${math`X = ${100}`}, and what is its probability?`,
+  ],
 });
 
 const notesMean = supervision({
@@ -296,6 +320,11 @@ const notesMean = supervision({
   title: t`The mean of a Poisson distribution`,
   prompt: t`For ${math`X \sim \text{Po}(\lambda)`}, show that ${math`E(X) = \lambda`}, and then that ${math`\operatorname{Var}(X) = \lambda`}. Hint: compute ${math`E(X(X - ${1}))`} first, by the same shift of the summation index.`,
   writeUp: 'proof',
+  hints: [
+    t`In ${math`\sum_{k} k\frac{\lambda^{k}e^{-\lambda}}{k!}`}, why can the ${math`k = ${0}`} term be dropped, and what does ${math`\frac{k}{k!}`} become?`,
+    t`After shifting the index, what is the sum?`,
+    t`How do ${math`E(X(X - ${1}))`} and ${math`E(X)`} give ${math`\operatorname{Var}(X)`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

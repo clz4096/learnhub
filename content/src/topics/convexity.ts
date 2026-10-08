@@ -169,9 +169,16 @@ const switchQ = auto({
   title: t`Where the bending changes`,
   prompt: t`For the graph ${math`y = x^{${3}} - ${2}x^{${2}} - ${3}x`}, find the value of ${math`x`} where ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}.`,
   answer: { kind: 'exact', expected: '2/3' },
+  hints: [
+    t`What is ${math`\frac{dy}{dx}`} for ${math`y = x^{${3}} - ${2}x^{${2}} - ${3}x`}?`,
+    t`What is the second derivative?`,
+    t`Where is that linear expression ${0}?`,
+  ],
+  nudge: t`Not quite. Differentiate twice, term by term; the second derivative of ${math`-${2}x^{${2}}`} is a constant.`,
   solution: [
     t`${math`\frac{dy}{dx} = ${3}x^{${2}} - ${4}x - ${3}`}, so ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${6}x - ${4}`}.`,
     t`${math`${6}x - ${4} = ${0}`} at ${math`x = ${q(2, 3)}`}, where ${math`y = ${q(-70, 27)}`}. To the left the curve is concave, to the right convex.`,
+    t`Where the second derivative changes sign, the bending changes.`,
   ],
   reference: '2/3',
   verify: () => {
@@ -190,9 +197,16 @@ const quarticQ = auto({
   title: t`Concave between the points where the second derivative vanishes`,
   prompt: t`For the graph ${math`y = x^{${4}} - ${2}x^{${3}}`}, find the points where ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}, and hence the interval on which the curve is concave. Give the two ends.`,
   answer: { kind: 'witness', count: 2, unordered: true, example: '0, 1', check: (vals) => (setKey(vals) === setKey([q(0), q(1)]) ? null : 'Solve 12x^2 - 12x = 0.') },
+  hints: [
+    t`What is the second derivative of ${math`x^{${4}} - ${2}x^{${3}}`}?`,
+    t`Where is it ${0}?`,
+    t`What is its sign between those points, and outside them?`,
+  ],
+  nudge: t`Not quite. Concavity comes from the sign of the second derivative, not from the stationary points.`,
   solution: [
     t`${math`\frac{dy}{dx} = ${4}x^{${3}} - ${6}x^{${2}}`} and ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${12}x^{${2}} - ${12}x = ${12}x(x - ${1})`}, zero at ${math`(${0}, ${0})`} and ${math`(${1}, ${-1})`}.`,
     t`Between them it is negative, so the curve is concave for ${math`${0} \le x \le ${1}`}, and convex outside.`,
+    t`Concave where the second derivative is negative: solve that inequality.`,
   ],
   reference: '0, 1',
   verify: () => {
@@ -209,6 +223,11 @@ const sketchQ = supervision({
   source: cite(F13, 'Assignment 13, Q1(iii), (iv)', true),
   title: t`A sketch from the second derivative, and a false inflection`,
   prompt: t`(iii) For the graph ${math`y = x^{${4}} - ${2}x^{${3}}`}, find the stationary points and the points where ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}, and sketch it. (iv) For the graph ${math`y = (x - ${1})^{${4}}`}, find the point where ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}, and by considering the shape of the graph show that it is not a point of inflection.`,
+  hints: [
+    t`For ${math`y = x^{${4}} - ${2}x^{${3}}`}, what are ${math`\frac{dy}{dx}`} and ${math`\frac{d^{${2}}y}{dx^{${2}}}`}, and where is each ${0}?`,
+    t`What is the nature of each stationary point, and where does the curve meet the axes?`,
+    t`For ${math`y = (x - ${1})^{${4}}`}, what is the sign of ${math`\frac{d^{${2}}y}{dx^{${2}}}`} on each side of ${math`x = ${1}`}?`,
+  ],
   writeUp: 'sketch',
   official: cite(F13H, 'Assignment 13 hints, Q1'),
 });

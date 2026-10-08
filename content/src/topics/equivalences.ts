@@ -240,6 +240,9 @@ const whereDiffer = generator<DiffP>({
 
 // ---------------------------------------------------------------- Cambridge problems
 
+/** A problem with its "Not right yet" line and three escalating hints (mastery/APP-LANGUAGE.md). */
+const helped = (p: AutoProblem, nudge: Rich, hints: readonly Rich[]): AutoProblem => ({ ...p, nudge, hints });
+
 /** Official tables from Book of Proof's solutions, row by row in its order (all true first), the blank columns only. */
 function bopTable(o: { n: number; title: Rich; a: string; b: string; helpers: readonly string[]; official?: readonly string[]; steps: Rich[] }): AutoProblem {
   const vars = varsOf(o.a, o.b);
@@ -272,30 +275,45 @@ const bop1 = bopTable({
     t`The columns agree in every row, so the statements are equivalent: "and" distributes over "or", as multiplication distributes over addition.`,
   ],
 });
-const bop3 = bopTable({
+const bop3 = helped(bopTable({
   n: 3, title: t`An implication as an "or"`, a: 'P => Q', b: '~P | Q', helpers: ['~P'],
   official: rowsOf('F T T', 'F F F', 'T T T', 'T T T'),
   steps: [
     t`${fm('P => Q')} is false only when ${mP} is true and ${mQ} false, the second row.`,
     t`${fm('~P | Q')} is false only when ${math`\lnot P`} and ${mQ} are both false: again only the second row. The columns agree.`,
+    t`An implication is an "or": ${math`(P \Rightarrow Q) \equiv (\lnot P \lor Q)`}.`,
   ],
-});
-const bop5 = bopTable({
+}), t`Not quite. Each of these statements is false in only one row; find that row first.`, [
+  t`In which row is ${fm('P => Q')} false?`,
+  t`In which rows is ${math`\lnot P`} false?`,
+  t`When is ${fm('~P | Q')} false, and is it the same row?`,
+]);
+const bop5 = helped(bopTable({
   n: 5, title: t`De Morgan for three`, a: '~(P | Q | R)', b: '~P & ~Q & ~R', helpers: ['P | Q | R', '~P', '~Q', '~R'],
   official: rowsOf('T F F F F F', 'T F F T F F', 'T F T F F F', 'T F T T F F', 'T T F F F F', 'T T F T F F', 'T T T F F F', 'F T T T T T'),
   steps: [
     t`${fm('P | Q | R')} is false only in the last row, where all three are false, so its negation is true only there.`,
     t`${fm('~P & ~Q & ~R')} needs all three negations true, which is also only the last row. The columns agree.`,
+    t`De Morgan: the negation of an "or" is the "and" of the negations.`,
   ],
-});
-const bop7 = bopTable({
+}), t`Not quite. An "or" of three letters is false in only one row; start from that row.`, [
+  t`In which rows is ${fm('P | Q | R')} false?`,
+  t`When is an "and" of three statements true?`,
+  t`In which rows are ${math`\lnot P`}, ${math`\lnot Q`}, and ${math`\lnot R`} all true?`,
+]);
+const bop7 = helped(bopTable({
   n: 7, title: t`An implication with a contradiction`, a: 'P => Q', b: '(P & ~Q) => (Q & ~Q)', helpers: ['~Q', 'P & ~Q', 'Q & ~Q'],
   official: rowsOf('F F F T T', 'T T F F F', 'F F F T T', 'T F F T T'),
   steps: [
     t`${fm('Q & ~Q')} is false in every row. An implication with a false conclusion is true exactly when its hypothesis is false.`,
-    t`So ${fm('(P & ~Q) => (Q & ~Q)')} is true exactly when ${fm('P & ~Q')} is false, which is when ${fm('P => Q')} is true. This equivalence is the logic behind proof by contradiction: assume ${mP} and not ${mQ}, and reach something impossible.`,
+    t`So ${fm('(P & ~Q) => (Q & ~Q)')} is true exactly when ${fm('P & ~Q')} is false, which is when ${fm('P => Q')} is true.`,
+    t`Proof by contradiction rests on this equivalence: assume ${mP} and not ${mQ}, and reach something impossible.`,
   ],
-});
+}), t`Not quite. Look at ${fm('Q & ~Q')} first: it has the same value in every row.`, [
+  t`In which rows is ${fm('Q & ~Q')} true?`,
+  t`When is an implication with a false conclusion true?`,
+  t`In which rows is ${fm('P & ~Q')} false, and how do they compare with the rows where ${fm('P => Q')} is true?`,
+]);
 
 function bopVerdict(o: { n: number; a: string; b: string; official?: boolean; steps: Rich[] }): AutoProblem {
   const vars = varsOf(o.a, o.b);
@@ -320,27 +338,42 @@ function bopVerdict(o: { n: number; a: string; b: string; official?: boolean; st
   return auto(spec);
 }
 
-const bop10 = bopVerdict({
+const bop10 = helped(bopVerdict({
   n: 10, a: '(P => Q) | R', b: '~((P & ~Q) & ~R)',
   steps: [
     t`By De Morgan's law, ${fm('~((P & ~Q) & ~R)')} is ${fm('~(P & ~Q) | R')}, and ${fm('~(P & ~Q)')} is ${fm('~P | Q')}, which is ${fm('P => Q')}.`,
     t`So the second statement is ${fm('(P => Q) | R')}: equivalent. A truth table confirms it, row by row.`,
+    t`Rewrite with known equivalences before building a table.`,
   ],
-});
-const bop11 = bopVerdict({
+}), t`Not quite. Rewrite the second statement with De Morgan's law before comparing.`, [
+  t`What does De Morgan's law turn ${fm('~((P & ~Q) & ~R)')} into?`,
+  t`What is ${fm('~(P & ~Q)')} as an "or"?`,
+  t`Which implication is ${fm('~P | Q')}?`,
+]);
+const bop11 = helped(bopVerdict({
   n: 11, a: '~P & (P => Q)', b: '~(Q => P)', official: false,
   steps: [
     t`${fm('~(Q => P)')} is true only when ${mQ} is true and ${mP} false. ${fm('~P & (P => Q)')} is true whenever ${mP} is false, whatever ${mQ} is.`,
     t`In the last row, ${mP} and ${mQ} both false, the first is true and the second false. Not equivalent.`,
+    t`One row where two statements differ shows they are not equivalent.`,
   ],
-});
-const bop12 = bopVerdict({
+}), t`Not quite. Look for one row where the two statements differ.`, [
+  t`In which rows is ${fm('~(Q => P)')} true?`,
+  t`In which rows is ${fm('~P & (P => Q)')} true?`,
+  t`Is there a row where one is true and the other false?`,
+]);
+const bop12 = helped(bopVerdict({
   n: 12, a: '~(P => Q)', b: 'P & ~Q',
   steps: [
     t`${fm('P => Q')} is false exactly when ${mP} is true and ${mQ} is false, so its negation is true exactly then.`,
     t`That is ${fm('P & ~Q')}: equivalent. The CST notes list it first among the equivalences for negation (printed page ${134}).`,
+    t`The negation of ${fm('P => Q')} is ${fm('P & ~Q')}, not another implication.`,
   ],
-});
+}), t`Not quite. Ask exactly when ${fm('P => Q')} is false.`, [
+  t`In which single case is ${fm('P => Q')} false?`,
+  t`So in which case is ${fm('~(P => Q)')} true?`,
+  t`In which case is ${fm('P & ~Q')} true?`,
+]);
 
 const tmuaF1 = auto({
   id: 'tmua-f-1',
@@ -350,7 +383,14 @@ const tmuaF1 = auto({
   answer: truthTable(['~Q', 'P & ~Q', '~(P & ~Q)', '~P', '~P | Q'], PQ),
   solution: [
     t`${fm('P & ~Q')} is true only in the second row, so ${fm('~(P & ~Q)')} is false only there.`,
-    t`${fm('~P | Q')} is also false only in the second row. The two columns agree, and both are the column of ${fm('P => Q')}: the notes' point that "if A then B" is "not (A and not B)".`,
+    t`${fm('~P | Q')} is also false only in the second row. The two columns agree, and both are the column of ${fm('P => Q')}.`,
+    t`"If ${mP} then ${mQ}" is "not (${mP} and not ${mQ})".`,
+  ],
+  nudge: t`Not quite. Work outward from ${math`\lnot Q`}, one connective per column.`,
+  hints: [
+    t`In which row is ${fm('P & ~Q')} true?`,
+    t`So in which row is ${fm('~(P & ~Q)')} false?`,
+    t`In which row is ${fm('~P | Q')} false?`,
   ],
   reference: truthTable(['~Q', 'P & ~Q', '~(P & ~Q)', '~P', '~P | Q'], PQ).expected,
   verify: () => {
@@ -374,6 +414,13 @@ const tmuaK4 = auto({
   solution: [
     t`The [[contrapositive|contrapositive]] of "if ${math`A`} then ${math`B`}" is "if not ${math`B`} then not ${math`A`}". Here ${math`A`} is "${math`a`} and ${math`b`} are odd", and not ${math`A`} is "${math`a`} and ${math`b`} are not both odd", by De Morgan.`,
     t`So: if ${math`ab`} is even, then ${math`a`} and ${math`b`} are not both odd; that is, at least one of them is even.`,
+    t`Contrapositive: swap the parts and negate both, negating an "and" by De Morgan.`,
+  ],
+  nudge: t`Not quite. The contrapositive swaps the two parts and negates both; negate "${math`a`} and ${math`b`} are odd" with care.`,
+  hints: [
+    t`What is the contrapositive of "if ${math`A`} then ${math`B`}"?`,
+    t`For an integer ${math`ab`}, what is the negation of "${math`ab`} is odd"?`,
+    t`By De Morgan, what is the negation of "${math`a`} is odd and ${math`b`} is odd"?`,
   ],
   reference: 'right',
   verify: () => {
@@ -404,6 +451,13 @@ const tmuaK2 = auto({
   solution: [
     t`The converse of ${fm('P => Q')} is ${fm('Q => P')}, and its contrapositive is ${fm('~P => ~Q')}.`,
     t`${fm('~P => ~Q')} is equivalent to the converse ${fm('Q => P')}, not to ${fm('P => Q')}: at ${rowText(1, PQ)} the original is false and it is true. So no.`,
+    t`A contrapositive matches the statement it came from, here the converse.`,
+  ],
+  nudge: t`Not quite. Write out the converse, then its contrapositive, and compare them in one row.`,
+  hints: [
+    t`What is the converse of ${fm('P => Q')}?`,
+    t`What is the contrapositive of that converse?`,
+    t`With ${mP} true and ${mQ} false, what are the truth values of ${fm('P => Q')} and of that contrapositive?`,
   ],
   reference: 'no',
   verify: () => {
@@ -419,6 +473,11 @@ const tmuaF3 = supervision({
   title: t`Equivalent statements in words`,
   prompt: t`Find logically equivalent statements for each of the following, at least one in the form "not (... and not ...)" and one as a contrapositive: (a) if ${math`x > ${1}`} then ${math`x^{${2}} > ${1}`}; (b) if two triangles are similar then they have the same interior angles; (c) if a triangle obeys Pythagoras' theorem then it has a right angle. Explain why each is equivalent.`,
   writeUp: 'explanation',
+  hints: [
+    t`What is "if ${math`A`} then ${math`B`}" in the form "not (${math`A`} and not ${math`B`})"?`,
+    t`What is the contrapositive of "if ${math`A`} then ${math`B`}"?`,
+    t`For (a), what are the negations of ${math`x > ${1}`} and of ${math`x^{${2}} > ${1}`}?`,
+  ],
 });
 const tmuaK5 = supervision({
   id: 'tmua-k-5',
@@ -426,6 +485,11 @@ const tmuaK5 = supervision({
   title: t`A careless "not"`,
   prompt: t`Why is it a mistake to write the contrapositive of "if ${math`a`} and ${math`b`} are odd, then ${math`ab`} is odd" as "if ${math`ab`} is not odd then ${math`a`} and ${math`b`} are not odd"? Give a pair of integers that shows the careless version is false, and say which law of logic was broken.`,
   writeUp: 'explanation',
+  hints: [
+    t`What is the negation of "${math`a`} and ${math`b`} are odd"?`,
+    t`Is "${math`a`} and ${math`b`} are not odd" the same as "${math`a`} and ${math`b`} are not both odd"?`,
+    t`Which pair of integers, one odd and one even, makes the careless version fail?`,
+  ],
 });
 const lemma43 = supervision({
   id: 'cst-lemma-43-equivalences',
@@ -433,6 +497,11 @@ const lemma43 = supervision({
   title: t`Which equivalences?`,
   prompt: t`In the proof of Lemma ${43} (a positive rational is a fraction in lowest terms), the CST notes negate ${math`\exists m, n.\ x = m/n \land \lnot \exists p.\ (p \mid m \land p \mid n)`} to get ${math`\forall m, n.\ x = m/n \Rightarrow \exists p.\ (p \mid m \land p \mid n)`}, and say this uses three of the equivalences on printed page ${134} together with ${math`(P \Rightarrow Q) \Leftrightarrow (\lnot P \lor Q)`}. Which three? Show the negation step by step, naming the equivalence used at each step.`,
   writeUp: 'explanation',
+  hints: [
+    t`How does a negation pass through ${math`\exists`}, and through ${math`\forall`}?`,
+    t`What is the negation of an "and" of two statements?`,
+    t`Which "or" becomes an implication by ${math`(P \Rightarrow Q) \Leftrightarrow (\lnot P \lor Q)`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
@@ -456,6 +525,13 @@ const lp1 = auto({
   solution: [
     t`As an "or", ${math`P \Rightarrow \lnot P`} is ${math`\lnot P \lor \lnot P`}, which is equivalent to ${math`\lnot P`}.`,
     t`So it is true in the row where ${mP} is false (satisfiable) and false in the row where ${mP} is true (not valid).`,
+    t`Satisfiable: true in some row. Valid: true in every row.`,
+  ],
+  nudge: t`Not quite. There are only two rows; evaluate the formula in each.`,
+  hints: [
+    t`What is ${math`P \Rightarrow \lnot P`} when ${mP} is true?`,
+    t`What is it when ${mP} is false?`,
+    t`Is it true in some row, in every row, or in none?`,
   ],
   reference: ['sat'],
   verify: () => same('the column of P => ~P', column('P => ~P', ['P']).map(TF).join(''), 'FT'),
@@ -485,13 +561,18 @@ const lp4 = supervision({
   title: t`Normal forms and verdicts`,
   prompt: t`A literal is a letter or the negation of a letter. A formula is in conjunctive normal form (CNF) if it is an "and" of clauses, each an "or" of literals, and in disjunctive normal form (DNF) if it is an "or" of terms, each an "and" of literals. Convert each of the following formulas into CNF and also into DNF: ${fm(LP4[0])}; ${fm(LP4[1])}; ${fm(LP4[2])}. For each formula, state whether it is valid, satisfiable, or unsatisfiable; justify each answer. (${SAT_DEF})`,
   writeUp: 'explanation',
+  hints: [
+    t`Which laws remove ${math`\Rightarrow`} and push each ${math`\lnot`} inward until it sits on a letter?`,
+    t`Which distributive law turns an "and" of "or"s into an "or" of "and"s, and the other way round?`,
+    t`What does a DNF term containing both a letter and its negation contribute, and what does a CNF clause containing both?`,
+  ],
 });
 
 const lp4Verdicts = auto({
   id: 'lp-ex-4-verdicts',
   source: cite('cst-lp-notes', 'Section 2, Exercise 4 (page 5)', true),
   title: t`Valid, satisfiable, or neither`,
-  prompt: t`${SAT_DEF} For each formula, is it valid? Is it satisfiable? Write T or F.`,
+  prompt: t`${SAT_DEF} For each formula, state whether it is valid and whether it is satisfiable (T or F).`,
   answer: {
     kind: 'table', columns: [t`formula`, t`valid`, t`satisfiable`], cell: 'truth',
     rows: LP4.map((x) => [[fm(x)], null, null]),
@@ -501,6 +582,13 @@ const lp4Verdicts = auto({
     t`${fm(LP4[0])} says ${mP} and ${mQ} have the same truth value: true when both are true, false when only ${mP} is. Satisfiable, not valid.`,
     t`${fm(LP4[1])} needs ${math`\lnot (P \lor R)`}, so ${mP} and ${math`R`} false; then ${math`(P \land Q) \lor R`} is false. No row makes it true: unsatisfiable, so not valid either.`,
     t`${fm(LP4[2])} is true whenever ${math`R`} is true, so it is satisfiable; with ${mP} true and ${mQ}, ${math`R`} false both parts are false, so it is not valid.`,
+    t`Satisfiable needs one true row; valid needs every row true.`,
+  ],
+  nudge: t`Not quite. For each formula, look for one row that makes it true and one that makes it false.`,
+  hints: [
+    t`For the first formula, what must be true of ${mP} and ${mQ} for both implications to hold?`,
+    t`In the second formula, what does ${math`\lnot (P \lor R)`} force, and what does that do to ${math`(P \land Q) \lor R`}?`,
+    t`For the third formula, is there a row that makes both of its parts false?`,
   ],
   reference: LP4.flatMap((x) => lp4Verdict(x).map(TF)),
   verify: () => same('the verdicts, valid and satisfiable in turn', LP4.map((x) => lp4Verdict(x).map(TF).join('')).join(' '), 'FT FF FT'),

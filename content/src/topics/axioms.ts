@@ -221,9 +221,16 @@ const disjointHalves = auto({
   title: t`Countable additivity with numbers`,
   prompt: t`In a probability space, the events ${math`A_{${1}}, A_{${2}}, \ldots`} are pairwise disjoint and ${math`\mathbb{P}(A_{n}) = \frac{${1}}{${3}^{n}}`} for each ${math`n \ge ${1}`}. What is ${math`\mathbb{P}\left(\bigcup_{n} A_{n}\right)`}, and what is the probability that none of them happens?`,
   answer: { kind: 'table', cell: 'exact', columns: [t`event`, t`probability`], rows: [[t`${math`\bigcup_{n} A_{n}`}`, null], [t`none of them`, null]], expected: [str(q(1, 2)), str(q(1, 2))] },
+  hints: [
+    t`What does countable additivity say about the probability of the union?`,
+    t`Which geometric series is that, and what is its sum?`,
+    t`How is the event that none of them happens related to the union?`,
+  ],
+  nudge: t`Not quite. The events need not cover the whole space; add their probabilities as a geometric series.`,
   solution: [
     t`Countable additivity: ${math`\mathbb{P}\left(\bigcup A_{n}\right) = \sum_{n \ge ${1}} ${3}^{-n} = \frac{${1}/${3}}{${1} - ${1}/${3}} = ${q(1, 2)}`}.`,
     t`"None of them" is the complement of the union: ${math`${1} - ${q(1, 2)} = ${q(1, 2)}`}.`,
+    t`Disjoint events: add their probabilities, even countably many.`,
   ],
   reference: [str(q(1, 2)), str(q(1, 2))],
   verify: () => { let s = 0; for (let n = 1; n < 60; n++) s += 3 ** -n; return same('the partial sums', recognise(s), '1/2'); },
@@ -234,14 +241,24 @@ const q4c = supervision({
   id: 'ia-q4-c',
   source: cite(S1, 'Q4(c)'),
   title: t`Finite additivity from countable additivity`,
-  prompt: t`Show, starting from the definitions, that if ${math`A_{${1}}`} and ${math`A_{${2}}`} are disjoint events then ${math`\mathbb{P}(A_{${1}} \cup A_{${2}}) = \mathbb{P}(A_{${1}}) + \mathbb{P}(A_{${2}})`}. Which earlier part do you need first, and why can't you apply countable additivity to just two events?`,
+  prompt: t`Show, starting from the definitions, that if ${math`A_{${1}}`} and ${math`A_{${2}}`} are disjoint events then ${math`\mathbb{P}(A_{${1}} \cup A_{${2}}) = \mathbb{P}(A_{${1}}) + \mathbb{P}(A_{${2}})`}. Which earlier part is needed first, and why can countable additivity not be applied to two events directly?`,
+  hints: [
+    t`How can two disjoint events be extended to an infinite sequence of pairwise disjoint events with the same union?`,
+    t`Which earlier result gives the probability of each event added to the sequence?`,
+    t`What does countable additivity then give, once the zero terms are dropped?`,
+  ],
   writeUp: 'proof',
 });
 const countableCase = supervision({
   id: 'schedule-countable-case',
   source: cite('tripos-schedules', 'IA Probability, Axiomatic approach: "Axioms (countable case)"', true),
   title: t`Point masses give a probability measure`,
-  prompt: t`Let ${mO} be countable and ${math`p_{\omega} \ge ${0}`} with ${math`\sum_{\omega \in \Omega} p_{\omega} = ${1}`}. Define ${math`\mathbb{P}(A) = \sum_{\omega \in A} p_{\omega}`} for every ${math`A \subseteq \Omega`}. Check that ${mP} satisfies the axioms, including countable additivity, and say where you use that the terms are nonnegative (rearranging a series). Conversely, why is every probability measure on all subsets of a countable ${mO} of this form?`,
+  prompt: t`Let ${mO} be countable and ${math`p_{\omega} \ge ${0}`} with ${math`\sum_{\omega \in \Omega} p_{\omega} = ${1}`}. Define ${math`\mathbb{P}(A) = \sum_{\omega \in A} p_{\omega}`} for every ${math`A \subseteq \Omega`}. Check that ${mP} satisfies the axioms, including countable additivity, and say where the nonnegativity of the terms is used (rearranging a series). Conversely, why is every probability measure on all subsets of a countable ${mO} of this form?`,
+  hints: [
+    t`Under this definition, what are ${math`\mathbb{P}(\Omega)`} and the sign of each ${math`\mathbb{P}(A)`}?`,
+    t`For pairwise disjoint ${math`A_{n}`}, why does the sum over their union equal the sum of the sums over each ${math`A_{n}`}, and which property of the terms allows the regrouping?`,
+    t`For the converse, what is ${math`\mathbb{P}(\{\omega\})`}, and how does countable additivity express ${math`\mathbb{P}(A)`} through these values?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -260,6 +277,11 @@ const gs5112 = supervision({
   source: cite('gs-ch5', 'Section 5.1, Exercise 12 (page 199)', true),
   title: t`The Poisson probabilities add to one`,
   prompt: t`For ${math`\lambda > ${0}`}, the Poisson distribution with parameter ${math`\lambda`} gives the value ${math`k \in \{${0}, ${1}, ${2}, \ldots\}`} the probability ${math`p_k = e^{-\lambda} \frac{\lambda^{k}}{k!}`}. Show that these values sum to ${1}, so that they define a probability measure on ${math`\{${0}, ${1}, ${2}, \ldots\}`}.`,
+  hints: [
+    t`Why is each ${math`p_k`} at least ${0}?`,
+    t`After the factor ${math`e^{-\lambda}`} is taken out, which series is left?`,
+    t`What does that series converge to, for every real ${math`\lambda`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -301,11 +323,18 @@ const step94Craps = auto({
   title: t`Craps: adding infinitely many ways to win`,
   prompt: t`Calamity Jane plays craps. She rolls two fair dice. If, on the first throw, the sum of the dice is ${2}, ${3}, or ${12} she loses, while if it is ${7} or ${11} she wins. Otherwise she continues to roll the dice until either the first sum is repeated, in which case she wins, or the sum is ${7}, in which case she loses. (a) Find the probability that she wins on the first throw. (b) For ${math`n \ge ${2}`}, the probability that she wins on the ${mn}th throw is ${dmath`${(CRAPS_TERMS[0] as { coeff: Rational }).coeff}\left(${(CRAPS_TERMS[0] as { ratio: Rational }).ratio}\right)^{n - ${2}} + ${(CRAPS_TERMS[1] as { coeff: Rational }).coeff}\left(${(CRAPS_TERMS[1] as { ratio: Rational }).ratio}\right)^{n - ${2}} + ${(CRAPS_TERMS[2] as { coeff: Rational }).coeff}\left(${(CRAPS_TERMS[2] as { ratio: Rational }).ratio}\right)^{n - ${2}}.`} Find the probability that she wins.`,
   answer: { kind: 'table', cell: 'exact', columns: [t`part`, t`probability`], rows: [[t`(a) she wins on the first throw`, null], [t`(b) she wins`, null]], expected: CRAPS_ANSWERS },
+  hints: [
+    t`How many of the ${36} equally likely ordered pairs give a sum of ${7}, and how many give ${11}?`,
+    t`Why are the events that she wins on throw ${mn} pairwise disjoint, and what does that allow for the total?`,
+    t`What is ${math`\sum_{n \ge ${2}} c\,r^{n - ${2}}`} when ${math`|r| < ${1}`}?`,
+  ],
+  nudge: t`Not quite. List the disjoint ways to win, including the first throw, then sum each geometric series separately.`,
   solution: [
     t`(a) The ${36} ordered pairs of faces are equally likely. A sum of ${7} comes from ${6} of them and ${11} from ${2}, and these cannot happen together, so the probability is ${math`\frac{${8}}{${36}} = ${FIRST_WIN}`}.`,
     t`(b) Let ${math`W_{n}`} be the event that she wins on the ${mn}th throw. She wins on exactly one throw if she wins at all, so ${math`W_{${1}}, W_{${2}}, W_{${3}}, \ldots`} are pairwise disjoint and their union is the event that she wins. By countable additivity, ${math`\mathbb{P}(\text{she wins}) = \sum_{n \ge ${1}} \mathbb{P}(W_{n})`}: one event at a time would never reach all of them.`,
     t`Each part of the formula is a geometric series in ${math`n - ${2}`}, with ratio less than ${1}: ${math`\sum_{n \ge ${2}} c\,r^{n - ${2}} = \frac{c}{${1} - r}`}. The three sums are ${math`${(CRAPS_TERMS[0] as { coeff: Rational }).coeff} \times ${div(q(1), sub(q(1), (CRAPS_TERMS[0] as { ratio: Rational }).ratio))} = ${div((CRAPS_TERMS[0] as { coeff: Rational }).coeff, sub(q(1), (CRAPS_TERMS[0] as { ratio: Rational }).ratio))}`}, ${math`${div((CRAPS_TERMS[1] as { coeff: Rational }).coeff, sub(q(1), (CRAPS_TERMS[1] as { ratio: Rational }).ratio))}`}, and ${math`${div((CRAPS_TERMS[2] as { coeff: Rational }).coeff, sub(q(1), (CRAPS_TERMS[2] as { ratio: Rational }).ratio))}`}, which add to ${CRAPS_LATER}.`,
     t`Adding ${math`\mathbb{P}(W_{${1}}) = ${FIRST_WIN}`}: the probability that she wins is ${math`${FIRST_WIN} + ${CRAPS_LATER} = ${CRAPS_WIN}`}, a little under a half.`,
+    t`Split an event into disjoint pieces and add, even infinitely many.`,
   ],
   reference: CRAPS_ANSWERS,
   verify: () => {

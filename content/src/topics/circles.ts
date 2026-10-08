@@ -226,11 +226,18 @@ const a23incircle = auto({
     kind: 'witness', count: 3, names: NAMES3, example: 'a = 2, b = 1, r = 1',
     check: (v) => (v.map(str).join(',') === INC.join(',') ? null : 'The circle has the form of part (i); choose t so that it touches the third line, inside the triangle.'),
   },
+  hints: [
+    t`By part (i), what are the centre and radius of a circle touching the first two lines, in terms of ${math`t`}?`,
+    t`Substituting the third line into that circle, which quadratic in ${math`y`} results, and what condition makes the line touch?`,
+    t`Of the values of ${math`t`} found, which puts the centre inside the triangle?`,
+  ],
+  nudge: t`Not quite. Two circles of the family touch all three lines; only one lies inside the triangle.`,
   solution: [
-    t`The circle touches the first two lines, so it is ${math`(x - ${2}t)^{${2}} + (y - t)^{${2}} = t^{${2}}`} for some ${math`t > ${0}`}: centre ${math`(${2}t, t)`}, radius ${math`t`}.`,
-    t`It touches ${math`${3}x + ${4}y = ${15}`} when the centre's distance from that line equals the radius. The vertices are ${math`(${0}, ${0})`}, ${math`(${5}, ${0})`}, and ${math`\left(${q(9, 5)}, ${q(12, 5)}\right)`}: a ${3}, ${4}, ${5} right triangle.`,
-    t`Substituting ${math`x = ${5} - \frac{${4}}{${3}}y`} into the circle gives ${math`${25}y^{${2}} + (${30}t - ${120})y + ${36}t^{${2}} - ${180}t + ${225} = ${0}`}. It touches when the discriminant is ${0}: ${math`(${30}t - ${120})^{${2}} = ${100}(${36}t^{${2}} - ${180}t + ${225})`}, which simplifies to ${math`(t - ${4})^{${2}} = ${4}t^{${2}} - ${20}t + ${25}`}, that is ${math`t^{${2}} - ${4}t + ${3} = ${0}`}, so ${math`t = ${1}`} or ${math`t = ${3}`}.`,
-    t`With ${math`t = ${3}`} the centre ${math`(${6}, ${3})`} is outside the triangle (an escribed circle). So ${math`t = ${1}`}: the incircle is ${math`(x - ${2})^{${2}} + (y - ${1})^{${2}} = ${1}`}.`,
+    t`By part (i), the circle is ${math`(x - ${2}t)^{${2}} + (y - t)^{${2}} = t^{${2}}`}: centre ${math`(${2}t, t)`}, radius ${math`t`}.`,
+    t`Substitute ${math`x = ${5} - \frac{${4}}{${3}}y`} and multiply by ${9}: ${math`${25}y^{${2}} + (${30}t - ${120})y + ${36}t^{${2}} - ${180}t + ${225} = ${0}`}.`,
+    t`Touching needs discriminant ${0}: ${math`(${30}t - ${120})^{${2}} = ${100}(${36}t^{${2}} - ${180}t + ${225})`}, which simplifies to ${math`t^{${2}} - ${4}t + ${3} = ${0}`}, so ${math`t = ${1}`} or ${math`t = ${3}`}.`,
+    t`With ${math`t = ${3}`} the centre ${math`(${6}, ${3})`} has ${math`${3}x + ${4}y = ${30} > ${15}`}: outside the triangle. So ${math`t = ${1}`}: ${math`(x - ${2})^{${2}} + (y - ${1})^{${2}} = ${1}`}.`,
+    t`Touching means a repeated root; then check which solution fits the picture.`,
   ],
   reference: 'a = 2, b = 1, r = 1',
   verify: () => {
@@ -253,6 +260,11 @@ const a23q3i = supervision({
   source: cite('step-f23', 'Q3(i)'),
   title: t`A family of circles touching two lines`,
   prompt: t`The circle ${math`C`} has equation ${math`(x - ${2}t)^{${2}} + (y - t)^{${2}} = t^{${2}}`}, where ${math`t`} is a positive number. Show that ${math`C`} touches the line ${math`y = ${0}`}. Let ${math`\alpha`} be the acute angle between the ${math`x`}-axis and the line joining the origin to the centre of ${math`C`}. Show that ${math`\tan ${2}\alpha = \frac{${4}}{${3}}`}, and deduce that ${math`C`} touches the line ${math`${3}y = ${4}x`}.`,
+  hints: [
+    t`What are the centre and radius of ${math`C`}, and how far is the centre from ${math`y = ${0}`}?`,
+    t`With ${math`\tan\alpha`} read off from the centre, what does the double-angle formula give for ${math`\tan ${2}\alpha`}?`,
+    t`Which line through the origin makes angle ${math`${2}\alpha`} with the ${math`x`}-axis, and why does reflection in the line through the centre carry ${math`y = ${0}`} onto it?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f23-hints', 'Q3(i)'),
 });

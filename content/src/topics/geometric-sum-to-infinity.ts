@@ -206,11 +206,18 @@ const a14q2iiConj = auto({
   id: 'a14-q2-ii-b',
   source: cite(F14, 'Assignment 14, Q2(ii)'),
   title: t`The conjugate series`,
-  prompt: t`Hence write down the sum of the geometric progression ${dmath`${1} + \frac{${1} - \sqrt{${3}}}{${3}} + \left(\frac{${1} - \sqrt{${3}}}{${3}}\right)^{${2}} + \cdots`} Type a square root as sqrt(${3}).`,
+  prompt: t`Given that ${math`${1} + \frac{${1} + \sqrt{${3}}}{${3}} + \left(\frac{${1} + \sqrt{${3}}}{${3}}\right)^{${2}} + \cdots = ${6} + ${3}\sqrt{${3}}`}, write down the sum of the geometric progression ${dmath`${1} + \frac{${1} - \sqrt{${3}}}{${3}} + \left(\frac{${1} - \sqrt{${3}}}{${3}}\right)^{${2}} + \cdots`} Type a square root as sqrt(${3}).`,
   answer: { kind: 'expression', expected: '6 - 3*sqrt(3)', variables: [] },
   solution: [
     t`Here ${math`r = \frac{${1} - \sqrt{${3}}}{${3}}`} is negative and ${math`|r| = \frac{\sqrt{${3}} - ${1}}{${3}} < ${1}`}, so the series converges.`,
     t`Every step of the previous part goes through with ${math`\sqrt{${3}}`} replaced by ${math`-\sqrt{${3}}`}: the sum is ${math`${3}(${2} - \sqrt{${3}}) = ${6} - ${3}\sqrt{${3}}`}.`,
+    t`Check ${math`|r| < ${1}`}, then reuse the conjugate calculation.`,
+  ],
+  nudge: t`Not quite. Every step of the first sum works with ${math`\sqrt{${3}}`} replaced by ${math`-\sqrt{${3}}`}.`,
+  hints: [
+    t`What is the ratio here, and is its size less than ${1}?`,
+    t`What is ${math`${1} - r`} for this ratio?`,
+    t`Which sign changes in the first sum when ${math`\sqrt{${3}}`} is replaced by ${math`-\sqrt{${3}}`}?`,
   ],
   reference: '6 - 3 sqrt(3)',
   verify: () => {
@@ -232,6 +239,13 @@ const a03q1iii = auto({
     t`It is a finite geometric series: first term ${math`a = ${3}`}, ratio ${math`r = \frac{${1}}{${2}}`}, and ${10} terms (${math`i = ${0}`} to ${9}).`,
     t`${math`\frac{a(${1} - r^{${10}})}{${1} - r} = \frac{${3}\left(${1} - \frac{${1}}{${1024}}\right)}{\frac{${1}}{${2}}} = ${6} \times \frac{${1023}}{${1024}} = ${q(3069, 512)}`}.`,
     t`Compare it with the sum to infinity, ${math`\frac{${3}}{${1} - \frac{${1}}{${2}}} = ${6}`}: ten terms already come within ${math`${sub(q(6), q(3069, 512))}`} of it.`,
+    t`Count the terms before using the formula.`,
+  ],
+  nudge: t`Not quite. Count the terms from ${math`i = ${0}`} to ${9} before using the finite formula.`,
+  hints: [
+    t`What are the first term and the ratio?`,
+    t`How many terms are there from ${math`i = ${0}`} to ${math`i = ${9}`}?`,
+    t`What does ${math`\frac{a(${1} - r^{n})}{${1} - r}`} give, as a single fraction?`,
   ],
   reference: '3069/512',
   verify: () => same('sum', str(Array.from({ length: 10 }, (_, i) => mul(q(3), pow(q(1, 2), i))).reduce((x, y) => add(x, y), q(0))), '3069/512'),
@@ -246,12 +260,19 @@ const a18q4 = auto({
   id: 'a18-q4-iv',
   source: cite('step-f18', 'Assignment 18, Q4(iv)'),
   title: t`The area of the Koch snowflake`,
-  prompt: t`Start with an equilateral triangle of area ${math`A`}. At each step, divide every edge into three equal parts and replace the middle part by two sides of an outward equilateral triangle. After ${mn} steps the shape has area ${dmath`A_{n} = A + \frac{A}{${3}}\left(${1} + r + r^{${2}} + \cdots + r^{n - ${1}}\right).`} Find ${mr} (it comes from the counts: the edges multiply by ${4} at each step, and each new triangle has ${math`\frac{${1}}{${9}}`} the area of the triangles of the step before), and hence find the limit of ${math`A_{n}`} as ${math`n \to \infty`}, in terms of ${math`A`}.`,
+  prompt: t`Start with an equilateral triangle of area ${math`A`}. At each step, divide every edge into three equal parts and replace the middle part by two sides of an outward equilateral triangle. After ${mn} steps the shape has area ${dmath`A_{n} = A + \frac{A}{${3}}\left(${1} + r + r^{${2}} + \cdots + r^{n - ${1}}\right).`} Find ${mr}, and hence the limit of ${math`A_{n}`} as ${math`n \to \infty`}, in terms of ${math`A`}.`,
   answer: { kind: 'expression', expected: '8*A/5', variables: ['A'] },
   solution: [
     t`At step ${math`k`} there are ${math`${3} \times ${4}^{k - ${1}}`} edges before the step, each gaining a triangle of area ${math`\frac{A}{${9}^{k}}`}. So step ${math`k`} adds ${math`${3} \times ${4}^{k - ${1}} \times \frac{A}{${9}^{k}} = \frac{A}{${3}}\left(\frac{${4}}{${9}}\right)^{k - ${1}}`}.`,
     t`So ${math`r = \frac{${4}}{${9}}`}, and ${math`|r| < ${1}`}, so the bracket converges to ${math`\frac{${1}}{${1} - \frac{${4}}{${9}}} = \frac{${9}}{${5}}`}.`,
     t`The area tends to ${math`A + \frac{A}{${3}} \times \frac{${9}}{${5}} = A + \frac{${3}A}{${5}} = \frac{${8}A}{${5}}`}, finite, even though the perimeter ${math`${3}\left(\frac{${4}}{${3}}\right)^{n}`} grows without bound.`,
+    t`Find the ratio from how the counts and sizes change, then sum to infinity.`,
+  ],
+  nudge: t`Not quite. Track how the number of new triangles and the area of each change from one step to the next.`,
+  hints: [
+    t`By what factor does the number of edges grow at each step?`,
+    t`By what factor does the area of each new triangle shrink from one step to the next?`,
+    t`What is the ratio ${mr}, what is the sum to infinity of the bracket, and is the first triangle included?`,
   ],
   reference: '8A/5',
   verify: () => {
@@ -277,6 +298,13 @@ const a24q4i = auto({
     t`Each term of ${math`S_{\text{even}}`} is ${math`\frac{${1}}{${4}n^{${2}}}`}, so ${math`S_{\text{even}} = \frac{${1}}{${4}}S`}. (Both series converge, as their terms are positive and ${mS} converges, so the terms may be scaled and split this way.)`,
     t`Every whole number is odd or even, so ${math`S = S_{\text{even}} + \frac{\pi^{${2}}}{${8}} = \frac{${1}}{${4}}S + \frac{\pi^{${2}}}{${8}}`}.`,
     t`Then ${math`\frac{${3}}{${4}}S = \frac{\pi^{${2}}}{${8}}`}, so ${math`S = \frac{${4}}{${3}} \times \frac{\pi^{${2}}}{${8}} = \frac{\pi^{${2}}}{${6}}`}.`,
+    t`Split a series into odd and even terms; the even part is a multiple of the whole.`,
+  ],
+  nudge: t`Not quite. Split ${mS} into its odd and even terms, and write the even part as a multiple of ${mS}.`,
+  hints: [
+    t`How does ${math`\frac{${1}}{(${2}n)^{${2}}}`} compare with ${math`\frac{${1}}{n^{${2}}}`}?`,
+    t`So what is ${math`S_{\text{even}}`} in terms of ${mS}?`,
+    t`Since every whole number is odd or even, which equation does ${mS} satisfy?`,
   ],
   reference: 'pi^2/6',
   verify: () => {
@@ -299,7 +327,7 @@ const a14q3iii = auto({
   id: 'a14-q3-iii',
   source: cite(F14, 'Assignment 14, Q3(iii)'),
   title: t`The sum of ${math`F_{n}/${2}^{n + ${1}}`}`,
-  prompt: t`(${2010} STEP II, Question ${3}.) The sequence ${math`F_{${0}} = ${0}, F_{${1}} = ${1}, F_{${2}} = ${1}, F_{${3}} = ${2}, \ldots`} has general term ${math`F_{n} = a\lambda^{n} + b\mu^{n}`}, where (from part (i)) ${math`\lambda = \frac{${1} + \sqrt{${5}}}{${2}}`}, ${math`\mu = \frac{${1} - \sqrt{${5}}}{${2}}`}, ${math`a = \frac{${1}}{\sqrt{${5}}}`} and ${math`b = -\frac{${1}}{\sqrt{${5}}}`}. Evaluate ${dmath`\sum_{n = ${0}}^{\infty} \frac{F_{n}}{${2}^{n + ${1}}}.`}`,
+  prompt: t`The sequence ${math`F_{${0}} = ${0}, F_{${1}} = ${1}, F_{${2}} = ${1}, F_{${3}} = ${2}, \ldots`} has general term ${math`F_{n} = a\lambda^{n} + b\mu^{n}`}, where (from part (i)) ${math`\lambda = \frac{${1} + \sqrt{${5}}}{${2}}`}, ${math`\mu = \frac{${1} - \sqrt{${5}}}{${2}}`}, ${math`a = \frac{${1}}{\sqrt{${5}}}`} and ${math`b = -\frac{${1}}{\sqrt{${5}}}`}. Evaluate ${dmath`\sum_{n = ${0}}^{\infty} \frac{F_{n}}{${2}^{n + ${1}}}.`}`,
   answer: { kind: 'exact', expected: '1' },
   solution: [
     t`Split the sum into two geometric series: ${math`\sum \frac{F_{n}}{${2}^{n + ${1}}} = \frac{a}{${2}}\sum_{n \ge ${0}} \left(\frac{\lambda}{${2}}\right)^{n} + \frac{b}{${2}}\sum_{n \ge ${0}} \left(\frac{\mu}{${2}}\right)^{n}`}. This is allowed because each of the two series converges.`,
@@ -307,6 +335,13 @@ const a14q3iii = auto({
     t`Sum each: ${math`\frac{a}{${2}} \cdot \frac{${1}}{${1} - \lambda/${2}} = \frac{a}{${2} - \lambda}`} and likewise ${math`\frac{b}{${2} - \mu}`}. With ${math`b = -a`}: ${math`a\left(\frac{${1}}{${2} - \lambda} - \frac{${1}}{${2} - \mu}\right) = a \cdot \frac{\lambda - \mu}{(${2} - \lambda)(${2} - \mu)}`}.`,
     t`Now ${math`\lambda - \mu = \sqrt{${5}}`}, and ${math`(${2} - \lambda)(${2} - \mu) = ${4} - ${2}(\lambda + \mu) + \lambda\mu = ${4} - ${2} - ${1} = ${1}`}, using ${math`\lambda + \mu = ${1}`} and ${math`\lambda\mu = -${1}`}.`,
     t`So the sum is ${math`\frac{${1}}{\sqrt{${5}}} \times \sqrt{${5}} = ${1}`}.`,
+    t`Split into geometric series, check each ratio, then use the sum and product of the roots.`,
+  ],
+  nudge: t`Not quite. Split the sum into two geometric series, then simplify with ${math`\lambda + \mu`} and ${math`\lambda\mu`}.`,
+  hints: [
+    t`Substituting ${math`F_{n} = a\lambda^{n} + b\mu^{n}`}, which two geometric series appear, and do their ratios have size less than ${1}?`,
+    t`What is each series' sum to infinity, in terms of ${math`\lambda`} and ${math`\mu`}?`,
+    t`With ${math`\lambda + \mu = ${1}`} and ${math`\lambda\mu = -${1}`}, what is ${math`(${2} - \lambda)(${2} - \mu)`}?`,
   ],
   reference: '1',
   verify: () => {
@@ -329,6 +364,11 @@ const a03q1ii = supervision({
   title: t`Derive the sum to infinity`,
   prompt: t`Let ${math`S_{n} = \sum_{i = ${0}}^{n - ${1}} r^{i}`}. Simplify ${math`rS_{n} - S_{n}`} and hence find a formula for ${math`S_{n}`} when ${math`r \neq ${1}`}; give ${math`S_{n}`} when ${math`r = ${1}`}. Deduce ${math`\sum_{i = ${0}}^{n - ${1}} ar^{i}`}. If ${math`-${1} < r < ${1}`}, what happens to ${math`r^{n}`} as ${mn} grows? Deduce ${math`\sum_{i = ${0}}^{\infty} ar^{i}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Writing out ${math`rS_{n}`} and ${math`S_{n}`} term by term, which terms cancel in ${math`rS_{n} - S_{n}`}?`,
+    t`What is ${math`S_{n}`} when ${math`r = ${1}`}, and how does multiplying by ${math`a`} change the formula?`,
+    t`If ${math`|r| < ${1}`}, what does ${math`r^{n}`} tend to, and what limit does ${math`S_{n}`} then have?`,
+  ],
   official: cite('step-f03-hints', 'Assignment 3, Q1(ii)'),
 });
 

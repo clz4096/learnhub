@@ -232,8 +232,13 @@ const q11proof = supervision({
   id: 'ia-q11-by-independence',
   source: cite(S1, 'Q11', true),
   title: t`The conjecture, by independence`,
-  prompt: t`Mary tosses ${math`n + ${1}`} coins and John ${math`n`}. With ${math`W`}, ${math`T`}, ${math`H`} as in the three-coin case, prove that ${math`\mathbb{P}(\text{Mary gets more}) = \mathbb{P}(W) + \mathbb{P}(T)\mathbb{P}(H)`} and that ${math`\mathbb{P}(W) = (${1} - \mathbb{P}(T))/${2}`}, and deduce that the answer is ${q(1, 2)} for every ${math`n`}. Say exactly which events you use as independent, and why they are.`,
+  prompt: t`Mary tosses ${math`n + ${1}`} coins and John ${math`n`}. With ${math`W`}, ${math`T`}, ${math`H`} as in the three-coin case, prove that ${math`\mathbb{P}(\text{Mary gets more}) = \mathbb{P}(W) + \mathbb{P}(T)\mathbb{P}(H)`} and that ${math`\mathbb{P}(W) = (${1} - \mathbb{P}(T))/${2}`}, and deduce that the answer is ${q(1, 2)} for every ${math`n`}. State exactly which events are used as independent, and why they are.`,
   writeUp: 'proof',
+  hints: [
+    t`Which of ${math`W`}, ${math`T`}, and Mary's last coin make up "Mary gets more heads", and are those cases disjoint?`,
+    t`Which coins does ${math`T`} depend on, and which coin does ${math`H`} depend on? Why does that make them independent?`,
+    t`By symmetry between Mary's first ${math`n`} coins and John's ${math`n`}, how does ${math`\mathbb{P}(W)`} compare with the probability that John's coins show more, and what do the three cases add up to?`,
+  ],
 });
 const bernstein = supervision({
   id: 'schedule-independence',
@@ -241,6 +246,11 @@ const bernstein = supervision({
   title: t`Pairwise is not enough`,
   prompt: t`Define mutual independence of events ${math`A_{${1}}, \ldots, A_{n}`}. Toss two fair coins and let ${math`A`} be "the first is a head", ${math`B`} "the second is a head", ${math`C`} "they agree". Show that ${math`A`}, ${math`B`}, ${math`C`} are pairwise independent but not mutually independent. Then prove that if ${math`A`}, ${math`B`}, ${math`C`} are mutually independent, so are ${math`A`}, ${math`B^{c}`}, ${math`C`}.`,
   writeUp: 'proof',
+  hints: [
+    t`In mutual independence, for which collections of the events must the probability of the intersection be the product, and is it only pairs?`,
+    t`With two fair coins, which of the four outcomes lie in ${math`A \cap B`}, ${math`A \cap C`}, ${math`B \cap C`}, and ${math`A \cap B \cap C`}?`,
+    t`For the last part, how is ${math`\mathbb{P}(A \cap B^{c} \cap C)`} the difference of ${math`\mathbb{P}(A \cap C)`} and ${math`\mathbb{P}(A \cap B \cap C)`}, and does the same idea handle the pairs that contain ${math`B^{c}`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
@@ -261,6 +271,11 @@ const gs4150 = supervision({
   title: t`Independent events need room`,
   prompt: t`Prove that, if ${math`A_{${1}}, A_{${2}}, \ldots, A_{n}`} are independent events defined on a sample space ${math`\Omega`} and if ${math`${0} < \mathbb{P}(A_j) < ${1}`} for all ${math`j`}, then ${math`\Omega`} must have at least ${math`${2}^{n}`} points.`,
   writeUp: 'proof',
+  hints: [
+    t`In how many ways can each ${math`B_{j}`} be chosen as either ${math`A_{j}`} or its complement, for ${math`j = ${1}, \ldots, n`}?`,
+    t`For each such choice, why does ${math`B_{${1}} \cap \cdots \cap B_{n}`} have positive probability, given independence and ${math`${0} < \mathbb{P}(A_{j}) < ${1}`}?`,
+    t`Why are the intersections for two different choices disjoint, and what does picking one point from each give?`,
+  ],
 });
 
 /*
@@ -279,6 +294,11 @@ const gs4133 = supervision({
   prompt: t`Let ${math`A_{${1}}, A_{${2}}, A_{${3}}`} be events, and let ${math`B_i`} represent either ${math`A_i`} or its complement ${math`A_i^{c}`}. Then there are eight possible choices for the triple ${math`(B_{${1}}, B_{${2}}, B_{${3}})`}. Prove that the events ${math`A_{${1}}, A_{${2}}, A_{${3}}`} are independent if and only if ${math`\mathbb{P}(B_{${1}} \cap B_{${2}} \cap B_{${3}}) = \mathbb{P}(B_{${1}})\,\mathbb{P}(B_{${2}})\,\mathbb{P}(B_{${3}})`} for all eight of the possible choices.`,
   writeUp: 'proof',
   official: cite('gs-answers-odd', 'Section 4.1, Exercise 33'),
+  hints: [
+    t`If ${math`A_{${1}}, A_{${2}}, A_{${3}}`} are independent, what is known about the family when one of them is replaced by its complement?`,
+    t`Conversely, which one of the eight choices gives the condition on all three events at once?`,
+    t`For a pair such as ${math`A_{${1}}, A_{${2}}`}, how does ${math`\mathbb{P}(A_{${1}} \cap A_{${2}})`} split according to ${math`A_{${3}}`} and its complement, and which two of the eight products then apply?`,
+  ],
 });
 
 /** Grinstead and Snell 4.1.8: six outcomes with masses 1/8, 1/8, 3/16, 3/16, 3/16, 3/16. */
@@ -306,6 +326,7 @@ const gs418 = auto({
     t`Each of ${math`A, B, C`} holds ${math`a`} and two of ${math`c, d, e, f`}: ${math`\frac{${1}}{${8}} + \frac{${3}}{${16}} + \frac{${3}}{${16}} = ${prob8('A')}`}.`,
     t`Each pair shares ${math`a`} and one more letter, so its intersection has probability ${math`\frac{${1}}{${8}} + \frac{${3}}{${16}} = ${prob8('A', 'B')}`}, not ${math`${prob8('A')} \times ${prob8('B')} = ${mul(prob8('A'), prob8('B'))}`}: no pair is independent.`,
     t`All three share only ${math`a`}: ${math`\mathbb{P}(A \cap B \cap C) = ${prob8('A', 'B', 'C')} = \left(${prob8('A')}\right)^{${3}}`}, the product of the three.`,
+    t`The triple product alone does not make events independent: every pair must multiply too.`,
   ],
   reference: ROWS8.map(({ evs }) => str(prob8(...evs))),
   verify: () => {
@@ -316,6 +337,12 @@ const gs418 = auto({
     const pairs = (['A', 'B', 'C'] as const).flatMap((x, i) => (['A', 'B', 'C'] as const).slice(i + 1).map((y) => str(prob8(x, y)) !== str(mul(prob8(x), prob8(y)))));
     return same('every pair dependent', pairs.every((b) => b), true);
   },
+  nudge: t`Not quite. Listing the letters in each intersection before adding any masses avoids most slips.`,
+  hints: [
+    t`Which letters does each of ${math`A`}, ${math`B`}, ${math`C`} contain, and what are their masses?`,
+    t`Which letters lie in each pairwise intersection, and which lie in all three events?`,
+    t`For each pair, is the probability of the intersection equal to the product of the two probabilities?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

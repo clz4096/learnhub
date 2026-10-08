@@ -231,10 +231,17 @@ const ve1b = auto({
   source: cite('nst-workbook', 'Section 2, VE1', true),
   title: t`A fourth point on the same line`,
   prompt: t`The line through ${math`${col(P1)}`}, ${math`${col(P2)}`}, and ${math`${col(P3)}`} also passes through ${computedTex(`(p, ${3}, ${-2})`)}. Find ${math`p`}.`,
+  nudge: t`Not quite. Find ${math`\lambda`} from the coordinate that gives it directly, then check another.`,
+  hints: [
+    t`What is the equation of the line, with ${math`\mathbf{a}`} the first point and ${math`\mathbf{b}`} the step to the second?`,
+    t`Which coordinate of the line equals ${math`\lambda`}, and so what is ${math`\lambda`} at the new point?`,
+    t`What is the ${math`x`}-coordinate at that ${math`\lambda`}, and does the ${math`z`}-coordinate agree?`,
+  ],
   answer: { kind: 'exact', expected: '4' },
   solution: [
     t`The line is ${math`\mathbf{r} = ${col(P1)} + \lambda${col(sub3(P2, P1))}`}. The ${math`y`}-coordinate is ${math`\lambda`}, so ${math`\lambda = ${3}`}; check the ${math`z`}-coordinate: ${math`${1} - ${3} = -${2}`}.`,
     t`Then ${math`p = ${1} + ${3} = ${4}`}.`,
+    t`Fix the parameter from one coordinate, then check the others.`,
   ],
   reference: '4',
   verify: () => (add3(P1, scale3(3, sub3(P2, P1))).join(',') === '4,3,-2' ? null : 'point'),
@@ -245,7 +252,12 @@ const ve1proof = supervision({
   id: 'nst-ve1',
   source: cite('nst-workbook', 'Section 2, VE1'),
   title: t`Collinearity and the equation of the line`,
-  prompt: t`Show that the points with position vectors ${math`${col(P1)}`}, ${math`${col(P2)}`}, ${math`${col(P3)}`} lie on a straight line, and give the equation of the line in the form ${math`\mathbf{r} = \mathbf{a} + \lambda\mathbf{b}`}. Explain why your answer is not the only correct one, and how any two correct answers are related.`,
+  prompt: t`Show that the points with position vectors ${math`${col(P1)}`}, ${math`${col(P2)}`}, ${math`${col(P3)}`} lie on a straight line, and give the equation of the line in the form ${math`\mathbf{r} = \mathbf{a} + \lambda\mathbf{b}`}. Explain why the answer is not the only correct one, and how any two correct answers are related.`,
+  hints: [
+    t`What are the vectors from the first point to the second and from the first point to the third?`,
+    t`Is one of those vectors a multiple of the other, and what does that say about the three points?`,
+    t`Choosing a different point for ${math`\mathbf{a}`}, or a multiple of ${math`\mathbf{b}`}, does the set of points described change?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -261,11 +273,18 @@ const step07Skew = auto({
   source: cite('stepdb-07-s1', 'Q7(i)', true),
   title: t`The least distance between two lines`,
   prompt: t`The line ${math`L_{${1}}`} has vector equation ${math`\mathbf{r} = ${col(L1.a)} + \lambda${col(L1.d)}`}. The line ${math`L_{${2}}`} has vector equation ${math`\mathbf{r} = ${col(L2.a)} + \mu${col(L2.d)}`}. Show that the distance ${math`D`} between a point on ${math`L_{${1}}`} and a point on ${math`L_{${2}}`} can be expressed in the form ${dmath`D^{${2}} = (${3}\mu - ${4}\lambda - ${5})^{${2}} + (\lambda - ${1})^{${2}} + ${36}.`} Hence find the minimum distance between these two lines. (The paper also asks for the two points that are the minimum distance apart.)`,
+  nudge: t`Not quite. Minimise ${math`D^{${2}}`} by making each square zero, then take the square root.`,
+  hints: [
+    t`What is the vector from the point ${math`\mu`} of ${math`L_{${2}}`} to the point ${math`\lambda`} of ${math`L_{${1}}`}, and what is ${math`D^{${2}}`} from its components?`,
+    t`In the given form, what is the least value each square can take?`,
+    t`Can both squares be zero at once, and what is ${math`D`} then?`,
+  ],
   answer: { kind: 'exact', expected: String(Math.sqrt(d2Formula(BEST_LAMBDA, BEST_MU))) },
   solution: [
     t`The point ${math`\lambda`} of ${math`L_{${1}}`} minus the point ${math`\mu`} of ${math`L_{${2}}`} is ${math`${col(sub3(L1.a, L2.a))} + \lambda${col(L1.d)} - \mu${col(L2.d)} = \begin{pmatrix} ${2}\lambda - \mu - ${3} \\ ${2}\lambda - ${2}\mu + ${2} \\ -${3}\lambda + ${2}\mu - ${7} \end{pmatrix}`}. ${math`D^{${2}}`} is the sum of the squares of its components, by Pythagoras in three dimensions; expanding both that and the given form gives the same quadratic in ${math`\lambda`} and ${math`\mu`}.`,
     t`A square is never negative, so ${math`D^{${2}} \ge ${36}`}, with equality exactly when both squares are ${0}: ${math`\lambda = ${1}`}, and then ${math`${3}\mu - ${4} - ${5} = ${0}`}, so ${math`\mu = ${3}`}.`,
     t`So the minimum distance is ${math`\sqrt{${36}} = ${6}`}, between the points ${computedTex(ptTex(pointAt(L1, BEST_LAMBDA)))} on ${math`L_{${1}}`} and ${computedTex(ptTex(pointAt(L2, BEST_MU)))} on ${math`L_{${2}}`}.`,
+    t`Write a squared distance as a sum of squares; each square is least at zero.`,
   ],
   reference: '6',
   verify: () => {
@@ -288,6 +307,11 @@ const step07Family = supervision({
   source: cite('stepdb-07-s1', 'Q7(ii)'),
   title: t`A line and a family of lines`,
   prompt: t`The line ${math`L_{${3}}`} has vector equation ${math`\mathbf{r} = ${col([2, 3, 5])} + \alpha${col([0, 1, 0])}`}. The line ${math`L_{${4}}`} has vector equation ${math`\mathbf{r} = ${col([3, 3, -2])} + \beta\begin{pmatrix} ${4}k \\ ${1} - k \\ -${3}k \end{pmatrix}`}. Determine the minimum distance between these two lines, explaining geometrically the two different cases that arise according to the value of ${math`k`}.`,
+  hints: [
+    t`For which value of ${math`k`} are the two lines parallel?`,
+    t`For parallel lines, how is the distance found from the vector joining a point of each, with its part along the common direction removed?`,
+    t`Otherwise, as in (i), which choice of ${math`\alpha`} and ${math`\beta`} makes the join perpendicular to both lines, and is the distance then the same for every such ${math`k`}?`,
+  ],
   writeUp: 'proof',
   official: cite('stepdb-07-sol', 'STEP I, Q7(ii) (page 12 of the PDF)'),
 });

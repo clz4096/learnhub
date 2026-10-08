@@ -222,10 +222,17 @@ const minusTurns = auto({
   source: cite(F07, 'Assignment 7, Q1(i)(a)', true),
   title: t`Turning points of x minus its reciprocal`,
   prompt: t`How many turning points does ${math`y = x - \frac{${1}}{x}`} (for ${math`x \ne ${0}`}) have?`,
+  nudge: t`Not quite. Crossing the axis is not turning; look at the sign of the gradient.`,
+  hints: [
+    t`What is ${math`\frac{dy}{dx}`}?`,
+    t`Can ${math`${1} + \frac{${1}}{x^{${2}}}`} ever be ${0} for ${math`x \ne ${0}`}?`,
+    t`So at how many points is the gradient zero?`,
+  ],
   answer: { kind: 'exact', expected: '0' },
   solution: [
     t`${math`\frac{dy}{dx} = ${1} + \frac{${1}}{x^{${2}}}`}. Since ${math`x^{${2}} > ${0}`} for ${math`x \ne ${0}`}, this is always greater than ${1}, never ${0}.`,
     t`So there are no stationary points, and no turning points: the curve goes upwards everywhere on each branch.`,
+    t`A turning point needs a zero gradient; check whether the derivative can vanish.`,
   ],
   reference: '0',
   verify: () => {
@@ -243,10 +250,17 @@ const whichMax = auto({
   source: cite(F09, 'Assignment 9, Q2(ii)(b)'),
   title: t`Which turning point is the maximum?`,
   prompt: t`The graph of ${math`y = ${cm(poly(CUBIC))}`} has turning points at ${math`x = ${-2}`} and ${math`x = ${2}`}. Which is the maximum?`,
+  nudge: t`Not quite. Think about what the curve does for large positive ${math`x`}.`,
+  hints: [
+    t`For large positive ${math`x`}, which term dominates, and is ${math`y`} large and positive or large and negative?`,
+    t`So after the last turning point, does the curve rise or fall?`,
+    t`What does the second derivative say at each turning point?`,
+  ],
   answer: { kind: 'choice', options: [{ id: 'left', label: t`the one at ${math`x = ${-2}`}` }, { id: 'right', label: t`the one at ${math`x = ${2}`}` }, { id: 'both', label: t`both are maxima` }], correct: 'left' },
   solution: [
     t`For large positive ${math`x`}, ${math`y`} is large and positive, so after the last turning point the curve goes up: the point at ${math`x = ${2}`} is the minimum.`,
     t`The curve rises to the other turning point and falls from it, so the maximum is at ${math`x = ${-2}`}. The second derivative ${math`${6}x`} agrees: ${-12} there.`,
+    t`The end behaviour of a cubic orders its turning points.`,
   ],
   reference: ['left'],
   verify: () => same('second derivative at -2', polyAt(polyDeriv(polyDeriv(CUBIC)), -2), -12),
@@ -260,10 +274,17 @@ const nstD1 = auto({
   source: cite(NST, 'Differentiation, D1(ii)'),
   title: t`Stationary points of a cubic`,
   prompt: t`Find the ${math`y`} coordinates of the stationary points of ${math`y = ${cm(poly(D1ii))}`}: the local maximum first, then the local minimum.`,
+  nudge: t`Not quite. Find ${math`x`} from ${math`\frac{dy}{dx} = ${0}`}, classify each point, then substitute into ${math`y`}.`,
+  hints: [
+    t`What is ${math`\frac{dy}{dx}`}, and where is it ${0}?`,
+    t`Which of those points is the maximum, by the sign of ${math`\frac{d^{${2}}y}{dx^{${2}}}`}?`,
+    t`What are the ${math`y`} values at those ${math`x`}?`,
+  ],
   answer: { kind: 'witness', count: 2, example: '5, 1', check: (vals) => (vals.map(str).join(',') === '5,1' ? null : 'Find x from dy/dx = 0, then substitute into y.') },
   solution: [
     t`${math`\frac{dy}{dx} = ${cm(poly(polyDeriv(D1ii)))}`} is ${0} at ${math`x = \pm ${1}`}. ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${6}x`}: negative at ${math`x = ${-1}`}, positive at ${math`x = ${1}`}.`,
     t`So the maximum is at ${math`(${-1}, ${polyAt(D1ii, -1)})`} and the minimum at ${math`(${1}, ${polyAt(D1ii, 1)})`}.`,
+    t`Solve for the stationary x, classify, then substitute for y.`,
   ],
   reference: '5, 1',
   verify: () => firstError(same('y(-1)', polyAt(D1ii, -1), 5), same('y(1)', polyAt(D1ii, 1), 1), same('slope at 1', polyAt(polyDeriv(D1ii), 1), 0)),
@@ -277,10 +298,17 @@ const nstD1iii = auto({
   source: cite(NST, 'Differentiation, D1(iii)'),
   title: t`A stationary point that is neither`,
   prompt: t`Classify the stationary point of ${math`y = ${cm(poly(D1iii))}`}.`,
+  nudge: t`Not quite. Check the sign of the gradient on both sides of the stationary point.`,
+  hints: [
+    t`What is ${math`\frac{dy}{dx}`}, written as a multiple of a square?`,
+    t`Where is ${math`\frac{dy}{dx} = ${0}`}?`,
+    t`What sign does ${math`\frac{dy}{dx}`} have just left and just right of that point?`,
+  ],
   answer: { kind: 'choice', options: OPTIONS, correct: 'neither' },
   solution: [
     t`${math`\frac{dy}{dx} = ${cm(poly(polyDeriv(D1iii)))} = ${3}(x - ${1})^{${2}}`}, which is ${0} only at ${math`x = ${1}`}, where ${math`y = ${polyAt(D1iii, 1)}`}.`,
     t`${math`${3}(x - ${1})^{${2}} \ge ${0}`} on both sides of ${math`x = ${1}`}: the curve rises, pauses, and rises again. So ${math`(${1}, ${1})`} is a stationary point of inflection.`,
+    t`A gradient that keeps its sign through zero gives a stationary point of inflection.`,
   ],
   reference: ['neither'],
   verify: () => same('slope test at 1', slopeTest(D1iii, 1), 'neither'),
@@ -293,6 +321,11 @@ const sketchQ = supervision({
   source: cite(F07, 'Assignment 7, Q1(i)'),
   title: t`Sketch x plus and minus its reciprocal`,
   prompt: t`Sketch, on different axes, the graphs of ${math`y = x + \frac{${1}}{x}`} and ${math`y = x - \frac{${1}}{x}`} (for ${math`x \ne ${0}`}), paying particular attention to the turning points, if any; the behaviour as ${math`x \to \infty`} and ${math`x \to -\infty`}; the behaviour when ${math`x`} is close to ${0}; and the intercepts with the axes, if any.`,
+  hints: [
+    t`What is ${math`\frac{dy}{dx}`} for each curve, and where, if anywhere, is it ${0}?`,
+    t`What does each curve approach as ${math`x \to \pm\infty`}, and what happens as ${math`x \to ${0}`} from each side?`,
+    t`Where does each curve meet the axes, if at all?`,
+  ],
   writeUp: 'sketch',
   official: cite(F07H, 'Assignment 7 hints, Q1(i)'),
 });
@@ -309,6 +342,11 @@ const db15q7 = supervision({
   source: cite(DB15, 'Q7'),
   title: t`The greatest value on an interval, as the cubic changes`,
   prompt: t`Let ${dmath`f(x) = ${3}ax^{${2}} - ${6}x^{${3}}`} and, for each real number ${math`a`}, let ${math`M(a)`} be the greatest value of ${math`f(x)`} in the interval ${math`-\frac{${1}}{${3}} \le x \le ${1}`}. Determine ${math`M(a)`} for ${math`a \ge ${0}`}. (The formula for ${math`M(a)`} is different in different ranges of ${math`a`}; you will need to identify three ranges.)`,
+  hints: [
+    t`Where are the stationary points of ${math`f`}, and which is a maximum for ${math`a > ${0}`}?`,
+    t`For which ${math`a`} does the maximum at ${math`x = \frac{a}{${3}}`} lie in the interval, and what are the values of ${math`f`} at the two ends?`,
+    t`Comparing the stationary value with the end values, at which values of ${math`a`} does the greatest one change?`,
+  ],
   writeUp: 'explanation',
   official: cite('stepdb-15-hs', 'STEP I, Q7 (page 6)'),
 });
@@ -328,6 +366,12 @@ const db15q7values = auto({
   source: cite(DB15, 'Q7', true),
   title: t`Three values of ${math`M(a)`}`,
   prompt: t`Let ${math`f(x) = ${3}ax^{${2}} - ${6}x^{${3}}`} and let ${math`M(a)`} be the greatest value of ${math`f(x)`} for ${math`-\frac{${1}}{${3}} \le x \le ${1}`}. Find ${math`M(a)`} for each value of ${math`a`}.`,
+  nudge: t`Not quite. Compare the stationary value with both end values, and check that the stationary point is inside the interval.`,
+  hints: [
+    t`What is ${math`f'(x)`}, and where is it ${0}?`,
+    t`Is ${math`x = \frac{a}{${3}}`} inside the interval for each given ${math`a`}?`,
+    t`For each ${math`a`}, which is largest: ${math`f`} at ${math`-\frac{${1}}{${3}}`}, ${math`f`} at ${1}, or ${math`f`} at ${math`\frac{a}{${3}}`} when it is inside?`,
+  ],
   answer: {
     kind: 'table',
     cell: 'exact',
@@ -340,6 +384,7 @@ const db15q7values = auto({
     t`The ends: ${math`f\left(-\frac{${1}}{${3}}\right) = \frac{a}{${3}} + \frac{${2}}{${9}}`} and ${math`f(${1}) = ${3}a - ${6}`}.`,
     t`${math`\frac{a^{${3}}}{${9}} \ge \frac{a}{${3}} + \frac{${2}}{${9}}`} exactly when ${math`a^{${3}} - ${3}a - ${2} \ge ${0}`}, that is ${math`(a - ${2})(a + ${1})^{${2}} \ge ${0}`}, that is ${math`a \ge ${2}`}. For ${math`a \ge ${3}`}, ${math`f`} increases on ${math`[${0}, ${1}]`} and ${math`${3}a - ${6} \ge \frac{a}{${3}} + \frac{${2}}{${9}}`}.`,
     t`So ${math`M(a) = \frac{a}{${3}} + \frac{${2}}{${9}}`} for ${math`${0} \le a \le ${2}`}, ${math`\frac{a^{${3}}}{${9}}`} for ${math`${2} \le a \le ${3}`}, and ${math`${3}a - ${6}`} for ${math`a \ge ${3}`}: ${math`M(${1}) = ${M15(q(1))}`}, ${math`M\left(${q(5, 2)}\right) = ${M15(q(5, 2))}`}, ${math`M(${4}) = ${M15(q(4))}`}.`,
+    t`The greatest value on an interval is at a stationary point inside it or at an end.`,
   ],
   reference: A15.map((a) => str(M15(a))),
   verify: () => {
@@ -367,6 +412,11 @@ const db96q1 = supervision({
   source: cite(DB96, 'Q1'),
   title: t`The best biscuit tin`,
   prompt: t`A cylindrical biscuit tin has volume ${math`V`} and surface area ${math`S`} (including the ends). Show that the minimum possible surface area for a given value of ${math`V`} is ${math`S = ${3}(${2}\pi V^{${2}})^{\frac{${1}}{${3}}}`}. For this value of ${math`S`} show that the volume of the largest sphere which can fit inside the tin is ${math`\frac{${2}}{${3}}V`}, and find the volume of the smallest sphere into which the tin fits.`,
+  hints: [
+    t`With radius ${math`r`} and height ${math`h`}, how is ${math`S`} written in terms of ${math`r`} and ${math`V`} alone?`,
+    t`Where is ${math`\frac{dS}{dr} = ${0}`}, and what does it give for ${math`h`} in terms of ${math`r`}?`,
+    t`For the spheres, which dimension limits the sphere inside, and how far is a rim from the centre of the tin?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -375,12 +425,19 @@ const db96q1sphere = auto({
   source: cite(DB96, 'Q1'),
   title: t`The smallest sphere round the best tin`,
   prompt: t`A closed cylindrical tin of volume ${math`V`} has the least possible surface area for that volume. Find the volume of the smallest sphere into which the tin fits, as a multiple of ${math`V`}.`,
+  nudge: t`Not quite. Find the shape of the best tin first, then the distance from its centre to a rim.`,
+  hints: [
+    t`Writing ${math`S`} in terms of ${math`r`} and ${math`V`}, where is ${math`\frac{dS}{dr} = ${0}`}?`,
+    t`What is ${math`h`} in terms of ${math`r`} for the best tin?`,
+    t`How far is the centre of the tin from a point on a rim?`,
+  ],
   answer: { kind: 'expression', expected: '4 sqrt(2)/3 * V', variables: ['V'], domains: { V: { kind: 'real', min: 1, max: 10 } } },
   solution: [
     t`With radius ${math`r`} and height ${math`h`}: ${math`V = \pi r^{${2}}h`}, so ${math`S = ${2}\pi r^{${2}} + ${2}\pi rh = ${2}\pi r^{${2}} + \frac{${2}V}{r}`}.`,
     t`${math`\frac{dS}{dr} = ${4}\pi r - \frac{${2}V}{r^{${2}}} = ${0}`} when ${math`r^{${3}} = \frac{V}{${2}\pi}`}; ${math`\frac{d^{${2}}S}{dr^{${2}}} = ${4}\pi + \frac{${4}V}{r^{${3}}} > ${0}`}, so this is the minimum. Then ${math`h = \frac{V}{\pi r^{${2}}} = \frac{${2}\pi r^{${3}}}{\pi r^{${2}}} = ${2}r`}: the best tin is as tall as it is wide.`,
     t`The smallest sphere round it passes through the rims, so its radius is the distance from the centre of the tin to a rim: ${math`\sqrt{r^{${2}} + r^{${2}}} = \sqrt{${2}}\,r`}.`,
     t`Its volume is ${math`\frac{${4}}{${3}}\pi(\sqrt{${2}}r)^{${3}} = \frac{${4}}{${3}}\pi \cdot ${2}\sqrt{${2}}\,r^{${3}} = \frac{${8}\sqrt{${2}}}{${3}}\pi \cdot \frac{V}{${2}\pi} = \frac{${4}\sqrt{${2}}}{${3}}V`}.`,
+    t`Optimise first, then read the geometry off the best shape.`,
   ],
   reference: '4 sqrt(2)/3 * V',
   verify: () => {
@@ -409,6 +466,11 @@ const eqns4 = supervision({
   source: cite(EQNS, 'Q4(i) (2010 STEP II Q7(i))'),
   title: t`A cubic that crosses once`,
   prompt: t`By considering the positions of its turning points, show that the curve with equation ${dmath`y = x^{${3}} - ${3}qx - q(${1} + q),`} where ${math`q > ${0}`} and ${math`q \ne ${1}`}, crosses the ${math`x`}-axis once only.`,
+  hints: [
+    t`Where are the turning points of the curve?`,
+    t`What are the ${math`y`} values at those turning points, written to show their signs?`,
+    t`If both turning values have the same sign, how many times can the curve cross the ${math`x`}-axis, and where does ${math`q \ne ${1}`} matter?`,
+  ],
   writeUp: 'proof',
   official: cite(EQNSS, 'Q4(i)'),
 });

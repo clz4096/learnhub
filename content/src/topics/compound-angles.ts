@@ -241,9 +241,16 @@ const a10sin15 = auto({
   title: t`The exact value of ${math`\sin ${15}^\circ`}`,
   prompt: t`Find the exact value of ${math`\sin ${15}^\circ`}. Write square roots as sqrt.`,
   answer: { kind: 'expression', expected: '(sqrt(6) - sqrt(2))/4', variables: [] },
+  hints: [
+    t`Which two familiar angles differ by ${math`${15}^\circ`}?`,
+    t`Which compound angle formula expands ${math`\sin(${45}^\circ - ${30}^\circ)`}?`,
+    t`What are the exact values of ${math`\sin ${45}^\circ`}, ${math`\cos ${45}^\circ`}, ${math`\sin ${30}^\circ`}, and ${math`\cos ${30}^\circ`}?`,
+  ],
+  nudge: t`Not quite. Write ${math`${15}^\circ`} as a difference of two familiar angles; the formula then has a minus in the middle.`,
   solution: [
     t`${math`\sin ${15}^\circ = \sin(${45}^\circ - ${30}^\circ) = \sin ${45}^\circ\cos ${30}^\circ - \cos ${45}^\circ\sin ${30}^\circ`}.`,
     t`${math`= \frac{\sqrt{${3}} - ${1}}{${2}\sqrt{${2}}} = \frac{\sqrt{${6}} - \sqrt{${2}}}{${4}}`}.`,
+    t`Split the angle into known angles, then expand.`,
   ],
   reference: '(sqrt(6) - sqrt(2))/4',
   verify: () => (far(Math.sin(r(15)), (Math.sqrt(6) - Math.SQRT2) / 4) ? `sin 15 is ${Math.sin(r(15))}` : null),
@@ -256,9 +263,16 @@ const a16cos75 = auto({
   title: t`The exact value of ${math`\cos ${75}^\circ`}`,
   prompt: t`Use ${math`\cos(\alpha \pm \beta) = \cos\alpha\cos\beta \mp \sin\alpha\sin\beta`} to find the exact value of ${math`\cos ${75}^\circ`}. Write square roots as sqrt.`,
   answer: { kind: 'expression', expected: '(sqrt(6) - sqrt(2))/4', variables: [] },
+  hints: [
+    t`Which two familiar angles add to ${math`${75}^\circ`}?`,
+    t`In ${math`\cos(${45}^\circ + ${30}^\circ)`}, which sign joins the two products?`,
+    t`What are the exact values of the four sines and cosines needed?`,
+  ],
+  nudge: t`Not quite. Write ${math`${75}^\circ = ${45}^\circ + ${30}^\circ`}; the cosine of a sum has a minus between the products.`,
   solution: [
     t`${math`\cos ${75}^\circ = \cos(${45}^\circ + ${30}^\circ) = \cos ${45}^\circ\cos ${30}^\circ - \sin ${45}^\circ\sin ${30}^\circ`}.`,
     t`${math`= \frac{\sqrt{${3}}}{${2}\sqrt{${2}}} - \frac{${1}}{${2}\sqrt{${2}}} = \frac{\sqrt{${3}} - ${1}}{${2}\sqrt{${2}}}`}.`,
+    t`The cosine of a sum has a minus sign.`,
   ],
   reference: '(sqrt(3) - 1)/(2 sqrt(2))',
   verify: () => (far(Math.cos(r(75)), (Math.sqrt(3) - 1) / (2 * Math.SQRT2)) ? 'cos 75' : null),
@@ -272,10 +286,17 @@ const a16q3 = auto({
   title: t`${2015} STEP I Q${2}: ${math`\cos ${15}^\circ`} and ${math`\sin ${15}^\circ`}`,
   prompt: t`Show that ${math`\cos ${15}^\circ = \frac{\sqrt{${3}} + ${1}}{${2}\sqrt{${2}}}`}, and find a similar expression for ${math`\sin ${15}^\circ`}. Enter ${math`\sin ${15}^\circ`}, writing square roots as sqrt.`,
   answer: { kind: 'expression', expected: '(sqrt(3) - 1)/(2 sqrt(2))', variables: [] },
+  hints: [
+    t`Which two familiar angles differ by ${math`${15}^\circ`}?`,
+    t`Which formula expands the sine of that difference, and which sign joins its two products?`,
+    t`What are the exact sines and cosines of the two familiar angles?`,
+  ],
+  nudge: t`Not quite. Expand the sine of the same difference used for the cosine; then check that the squares add to ${1}.`,
   solution: [
     t`${math`\cos ${15}^\circ = \cos(${45}^\circ - ${30}^\circ) = \cos ${45}^\circ\cos ${30}^\circ + \sin ${45}^\circ\sin ${30}^\circ = \frac{\sqrt{${3}}}{${2}\sqrt{${2}}} + \frac{${1}}{${2}\sqrt{${2}}} = \frac{\sqrt{${3}} + ${1}}{${2}\sqrt{${2}}}`}.`,
     t`${math`\sin ${15}^\circ = \sin(${45}^\circ - ${30}^\circ) = \sin ${45}^\circ\cos ${30}^\circ - \cos ${45}^\circ\sin ${30}^\circ = \frac{\sqrt{${3}} - ${1}}{${2}\sqrt{${2}}}`}.`,
     t`Check: the squares add to ${math`\frac{(${4} + ${2}\sqrt{${3}}) + (${4} - ${2}\sqrt{${3}})}{${8}} = ${1}`}.`,
+    t`Check exact values with ${math`\sin^{${2}} + \cos^{${2}} = ${1}`}.`,
   ],
   reference: '(sqrt(3) - 1)/(2 sqrt(2))',
   verify: () => (far(Math.sin(r(15)), (Math.sqrt(3) - 1) / (2 * Math.SQRT2)) || far(Math.cos(r(15)), (Math.sqrt(3) + 1) / (2 * Math.SQRT2)) ? 'cos or sin 15' : null),
@@ -291,10 +312,17 @@ const a25tan = auto({
   title: t`${math`\tan(A - B)`} from the sine and cosine formulae`,
   prompt: t`Starting from ${math`\tan(A - B) = \frac{\sin(A - B)}{\cos(A - B)}`}, find ${math`\tan(A - B)`} in terms of ${math`\tan A`} and ${math`\tan B`}. Write ${math`a`} for ${math`\tan A`} and ${math`b`} for ${math`\tan B`}.`,
   answer: { kind: 'expression', expected: '(a - b)/(1 + a b)', variables: ['a', 'b'], domains: TDOM },
+  hints: [
+    t`What are ${math`\sin(A - B)`} and ${math`\cos(A - B)`} expanded?`,
+    t`Dividing top and bottom by ${math`\cos A\cos B`}, what does each term become?`,
+    t`Which sign appears in the denominator, and which formula does it come from?`,
+  ],
+  nudge: t`Not quite. Divide numerator and denominator by ${math`\cos A\cos B`}, and watch the sign that comes from ${math`\cos(A - B)`}.`,
   solution: [
     t`${math`\tan(A - B) = \frac{\sin A\cos B - \cos A\sin B}{\cos A\cos B + \sin A\sin B}`}.`,
     t`Divide top and bottom by ${math`\cos A\cos B`}: ${math`\frac{\sin A\cos B}{\cos A\cos B} = \tan A`}, ${math`\frac{\cos A\sin B}{\cos A\cos B} = \tan B`}, ${math`\frac{\sin A\sin B}{\cos A\cos B} = \tan A\tan B`}.`,
     t`So ${math`\tan(A - B) = \frac{\tan A - \tan B}{${1} + \tan A\tan B}`}.`,
+    t`Divide through by ${math`\cos A\cos B`} to turn sines and cosines into tangents.`,
   ],
   reference: '(a - b)/(1 + ab)',
   verify: () => {
@@ -313,6 +341,11 @@ const a10q1i = supervision({
   source: cite('step-f10', 'Q1(i)'),
   title: t`The compound angle formulae from a triangle`,
   prompt: t`In triangle ${math`ABC`}, ${math`BP`} is perpendicular to ${math`AC`}, with ${math`BP = ${1}`}, ${math`\angle ABP = \alpha`}, and ${math`\angle PBC = \beta`} (both acute). Show, using the sine rule, that ${math`\frac{\sin(\alpha + \beta)}{\sin(${90}^\circ - \beta)} = \frac{\tan\alpha + \tan\beta}{${1}/\cos\alpha}`}, and hence that ${math`\sin(\alpha + \beta) = \sin\alpha\cos\beta + \cos\alpha\sin\beta`}. Use this, with facts such as ${math`\cos\gamma = \sin(${90}^\circ - \gamma)`}, to obtain ${math`\sin(\alpha - \beta)`}, ${math`\cos(\alpha + \beta)`}, and ${math`\cos(\alpha - \beta)`}.`,
+  hints: [
+    t`With ${math`BP = ${1}`}, what are ${math`AP`}, ${math`PC`}, ${math`AB`}, and ${math`BC`} in terms of ${math`\alpha`} and ${math`\beta`}?`,
+    t`Which angles of triangle ${math`ABC`} are opposite ${math`AC`} and ${math`AB`}, and what does the sine rule give?`,
+    t`Which replacements, such as ${math`\beta`} by ${math`-\beta`} or ${math`\alpha`} by ${math`${90}^\circ - \alpha`}, turn the sine formula into the other three?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f10-hints', 'Q1(i)'),
 });
@@ -327,6 +360,11 @@ const db07q2 = supervision({
   source: cite(DB07, 'Q2'),
   title: t`Arctangents that add to ${math`\frac{\pi}{${4}}`}`,
   prompt: t`(i) Given that ${math`A = \arctan\frac{${1}}{${2}}`} and that ${math`B = \arctan\frac{${1}}{${3}}`} (where ${math`A`} and ${math`B`} are acute) show, by considering ${math`\tan(A + B)`}, that ${math`A + B = \frac{${1}}{${4}}\pi`}. The non-zero integers ${math`p`} and ${math`q`} satisfy ${dmath`\arctan\frac{${1}}{p} + \arctan\frac{${1}}{q} = \frac{\pi}{${4}}.`} Show that ${math`(p - ${1})(q - ${1}) = ${2}`} and hence determine ${math`p`} and ${math`q`}. (ii) Let ${math`r`}, ${math`s`} and ${math`t`} be positive integers such that the highest common factor of ${math`s`} and ${math`t`} is ${1}. Show that, if ${dmath`\arctan\frac{${1}}{r} + \arctan\frac{s}{s + t} = \frac{\pi}{${4}},`} then there are only two possible values for ${math`t`}, and give ${math`r`} in terms of ${math`s`} in each case.`,
+  hints: [
+    t`What is ${math`\tan(A + B)`} in terms of ${math`\tan A`} and ${math`\tan B`}, and what is its value here?`,
+    t`With ${math`\tan A = \frac{${1}}{p}`} and ${math`\tan B = \frac{${1}}{q}`}, what equation does ${math`\tan(A + B) = ${1}`} give, and how does it factorise?`,
+    t`For (ii), what equation does the same method give, and how does the highest common factor condition restrict ${math`t`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -347,11 +385,18 @@ const db07q2pq = auto({
       return Math.abs(sum - Math.PI / 4) < 1e-12 ? null : `With these, the sum of the arctangents is ${sum.toFixed(4)}, not a quarter of pi.`;
     },
   },
+  hints: [
+    t`What is ${math`\tan\left(\arctan\frac{${1}}{p} + \arctan\frac{${1}}{q}\right)`} in terms of ${math`p`} and ${math`q`}?`,
+    t`Setting it equal to ${1}, how does the equation rearrange into a product equal to a constant?`,
+    t`Which integer factor pairs are possible, and which of them give non-zero ${math`p`} and ${math`q`}?`,
+  ],
+  nudge: t`Not quite. Take the tangent of both sides and factorise; then discard any solution with a zero.`,
   solution: [
     t`Let ${math`A = \arctan\frac{${1}}{p}`} and ${math`B = \arctan\frac{${1}}{q}`}. Then ${math`\tan(A + B) = \frac{\frac{${1}}{p} + \frac{${1}}{q}}{${1} - \frac{${1}}{pq}} = \frac{p + q}{pq - ${1}}`}, and this must be ${math`\tan\frac{\pi}{${4}} = ${1}`}.`,
     t`So ${math`p + q = pq - ${1}`}, that is ${math`pq - p - q + ${1} = ${2}`}, that is ${math`(p - ${1})(q - ${1}) = ${2}`}.`,
     t`Integer factor pairs of ${2}: ${math`(${1}, ${2})`}, ${math`(${2}, ${1})`}, ${math`(-${1}, -${2})`}, ${math`(-${2}, -${1})`}, giving ${math`(p, q) = (${2}, ${3})`}, ${math`(${3}, ${2})`}, ${math`(${0}, -${1})`}, ${math`(-${1}, ${0})`}. The last two have a zero, so ${math`\{p, q\} = \{${2}, ${3}\}`}.`,
     t`Check: ${math`A + B`} lies strictly between ${0} and ${math`\pi`} for positive ${math`p, q`}, and ${math`\tan(A + B) = ${1}`} there only at ${math`\frac{\pi}{${4}}`}. That is part (i)'s ${math`\arctan\frac{${1}}{${2}} + \arctan\frac{${1}}{${3}} = \frac{\pi}{${4}}`}.`,
+    t`Make the equation a product equal to a constant, then list the factor pairs.`,
   ],
   reference: '2, 3',
   verify: () => {
@@ -373,6 +418,11 @@ const db10q3 = supervision({
   source: cite(DB10, 'Q3'),
   title: t`Parallel chords of an ellipse`,
   prompt: t`Show that ${math`\sin(x + y) - \sin(x - y) = ${2}\cos x\sin y`} and deduce that ${dmath`\sin A - \sin B = ${2}\cos\tfrac{${1}}{${2}}(A + B)\sin\tfrac{${1}}{${2}}(A - B).`} Show also that ${dmath`\cos A - \cos B = -${2}\sin\tfrac{${1}}{${2}}(A + B)\sin\tfrac{${1}}{${2}}(A - B).`} The points ${math`P`}, ${math`Q`}, ${math`R`} and ${math`S`} have coordinates ${math`(a\cos p, b\sin p)`}, ${math`(a\cos q, b\sin q)`}, ${math`(a\cos r, b\sin r)`} and ${math`(a\cos s, b\sin s)`} respectively, where ${math`${0} \le p < q < r < s < ${2}\pi`}, and ${math`a`} and ${math`b`} are positive. Given that neither of the lines ${math`PQ`} and ${math`SR`} is vertical, show that these lines are parallel if and only if ${dmath`r + s - p - q = ${2}\pi.`}`,
+  hints: [
+    t`Which compound angle formulae expand ${math`\sin(x + y)`} and ${math`\sin(x - y)`}?`,
+    t`Which values of ${math`x`} and ${math`y`} turn ${math`\sin(x + y) - \sin(x - y)`} into ${math`\sin A - \sin B`}?`,
+    t`What is the gradient of ${math`PQ`}, simplified with the factor formulae, and when are two such gradients equal on the given range?`,
+  ],
   writeUp: 'proof',
 });
 

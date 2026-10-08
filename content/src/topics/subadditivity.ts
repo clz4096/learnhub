@@ -163,8 +163,14 @@ const q6num = auto({
   source: cite(S1, 'Q6(b), (c)', true),
   title: t`The bound with numbers`,
   prompt: t`Events have ${math`\mathbb{P}(A_{k}) = ${2}^{-k}`}. What bound on ${math`\mathbb{P}(A_{k} \text{ infinitely often})`} does Q${6}(b) give with ${math`n = ${N6}`}, and what is that probability, by Q${6}(c)?`,
+  nudge: t`Not quite. Q${6}(b) bounds the probability by a whole tail of the series; sum all of it.`,
+  hints: [
+    t`Which sum does Q${6}(b) give as the bound when ${math`n = ${N6}`}?`,
+    t`What is the sum of the geometric series ${math`${2}^{-${N6}} + ${2}^{-${N6 + 1}} + \cdots`}?`,
+    t`Since the whole series converges, what do its tails tend to, and so what is the probability?`,
+  ],
   answer: { kind: 'table', cell: 'exact', columns: [t`quantity`, t`value`], rows: [[t`the bound for ${math`n = ${N6}`}`, null], [t`${math`\mathbb{P}(A_{k} \text{ infinitely often})`}`, null]], expected: [str(q(1, 2 ** (N6 - 1))), '0'] },
-  solution: [t`${math`\sum_{k \ge ${N6}} ${2}^{-k} = ${2}^{-${N6 - 1}} = ${q(1, 2 ** (N6 - 1))}`}. The series converges, so every tail bounds the probability and the tails tend to ${0}: the probability is ${0}.`],
+  solution: [t`${math`\sum_{k \ge ${N6}} ${2}^{-k} = ${2}^{-${N6 - 1}} = ${q(1, 2 ** (N6 - 1))}`}. The series converges, so every tail bounds the probability and the tails tend to ${0}: the probability is ${0}.`, t`The tails of a convergent series tend to zero, so anything they all bound is zero.`],
   reference: [str(q(1, 2 ** (N6 - 1))), '0'],
   verify: () => { let x = 0; for (let k = N6; k < N6 + 60; k++) x += 2 ** -k; return same('the tail by partial sums', x.toFixed(12), (1 / 2 ** (N6 - 1)).toFixed(12)); },
   misconceptions: [{ response: [str(q(1, 2 ** N6)), '0'], why: t`${math`${2}^{-${N6}}`} is only the first term of the tail; add all the terms from ${math`k = ${N6}`}.` }],
@@ -175,6 +181,11 @@ const subaddProof = supervision({
   source: cite(S1, 'Q6(b)', true),
   title: t`Countable subadditivity from the axioms`,
   prompt: t`Q${6}(b) needs ${math`\mathbb{P}\left(\bigcup_{k} A_{k}\right) \le \sum_{k} \mathbb{P}(A_{k})`} for any events. Prove it from the axioms: define ${math`B_{${1}} = A_{${1}}`} and ${math`B_{k} = A_{k} \setminus (A_{${1}} \cup \cdots \cup A_{k - ${1}})`}, show the ${math`B_{k}`} are disjoint events with the same union as the ${math`A_{k}`}, and use countable additivity and monotonicity.`,
+  hints: [
+    t`Why is each ${math`B_{k}`} an event, built from the ${math`A_{k}`} by complements and intersections?`,
+    t`Why are ${math`B_{j}`} and ${math`B_{k}`} disjoint for ${math`j < k`}, and why do the ${math`B_{k}`} have the same union as the ${math`A_{k}`}?`,
+    t`How do countable additivity and ${math`B_{k} \subseteq A_{k}`} finish the inequality?`,
+  ],
   writeUp: 'proof',
 });
 const converse = supervision({
@@ -182,6 +193,11 @@ const converse = supervision({
   source: cite(S1, 'Q6(c)', true),
   title: t`The converse fails`,
   prompt: t`Q${6}(c) says a convergent series ${math`\sum \mathbb{P}(A_{n})`} forces ${math`\mathbb{P}(A_{n} \text{ i.o.}) = ${0}`}. Show the converse is false: give events with ${math`\sum \mathbb{P}(A_{n}) = \infty`} but ${math`\mathbb{P}(A_{n} \text{ i.o.}) = ${0}`} (for example, nested events of probability ${math`${1}/n`}). What extra assumption does the second Borel-Cantelli lemma add?`,
+  hints: [
+    t`For nested events ${math`A_{n} \supseteq A_{n + ${1}}`}, what is the event that ${math`A_{n}`} happens infinitely often?`,
+    t`If ${math`\mathbb{P}(A_{n}) = ${1}/n`}, what are the sum of the probabilities and the probability of that event?`,
+    t`Which property of the events does the second Borel-Cantelli lemma require, and do nested events have it?`,
+  ],
   writeUp: 'explanation',
 });
 

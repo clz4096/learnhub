@@ -169,10 +169,17 @@ const a5q3area = auto({
   title: t`The tetrahedron on the axes: the area of the slanted face`,
   prompt: t`The points ${math`A = (a, ${0}, ${0})`}, ${math`B = (${0}, b, ${0})`}, and ${math`C = (${0}, ${0}, c)`}, with ${math`a, b, c`} positive, form a triangle. Given that ${math`\cos \angle ACB = \frac{c^{${2}}}{\sqrt{(a^{${2}} + c^{${2}})(b^{${2}} + c^{${2}})}}`}, find the area of triangle ${math`ABC`} in terms of ${math`a`}, ${math`b`}, and ${math`c`}.`,
   answer: { kind: 'expression', expected: 'sqrt(a^2 b^2 + b^2 c^2 + c^2 a^2)/2', variables: ['a', 'b', 'c'], domains: POS },
+  hints: [
+    t`Which two sides meet at ${math`C`}, and what are their lengths?`,
+    t`From the given cosine, what is ${math`\sin^{${2}} \angle ACB`}?`,
+    t`Which formula gives the area of a triangle from two sides and the angle between them?`,
+  ],
+  nudge: t`Not quite. Use half of two sides times the sine of the included angle, with ${math`\sin^{${2}} = ${1} - \cos^{${2}}`}.`,
   solution: [
     t`Area ${math`= \frac{${1}}{${2}} \cdot CA \cdot CB \cdot \sin \theta`} with ${math`\theta = \angle ACB`}, ${math`CA = \sqrt{a^{${2}} + c^{${2}}}`}, ${math`CB = \sqrt{b^{${2}} + c^{${2}}}`}.`,
     t`${math`\sin^{${2}} \theta = ${1} - \cos^{${2}} \theta = \frac{(a^{${2}} + c^{${2}})(b^{${2}} + c^{${2}}) - c^{${4}}}{(a^{${2}} + c^{${2}})(b^{${2}} + c^{${2}})} = \frac{a^{${2}}b^{${2}} + b^{${2}}c^{${2}} + c^{${2}}a^{${2}}}{(a^{${2}} + c^{${2}})(b^{${2}} + c^{${2}})}`}.`,
     t`So ${math`CA \cdot CB \cdot \sin \theta = \sqrt{a^{${2}}b^{${2}} + b^{${2}}c^{${2}} + c^{${2}}a^{${2}}}`}, and the area is half of that.`,
+    t`Two sides and the included angle give the area.`,
   ],
   reference: 'sqrt(a^2 b^2 + b^2 c^2 + c^2 a^2)/2',
   verify: () => {
@@ -192,9 +199,16 @@ const a5q3vol = auto({
   title: t`The tetrahedron on the axes: the volume`,
   prompt: t`The points ${math`O`}, ${math`A`}, ${math`B`}, ${math`C`} have coordinates ${math`(${0}, ${0}, ${0})`}, ${math`(a, ${0}, ${0})`}, ${math`(${0}, b, ${0})`}, ${math`(${0}, ${0}, c)`}, where ${math`a, b, c`} are positive. Find the volume of the tetrahedron ${math`OABC`}.`,
   answer: { kind: 'expression', expected: 'a b c / 6', variables: ['a', 'b', 'c'], domains: POS },
+  hints: [
+    t`Which face makes a convenient base, and what is its area?`,
+    t`What is the height of ${math`C`} above that base?`,
+    t`Which formula gives the volume of a pyramid from its base area and height?`,
+  ],
+  nudge: t`Not quite. The base ${math`OAB`} is a right triangle, not a rectangle; take a third of base area times height.`,
   solution: [
     t`Base ${math`OAB`}: a right triangle with legs ${math`a`} and ${math`b`}, area ${math`\frac{${1}}{${2}}ab`}. Height: ${math`c`}, the distance of ${math`C`} from the plane ${math`z = ${0}`}.`,
     t`Volume ${math`= \frac{${1}}{${3}} \times \frac{${1}}{${2}}ab \times c = \frac{abc}{${6}}`}.`,
+    t`Take a face that lies in a coordinate plane as the base.`,
   ],
   reference: 'abc/6',
   verify: () => {
@@ -210,6 +224,11 @@ const a5q3d = supervision({
   source: cite('step-f05', 'Q3'),
   title: t`The distance of the origin from the slanted face`,
   prompt: t`Let ${math`O`} be the origin and ${math`A`}, ${math`B`}, ${math`C`} the points ${math`(a, ${0}, ${0})`}, ${math`(${0}, b, ${0})`}, ${math`(${0}, ${0}, c)`}, with ${math`a, b, c`} positive, and let ${math`\theta = \angle ACB`}. Show that ${math`\cos \theta = \frac{c^{${2}}}{\sqrt{(a^{${2}} + c^{${2}})(b^{${2}} + c^{${2}})}}`}, find the area of triangle ${math`ABC`}, and hence show that ${math`d`}, the perpendicular distance of the origin from the triangle ${math`ABC`}, satisfies ${math`\frac{${1}}{d^{${2}}} = \frac{${1}}{a^{${2}}} + \frac{${1}}{b^{${2}}} + \frac{${1}}{c^{${2}}}`}.`,
+  hints: [
+    t`What are the vectors ${math`\overrightarrow{CA}`} and ${math`\overrightarrow{CB}`}, and what is their scalar product?`,
+    t`How is ${math`d`} related to the area of ${math`ABC`} and the volume of ${math`OABC`}?`,
+    t`After squaring and rearranging, how does ${math`\frac{${1}}{d^{${2}}}`} simplify?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f05-hints', 'Q3'),
 });

@@ -189,9 +189,16 @@ const q12b = auto({
   title: t`Choosing a coefficient to make two normals independent`,
   prompt: t`${math`X_{${1}}, X_{${2}}, X_{${3}}`} are independent normal random variables, each with variance ${math`\sigma^{${2}}`}. Let ${math`Y_{${1}} = X_{${1}} + ${2}X_{${2}} - X_{${3}}`} and ${math`Y_{${2}} = ${2}X_{${1}} + cX_{${2}} + X_{${3}}`}. For which value of ${math`c`} are ${math`Y_{${1}}`} and ${math`Y_{${2}}`} independent?`,
   answer: { kind: 'exact', expected: str(C_ANS) },
+  hints: [
+    t`Why are ${math`Y_{${1}}`} and ${math`Y_{${2}}`} jointly normal, and what is independence then equivalent to?`,
+    t`For independent ${math`X_{i}`} with common variance ${math`\sigma^{${2}}`}, what is ${math`\operatorname{cov}\left(\sum a_{i}X_{i}, \sum b_{i}X_{i}\right)`}?`,
+    t`Which equation in ${math`c`} makes that covariance ${0}?`,
+  ],
+  nudge: t`Not quite. For jointly normal variables, independence is the same as zero covariance; compute the covariance term by term.`,
   solution: [
     t`${math`Y_{${1}}`} and ${math`Y_{${2}}`} are linear combinations of the same independent normals, so they are jointly normal, and jointly normal variables are independent exactly when their covariance is ${0}.`,
     t`${math`\operatorname{cov}(Y_{${1}}, Y_{${2}}) = \sigma^{${2}}\left(${1} \cdot ${2} + ${2}c + (-${1}) \cdot ${1}\right) = \sigma^{${2}}(${1} + ${2}c)`}, which is ${0} when ${math`c = ${C_ANS}`}.`,
+    t`Jointly normal variables are independent exactly when their covariance is ${0}.`,
   ],
   reference: str(C_ANS),
   verify: () => {
@@ -214,9 +221,16 @@ const q7 = auto({
   title: t`Correlation after a rotation`,
   prompt: t`${math`X`} and ${math`Y`} are independent ${math`N(${0}, ${1})`} random variables, and ${math`\theta`} has ${math`\cos\theta = ${COS}`}, ${math`\sin\theta = ${SIN}`}. Let ${math`U = X\cos\theta + Y\sin\theta`}. Find the correlation coefficient ${math`\rho(U, X)`}.`,
   answer: { kind: 'exact', expected: str(COS) },
+  hints: [
+    t`What are ${math`\operatorname{var}(X)`}, ${math`\operatorname{var}(Y)`}, and ${math`\operatorname{cov}(X, Y)`}?`,
+    t`What are ${math`\operatorname{var}(U)`} and ${math`\operatorname{cov}(U, X)`}?`,
+    t`How is the correlation coefficient built from a covariance and two variances?`,
+  ],
+  nudge: t`Not quite. Find ${math`\operatorname{cov}(U, X)`} and ${math`\operatorname{var}(U)`} separately, then scale by both standard deviations.`,
   solution: [
     t`${math`\operatorname{var}(U) = \cos^{${2}}\theta + \sin^{${2}}\theta = ${1}`}, and ${math`\operatorname{cov}(U, X) = \cos\theta\operatorname{var}(X) = ${COS}`}.`,
-    t`So ${math`\rho(U, X) = \frac{${COS}}{\sqrt{${1} \cdot ${1}}} = ${COS}`}. In fact ${math`U \sim N(${0}, ${1})`}: rotating a pair of independent standard normals gives another such pair.`,
+    t`${math`\rho(U, X) = \frac{${COS}}{\sqrt{${1} \cdot ${1}}} = ${COS}`}.`,
+    t`Correlation is covariance scaled by both standard deviations.`,
   ],
   reference: str(COS),
   verify: () => {
@@ -248,6 +262,11 @@ const q7proof = supervision({
   source: cite(S4, 'Q7'),
   title: t`Rotating two standard normals`,
   prompt: t`Suppose that ${math`X`} and ${math`Y`} are independent ${math`N(${0}, ${1})`} random variables. Show that, for any fixed ${math`\theta`}, the random variables ${math`U = X\cos\theta + Y\sin\theta`} and ${math`V = -X\sin\theta + Y\cos\theta`} are independent, and find their distributions. Use the joint density and the Jacobian of the map ${math`(x, y) \mapsto (u, v)`}.`,
+  hints: [
+    t`What is the joint density of ${math`(X, Y)`}?`,
+    t`What is the inverse of the map ${math`(x, y) \mapsto (u, v)`}, and what is its Jacobian?`,
+    t`How does ${math`x^{${2}} + y^{${2}}`} compare with ${math`u^{${2}} + v^{${2}}`}, and what does that say about the joint density of ${math`(U, V)`}?`,
+  ],
   writeUp: 'proof',
 });
 const scheduleBivariate = supervision({
@@ -255,6 +274,11 @@ const scheduleBivariate = supervision({
   source: cite('tripos-schedules', 'IA Probability, Continuous random variables: "bivariate normal random variables"', true),
   title: t`Normal margins are not enough`,
   prompt: t`Let ${math`X \sim N(${0}, ${1})`} and let ${math`S`} be ${1} or ${math`-${1}`} with probability ${q(1, 2)} each, independent of ${math`X`}. Show that ${math`Y = SX`} is ${math`N(${0}, ${1})`} and that ${math`\operatorname{cov}(X, Y) = ${0}`}, but that ${math`X`} and ${math`Y`} are not independent. Why does this not contradict the theorem that jointly normal variables with covariance ${0} are independent?`,
+  hints: [
+    t`For any ${math`a`}, why is ${math`P(Y \le a) = P(X \le a)`}, using the symmetry of ${math`X`} and the independence of ${math`S`}?`,
+    t`What is ${math`\mathbb{E}(XY) = \mathbb{E}(SX^{${2}})`}?`,
+    t`What does ${math`|Y| = |X|`} imply about independence, and which hypothesis of the theorem does the pair ${math`(X, Y)`} fail?`,
+  ],
   writeUp: 'explanation',
 });
 

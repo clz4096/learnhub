@@ -227,6 +227,7 @@ const q4race = auto({
   solution: [
     t`The joint density is ${math`\lambda e^{-\lambda x}\,\mu e^{-\mu y}`} on ${math`x, y \ge ${0}`}. Integrate over ${math`\{x > y\}`}, ${mX} first: ${math`P(X > Y) = \int_{${0}}^{\infty} \mu e^{-\mu y} \int_{y}^{\infty} \lambda e^{-\lambda x}\,dx\,dy = \int_{${0}}^{\infty} \mu e^{-(\lambda + \mu)y}\,dy`}.`,
     t`So ${math`P(X > Y) = \frac{\mu}{\lambda + \mu}`}: the larger ${mY}'s rate, the sooner ${mY} tends to come, and the likelier ${mX} is to exceed it.`,
+    t`For a probability about two variables, integrate the joint density over the region, the easy variable first.`,
   ],
   reference: 'mu/(lambda + mu)',
   verify: () => {
@@ -246,6 +247,12 @@ const q4race = auto({
     { response: 'lambda/(lambda + mu)', why: t`That is ${math`P(X < Y)`}. A larger ${math`\lambda`} makes ${mX} smaller, so ${math`\lambda`} on top would favour ${mX} coming first.` },
     { response: '1/2', why: t`Only when ${math`\lambda = \mu`}. Integrate the joint density over ${math`\{x > y\}`}.` },
   ],
+  nudge: t`Not quite. Integrating over the region ${math`\{x > y\}`} with the inner integral in ${math`x`} leaves a single exponential to integrate.`,
+  hints: [
+    t`What is the joint density of ${mX} and ${mY}, given that they are independent?`,
+    t`For a fixed ${math`y`}, what is ${math`P(X > y)`}?`,
+    t`What is ${math`\int_{${0}}^{\infty} \mu e^{-\mu y} P(X > y)\,dy`}?`,
+  ],
 });
 
 const q1general = supervision({
@@ -254,6 +261,11 @@ const q1general = supervision({
   title: t`Meeting with any waiting time`,
   prompt: t`Two people arrive independently and uniformly in an interval of length ${math`T`}, and each waits ${math`w \le T`} for the other. Show that they meet with probability ${math`${1} - (${1} - w/T)^{${2}}`}, drawing the region in the square. How does the answer change if only one of them is willing to wait?`,
   writeUp: 'proof',
+  hints: [
+    t`With arrival times ${math`(s, t)`} in the square ${math`[${0}, T]^{${2}}`}, which inequality in ${math`s`} and ${math`t`} describes a meeting?`,
+    t`What shape is the region where they do not meet, and what is its area?`,
+    t`If only one of them waits, which half of the meeting band remains?`,
+  ],
 });
 const triangle = supervision({
   id: 'schedule-joint-triangle',
@@ -261,6 +273,11 @@ const triangle = supervision({
   title: t`A constant density that does not factorise`,
   prompt: t`Let ${math`f(x, y) = ${2}`} for ${math`${0} < y < x < ${1}`}, and ${0} otherwise. Show that ${math`f`} is a joint density, find the marginal densities of ${mX} and ${mY}, and show that ${mX} and ${mY} are not independent, although the formula for ${math`f`} is a constant. What exactly must factorise for independence?`,
   writeUp: 'proof',
+  hints: [
+    t`What is the area of the region ${math`${0} < y < x < ${1}`}, and what does ${math`\int\int f`} come to?`,
+    t`For fixed ${math`x`}, over which ${math`y`} is ${math`f(x, y)`} non-zero, and what marginal densities follow?`,
+    t`Does ${math`f(x, y)`} equal the product of the marginals at every point of the unit square, including where ${math`y > x`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

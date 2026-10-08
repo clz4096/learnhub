@@ -189,11 +189,18 @@ const a17iiiN = auto({
   solution: [
     t`${math`\frac{${1}}{r} - \frac{${1}}{r + ${1}} = \frac{(r + ${1}) - r}{r(r + ${1})} = \frac{${1}}{r(r + ${1})}`}.`,
     t`Sum: ${math`\left(${1} - \frac{${1}}{${2}}\right) + \left(\frac{${1}}{${2}} - \frac{${1}}{${3}}\right) + \cdots + \left(\frac{${1}}{n} - \frac{${1}}{n + ${1}}\right)`}: every middle term cancels, leaving ${math`${1} - \frac{${1}}{n + ${1}} = \frac{n}{n + ${1}}`}. Check at ${math`n = ${3}`}: ${math`\frac{${1}}{${2}} + \frac{${1}}{${6}} + \frac{${1}}{${12}} = \frac{${3}}{${4}}`}.`,
+    t`Split each term, then let the middle telescope.`,
   ],
   reference: 'n/(n + 1)',
   verify: () => { for (let n = 1; n <= 30; n++) if (str(telSum({ a: 1, b: n, d: 1 })) !== str(q(n, n + 1))) return `n = ${n}`; return null; },
   misconceptions: [{ response: '1 - 1/n', why: t`The last bracket is ${math`\frac{${1}}{n} - \frac{${1}}{n + ${1}}`}, so ${math`-\frac{${1}}{n + ${1}}`} survives, not ${math`-\frac{${1}}{n}`}.` }],
   official: { source: cite('step-f17-hints', 'Q2(iii)'), answer: 'n/(n + 1)', agrees: true },
+  nudge: t`Not quite. Writing out the first few terms and the last term of the split sum shows that almost everything cancels.`,
+  hints: [
+    t`What is ${math`\frac{${1}}{r} - \frac{${1}}{r + ${1}}`} as a single fraction?`,
+    t`With each term split, which parts cancel between neighbouring terms?`,
+    t`Which two parts survive?`,
+  ],
 });
 
 const a17iii200 = auto({
@@ -205,11 +212,18 @@ const a17iii200 = auto({
   solution: [
     t`The terms telescope: ${math`\frac{${1}}{${100}} - \frac{${1}}{${201}}`}.`,
     t`${math`= \frac{${201} - ${100}}{${100} \times ${201}} = \frac{${101}}{${20100}}`}.`,
+    t`In a telescoping sum, only the front part of the first term and the back part of the last survive.`,
   ],
   reference: '101/20100',
   verify: () => same('the sum', str(telSum({ a: 100, b: 200, d: 1 })), '101/20100'),
   misconceptions: [{ response: '1/200', why: t`The surviving terms are ${math`\frac{${1}}{${100}}`} and ${math`-\frac{${1}}{${201}}`}: the last ${math`r`} is ${200}, so ${math`r + ${1} = ${201}`}.` }],
   official: { source: cite('step-f17-hints', 'Q2(iii)'), answer: '101/20100', agrees: true },
+  nudge: t`Not quite. The same split makes the sum telescope; check which first and last parts survive.`,
+  hints: [
+    t`How does each term ${math`\frac{${1}}{r(r + ${1})}`} split?`,
+    t`Which parts survive when ${math`r`} runs from ${100} to ${200}?`,
+    t`What is their difference as a single fraction?`,
+  ],
 });
 
 const nstA7ii = auto({
@@ -221,6 +235,7 @@ const nstA7ii = auto({
   solution: [
     t`${math`x = ${2}`}: ${math`A = \frac{${15}}{(${3})(${5})} = ${1}`}. ${math`x = -${1}`}: ${math`B = \frac{${12}}{(-${3})(${2})} = -${2}`}. ${math`x = -${3}`}: ${math`C = \frac{${10}}{(-${2})(-${5})} = ${1}`}.`,
     t`Check: ${math`A + B + C = ${0}`}, as the ${math`x^{${2}}`} terms of the numerator must cancel.`,
+    t`For distinct linear factors, substitute each root to isolate one constant.`,
   ],
   reference: 'A = 1, B = -2, C = 1',
   verify: () => {
@@ -230,6 +245,12 @@ const nstA7ii = auto({
     return null;
   },
   misconceptions: [{ response: 'A = 1, B = 2, C = 1', why: t`At ${math`x = -${1}`}: ${math`(x - ${2})(x + ${3}) = (-${3})(${2}) = -${6}`}, so ${math`B = \frac{${12}}{-${6}} = -${2}`}.` }],
+  nudge: t`Not quite. Substituting each root of the denominator, with the other factors covered up, gives each constant in one line.`,
+  hints: [
+    t`After multiplying through by the denominator, which identity in ${math`x`} must hold?`,
+    t`Which value of ${math`x`} makes every term except the ${math`A`} term vanish?`,
+    t`Which values isolate ${math`B`} and ${math`C`} in the same way?`,
+  ],
 });
 
 const nstA7iii = auto({
@@ -242,6 +263,7 @@ const nstA7iii = auto({
     t`Multiply through: ${math`${4}x + ${1} \equiv A(x + ${1})^{${2}} + B(x + ${1})(x - ${2}) + C(x - ${2})`}.`,
     t`${math`x = ${2}`}: ${math`${9} = ${9}A`}, so ${math`A = ${1}`}. ${math`x = -${1}`}: ${math`-${3} = -${3}C`}, so ${math`C = ${1}`}.`,
     t`No value of ${math`x`} isolates ${math`B`}, so compare ${math`x^{${2}}`} coefficients: ${math`${0} = A + B`}, so ${math`B = -${1}`}.`,
+    t`A repeated factor needs both of its powers; when substitution runs out, compare coefficients.`,
   ],
   reference: 'A = 1, B = -1, C = 1',
   verify: () => {
@@ -251,6 +273,12 @@ const nstA7iii = auto({
     return null;
   },
   misconceptions: [{ response: 'A = 1, B = 0, C = 1', why: t`A repeated factor needs both ${math`\frac{B}{x + ${1}}`} and ${math`\frac{C}{(x + ${1})^{${2}}}`}; the ${math`x^{${2}}`} terms force ${math`B = -A = -${1}`}.` }],
+  nudge: t`Not quite. Two roots isolate two constants; the third needs a comparison of coefficients.`,
+  hints: [
+    t`After multiplying through, which identity in ${math`x`} must hold?`,
+    t`Which values of ${math`x`} isolate ${math`A`} and ${math`C`}?`,
+    t`With ${math`A`} and ${math`C`} known, comparing which coefficient gives ${math`B`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

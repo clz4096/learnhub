@@ -267,7 +267,7 @@ const matchingII = auto({
   id: 'cs3110-ex3-matching-ii',
   source: cite('cs3110-ex3', 'Exercise "matching", pattern [Some 3110; None]', true),
   title: t`A pattern of constants`,
-  prompt: t`Which of these values of type ${code`int option list`} do not match the pattern ${code`[Some ${MP}; None]`}? Choose all that apply.`,
+  prompt: t`Which of these values of type ${code`int option list`} do not match the pattern ${code`[Some ${MP}; None]`}? Choose all that do not.`,
   answer: {
     kind: 'choice',
     options: [
@@ -281,6 +281,13 @@ const matchingII = auto({
   solution: [
     t`The pattern has no variables: it matches exactly one value, the list ${code`[Some ${MP}; None]`} itself.`,
     t`${code`[Some ${MP}]`} is too short; ${code`[None; Some ${MP}]`} has the elements in the wrong places; ${code`[Some ${MP}; Some ${0}]`} has ${code`Some ${0}`} where the pattern needs ${code`None`}.`,
+    t`A pattern without variables matches exactly one value.`,
+  ],
+  nudge: t`Not quite. The pattern has no variables, so ask how many values it can match.`,
+  hints: [
+    t`Does the pattern ${code`[Some ${MP}; None]`} contain any variables?`,
+    t`How many values can a pattern with no variables match?`,
+    t`Which of the four values is exactly that value?`,
   ],
   reference: ['short', 'order', 'other'],
   // OCaml 4.11.1: (function [Some 3110; None] -> true | _ -> false) is true only on [Some 3110; None].
@@ -300,7 +307,7 @@ const quadrant = auto({
   id: 'cs3110-ex3-quadrant',
   source: cite('cs3110-ex3', 'Exercise "quadrant"', true),
   title: t`Which quadrant`,
-  prompt: t`The exercise declares ${codeBlock(code`type quad = I | II | III | IV`, code`type sign = Neg | Zero | Pos`)} and asks for ${code`quadrant : int * int -> quad option`}, which gives the quadrant of a point, with ${code`I`} where both coordinates are positive and the quadrants numbered anticlockwise; a point on an axis is in no quadrant. Write it with a helper ${code`sign`} and a match on a pair. What is ${code`quadrant (${QX}, ${QY})`}?`,
+  prompt: t`The exercise declares ${codeBlock(code`type quad = I | II | III | IV`, code`type sign = Neg | Zero | Pos`)} and asks for ${code`quadrant : int * int -> quad option`}, which gives the quadrant of a point, with ${code`I`} where both coordinates are positive and the quadrants numbered anticlockwise; a point on an axis is in no quadrant. Write it with a helper ${code`sign`} and a match on a pair, and evaluate ${code`quadrant (${QX}, ${QY})`}.`,
   answer: {
     kind: 'choice',
     options: ['I', 'II', 'III', 'IV'].map((q) => ({ id: q, label: [code`Some ${q}`] })).concat([{ id: 'None', label: [code`None`] }]),
@@ -310,6 +317,13 @@ const quadrant = auto({
     t`${codeBlock(code`let sign x = if x < ${0} then Neg else if x = ${0} then Zero else Pos`, code`let quadrant (x, y) = match sign x, sign y with`, code`  | Pos, Pos -> Some I | Neg, Pos -> Some II`, code`  | Neg, Neg -> Some III | Pos, Neg -> Some IV`, code`  | _ -> None`)}`,
     t`${code`sign (${QX})`} is ${code`Neg`} and ${code`sign ${QY}`} is ${code`Pos`}, so the pair ${code`(Neg, Pos)`} matches the second case: ${code`Some II`}, the top left quadrant.`,
     t`The last case ${code`_`} catches every pair with a ${code`Zero`}, the points on an axis. Without it OCaml would warn that the match is not exhaustive.`,
+    t`Match on the signs as a pair; a wildcard catches the rest.`,
+  ],
+  nudge: t`Not quite. Find the sign of each coordinate, then recall how the quadrants are numbered.`,
+  hints: [
+    t`What are ${code`sign (${QX})`} and ${code`sign ${QY}`}?`,
+    t`Starting from ${code`I`}, where both are positive, which way are the quadrants numbered?`,
+    t`Which case of the match does the pair of signs hit?`,
   ],
   reference: ['II'],
   // OCaml 4.11.1: quadrant (-3, 5) = Some II; quadrant (0, 4) = None.
@@ -330,6 +344,11 @@ const safeHdTl = supervision({
   title: t`Safe head and tail`,
   prompt: t`Write ${code`safe_hd : 'a list -> 'a option`}, returning ${code`Some x`} if the head of the input list is ${code`x`} and ${code`None`} if the list is empty, and ${code`safe_tl : 'a list -> 'a list option`}, returning the tail or ${code`None`}. Explain why a caller of ${code`safe_hd`} cannot forget the empty case, while a caller of ${code`List.hd`} can.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which two patterns cover every list?`,
+    t`What must a caller do with an ${code`'a option`} before using the value inside?`,
+    t`What does ${code`List.hd`} do on the empty list, and does its type warn of it?`,
+  ],
 });
 const focs61 = supervision({
   id: 'focs-6-1',
@@ -337,6 +356,11 @@ const focs61 = supervision({
   title: t`Days of the week`,
   prompt: t`Give the declaration of an OCaml type for the days of the week. Comment on the practicality of such a type in a calendar application: what does it make easy, and what (such as "the day after", or counting days between dates) does it make awkward?`,
   writeUp: 'explanation',
+  hints: [
+    t`Which kind of type lists a fixed set of constant constructors?`,
+    t`What does the compiler check for a match on such a type?`,
+    t`How would "the day after" or arithmetic on days be written without numbers, and how long would it be?`,
+  ],
 });
 
 // Computer Science Tripos Part IA 2025, Paper 1, Question 2(a), (b), and 2020, Paper 1, Question
@@ -347,6 +371,11 @@ const cst25expr = supervision({
   title: t`Expressions as a variant type`,
   prompt: t`The following type definition allows the representation of some mathematical expressions as an OCaml value: ${codeBlock(code`type expr =`, code`  | Add of expr * expr`, code`  | Mul of expr * expr`, code`  | Number of int`)} (a) Write the OCaml value that corresponds to the expression ${math`(${1} + ${4}) \times (${10} + ${2})`}. (b) Write a function that will evaluate the numerical result of an ${code`expr`} argument. What is the OCaml type of your function?`,
   writeUp: 'explanation',
+  hints: [
+    t`Which constructor is outermost in ${math`(${1} + ${4}) \times (${10} + ${2})`}?`,
+    t`For the evaluator, what should each of the three constructors return, and where is recursion needed?`,
+    t`What are the argument and result types of the evaluator?`,
+  ],
 });
 
 const cst20trees = supervision({
@@ -355,6 +384,11 @@ const cst20trees = supervision({
   title: t`Counting trees in a wood`,
   prompt: t`You need to write OCaml code to help a local park ranger count the different types of trees present in a region of Cambridgeshire woodland. (a) Define an OCaml type ${code`tree`} that can distinguish between an oak, birch or maple tree, and also any other species with an arbitrary string name. (b) Define two OCaml values with the following signatures: (i) ${code`val describe : tree -> string`} that accepts a ${code`tree`} parameter and returns a human-readable string; (ii) ${code`val identify : string -> tree`} that accepts a lowercase string parameter and returns a ${code`tree`}. Explain briefly how the OCaml compiler can statically check if you have handled all the input possibilities for the input parameters to ${code`describe`} and ${code`identify`}.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which constructors does the type need, and which one carries a string?`,
+    t`In ${code`identify`}, which strings map to the named species, and what happens to every other string?`,
+    t`What does the compiler's exhaustiveness check report for a match on a variant, and for a match on a string?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

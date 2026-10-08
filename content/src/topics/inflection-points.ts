@@ -180,6 +180,7 @@ const nonStationary = auto({
     t`${math`\frac{dy}{dx} = ${12}x^{${3}} + ${12}x^{${2}} - ${12}x - ${12} = ${12}(x + ${1})^{${2}}(x - ${1})`} and ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${36}x^{${2}} + ${24}x - ${12} = ${12}(${3}x - ${1})(x + ${1})`}.`,
     t`The second derivative is ${0} at ${math`x = ${-1}`}, where ${math`\frac{dy}{dx} = ${0}`} too (a stationary inflection at ${math`(${-1}, ${10})`}), and at ${math`x = ${q(1, 3)}`}.`,
     t`At ${math`x = ${q(1, 3)}`}: ${math`y = ${3} \cdot \frac{${1}}{${81}} + ${4} \cdot \frac{${1}}{${27}} - ${6} \cdot \frac{${1}}{${9}} - ${4} + ${5} = ${q(14, 27)}`}, and the gradient is ${math`${12}\left(\frac{${4}}{${3}}\right)^{${2}}\left(-\frac{${2}}{${3}}\right) \ne ${0}`}. Both factors of the second derivative change sign simply, so both points are inflections.`,
+    t`Factorise the derivatives; the factors show which points are stationary.`,
   ],
   reference: 'x = 1/3, y = 14/27',
   verify: () => {
@@ -188,6 +189,12 @@ const nonStationary = auto({
   },
   misconceptions: [{ response: 'x = -1, y = 10', why: t`That is the stationary one: ${math`\frac{dy}{dx} = ${0}`} there as well. The question asks for the other.` }],
   official: { source: cite(F13H, 'Assignment 13 hints, Q2(iii)(b)'), answer: 'x = 1/3, y = 14/27', agrees: true },
+  nudge: t`Not quite. Factorising the second derivative gives both points exactly, and the first derivative tells them apart.`,
+  hints: [
+    t`What are ${math`\frac{dy}{dx}`} and ${math`\frac{d^{${2}}y}{dx^{${2}}}`} for this quartic?`,
+    t`How does ${math`\frac{d^{${2}}y}{dx^{${2}}}`} factorise, and at which ${math`x`} is it zero?`,
+    t`At which of those ${math`x`} is ${math`\frac{dy}{dx}`} also zero, and what is ${math`y`} at the other one?`,
+  ],
 });
 
 const stepA = auto({
@@ -200,11 +207,18 @@ const stepA = auto({
     t`${math`\frac{d^{${2}}y}{dx^{${2}}} = ${12}x^{${2}} - ${12}`} is ${0} at ${math`x = \pm ${1}`}.`,
     t`${math`\frac{dy}{dx} = ${4}x^{${3}} - ${12}x + a`}. At ${math`x = ${1}`}: ${math`${4} - ${12} + a = ${0}`}, so ${math`a = ${8}`}. At ${math`x = ${-1}`}: ${math`${-4} + ${12} + a = ${0}`}, so ${math`a = ${-8}`}.`,
     t`(For ${math`a = ${8}`}, ${math`\frac{dy}{dx} = ${4}(x - ${1})^{${2}}(x + ${2})`}, so ${math`x = ${1}`} is a stationary point of inflection.)`,
+    t`Use the condition free of the parameter first, then solve for the parameter.`,
   ],
   reference: '8, -8',
   verify: () => firstError(same('dy/dx at 1 for a = 8', polyAt([4, 0, -12, 8], 1), 0), same('dy/dx at -1 for a = -8', polyAt([4, 0, -12, -8], -1), 0), same('verdict a = 8 at 1', signVerdict([1, 0, -6, 8, 0], 1), 'stationary')),
   misconceptions: [{ response: '-1, 1', why: t`Those are the ${math`x`} values where ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}. Put each into ${math`\frac{dy}{dx} = ${0}`} to find ${math`a`}.` }],
   official: { source: cite(F13H, 'Assignment 13 hints, Q3(ii)'), answer: '8, -8', agrees: true },
+  nudge: t`Not quite. The condition without ${math`a`} pins down ${math`x`} first; only then bring in ${math`a`}.`,
+  hints: [
+    t`At which ${math`x`} is ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}?`,
+    t`What must ${math`a`} be for ${math`\frac{dy}{dx}`} to vanish at each of those ${math`x`}?`,
+    t`Does ${math`b`} affect either derivative?`,
+  ],
 });
 
 const prepQ = supervision({
@@ -214,6 +228,11 @@ const prepQ = supervision({
   prompt: t`Consider the graph of ${math`y = ${3}x^{${4}} + ${4}x^{${3}} - ${6}x^{${2}} - ${12}x + ${5}`}. (a) Find the coordinates of the stationary points. (b) Find the points where ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}, and state whether each one is stationary or non-stationary. (c) Sketch the graph. (d) Write down the value of ${math`k`} for which ${math`${3}x^{${4}} + ${4}x^{${3}} - ${6}x^{${2}} - ${12}x + k = ${0}`} has only one root.`,
   writeUp: 'sketch',
   official: cite(F13H, 'Assignment 13 hints, Q2(iii)'),
+  hints: [
+    t`What is ${math`\frac{dy}{dx}`}, and how does it factorise by grouping?`,
+    t`Where is ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}, and at which of those points is ${math`\frac{dy}{dx}`} also zero?`,
+    t`For (d), what is the least value of ${math`${3}x^{${4}} + ${4}x^{${3}} - ${6}x^{${2}} - ${12}x`}, and why does a single root need the graph to touch the ${math`x`}-axis there?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -231,11 +231,18 @@ const bop1024 = auto({
   id: 'bop-10-24',
   source: cite('bop', 'Chapter 10, exercise 24', true),
   title: t`A weighted row sum`,
-  prompt: t`Find ${math`\sum_{k = ${1}}^{n} k\binom{n}{k}`} as a formula in ${mn}. (Hint: count committees with a chair.)`,
+  prompt: t`Find ${math`\sum_{k = ${1}}^{n} k\binom{n}{k}`} as a formula in ${mn}.`,
   answer: { kind: 'expression', expected: 'n * 2^(n - 1)', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 20 } } },
+  hints: [
+    t`What does ${math`k\binom{n}{k}`} count, if a committee of ${mk} people from ${mn} also picks a chair from its members?`,
+    t`Counting the same pairs with the chair chosen first, how many choices are there for the chair?`,
+    t`Once the chair is fixed, in how many ways can the rest of the committee be chosen?`,
+  ],
+  nudge: t`Not quite. Find a set that the sum counts, then count that set a second way.`,
   solution: [
     t`Count the pairs (a committee of any size from ${mn} people, a chair from its members). By size: a committee of ${mk} has ${mk} choices of chair, so ${math`\sum k\binom{n}{k}`}.`,
     t`By chair first: ${mn} choices of chair, then any subset of the other ${math`n - ${1}`} people joins: ${math`n \cdot ${2}^{n - ${1}}`}. The two counts are equal.`,
+    t`Count one set in two ways: the two counts are equal.`,
   ],
   reference: 'n * 2^(n - 1)',
   verify: () => {
@@ -254,9 +261,16 @@ const bop1040 = auto({
   title: t`Squares along a row`,
   prompt: t`Exercise ${40} says ${math`\binom{n}{${0}}^{${2}} + \binom{n}{${1}}^{${2}} + \cdots + \binom{n}{n}^{${2}} = \binom{${2}n}{n}`}. Check it for ${math`n = ${N40}`}: what is the sum?`,
   answer: { kind: 'exact', expected: String(choose(2 * N40, N40)) },
+  hints: [
+    t`What are the entries of row ${N40} of Pascal's triangle?`,
+    t`What are their squares, and what do the squares add to?`,
+    t`What is ${math`\binom{${2 * N40}}{${N40}}`}, to compare?`,
+  ],
+  nudge: t`Not quite. Write out row ${N40}, square each entry, and add; then compare with ${math`\binom{${2 * N40}}{${N40}}`}.`,
   solution: [
     t`Row ${N40} is ${listOf(row(N40))}; the squares are ${listOf(row(N40).map((x) => x * x))}, adding to ${row(N40).reduce((s, x) => s + x * x, 0)}.`,
     t`And ${math`\binom{${2 * N40}}{${N40}} = ${choose(2 * N40, N40)}`}: they agree.`,
+    t`Check an identity on a small case before trusting it.`,
   ],
   reference: String(choose(2 * N40, N40)),
   verify: () => same('the sum of squares against C(12, 6)', row(N40).reduce((s, x) => s + x * x, 0), choose(2 * N40, N40)),
@@ -272,9 +286,16 @@ const bop1041 = auto({
   title: t`Another diagonal`,
   prompt: t`Exercise ${41}: if ${mn} and ${mk} are non-negative integers, then ${math`\binom{n + ${0}}{${0}} + \binom{n + ${1}}{${1}} + \binom{n + ${2}}{${2}} + \cdots + \binom{n + k}{k} = \binom{n + k + ${1}}{k}`}. Check it for ${math`n = ${N41}`}, ${math`k = ${K41}`}: what is the sum?`,
   answer: { kind: 'exact', expected: String(choose(N41 + K41 + 1, K41)) },
+  hints: [
+    t`What are the ${K41 + 1} terms of the sum for ${math`n = ${N41}`}, ${math`k = ${K41}`}?`,
+    t`What is the value of each term?`,
+    t`What is ${math`\binom{${N41 + K41 + 1}}{${K41}}`}, to compare?`,
+  ],
+  nudge: t`Not quite. Add every term, from ${math`\binom{${N41}}{${0}}`} to ${math`\binom{${N41 + K41}}{${K41}}`}.`,
   solution: [
     t`The terms are ${listOf(upTo(K41 + 1).map((i) => choose(N41 + i - 1, i - 1)))}, adding to ${upTo(K41 + 1).reduce((s, i) => s + choose(N41 + i - 1, i - 1), 0)}.`,
     t`And ${math`\binom{${N41 + K41 + 1}}{${K41}} = ${choose(N41 + K41 + 1, K41)}`}.`,
+    t`Write every term out before adding.`,
   ],
   reference: String(choose(N41 + K41 + 1, K41)),
   verify: () => same('the diagonal sum against C(8, 4)', upTo(K41 + 1).reduce((s, i) => s + choose(N41 + i - 1, i - 1), 0), choose(N41 + K41 + 1, K41)),
@@ -287,6 +308,11 @@ const bop1035 = supervision({
   source: cite('bop', 'Chapter 10, exercise 35'),
   title: t`Even entries`,
   prompt: t`Prove that if ${math`n, k \in \mathbb{N}`}, and ${mn} is even and ${mk} is odd, then ${binom('n', 'k')} is even.`,
+  hints: [
+    t`How is ${math`k\binom{n}{k}`} related to ${math`n\binom{n - ${1}}{k - ${1}}`}?`,
+    t`With ${mn} even, what does that identity say about the parity of ${math`k\binom{n}{k}`}?`,
+    t`Since ${mk} is odd, why must ${binom('n', 'k')} itself be even?`,
+  ],
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 10, exercise 35'),
 });
@@ -295,6 +321,11 @@ const bop1038 = supervision({
   source: cite('bop', 'Chapter 10, exercise 38'),
   title: t`Vandermonde's identity`,
   prompt: t`Prove that ${math`\sum_{k = ${0}}^{p} \binom{m}{k}\binom{n}{p - k} = \binom{m + n}{p}`} for non-negative integers ${math`m, n, p`}. Book of Proof asks for induction; give a counting proof as well: choose ${math`p`} people from ${math`m`} women and ${mn} men.`,
+  hints: [
+    t`For the counting proof, how many groups of ${math`p`} people contain exactly ${mk} women?`,
+    t`Why are the groups with different numbers of women disjoint, and what do they make up together?`,
+    t`For induction on ${mn}, which use of Pascal's rule on ${math`\binom{n + ${1}}{p - k}`} splits the sum into two sums of the same form?`,
+  ],
   writeUp: 'proof',
 });
 const notesHomework2 = supervision({
@@ -302,6 +333,11 @@ const notesHomework2 = supervision({
   source: cite('cst-dm-notes', 'printed pages 273 to 280, Theorem 29 and Homework 2'),
   title: t`Finish the Binomial Theorem's inductive step`,
   prompt: t`The notes' scratch work for the inductive step of the Binomial Theorem, ${math`(x + y)^{n + ${1}} = \sum_{k = ${0}}^{n + ${1}} \binom{n + ${1}}{k} x^{n + ${1} - k} y^{k}`}, assumes Pascal's rule. Using Pascal's rule, turn the scratch work into a proof of the inductive step: split off the terms ${math`k = ${0}`} and ${math`k = n + ${1}`}, apply the rule, and recognise ${math`(x + y)^{n}(x + y)`}.`,
+  hints: [
+    t`After the terms ${math`k = ${0}`} and ${math`k = n + ${1}`} are split off, what does Pascal's rule turn ${math`\binom{n + ${1}}{k}`} into?`,
+    t`How do the two resulting sums compare with ${math`x(x + y)^{n}`} and ${math`y(x + y)^{n}`}, expanded by the induction hypothesis?`,
+    t`Where do the split-off terms ${math`x^{n + ${1}}`} and ${math`y^{n + ${1}}`} fit into those two sums?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -322,6 +358,11 @@ const ns2q3 = supervision({
   source: cite('ia-ns-sheet-2', 'Q3'),
   title: t`Two identities by counting`,
   prompt: t`By suitably interpreting each side, establish the identities ${dmath`\binom{k}{k} + \binom{k + ${1}}{k} + \binom{k + ${2}}{k} + \cdots + \binom{n - ${1}}{k} + \binom{n}{k} = \binom{n + ${1}}{k + ${1}}`} and ${dmath`\binom{n}{${0}}^{${2}} + \binom{n}{${1}}^{${2}} + \binom{n}{${2}}^{${2}} + \cdots + \binom{n}{n - ${1}}^{${2}} + \binom{n}{n}^{${2}} = \binom{${2}n}{n}`} for appropriate ranges of the parameters ${mn} and ${mk} (which you should specify).`,
+  hints: [
+    t`What does ${math`\binom{n + ${1}}{k + ${1}}`} count, and by which feature can those subsets be sorted?`,
+    t`If a ${math`(k + ${1})`}-subset of ${math`\{${1}, \ldots, n + ${1}\}`} has largest element ${math`m + ${1}`}, in how many ways can the rest be chosen?`,
+    t`For the second identity, choosing ${mn} balls from ${mn} red and ${mn} blue, how many choices have exactly ${math`j`} red ones, and why is that ${math`\binom{n}{j}^{${2}}`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -344,10 +385,17 @@ const gs329 = auto({
       return c === G329 ? null : `C(${n}, ${r}) is ${c}, but the sum is ${G329}.`;
     },
   },
+  hints: [
+    t`How can the middle term be split so that two pairs of neighbouring coefficients appear?`,
+    t`What does Pascal's rule give for each pair?`,
+    t`What does Pascal's rule give when applied once more?`,
+  ],
+  nudge: t`Not quite. Split the middle term into two halves and merge neighbours with Pascal's rule until one coefficient remains.`,
   solution: [
     t`Split the middle term: the left side is ${math`\left(\binom{${13}}{${5}} + \binom{${13}}{${6}}\right) + \left(\binom{${13}}{${6}} + \binom{${13}}{${7}}\right)`}.`,
     t`Pascal's rule on each bracket: ${math`\binom{${14}}{${6}} + \binom{${14}}{${7}}`}.`,
     t`Pascal's rule again: ${math`\binom{${15}}{${7}}`}, which is ${G329}. So ${math`n = ${15}, r = ${7}`}; by symmetry ${math`r = ${8}`} works too.`,
+    t`Pascal's rule, used repeatedly, merges neighbouring coefficients.`,
   ],
   reference: 'n = 15, r = 7',
   verify: () => {
@@ -374,6 +422,11 @@ const gs3213 = supervision({
   source: cite('gs-ch3', 'Section 3.2, Exercise 13 (page 114)'),
   title: t`The middle of a row is the largest`,
   prompt: t`If a set has ${math`${2}n`} elements, show that it has more subsets with ${mn} elements than with any other number of elements.`,
+  hints: [
+    t`What is the ratio ${math`\binom{${2}n}{i} \big/ \binom{${2}n}{i - ${1}}`}, from the factorial formula?`,
+    t`For which ${math`i`} is that ratio greater than ${1}, and for which is it less?`,
+    t`Where do the coefficients rise and where do they fall, and is the maximum strict?`,
+  ],
   writeUp: 'proof',
   official: cite('gs-answers-odd', 'Section 3.2, Exercise 13'),
 });

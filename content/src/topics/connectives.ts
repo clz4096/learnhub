@@ -370,7 +370,7 @@ const STATEMENT = [
   { id: 'open', label: t`Not a statement: an open sentence` },
 ] as const satisfies readonly ChoiceOption[];
 
-function statementVerdict(o: { n: number; text: Rich; verdict: 'true' | 'false' | 'open'; steps: Rich[]; check: () => 'true' | 'false' | 'open' }): AutoProblem {
+function statementVerdict(o: { n: number; text: Rich; verdict: 'true' | 'false' | 'open'; steps: Rich[]; check: () => 'true' | 'false' | 'open'; hints: Rich[]; nudge: Rich }): AutoProblem {
   const at = `Section 2.1, exercise ${o.n}`;
   return auto({
     id: `bop-2-1-${o.n}`,
@@ -378,6 +378,8 @@ function statementVerdict(o: { n: number; text: Rich; verdict: 'true' | 'false' 
     title: t`Statement or not`,
     prompt: t`Is this a statement? If it is, is it true or false? ${o.text}`,
     answer: { kind: 'choice', options: STATEMENT, correct: o.verdict },
+    hints: o.hints,
+    nudge: o.nudge,
     solution: o.steps,
     reference: o.check(),
     verify: () => same(`Book of Proof ${at}`, o.check(), o.verdict),
@@ -391,32 +393,77 @@ const openOr = (vals: readonly boolean[]): 'true' | 'false' | 'open' => (vals.ev
 
 const bop21_1 = statementVerdict({
   n: 1, text: t`"Every real number is an even integer."`, verdict: 'false',
-  steps: [t`It is a statement: it is definitely true or definitely false. It is false: ${math`\frac{${1}}{${2}}`} is a real number and not an integer at all.`],
+  steps: [
+    t`It is a statement: it is definitely true or definitely false. It is false: ${math`\frac{${1}}{${2}}`} is a real number and not an integer at all.`,
+    t`A claim about every element is a statement; one counterexample makes it false.`,
+  ],
+  hints: [
+    t`Does the sentence have one definite truth value, or does it depend on a variable?`,
+    t`Is the claim about all real numbers at once?`,
+    t`Is there a real number that is not an even integer?`,
+  ],
+  nudge: t`Not quite. Decide first whether the truth value depends on anything, then test the claim with one example.`,
   check: () => (reals.every((x) => Number.isInteger(x) && x % 2 === 0) ? 'true' : 'false'),
 });
 const bop21_3 = statementVerdict({
   n: 3, text: t`"If ${math`x`} and ${math`y`} are real numbers and ${math`${5}x = ${5}y`}, then ${math`x = y`}."`, verdict: 'true',
-  steps: [t`It is a statement about every pair of reals, so it has one truth value. It is true: divide both sides of ${math`${5}x = ${5}y`} by ${5}.`],
+  steps: [
+    t`It is a statement about every pair of reals, so it has one truth value. It is true: divide both sides of ${math`${5}x = ${5}y`} by ${5}.`,
+    t`A sentence about every value of its letters is a statement.`,
+  ],
+  hints: [
+    t`Do ${math`x`} and ${math`y`} have particular values, or does the sentence cover every pair?`,
+    t`Can the claim be true for some pairs and false for others?`,
+    t`What happens when both sides of ${math`${5}x = ${5}y`} are divided by ${5}?`,
+  ],
+  nudge: t`Not quite. The sentence speaks of all real ${math`x`} and ${math`y`}, so it has one truth value; test whether it ever fails.`,
   check: () => openOr(reals.flatMap((x) => reals.map((y) => !(5 * x === 5 * y) || x === y))),
 });
 const bop21_9 = statementVerdict({
   n: 9, text: t`"${math`\cos(x) = -${1}`}."`, verdict: 'open',
-  steps: [t`It is not a statement: whether it is true depends on ${math`x`}. It is true at ${math`x = \pi`} and false at ${math`x = ${0}`}. A sentence like this is an [[open-sentence|open sentence]].`],
+  steps: [
+    t`It is not a statement: whether it is true depends on ${math`x`}. It is true at ${math`x = \pi`} and false at ${math`x = ${0}`}. A sentence like this is an [[open-sentence|open sentence]].`,
+    t`A free variable whose value changes the truth makes an open sentence.`,
+  ],
+  hints: [
+    t`Is ${math`x`} a fixed number here, or free to vary?`,
+    t`Is the sentence true for some values of ${math`x`} and false for others?`,
+    t`What is a sentence called whose truth depends on a free variable?`,
+  ],
+  nudge: t`Not quite. Try two values of ${math`x`}; if the truth value changes, the sentence is not a statement.`,
   check: () => openOr(reals.map((x) => Math.abs(Math.cos(x) + 1) < 1e-12)),
 });
 const bop21_11 = statementVerdict({
   n: 11, text: t`"The integer ${math`x`} is a multiple of ${7}."`, verdict: 'open',
-  steps: [t`It is an open sentence, not a statement: it is true for ${math`x = ${14}`} and false for ${math`x = ${15}`}.`],
+  steps: [
+    t`It is an open sentence, not a statement: it is true for ${math`x = ${14}`} and false for ${math`x = ${15}`}.`,
+    t`If the truth value changes with the variable, it is an open sentence.`,
+  ],
+  hints: [
+    t`Is ${math`x`} a fixed integer here, or free to vary?`,
+    t`Does the truth value change as ${math`x`} changes?`,
+    t`What is a sentence called whose truth depends on a free variable?`,
+  ],
+  nudge: t`Not quite. Try two different integers for ${math`x`} and compare the truth values.`,
   check: () => openOr(upTo(30).map((x) => x % 7 === 0)),
 });
 const bop21_13 = statementVerdict({
   n: 13, text: t`"Either ${math`x`} is a multiple of ${7}, or it is not."`, verdict: 'true',
-  steps: [t`This one is a statement, although it mentions ${math`x`}: it is true whatever ${math`x`} is, because every integer either is a multiple of ${7} or is not.`],
+  steps: [
+    t`This one is a statement, although it mentions ${math`x`}: it is true whatever ${math`x`} is, because every integer either is a multiple of ${7} or is not.`,
+    t`A sentence with a variable is a statement if its truth value never changes.`,
+  ],
+  hints: [
+    t`Does the truth value change as ${math`x`} changes?`,
+    t`Can an integer be neither a multiple of ${7} nor not one?`,
+    t`Is a sentence that is true for every value of ${math`x`} a statement?`,
+  ],
+  nudge: t`Not quite. Mentioning a variable does not by itself make an open sentence; test several values.`,
   check: () => openOr(upTo(60).map((x) => x % 7 === 0 || x % 7 !== 0)),
 });
 
 /** A sentence about numbers or sets, with given meanings for P and Q, and its formula, checked on sample values. */
-function bop22(o: { n: number; title: Rich; prompt: Rich; formula: string; vars: readonly string[]; samples: () => readonly (readonly [Record<string, boolean>, boolean])[]; steps: Rich[]; official?: string; wrong?: Misconception[] }): AutoProblem {
+function bop22(o: { n: number; title: Rich; prompt: Rich; formula: string; vars: readonly string[]; samples: () => readonly (readonly [Record<string, boolean>, boolean])[]; steps: Rich[]; official?: string; wrong?: Misconception[]; hints?: Rich[]; nudge?: Rich }): AutoProblem {
   const at = `Section 2.2, exercise ${o.n}`;
   const spec: Parameters<typeof auto>[0] = {
     id: `bop-2-2-${o.n}`,
@@ -434,6 +481,8 @@ function bop22(o: { n: number; title: Rich; prompt: Rich; formula: string; vars:
     misconceptions: o.wrong ?? [],
   };
   if (o.official !== undefined) spec.official = { source: cite('bop', `Solutions, ${at}`), answer: o.official, agrees: true };
+  if (o.hints !== undefined) spec.hints = o.hints;
+  if (o.nudge !== undefined) spec.nudge = o.nudge;
   return auto(spec);
 }
 
@@ -453,7 +502,16 @@ const bop22_8 = bop22({
   prompt: t`Let ${mP} be "${math`x = ${0}`}" and ${mQ} be "${math`y = ${0}`}". Write in symbols: "At least one of the numbers ${math`x`} and ${math`y`} equals ${0}."`,
   formula: 'P | Q', vars: ['P', 'Q'],
   samples: () => pairs((x, y) => [{ P: x === 0, Q: y === 0 }, x === 0 || y === 0]),
-  steps: [t`"At least one" is the inclusive "or": ${math`P \lor Q`}, true also when both are zero.`],
+  steps: [
+    t`"At least one" is the inclusive "or": ${math`P \lor Q`}, true also when both are zero.`,
+    t`At least one: the inclusive or.`,
+  ],
+  hints: [
+    t`Does "at least one" allow exactly one of the numbers, or both, to be zero?`,
+    t`Which connective is true when either part, or both, is true?`,
+    t`How are the two parts written with ${mP} and ${mQ}?`,
+  ],
+  nudge: t`Not quite. "At least one" includes the case where both are zero; choose the connective to match.`,
   wrong: [{ response: 'P & Q', why: t`That says both are zero. "At least one" needs only one.` }],
 });
 const setSamples = (want: (a: boolean, b: boolean) => boolean) => () => [[true, true], [true, false], [false, true], [false, false]].map(([a, b]) => [{ P: a as boolean, Q: b as boolean }, want(a as boolean, b as boolean)] as const);
@@ -462,7 +520,16 @@ const bop22_9 = bop22({
   prompt: t`Let ${mP} be "${math`x \in A`}" and ${mQ} be "${math`x \in B`}". Write "${math`x \in A - B`}" in symbols.`,
   formula: 'P & ~Q', vars: ['P', 'Q'],
   samples: setSamples((a, b) => a && !b),
-  steps: [t`${math`A - B`} holds the elements of ${math`A`} that are not in ${math`B`}, so ${math`x \in A - B`} is ${math`P \land \lnot Q`}.`],
+  steps: [
+    t`${math`A - B`} holds the elements of ${math`A`} that are not in ${math`B`}, so ${math`x \in A - B`} is ${math`P \land \lnot Q`}.`,
+    t`Set difference is membership of one set and not the other.`,
+  ],
+  hints: [
+    t`Which elements does ${math`A - B`} contain?`,
+    t`How is "${math`x`} is not in ${math`B`}" written with ${mQ}?`,
+    t`Which connective joins "in ${math`A`}" and "not in ${math`B`}"?`,
+  ],
+  nudge: t`Not quite. Write out what membership of ${math`A - B`} requires, condition by condition.`,
   // Printed as (x ∈ A) ∧ ∼(x ∈ B), which is P ∧ ∼Q with these letters.
   official: 'P ∧ ∼Q',
   wrong: [{ response: 'P | ~Q', why: t`${math`x`} must be in ${math`A`}, and also not in ${math`B`}: both at once, so "and".` }],
@@ -472,11 +539,20 @@ const bop22_10 = bop22({
   prompt: t`Let ${mP} be "${math`x \in A`}" and ${mQ} be "${math`x \in B`}". Write "${math`x \in A \cup B`}" in symbols.`,
   formula: 'P | Q', vars: ['P', 'Q'],
   samples: setSamples((a, b) => a || b),
-  steps: [t`${math`A \cup B`} holds what is in ${math`A`} or in ${math`B`}, so ${math`x \in A \cup B`} is ${math`P \lor Q`}.`],
+  steps: [
+    t`${math`A \cup B`} holds what is in ${math`A`} or in ${math`B`}, so ${math`x \in A \cup B`} is ${math`P \lor Q`}.`,
+    t`Union is or; intersection is and.`,
+  ],
+  hints: [
+    t`Which elements does ${math`A \cup B`} contain?`,
+    t`Must ${math`x`} be in both sets, or is one enough?`,
+    t`Which connective matches "one is enough"?`,
+  ],
+  nudge: t`Not quite. A union needs membership of only one of the sets.`,
   wrong: [{ response: 'P & Q', why: t`That is membership of ${math`A \cap B`}. The union needs only one.` }],
 });
 
-function tableProblem(o: { id: string; at: string; doc?: 'bop' | 'tmua-logic-proof'; title: Rich; prompt: Rich; vars: readonly string[]; texts: readonly string[]; given?: (row: number, col: number) => boolean; steps: Rich[]; official?: readonly string[]; adapted?: boolean }): AutoProblem {
+function tableProblem(o: { id: string; at: string; doc?: 'bop' | 'tmua-logic-proof'; title: Rich; prompt: Rich; vars: readonly string[]; texts: readonly string[]; given?: (row: number, col: number) => boolean; steps: Rich[]; official?: readonly string[]; adapted?: boolean; hints?: Rich[]; nudge?: Rich }): AutoProblem {
   const fs = o.texts.map((x) => formulaOf(x, o.vars));
   const answer = fillTable(o.vars, o.texts.map((x) => [formula(toF(x))]), (env) => fs.map((f) => evalFormula(f, env)), o.given);
   // A second evaluation, through the connectives' own evaluator.
@@ -496,6 +572,8 @@ function tableProblem(o: { id: string; at: string; doc?: 'bop' | 'tmua-logic-pro
     verify: () => same(`${o.at}: the table two ways`, answer.expected.join(''), second().join('')),
   };
   if (o.official !== undefined) spec.official = { source: cite(o.doc ?? 'bop', `Solutions, ${o.at}`), answer: o.official, agrees: true };
+  if (o.hints !== undefined) spec.hints = o.hints;
+  if (o.nudge !== undefined) spec.nudge = o.nudge;
   return auto(spec);
 }
 
@@ -514,12 +592,19 @@ const tmuaC1 = tableProblem({
 const tmuaC4 = tableProblem({
   id: 'tmua-c-4', at: 'Exercise C, question 4', doc: 'tmua-logic-proof', adapted: true,
   title: t`Bracketing "or" two ways`,
-  prompt: t`Draw up the truth tables for ${math`P \lor (Q \lor R)`} and ${math`(P \lor Q) \lor R`}. What do you notice?`,
+  prompt: t`Draw up the truth tables for ${math`P \lor (Q \lor R)`} and ${math`(P \lor Q) \lor R`}. What do the two tables show?`,
   vars: ['P', 'Q', 'R'], texts: ['P | (Q | R)', '(P | Q) | R'],
   steps: [
     t`Each is false only when all three are false, in the last row, and true in every other row.`,
     t`The columns agree, so the brackets do not matter: ${math`P \lor Q \lor R`} has one meaning, "at least one is true".`,
+    t`In a chain of ors, the brackets do not matter.`,
   ],
+  hints: [
+    t`How many rows does a truth table for three letters need?`,
+    t`When is an "or" false?`,
+    t`In which rows is each statement false, and do the two columns agree?`,
+  ],
+  nudge: t`Not quite. An "or" is false only when every part is false; find that row first.`,
 });
 const bop25_9 = tableProblem({
   id: 'bop-2-5-9', at: 'Section 2.5, exercise 9',
@@ -537,7 +622,16 @@ const bop25_5 = tableProblem({
   title: t`A contradiction or ${mQ}`,
   prompt: t`Write a truth table for ${math`(P \land \lnot P) \lor Q`}.`,
   vars: ['P', 'Q'], texts: ['P & ~P', '(P & ~P) | Q'],
-  steps: [t`${math`P \land \lnot P`} is false in every row. So the "or" is true exactly when ${mQ} is: the statement has the same truth value as ${mQ}.`],
+  steps: [
+    t`${math`P \land \lnot P`} is false in every row. So the "or" is true exactly when ${mQ} is: the statement has the same truth value as ${mQ}.`,
+    t`A contradiction adds nothing to an "or".`,
+  ],
+  hints: [
+    t`What is the truth value of ${math`P \land \lnot P`} in each row?`,
+    t`What is the "or" of something always false with ${mQ}?`,
+    t`Which letter's column does the final column copy?`,
+  ],
+  nudge: t`Not quite. Fill the column for ${math`P \land \lnot P`} first; it is the same in every row.`,
   official: ['F', 'T', 'F', 'F', 'F', 'T', 'F', 'F'],
 });
 const bop25_8 = tableProblem({
@@ -545,14 +639,32 @@ const bop25_8 = tableProblem({
   title: t`Three letters`,
   prompt: t`Write a truth table for ${math`P \lor (Q \land \lnot R)`}.`,
   vars: ['P', 'Q', 'R'], texts: ['Q & ~R', 'P | (Q & ~R)'],
-  steps: [t`${math`Q \land \lnot R`} is true only when ${mQ} is true and ${mR} is false. Then the "or" with ${mP} is true in every row where ${mP} is true, and in the row where ${mP} is false, ${mQ} true, and ${mR} false.`],
+  steps: [
+    t`${math`Q \land \lnot R`} is true only when ${mQ} is true and ${mR} is false. Then the "or" with ${mP} is true in every row where ${mP} is true, and in the row where ${mP} is false, ${mQ} true, and ${mR} false.`,
+    t`Fill a truth table from the inside out, one connective per column.`,
+  ],
+  hints: [
+    t`In which rows is ${math`Q \land \lnot R`} true?`,
+    t`In which rows is ${mP} true?`,
+    t`Which rows make at least one of those true?`,
+  ],
+  nudge: t`Not quite. Build the inner column ${math`Q \land \lnot R`} first, then take the "or" with ${mP}.`,
 });
 const bop26_4 = tableProblem({
   id: 'bop-2-6-4', at: 'Section 2.6, exercise 4',
   title: t`De Morgan by truth table`,
   prompt: t`Use a truth table to show that ${math`\lnot (P \lor Q)`} and ${math`(\lnot P) \land (\lnot Q)`} are logically equivalent: fill in both columns.`,
   vars: ['P', 'Q'], texts: ['~(P | Q)', '~P & ~Q'],
-  steps: [t`Both columns are true only in the last row, where ${mP} and ${mQ} are both false, so the two statements are equivalent.`],
+  steps: [
+    t`Both columns are true only in the last row, where ${mP} and ${mQ} are both false, so the two statements are equivalent.`,
+    t`Equivalent means equal columns in every row.`,
+  ],
+  hints: [
+    t`When is ${math`P \lor Q`} false?`,
+    t`When is ${math`(\lnot P) \land (\lnot Q)`} true?`,
+    t`Do the two columns agree in every row?`,
+  ],
+  nudge: t`Not quite. Fill each column separately, row by row, then compare them.`,
 });
 
 function equivalent(a: string, b: string, vars: readonly string[]): boolean {
@@ -560,7 +672,7 @@ function equivalent(a: string, b: string, vars: readonly string[]): boolean {
   const fb = formulaOf(b, vars);
   return assignments(vars).every((env) => evalFormula(fa, env) === evalFormula(fb, env));
 }
-function equivVerdict(o: { n: number; a: string; b: string; vars: readonly string[]; claim: boolean; steps: Rich[]; official?: boolean }): AutoProblem {
+function equivVerdict(o: { n: number; a: string; b: string; vars: readonly string[]; claim: boolean; steps: Rich[]; official?: boolean; hints: Rich[]; nudge: Rich }): AutoProblem {
   const at = `Section 2.6, exercise ${o.n}`;
   const spec: Parameters<typeof auto>[0] = {
     id: `bop-2-6-${o.n}`,
@@ -571,17 +683,37 @@ function equivVerdict(o: { n: number; a: string; b: string; vars: readonly strin
     solution: o.steps,
     reference: equivalent(o.a, o.b, o.vars) ? 'yes' : 'no',
     verify: () => same(`Book of Proof ${at} by truth table`, equivalent(o.a, o.b, o.vars), o.claim),
+    hints: o.hints,
+    nudge: o.nudge,
   };
   if (o.official !== undefined) spec.official = { source: cite('bop', `Solutions, ${at}`), answer: o.official ? 'yes' : 'no', agrees: true };
   return auto(spec);
 }
 const bop26_9 = equivVerdict({
   n: 9, a: 'P & Q', b: '~(~P | ~Q)', vars: ['P', 'Q'], claim: true, official: true,
-  steps: [t`By De Morgan's law ${math`\lnot (\lnot P \lor \lnot Q)`} is ${math`\lnot\lnot P \land \lnot\lnot Q`}, which is ${math`P \land Q`}. Equivalent.`],
+  steps: [
+    t`By De Morgan's law ${math`\lnot (\lnot P \lor \lnot Q)`} is ${math`\lnot\lnot P \land \lnot\lnot Q`}, which is ${math`P \land Q`}. Equivalent.`,
+    t`Negating an "or" gives the "and" of the negations.`,
+  ],
+  hints: [
+    t`What does De Morgan's law turn ${math`\lnot (\lnot P \lor \lnot Q)`} into?`,
+    t`What is ${math`\lnot\lnot P`}?`,
+    t`Is the result the same as ${math`P \land Q`}, or would a truth table show a difference?`,
+  ],
+  nudge: t`Not quite. Apply De Morgan's law and cancel the double negations, or compare truth tables.`,
 });
 const bop26_13 = equivVerdict({
   n: 13, a: 'P | (Q & R)', b: '(P | Q) & R', vars: ['P', 'Q', 'R'], claim: false, official: false,
-  steps: [t`Not equivalent: with ${mP} true and ${mQ}, ${mR} false, the first is true and the second is false. One row where they differ settles it.`],
+  steps: [
+    t`Not equivalent: with ${mP} true and ${mQ}, ${mR} false, the first is true and the second is false. One row where they differ settles it.`,
+    t`One row where they differ disproves an equivalence.`,
+  ],
+  hints: [
+    t`When is ${math`P \lor (Q \land R)`} true, whatever ${mQ} and ${mR} are?`,
+    t`Can ${math`(P \lor Q) \land R`} be true when ${mR} is false?`,
+    t`Is there a row that combines those two observations?`,
+  ],
+  nudge: t`Not quite. Look for a single row where the two statements differ; one is enough.`,
 });
 
 const tmuaA1 = auto({
@@ -597,8 +729,15 @@ const tmuaA1 = auto({
     ],
     expected: [TF(21 % 3 === 0 && 21 % 6 === 0), TF(21 % 3 === 0 || 21 % 6 === 0), TF(21 % 6 !== 0)],
   },
+  hints: [
+    t`Is ${21} divisible by ${3}?`,
+    t`Is ${21} divisible by ${6}?`,
+    t`Which connective needs both parts true, which needs one, and what does a not do?`,
+  ],
+  nudge: t`Not quite. Settle the two basic facts about ${21} first, then apply each connective.`,
   solution: [
     t`${21} is divisible by ${3} (it is ${math`${3} \times ${7}`}) and not by ${6} (it is odd). So the "and" is false, the "or" is true, and the "not" is true.`,
+    t`Settle the simple statements first, then the connectives.`,
   ],
   reference: ['F', 'T', 'T'],
   verify: () => same('TMUA A1', [21 % 3 === 0 && 21 % 6 === 0, 21 % 3 === 0 || 21 % 6 === 0, 21 % 6 !== 0].map(TF).join(''), 'FTT'),
@@ -608,7 +747,16 @@ const tmuaB1 = auto({
   title: t`Not not`,
   prompt: t`If ${math`A`} is true, what can you say about "not not ${math`A`}"? What about "not not not ${math`A`}"?`,
   answer: { kind: 'table', columns: [t`statement`, t`truth value when A is true`], cell: 'truth', rows: [[t`not not A`, null], [t`not not not A`, null]], expected: ['T', 'F'] },
-  solution: [t`Each "not" flips the truth value. Two flips return to true; three flips give false.`],
+  hints: [
+    t`What does one not do to a truth value?`,
+    t`What do two flips in a row give?`,
+    t`What do three flips give?`,
+  ],
+  nudge: t`Not quite. Count the flips: each not changes the truth value once.`,
+  solution: [
+    t`Each "not" flips the truth value. Two flips return to true; three flips give false.`,
+    t`An even number of nots cancels out.`,
+  ],
   reference: ['true', 'false'],
   verify: () => {
     const nots = (m: number, a: boolean): boolean => (m === 0 ? a : !nots(m - 1, a));
@@ -620,18 +768,33 @@ const tmuaB2 = supervision({
   id: 'tmua-b-2', source: cite('tmua-logic-proof', 'Exercise B, question 2'),
   title: t`Many nots`,
   prompt: t`Work out a general rule for the truth value of "not not not ... not ${math`A`}", with ${math`m`} lots of "not", when ${math`A`} is true and when ${math`A`} is false. Explain why the rule holds.`,
+  hints: [
+    t`Starting from ${math`A`} true, what is the truth value after one, two, and three nots?`,
+    t`Which pattern repeats, and how often?`,
+    t`How does the parity of ${math`m`} decide the truth value, and why does that hold for every ${math`m`}?`,
+  ],
   writeUp: 'explanation',
 });
 const tmuaA2 = supervision({
   id: 'tmua-a-2', source: cite('tmua-logic-proof', 'Exercise A, questions 2 and 3', true),
   title: t`Replacing ${21} by ${math`x`}`,
-  prompt: t`Replace ${21} by a real number ${math`x`} in "${math`x`} is divisible by ${3} and ${math`x`} is divisible by ${6}", and in the "or" and "not" versions. Are they still statements? What happens to your answers, and what changes if ${math`x`} may only be a whole number?`,
+  prompt: t`Replace ${21} by a real number ${math`x`} in "${math`x`} is divisible by ${3} and ${math`x`} is divisible by ${6}", and in the "or" and "not" versions. Are they still statements? What happens to the answers, and what changes if ${math`x`} may only be a whole number?`,
+  hints: [
+    t`With ${math`x`} a variable, does each sentence still have a fixed truth value?`,
+    t`For a real ${math`x`}, what would divisibility by ${3} even mean, and is the sentence true for some ${math`x`} and false for others?`,
+    t`If ${math`x`} must be a whole number, for which ${math`x`} is each sentence true?`,
+  ],
   writeUp: 'explanation',
 });
 const bop22_12 = supervision({
   id: 'bop-2-2-12', source: cite('bop', 'Section 2.2, exercise 12'),
   title: t`Tolstoy in symbols`,
   prompt: t`Express "Happy families are all alike, but each unhappy family is unhappy in its own way" in a symbolic form such as ${math`P \land Q`}, ${math`P \lor Q`}, or ${math`\lnot P`}. Say exactly what statements ${mP} and ${mQ} stand for.`,
+  hints: [
+    t`What are the two claims joined by "but"?`,
+    t`Which connective does "but" express?`,
+    t`How exactly should ${mP} and ${mQ} be worded so that each is a statement?`,
+  ],
   writeUp: 'explanation',
 });
 
@@ -655,10 +818,17 @@ const lp3 = auto({
     rows: LP3.map(({ tex }) => [[{ kind: 'math', text: tex, typed: [] }], null, null, null]),
     expected: LP3_TRUE.flatMap((r) => [TF(r.P), TF(r.Q), TF(r.R)]),
   },
+  hints: [
+    t`When is ${math`\lnot (P \lor Q \lor R)`} true?`,
+    t`In the second formula, what does ${math`\lnot (Q \lor R)`} force?`,
+    t`Given that, what do the other two parts force for ${mP}?`,
+  ],
+  nudge: t`Not quite. Start from the part of each formula that forces the most letters.`,
   solution: [
     t`${math`\lnot (P \lor Q \lor R)`} is true exactly when ${math`P \lor Q \lor R`} is false, that is when all three letters are false.`,
     t`${math`\lnot (P \land Q) \land \lnot (Q \lor R) \land (P \lor R)`} needs all three parts true. ${math`\lnot (Q \lor R)`} forces ${mQ} and ${mR} false. Then ${math`P \lor R`} forces ${mP} true, and ${math`\lnot (P \land Q)`} holds because ${mQ} is false.`,
     t`Every other row makes each formula false, so each is satisfiable but not valid, as the notes say.`,
+    t`Let the most restrictive part fix the letters first.`,
   ],
   reference: LP3_TRUE.flatMap((r) => [TF(r.P), TF(r.Q), TF(r.R)]),
   verify: () => {
@@ -683,6 +853,11 @@ const lp3Why = supervision({
   source: cite('cst-lp-notes', 'Section 2, Exercise 3, the two formulas without implication (page 5)', true),
   title: t`Satisfiable but not valid`,
   prompt: t`A formula is satisfiable if some assignment of truth values makes it true, and valid if every assignment does. Each of ${math`\lnot (P \lor Q \lor R)`} and ${math`\lnot (P \land Q) \land \lnot (Q \lor R) \land (P \lor R)`} is satisfiable but not valid. Exhibit an interpretation that makes each formula true and another that makes it false. Then show that, for each formula, the interpretation making it true is the only one.`,
+  hints: [
+    t`What has to be shown for satisfiable, and what for not valid?`,
+    t`For each formula, which row makes it true, and which simple row makes it false?`,
+    t`Why do the parts of each formula force every letter, so that only one row is true?`,
+  ],
   writeUp: 'explanation',
 });
 

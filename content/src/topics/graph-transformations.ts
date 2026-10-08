@@ -183,6 +183,13 @@ const downSix = auto({
   solution: [
     t`${math`x^{${3}} - ${3}x - ${4} = (x^{${3}} - ${3}x + ${2}) - ${6}`}: the curve moved down by ${6}. The turning points go to ${math`(${-1}, ${-2})`} and ${math`(${1}, ${-6})`}.`,
     t`Both are below the axis, so the curve crosses it once, on its final rise: ${1} root.`,
+    t`Count roots by following the turning points as the graph slides.`,
+  ],
+  nudge: t`Not quite. Move the turning points down with the curve, then see which side of the axis they are on.`,
+  hints: [
+    t`By how much is ${math`x^{${3}} - ${3}x - ${4}`} lower than ${math`x^{${3}} - ${3}x + ${2}`}, for every ${math`x`}?`,
+    t`Where do the two turning points move to?`,
+    t`With both turning points on the same side of the axis, how many times can the curve cross it?`,
   ],
   reference: '1',
   verify: () => same('roots', rootsOfLevel([1, 0, -3, -4], [-1, 1], 0), 1),
@@ -199,6 +206,13 @@ const evenQ = auto({
   solution: [
     t`${math`f(-a) = \sin((-a)^{${2}}) = \sin(a^{${2}}) = f(a)`}, because ${math`(-a)^{${2}} = a^{${2}}`}.`,
     t`So ${math`f`} is even: the graph ${math`y = f(-x)`}, the reflection of ${math`y = f(x)`} in the ${math`y`} axis, is the same graph. Sketch it for ${math`x \ge ${0}`} and reflect.`,
+    t`Simplify the inside before using the outer function's symmetry.`,
+  ],
+  nudge: t`Not quite. Substitute ${math`-a`} directly and simplify inside the sine first.`,
+  hints: [
+    t`What is ${math`(-a)^{${2}}`}?`,
+    t`So what is ${math`\sin((-a)^{${2}})`}?`,
+    t`How does that compare with ${math`f(a)`}?`,
   ],
   reference: ['same'],
   verify: () => {
@@ -221,6 +235,13 @@ const zerosQ = auto({
   solution: [
     t`${math`\sin u = ${0}`} exactly when ${math`u`} is a multiple of ${math`\pi`}. Here ${math`u = x^{${2}} \ge ${0}`}, so ${math`x^{${2}} = ${0}, \pi, ${2}\pi, ${3}\pi, \ldots`}.`,
     t`The first four non-negative ${math`x`} are ${math`${0}, \sqrt{\pi}, \sqrt{${2}\pi}, \sqrt{${3}\pi}`}. They get closer together: the graph is ${math`y = \sin x`} with its ${math`x`} axis squeezed more and more. The largest is ${math`\sqrt{${3}\pi} \approx ${Number(Math.sqrt(3 * Math.PI).toPrecision(5))}`}.`,
+    t`Solve for the inner expression first, then undo it.`,
+  ],
+  nudge: t`Not quite. Solve for ${math`x^{${2}}`} first, then take square roots.`,
+  hints: [
+    t`For which ${math`u`} is ${math`\sin u = ${0}`}?`,
+    t`Since ${math`u = x^{${2}}`} is never negative, which values can ${math`x^{${2}}`} take?`,
+    t`What are the first four non-negative values of ${math`x`}, and which is the largest?`,
   ],
   reference: String(Number(Math.sqrt(3 * Math.PI).toPrecision(6))),
   verify: () => {
@@ -241,6 +262,13 @@ const reciprocalQ = auto({
   solution: [
     t`${math`\frac{${1}}{x - ${1}} = f(x - ${1})`} with ${math`f(x) = \frac{${1}}{x}`}: the graph of ${math`\frac{${1}}{x}`} moved ${1} to the right.`,
     t`The asymptote ${math`x = ${0}`} moves with it to ${math`x = ${1}`}; the horizontal asymptote ${math`y = ${0}`} stays.`,
+    t`${math`f(x - c)`} moves a graph ${math`c`} to the right.`,
+  ],
+  nudge: t`Not quite. Ask where the denominator is zero.`,
+  hints: [
+    t`Where is the vertical asymptote of ${math`y = \frac{${1}}{x}`}?`,
+    t`Which translation turns ${math`y = \frac{${1}}{x}`} into ${math`y = \frac{${1}}{x - ${1}}`}?`,
+    t`Where does the asymptote move under that translation?`,
   ],
   reference: '1',
   verify: () => firstError(same('the denominator vanishes at 1', 1 - 1, 0), same('y blows up near 1', 1 / (1 + 1e-9 - 1) > 1e8, true)),
@@ -257,6 +285,13 @@ const nstFC2 = auto({
   solution: [
     t`${math`f`} is least at ${0}, where ${math`f(${0}) = ${0}`}. So ${math`f(${2}x + ${1})`} is least where ${math`${2}x + ${1} = ${0}`}, that is ${math`x = ${q(-1, 2)}`}.`,
     t`Then ${math`y = ${0} + ${3} = ${3}`}. The lowest point is ${math`(${q(-1, 2)}, ${3})`}: shift left by ${1}, squeeze by ${2} towards the ${math`y`} axis, and move up ${3}.`,
+    t`Find where the inside takes the special value, then apply the outside.`,
+  ],
+  nudge: t`Not quite. Find where the inside, ${math`${2}x + ${1}`}, takes the value where ${math`f`} is least.`,
+  hints: [
+    t`Where is ${math`f(x) = x^{${2}}`} least, and what is its least value?`,
+    t`For which ${math`x`} does ${math`${2}x + ${1}`} equal that point?`,
+    t`What does adding ${3} do to the least value?`,
   ],
   reference: 'x = -1/2, y = 3',
   verify: () => {
@@ -275,6 +310,11 @@ const sketchQ = supervision({
   title: t`A translation and a parameter`,
   prompt: t`By considering ${math`y = x^{${3}} - ${3}x`} as a transformation of ${math`y = x^{${3}} - ${3}x + ${2}`}, sketch it, showing the coordinates of the turning points and the ${math`y`} intercept, and state how many distinct roots there are. State the values of ${math`k`} for which ${math`x^{${3}} - ${3}x + k = ${0}`} has (A) ${2} distinct roots and (B) ${3} distinct roots.`,
   writeUp: 'sketch',
+  hints: [
+    t`How is ${math`y = x^{${3}} - ${3}x`} related to ${math`y = x^{${3}} - ${3}x + ${2}`}, and where do the turning points and the ${math`y`} intercept move?`,
+    t`With one turning point above the axis and one below, how many times does the curve cross?`,
+    t`As ${math`k`} varies, for which values does a turning point touch the axis, and for which are the turning points on opposite sides?`,
+  ],
   official: cite(F13H, 'Assignment 13 hints, Q2(ii)'),
 });
 
@@ -307,6 +347,13 @@ const step12Quartic = auto({
     t`${math`x^{${4}} - ${6}x^{${2}} + ${9} = (x^{${2}} - ${3})^{${2}}`}, which is never negative. Its derivative ${math`${4}x^{${3}} - ${12}x = ${4}x(x^{${2}} - ${3})`} vanishes at ${math`x = ${0}`} and ${math`x = \pm\sqrt{${3}}`}: a local maximum at ${math`(${0}, ${9})`} and minima at ${math`(\pm\sqrt{${3}}, ${0})`}, touching the axis. The curve is symmetric in the ${math`y`} axis and rises without bound on both sides.`,
     t`Now ${math`x^{${4}} - ${6}x^{${2}} + b = (x^{${4}} - ${6}x^{${2}} + ${9}) - (${9} - b)`}: the sketched curve moved down by ${math`${9} - b`}. Its roots are where the moved curve meets the axis, so follow the turning points, now at heights ${math`b - ${9}`} (the two minima) and ${math`b`} (the maximum).`,
     t`If ${math`b > ${9}`} the minima are above the axis: no roots. If ${math`b = ${9}`} the curve touches the axis at the two minima: ${math`n = ${2}`}. If ${math`${0} < b < ${9}`} the minima are below and the maximum above: ${math`n = ${4}`}. If ${math`b = ${0}`} the maximum is on the axis: ${math`x = ${0}`} and ${math`x = \pm\sqrt{${6}}`}, so ${math`n = ${3}`}. If ${math`b < ${0}`}, only the outer branches cross: ${math`n = ${2}`}. So ${math`n = ${1}`} never happens, and ${math`n = ${2}`} happens for ${math`b < ${0}`} and also for ${math`b = ${9}`}.`,
+    t`Slide one sketch to count the roots of a whole family, and check the boundary cases.`,
+  ],
+  nudge: t`Not quite. Treat the quartic as the sketched curve moved down, and follow its turning points through every range of ${math`b`}, ends included.`,
+  hints: [
+    t`How does ${math`x^{${4}} - ${6}x^{${2}} + ${9}`} factorise, and where are its stationary points?`,
+    t`How is ${math`x^{${4}} - ${6}x^{${2}} + b`} related to that curve, and at what heights are its turning points?`,
+    t`At the values of ${math`b`} where a turning point touches the axis, how many distinct roots are there?`,
   ],
   reference: QUARTIC_TRUE,
   verify: () => same('the true statements', QUARTIC_CLAIMS.filter((c) => c.holds(quarticRoots)).map((c) => c.id).join(), QUARTIC_TRUE.join()),

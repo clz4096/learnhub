@@ -247,6 +247,7 @@ const q13b = auto({
   solution: [
     t`${math`\mathbb{P}(A_{${2}}) = ${q(1, 4)}`}, ${math`\mathbb{P}(A_{${3}}) = ${q(1, 9)}`}, and ${math`A_{${2}} \cap A_{${3}} = A_{${6}}`} has probability ${q(1, 36)}: the product, so the two events are independent.`,
     t`Complements of independent events are independent, so ${math`\mathbb{P}(A_{${2}}^{c} \cap A_{${3}}^{c}) = \left(${1} - ${q(1, 4)}\right)\left(${1} - ${q(1, 9)}\right) = ${NOT23}`}.`,
+    t`Check independence by the product rule; then the complements multiply as well.`,
   ],
   reference: str(NOT23),
   verify: () => {
@@ -261,14 +262,25 @@ const q13b = auto({
     { response: str(q(1, 3)), why: t`Among equally likely numbers a third avoid ${2} and ${3}, but here ${1} alone has more than half the mass. Use ${math`\mathbb{P}(A_{${2}}) = ${q(1, 4)}`} and ${math`\mathbb{P}(A_{${3}}) = ${q(1, 9)}`}.` },
     { response: str(sub(q(1), q(13, 36))), why: t`${math`A_{${2}}`} and ${math`A_{${3}}`} overlap in ${math`A_{${6}}`}: add back its probability ${q(1, 36)}.` },
   ],
+  nudge: t`Not quite. "Divisible by ${2}" and "divisible by ${3}" turn out to be independent here, and complements of independent events multiply too.`,
+  hints: [
+    t`What is ${math`\mathbb{P}(A_{${2}})`}, the probability that ${math`X`} is a multiple of ${2}, when ${math`\mathbb{P}(X = n)`} is proportional to ${math`n^{-${2}}`}?`,
+    t`What are ${math`\mathbb{P}(A_{${3}})`} and ${math`\mathbb{P}(A_{${2}} \cap A_{${3}})`}, and are the two events independent?`,
+    t`How does independence give the probability that neither event happens?`,
+  ],
 });
 
 const q13proof = supervision({
   id: 'ia-s2-q13-euler',
   source: cite(S2, 'Q13'),
   title: t`Independence and Euler's product`,
-  prompt: t`In Q${13}, show that the events ${math`(A_{p} : p \text{ prime})`} are independent: for distinct primes ${math`p_{${1}}, \ldots, p_{k}`}, ${math`\mathbb{P}(A_{p_{${1}}} \cap \cdots \cap A_{p_{k}}) = \prod_{i} \mathbb{P}(A_{p_{i}})`}. Deduce that ${math`\prod_{p} \left(${1} - p^{-s}\right) = ${1}/\zeta(s)`}. Where do you use unique factorisation, and where the continuity of probability?`,
+  prompt: t`In Q${13}, show that the events ${math`(A_{p} : p \text{ prime})`} are independent: for distinct primes ${math`p_{${1}}, \ldots, p_{k}`}, ${math`\mathbb{P}(A_{p_{${1}}} \cap \cdots \cap A_{p_{k}}) = \prod_{i} \mathbb{P}(A_{p_{i}})`}. Deduce that ${math`\prod_{p} \left(${1} - p^{-s}\right) = ${1}/\zeta(s)`}. State where unique factorisation is used, and where the continuity of probability.`,
   writeUp: 'proof',
+  hints: [
+    t`What is ${math`\mathbb{P}(A_{m})`}, the probability that ${math`m`} divides ${math`X`}, by putting ${math`n = mk`} in the sum?`,
+    t`For distinct primes, why is ${math`A_{p_{${1}}} \cap \cdots \cap A_{p_{k}}`} the event that ${math`p_{${1}} \cdots p_{k}`} divides ${math`X`}?`,
+    t`Which event is the intersection of all the ${math`A_{p}^{c}`}, and how do continuity and unique factorisation give its probability?`,
+  ],
 });
 const scheduleProof = supervision({
   id: 'schedule-point-masses',
@@ -276,6 +288,11 @@ const scheduleProof = supervision({
   title: t`Point masses give a probability measure`,
   prompt: t`Let ${math`\Omega`} be countable and ${math`p_{\omega} \ge ${0}`} with ${math`\sum_{\omega} p_{\omega} = ${1}`}. Prove that ${math`\mathbb{P}(A) = \sum_{\omega \in A} p_{\omega}`} defines a probability measure on all subsets of ${math`\Omega`}: say why the sum does not depend on the order of ${math`A`}'s elements, and prove countable additivity. Conversely, show that every probability measure on all subsets of ${math`\Omega`} has this form. Why is there no such measure giving every point of ${math`\mathbb{N}`} the same mass?`,
   writeUp: 'proof',
+  hints: [
+    t`For nonnegative terms, why does the sum not depend on the order, and how does that give countable additivity?`,
+    t`Given a probability measure, what are the masses ${math`p_{\omega} = \mathbb{P}(\{\omega\})`}, and how does countable additivity recover ${math`\mathbb{P}(A)`}?`,
+    t`If every point of ${math`\mathbb{N}`} had the same mass ${math`c`}, what would the total be for ${math`c = ${0}`} and for ${math`c > ${0}`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

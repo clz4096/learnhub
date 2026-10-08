@@ -308,10 +308,17 @@ const q10a = auto({
   source: cite(SH3, 'Q10(a)', true),
   title: t`Immature individuals in the next generation`,
   prompt: t`${q10Intro} Starting with ${K} immature individuals, find the generating function of the number of immature individuals in the next generation, as an expression in ${math`p`} and ${mt}.`,
+  nudge: t`Not quite. Build the pgf of one immature individual's contribution first; independence does the rest.`,
+  hints: [
+    t`What does one immature individual contribute to the next generation if it fails to mature, and what if it matures?`,
+    t`Seen as a random sum whose number of terms is ${0} or ${1}, what is the pgf of one individual's contribution?`,
+    t`How is the pgf of a sum of ${K} independent contributions built from the pgf of one?`,
+  ],
   answer: { kind: 'expression', expected: Q10A, variables: ['p', 't'], domains: P_DOM },
   solution: [
     t`Each immature individual contributes no offspring if it fails to mature, and ${math`F`}-distributed offspring if it matures: its contribution has pgf ${math`${1} - p + pF(t)`}, a random sum with ${math`N`} equal to ${0} or ${1}.`,
     t`The ${K} contributions are independent, so the pgf is ${math`(${1} - p + pF(t))^{${K}} = \left(${1} - p + \frac{p(${1} + t + t^{${2}})}{${3}}\right)^{${3}}`}.`,
+    t`Find the pgf of one independent unit, then raise it to the number of units.`,
   ],
   reference: '(1 - p + p(1 + t + t^2)/3)^3',
   verify: () => {
@@ -333,10 +340,17 @@ const q10b = auto({
   source: cite(SH3, 'Q10(b)', true),
   title: t`Mature individuals in the next generation`,
   prompt: t`${q10Intro} Given ${K} mature individuals in the parent generation, find the generating function of the number of mature individuals in the next generation, as an expression in ${math`p`} and ${mt}.`,
+  nudge: t`Not quite. The order of the two random steps matters; check which one happens first.`,
+  hints: [
+    t`For one mature parent, which random count comes first, and what happens to each individual it counts?`,
+    t`What is the pgf of the indicator that one offspring matures?`,
+    t`In a random sum, which pgf is applied to which, and how do ${K} independent parents combine?`,
+  ],
   answer: { kind: 'expression', expected: Q10B, variables: ['p', 't'], domains: P_DOM },
   solution: [
     t`Each parent has ${math`F`}-distributed offspring, and each offspring matures with pgf ${math`${1} - p + pt`}: a random sum, with pgf ${math`F(${1} - p + pt)`}.`,
     t`The ${K} parents are independent: ${math`F(${1} - p + pt)^{${K}}`}, that is ${math`\left(\frac{${1} + (${1} - p + pt) + (${1} - p + pt)^{${2}}}{${3}}\right)^{${3}}`}.`,
+    t`In a random sum the pgf of the count is applied to the pgf of each term.`,
   ],
   reference: Q10B,
   verify: () => {
@@ -357,6 +371,11 @@ const q8a = supervision({
   source: cite(SH3, 'Q8(a), (b)'),
   title: t`The mean and variance of a random sum`,
   prompt: t`Let ${math`(X_{n})`} be independent and identically distributed with mean ${math`\mu`} and variance ${math`\sigma^{${2}} < \infty`}, ${math`S_{${0}} = ${0}`}, ${math`S_{n} = X_{${1}} + \cdots + X_{n}`}, and ${mN} a bounded non-negative integer-valued random variable independent of the ${math`X_{n}`}. Show that ${math`E(S_{N}) = \mu E(N)`}. Show that ${math`E(S_{N}^{${2}} \mid N = n) = n\sigma^{${2}} + n^{${2}}\mu^{${2}}`} and hence express ${math`\operatorname{var}(S_{N})`} in terms of ${math`\operatorname{var}(N)`}.`,
+  hints: [
+    t`Conditional on ${math`N = n`}, what are ${math`E(S_{N})`} and ${math`E(S_{N}^{${2}})`} in terms of ${math`n`}, ${math`\mu`}, and ${math`\sigma`}?`,
+    t`How does ${math`E(Y) = E(E(Y \mid N))`} turn those conditional answers into unconditional ones?`,
+    t`In ${math`\operatorname{var}(S_{N}) = E(S_{N}^{${2}}) - E(S_{N})^{${2}}`}, how does writing ${math`E(N^{${2}}) = \operatorname{var}(N) + E(N)^{${2}}`} simplify the result?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -365,6 +384,11 @@ const q10c = supervision({
   source: cite(SH3, 'Q10'),
   title: t`Same mean, different variance`,
   prompt: t`Each mature individual has offspring with generating function ${math`F`}, and each immature individual matures with probability ${math`p`}, independently. Find the generating functions in (a) (the number of immature individuals in the next generation, from ${math`k`} immature) and (b) (the number of mature individuals in the next generation, from ${math`k`} mature). Show that the two distributions have the same mean, but not necessarily the same variance.`,
+  hints: [
+    t`What are the two generating functions, written with ${math`F`} and with ${math`${1} - p + pt`}?`,
+    t`Differentiating each at ${math`t = ${1}`} by the chain rule, what are the two means?`,
+    t`For the variances, which simple ${math`F`}, such as every mature individual having exactly two offspring, gives a quick test?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -455,9 +479,9 @@ export const randomSums: TopicContent = {
     'ia-s3-q10-a': { sections: ['The hen, and thinning'], note: t`The generating function of a thinned count` },
     'ia-s3-q10-b': { sections: ['The random sum formula'], note: t`The generating function of a random sum of offspring` },
   }),
-  // Best first: the mean and variance proof (the heart of the topic), the two compositions
-  // written up, then each composition auto-checked.
-  gate: ['ia-s3-q8-a', 'ia-s3-q10-c', 'ia-s3-q10-a', 'ia-s3-q10-b'],
+  // Best first: the two compositions written up, then each composition auto-checked. The mean
+  // and variance proof stays practice: the worked example ia-s3-q8-b works its part (b).
+  gate: ['ia-s3-q10-c', 'ia-s3-q10-a', 'ia-s3-q10-b'],
   recall: [
     { front: t`State the random sum formula.`, back: t`${math`G_{S_{N}}(t) = G_{N}(G_{X}(t))`}, for ${mN} independent of the i.i.d. ${math`X_{i}`}.` },
     { front: t`Mean of a random sum?`, back: t`${math`E(S_{N}) = E(N)E(X)`}.` },

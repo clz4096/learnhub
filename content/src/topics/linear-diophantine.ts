@@ -173,6 +173,7 @@ const coins = auto({
     t`${math`n + ${5}p + ${10}q = p + ${5}q + ${10}n`}, so ${math`${4}p + ${5}q = ${9}n = ${54}`}.`,
     t`${math`p = q = ${6}`} is a solution. If ${math`(p, q)`} is one, so is ${math`(p + ${5}k, q - ${4}k)`}: the changes ${math`${20}k - ${20}k`} cancel. Every solution has this form, since ${5} must divide ${math`${4}(p - ${6})`} and so ${math`p - ${6}`}.`,
     t`Keeping ${math`p`} and ${math`q`} positive: ${math`k = -${1}, ${0}, ${1}`}, giving ${math`(p, q) = (${1}, ${10}), (${6}, ${6}), (${11}, ${2})`}. So ${math`p = ${1}, ${6}, ${11}`}.`,
+    t`Find one solution, then step along the family while every variable stays in range.`,
   ],
   reference: '1, 6, 11',
   verify: () => {
@@ -182,6 +183,12 @@ const coins = auto({
   },
   misconceptions: [{ response: '6, 11, 16', why: t`${math`p = ${16}`} needs ${math`q = -${2}`}, but there must be at least one of each note. Go the other way too: ${math`(${6} - ${5}, ${6} + ${4}) = (${1}, ${10})`}.` }],
   official: { source: cite('step-f13-hints', 'Warm down (d)'), answer: '1, 6, 11', agrees: true },
+  nudge: t`Not quite. Equating the two totals gives one linear equation in ${math`p`} and ${math`q`}; then step along its solutions.`,
+  hints: [
+    t`What equation says that the two totals are equal?`,
+    t`With ${math`n = ${6}`}, what does it become, and what is one solution in positive integers?`,
+    t`From one solution ${math`(p, q)`}, what change to ${math`p`} and ${math`q`} keeps the equation true, and for how many steps do both stay positive?`,
+  ],
 });
 
 const a19q2v = auto({
@@ -194,11 +201,18 @@ const a19q2v = auto({
     t`${math`(x + ${2})(y + ${3}) = xy + ${3}x + ${2}y + ${6}`}, and ${math`xy + ${2}y + ${3}x = ${54}`}, so the product is ${math`${54} + ${6} = ${60}`}.`,
     t`${math`x \ge ${1}`} and ${math`y \ge ${1}`}, so ${math`x + ${2} \ge ${3}`} and ${math`y + ${3} \ge ${4}`}. The factor pairs of ${60} that fit: ${math`${3} \times ${20}`}, ${math`${4} \times ${15}`}, ${math`${5} \times ${12}`}, ${math`${6} \times ${10}`}, ${math`${10} \times ${6}`}, ${math`${12} \times ${5}`}, ${math`${15} \times ${4}`}.`,
     t`So ${math`(x, y) = (${1}, ${17}), (${2}, ${12}), (${3}, ${9}), (${4}, ${7}), (${8}, ${3}), (${10}, ${2}), (${13}, ${1})`}.`,
+    t`Factorise, then let the bounds on each factor prune the factor pairs.`,
   ],
   reference: '1, 2, 3, 4, 8, 10, 13',
   verify: () => same('x values', facSolutions({ s: 2, u: 3, n: 60 }).map(([x]) => x).join(','), '1,2,3,4,8,10,13'),
   misconceptions: [{ response: '1, 2, 3, 4, 8, 10, 18', why: t`${13} is missing, from ${math`${15} \times ${4}`}, and ${math`x = ${18}`} needs ${math`y + ${3} = ${3}`}, so ${math`y = ${0}`}, which is not positive.` }],
   official: { source: cite('step-f19-hints', 'Q2(v)'), answer: '1, 2, 3, 4, 8, 10, 13', agrees: true },
+  nudge: t`Not quite. Once the product is fixed, the positivity of ${math`x`} and ${math`y`} bounds each factor; list the factor pairs that fit.`,
+  hints: [
+    t`What does ${math`(x + ${2})(y + ${3})`} expand to?`,
+    t`Since ${math`x`} and ${math`y`} are positive integers, how small can ${math`x + ${2}`} and ${math`y + ${3}`} be?`,
+    t`Which factor pairs of ${60} respect both bounds?`,
+  ],
 });
 
 const bananasProof = supervision({
@@ -208,6 +222,11 @@ const bananasProof = supervision({
   prompt: t`The integers ${math`N`} and ${math`m`} satisfy ${math`${8}N = ${81}m + ${65}`}. (ii) Show that if ${math`N`} satisfies this for some integer ${math`m`}, then ${math`N + ${81}`} also satisfies it (for a different value of ${math`m`}). (iii) Show that ${math`N = -${2}`} is a solution, and find a solution for a positive number of bananas. Then find a general formula for the integers ${math`N`} and ${math`m`} that satisfy the equation, and show that there are no others.`,
   writeUp: 'proof',
   official: cite('step-f03-hints', 'Q4'),
+  hints: [
+    t`What does replacing ${math`N`} by ${math`N + ${81}`} do to ${math`${8}N`}, and which ${math`m`} then works?`,
+    t`What is ${math`m`} when ${math`N = -${2}`}, and how many steps of ${81} reach a positive ${math`N`}?`,
+    t`If ${math`(N, m)`} and ${math`(N', m')`} are both solutions, why must ${81} divide ${math`${8}(N - N')`}, and what does that force on ${math`N - N'`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

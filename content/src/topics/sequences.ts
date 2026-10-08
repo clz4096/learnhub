@@ -212,11 +212,18 @@ const sw131b = auto({
   source: cite(SW, 'Exercises 1, 1.3.1(b)'),
   title: t`A formula for ${math`t_k`}`,
   prompt: t`Find a formula for the ${math`k`}th triangular number ${math`t_k = ${0} + ${1} + \cdots + k`}.`,
+  nudge: t`Not quite. Pair the first term with the last, the second with the second last, and so on.`,
+  hints: [
+    t`What is ${math`t_k`} written forwards, and written backwards?`,
+    t`Adding the two lines column by column, what does each column sum to?`,
+    t`How many columns are there, and so what is ${math`${2}t_k`}?`,
+  ],
   answer: { kind: 'expression', expected: 'k(k + 1)/2', variables: ['k'], domains: { k: { kind: 'integer', min: 0, max: 60 } } },
   solution: [
     t`Write the sum forwards and backwards: ${math`t_k = ${0} + ${1} + \cdots + k`} and ${math`t_k = k + (k - ${1}) + \cdots + ${0}`}.`,
     t`Adding the two lines column by column, each of the ${math`k + ${1}`} columns sums to ${math`k`}, so ${math`${2}t_k = k(k + ${1})`}. (The official solution draws the same idea as two triangles of dots making a rectangle.)`,
     t`So ${math`t_k = \frac{k(k + ${1})}{${2}}`}.`,
+    t`Write a sum forwards and backwards, and add.`,
   ],
   reference: '(k^2 + k)/2',
   verify: () => {
@@ -262,6 +269,11 @@ const sw131c = supervision({
   source: cite(SW, 'Exercises 1, 1.3.1(c)'),
   title: t`Triangular and square`,
   prompt: t`A natural number is square if it is ${math`k^{${2}}`} for some natural number ${math`k`}. Show that ${math`n`} is triangular if and only if ${math`${8}n + ${1}`} is a square. (Plutarch, about ${100} BC.)`,
+  hints: [
+    t`If ${math`n = \frac{k(k + ${1})}{${2}}`}, what is ${math`${8}n + ${1}`} in terms of ${math`k`}?`,
+    t`Which perfect square equals ${math`${4}k^{${2}} + ${4}k + ${1}`}?`,
+    t`For the converse, if ${math`${8}n + ${1} = m^{${2}}`}, why must ${math`m`} be odd, and what does writing ${math`m = ${2}k + ${1}`} give for ${math`n`}?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.3.1(c)'),
 });
@@ -288,11 +300,18 @@ const ns1Q2 = auto({
   source: cite('ia-ns-sheet-1', 'Q2'),
   title: t`Are they all prime?`,
   prompt: t`Consider the sequence ${listOf([eulerTerm(1), eulerTerm(2), eulerTerm(3), eulerTerm(4), eulerTerm(5)])}, ..., where each difference is ${2} more than the previous one. Are all of these numbers prime? Settle it by giving a term of the sequence that is not prime.`,
+  nudge: t`Not quite. Find the position-to-term rule first, then choose a position that makes a factor appear.`,
+  hints: [
+    t`What is the step from ${math`u_k`} to ${math`u_{k + ${1}}`}?`,
+    t`Adding up the steps, what is ${math`u_n`} in terms of ${mn}?`,
+    t`Which choice of ${mn} makes every part of that formula a multiple of the same number?`,
+  ],
   answer: { kind: 'witness', count: 1, example: String(eulerTerm(EULER_START)), check: (v) => notPrimeTerm(toFloat(v[0] as Rational)) },
   solution: [
     t`Trying the terms one by one is slow: the first ${EULER_START - 1} of them are all prime. Find the position-to-term rule instead. The differences are ${listOf([2, 4, 6, 8])}, ..., so the step from ${math`u_k`} to ${math`u_{k + ${1}}`} is ${math`${2}k`}.`,
     t`As in the proof for arithmetic sequences, ${math`u_n - u_{${1}}`} is the sum of the steps from position ${1} to position ${mn}: ${math`u_n = ${EULER_START} + ${2}(${1} + ${2} + \cdots + (n - ${1})) = ${EULER_START} + ${2}t_{n - ${1}}`}, and ${math`t_{n - ${1}} = \frac{(n - ${1})n}{${2}}`}. So ${math`u_n = ${EULER_START} + n(n - ${1})`}. Check: ${math`u_{${5}} = ${EULER_START} + ${20} = ${eulerTerm(5)}`}.`,
     t`Now choose ${mn} to make a factor appear. With ${math`n = ${EULER_START}`}, ${math`u_{${EULER_START}} = ${EULER_START} + ${EULER_START} \times ${EULER_START - 1} = ${EULER_START} \times ${EULER_START} = ${eulerTerm(EULER_START)}`}, which is not prime. So the answer is no: a pattern that holds for ${EULER_START - 1} terms can still fail.`,
+    t`Find the general term, then choose the position that forces a factor.`,
   ],
   reference: String(eulerTerm(EULER_START)),
   verify: () => {

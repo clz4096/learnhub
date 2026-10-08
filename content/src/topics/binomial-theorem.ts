@@ -157,9 +157,16 @@ const dream5 = auto({
   title: t`The Freshman's Dream for ${5}`,
   prompt: t`Expand ${math`(m + n)^{${5}} - (m^{${5}} + n^{${5}})`} fully, in ${math`m`} and ${math`n`}. (Each coefficient left should be a multiple of ${5}, as Corollary ${33} of the CST notes predicts.)`,
   answer: { kind: 'expression', expected: dreamText(5), variables: ['m', 'n'], form: 'expanded' },
+  hints: [
+    t`What is row ${5} of Pascal's triangle?`,
+    t`Which terms of ${math`(m + n)^{${5}}`} cancel against ${math`m^{${5}} + n^{${5}}`}?`,
+    t`What are the remaining terms, with their coefficients?`,
+  ],
+  nudge: t`Not quite. Take the coefficients from row ${5} of Pascal's triangle; only the first and last terms cancel.`,
   solution: [
     t`Row ${5} of Pascal's triangle is ${listOf(upTo(6).map((i) => choose(5, i - 1)))}, so ${math`(m + n)^{${5}} = m^{${5}} + ${computedMath(dreamText(5))} + n^{${5}}`}.`,
     t`Removing ${math`m^{${5}} + n^{${5}}`} leaves ${computedMath(dreamText(5))}, with coefficients ${listOf(dropout(5))}, all multiples of ${5}.`,
+    t`For a prime ${math`p`}, the middle coefficients of row ${math`p`} are multiples of ${math`p`}.`,
   ],
   reference: dreamText(5),
   verify: () => {
@@ -185,9 +192,16 @@ const rowAndSum = auto({
     rows: [[...upTo(ROW + 1).map(() => null), null]],
     expected: [...upTo(ROW + 1).map((i) => String(choose(ROW, i - 1))), String(2 ** ROW)],
   },
+  hints: [
+    t`What is row ${ROW} of Pascal's triangle?`,
+    t`What do its entries add to?`,
+    t`Which substitution into the binomial theorem gives that sum directly?`,
+  ],
+  nudge: t`Not quite. Build row ${ROW} from the row above by adding neighbours, and keep both end entries.`,
   solution: [
     t`Row ${ROW} of Pascal's triangle: ${listOf(upTo(ROW + 1).map((i) => choose(ROW, i - 1)))}.`,
     t`They add up to ${upTo(ROW + 1).reduce((s, i) => s + choose(ROW, i - 1), 0)}, which is ${math`${2}^{${ROW}}`}: put ${math`x = y = ${1}`} in the binomial theorem.`,
+    t`Put ${math`x = y = ${1}`} in the binomial theorem to sum a row.`,
   ],
   reference: [...upTo(ROW + 1).map((i) => String(choose(ROW, i - 1))), String(2 ** ROW)],
   verify: () => {
@@ -205,9 +219,16 @@ const cor32 = auto({
   title: t`${math`${2}^{p}`} modulo ${math`p`}`,
   prompt: t`Corollary ${32} of the CST notes: for every prime ${math`p`}, ${math`${2}^{p} \equiv ${2} \pmod{p}`}. Check it for ${math`p = ${P32}`}: what is the remainder when ${math`${2}^{${P32}}`} is divided by ${P32}?`,
   answer: { kind: 'exact', expected: String(2 ** P32 % P32) },
+  hints: [
+    t`What is ${math`${2}^{${P32}}`}?`,
+    t`What is the largest multiple of ${P32} not above it?`,
+    t`What is left over?`,
+  ],
+  nudge: t`Not quite. Compute ${math`${2}^{${P32}}`} and divide, or reduce modulo ${P32} after each doubling.`,
   solution: [
     t`${math`${2}^{${P32}} = ${2 ** P32} = ${P32} \times ${Math.floor(2 ** P32 / P32)} + ${2 ** P32 % P32}`}.`,
     t`So the remainder is ${2 ** P32 % P32}, as the corollary says. The reason: ${math`${2}^{p} = \sum_{k} \binom{p}{k}`}, and every term but the first and last is a multiple of ${math`p`}.`,
+    t`Modulo a prime ${math`p`}, only the end terms of row ${math`p`} survive.`,
   ],
   reference: String(2 ** P32 % P32),
   verify: () => {
@@ -229,7 +250,12 @@ const proveCor31 = supervision({
   id: 'cst-cor-31-proof',
   source: cite('cst-dm-notes', 'printed page 122, Corollary 31'),
   title: t`Corollary ${31} from the theorem`,
-  prompt: t`Deduce both parts of Corollary ${31} of the CST notes from the binomial theorem, ${math`(x + y)^{n} = \sum_{k=${0}}^{n} \binom{n}{k} x^{n - k} y^{k}`}: (${1}) ${math`(z + ${1})^{n} = \sum_{k=${0}}^{n} \binom{n}{k} z^{k}`}, and (${2}) ${math`${2}^{n} = \sum_{k=${0}}^{n} \binom{n}{k}`}. Say exactly what you substitute for ${mx} and ${my}, and why the powers come out as they do in part (${1}).`,
+  prompt: t`Deduce both parts of Corollary ${31} of the CST notes from the binomial theorem, ${math`(x + y)^{n} = \sum_{k=${0}}^{n} \binom{n}{k} x^{n - k} y^{k}`}: (${1}) ${math`(z + ${1})^{n} = \sum_{k=${0}}^{n} \binom{n}{k} z^{k}`}, and (${2}) ${math`${2}^{n} = \sum_{k=${0}}^{n} \binom{n}{k}`}. State exactly what is substituted for ${mx} and ${my}, and why the powers come out as they do in part (${1}).`,
+  hints: [
+    t`Which choice of ${mx} and ${my} turns ${math`(x + y)^{n}`} into ${math`(z + ${1})^{n}`}?`,
+    t`With that choice, what does ${math`x^{n - k}y^{k}`} become?`,
+    t`Which values of ${mx} and ${my} reduce every term of the sum to its coefficient?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -238,6 +264,11 @@ const proveCor32 = supervision({
   source: cite('cst-dm-notes', 'printed page 122, Corollary 32'),
   title: t`Why ${math`${2}^{p} \equiv ${2} \pmod{p}`}`,
   prompt: t`Prove Corollary ${32} of the CST notes: for every prime ${math`p`}, ${math`${2}^{p} \equiv ${2} \pmod{p}`}. Use Corollary ${31} and the fact (Lemma ${28}) that ${math`p`} divides ${math`\binom{p}{m}`} when ${math`${0} < m < p`}. Which terms of the sum survive modulo ${math`p`}, and why?`,
+  hints: [
+    t`What does Corollary ${31} give for ${math`${2}^{p}`} as a sum?`,
+    t`Which terms of that sum does Lemma ${28} make multiples of ${math`p`}?`,
+    t`What are the remaining terms, and what is their sum?`,
+  ],
   writeUp: 'proof',
 });
 

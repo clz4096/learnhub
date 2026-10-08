@@ -219,10 +219,17 @@ const a15q3c = auto({
   source: cite(F15, 'Assignment 15, Q3(i)(c)'),
   title: t`Period four`,
   prompt: t`For ${math`u_{${1}} = ${2}`}, ${math`u_{n + ${1}} = k - \frac{${36}}{u_{n}}`}, the condition ${math`u_{${5}} = u_{${1}}`} works out to ${math`k^{${4}} - ${20}k^{${3}} - ${72}k^{${2}} + ${1440}k = ${0}`}. Find the positive value of ${mk} for which the sequence has period ${4}. Type a square root as sqrt(${2}).`,
+  nudge: t`Not quite. Some roots of the quartic belong to smaller periods; factor them out first.`,
+  hints: [
+    t`Which values of ${mk} make the sequence constant or of period ${2}, and do they also satisfy ${math`u_{${5}} = u_{${1}}`}?`,
+    t`Which linear factors of the quartic do those values give?`,
+    t`With those factors divided out, what quadratic is left, and which of its roots is positive?`,
+  ],
   answer: { kind: 'expression', expected: '6*sqrt(2)', variables: [] },
   solution: [
     t`${math`k = ${0}`} and ${math`k = ${20}`} are roots (periods ${2} and ${1} also satisfy ${math`u_{${5}} = u_{${1}}`}), so ${math`k`} and ${math`k - ${20}`} are factors: ${math`k(k - ${20})(k^{${2}} - ${72}) = ${0}`}.`,
     t`Period exactly ${4} needs ${math`k^{${2}} = ${72}`}, so ${math`k = \pm ${6}\sqrt{${2}}`}; the positive one is ${math`${6}\sqrt{${2}}`}.`,
+    t`Factor out the roots that belong to smaller periods before solving what is left.`,
   ],
   reference: '6 sqrt(2)',
   verify: () => {
@@ -241,7 +248,12 @@ const a15q3sup = supervision({
   id: 'a15-q3-i',
   source: cite(F15, 'Assignment 15, Q3(i)'),
   title: t`Constant, period two, period four`,
-  prompt: t`(${2006} STEP II, Question ${1}(i).) The sequence of real numbers is defined by ${math`u_{${1}} = ${2}`} and ${math`u_{n + ${1}} = k - \frac{${36}}{u_{n}}`}. Determine the values of ${mk} for which the sequence is (a) constant; (b) periodic with period ${2}; (c) periodic with period ${4}. Explain why ${math`u_{${3}} = u_{${1}}`} (respectively ${math`u_{${5}} = u_{${1}}`}) is enough, and how you exclude the smaller periods.`,
+  prompt: t`(${2006} STEP II, Question ${1}(i).) The sequence of real numbers is defined by ${math`u_{${1}} = ${2}`} and ${math`u_{n + ${1}} = k - \frac{${36}}{u_{n}}`}. Determine the values of ${mk} for which the sequence is (a) constant; (b) periodic with period ${2}; (c) periodic with period ${4}. Explain why ${math`u_{${3}} = u_{${1}}`} (respectively ${math`u_{${5}} = u_{${1}}`}) is enough, and how the smaller periods are excluded.`,
+  hints: [
+    t`For a one-term rule, why does ${math`u_{${3}} = u_{${1}}`} force every later term to repeat with period ${2} or ${1}?`,
+    t`What equations in ${mk} do ${math`u_{${2}} = u_{${1}}`}, ${math`u_{${3}} = u_{${1}}`}, and ${math`u_{${5}} = u_{${1}}`} give?`,
+    t`Which roots of the period ${4} equation also solve the constant or period ${2} equation, and so must be excluded?`,
+  ],
   writeUp: 'proof',
   official: cite(F15H, 'Assignment 15, Q3(i)'),
 });
@@ -251,10 +263,17 @@ const a11 = auto({
   source: cite('step-f11', 'Assignment 11, Q1(i)'),
   title: t`The first triangular number over ${100}`,
   prompt: t`A function ${math`T`} is defined on positive integers by ${math`T(k + ${1}) = T(k) + k + ${1}`} and ${math`T(${1}) = ${1}`}. Find, by calculating the values, the smallest ${mn} such that ${math`T(n) > ${100}`}.`,
+  nudge: t`Not quite. List the values carefully; each step adds the next whole number.`,
+  hints: [
+    t`What are ${math`T(${2})`}, ${math`T(${3})`}, and ${math`T(${4})`}?`,
+    t`What does each step add, and so which familiar sum is ${math`T(n)`}?`,
+    t`Which two consecutive values of ${math`T`} lie either side of ${100}?`,
+  ],
   answer: { kind: 'exact', expected: '14' },
   solution: [
     t`${math`T(${2}) = ${1} + ${2} = ${3}`}, ${math`T(${3}) = ${6}`}, ... each adds the next whole number, so ${math`T(n) = ${1} + ${2} + \cdots + n = \frac{n(n + ${1})}{${2}}`}.`,
     t`${math`T(${13}) = ${91}`} and ${math`T(${14}) = ${105}`}, so the smallest ${mn} is ${14}.`,
+    t`Write out the first few terms; the pattern names the closed form.`,
   ],
   reference: '14',
   verify: () => {
@@ -272,8 +291,14 @@ const a15ii = auto({
   source: cite(F15, 'Assignment 15, Q2(ii)'),
   title: t`A two-term rule`,
   prompt: t`Write down the first ${10} terms of ${math`u_{${1}} = ${4}`}, ${math`u_{${2}} = ${1}`}, ${math`u_{n + ${2}} = u_{n + ${1}} - u_{n}`}, and give the period of the sequence.`,
+  nudge: t`Not quite. A two-term rule repeats only when a consecutive pair repeats.`,
+  hints: [
+    t`What are ${math`u_{${3}}`}, ${math`u_{${4}}`}, and ${math`u_{${5}}`}?`,
+    t`Why is one repeated value not enough for a rule that uses the two previous terms?`,
+    t`At which index does the starting pair ${math`${4}, ${1}`} first appear again?`,
+  ],
   answer: { kind: 'exact', expected: '6' },
-  solution: [t`${math`${4}, ${1}, -${3}, -${4}, -${1}, ${3}, ${4}, ${1}, -${3}, -${4}, \ldots`}: after ${6} terms the pair ${math`${4}, ${1}`} recurs, and a pair of consecutive terms fixes everything after it. So the period is ${6}.`],
+  solution: [t`${math`${4}, ${1}, -${3}, -${4}, -${1}, ${3}, ${4}, ${1}, -${3}, -${4}, \ldots`}: after ${6} terms the pair ${math`${4}, ${1}`} recurs, and a pair of consecutive terms fixes everything after it. So the period is ${6}.`, t`A two-term rule repeats when a consecutive pair repeats.`],
   reference: '6',
   verify: () => same('period', periodOf(perTerms({ kind: 'diff', x: 4, y: 1 }, 40)), 6),
   misconceptions: [{ response: '3', why: t`${math`u_{${4}} = -${4}`}, not ${4}: the signs flip after three terms, and return after six.` }],
@@ -285,6 +310,12 @@ const a15iii = auto({
   source: cite(F15, 'Assignment 15, Q2(iii)'),
   title: t`When does the third term return?`,
   prompt: t`For ${math`u_{${1}} = ${2}`} and ${math`u_{n + ${1}} = u_{n}^{${2}} - b`}, find the possible values of ${math`b`} for which ${math`u_{${3}} = u_{${1}}`}. Give both, separated by a comma.`,
+  nudge: t`Not quite. Express ${math`u_{${3}}`} in terms of ${math`b`} before setting it equal to ${math`u_{${1}}`}.`,
+  hints: [
+    t`What is ${math`u_{${2}}`} in terms of ${math`b`}?`,
+    t`What quadratic in ${math`b`} does ${math`u_{${3}} = ${2}`} give?`,
+    t`How does that quadratic factorise?`,
+  ],
   answer: {
     kind: 'witness', count: 2, unordered: true, example: '2, 7',
     check: (vals) => {
@@ -295,6 +326,7 @@ const a15iii = auto({
   solution: [
     t`${math`u_{${2}} = ${4} - b`} and ${math`u_{${3}} = (${4} - b)^{${2}} - b = b^{${2}} - ${9}b + ${16}`}.`,
     t`${math`u_{${3}} = ${2}`} gives ${math`b^{${2}} - ${9}b + ${14} = ${0}`}, so ${math`(b - ${2})(b - ${7}) = ${0}`}: ${math`b = ${2}`} (the sequence is constant at ${2}) or ${math`b = ${7}`} (it alternates ${math`${2}, -${3}, ${2}, \ldots`}, period ${2}).`,
+    t`Express the later term in the parameter, then solve.`,
   ],
   reference: '2, 7',
   verify: () => same('roots', [2, 7].every((b) => ((2 * 2 - b) ** 2 - b) === 2), true),
@@ -314,10 +346,17 @@ const a15q3ii = auto({
   source: cite(F15, 'Assignment 15, Q3(ii)'),
   title: t`The limit when ${math`k = ${37}`}`,
   prompt: t`(${2006} STEP II, Question ${1}.) The sequence is defined by ${math`u_{${1}} = ${2}`} and ${math`u_{n + ${1}} = ${37} - \frac{${36}}{u_{n}}`}. Given that it converges to a limit ${math`l`}, and that ${math`u_{n} \ge ${2}`} for all ${mn}, find ${math`l`}.`,
+  nudge: t`Not quite. Every root of the fixed point equation needs checking against what is known about the terms.`,
+  hints: [
+    t`If ${math`u_{n} \to l`}, what equation must ${math`l`} satisfy?`,
+    t`What are the roots of that equation?`,
+    t`Which root is consistent with ${math`u_{n} \ge ${2}`} for every ${mn}?`,
+  ],
   answer: { kind: 'exact', expected: '36' },
   solution: [
     t`${math`l = ${37} - \frac{${36}}{l}`}, so ${math`l^{${2}} - ${37}l + ${36} = ${0}`}, that is ${math`(l - ${36})(l - ${1}) = ${0}`}.`,
     t`Since ${math`u_{n} \ge ${2}`} for every ${mn}, the limit satisfies ${math`l \ge ${2}`}, which excludes ${1}. So ${math`l = ${36}`}.`,
+    t`A limit is a fixed point; bounds on the terms pick the root.`,
   ],
   reference: '36',
   verify: () => {
@@ -333,6 +372,11 @@ const a15q3iiSup = supervision({
   source: cite(F15, 'Assignment 15, Q3(ii)'),
   title: t`Why the limit is ${36}`,
   prompt: t`(${2006} STEP II, Question ${1}(ii).) For ${math`u_{${1}} = ${2}`}, ${math`u_{n + ${1}} = ${37} - \frac{${36}}{u_{n}}`}, show that ${math`u_{n} \ge ${2}`} for all ${mn}. Given that the sequence converges to a limit ${math`l`}, find ${math`l`}, justifying the choice between the roots, and explain why a limit of terms that are all at least ${2} is itself at least ${2}.`,
+  hints: [
+    t`If ${math`u_{n} \ge ${2}`}, how large can ${math`\frac{${36}}{u_{n}}`} be, and what does that give for ${math`u_{n + ${1}}`}?`,
+    t`Taking limits on both sides of the recurrence, which quadratic must ${math`l`} satisfy?`,
+    t`If ${math`l`} were less than ${2}, how close to ${math`l`} could terms that are all at least ${2} get?`,
+  ],
   writeUp: 'proof',
   official: cite(F15H, 'Assignment 15, Q3(ii)'),
 });

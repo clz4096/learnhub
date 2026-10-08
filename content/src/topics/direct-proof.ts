@@ -253,7 +253,7 @@ const errorStep = generator<FlawP>({
 
 // ---------------------------------------------------------------- Cambridge problems
 
-function bopDivides(o: { n: number; title: Rich; prompt: Rich; expected: string; vars: string[]; steps: Rich[]; check: () => string | null; official: boolean; wrong: Misconception[] }) {
+function bopDivides(o: { n: number; title: Rich; prompt: Rich; expected: string; vars: string[]; steps: Rich[]; check: () => string | null; official: boolean; wrong: Misconception[]; hints?: Rich[]; nudge?: Rich }) {
   const at = `Chapter 4, exercise ${o.n}`;
   const spec: Parameters<typeof auto>[0] = {
     id: `bop-4-${o.n}`,
@@ -267,6 +267,8 @@ function bopDivides(o: { n: number; title: Rich; prompt: Rich; expected: string;
     misconceptions: o.wrong,
   };
   if (o.official) spec.official = { source: cite('bop', `Solutions, ${at}`), answer: o.expected, agrees: true };
+  if (o.hints !== undefined) spec.hints = o.hints;
+  if (o.nudge !== undefined) spec.nudge = o.nudge;
   return auto(spec);
 }
 /** Checks n = a · bracket at every integer point of a small grid. */
@@ -297,31 +299,58 @@ const bop47 = bopDivides({
   n: 7, official: true, vars: ['c'], expected: 'c^2',
   title: t`${math`a^{${2}}`} divides ${math`b^{${2}}`}`,
   prompt: t`Suppose ${math`a, b \in \mathbb{Z}`}. Prove: if ${math`a \mid b`}, then ${math`a^{${2}} \mid b^{${2}}`}. With ${math`b = ac`}, ${math`b^{${2}} = a^{${2}} \cdot (\ldots)`}: what is in the brackets?`,
-  steps: [t`${math`b = ac`}; squaring both sides gives ${math`b^{${2}} = a^{${2}}c^{${2}}`}. So ${math`b^{${2}} = a^{${2}}d`} with ${math`d = c^{${2}} \in \mathbb{Z}`}, and ${math`a^{${2}} \mid b^{${2}}`}.`],
+  steps: [
+    t`${math`b = ac`}; squaring both sides gives ${math`b^{${2}} = a^{${2}}c^{${2}}`}. So ${math`b^{${2}} = a^{${2}}d`} with ${math`d = c^{${2}} \in \mathbb{Z}`}, and ${math`a^{${2}} \mid b^{${2}}`}.`,
+    t`Unpack the definition, compute, then pack it back.`,
+  ],
   check: () => {
     for (let a = -5; a <= 5; a++) for (let c = -5; c <= 5; c++) if ((a * c) ** 2 !== a * a * c * c) return 'b² = a²c² fails';
     return null;
   },
   wrong: [{ response: 'c', why: t`${math`b^{${2}} = (ac)^{${2}} = a^{${2}}c^{${2}}`}: the ${mc} is squared too.` }],
+  hints: [
+    t`What does ${math`a \mid b`} give as an equation with an integer?`,
+    t`What is ${math`b^{${2}}`} when ${math`b = ac`}?`,
+    t`Which factor of ${math`b^{${2}}`} is ${math`a^{${2}}`}, and is the rest an integer?`,
+  ],
+  nudge: t`Not quite. Square ${math`b = ac`} completely: both factors are squared.`,
 });
 const bop419 = bopDivides({
   n: 19, official: true, vars: ['x', 'y'], expected: 'x^3 y',
   title: t`${math`a^{${6}}`} divides ${mc}`,
   prompt: t`Suppose ${math`a, b, c`} are integers. Prove: if ${math`a^{${2}} \mid b`} and ${math`b^{${3}} \mid c`}, then ${math`a^{${6}} \mid c`}. With ${math`b = a^{${2}}x`} and ${math`c = b^{${3}}y`}, ${math`c = a^{${6}} \cdot (\ldots)`}: what is in the brackets?`,
-  steps: [t`Substitute: ${math`c = b^{${3}}y = (a^{${2}}x)^{${3}}y = a^{${6}}x^{${3}}y`}. So ${math`c = a^{${6}} \cdot x^{${3}}y`} with ${math`x^{${3}}y`} an integer, and ${math`a^{${6}} \mid c`}.`],
+  steps: [
+    t`Substitute: ${math`c = b^{${3}}y = (a^{${2}}x)^{${3}}y = a^{${6}}x^{${3}}y`}. So ${math`c = a^{${6}} \cdot x^{${3}}y`} with ${math`x^{${3}}y`} an integer, and ${math`a^{${6}} \mid c`}.`,
+    t`Substitute one definition into the other, then factor.`,
+  ],
   check: () => {
     for (let a = -3; a <= 3; a++) for (let x = -3; x <= 3; x++) for (let y = -3; y <= 3; y++) if (((a * a * x) ** 3) * y !== a ** 6 * (x ** 3 * y)) return 'c = a⁶x³y fails';
     return null;
   },
   wrong: [{ response: 'xy', why: t`${math`(a^{${2}}x)^{${3}} = a^{${6}}x^{${3}}`}: the ${math`x`} is cubed too.` }],
+  hints: [
+    t`With ${math`b = a^{${2}}x`}, what is ${math`b^{${3}}`}?`,
+    t`Substituting into ${math`c = b^{${3}}y`}, what is ${mc}?`,
+    t`After ${math`a^{${6}}`} is taken out, what remains?`,
+  ],
+  nudge: t`Not quite. Cube ${math`a^{${2}}x`} completely before substituting.`,
 });
 const bop46 = bopDivides({
   n: 6, official: false, vars: ['x', 'y'], expected: 'x + y',
   title: t`${ma} divides ${math`b + c`}`,
   prompt: t`Suppose ${math`a, b, c \in \mathbb{Z}`}. Prove: if ${math`a \mid b`} and ${math`a \mid c`}, then ${math`a \mid (b + c)`}. With ${math`b = ax`} and ${math`c = ay`}, ${math`b + c = a \cdot (\ldots)`}: what is in the brackets?`,
-  steps: [t`${math`b + c = ax + ay = a(x + y)`}, and ${math`x + y`} is an integer, so ${math`a \mid (b + c)`}.`],
+  steps: [
+    t`${math`b + c = ax + ay = a(x + y)`}, and ${math`x + y`} is an integer, so ${math`a \mid (b + c)`}.`,
+    t`Unpack both hypotheses with different letters, then combine.`,
+  ],
   check: identityCheck((a, x, y) => a * x + a * y, (_a, x, y) => x + y),
   wrong: [{ response: 'xy', why: t`${math`ax + ay = a(x + y)`}: a sum, not a product.` }],
+  hints: [
+    t`With ${math`b = ax`} and ${math`c = ay`}, what is ${math`b + c`}?`,
+    t`Which common factor can be taken out?`,
+    t`What remains in the bracket?`,
+  ],
+  nudge: t`Not quite. Add the two equations and take out the common factor ${ma}.`,
 });
 const bop410 = bopDivides({
   n: 10, official: false, vars: ['a', 'c'], expected: '3a^2 c^3 - a c^2 + 5c',
@@ -330,12 +359,19 @@ const bop410 = bopDivides({
   steps: [
     t`Substitute ${math`b = ac`}: ${math`${3}a^{${3}}c^{${3}} - a^{${2}}c^{${2}} + ${5}ac`}.`,
     t`Every term has a factor ${ma}: ${math`a(${3}a^{${2}}c^{${3}} - ac^{${2}} + ${5}c)`}, an integer times ${ma}.`,
+    t`Substitute, then take out the factor the conclusion needs.`,
   ],
   check: () => {
     for (let a = -4; a <= 4; a++) for (let c = -4; c <= 4; c++) { const b = a * c; if (3 * b ** 3 - b * b + 5 * b !== a * (3 * a * a * c ** 3 - a * c * c + 5 * c)) return 'the factorisation fails'; }
     return null;
   },
   wrong: [{ response: '3c^3 - c^2 + 5c', why: t`${math`b^{${3}} = a^{${3}}c^{${3}}`} and ${math`b^{${2}} = a^{${2}}c^{${2}}`}: after taking out one ${ma}, powers of ${ma} remain.` }],
+  hints: [
+    t`With ${math`b = ac`}, what are ${math`b^{${2}}`} and ${math`b^{${3}}`}?`,
+    t`Substituting, what is ${math`${3}b^{${3}} - b^{${2}} + ${5}b`} in terms of ${ma} and ${mc}?`,
+    t`After exactly one factor ${ma} is taken out, what remains?`,
+  ],
+  nudge: t`Not quite. Substitute ${math`b = ac`} into every term and take out exactly one factor ${ma}.`,
 });
 
 const tmuaR3 = auto({
@@ -356,9 +392,16 @@ const tmuaR3 = auto({
       return second ? 'At that x both inequalities hold. Try a value with 2x + 7 negative.' : null;
     },
   },
+  hints: [
+    t`When does multiplying both sides of an inequality by a number keep its direction?`,
+    t`For which ${math`x`} is ${math`${2}x + ${7}`} negative?`,
+    t`For such an ${math`x`}, does the first inequality hold while the second fails?`,
+  ],
+  nudge: t`Not quite. Ask when multiplying both sides by ${math`${2}x + ${7}`} keeps the direction of the inequality.`,
   solution: [
     t`Multiplying both sides by ${math`${2}x + ${7}`} keeps the inequality only if ${math`${2}x + ${7} > ${0}`}. If it is negative, the inequality reverses.`,
     t`At ${math`x = ${-4}`}: ${math`\frac{${-2}}{${-1}} = ${2} < ${5}`}, but ${math`x + ${2} = ${-2}`} and ${math`${5}(${2}x + ${7}) = ${-5}`}, and ${math`${-2} < ${-5}`} is false. So the deduction is invalid.`,
+    t`Multiply an inequality only by something known to be positive.`,
   ],
   reference: 'x = -4',
   verify: () => {
@@ -381,9 +424,16 @@ const tmua72 = auto({
   title: t`The extra solution`,
   prompt: t`Find ${math`x`} given ${math`x + ${1} = ${4}`}. Squaring both sides gives ${math`(x + ${1})^{${2}} = ${16}`}, that is ${math`x^{${2}} + ${2}x - ${15} = ${0}`}, with two solutions. Which of them is not a solution of the original equation?`,
   answer: { kind: 'exact', expected: '-5' },
+  hints: [
+    t`What are the two solutions of ${math`x^{${2}} + ${2}x - ${15} = ${0}`}?`,
+    t`Does each satisfy ${math`x + ${1} = ${4}`}?`,
+    t`Which step created the extra solution?`,
+  ],
+  nudge: t`Not quite. Put each solution back into the original equation.`,
   solution: [
     t`${math`x^{${2}} + ${2}x - ${15} = (x + ${5})(x - ${3})`}, so ${math`x = ${-5}`} or ${math`x = ${3}`}.`,
     t`In the original equation, ${math`${3} + ${1} = ${4}`}, but ${math`${-5} + ${1} = ${-4}`}. Squaring generated the extra solution ${math`${-5}`}.`,
+    t`After squaring, check every solution in the original equation.`,
   ],
   reference: '-5',
   verify: () => {
@@ -399,6 +449,11 @@ const bop49 = supervision({
   source: cite('bop', 'Chapter 4, exercise 9'),
   title: t`${7} divides ${4}a`,
   prompt: t`Suppose ${ma} is an integer. Use direct proof to prove: if ${math`${7} \mid ${4}a`}, then ${math`${7} \mid a`}.`,
+  hints: [
+    t`What does ${math`${7} \mid ${4}a`} give as an equation with an integer?`,
+    t`How can ${ma} be written as a combination of ${math`${4}a`} and ${math`${7}a`}?`,
+    t`Why does ${7} divide each part of that combination?`,
+  ],
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 4, exercise 9'),
 });
@@ -407,6 +462,11 @@ const bop413 = supervision({
   source: cite('bop', 'Chapter 4, exercise 13'),
   title: t`Two cases from a factorisation`,
   prompt: t`Suppose ${math`x, y \in \mathbb{R}`}. Prove: if ${math`x^{${2}} + ${5}y = y^{${2}} + ${5}x`}, then ${math`x = y`} or ${math`x + y = ${5}`}. Watch for division by something that might be zero.`,
+  hints: [
+    t`With every term on one side, which factorisation appears?`,
+    t`What does a product equal to ${0} say about its factors?`,
+    t`Why must dividing by ${math`x - y`} be avoided?`,
+  ],
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 4, exercise 13'),
 });
@@ -415,6 +475,11 @@ const bop424 = supervision({
   source: cite('bop', 'Chapter 4, exercise 24'),
   title: t`Long runs of composite numbers`,
   prompt: t`Prove: if ${math`n \in \mathbb{N}`} and ${math`n \ge ${2}`}, then the numbers ${math`n! + ${2}, n! + ${3}, \ldots, n! + n`} are all composite. Explain why this means there are arbitrarily long gaps between primes.`,
+  hints: [
+    t`For ${math`${2} \le k \le n`}, which number divides both ${math`n!`} and ${math`k`}?`,
+    t`Why is ${math`n! + k`} then composite, and not merely divisible by something?`,
+    t`How long is the run, and why can it be made as long as wanted?`,
+  ],
   writeUp: 'proof',
 });
 const scratch = supervision({
@@ -422,6 +487,11 @@ const scratch = supervision({
   source: cite('cst-dm-notes', 'printed pages 31 to 35, Definition 7 and Proposition 8', true),
   title: t`From scratch work to a proof`,
   prompt: t`The notes show scratch work for "the product of two odd integers is odd" (${math`m = ${2}i + ${1}`}, ${math`n = ${2}j + ${1}`}, ${math`m \cdot n = ${2}(${2}ij + i + j) + ${1}`}) and say it will not be accepted as a proof. Write the proof in sentences, then explain what the scratch work leaves out.`,
+  hints: [
+    t`What are the assumptions, written with letters from the definition of odd?`,
+    t`Which sentence links each line of the scratch work to the next?`,
+    t`What does the scratch work never state: where it starts, why each step holds, or what was proved?`,
+  ],
   writeUp: 'explanation',
   official: cite('cst-dm-notes', 'printed page 34, the notes\' proof'),
 });
@@ -444,6 +514,11 @@ const ns2q15 = supervision({
   source: cite('ia-ns-sheet-2', 'Q15, first part'),
   title: t`Products in a block of consecutive numbers`,
   prompt: t`Let ${math`a < b`} be distinct natural numbers. Prove that every block of ${math`b`} consecutive natural numbers contains two distinct numbers whose product is a multiple of ${math`ab`}.`,
+  hints: [
+    t`Among ${math`b`} consecutive numbers, why is one a multiple of ${math`b`}?`,
+    t`If the block holds a different multiple of ${ma}, what follows?`,
+    t`Otherwise, with ${math`g`} the highest common factor of ${ma} and ${math`b`}, why does the block hold another multiple of ${math`g`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -460,6 +535,11 @@ const unitPair = supervision({
   source: cite('stepdb-00-s2', 'Q1, first paragraph'),
   title: t`A unit fraction as two unit fractions`,
   prompt: t`A number of the form ${math`\frac{${1}}{N}`}, where ${math`N`} is an integer greater than ${1}, is called a unit fraction. Noting that ${dmath`\frac{${1}}{${2}} = \frac{${1}}{${3}} + \frac{${1}}{${6}} \quad\text{and}\quad \frac{${1}}{${3}} = \frac{${1}}{${4}} + \frac{${1}}{${12}},`} guess a general result of the form ${math`\frac{${1}}{N} = \frac{${1}}{a} + \frac{${1}}{b}`}, and hence prove that any unit fraction can be expressed as the sum of two distinct unit fractions.`,
+  hints: [
+    t`In the two examples, how are ${ma} and ${math`b`} related to ${math`N`}?`,
+    t`Which general identity for ${math`\frac{${1}}{N}`} does that suggest?`,
+    t`How is it checked by adding fractions, and why are the two unit fractions distinct?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -468,6 +548,11 @@ const bananasShow = supervision({
   source: cite('step-f03', 'Q4(i)'),
   title: t`The bananas: the equation`,
   prompt: t`Arthur, Brenda, and Chandrima gather ${math`N`} bananas. In the night each in turn divides the pile into three equal piles with one left over, gives that one to the orangutan, hides one pile, and heaps the rest together. In the morning the remaining bananas divide into three equal shares of ${math`m`}, with one left over. Show that ${math`${8}N = ${81}m + ${65}`}. (It helps to note that the number left after Chandrima has taken her share is ${math`${3}m + ${1}`}.)`,
+  hints: [
+    t`If a pile of ${math`P`} bananas splits into three equal piles with one over, how many remain after the turn, in terms of ${math`P`}?`,
+    t`Working back from ${math`${3}m + ${1}`} after Chandrima's turn, what was the pile before each turn?`,
+    t`With ${math`N`} written in terms of ${math`m`}, which equation results once fractions are cleared?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f03-hints', 'Q4'),
 });
@@ -486,6 +571,11 @@ const ns2q13 = supervision({
   source: cite('ia-ns-sheet-2', 'Q13, first part'),
   title: t`Nines and digit sums`,
   prompt: t`Show that a positive integer ${math`n`} is a multiple of ${9} if and only if the sum of its digits is a multiple of ${9}.`,
+  hints: [
+    t`Writing ${math`n`} with its digits, what is ${math`n`} minus its digit sum?`,
+    t`Why is each ${math`${10}^{i} - ${1}`} a multiple of ${9}?`,
+    t`Why does that give both directions of the "if and only if"?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -502,6 +592,11 @@ const ns2q12i = supervision({
   source: cite('ia-ns-sheet-2', 'Q12, first part'),
   title: t`A sum of powers that is not prime`,
   prompt: t`Show that ${math`${2}^{${19}} + ${5}^{${40}}`} is not prime.`,
+  hints: [
+    t`Which small primes are worth testing as divisors?`,
+    t`What remainders do ${math`${2}^{${19}}`} and ${math`${5}^{${40}}`} leave on division by ${3}?`,
+    t`Why does a factor of ${3} show that the number is not prime?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -510,6 +605,11 @@ const a12ii = supervision({
   source: cite('step-f12', 'Q1(ii)'),
   title: t`${math`n^{${3}} - n`} and ${6}`,
   prompt: t`Factorise ${math`n^{${3}} - n`} completely, and deduce that it is divisible by ${6} for every positive integer ${math`n`}.`,
+  hints: [
+    t`Which factor can be taken out first, and what is left?`,
+    t`What does the factorised form say about three consecutive integers?`,
+    t`Why is a product of three consecutive integers divisible by ${2} and by ${3}, and why does that give ${6}?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f12-hints', 'Q1(ii)'),
 });
@@ -528,7 +628,12 @@ const ns1q4Proof = supervision({
   id: 'ns1-q4-proof',
   source: cite('ia-ns-sheet-1', 'Q4'),
   title: t`Why that product is the largest`,
-  prompt: t`Suppose that we have some positive integers (not necessarily distinct) whose sum is ${100}. How large can their product be? Prove that no choice of integers does better than your answer.`,
+  prompt: t`Suppose that we have some positive integers (not necessarily distinct) whose sum is ${100}. How large can their product be? Prove that no choice of integers does better than that.`,
+  hints: [
+    t`Why does a best choice exist at all?`,
+    t`Which parts can be split or merged to raise the product: parts of ${5} or more, parts equal to ${1}, three ${2}s?`,
+    t`Once only ${3}s and at most two ${2}s remain, how is ${100} forced to split?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -543,6 +648,11 @@ const sw131d = supervision({
   source: cite('cst-dm-sw1', 'Exercises 1, 1.3.1(d)', true),
   title: t`Two triangular numbers make a square`,
   prompt: t`A natural number is triangular if it is ${math`t_k = ${0} + ${1} + \cdots + k`} for some natural number ${math`k`}; for example ${math`t_{${0}} = ${0}`}, ${math`t_{${1}} = ${1}`}, ${math`t_{${2}} = ${3}`}. Using ${math`t_k = \frac{k(k + ${1})}{${2}}`}, show that the sum of every two consecutive triangular numbers is a square. (Nicomachus, around ${100} BC.)`,
+  hints: [
+    t`What are ${math`t_k`} and ${math`t_{k + ${1}}`} by the formula?`,
+    t`Adding them, which common factor appears?`,
+    t`Which square does the sum simplify to?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.3.1(d)'),
 });
@@ -552,6 +662,11 @@ const a7Show = supervision({
   source: cite('step-f07', 'Q2(i) and (ii)'),
   title: t`Roots and coefficients without the formula`,
   prompt: t`Forget the quadratic formula. Show that if ${math`\alpha \ne \beta`} both satisfy ${math`x^{${2}} + bx + c = ${0}`}, then ${math`b = -(\alpha + \beta)`}, find ${math`c`} in terms of ${math`\alpha`} and ${math`\beta`}, and hence show that ${math`(x - \alpha)(x - \beta) \equiv x^{${2}} + bx + c`}. Then, starting from the identity instead, substitute ${math`x = ${0}`} and ${math`x = ${1}`} to find ${math`\alpha\beta`} and ${math`\alpha + \beta`}.`,
+  hints: [
+    t`Subtracting ${math`\beta^{${2}} + b\beta + c = ${0}`} from ${math`\alpha^{${2}} + b\alpha + c = ${0}`}, which factor appears?`,
+    t`Why may that factor be divided out?`,
+    t`With ${math`b`} known, what is ${mc}, and how does ${math`(x - \alpha)(x - \beta)`} expand?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f07-hints', 'Q2(i), (ii)'),
 });
@@ -561,6 +676,11 @@ const a7ShowCubic = supervision({
   source: cite('step-f07', 'Q2(iv)'),
   title: t`Three substitutions`,
   prompt: t`It is given that ${math`x^{${3}} + bx^{${2}} + cx + d \equiv (x - \alpha)(x - \beta)(x - \gamma)`}. By substituting three different values of ${math`x`}, show that ${math`\alpha\beta\gamma = -d`}, ${math`(${1} - \alpha)(${1} - \beta)(${1} - \gamma) = ${1} + b + c + d`}, and ${math`(${1} + \alpha)(${1} + \beta)(${1} + \gamma) = ${1} - b + c - d`}.`,
+  hints: [
+    t`Which value of ${math`x`} gives ${math`\alpha\beta\gamma`}?`,
+    t`Which values give the other two products?`,
+    t`What does each side of the identity become at those values?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f07-hints', 'Q2(iv)'),
 });
@@ -570,6 +690,11 @@ const thm11 = supervision({
   source: cite('cst-dm-notes', 'printed pages 54 and 55, Theorem 11'),
   title: t`Implication is transitive`,
   prompt: t`Let ${math`P_{${1}}`}, ${math`P_{${2}}`}, and ${math`P_{${3}}`} be statements. Prove that if ${math`P_{${1}} \Rightarrow P_{${2}}`} and ${math`P_{${2}} \Rightarrow P_{${3}}`}, then ${math`P_{${1}} \Rightarrow P_{${3}}`}. Name each use of modus ponens.`,
+  hints: [
+    t`Assuming ${math`P_{${1}}`}, which given implication applies first?`,
+    t`What does modus ponens give next?`,
+    t`What has then been shown, and under which assumption?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-notes', 'printed pages 54 and 55, the scratch work'),
 });
@@ -579,6 +704,11 @@ const a7Unique = supervision({
   source: cite('step-f07', 'Q4(i)(a)'),
   title: t`Three weights, and only one choice`,
   prompt: t`If I can only put the weights in one of the scale pans, show that I can choose just three weights to measure every whole number of ounces from ${1} to ${7}, and that there is only one such choice.`,
+  hints: [
+    t`With three weights in one pan, how many different non-empty loads are possible?`,
+    t`Which weights must be included to make ${1} and ${2}?`,
+    t`With those two fixed, which third weight is forced if ${7} is to be reached?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f07-hints', 'Q4(i)(a)'),
 });
@@ -588,6 +718,11 @@ const a7Bound = supervision({
   source: cite('step-f07', 'Q4(i)(c)'),
   title: t`At most ${math`${2}^n`} loads`,
   prompt: t`Show that if I have only ${math`n`} weights and one pan, I cannot weigh more than ${math`${2}^n`} different weights, including zero ounces. How can I choose the weights to measure every whole number from ${1} to ${math`${2}^n - ${1}`}?`,
+  hints: [
+    t`For each weight, how many choices are there: in the pan or not?`,
+    t`How many combinations does that give for ${math`n`} weights?`,
+    t`Which number system writes every whole number using each power of one base at most once?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f07-hints', 'Q4(i)(c)'),
 });
@@ -597,6 +732,11 @@ const a7Bound3 = supervision({
   source: cite('step-f07', 'Q4(ii)(b)'),
   title: t`At most ${math`${3}^n`} loads`,
   prompt: t`Show that if I have only ${math`n`} weights and may use either pan, I cannot weigh more than ${math`${3}^n`} different weights, including zero ounces.`,
+  hints: [
+    t`With either pan allowed, how many choices does each weight have?`,
+    t`How many combinations does that give for ${math`n`} weights?`,
+    t`Why can the different combinations not give more loads than that?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f07-hints', 'Q4(ii)(b)'),
 });
@@ -606,6 +746,11 @@ const ns2q12ii = supervision({
   source: cite('ia-ns-sheet-2', 'Q12, second part'),
   title: t`A large number that is not prime`,
   prompt: t`Show that ${math`${2}^{${91}} - ${1}`} is not prime.`,
+  hints: [
+    t`How does ${91} factorise?`,
+    t`Writing ${math`${2}^{${91}} - ${1}`} as ${math`(${2}^{${7}})^{${13}} - ${1}`}, which factor does ${math`x^{${13}} - ${1}`} have?`,
+    t`Why is that factor neither ${1} nor the whole number?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -614,6 +759,11 @@ const sw116 = supervision({
   source: cite('cst-dm-sw1', 'Exercises 1, 1.1.6'),
   title: t`The sum of two rationals`,
   prompt: t`Prove or disprove: the addition of two rational numbers is a rational number. Start from the definition: a real number is rational if it is ${math`\frac{m}{n}`} for integers ${math`m`} and ${math`n`} with ${math`n \ne ${0}`}.`,
+  hints: [
+    t`How are the two rationals written, using the definition?`,
+    t`What is their sum over a common denominator?`,
+    t`Why is the new denominator non-zero, and the new numerator an integer?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.1.6'),
 });
@@ -623,6 +773,11 @@ const eProof = supervision({
   source: cite('cst-dm-sw1', 'Exercises 1, 1.3.1(e)'),
   title: t`Euler's four maps`,
   prompt: t`Show that, for all natural numbers ${math`n`}, if ${math`n`} is triangular, then so are ${math`${9}n + ${1}`}, ${math`${25}n + ${3}`}, ${math`${49}n + ${6}`}, and ${math`${81}n + ${10}`}. (Euler, ${1775}.)`,
+  hints: [
+    t`With ${math`n = t_k`}, what is each map in terms of ${math`k`}?`,
+    t`For each, which square completes the numerator into the form ${math`Q(Q + ${1})`}?`,
+    t`How is each witness checked to be a natural number?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.3.1(e)'),
 });
@@ -631,7 +786,12 @@ const fProof = supervision({
   id: 'sw-1-3-1-f-proof',
   source: cite('cst-dm-sw1', 'Exercises 1, 1.3.1(f)'),
   title: t`Prove Jordan's generalisation`,
-  prompt: t`Prove: for all natural numbers ${math`n`} and ${math`k`}, there exists a natural number ${math`q`} such that ${math`(${2}n + ${1})^{${2}} \cdot t_k + t_n = t_q`}. Name your witness ${math`q`} and check it by algebra.`,
+  prompt: t`Prove: for all natural numbers ${math`n`} and ${math`k`}, there exists a natural number ${math`q`} such that ${math`(${2}n + ${1})^{${2}} \cdot t_k + t_n = t_q`}. Name the witness ${math`q`} and check it by algebra.`,
+  hints: [
+    t`What is ${math`(${2}n + ${1})^{${2}} t_k + t_n`} written out with the formula?`,
+    t`Which ${math`q`}, linear in ${math`k`}, has ${math`q^{${2}}`} matching the terms in ${math`k^{${2}}`}?`,
+    t`How is the guess checked by expanding ${math`\frac{q(q + ${1})}{${2}}`}?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.3.1(f)'),
 });
@@ -641,6 +801,11 @@ const sw421aProof = supervision({
   source: cite('cst-dm-sw1', 'Exercises 4, 4.2.1(a)'),
   title: t`Establish the identity`,
   prompt: t`Establish: for all positive integers ${math`m`} and ${math`n`}, ${math`(${2}^{n} - ${1}) \cdot \sum_{i = ${0}}^{m - ${1}} ${2}^{i \cdot n} = ${2}^{m \cdot n} - ${1}`}. Give a direct proof by telescoping, and, once induction is taught, an inductive one.`,
+  hints: [
+    t`Multiplying ${math`${2}^{n} - ${1}`} by the sum term by term, which two sums appear?`,
+    t`Which terms cancel when one sum is subtracted from the other?`,
+    t`Which two terms remain?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-4', '4.2.1(a)'),
 });
@@ -650,6 +815,11 @@ const sw421bProof = supervision({
   source: cite('cst-dm-sw1', 'Exercises 4, 4.2.1(b)'),
   title: t`Composite exponents`,
   prompt: t`Suppose ${math`k`} is a positive integer that is not prime. Prove that ${math`${2}^{k} - ${1}`} is not prime. Take care with ${math`k = ${1}`}, which is not prime either.`,
+  hints: [
+    t`If ${math`k`} is not prime and ${math`k > ${1}`}, how can ${math`k`} be written as a product?`,
+    t`Using part (a) with that product, which factor does ${math`${2}^{k} - ${1}`} have?`,
+    t`Why is that factor strictly between ${1} and ${math`${2}^{k} - ${1}`}, and what happens when ${math`k = ${1}`}?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-4', '4.2.1(b)'),
 });
@@ -670,6 +840,11 @@ const lp16 = supervision({
   source: cite('cst-lp-notes', 'Section 5, Exercise 16, the proof by equivalences (page 14)', true),
   title: t`A valid negated "for all"`,
   prompt: t`Let ${math`Q`} be a one-place predicate and ${math`a`}, ${math`b`} constants, in a non-empty domain. Prove ${math`\lnot \forall y\, [(Q(a) \lor Q(b)) \land \lnot Q(y)]`} using equivalences: rewrite it step by step, naming the law used at each step, until it is plainly true whatever the domain, the predicate ${math`Q`}, and the constants are.`,
+  hints: [
+    t`What does moving the negation through ${math`\forall`} give?`,
+    t`Applying De Morgan's law and double negation inside, what is left?`,
+    t`Which part does not mention ${math`y`}, and why does the formula then reduce to something true?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -678,6 +853,11 @@ const largeX = supervision({
   source: cite('step-f02', 'Q1(iii)'),
   title: t`A difference of roots for large ${math`x`}`,
   prompt: t`Show that ${math`\sqrt{${1} + x^{${2}}} - x = \frac{${1}}{\sqrt{${1} + x^{${2}}} + x}`}. Deduce that if ${math`x`} is very large, then ${math`\sqrt{${1} + x^{${2}}} - x`} is approximately equal to ${math`\frac{${1}}{${2}x}`}.`,
+  hints: [
+    t`Multiplying ${math`\sqrt{${1} + x^{${2}}} - x`} by its conjugate over itself, what is the numerator?`,
+    t`For very large ${math`x`}, what is ${math`\sqrt{${1} + x^{${2}}}`} close to?`,
+    t`What does the denominator then become?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f02-hints', 'Q1(iii)'),
 });
@@ -687,6 +867,11 @@ const step2005 = supervision({
   source: cite('step-f01', 'Q3 (2005 STEP I Q3)'),
   title: t`Two fractions equal to one`,
   prompt: t`In this question ${math`a`} and ${math`b`} are distinct, non-zero real numbers, and ${math`c`} is a real number. (i) Show that, if ${math`a`} and ${math`b`} are either both positive or both negative, then the equation ${math`\frac{x}{x - a} + \frac{x}{x - b} = ${1}`} has two distinct real solutions. (ii) Show that, if ${math`c \ne ${1}`}, the equation ${math`\frac{x}{x - a} + \frac{x}{x - b} = ${1} + c`} has exactly one real solution if ${math`c^{${2}} = -\frac{${4}ab}{(a - b)^{${2}}}`}. Show that this condition can be written ${math`c^{${2}} = ${1} - \left(\frac{a + b}{a - b}\right)^{${2}}`}, and deduce that it can only hold if ${math`${0} < c^{${2}} \le ${1}`}.`,
+  hints: [
+    t`Clearing fractions, which quadratic in ${math`x`} results?`,
+    t`What is its discriminant, and why is it positive when ${math`ab > ${0}`}?`,
+    t`For (ii), which condition on ${mc} makes the discriminant ${0}, and how does it rearrange?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f01-hints', 'Q3'),
 });
@@ -696,6 +881,11 @@ const specQ1 = supervision({
   source: cite('stepdb-spec-s1', 'Q1(i)'),
   title: t`Where a conic can be`,
   prompt: t`The real numbers ${math`x`} and ${math`y`} satisfy the equation ${math`${4}x^{${2}} + ${16}xy + y^{${2}} + ${24}x = ${0}`}. Prove that either ${math`x \le ${0}`} or ${math`x \ge \frac{${2}}{${5}}`}, and, similarly, find restrictions on the values of ${math`y`}.`,
+  hints: [
+    t`Treating the equation as a quadratic in ${math`y`}, what is its discriminant?`,
+    t`For real ${math`y`}, which inequality in ${math`x`} must hold?`,
+    t`Treating it as a quadratic in ${math`x`}, what does the same argument give for ${math`y`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -706,6 +896,11 @@ const step04Lines = supervision({
   source: cite('stepdb-04-s1', 'Q6'),
   title: t`Lines through a triangle, in letters`,
   prompt: t`The three points ${math`A`}, ${math`B`}, and ${math`C`} have coordinates ${vertex(1)}, ${vertex(2)}, and ${vertex(3)}, respectively. Find the point of intersection of the line joining ${math`A`} to the midpoint of ${math`BC`}, and the line joining ${math`B`} to the midpoint of ${math`AC`}. Verify that this point lies on the line joining ${math`C`} to the midpoint of ${math`AB`}. The point ${math`H`} has coordinates ${math`(p_{${1}} + p_{${2}} + p_{${3}}, q_{${1}} + q_{${2}} + q_{${3}})`}. Show that if the line ${math`AH`} intersects the line ${math`BC`} at right angles, then ${math`p_{${2}}^{${2}} + q_{${2}}^{${2}} = p_{${3}}^{${2}} + q_{${3}}^{${2}}`}, and write down a similar result if the line ${math`BH`} intersects the line ${math`AC`} at right angles. Deduce that if ${math`AH`} is perpendicular to ${math`BC`} and also ${math`BH`} is perpendicular to ${math`AC`}, then ${math`CH`} is perpendicular to ${math`AB`}.`,
+  hints: [
+    t`What are the equations of the two lines through ${math`A`} and ${math`B`}?`,
+    t`Where do they meet, and does the line from ${math`C`} pass through that point?`,
+    t`What does ${math`AH`} perpendicular to ${math`BC`} give, as a product of gradients or a scalar product?`,
+  ],
   writeUp: 'proof',
   official: cite('stepdb-04-ha', 'STEP I, Q6 (page 7 of the STEP I hints)'),
 });
@@ -715,6 +910,11 @@ const step2004 = supervision({
   source: cite('step-f03', 'Q3 (2004 STEP I Q2)'),
   title: t`Integrals of the floor function`,
   prompt: t`The notation ${math`[x]`} means the greatest integer less than or equal to ${math`x`}. (i) Sketch the graph of ${math`y = \sqrt{[x]}`} and show that ${math`\int_{${0}}^{a} \sqrt{[x]}\,dx = \sum_{r = ${0}}^{a - ${1}} \sqrt{r}`} when ${math`a`} is a positive integer. (ii) Show that ${math`\int_{${0}}^{a} ${2}^{[x]}\,dx = ${2}^{a} - ${1}`} when ${math`a`} is a positive integer. (iii) Determine an expression for ${math`\int_{${0}}^{a} ${2}^{[x]}\,dx`} when ${math`a`} is positive but not an integer.`,
+  hints: [
+    t`On which intervals is ${math`[x]`} constant, and what is the integrand there?`,
+    t`Adding the areas of the rectangles, which sum results?`,
+    t`For ${ma} not an integer, which extra piece lies beyond ${math`[a]`}?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f03-hints', 'Q3'),
 });

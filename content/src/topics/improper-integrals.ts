@@ -177,6 +177,13 @@ const varY = auto({
   solution: [
     t`${math`E(Y^{${2}}) = \int_{${0}}^{\infty} ${2}\pi ky^{${3}}e^{-\pi ky^{${2}}}\,dy`}. Substitute ${math`u = \pi ky^{${2}}`}, ${math`du = ${2}\pi ky\,dy`}: it becomes ${math`\frac{${1}}{\pi k}\int_{${0}}^{\infty} ue^{-u}\,du = \frac{${1}}{\pi k}`}, since ${math`\int_{${0}}^{\infty} ue^{-u}\,du = ${1}`}.`,
     t`${math`\operatorname{Var}(Y) = \frac{${1}}{\pi k} - \frac{${1}}{${4}k} = \frac{${4} - \pi}{${4}\pi k}`}.`,
+    t`A substitution that matches the exponent turns the integral into a known one.`,
+  ],
+  nudge: t`Not quite. Find ${math`E(Y^{${2}})`} first, with a substitution suggested by the exponent.`,
+  hints: [
+    t`Which integral gives ${math`E(Y^{${2}})`}?`,
+    t`With ${math`u = \pi ky^{${2}}`}, what does that integral become?`,
+    t`What is ${math`E(Y^{${2}}) - E(Y)^{${2}}`}?`,
   ],
   reference: '1/(pi k) - 1/(4k)',
   verify: () => {
@@ -196,9 +203,19 @@ const nstLimit = auto({
   id: 'nst-i2-i-limit',
   source: cite(NST, 'Integration, I2(i)', true),
   title: t`What happens as L grows`,
-  prompt: t`${math`\int_{${0}}^{L} xe^{-x}\,dx = ${1} - (${1} + L)e^{-L}`}. What does it tend to as ${math`L \to \infty`}? That is, evaluate ${math`\int_{${0}}^{\infty} xe^{-x}\,dx`}.`,
+  prompt: t`Given ${math`\int_{${0}}^{L} xe^{-x}\,dx = ${1} - (${1} + L)e^{-L}`}, evaluate ${math`\int_{${0}}^{\infty} xe^{-x}\,dx`}.`,
   answer: { kind: 'exact', expected: '1' },
-  solution: [t`${math`e^{-L} \to ${0}`} and ${math`Le^{-L} \to ${0}`}, because the exponential grows faster than any power: ${math`e^{L} \ge \frac{L^{${2}}}{${2}}`}, so ${math`Le^{-L} \le \frac{${2}}{L}`}.`, t`So the integral tends to ${1}.`],
+  solution: [
+    t`${math`e^{-L} \to ${0}`} and ${math`Le^{-L} \to ${0}`}, because the exponential grows faster than any power: ${math`e^{L} \ge \frac{L^{${2}}}{${2}}`}, so ${math`Le^{-L} \le \frac{${2}}{L}`}.`,
+    t`So the integral tends to ${1}.`,
+    t`An improper integral is the limit of proper ones.`,
+  ],
+  nudge: t`Not quite. Let ${math`L \to \infty`} in the given formula, term by term.`,
+  hints: [
+    t`What does ${math`e^{-L}`} tend to as ${math`L \to \infty`}?`,
+    t`What does ${math`Le^{-L}`} tend to, given that ${math`e^{L}`} grows faster than any power of ${math`L`}?`,
+    t`What, then, is the limit of ${math`${1} - (${1} + L)e^{-L}`}?`,
+  ],
   reference: '1',
   verify: () => close('Simpson to 60', simpson((x) => x * Math.exp(-x), 0, 60, 20000), 1),
   misconceptions: [{ response: '0', why: t`The integrand is positive, so the integral is positive; only the ${math`(${1} + L)e^{-L}`} part tends to ${0}.` }],
@@ -208,8 +225,13 @@ const nstIN2 = supervision({
   id: 'nst-in2',
   source: cite(NST, 'Section 2, Mathematical induction, IN2'),
   title: t`n factorial as an integral`,
-  prompt: t`Use mathematical induction to prove that, for a non-negative integer ${math`n`}, ${math`\int_{${0}}^{\infty} x^{n}e^{-x}\,dx = n!`}. Justify each limit you take.`,
+  prompt: t`Use mathematical induction to prove that, for a non-negative integer ${math`n`}, ${math`\int_{${0}}^{\infty} x^{n}e^{-x}\,dx = n!`}. Justify each limit taken.`,
   writeUp: 'proof',
+  hints: [
+    t`What is ${math`\int_{${0}}^{\infty} e^{-x}\,dx`}, the case ${math`n = ${0}`}?`,
+    t`Integrating ${math`x^{n + ${1}}e^{-x}`} by parts on ${math`[${0}, L]`}, which boundary term appears, and which integral is left?`,
+    t`Why does ${math`L^{n + ${1}}e^{-L} \to ${0}`} as ${math`L \to \infty`}, and how does the inductive hypothesis finish the step?`,
+  ],
 });
 
 // STEP II 2016 Q8 (STEP Questions Database): the sum of 1/r^2 estimated by the area under 1/x^2.
@@ -226,12 +248,19 @@ const db16q8Approx = auto({
   id: 'step16-q8-i',
   source: cite(DB16, 'Q8(i)', true),
   title: t`The sum of the reciprocal squares, estimated`,
-  prompt: t`For ${math`m > \frac{${1}}{${2}}`}, ${math`\int_{m - \frac{${1}}{${2}}}^{\infty} \frac{${1}}{x^{${2}}}\,dx = \frac{${1}}{m - \frac{${1}}{${2}}}`}, and a sketch of ${math`y = \frac{${1}}{x^{${2}}}`} shows ${math`\sum_{r = m}^{n} \frac{${1}}{r^{${2}}} \approx \int_{m - \frac{${1}}{${2}}}^{n + \frac{${1}}{${2}}} \frac{${1}}{x^{${2}}}\,dx \quad (*)`}. The series ${math`\sum_{r = ${1}}^{\infty} \frac{${1}}{r^{${2}}}`} converges to ${math`E`}. Add the terms with ${math`r = ${1}`} and ${math`r = ${2}`} exactly, and use ${math`(*)`} with ${math`n \to \infty`} for the rest. What approximation to ${math`E`} do you get? Give it as a fraction.`,
+  prompt: t`For ${math`m > \frac{${1}}{${2}}`}, ${math`\int_{m - \frac{${1}}{${2}}}^{\infty} \frac{${1}}{x^{${2}}}\,dx = \frac{${1}}{m - \frac{${1}}{${2}}}`}, and a sketch of ${math`y = \frac{${1}}{x^{${2}}}`} shows ${math`\sum_{r = m}^{n} \frac{${1}}{r^{${2}}} \approx \int_{m - \frac{${1}}{${2}}}^{n + \frac{${1}}{${2}}} \frac{${1}}{x^{${2}}}\,dx \quad (*)`}. The series ${math`\sum_{r = ${1}}^{\infty} \frac{${1}}{r^{${2}}}`} converges to ${math`E`}. Find the approximation to ${math`E`}, as a fraction, given by adding the terms with ${math`r = ${1}`} and ${math`r = ${2}`} exactly and using ${math`(*)`} with ${math`n \to \infty`} for the rest.`,
   answer: { kind: 'exact', expected: str(approxE(2)) },
   solution: [
     t`The first two terms are ${math`${1} + \frac{${1}}{${4}} = \frac{${5}}{${4}}`}.`,
     t`For the rest take ${math`m = ${3}`} in ${math`(*)`} and let ${math`n \to \infty`}: ${math`\sum_{r = ${3}}^{\infty} \frac{${1}}{r^{${2}}} \approx \int_{${q(5, 2)}}^{\infty} \frac{${1}}{x^{${2}}}\,dx = \frac{${1}}{${q(5, 2)}} = ${q(2, 5)}`}.`,
     t`So ${math`E \approx \frac{${5}}{${4}} + ${q(2, 5)} = ${approxE(2)}`}. (With no terms added exactly the same method gives ${approxE(0)}, and with one, ${approxE(1)}; the true value is ${math`\frac{\pi^{${2}}}{${6}} \approx ${1.6449}`}.)`,
+    t`Add the large early terms exactly; let the integral estimate the small tail.`,
+  ],
+  nudge: t`Not quite. Check where the integral for the tail starts: half a unit before the first term it replaces.`,
+  hints: [
+    t`What do the terms with ${math`r = ${1}`} and ${math`r = ${2}`} add to?`,
+    t`For the remaining terms, which value of ${math`m`} goes into ${math`(*)`}, and where does the integral start?`,
+    t`What is that integral to infinity, and what is the total as a single fraction?`,
   ],
   reference: str(approxE(2)),
   verify: () => {
@@ -256,6 +285,11 @@ const db16q8 = supervision({
   title: t`Reciprocal squares and fourth powers`,
   prompt: t`Evaluate the integral ${dmath`\int_{m - \frac{${1}}{${2}}}^{\infty} \frac{${1}}{x^{${2}}}\,dx \qquad \left(m > \tfrac{${1}}{${2}}\right).`} Show by means of a sketch that ${dmath`\sum_{r = m}^{n} \frac{${1}}{r^{${2}}} \approx \int_{m - \frac{${1}}{${2}}}^{n + \frac{${1}}{${2}}} \frac{${1}}{x^{${2}}}\,dx, \qquad (*)`} where ${math`m`} and ${math`n`} are positive integers with ${math`m < n`}. (i) You are given that the infinite series ${math`\sum_{r = ${1}}^{\infty} \frac{${1}}{r^{${2}}}`} converges to a value denoted by ${math`E`}. Use ${math`(*)`} to obtain the following approximations for ${math`E`}: ${math`E \approx ${2}`}; ${math`E \approx \frac{${5}}{${3}}`}; ${math`E \approx \frac{${33}}{${20}}`}. (ii) Show that, when ${math`r`} is large, the error in approximating ${math`\frac{${1}}{r^{${2}}}`} by ${math`\int_{r - \frac{${1}}{${2}}}^{r + \frac{${1}}{${2}}} \frac{${1}}{x^{${2}}}\,dx`} is approximately ${math`\frac{${1}}{${4}r^{${4}}}`}. Given that ${math`E \approx ${1.645}`}, show that ${math`\sum_{r = ${1}}^{\infty} \frac{${1}}{r^{${4}}} \approx ${1.08}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`What is the integral to infinity, and why does the sketch of ${math`y = \frac{${1}}{x^{${2}}}`} with a strip of width ${1} centred on each ${math`r`} support ${math`(*)`}?`,
+    t`For each of the three approximations, how many terms are added exactly, and where does the integral for the rest start?`,
+    t`Expanding ${math`\frac{${1}}{r - \frac{${1}}{${2}}} - \frac{${1}}{r + \frac{${1}}{${2}}}`} for large ${math`r`}, what is the error, and which of the three approximations, with its exact terms, relates the summed errors to ${math`\sum \frac{${1}}{r^{${4}}}`} most accurately?`,
+  ],
   official: cite('stepdb-16-ms', 'STEP II, Question 8 (pages 33 and 34)'),
 });
 

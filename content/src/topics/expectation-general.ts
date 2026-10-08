@@ -277,6 +277,13 @@ const q8 = auto({
     t`By linearity ${math`\mathbb{E}(\bar{X}) = \mu`}. Expand: ${math`S^{${2}} = \sum_{i} X_{i}^{${2}} - n\bar{X}^{${2}}`}.`,
     t`${math`\mathbb{E}(X_{i}^{${2}}) = \sigma^{${2}} + \mu^{${2}}`}, and ${math`\mathbb{E}(\bar{X}^{${2}}) = \operatorname{var}(\bar{X}) + \mu^{${2}} = \frac{\sigma^{${2}}}{n} + \mu^{${2}}`}, using independence for the variance of the mean.`,
     t`So ${math`\mathbb{E}(S^{${2}}) = n(\sigma^{${2}} + \mu^{${2}}) - n\left(\frac{\sigma^{${2}}}{n} + \mu^{${2}}\right) = (n - ${1})\sigma^{${2}}`}.`,
+    t`For each square, ${math`\mathbb{E}(Y^{${2}}) = \operatorname{var}(Y) + \mathbb{E}(Y)^{${2}}`}.`,
+  ],
+  nudge: t`Not quite. The deviations are from ${math`\bar{X}`}, which is itself random; account for its variance.`,
+  hints: [
+    t`How does ${math`S^{${2}}`} simplify to ${math`\sum_{i} X_{i}^{${2}} - n\bar{X}^{${2}}`}?`,
+    t`What are ${math`\mathbb{E}(X_{i}^{${2}})`} and ${math`\mathbb{E}(\bar{X}^{${2}})`} in terms of ${math`\mu`} and ${math`\sigma`}?`,
+    t`Which step needs independence, and what is ${math`\operatorname{var}(\bar{X})`}?`,
   ],
   reference: '(n - 1)sigma^2',
   verify: () => {
@@ -332,6 +339,13 @@ const q10 = auto({
     t`Let ${math`I_{k}`} be the indicator that the join made when ${math`k`} strands remain closes a hoop. Then the number of hoops is ${math`\sum_{k} I_{k}`}, and by linearity its mean is ${math`\sum_{k} \mathbb{P}(I_{k} = ${1})`}.`,
     t`With ${math`k`} strands there are ${math`${2}k`} free ends. Whatever the first end chosen, the second is one of the other ${math`${2}k - ${1}`} ends, and exactly one of them is the other end of the same strand. So ${math`\mathbb{P}(I_{k} = ${1}) = \frac{${1}}{${2}k - ${1}}`}.`,
     t`${math`\sum_{k = ${1}}^{${STRANDS}} \frac{${1}}{${2}k - ${1}} = ${HOOPS}`}.`,
+    t`An expected count is the sum of the probabilities, independent or not.`,
+  ],
+  nudge: t`Not quite. A hoop can close at any join, not only the last; follow the joins one at a time.`,
+  hints: [
+    t`When ${math`k`} strands remain, how many free ends are there?`,
+    t`After one end is chosen, what is the chance that the second end chosen belongs to the same strand?`,
+    t`How does linearity of expectation turn those chances into the expected number of hoops?`,
   ],
   reference: str(HOOPS),
   verify: () => same('every sequence of joins', str(spaghettiExact(STRANDS)), str(HOOPS)),
@@ -345,8 +359,13 @@ const q10proof = supervision({
   id: 'ia-s2-q10-general',
   source: cite(S2, 'Q10'),
   title: t`Spaghetti hoops for ${math`n`} strands`,
-  prompt: t`Show that with ${math`n`} strands the expected number of hoops is ${math`\sum_{k = ${1}}^{n} \frac{${1}}{${2}k - ${1}}`}. Why may you add the probabilities of the separate joins even though the joins are not independent? Roughly how does the answer grow with ${math`n`}?`,
+  prompt: t`Show that with ${math`n`} strands the expected number of hoops is ${math`\sum_{k = ${1}}^{n} \frac{${1}}{${2}k - ${1}}`}. Why may the probabilities of the separate joins be added even though the joins are not independent? Roughly how does the answer grow with ${math`n`}?`,
   writeUp: 'proof',
+  hints: [
+    t`Which indicator variables, one for each join, count the hoops?`,
+    t`With ${math`k`} strands left, what is the probability that the next join closes a hoop?`,
+    t`Does linearity of expectation need independence, and how does ${math`\sum_{k = ${1}}^{n} \frac{${1}}{${2}k - ${1}}`} compare with an integral?`,
+  ],
 });
 const scheduleExpectation = supervision({
   id: 'schedule-expectation',
@@ -354,6 +373,11 @@ const scheduleExpectation = supervision({
   title: t`Grouping the sum by values`,
   prompt: t`On a countable ${math`\Omega`}, define ${math`\mathbb{E}(X) = \sum_{\omega} X(\omega) p_{\omega}`} when ${math`\sum_{\omega} |X(\omega)| p_{\omega} < \infty`}. Prove that then ${math`\mathbb{E}(g(X)) = \sum_{x} g(x)\,\mathbb{P}(X = x)`} whenever ${math`\sum_{x} |g(x)|\,\mathbb{P}(X = x) < \infty`}, and that ${math`\mathbb{E}(aX + bY) = a\mathbb{E}(X) + b\mathbb{E}(Y)`}. Where is absolute convergence used? Give a random variable for which ${math`\sum_{\omega} X(\omega)p_{\omega}`} can be made to add to different values by reordering.`,
   writeUp: 'proof',
+  hints: [
+    t`How can the sum over ${math`\omega`} be grouped by the value ${math`x = X(\omega)`}?`,
+    t`Why does absolute convergence allow the terms to be regrouped without changing the sum?`,
+    t`Which conditionally convergent series, such as an alternating one, can be rearranged to give a different sum?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

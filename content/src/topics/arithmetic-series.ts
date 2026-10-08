@@ -163,7 +163,14 @@ function euler(o: { id: string; m: number; j: number; worked?: boolean }) {
       t`With ${math`t_k = \frac{k(k + ${1})}{${2}}`}: ${math`${o.m * o.m}t_k + ${tri(o.j)} = \frac{${o.m * o.m}k^{${2}} + ${o.m * o.m}k + ${2 * tri(o.j)}}{${2}}`}.`,
       t`Complete the square, as the official solution does: ${math`${o.m * o.m}k^{${2}} + ${o.m * o.m}k + ${2 * tri(o.j)} = (${o.m}k + ${o.j})^{${2}} + (${o.m}k + ${o.j})`}.`,
       t`So it is ${math`\frac{q(q + ${1})}{${2}} = t_q`} with ${math`q = ${cm(q)}`}.`,
+      t`Complete the square to reach the form ${math`q(q + ${1})`}.`,
     ],
+    hints: [
+      t`With ${math`t_k = \frac{k(k + ${1})}{${2}}`}, what is ${math`${o.m * o.m}t_k + ${tri(o.j)}`} over a common denominator?`,
+      t`Which square of a linear expression in ${mk} matches the ${math`k^{${2}}`} and ${mk} terms of the numerator?`,
+      t`How can the numerator be written as ${math`Q^{${2}} + Q`} for a linear ${math`Q`} in ${mk}?`,
+    ],
+    nudge: t`Not quite. Complete the square in the numerator; checking a small case such as ${math`k = ${0}`} catches slips.`,
     reference: q,
     verify: () => {
       for (let k = 0; k <= 30; k++) {
@@ -188,9 +195,17 @@ const f = auto({
   title: t`Jordan's generalisation`,
   prompt: t`For all natural numbers ${mn} and ${mk} there is a natural number ${math`q`} with ${math`(${2}n + ${1})^{${2}} \cdot t_k + t_n = t_q`} (Jordan, ${1991}, attributed to Euler). Find ${math`q`} in terms of ${mn} and ${mk}.`,
   answer: { kind: 'expression', expected: '(2n + 1)k + n', variables: ['n', 'k'], domains: { n: { kind: 'integer', min: 0, max: 20 }, k: { kind: 'integer', min: 0, max: 20 } } },
+  hints: [
+    t`What is twice ${math`(${2}n + ${1})^{${2}} t_k + t_n`}, written out with ${math`t_k = \frac{k(k + ${1})}{${2}}`}?`,
+    t`Which linear expression in ${mk}, with ${mn} as a coefficient, has a square matching the ${math`k^{${2}}`} term?`,
+    t`What constant, in terms of ${mn}, must be added to that expression so that ${math`q(q + ${1})`} gives the whole of it?`,
+  ],
+  nudge: t`Not quite. Complete the square in ${mk}, and test the result at ${math`k = ${0}`}.`,
   solution: [
-    t`Part (e) gives the pattern: ${math`(${2}n + ${1})^{${2}}`} is ${9}, ${25}, ${49}, ${81} for ${math`n = ${1}, ${2}, ${3}, ${4}`}, and ${math`q`} was ${math`${3}k + ${1}`}, ${math`${5}k + ${2}`}, ${math`${7}k + ${3}`}, ${math`${9}k + ${4}`}: so ${math`q = (${2}n + ${1})k + n`}.`,
-    t`Check by expanding: ${math`q(q + ${1}) = (${2}n + ${1})^{${2}}k(k + ${1}) + n(n + ${1})`}, so ${math`t_q = (${2}n + ${1})^{${2}}t_k + t_n`}. The official solution chooses ${math`q = ${2}nk + n + k`}, the same.`,
+    t`Twice the left side is ${math`(${2}n + ${1})^{${2}}k(k + ${1}) + n(n + ${1})`}.`,
+    t`Try ${math`q = (${2}n + ${1})k + n`}: ${math`q^{${2}} + q = (${2}n + ${1})^{${2}}k^{${2}} + (${2}n + ${1})(${2}n + ${1})k + n^{${2}} + n`}, which is the expression above.`,
+    t`So ${math`t_q = (${2}n + ${1})^{${2}}t_k + t_n`} with ${math`q = (${2}n + ${1})k + n = ${2}nk + n + k`}, the official solution's choice.`,
+    t`Match the leading terms with a square, then fix the constant.`,
   ],
   reference: '2nk + n + k',
   verify: () => {

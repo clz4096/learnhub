@@ -173,9 +173,16 @@ const focs71b = auto({
   title: t`Four names, second order`,
   prompt: t`Repeat with the order ${ml`("Gerald", ${8})`}, ${ml`("Alice", ${6})`}, ${ml`("Lucy", ${9})`}, ${ml`("Tobias", ${2})`}. What is the height of this tree, and why do the results differ?`,
   answer: { kind: 'exact', expected: String(height(build(ORDER2))) },
+  hints: [
+    t`Which name becomes the root?`,
+    t`Where does each later name go, comparing alphabetically at each node on the way down?`,
+    t`How many nodes lie on the longest path from the root?`,
+  ],
+  nudge: t`Not quite. Insert one name at a time from the root, comparing alphabetically at each node; the height counts the nodes on the longest path.`,
   solution: [
     t`Gerald is the root; Alice goes left; Lucy goes right; Tobias is after Gerald and after Lucy, so it goes right of Lucy.`,
     t`Height ${height(build(ORDER2))}. The same keys give different trees because the shape depends on the order of insertion: the first key is always the root.`,
+    t`The first key inserted is the root: insertion order fixes the shape.`,
   ],
   reference: '3',
   verify: () => same('height of the second tree', height(build(ORDER2)), 3) ?? same('same inorder', inorder(build(ORDER1)).join(), inorder(build(ORDER2)).join()),
@@ -186,6 +193,11 @@ const focs74 = supervision({
   source: cite('focs-notes', 'Lecture 7, Exercises 7.4 and 7.5'),
   title: t`Deleting from a binary search tree`,
   prompt: t`Describe an algorithm for deleting an entry from a binary search tree, covering a node with no subtrees, one, and two. Comment on the suitability of your approach, then code it.`,
+  hints: [
+    t`Which case is simplest, deleting a node with no subtrees, and what replaces it?`,
+    t`With exactly one subtree, what can take the deleted node's place?`,
+    t`With two subtrees, which entry, taken from which subtree, can replace the deleted one and keep the invariant?`,
+  ],
   writeUp: 'explanation',
 });
 const focs76 = supervision({
@@ -193,6 +205,11 @@ const focs76 = supervision({
   source: cite('focs-notes', 'Lecture 7, Exercise 7.6'),
   title: t`Traversals with append are quadratic`,
   prompt: t`Show that the functions ${ml`preorder`}, ${ml`inorder`}, and ${ml`postorder`}, which use ${ml`@`}, all require ${math`O(n^{${2}})`} time in the worst case, where ${math`n`} is the size of the tree. Give a worst-case tree and its cost recurrence.`,
+  hints: [
+    t`What does ${ml`xs @ ys`} cost, in terms of the length of ${ml`xs`}?`,
+    t`Which tree shape makes the list on the left of each ${ml`@`} as long as possible at every node?`,
+    t`What recurrence does the cost ${math`T(n)`} satisfy for that shape, and what does it sum to?`,
+  ],
   writeUp: 'proof',
 });
 const focs77 = supervision({
@@ -200,6 +217,11 @@ const focs77 = supervision({
   source: cite('focs-notes', 'Lecture 7, Exercise 7.7'),
   title: t`Traversals with an accumulator are linear`,
   prompt: t`Show that the functions ${ml`preord`}, ${ml`inord`}, and ${ml`postord`}, which take an accumulating list argument instead of using ${ml`@`}, all take linear time in the size of the tree.`,
+  hints: [
+    t`How many calls does each traversal make, counting nodes and empty subtrees?`,
+    t`How much work does each call do, apart from its recursive calls?`,
+    t`How does the number of empty subtrees compare with the number of nodes?`,
+  ],
   writeUp: 'proof',
 });
 const isBst = supervision({
@@ -207,6 +229,11 @@ const isBst = supervision({
   source: cite('cs3110-ex3', 'Exercise: is_bst'),
   title: t`Checking the invariant`,
   prompt: t`Write ${ml`is_bst : ('a * 'b) tree -> bool`}, which returns whether a tree satisfies the binary search tree invariant on its keys. Explain why checking that each node is greater than its left child and less than its right child is not enough.`,
+  hints: [
+    t`What does the invariant require of every key in the left subtree, not only of the left child?`,
+    t`Which small tree passes the parent and child comparison but breaks the invariant?`,
+    t`What extra information, such as bounds on the keys, must the recursive check carry down?`,
+  ],
   writeUp: 'explanation',
 });
 

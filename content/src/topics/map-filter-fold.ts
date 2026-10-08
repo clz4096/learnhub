@@ -214,10 +214,17 @@ const sco5 = auto({
   solution: [
     t`${ml`${0} -- ${5} |> List.filter (fun i -> i mod ${2} = ${1}) |> List.map (fun i -> i * i * i) |> List.fold_left ( + ) ${0}`}.`,
     t`The odd numbers are ${1}, ${3}, ${5}; their cubes add to ${math`${1} + ${27} + ${125} = ${sumCubeOdd(5)}`}.`,
+    t`A pipeline reads left to right: each stage runs on the output of the last.`,
   ],
   reference: String(sumCubeOdd(5)),
   verify: () => same('sum_cube_odd 5', sumCubeOdd(5), 153),
   misconceptions: [{ response: '9', why: t`That adds the odd numbers without cubing them.` }, { response: String(sumCubeOdd(5) + 64), why: t`${4} is even: its cube is filtered out.` }],
+  nudge: t`Not quite. Running the three stages by hand on the list from ${0} to ${5}, filter, then map, then fold, gives the value.`,
+  hints: [
+    t`Which numbers from ${0} to ${5} does the filter keep?`,
+    t`What does the map stage turn each of them into?`,
+    t`What does folding with ${ml`( + )`} from ${0} do to that list?`,
+  ],
 });
 
 const existsEx = supervision({
@@ -226,6 +233,11 @@ const existsEx = supervision({
   title: t`${ml`exists`} three ways`,
   prompt: t`${ml`exists p [a${1}; ...; an]`} is ${ml`(p a${1}) || ... || (p an)`}, and ${ml`false`} on the empty list. Write it three ways: ${ml`exists_rec`}, recursive without the ${ml`List`} module; ${ml`exists_fold`}, with ${ml`List.fold_left`} or ${ml`List.fold_right`} and no ${ml`rec`}; and ${ml`exists_lib`}, with other ${ml`List`} functions. Which stops early, and why?`,
   writeUp: 'explanation',
+  hints: [
+    t`What should ${ml`exists`} return on the empty list, and on ${ml`h :: t`} in terms of ${ml`p h`} and the rest?`,
+    t`With a fold, what value starts the accumulator, and how is each element combined with it?`,
+    t`Which of the three versions can return as soon as ${ml`p`} holds, without looking at the rest of the list, and why does a fold not?`,
+  ],
 });
 const mapComposition = supervision({
   id: 'cs3110-4-map-composition',
@@ -233,6 +245,11 @@ const mapComposition = supervision({
   title: t`One map instead of two`,
   prompt: t`Show how to replace any expression ${ml`List.map f (List.map g lst)`} by an equivalent one that calls ${ml`List.map`} only once, and prove the two are equal for every list by induction on the list.`,
   writeUp: 'proof',
+  hints: [
+    t`Which single function, applied to each element, does the work of ${ml`g`} followed by ${ml`f`}?`,
+    t`What do both sides give on the empty list?`,
+    t`For ${ml`h :: t`}, how does the definition of ${ml`List.map`} unfold on each side, and where does the induction hypothesis apply?`,
+  ],
 });
 const matrixMultiply = supervision({
   id: 'cs3110-4-matrix-multiply',
@@ -240,6 +257,11 @@ const matrixMultiply = supervision({
   title: t`Matrix multiplication with lists`,
   prompt: t`A matrix is an ${ml`int list list`} of rows. Write ${ml`multiply_matrices`}, using a transpose function and a dot product of row vectors, with ${ml`List.map`} in place of explicit loops. Explain which functional does which job.`,
   writeUp: 'explanation',
+  hints: [
+    t`Entry ${math`(i, j)`} of the product pairs row ${math`i`} of the first matrix with which part of the second?`,
+    t`How does transposing the second matrix turn its columns into rows?`,
+    t`Which ${ml`List.map`} goes over the rows of the first matrix, and which goes over the rows of the transpose?`,
+  ],
 });
 // Computer Science Tripos Part IA 2016, Paper 1, Question 1(b), in OCaml.
 const cst2016Zarg = supervision({
@@ -256,6 +278,11 @@ const cst2016Zarg = supervision({
     ...t`Show that with the help of this function it is possible to write an expression for the sum of a given list of integers. Then describe what ${ml`zarg`} does in general.`,
   ],
   writeUp: 'explanation',
+  hints: [
+    t`What does ${ml`zarg f (xs, e)`} return when ${ml`xs`} is empty, and what does it combine at each step otherwise?`,
+    t`With ${ml`f = fun (a, b) -> a + b`} and ${ml`e = ${0}`}, what does ${ml`zarg`} give on ${ml`[${1}; ${2}; ${3}]`}?`,
+    t`Which standard list function processes a list from the right in the same way?`,
+  ],
 });
 const focs83 = supervision({
   id: 'focs-8-3',
@@ -263,6 +290,11 @@ const focs83 = supervision({
   title: t`${ml`map${2}`} without ${ml`map`}`,
   prompt: t`Without using ${ml`map`}, write ${ml`map${2}`} such that ${ml`map${2} f`} is equivalent to ${ml`map (map f)`}. The obvious solution declares two recursive functions; try to use only one by nested pattern matching. State the type of ${ml`map${2}`}.`,
   writeUp: 'explanation',
+  hints: [
+    t`What is the type of ${ml`map (map f)`}, and what does it do to a list of lists?`,
+    t`With two recursive functions, one walks the outer list and one an inner list: what does each do?`,
+    t`How can a pattern that looks inside the first inner list, such as ${ml`(x :: xs) :: xss`}, let one function do both jobs?`,
+  ],
 });
 const focs84 = supervision({
   id: 'focs-8-4',
@@ -270,6 +302,11 @@ const focs84 = supervision({
   title: t`${ml`map`} for options`,
   prompt: t`The type ${ml`'a option = None | Some of 'a`} can be viewed as lists of at most one element. Declare an analogue of ${ml`map`} for ${ml`'a option`}, give its type, and explain the analogy.`,
   writeUp: 'explanation',
+  hints: [
+    t`What should the function return on ${ml`None`}?`,
+    t`On ${ml`Some x`}, what should it return?`,
+    t`In what sense is ${ml`None`} the empty list and ${ml`Some x`} a one-element list, and how does ${ml`map`} act on each?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

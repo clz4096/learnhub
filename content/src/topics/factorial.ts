@@ -190,11 +190,18 @@ const extent = (bells: number, id: string, at: string) => auto({
   id,
   source: cite('step-f12', at, true),
   title: t`An extent on ${bells} bells`,
-  prompt: t`In change ringing, a change is one ordering of the bells, and an extent rings every possible change exactly once. How many changes are in an extent on ${bells} bells?`,
+  prompt: t`In change ringing, a change is one ordering of the bells, and an extent rings every possible change exactly once. Find the number of changes in an extent on ${bells} bells.`,
   answer: { kind: 'exact', expected: String(factorial(bells)) },
   solution: [
-    t`The changes are the orderings of ${bells} different bells: ${bells} choices for the first position, ${bells - 1} for the second, and so on.`,
+    t`A change is an ordering of ${bells} different bells: ${bells} choices for the first position, ${bells - 1} for the second, and so on down to ${1}.`,
     t`So an extent has ${math`${bells}! = ${factorial(bells)}`} changes.`,
+    t`Orderings of all ${mn} different objects: ${math`n!`}.`,
+  ],
+  nudge: t`Not quite. Each bell rings exactly once in a change, so the choices shrink by one at each position.`,
+  hints: [
+    t`How many bells could ring first in a change?`,
+    t`Once the first bell is fixed, how many choices are left for the second position, and for the third?`,
+    t`Which product counts the orderings of ${bells} different objects?`,
   ],
   reference: String(factorial(bells)),
   verify: () => same(`an extent on ${bells} bells`, permutations(bells).length, factorial(bells)),
@@ -220,6 +227,11 @@ const gs316 = supervision({
   title: t`People around a round table`,
   prompt: t`In arranging people around a circular table, we take into account their seats relative to each other, not the actual position of any one person. Show that ${mn} people can be arranged around a circular table in ${math`(n - ${1})!`} ways.`,
   writeUp: 'proof',
+  hints: [
+    t`How many ways are there to seat ${mn} people in ${mn} numbered chairs around the table?`,
+    t`When do two seatings in numbered chairs give the same circular arrangement?`,
+    t`How many numbered seatings give each circular arrangement, and why are they all different?`,
+  ],
 });
 
 /** Every way of sending five people to five floors, as lists of floors 0 .. 4. */
@@ -238,9 +250,16 @@ const gs317 = auto({
   prompt: t`Five people get on an elevator that stops at five floors. Assuming that each has an equal probability of going to any one floor, find the probability that they all get off at different floors. Give a fraction in lowest terms.`,
   answer: { kind: 'exact', expected: str(ELEVATOR) },
   solution: [
-    t`The outcomes are the lists of floors, one for each person in order: each person has ${FLOORS} choices, so there are ${math`${FLOORS}^{${FLOORS}} = ${FLOORS ** FLOORS}`} equally likely lists.`,
-    t`All different means the five floors are used once each: the first person has ${FLOORS} choices, the next ${FLOORS - 1}, and so on, which is ${math`${FLOORS}! = ${factorial(FLOORS)}`} lists.`,
-    t`So the probability is ${math`\frac{${factorial(FLOORS)}}{${FLOORS ** FLOORS}} = ${ELEVATOR}`}.`,
+    t`Outcomes: lists of floors, one for each person in order. Each person has ${FLOORS} choices, so there are ${math`${FLOORS}^{${FLOORS}} = ${FLOORS ** FLOORS}`} equally likely lists.`,
+    t`All different: the first person has ${FLOORS} choices, the next ${FLOORS - 1}, and so on, ${math`${FLOORS}! = ${factorial(FLOORS)}`} lists.`,
+    t`Probability: ${math`\frac{${factorial(FLOORS)}}{${FLOORS ** FLOORS}} = ${ELEVATOR}`}.`,
+    t`Equally likely outcomes: count the good ones and divide by all of them.`,
+  ],
+  nudge: t`Not quite. Count whole lists of floors, one floor for each person, rather than following one person.`,
+  hints: [
+    t`How many equally likely lists of floors are there, one floor for each person?`,
+    t`In how many of those lists is every floor different?`,
+    t`How do the two counts give the probability, and does the fraction cancel?`,
   ],
   reference: str(ELEVATOR),
   verify: () => {
@@ -262,8 +281,15 @@ const gs3114a = auto({
   prompt: t`The door on the computer center has a lock which has five buttons numbered from ${1} to ${5}. The combination of numbers that opens the lock is a sequence of five numbers and is reset every week. How many combinations are possible if every button must be used once?`,
   answer: { kind: 'exact', expected: String(factorial(5)) },
   solution: [
-    t`Using every button once, a combination is an ordering of the ${5} buttons.`,
+    t`Every button used once: a combination is an ordering of the ${5} buttons.`,
     t`So there are ${math`${5}! = ${factorial(5)}`} combinations.`,
+    t`No repeats and every object used: an ordering, counted by a factorial.`,
+  ],
+  nudge: t`Not quite. Each button is used exactly once, so no button can appear twice.`,
+  hints: [
+    t`How many buttons could come first?`,
+    t`With every button used exactly once, how many choices are left for the second place?`,
+    t`Which product counts the orderings of ${5} different buttons?`,
   ],
   reference: String(factorial(5)),
   verify: () => same('orderings of 5 buttons', permutations(5).length, factorial(5)),
@@ -291,9 +317,16 @@ const step08Couples = auto({
   prompt: t`Three married couples sit down at a round table at which there are ${CHAIRS} chairs, numbered ${1} to ${CHAIRS} round the table, so that chairs ${CHAIRS} and ${1} are next to each other. In how many of the possible seatings of the ${CHAIRS} people does each husband sit next to his wife?`,
   answer: { kind: 'exact', expected: String(COUPLES_COUNT) },
   solution: [
-    t`Count a seating in three stages. First, the chairs that the couples share: a couple sits in two neighbouring chairs, so the ${CHAIRS} chairs are cut into ${COUPLES} pairs of neighbours. Going round the ring, chair ${1} is paired either with chair ${2} or with chair ${CHAIRS}, and once that pair is fixed the rest follow: ${math`\{${1}, ${2}\}, \{${3}, ${4}\}, \{${5}, ${6}\}`} or ${math`\{${2}, ${3}\}, \{${4}, ${5}\}, \{${6}, ${1}\}`}. That is ${2} ways.`,
-    t`Second, which couple has which pair of chairs: an ordering of the ${COUPLES} couples, ${math`${COUPLES}! = ${factorial(COUPLES)}`} ways. Third, within each pair, who sits on which chair: ${2} ways for each couple, so ${math`${2}^{${COUPLES}} = ${2 ** COUPLES}`}.`,
-    t`Each choice at one stage goes with every choice at the others, and different choices give different seatings, so the product rule gives ${math`${2} \times ${factorial(COUPLES)} \times ${2 ** COUPLES} = ${COUPLES_COUNT}`}. Out of all ${math`${CHAIRS}! = ${factorial(CHAIRS)}`} seatings that is the fraction ${q(COUPLES_COUNT, factorial(CHAIRS))}, the probability the question asks for.`,
+    t`Stage one, the pairs of chairs: each couple takes two neighbouring chairs, so the ${CHAIRS} chairs split into ${COUPLES} neighbouring pairs. Chair ${1} pairs with chair ${2} or with chair ${CHAIRS}, and the rest follow: ${math`\{${1}, ${2}\}, \{${3}, ${4}\}, \{${5}, ${6}\}`} or ${math`\{${2}, ${3}\}, \{${4}, ${5}\}, \{${6}, ${1}\}`}. That is ${2} ways.`,
+    t`Stage two, couples to pairs: ${math`${COUPLES}! = ${factorial(COUPLES)}`} ways. Stage three, each couple's order within its pair: ${math`${2}^{${COUPLES}} = ${2 ** COUPLES}`} ways.`,
+    t`Each choice at one stage goes with every choice at the others, and different choices give different seatings: ${math`${2} \times ${factorial(COUPLES)} \times ${2 ** COUPLES} = ${COUPLES_COUNT}`}. Out of ${math`${CHAIRS}! = ${factorial(CHAIRS)}`} seatings, that is the probability ${q(COUPLES_COUNT, factorial(CHAIRS))}.`,
+    t`Build the count in stages and multiply; check the stage where the ring closes.`,
+  ],
+  nudge: t`Not quite. Build a seating in stages and multiply, and check every stage, including where the ring closes.`,
+  hints: [
+    t`Which chairs can one couple occupy, given that chairs ${CHAIRS} and ${1} are next to each other?`,
+    t`Once the chairs are split into neighbouring pairs, how many ways are there to give the pairs to the couples, and to seat each couple within its pair?`,
+    t`In how many ways can the ring of ${CHAIRS} chairs be cut into neighbouring pairs, and how do the stages combine?`,
   ],
   reference: String(COUPLES_COUNT),
   verify: () => same('seatings with every couple side by side, listed', couplesTogether(), COUPLES_COUNT),

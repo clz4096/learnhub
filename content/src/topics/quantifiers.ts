@@ -266,6 +266,7 @@ const tmuaM = auto({
     t`(v) False: ${math`x = ${0}`}. (vi) True: ${math`x = ${1}`}.`,
     t`(vii) False: ${math`x^{${2}} + y^{${2}} - ${2}xy = (x - y)^{${2}}`}, which is ${0} when ${math`x = y`}. (viii) True: ${math`x = ${1}, y = ${0}`}.`,
     t`Each "for every" needs only one counterexample to fail; each "there exists" needs only one witness to hold.`,
+    t`One counterexample sinks "for every"; one witness proves "there exists".`,
   ],
   reference: TMUA_M.map((s) => TF(s.value)),
   verify: () => {
@@ -274,19 +275,31 @@ const tmuaM = auto({
     return same('TMUA M, each line by its witness or counterexample', ok, true);
   },
   misconceptions: [{ response: ['T', 'T', 'F', 'T', 'F', 'T', 'T', 'T'], why: t`For (i) and (vii), examples that work do not make "for every" true: one counterexample makes it false.` }],
+  nudge: t`Not quite. A "for every" line fails with one counterexample, and a "there exists" line holds with one witness: hunt for each.`,
+  hints: [
+    t`For each "for every" line, is there a single value that breaks it?`,
+    t`For each "there exists" line, is there a single value that makes it true?`,
+    t`For the line with ${math`x^{${2}} + y^{${2}} - ${2}xy`}, what does the expression factorise as, and when is it zero?`,
+  ],
 });
 
 const bop271 = auto({
   id: 'bop-2-7-1',
   source: cite('bop', 'Section 2.7, exercise 1'),
   title: t`Every real square is positive?`,
-  prompt: t`Write ${math`\forall x \in \mathbb{R}, x^{${2}} > ${0}`} as an English sentence in your head, and say whether it is true or false.`,
+  prompt: t`Write ${math`\forall x \in \mathbb{R}, x^{${2}} > ${0}`} as an English sentence, and say whether it is true or false.`,
   answer: { kind: 'choice', options: [{ id: 'true', label: t`True` }, { id: 'false', label: t`False` }], correct: 'false' },
-  solution: [t`"For every real number ${mx}, ${math`x^{${2}} > ${0}`}." It is false: ${0} is a real number, and ${math`${0}^{${2}} > ${0}`} is not true. One counterexample is enough.`],
+  solution: [t`"For every real number ${mx}, ${math`x^{${2}} > ${0}`}." It is false: ${0} is a real number, and ${math`${0}^{${2}} > ${0}`} is not true. One counterexample is enough.`, t`One counterexample is enough to make "for every" false.`],
   reference: 'false',
   verify: () => same('a real with x² ≤ 0', [-1, -0.5, 0, 0.5, 1].some((x) => !(x * x > 0)), true),
   misconceptions: [{ response: 'true', why: t`Check ${math`x = ${0}`}: ${math`${0}^{${2}} = ${0}`}, which is not greater than ${0}.` }],
   official: { source: cite('bop', 'Solutions, Section 2.7, exercise 1'), answer: 'false', agrees: true },
+  nudge: t`Not quite. A "for every" statement fails if a single real number breaks it; check the special values.`,
+  hints: [
+    t`What does the statement say in words?`,
+    t`Is there any real number whose square is not greater than ${0}?`,
+    t`What happens at the real number where ${math`x^{${2}}`} is smallest?`,
+  ],
 });
 
 const K = 13;
@@ -296,7 +309,7 @@ const prop21k = auto({
   title: t`A witness for ${math`k = ${K}`}`,
   prompt: t`Proposition ${21} says: for every positive integer ${mk} there are natural numbers ${math`i, j`} with ${math`${4} \cdot k = i^{${2}} - j^{${2}}`}. For ${math`k = ${K}`}, give a witness: natural numbers ${math`i`} and ${math`j`} with ${math`i^{${2}} - j^{${2}} = ${4 * K}`}.`,
   answer: { kind: 'witness', count: 2, names: ['i', 'j'], example: `i = ${K + 1}, j = ${K - 1}`, check: squaresCheck(K) },
-  solution: [t`The proof's witness is ${math`i = k + ${1} = ${K + 1}`}, ${math`j = k - ${1} = ${K - 1}`}: ${math`${(K + 1) ** 2} - ${(K - 1) ** 2} = ${4 * K}`}. Any other pair that works is right too.`],
+  solution: [t`The proof's witness is ${math`i = k + ${1} = ${K + 1}`}, ${math`j = k - ${1} = ${K - 1}`}: ${math`${(K + 1) ** 2} - ${(K - 1) ** 2} = ${4 * K}`}. Any other pair that works is right too.`, t`Factorising a difference of squares turns the search for a witness into two linear equations.`],
   reference: 'i = 14, j = 12',
   verify: () => {
     // Every pair of naturals up to 60 with i² − j² = 52; the proof's pair is among them.
@@ -306,6 +319,12 @@ const prop21k = auto({
   },
   misconceptions: [{ response: `i = ${K + 1}, j = ${K}`, why: t`${math`${K + 1}^{${2}} - ${K}^{${2}} = ${2 * K + 1}`}. The two numbers must be two apart.` }],
   official: { source: cite('cst-dm-notes', 'printed page 94, the notes\' proof'), answer: 'i = 14, j = 12', agrees: true },
+  nudge: t`Not quite. Factorise ${math`i^{${2}} - j^{${2}}`} as ${math`(i - j)(i + j)`}; two numbers two apart work neatly.`,
+  hints: [
+    t`How does ${math`i^{${2}} - j^{${2}}`} factorise?`,
+    t`If ${math`i - j = ${2}`}, what must ${math`i + j`} be for the product to equal ${4 * K}?`,
+    t`Which ${math`i`} and ${math`j`} does that give?`,
+  ],
 });
 
 const N22 = 1000;
@@ -316,20 +335,31 @@ const prop22 = auto({
   title: t`Between two powers of ${2}`,
   prompt: t`Proposition ${22}: for every positive integer ${mn} there is a natural number ${math`l`} with ${math`${2}^{l} \le n < ${2}^{l + ${1}}`}. Give the witness ${math`l`} for ${math`n = ${N22}`}.`,
   answer: { kind: 'witness', count: 1, names: ['l'], example: `l = ${L22}`, check: powersCheck(N22) },
-  solution: [t`${math`${2}^{${L22}} = ${2 ** L22} \le ${N22} < ${2 ** (L22 + 1)} = ${2}^{${L22 + 1}}`}, so ${math`l = ${L22}`}: the notes' witness ${math`\lfloor \log_{${2}} ${N22} \rfloor`}.`],
+  solution: [t`${math`${2}^{${L22}} = ${2 ** L22} \le ${N22} < ${2 ** (L22 + 1)} = ${2}^{${L22 + 1}}`}, so ${math`l = ${L22}`}: the notes' witness ${math`\lfloor \log_{${2}} ${N22} \rfloor`}.`, t`The witness is ${math`\lfloor \log_{${2}} n \rfloor`}, the exponent of the largest power of ${2} not above ${mn}.`],
   reference: `l = ${L22}`,
   // By repeated doubling, not by the logarithm.
   verify: () => { let l = 0; while (2 ** (l + 1) <= N22) l++; return same('the power of 2 below 1000', l, 9); },
   misconceptions: [{ response: `l = ${L22 + 1}`, why: t`${math`${2}^{${L22 + 1}} = ${2 ** (L22 + 1)}`} is more than ${N22}.` }],
+  nudge: t`Not quite. Double from ${1} until the next doubling would pass ${N22}.`,
+  hints: [
+    t`What are the powers of ${2} up to about ${N22}?`,
+    t`Which is the largest power of ${2} that is at most ${N22}?`,
+    t`Is the next power of ${2} greater than ${N22}?`,
+  ],
 });
 
 const prop18 = supervision({
   id: 'notes-72-prop18',
   source: cite('cst-dm-notes', 'printed page 72, Proposition 18'),
   title: t`A congruence for every ${mn}`,
-  prompt: t`Fix a positive integer ${math`m`}. Prove: for integers ${math`a`} and ${math`b`}, ${math`a \equiv b \pmod{m}`} if, and only if, for all positive integers ${mn}, ${math`n \cdot a \equiv n \cdot b \pmod{n \cdot m}`}. (${math`a \equiv b \pmod{m}`} means ${math`m \mid (a - b)`}.) Say where you let ${mn} be arbitrary, and where you use the "for all" assumption by choosing a value.`,
+  prompt: t`Fix a positive integer ${math`m`}. Prove: for integers ${math`a`} and ${math`b`}, ${math`a \equiv b \pmod{m}`} if, and only if, for all positive integers ${mn}, ${math`n \cdot a \equiv n \cdot b \pmod{n \cdot m}`}. (${math`a \equiv b \pmod{m}`} means ${math`m \mid (a - b)`}.) State where ${mn} is taken to be arbitrary, and where the "for all" assumption is used by choosing a value.`,
   writeUp: 'proof',
   official: cite('cst-dm-notes', 'printed page 73, the notes\' proof'),
+  hints: [
+    t`For one direction, if ${math`m`} divides ${math`a - b`}, why does ${math`nm`} divide ${math`n(a - b)`} for every positive ${mn}?`,
+    t`For the other, which single value of ${mn} turns the assumption into ${math`a \equiv b \pmod{m}`}?`,
+    t`Which direction introduces an arbitrary ${mn}, and which chooses one?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

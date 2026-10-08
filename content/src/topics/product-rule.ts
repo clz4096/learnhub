@@ -291,11 +291,18 @@ const a7Five = auto({
   solution: [
     t`Each weight is in or out, so ${5} weights give at most ${math`${2}^{${5}} = ${2 ** 5}`} loads, counting zero: exactly enough for ${0} to ${31}, with no load made twice.`,
     t`So the weights are the powers of ${2}: ${listOf([1, 2, 4, 8, 16])}. Each load is its binary number: ${31} is ${math`${16} + ${8} + ${4} + ${2} + ${1}`}.`,
+    t`Count the possibilities first; when they only just fit, the structure is forced.`,
   ],
   reference: '16, 8, 4, 2, 1',
   verify: () => weighsAll([1n, 2n, 4n, 8n, 16n].map((n) => ({ num: n, den: 1n })), 5, 31, 1),
   misconceptions: [{ response: '1, 2, 3, 4, 5', why: t`Those repeat loads and reach only ${math`${1} + ${2} + ${3} + ${4} + ${5} = ${15}`}. Each weight should double the range: ${listOf([1, 2, 4])}, and so on.` }],
   official: { source: cite('step-f07-hints', 'Q4(i)(b)'), answer: '1, 2, 4, 8, 16', agrees: true },
+  nudge: t`Not quite. Each weight is either in or out; count how many loads ${5} weights could make at most.`,
+  hints: [
+    t`With each weight in the pan or out, how many different selections do ${5} weights give?`,
+    t`For every load from ${1} to ${31} to appear, can any two selections give the same load?`,
+    t`Which choice of weights makes every selection give a different total?`,
+  ],
 });
 
 const a7TwoPans = auto({
@@ -306,11 +313,18 @@ const a7TwoPans = auto({
   answer: { kind: 'witness', count: 2, unordered: true, example: '1, 3', check: (v) => weighsAll(v, 2, 4, 2) },
   solution: [
     t`With ${1} and ${3}: ${1} and ${3} alone, ${math`${1} + ${3} = ${4}`} in the same pan, and ${math`${3} - ${1} = ${2}`} with the ${1} in the pan with the load.`,
+    t`A weight beside the load subtracts: two pans give differences as well as sums.`,
   ],
   reference: '3, 1',
   verify: () => weighsAll([{ num: 1n, den: 1n }, { num: 3n, den: 1n }], 2, 4, 2),
   misconceptions: [{ response: '1, 2', why: t`With ${1} and ${2} the largest load is ${3}. Use the second pan: a ${3} with the ${1} on either side gives ${2} and ${4}.` }],
   official: { source: cite('step-f07-hints', 'Q4(ii)(a)'), answer: '1, 3', agrees: true },
+  nudge: t`Not quite. A weight in the same pan as the load subtracts, so a difference of two weights is available too.`,
+  hints: [
+    t`With weights in both pans, which loads can two weights ${math`a`} and ${math`b`} measure?`,
+    t`Which of those loads must equal ${1}, ${2}, ${3}, and ${4}?`,
+    t`Which pair ${math`a < b`} makes ${math`\{a, b, b - a, a + b\}`} the set of those four loads?`,
+  ],
 });
 
 const a7Forty = auto({
@@ -322,11 +336,18 @@ const a7Forty = auto({
   solution: [
     t`Each weight has ${3} positions (left, right, out), so ${4} weights have ${math`${3}^{${4}} = ${81}`} placements. Leave out the empty one and pair each placement with its mirror image: at most ${math`\frac{${81} - ${1}}{${2}} = ${40}`} loads.`,
     t`The powers of ${3} reach all of them: ${listOf([1, 3, 9, 27])}, which total ${40}.`,
+    t`Count the placements, halve for mirror images, and choose weights so that no two placements agree.`,
   ],
   reference: '1, 3, 9, 27',
   verify: () => weighsAll([1n, 3n, 9n, 27n].map((n) => ({ num: n, den: 1n })), 4, 40, 2),
   misconceptions: [{ response: '1, 2, 4, 8', why: t`Powers of ${2} reach only ${15}, even with two pans. With weights on both sides each weight has ${3} positions, so use powers of ${3}.` }],
   official: { source: cite('step-f07-hints', 'Q4(ii)(c)'), answer: '1, 3, 9, 27', agrees: true },
+  nudge: t`Not quite. Each weight now has three positions; count how many different loads ${4} weights could make at most.`,
+  hints: [
+    t`How many positions does each weight have when both pans can be used?`,
+    t`How many placements do ${4} weights have, and at most how many different positive loads, pairing each placement with its mirror image?`,
+    t`Which choice of weights makes every placement give a different load, so that none is wasted?`,
+  ],
 });
 
 const a7ThreeWays = auto({
@@ -338,6 +359,7 @@ const a7ThreeWays = auto({
   solution: [
     t`Each weight is a step with ${3} choices, so by the product rule there are ${math`${3}^n`} placements.`,
     t`That bounds the loads by ${math`${3}^n`}, zero included. The hints go further: leave out the empty placement and pair each placement with its mirror image, which weighs the same, to get at most ${math`\frac{${3}^n - ${1}}{${2}}`} loads.`,
+    t`${math`n`} independent steps with ${math`k`} choices each give ${math`k^{n}`} outcomes.`,
   ],
   reference: '3^n',
   verify: () => {
@@ -349,6 +371,12 @@ const a7ThreeWays = auto({
   },
   misconceptions: [{ response: '2^n', why: t`That is one pan. With two pans each weight has ${3} positions: left, right, or out.` }],
   official: { source: cite('step-f07-hints', 'Q4(ii)(b)'), answer: '3^n', agrees: true },
+  nudge: t`Not quite. With two pans, each weight has three possible positions, not two.`,
+  hints: [
+    t`How many positions can one weight take?`,
+    t`Are the choices for different weights independent of each other?`,
+    t`What does the product rule give for ${math`n`} weights?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

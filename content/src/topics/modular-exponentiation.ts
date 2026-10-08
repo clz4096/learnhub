@@ -163,11 +163,18 @@ const totd341 = auto({
   solution: [
     t`${math`${2}^{${10}} = ${1024} = ${3} \times ${341} + ${1}`}, so ${math`${2}^{${10}} \equiv ${1} \pmod{${341}}`}, and ${math`${2}^{${340}} = (${2}^{${10}})^{${34}} \equiv ${1}`}.`,
     t`Yet ${math`${341} = ${11} \times ${31}`}. So ${math`a^{m - ${1}} \equiv ${1}`} does not prove ${mm} prime: the converse of Fermat's little theorem is false.`,
+    t`Find a small power that is ${1}, then cut the exponent down.`,
   ],
   reference: String(powMod(2, 340, 341)),
   verify: () => same('340 multiplications, and a factor', [powModSlow(2, 340, 341), 341 % 11].join(), '1,0'),
   misconceptions: [{ response: '0', why: t`${2} and ${341} share no factor, so no power of ${2} is a multiple of ${341}.` }],
   official: { source: cite('cst-dm-notes', 'printed page 132, the Theorem of the Day sheet'), answer: '1', agrees: true },
+  nudge: t`Not quite. A small power of ${2} is congruent to ${1} modulo ${341}; finding it makes the rest immediate.`,
+  hints: [
+    t`What is ${math`${2}^{${10}}`}, and what is it modulo ${341}?`,
+    t`How is ${math`${2}^{${340}}`} written as a power of ${math`${2}^{${10}}`}?`,
+    t`What does that power reduce to modulo ${341}?`,
+  ],
 });
 
 const witness341 = upTo(340).find((i) => i >= 2 && powMod(i, 341, 341) !== i % 341) as number;
@@ -180,10 +187,17 @@ const btw341 = auto({
   solution: [
     t`${math`${2}^{${341}} = ${2} \cdot ${2}^{${340}} \equiv ${2}`}, so ${2} is no witness. By repeated squaring, ${math`${3}^{${341}} \equiv ${powMod(3, 341, 341)} \pmod{${341}}`}, which is not ${3}.`,
     t`So ${math`i = ${witness341}`} shows ${341} is not prime, by Fermat's little theorem, without finding a factor.`,
+    t`One failing base proves a number composite, with no factor in sight.`,
   ],
   reference: String(witness341),
   verify: () => same('the first i with i^341 not congruent to i, by slow powers', upTo(20).find((i) => i >= 2 && powModSlow(i, 341, 341) !== i), 3),
   misconceptions: [{ response: '2', why: t`${math`${2}^{${341}} \equiv ${2} \pmod{${341}}`}: ${2} passes the test although ${341} is composite. Try the next ${math`i`}.` }],
+  nudge: t`Not quite. Test each candidate in turn by repeated squaring, starting from the integer after ${2}.`,
+  hints: [
+    t`What does ${math`i^{m} \equiv i \pmod{m}`} say about every ${math`i`} when ${mm} is prime?`,
+    t`How can ${math`i^{${341}} \bmod ${341}`} be found with a handful of squarings in place of ${340} multiplications?`,
+    t`For the next candidate after ${2}, what is ${math`i^{${341}} \bmod ${341}`}?`,
+  ],
 });
 
 const sheet225why = supervision({
@@ -193,6 +207,11 @@ const sheet225why = supervision({
   prompt: t`${math`${2}^{${153}} \equiv ${53} \pmod{${153}}`}. At first sight this seems to contradict Fermat's little theorem. Explain why it does not. Then redo the calculation as the official solution does, replacing subexpressions by known congruences (${math`${153} = ${128} + ${25}`}), and say which properties of congruence from exercise ${2}.${1}.${2} each step uses.`,
   writeUp: 'explanation',
   official: cite('cst-dm-sols-2324-2', '2.2.5'),
+  hints: [
+    t`Which hypothesis does Fermat's little theorem place on the modulus?`,
+    t`Is ${153} prime?`,
+    t`With ${math`${2}^{${7}} = ${128} \equiv -${25} \pmod{${153}}`}, how can ${math`${2}^{${153}}`} be built from congruences already known?`,
+  ],
 });
 const costWhy = supervision({
   id: 'squaring-cost',
@@ -200,6 +219,11 @@ const costWhy = supervision({
   title: t`Why repeated squaring is fast`,
   prompt: t`Diffie-Hellman needs ${math`c^{a} \bmod p`} for exponents ${math`a`} with hundreds of digits. Explain why multiplying by ${math`c`} ${math`a`} times is hopeless, and why repeated squaring needs at most about ${math`${2}\log_{${2}} a`} multiplications. Why must every intermediate result be reduced mod ${math`p`}?`,
   writeUp: 'explanation',
+  hints: [
+    t`If ${math`a`} has hundreds of digits, roughly how large is ${math`a`}, and how long would ${math`a`} multiplications take?`,
+    t`How do the binary digits of ${math`a`} show which of ${math`c, c^{${2}}, c^{${4}}, \ldots`} to multiply together?`,
+    t`Without reduction mod ${math`p`}, how many digits would ${math`c^{a}`} have?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

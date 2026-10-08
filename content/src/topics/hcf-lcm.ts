@@ -171,6 +171,13 @@ const a10lcm = auto({
   solution: [
     t`Take the higher power of each prime: ${math`${2}^{${4}} \times ${3}^{${3}} \times ${5}^{${2}} \times ${7}^{${2}} \times ${11}`}.`,
     t`That is ${math`${16} \times ${27} \times ${25} \times ${49} \times ${11} = ${5821200}`}. Check: ${math`${360} \times ${5821200} = ${39600} \times ${52920}`}.`,
+    t`LCM: the higher power of each prime; HCF times LCM is the product of the two numbers.`,
+  ],
+  nudge: t`Not quite. The LCM takes the higher power of each prime; check every prime that appears in either number.`,
+  hints: [
+    t`Which primes appear in either factorisation?`,
+    t`For each prime, which of the two powers must a common multiple contain?`,
+    t`What is the product of those prime powers, and does HCF times LCM give ${math`${39600} \times ${52920}`}?`,
   ],
   reference: '5821200',
   verify: () => same('LCM by HCF', (39600 * 52920) / gcd(39600, 52920), 5821200),
@@ -195,8 +202,13 @@ const ns2q8 = supervision({
   id: 'ns2-q8',
   source: cite('ia-ns-sheet-2', 'Q8', true),
   title: t`Highest common factors of products`,
-  prompt: t`Let ${math`a, b, c, d`} be positive integers. Must the numbers ${math`\text{HCF}(a, b) \cdot \text{HCF}(c, d)`} and ${HCF('ac', 'bd')} be equal? If not, must one be a factor of the other? If ${math`\text{HCF}(a, b) = \text{HCF}(a, c) = ${1}`}, must we have ${math`\text{HCF}(a, bc) = ${1}`}? Prove each answer, or give a counterexample.`,
+  prompt: t`Let ${math`a, b, c, d`} be positive integers. Must the numbers ${math`\text{HCF}(a, b) \cdot \text{HCF}(c, d)`} and ${HCF('ac', 'bd')} be equal? If not, must one be a factor of the other? If ${math`\text{HCF}(a, b) = \text{HCF}(a, c) = ${1}`}, must ${math`\text{HCF}(a, bc)`} be ${1}? Prove each answer, or give a counterexample.`,
   writeUp: 'proof',
+  hints: [
+    t`For the first question, which small values of ${math`a, b, c, d`} are worth testing?`,
+    t`Prime by prime, how does ${math`\min(a_{p}, b_{p}) + \min(c_{p}, d_{p})`} compare with ${math`\min(a_{p} + c_{p}, b_{p} + d_{p})`}?`,
+    t`If a prime divides both ${math`a`} and ${math`bc`}, what must it divide, by unique factorisation?`,
+  ],
 });
 
 /** Searches every a, b, c, d up to n: does the product of HCFs always divide the HCF of products, and coprimality pass to bc? */
@@ -228,6 +240,13 @@ const ns2q8Witness = auto({
     t`Make ${math`a`} and ${math`d`} share a factor that neither pair sees: ${math`a = d = ${2}`} and ${math`b = c = ${1}`}.`,
     t`Then ${math`\text{HCF}(${2}, ${1}) \cdot \text{HCF}(${1}, ${2}) = ${1}`}, but ${math`\text{HCF}(${2}, ${2}) = ${2}`}.`,
     t`In general the left side divides the right side, but the right side can be larger.`,
+    t`To refute an identity, find a factor one side sees and the other cannot.`,
+  ],
+  nudge: t`Not quite. Try small numbers where ${math`a`} and ${math`d`} share a factor that the pairs do not.`,
+  hints: [
+    t`Which common factors can ${math`\text{HCF}(a, b)`} and ${math`\text{HCF}(c, d)`} detect, and which can ${math`\text{HCF}(ac, bd)`} detect?`,
+    t`If ${math`a`} and ${math`d`} share a prime that ${math`b`} and ${math`c`} lack, what happens to each side?`,
+    t`What is the smallest choice of four numbers that does this?`,
   ],
   reference: 'a = 2, b = 1, c = 1, d = 2',
   verify: () => {
@@ -251,6 +270,13 @@ const sw312 = auto({
     t`Factorising each number fully into primes would be slow. Look at the digits instead: each number repeats a block of two digits four times, so ${math`${BIG_A} = ${21} \times ${BLOCK}`} and ${math`${BIG_B} = ${12} \times ${BLOCK}`}.`,
     t`Prime by prime, the power of a prime in ${math`${21} \times ${BLOCK}`} is its power in ${21} plus its power in ${BLOCK}, and likewise for ${math`${12} \times ${BLOCK}`}. The HCF takes the lower of the two powers, and the lower of ${math`\alpha + \gamma`} and ${math`\beta + \gamma`} is the lower of ${math`\alpha`} and ${math`\beta`}, plus ${math`\gamma`}. So the shared factor ${BLOCK} comes out whole: the HCF is ${math`\text{HCF}(${21}, ${12}) \times ${BLOCK}`}.`,
     t`${math`${21} = ${3} \times ${7}`} and ${math`${12} = ${2}^{${2}} \times ${3}`}, so ${math`\text{HCF}(${21}, ${12}) = ${gcd(21, 12)}`}, and the answer is ${math`${gcd(21, 12)} \times ${BLOCK} = ${BIG_HCF}`}.`,
+    t`Look for structure in the digits before computing.`,
+  ],
+  nudge: t`Not quite. Look at the pattern of digits before reaching for a factorisation.`,
+  hints: [
+    t`Which repeated block of digits makes up each number?`,
+    t`How can each number be written as a two-digit number times a common factor?`,
+    t`What is the HCF of the two-digit numbers, and how does the common factor carry through?`,
   ],
   reference: String(BIG_HCF),
   verify: () => same('the HCF by Euclid\'s algorithm', gcd(BIG_A, BIG_B), BIG_HCF),

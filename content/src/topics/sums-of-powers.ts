@@ -128,6 +128,11 @@ const a17sup = supervision({
   source: cite(F17, 'Assignment 17, Q3'),
   title: t`The whole STEP question`,
   prompt: t`(${2003} STEP I, Question ${1}.) It is given that ${math`\sum_{r = -${1}}^{n} r^{${2}}`} can be written in the form ${math`pn^{${3}} + qn^{${2}} + rn + s`}. By setting ${math`n = -${1}, ${0}, ${1}, ${2}`}, obtain four equations for ${math`p, q, r, s`} and hence show that ${math`\sum_{r = ${0}}^{n} r^{${2}} = \frac{${1}}{${6}}n(n + ${1})(${2}n + ${1})`}. Given that ${math`\sum_{r = -${2}}^{n} r^{${3}}`} can be written as ${math`an^{${4}} + bn^{${3}} + cn^{${2}} + dn + e`}, show similarly that ${math`\sum_{r = ${0}}^{n} r^{${3}} = \frac{${1}}{${4}}n^{${2}}(n + ${1})^{${2}}`}.`,
+  hints: [
+    t`Substituting ${math`n = -${1}, ${0}, ${1}, ${2}`} into ${math`\sum_{r = -${1}}^{n} r^{${2}}`}, what are the four sums?`,
+    t`Solving the four linear equations, what are ${math`p, q, r, s`}, and how does the sum from ${math`r = ${0}`} differ from the sum from ${math`r = -${1}`}?`,
+    t`For the cubes, which five values of ${mn} give equations for ${math`a`} to ${math`e`}, and what do the terms ${math`r = -${2}`} and ${math`r = -${1}`} contribute?`,
+  ],
   writeUp: 'proof',
   official: cite(F17H, 'Assignment 17, Q3'),
 });
@@ -136,7 +141,12 @@ const a20sup = supervision({
   id: 'a20-q2-b',
   source: cite('step-f20', 'Assignment 20, Q2(b)'),
   title: t`Cubes by induction`,
-  prompt: t`Use induction to prove that ${math`\sum_{i = ${1}}^{n} i^{${3}} = \frac{${1}}{${4}}n^{${2}}(n + ${1})^{${2}}`} for ${math`n \ge ${1}`}. When you consider the case ${math`n = k + ${1}`}, write down what you are required to prove, and factorise rather than expand.`,
+  prompt: t`Use induction to prove that ${math`\sum_{i = ${1}}^{n} i^{${3}} = \frac{${1}}{${4}}n^{${2}}(n + ${1})^{${2}}`} for ${math`n \ge ${1}`}. For the case ${math`n = k + ${1}`}, write down what is required, and factorise rather than expand.`,
+  hints: [
+    t`What does the base case ${math`n = ${1}`} say?`,
+    t`Assuming the formula for ${math`n = k`}, what must be shown for ${math`n = k + ${1}`}?`,
+    t`Adding ${math`(k + ${1})^{${3}}`} to ${math`\frac{${1}}{${4}}k^{${2}}(k + ${1})^{${2}}`}, which factor comes out, and what square is left?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f20-hints', 'Assignment 20, Q2(b)'),
 });
@@ -169,10 +179,17 @@ const nstSE1 = auto({
   source: cite('nst-workbook', 'Section 2, Series, SE1'),
   title: t`A sum of ${math`r(r^{${2}} + ${2})`}`,
   prompt: t`Sum the series ${math`\sum_{r = ${1}}^{n} r(r^{${2}} + ${2})`}, as a formula in ${mn}.`,
+  nudge: t`Not quite. Split the term into ${math`r^{${3}}`} and ${math`${2}r`} and use the two known sums.`,
+  hints: [
+    t`What is ${math`r(r^{${2}} + ${2})`} multiplied out?`,
+    t`What are ${math`\sum r^{${3}}`} and ${math`\sum r`} in closed form?`,
+    t`Which common factor tidies the total?`,
+  ],
   answer: { kind: 'expression', expected: 'n*(n + 1)*(n^2 + n + 4)/4', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 30 } } },
   solution: [
     t`${math`r(r^{${2}} + ${2}) = r^{${3}} + ${2}r`}, so the sum is ${math`\frac{n^{${2}}(n + ${1})^{${2}}}{${4}} + ${2} \cdot \frac{n(n + ${1})}{${2}}`}.`,
     t`Take out ${math`\frac{n(n + ${1})}{${4}}`}: ${math`\frac{n(n + ${1})}{${4}}\left(n(n + ${1}) + ${4}\right) = \frac{n(n + ${1})(n^{${2}} + n + ${4})}{${4}}`}.`,
+    t`Split into known sums, then factor out what they share.`,
   ],
   reference: 'n(n + 1)(n^2 + n + 4)/4',
   verify: () => {

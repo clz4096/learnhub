@@ -184,10 +184,17 @@ const q9a = auto({
   source: cite(S1, 'Q9', true),
   title: t`Voting the same way twice`,
   prompt: t`Parliament contains a proportion ${math`p`} of Labour members, who never change their minds, and a proportion ${math`${1} - p`} of Conservative members, who change their minds completely at random, with probability ${math`r`}, between successive votes on the same issue. A member is chosen at random. What is the probability that they vote the same way twice in succession? Give an expression in ${math`p`} and ${math`r`}.`,
+  nudge: t`Not quite. Split by party, find the chance of agreeing within each, and weight by the party sizes.`,
+  hints: [
+    t`Which partition of the members makes the two votes easy to compare?`,
+    t`Given a Labour member, and given a Conservative member, what is the probability that the two votes agree?`,
+    t`How does the law of total probability combine those two conditional probabilities?`,
+  ],
   answer: { kind: 'expression', expected: 'p + (1 - p)*(1 - r)', variables: ['p', 'r'], domains: P_DOM },
   solution: [
     t`Partition by party: Labour with probability ${math`p`}, Conservative with ${math`${1} - p`}. Given Labour, the two votes agree for certain; given Conservative, they agree when the member does not change, probability ${math`${1} - r`}.`,
     t`Total probability: ${math`p \cdot ${1} + (${1} - p)(${1} - r)`}.`,
+    t`Condition on the case that settles the behaviour, then weight and add.`,
   ],
   reference: 'p + (1 - p)(1 - r)',
   verify: () => {
@@ -208,6 +215,11 @@ const q8explain = supervision({
   source: cite(S1, 'Q8'),
   title: t`Which probabilities are which?`,
   prompt: t`In Q${8}, explain why the four probabilities ${OVERALL[0] as Rational}, ${OVERALL[1] as Rational}, ${OVERALL[2] as Rational}, ${OVERALL[3] as Rational} must be for all candidates, not for those who read the rubric correctly, and compute the readers' full distribution over the four classes. Check that it is a probability distribution.`,
+  hints: [
+    t`If the given probabilities were for readers only, how would the probabilities for misreaders and the overall ones be related?`,
+    t`With ${math`M`} the event of misreading, what does total probability give for each class, in terms of the readers' unknown probability?`,
+    t`After solving for each class, are the four values non-negative, and do they add to ${1}?`,
+  ],
   writeUp: 'explanation',
 });
 const totalProof = supervision({
@@ -215,6 +227,11 @@ const totalProof = supervision({
   source: cite('tripos-schedules', 'IA Probability, Axiomatic approach: "Conditional probability, Bayes\'s formula"', true),
   title: t`The law, for a countable partition`,
   prompt: t`Let ${math`B_{${1}}, B_{${2}}, \ldots`} be a countable partition of ${math`\Omega`} into events with ${math`\mathbb{P}(B_{i}) > ${0}`}. Prove that ${math`\mathbb{P}(A) = \sum_{i} \mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i})`} for every event ${mA}. Which axiom is used, and what changes if some ${math`\mathbb{P}(B_{i}) = ${0}`}?`,
+  hints: [
+    t`Why are the events ${math`A \cap B_{i}`} pairwise disjoint, with union ${mA}?`,
+    t`Which axiom turns the probability of that union into a sum?`,
+    t`How is each ${math`\mathbb{P}(A \cap B_{i})`} written with a conditional probability, and what goes wrong when ${math`\mathbb{P}(B_{i}) = ${0}`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -289,9 +306,10 @@ export const totalProbability: TopicContent = {
     'ia-q8-reading': { sections: ['The law', 'More than two cases'], note: t`Which probabilities are for whom, by the law` },
     'ia-q9-same-twice': { sections: ['The law'], note: t`A probability by conditioning on the party` },
   }),
-  // Best first: the readers' full distribution with its explanation, then the voting question.
-  // The countable-partition proof comes from the schedule, not a gate document.
-  gate: ['ia-q8-reading', 'ia-q9-same-twice'],
+  // The voting question. The readers' full distribution stays practice: the worked example
+  // ia-q8-a works one of its classes by the same method. The countable-partition proof comes
+  // from the schedule, not a gate document.
+  gate: ['ia-q9-same-twice'],
   recall: [
     { front: t`State the law of total probability.`, back: t`For a partition ${math`B_{${1}}, B_{${2}}, \ldots`} with ${math`\mathbb{P}(B_{i}) > ${0}`}: ${math`\mathbb{P}(A) = \sum_{i} \mathbb{P}(A \mid B_{i})\mathbb{P}(B_{i})`}.` },
     { front: t`What is a partition of ${math`\Omega`}?`, back: t`Pairwise disjoint events whose union is ${math`\Omega`}: exactly one of them happens.` },

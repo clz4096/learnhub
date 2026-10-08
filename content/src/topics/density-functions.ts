@@ -197,9 +197,16 @@ const q2a = auto({
   title: t`The same density: the value of ${math`a`}`,
   prompt: t`${q2prompt} Find the numerical value of ${math`a`}.`,
   answer: { kind: 'exact', expected: '2/3' },
+  hints: [
+    t`What do the continuity conditions at ${math`${2}k`} and ${math`${4}k`} say?`,
+    t`Combining them, what is ${math`a`} in terms of ${math`\ln k`}?`,
+    t`What does the total area of ${1} give for ${math`\ln k`}?`,
+  ],
+  nudge: t`Not quite. Use continuity at both joins to link ${math`a`} with ${math`\ln k`}, then the total area to find ${math`k`}.`,
   solution: [
     t`Continuity at ${math`${2}k`} and ${math`${4}k`} gives ${math`a = ${2}\ln k`}, and the total area gives ${math`\ln k = \frac{${1}}{${3}}`}.`,
     t`So ${math`a = ${q(2, 3)}`}.`,
+    t`Continuity links the constants; the total area fixes the last one.`,
   ],
   reference: '2/3',
   verify: () => near('a = 2 ln k with k = e^(1/3)', aq2, 2 / 3, 1e-12),
@@ -216,9 +223,16 @@ const q2b = auto({
   title: t`The same density: the value of ${math`b`}`,
   prompt: t`${q2prompt} Find the numerical value of ${math`b`}, in terms of ${math`e`}.`,
   answer: { kind: 'expression', expected: 'e^(-1/3)/6', variables: [] },
+  hints: [
+    t`What does continuity at ${math`x = ${4}k`} give?`,
+    t`What are ${math`a`} and ${math`k`}, from the other conditions?`,
+    t`In terms of ${math`e`}, what does ${math`b`} become?`,
+  ],
+  nudge: t`Not quite. Use continuity at ${math`${4}k`}, and divide by ${math`k`} carefully: it puts a power of ${math`e`} in the denominator.`,
   solution: [
-    t`Continuity gives ${math`b = \frac{\ln k}{${2}k}`}, and ${math`k = e^{${1}/${3}}`}.`,
-    t`So ${math`b = \frac{${1}/${3}}{${2}e^{${1}/${3}}} = \frac{${1}}{${6}}e^{-${1}/${3}} \approx ${Number(bq2.toFixed(4))}`}.`,
+    t`Continuity at ${math`${4}k`}: ${math`a - ${4}kb = ${0}`}, so ${math`b = \frac{a}{${4}k}`}.`,
+    t`With ${math`a = ${q(2, 3)}`} and ${math`k = e^{${1}/${3}}`}: ${math`b = \frac{${2}/${3}}{${4}e^{${1}/${3}}} = \frac{${1}}{${6}}e^{-${1}/${3}} \approx ${Number(bq2.toFixed(4))}`}.`,
+    t`Continuity at a join fixes a constant.`,
   ],
   reference: 'e^(-1/3)/6',
   verify: () => near('the line a - bx reaches 0 at 4k', aq2 - bq2 * 4 * kq2, 0, 1e-12) ?? near('b against 1/(6 e^(1/3))', bq2, 1 / (6 * Math.exp(1 / 3)), 1e-15),
@@ -235,9 +249,16 @@ const q2bk = auto({
   title: t`The same density: ${math`b`} in terms of ${math`k`}`,
   prompt: t`${q2prompt} Use continuity to express ${math`b`} in terms of ${math`k`}.`,
   answer: { kind: 'expression', expected: 'ln(k)/(2k)', variables: ['k'], domains: { k: { kind: 'real', min: 1.1, max: 5 } } },
+  hints: [
+    t`What does continuity at ${math`x = ${4}k`} give?`,
+    t`What does continuity at ${math`x = ${2}k`} give?`,
+    t`Subtracting one equation from the other, what is left?`,
+  ],
+  nudge: t`Not quite. Write the two continuity equations, at ${math`${2}k`} and ${math`${4}k`}, and eliminate ${math`a`}.`,
   solution: [
     t`At ${math`x = ${4}k`}, the line meets ${0}: ${math`a = ${4}kb`}. At ${math`x = ${2}k`}, it meets the constant piece: ${math`a - ${2}kb = \ln k`}.`,
     t`Subtracting, ${math`${2}kb = \ln k`}, so ${math`b = \frac{\ln k}{${2}k}`} (and ${math`a = ${2}\ln k`}).`,
+    t`Each join gives an equation; eliminate the unwanted constant.`,
   ],
   reference: 'ln(k)/(2k)',
   verify: () => {
@@ -261,6 +282,11 @@ const q2sketch = supervision({
   source: cite(S2, 'Q2(i)'),
   title: t`Sketch the pieced density`,
   prompt: t`${q2prompt} Sketch the graph of ${math`y = f(x)`}, marking ${math`x = ${1}`}, ${math`k`}, ${math`${2}k`}, and ${math`${4}k`}, and explain why the pieces must meet.`,
+  hints: [
+    t`What shape is each piece: a curve, a horizontal line, or a sloping line?`,
+    t`Where does each piece start and end, and at what heights?`,
+    t`What does continuity of the density require at each join, including at ${math`x = ${1}`}?`,
+  ],
   writeUp: 'sketch',
   official: cite(S2SOL, 'Q2(i)'),
 });
@@ -270,6 +296,11 @@ const q6stem = supervision({
   source: cite(S2, 'Q6'),
   title: t`A step density: ${math`a > ${1}`} and ${math`b < ${1}`}`,
   prompt: t`The continuous random variable ${mX} has density ${math`f(x) = a`} for ${math`${0} \le x < k`}, ${math`f(x) = b`} for ${math`k \le x \le ${1}`}, and ${math`${0}`} otherwise, where ${math`a > b > ${0}`} and ${math`${0} < k < ${1}`}. Sketch ${mf}, and show that ${math`a > ${1}`} and ${math`b < ${1}`}.`,
+  hints: [
+    t`What is the total area under the step density, in terms of ${math`a`}, ${math`b`}, and ${math`k`}?`,
+    t`If ${math`a \le ${1}`}, how does the total area compare with ${1}, given ${math`b < a`}?`,
+    t`If ${math`b \ge ${1}`}, how does the total area compare with ${1}?`,
+  ],
   writeUp: 'proof',
   official: cite('step-s2-stats-hints', 'Q6'),
 });

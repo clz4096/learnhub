@@ -236,10 +236,17 @@ const q1A = auto({
   source: cite(S2, 'Q1'),
   title: t`The Poisson distribution without its zero: the constant`,
   prompt: t`${math`X`} takes the values ${math`k = ${1}, ${2}, ${3}, \ldots`} with ${math`P(X = k) = \frac{A\lambda^{k}e^{-\lambda}}{k!}`}, where ${math`\lambda > ${0}`}. Find ${math`A`} in terms of ${math`\lambda`}. (Type ${math`\lambda`} as l.)`,
+  nudge: t`Not quite. The probabilities add to ${1}, and the series starts at ${math`k = ${1}`}.`,
+  hints: [
+    t`What must ${math`\sum_{k \ge ${1}} P(X = k)`} equal?`,
+    t`What is ${math`\sum_{k \ge ${1}} \frac{\lambda^{k}}{k!}`}, in terms of ${math`e^{\lambda}`}?`,
+    t`Solving ${math`Ae^{-\lambda}(e^{\lambda} - ${1}) = ${1}`}, what is ${math`A`}?`,
+  ],
   answer: { kind: 'expression', expected: '1/(1 - e^(-l))', variables: ['l'], domains: L_DOM },
   solution: [
     t`The probabilities add to ${1}: ${math`Ae^{-\lambda}\left(\lambda + \frac{\lambda^{${2}}}{${2}!} + \cdots\right) = Ae^{-\lambda}(e^{\lambda} - ${1}) = ${1}`}, since the exponential series without its first term is ${math`e^{\lambda} - ${1}`}.`,
     t`So ${math`A = \frac{${1}}{${1} - e^{-\lambda}} = (${1} - e^{-\lambda})^{-${1}}`}.`,
+    t`Fix a normalising constant by making the probabilities add to one.`,
   ],
   reference: '1/(1 - e^(-l))',
   verify: () => {
@@ -255,10 +262,17 @@ const q1var = auto({
   source: cite(S2, 'Q1'),
   title: t`The Poisson distribution without its zero: the variance`,
   prompt: t`For ${math`P(X = k) = \frac{A\lambda^{k}e^{-\lambda}}{k!}`}, ${math`k = ${1}, ${2}, \ldots`}, with mean ${math`\mu = \frac{\lambda}{${1} - e^{-\lambda}}`}, find ${math`\mathrm{Var}(X)`} in terms of ${math`\lambda`} and ${math`\mu`}. (Type ${math`\lambda`} as l and ${math`\mu`} as m.)`,
+  nudge: t`Not quite. Find ${math`E(X(X - ${1}))`} first; the factorial cancels neatly.`,
+  hints: [
+    t`What is ${math`E(X(X - ${1}))`}, after cancelling ${math`k(k - ${1})`} against ${math`k!`}?`,
+    t`What is ${math`E(X^{${2}})`} in terms of ${math`\lambda`} and ${math`\mu`}?`,
+    t`What does ${math`\mathrm{Var}(X) = E(X^{${2}}) - \mu^{${2}}`} give, factorised?`,
+  ],
   answer: { kind: 'expression', expected: 'm(1 - m + l)', variables: ['m', 'l'], domains: { m: { kind: 'real', min: 0.5, max: 5 }, l: { kind: 'real', min: 0.1, max: 5 } } },
   solution: [
     t`${math`E(X(X - ${1})) = Ae^{-\lambda}\sum_{k \ge ${2}} \frac{\lambda^{k}}{(k - ${2})!} = A\lambda^{${2}}`}, so ${math`E(X^{${2}}) = A\lambda^{${2}} + A\lambda = \mu\lambda + \mu`}.`,
     t`${math`\mathrm{Var}(X) = E(X^{${2}}) - \mu^{${2}} = \mu(${1} + \lambda) - \mu^{${2}} = \mu(${1} - \mu + \lambda)`}.`,
+    t`With factorials below the line, find ${math`E(X(X - ${1}))`} before ${math`E(X^{${2}})`}.`,
   ],
   reference: 'm(1 - m + l)',
   verify: () => {
@@ -279,8 +293,14 @@ const tenDice = auto({
   source: cite(NOTES, 'page 2', true),
   title: t`The spread of the number of sixes`,
   prompt: t`The topic notes' example of a binomial distribution is the number of sixes in ${TEN} throws of a die. Find its variance.`,
+  nudge: t`Not quite. The variance of a binomial is ${math`np(${1} - p)`}, not the mean.`,
+  hints: [
+    t`What are ${math`n`} and ${math`p`} for the number of sixes in ${TEN} throws?`,
+    t`What is the variance of one throw's indicator of a six?`,
+    t`For independent throws, how do the variances combine?`,
+  ],
   answer: { kind: 'exact', expected: str(mul(q(TEN), mul(SIX, sub(q(1), SIX)))) },
-  solution: [t`${math`X \sim B(${TEN}, ${SIX})`}, so ${math`\mathrm{Var}(X) = np(${1} - p) = ${TEN} \times ${SIX} \times ${q(5, 6)} = ${mul(q(TEN), mul(SIX, sub(q(1), SIX)))}`}.`],
+  solution: [t`${math`X \sim B(${TEN}, ${SIX})`}, so ${math`\mathrm{Var}(X) = np(${1} - p) = ${TEN} \times ${SIX} \times ${q(5, 6)} = ${mul(q(TEN), mul(SIX, sub(q(1), SIX)))}`}.`, t`Variances of independent indicators add, giving ${math`np(${1} - p)`}.`],
   reference: '25/18',
   verify: () => {
     // The distribution built throw by throw (a convolution), then the definition of variance.
@@ -296,6 +316,11 @@ const q1bounds = supervision({
   source: cite(S2, 'Q1'),
   title: t`Where the mean lies`,
   prompt: t`For the Poisson distribution without its zero, with ${math`\mu = \frac{\lambda}{${1} - e^{-\lambda}}`} and ${math`\mathrm{Var}(X) = \mu(${1} - \mu + \lambda)`}, deduce that ${math`\lambda < \mu < ${1} + \lambda`}. Use that a variance is positive for one inequality and ${math`e^{-\lambda} < ${1}`} for the other.`,
+  hints: [
+    t`Since ${math`\mathrm{Var}(X) > ${0}`} and ${math`\mu > ${0}`}, what does ${math`\mu(${1} - \mu + \lambda) > ${0}`} give?`,
+    t`Since ${math`${0} < e^{-\lambda} < ${1}`}, how does ${math`\frac{\lambda}{${1} - e^{-\lambda}}`} compare with ${math`\lambda`}?`,
+    t`Why is the variance strictly positive here, and not zero?`,
+  ],
   writeUp: 'proof',
   official: cite(S2S, 'Q1'),
 });
@@ -304,6 +329,11 @@ const shortcutProof = supervision({
   source: cite(NOTES, 'page 2'),
   title: t`The definition and the shortcut agree`,
   prompt: t`The notes define the variance as the mean squared distance from the mean, ${math`\mathrm{Var}(X) = E\left((X - E(X))^{${2}}\right) = \sum_{i} (i - E(X))^{${2}} P(X = i)`}, and say it expands to ${math`E(X^{${2}}) - E(X)^{${2}}`}. Prove it, and deduce that ${math`E(X^{${2}}) \ge E(X)^{${2}}`}.`,
+  hints: [
+    t`Writing ${math`\mu = E(X)`}, what is ${math`(i - \mu)^{${2}}`} expanded?`,
+    t`Summing each term against ${math`P(X = i)`}, what do ${math`\sum_{i} i P(X = i)`} and ${math`\sum_{i} P(X = i)`} equal?`,
+    t`Why is a variance never negative, and what does that give?`,
+  ],
   writeUp: 'proof',
 });
 

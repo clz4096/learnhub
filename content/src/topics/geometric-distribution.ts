@@ -248,11 +248,18 @@ const firstSix = auto({
   id: 's3-notes-first-six',
   source: cite(S3N, 'page 1', true),
   title: t`The first six on the fourth roll`,
-  prompt: t`A fair die is rolled until a six appears, and ${math`X`} is the number of rolls. What is the probability that the first six is on roll ${FIRST_SIX_ON}?`,
+  prompt: t`A fair die is rolled until a six appears, and ${math`X`} is the number of rolls. Find the probability that the first six is on roll ${FIRST_SIX_ON}.`,
   answer: { kind: 'exact', expected: str(sixAt) },
   solution: [
     t`${math`X \sim \operatorname{Geo}\left(${SIXTH}\right)`}: the first ${FIRST_SIX_ON - 1} rolls are not sixes, then a six.`,
     t`${math`\mathbb{P}(X = ${FIRST_SIX_ON}) = \left(${sub(q(1), SIXTH)}\right)^{${FIRST_SIX_ON - 1}} \cdot ${SIXTH} = ${sixAt}`}.`,
+    t`First success on trial ${math`k`}: ${math`k - ${1}`} failures, then a success.`,
+  ],
+  nudge: t`Not quite. "First six on roll ${FIRST_SIX_ON}" says something about every earlier roll too.`,
+  hints: [
+    t`What must happen on the rolls before roll ${FIRST_SIX_ON}?`,
+    t`What is the probability of a non-six on one roll?`,
+    t`Since the rolls are independent, how do the ${FIRST_SIX_ON} probabilities combine?`,
   ],
   reference: str(sixAt),
   verify: () => {
@@ -283,6 +290,13 @@ const varianceNotes = auto({
     t`Once: ${math`${1} + ${2}q + ${3}q^{${2}} + \cdots = (${1} - q)^{-${2}}`}, so ${math`\mathbb{E}(X) = p(${1} - q)^{-${2}} = ${1}/p`}.`,
     t`Twice: ${math`${2} + ${3} \cdot ${2}q + ${4} \cdot ${3}q^{${2}} + \cdots = ${2}(${1} - q)^{-${3}}`}. Subtracting the first series gives ${math`\sum_{n} n^{${2}} q^{n - ${1}} = \frac{${2}}{p^{${3}}} - \frac{${1}}{p^{${2}}} = \frac{${2} - p}{p^{${3}}}`}, so ${math`\mathbb{E}(X^{${2}}) = \frac{${2} - p}{p^{${2}}}`}.`,
     t`${math`\operatorname{Var}(X) = \frac{${2} - p}{p^{${2}}} - \frac{${1}}{p^{${2}}} = \frac{${1} - p}{p^{${2}}}`}.`,
+    t`The moments of a geometric wait come from differentiating the geometric series.`,
+  ],
+  nudge: t`Not quite. Find ${math`\mathbb{E}(X^{${2}})`} first; the variance subtracts ${math`\mathbb{E}(X)^{${2}}`} from it.`,
+  hints: [
+    t`What does differentiating once give, and what is ${math`\mathbb{E}(X)`} from it?`,
+    t`Differentiating twice, which series appears, and how does subtracting the once-differentiated series leave ${math`\sum_{n} n^{${2}} q^{n - ${1}}`}?`,
+    t`What is ${math`\mathbb{E}(X^{${2}})`}, and what remains after subtracting ${math`\mathbb{E}(X)^{${2}}`}?`,
   ],
   reference: '(1 - p)/p^2',
   verify: () => {
@@ -305,8 +319,13 @@ const coupon = supervision({
   id: 'ia-s2-q11-coupons',
   source: cite('ia-prob-sheet-2', 'Q11'),
   title: t`Collecting a complete set`,
-  prompt: t`Sarah collects figures from cornflakes packets. Each packet contains one of ${math`n`} distinct figures, each type equally likely. Show that the expected number of packets she needs to buy to collect a complete set is ${math`n \sum_{i = ${1}}^{n} \frac{${1}}{i}`}. Write the total as a sum of waits: what is the distribution of the wait for a new figure when she already has ${math`k`}?`,
+  prompt: t`Sarah collects figures from cornflakes packets. Each packet contains one of ${math`n`} distinct figures, each type equally likely. Show that the expected number of packets she needs to buy to collect a complete set is ${math`n \sum_{i = ${1}}^{n} \frac{${1}}{i}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`How can the total number of packets be written as a sum of waits, one for each new figure?`,
+    t`With ${math`k`} figures already collected, what is the probability that a packet holds a new one, and what is the distribution of the wait?`,
+    t`What is the mean of that wait, and what happens when the means are added over ${math`k = ${0}, \ldots, n - ${1}`}?`,
+  ],
 });
 const negBin = supervision({
   id: 'ia-s3-q5-sum-of-geometrics',
@@ -314,6 +333,11 @@ const negBin = supervision({
   title: t`The wait for success number ${math`a`}`,
   prompt: t`Independent Bernoulli trials succeed with probability ${math`p`}, and ${math`X`} is the number of trials up to and including the ${math`a`}th success. Show that ${math`\mathbb{P}(X = r) = \binom{r - ${1}}{a - ${1}} p^{a} q^{r - a}`} for ${math`r = a, a + ${1}, \ldots`}, with ${math`q = ${1} - p`}. Explain how ${math`X`} is the sum of ${math`a`} independent geometric waits, all with the same distribution, and use this to find ${math`\mathbb{E}(X)`} and ${math`\operatorname{Var}(X)`}.`,
   writeUp: 'proof',
+  hints: [
+    t`For ${math`X = r`}, what must trial ${math`r`} be, and how many successes must the first ${math`r - ${1}`} trials contain?`,
+    t`In how many ways can those successes be placed among the first ${math`r - ${1}`} trials?`,
+    t`What are the mean and variance of one geometric wait, and how do they combine for ${math`a`} independent waits?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

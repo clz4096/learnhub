@@ -171,11 +171,18 @@ const secondQ = auto({
   id: 'a21-q1-iii',
   source: cite(F21, 'Assignment 21, Q1(iii)', true),
   title: t`The differential equation C satisfies`,
-  prompt: t`With ${math`C`} and ${math`S`} as above, you are given that ${math`\frac{d}{dx}a^{x} = Ka^{x}`} and ${math`\frac{d}{dx}a^{-x} = -Ka^{-x}`}, where ${math`K`} is a constant. Find ${math`\frac{C''(x)}{C(x)}`} in terms of ${math`K`}.`,
+  prompt: t`Let ${math`C(x) = \frac{${1}}{${2}}(a^{x} + a^{-x})`} and ${math`S(x) = \frac{${1}}{${2}}(a^{x} - a^{-x})`}, for a fixed ${math`a > ${0}`}. Given that ${math`\frac{d}{dx}a^{x} = Ka^{x}`} and ${math`\frac{d}{dx}a^{-x} = -Ka^{-x}`}, where ${math`K`} is a constant, find ${math`\frac{C''(x)}{C(x)}`} in terms of ${math`K`}.`,
   answer: { kind: 'expression', expected: 'K^2', variables: ['K'] },
   solution: [
     t`${math`C'(x) = \frac{${1}}{${2}}(Ka^{x} - Ka^{-x}) = KS(x)`}, and in the same way ${math`S'(x) = \frac{${1}}{${2}}(Ka^{x} + Ka^{-x}) = KC(x)`}.`,
     t`So ${math`C''(x) = KS'(x) = K^{${2}}C(x)`}, and ${math`\frac{C''(x)}{C(x)} = K^{${2}}`}. (In fact ${math`K = \ln a`}, and with ${math`a = e`} this is ${math`\cosh'' = \cosh`}.)`,
+    t`Recognise each derivative before differentiating again.`,
+  ],
+  nudge: t`Not quite. Differentiate ${math`C`} once and recognise the result before differentiating again.`,
+  hints: [
+    t`What is ${math`C'(x)`}, and which of the two functions is it a multiple of?`,
+    t`What is ${math`S'(x)`}, in the same way?`,
+    t`Differentiating ${math`C`} a second time, which multiple of ${math`C(x)`} results?`,
   ],
   reference: 'K^2',
   verify: () => {
@@ -198,6 +205,13 @@ const coshDeriv = auto({
   solution: [
     t`${math`\frac{d}{dx}e^{x} = e^{x}`} and ${math`\frac{d}{dx}e^{-x} = -e^{-x}`}.`,
     t`So ${math`\frac{d}{dx}\cosh x = \frac{e^{x} - e^{-x}}{${2}} = \sinh x`}.`,
+    t`The derivative of ${math`\cosh`} is ${math`\sinh`}, with no minus sign.`,
+  ],
+  nudge: t`Not quite. Differentiate ${math`e^{x}`} and ${math`e^{-x}`} separately, minding the sign from the chain rule.`,
+  hints: [
+    t`What is the derivative of ${math`e^{x}`}?`,
+    t`What is the derivative of ${math`e^{-x}`}?`,
+    t`Combining the two, what is the derivative of ${math`\frac{e^{x} + e^{-x}}{${2}}`}?`,
   ],
   reference: '(exp(x) - exp(-x))/2',
   verify: () => agreesAt('derivative of cosh', '(e^x - e^(-x))/2', (x) => numDeriv(Math.cosh, x), [-2, 0.3, 1.7]),
@@ -210,6 +224,11 @@ const identities = supervision({
   title: t`The identities for C and S`,
   prompt: t`Let ${math`C(x) = \frac{${1}}{${2}}(a^{x} + a^{-x})`} and ${math`S(x) = \frac{${1}}{${2}}(a^{x} - a^{-x})`}, where ${math`a`} is a fixed positive real number. Show, using these definitions, that (a) ${math`C(x)^{${2}} - S(x)^{${2}} = ${1}`}; (b) ${math`C(x)C(y) + S(x)S(y) = C(x + y)`}; (c) ${math`C(x)S(y) + S(x)C(y) = S(x + y)`}. Deduce an expression for ${math`C(${2}x)`} in terms of ${math`C(x)`}.`,
   writeUp: 'proof',
+  hints: [
+    t`In (a), what are ${math`C(x)^{${2}}`} and ${math`S(x)^{${2}}`} when expanded, using ${math`a^{x}a^{-x} = ${1}`}?`,
+    t`In (b) and (c), which products of ${math`a^{\pm x}`} and ${math`a^{\pm y}`} appear, and which cancel?`,
+    t`Putting ${math`y = x`} in (b), how can (a) remove ${math`S(x)^{${2}}`} to leave ${math`C(${2}x)`} in terms of ${math`C(x)`} alone?`,
+  ],
   official: cite(F21H, 'Assignment 21 hints, Q1(i)'),
 });
 
@@ -219,6 +238,11 @@ const nstH = supervision({
   title: t`Hyperbolic identities and tanh`,
   prompt: t`State the definitions of ${math`\sinh x`} and ${math`\cosh x`}. Prove that ${math`\cosh^{${2}} x - \sinh^{${2}} x = ${1}`} and ${math`\sinh ${2}x = ${2}\sinh x\cosh x`}. Prove that ${math`\frac{d}{dx}\tanh x = \operatorname{sech}^{${2}} x`}.`,
   writeUp: 'proof',
+  hints: [
+    t`What are ${math`\sinh x`} and ${math`\cosh x`} in terms of ${math`e^{x}`} and ${math`e^{-x}`}?`,
+    t`What does expanding ${math`\cosh^{${2}} x - \sinh^{${2}} x`} give, using ${math`e^{x}e^{-x} = ${1}`}?`,
+    t`Writing ${math`\tanh x = \frac{\sinh x}{\cosh x}`}, what does the quotient rule give, and which identity simplifies the numerator?`,
+  ],
 });
 
 // STEP Support STEP 3 Hyperbolic Functions Q4 (2005 STEP III Q6), first paragraph: a cubic
@@ -232,6 +256,11 @@ const hyp4 = supervision({
   title: t`A cubic solved by ${math`\cosh`}`,
   prompt: t`In this question, you may use without proof the results ${dmath`${4}\cosh^{${3}} y - ${3}\cosh y = \cosh(${3}y) \quad \text{and} \quad \operatorname{arcosh} y = \ln\left(y + \sqrt{y^{${2}} - ${1}}\right).`} Show that the equation ${math`x^{${3}} - ${3}a^{${2}}x = ${2}a^{${3}}\cosh T`} is satisfied by ${math`${2}a\cosh\left(\frac{${1}}{${3}}T\right)`} and hence that, if ${math`c^{${2}} \ge b^{${3}} > ${0}`}, one of the roots of the equation ${math`x^{${3}} - ${3}bx = ${2}c`} is ${math`u + \frac{b}{u}`}, where ${math`u = \left(c + \sqrt{c^{${2}} - b^{${3}}}\right)^{\frac{${1}}{${3}}}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Substituting ${math`x = ${2}a\cosh\left(\frac{${1}}{${3}}T\right)`}, what is ${math`x^{${3}} - ${3}a^{${2}}x`}, and which given identity applies?`,
+    t`To match ${math`x^{${3}} - ${3}bx = ${2}c`}, which ${math`a`} and ${math`T`} should be chosen, and why does ${math`c^{${2}} \ge b^{${3}} > ${0}`} make that possible?`,
+    t`Writing ${math`e^{T/${3}}`} with the arcosh formula, how does ${math`${2}a\cosh\left(\frac{${1}}{${3}}T\right)`} become ${math`u + \frac{b}{u}`}?`,
+  ],
   official: cite(HYPS, 'Q4'),
 });
 
@@ -246,6 +275,13 @@ const hyp4root = auto({
     t`Match ${math`x^{${3}} - ${6}x = ${6}`} with ${math`x^{${3}} - ${3}bx = ${2}c`}: ${math`b = ${2}`} and ${math`c = ${3}`}, and ${math`c^{${2}} = ${9} \ge ${8} = b^{${3}} > ${0}`}.`,
     t`${math`u = (${3} + \sqrt{${9} - ${8}})^{\frac{${1}}{${3}}} = ${4}^{\frac{${1}}{${3}}} = ${2}^{\frac{${2}}{${3}}}`}, and ${math`\frac{b}{u} = \frac{${2}}{${2}^{\frac{${2}}{${3}}}} = ${2}^{\frac{${1}}{${3}}}`}.`,
     t`So the root is ${math`${2}^{\frac{${2}}{${3}}} + ${2}^{\frac{${1}}{${3}}}`}, about ${Number((2 ** (2 / 3) + 2 ** (1 / 3)).toFixed(4))}. It is the only real root: ${math`x^{${3}} - ${6}x - ${6}`} has its turning points at ${math`x = \pm\sqrt{${2}}`}, where it is ${math`-${6} \pm ${4}\sqrt{${2}}`}, both negative, so it crosses the axis once.`,
+    t`Match the coefficients to the known form, then substitute.`,
+  ],
+  nudge: t`Not quite. Match the equation with ${math`x^{${3}} - ${3}bx = ${2}c`} to read off ${math`b`} and ${math`c`}, then take the cube root with care.`,
+  hints: [
+    t`Comparing ${math`x^{${3}} - ${6}x = ${6}`} with ${math`x^{${3}} - ${3}bx = ${2}c`}, what are ${math`b`} and ${math`c`}?`,
+    t`What is ${math`u = \left(c + \sqrt{c^{${2}} - b^{${3}}}\right)^{\frac{${1}}{${3}}}`} for those values?`,
+    t`What is ${math`\frac{b}{u}`}, written as a power of ${2}, and what is ${math`u + \frac{b}{u}`}?`,
   ],
   reference: ROOT,
   verify: () => {

@@ -198,11 +198,18 @@ const bop617 = auto({
   solution: [
     t`Work mod ${4} by cases. ${math`n`} even: ${math`n^{${2}} \equiv ${0}`}, so ${math`n^{${2}} + ${2} \equiv ${2}`}. ${math`n`} odd: ${math`n^{${2}} \equiv ${1}`}, so ${math`n^{${2}} + ${2} \equiv ${3}`}.`,
     t`So the remainders are ${setOf(sq2)}, never ${0}: no square plus ${2} is a multiple of ${4}.`,
+    t`Work modulo ${math`m`} by cases: a few residues cover every integer.`,
   ],
   reference: sq2.join(', '),
   verify: () => same('n from 1 to 400', sq2.join(), '2,3'),
   misconceptions: [{ response: '0, 1, 2, 3', why: t`Squares leave only ${0} or ${1} on division by ${4}, so ${math`n^{${2}} + ${2}`} leaves only ${2} or ${3}.` }],
   official: { source: cite('bop', 'Solutions, Chapter 6, exercise 17, the remark'), answer: '2, 3', agrees: true },
+  nudge: t`Not quite. Splitting into ${math`n`} even and ${math`n`} odd settles every case at once.`,
+  hints: [
+    t`Into which two cases does every integer ${math`n`} fall?`,
+    t`What remainder does ${math`n^{${2}}`} leave on division by ${4} in each case?`,
+    t`After adding ${2}, which remainders result?`,
+  ],
 });
 
 const oddSq = upTo(200).filter((n) => n % 2 === 1).reduce((g, n) => { let [x, y] = [g, n * n - 1]; while (y !== 0) [x, y] = [y, x % y]; return x; }, 0);
@@ -215,11 +222,18 @@ const bop517 = auto({
   solution: [
     t`${math`n = ${2}a + ${1}`} gives ${math`n^{${2}} - ${1} = ${4}a(a + ${1})`}, and ${math`a(a + ${1})`} is even, so ${8} divides it. In congruences: ${math`n^{${2}} \equiv ${1} \pmod{${8}}`} for every odd ${math`n`}.`,
     t`Nothing larger works: ${math`${3}^{${2}} - ${1} = ${8}`}. So ${8} is the largest.`,
+    t`Prove that the divisor works, then one small case shows that nothing larger does.`,
   ],
   reference: String(oddSq),
   verify: () => same('gcd of n^2 - 1 over odd n up to 200', oddSq, 8),
   misconceptions: [{ response: '24', why: t`${24} divides ${math`p^{${2}} - ${1}`} for primes ${math`p > ${3}`}, but not ${math`${3}^{${2}} - ${1} = ${8}`}.` }],
   official: { source: cite('bop', 'Solutions, Chapter 5, exercise 17'), answer: '8', agrees: true },
+  nudge: t`Not quite. The smallest interesting odd ${math`n`} gives an upper bound at once.`,
+  hints: [
+    t`Writing ${math`n = ${2}a + ${1}`}, what does ${math`n^{${2}} - ${1}`} factorise into?`,
+    t`Why is ${math`a(a + ${1})`} always even?`,
+    t`What is ${math`n^{${2}} - ${1}`} for ${math`n = ${3}`}, and what does that say about any larger common divisor?`,
+  ],
 });
 
 const sheet212 = supervision({
@@ -229,6 +243,11 @@ const sheet212 = supervision({
   prompt: t`Prove that for all integers ${math`i, j, k, l`}, positive ${mm}, and natural ${math`n`}: (a) ${math`i \equiv j \land k \equiv l \Rightarrow i + k \equiv j + l`}; (b) ${math`i \equiv j \land k \equiv l \Rightarrow i k \equiv j l`}; (c) ${math`i \equiv j \Rightarrow i^{n} \equiv j^{n}`}, all ${math`\pmod{m}`}. For (c), say why the official solution's "iterating this process" is really an induction.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-2', '2.1.2'),
+  hints: [
+    t`What does ${math`i \equiv j \pmod{m}`} mean as a statement about ${mm} and ${math`i - j`}?`,
+    t`For (b), how can ${math`ik - jl`} be written using ${math`i - j`} and ${math`k - l`}?`,
+    t`For (c), which statement about ${math`n`} is proved, and how does (b) give the step from ${math`n`} to ${math`n + ${1}`}?`,
+  ],
 });
 const sheet222 = supervision({
   id: 'sheet-2-2-2',
@@ -237,6 +256,11 @@ const sheet222 = supervision({
   prompt: t`Formalise and prove: a natural number is a multiple of ${3} if and only if the sum of its digits is; the same for ${9}; and a natural number is a multiple of ${11} if and only if the alternating sum of its digits is. Prove the stronger congruences ${math`\sum a_{i} ${10}^{i} \equiv \sum a_{i} \pmod{${9}}`} and ${math`\sum a_{i} ${10}^{i} \equiv \sum (-${1})^{i} a_{i} \pmod{${11}}`} first.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-2', '2.2.2'),
+  hints: [
+    t`What is ${10} congruent to modulo ${9}, and modulo ${11}?`,
+    t`Using the rule for powers of congruences, what is ${math`${10}^{i}`} congruent to modulo ${9} and modulo ${11}?`,
+    t`How does a congruence ${math`n \equiv s \pmod{${9}}`} give "${9} divides ${math`n`} if and only if ${9} divides ${math`s`}", and why does the case of ${3} follow?`,
+  ],
 });
 const bop617proof = supervision({
   id: 'bop-6-17',
@@ -245,6 +269,11 @@ const bop617proof = supervision({
   prompt: t`Prove that for every ${math`n \in \mathbb{Z}`}, ${math`${4} \nmid (n^{${2}} + ${2})`}. Give two proofs: Book of Proof's, by contradiction, and one by cases on ${math`n`} modulo ${2}, using congruence arithmetic.`,
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 6, exercise 17'),
+  hints: [
+    t`For the proof by contradiction, if ${4} divides ${math`n^{${2}} + ${2}`}, what does that say about the parity of ${math`n`}?`,
+    t`Writing ${math`n = ${2}k`} or ${math`n = ${2}k + ${1}`}, what is ${math`n^{${2}} + ${2}`}, and can ${4} divide it?`,
+    t`For the proof with congruences, what is ${math`n^{${2}}`} modulo ${4} when ${math`n \equiv ${0}`} and when ${math`n \equiv ${1} \pmod{${2}}`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

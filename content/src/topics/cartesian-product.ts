@@ -209,9 +209,16 @@ const b128 = auto({
   title: t`A Cartesian power`,
   prompt: t`How many elements does ${math`\{${0}, ${1}\}^{${4}}`} have? (The exercise asks for them listed; count them first.)`,
   answer: { kind: 'exact', expected: String(2 ** 4) },
+  hints: [
+    t`What does an element of ${math`\{${0}, ${1}\}^{${4}}`} look like?`,
+    t`How many choices are there for each entry?`,
+    t`How do the choices for the four entries combine?`,
+  ],
+  nudge: t`Not quite. Each element is an ordered list of four entries; count the choices place by place.`,
   solution: [
     t`${math`\{${0}, ${1}\}^{${4}}`} is the set of ordered lists of length ${4} with entries ${0} or ${1}, from ${math`(${0}, ${0}, ${0}, ${0})`} to ${math`(${1}, ${1}, ${1}, ${1})`}.`,
     t`Two choices in each of ${4} places: ${math`${2}^{${4}} = ${16}`}.`,
+    t`The size of ${math`A^{n}`} is ${math`|A|^{n}`}.`,
   ],
   reference: '16',
   verify: () => {
@@ -241,9 +248,16 @@ const b125 = auto({
     ],
     correct: ['a', 'b', 'd'],
   },
+  hints: [
+    t`What is the set ${math`\{x \in \mathbb{R} : x^{${2}} = ${2}\}`}?`,
+    t`What is the set ${math`\{x \in \mathbb{R} : |x| = ${2}\}`}?`,
+    t`Which entry of each pair must come from which set?`,
+  ],
+  nudge: t`Not quite. Write each solution set out first; the first entry comes from the first set, the second from the second.`,
   solution: [
     t`The first set is ${math`\{-\sqrt{${2}}, \sqrt{${2}}\}`} and the second is ${math`\{-${2}, ${2}\}`}.`,
     t`So the product has ${4} pairs: ${math`(-\sqrt{${2}}, -${2}), (\sqrt{${2}}, ${2}), (-\sqrt{${2}}, ${2}), (\sqrt{${2}}, -${2})`}. The pair ${math`(${2}, \sqrt{${2}})`} has its entries the wrong way round, and ${math`(${2}, ${2})`} has a first entry whose square is ${4}, not ${2}.`,
+    t`Find each factor first, then check each entry against its own factor.`,
   ],
   reference: ['a', 'b', 'd'],
   verify: () => {
@@ -266,9 +280,16 @@ const sw514 = auto({
   title: t`The product of two five-element sets`,
   prompt: t`Find the size of the Cartesian product ${math`\{${1}, ${2}, ${3}, ${4}, ${5}\} \times \{-${1}, ${1}, ${3}, ${5}, ${7}\}`}. Does it contain ${math`(${3}, ${3})`}? Does it contain ${math`(${7}, ${1})`}? Answer with the size.`,
   answer: { kind: 'exact', expected: '25' },
+  hints: [
+    t`How many elements does each set have?`,
+    t`How many pairs are there, if each first entry pairs with each second entry?`,
+    t`Do the numbers the two sets share reduce the number of pairs?`,
+  ],
+  nudge: t`Not quite. A product multiplies the sizes; shared elements do not merge any pairs.`,
   solution: [
     t`Each of the ${5} first entries pairs with each of the ${5} second entries: ${math`${5} \times ${5} = ${25}`} pairs.`,
     t`The numbers ${1}, ${3}, ${5} lie in both sets, but that does not merge any pairs: ${math`(${3}, ${3})`} is one pair, and it is in the product. ${math`(${7}, ${1})`} is not, as ${7} is not in the first set.`,
+    t`${math`|A \times B| = |A|\,|B|`}, whatever the two sets share.`,
   ],
   reference: '25',
   verify: () => same('size', product([1, 2, 3, 4, 5], [-1, 1, 3, 5, 7]).length, 25),
@@ -315,11 +336,18 @@ const sw524 = auto({
     ],
     correct: ['a', 'c', 'd', 'e'],
   },
+  hints: [
+    t`For (a), if ${math`(x, y) \in A \times B`}, where do ${math`x`} and ${math`y`} lie?`,
+    t`For (b), can a pair on the left mix an entry of ${mA} with an entry of ${math`D`}?`,
+    t`For (c), (d), and (e), which set must each entry of a pair belong to, case by case?`,
+  ],
+  nudge: t`Not quite. Test each inclusion on tiny sets, some of them empty, before trusting it.`,
   solution: [
     t`(a) If ${math`(x, y) \in A \times B`}, then ${math`x \in A \subseteq C`} and ${math`y \in B \subseteq D`}, so ${math`(x, y) \in C \times D`}. True.`,
     t`(b) False. Take ${math`A = \{${1}\}`}, ${math`B = \varnothing`}, ${math`C = \varnothing`}, ${math`D = \{${1}\}`}. The left side contains ${math`(${1}, ${1})`}, but ${math`A \times B`} and ${math`C \times D`} are both empty.`,
     t`(c) A pair in ${math`A \times C`} has first entry in ${math`A \subseteq A \cup B`} and second in ${math`C \subseteq C \cup D`}; likewise for ${math`B \times D`}. True.`,
     t`(d) If ${math`x \in A`} and ${math`y \in B \cup C`}, then ${math`y \in B`}, giving ${math`(x, y) \in A \times B`}, or ${math`y \in C`}, giving ${math`(x, y) \in A \times C`}. True. (e) is the reverse inclusion with ${math`D`} for ${mC}: true.`,
+    t`Test an inclusion on tiny sets; prove it by following one element.`,
   ],
   reference: ['a', 'c', 'd', 'e'],
   verify: () => same('statements that hold', sw524Holds(), 'a,c,d,e'),
@@ -334,6 +362,11 @@ const b816 = supervision({
   source: cite('bop', 'Chapter 8, exercise 16'),
   title: t`The distributive law for products`,
   prompt: t`Prove that if ${mA}, ${mB} and ${mC} are sets, then ${math`A \times (B \cup C) = (A \times B) \cup (A \times C)`}.`,
+  hints: [
+    t`Which two inclusions prove that two sets are equal?`,
+    t`If ${math`(x, y) \in A \times (B \cup C)`}, which two cases does ${math`y \in B \cup C`} give?`,
+    t`For the reverse inclusion, if ${math`(x, y)`} is in ${math`A \times B`} or in ${math`A \times C`}, where do ${math`x`} and ${math`y`} lie?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -343,9 +376,16 @@ const b127 = auto({
   title: t`A product with the empty set inside`,
   prompt: t`How many elements does ${math`\{\varnothing\} \times \{${0}, \varnothing\} \times \{${0}, ${1}\}`} have?`,
   answer: { kind: 'exact', expected: '4' },
+  hints: [
+    t`How many elements does ${math`\{\varnothing\}`} have?`,
+    t`What are the sizes of the three factors?`,
+    t`How do the sizes of the factors combine in a product?`,
+  ],
+  nudge: t`Not quite. ${math`\{\varnothing\}`} is not the empty set; count the elements of each factor first.`,
   solution: [
     t`${math`\{\varnothing\}`} has one element, the empty set, so it is not empty. The sizes are ${1}, ${2} and ${2}.`,
     t`So the product has ${math`${1} \times ${2} \times ${2} = ${4}`} triples: ${math`(\varnothing, ${0}, ${0}), (\varnothing, ${0}, ${1}), (\varnothing, \varnothing, ${0}), (\varnothing, \varnothing, ${1})`}.`,
+    t`${math`\{\varnothing\}`} has one element; only ${math`\varnothing`} itself is empty.`,
   ],
   reference: '4',
   verify: () => same('size', product(product(['E'], [0, 'E']), [0, 1]).length, 4),

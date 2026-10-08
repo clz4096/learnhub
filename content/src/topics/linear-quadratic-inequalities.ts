@@ -181,13 +181,15 @@ const noRealRoots = generator<NrP>({
 // ---------------------------------------------------------------- Cambridge problems
 
 /** An auto problem whose answer is a solution set, checked by the sign test. */
-function setProblem(spec: { id: string; source: ReturnType<typeof cite>; title: Rich; prompt: Rich; right: RealSet; wrong: WrongSet[]; v?: string; solution: Rich[]; test: (x: Rational) => boolean; critical: Rational[] }) {
+function setProblem(spec: { id: string; source: ReturnType<typeof cite>; title: Rich; prompt: Rich; right: RealSet; wrong: WrongSet[]; v?: string; solution: Rich[]; test: (x: Rational) => boolean; critical: Rational[]; hints?: readonly Rich[]; nudge?: Rich }) {
   const v = spec.v ?? 'x';
   const ch = setChoice(spec.right, spec.wrong, v);
   return auto({
     id: spec.id, source: spec.source, title: spec.title, prompt: spec.prompt, answer: ch.answer, solution: spec.solution, reference: ch.reference,
     verify: () => same('the solution set by the sign test', sameSet(setWhere(spec.test, spec.critical), spec.right), true),
     misconceptions: ch.misconceptions,
+    ...(spec.hints === undefined ? {} : { hints: spec.hints }),
+    ...(spec.nudge === undefined ? {} : { nudge: spec.nudge }),
   });
 }
 
@@ -224,9 +226,16 @@ const a4q2i = setProblem({
   solution: [
     t`${math`x^{${2}} - ${3}x - ${4} = (x + ${1})(x - ${4})`}, with roots ${math`-${1}`} and ${4}.`,
     t`The parabola opens upwards, so it is above the axis outside the roots: ${math`x < -${1}`} or ${math`x > ${4}`}.`,
+    t`Factorise, sketch, and read the sign off the graph.`,
   ],
   test: (x) => holds(evalPoly([1, -3, -4], x), '>'),
   critical: [q(-1), q(4)],
+  nudge: t`Not quite. Factorise and sketch first; the sign of an upward parabola is read off its roots.`,
+  hints: [
+    t`Which two numbers multiply to ${-4} and add to ${-3}?`,
+    t`Which way does the parabola open, and where does it cross the ${math`x`}-axis?`,
+    t`Is the curve above the axis between its roots, or outside them?`,
+  ],
 });
 
 const TWO3 = q(2, 3);
@@ -244,9 +253,16 @@ const a22q3i = setProblem({
   solution: [
     t`${math`${3}x^{${2}} + x - ${2} = (${3}x - ${2})(x + ${1})`}, with roots ${math`-${1}`} and ${TWO3}.`,
     t`The ${math`x^{${2}}`} coefficient is positive, so the quadratic is negative strictly between the roots: ${math`-${1} < x < ${TWO3}`}.`,
+    t`A strict inequality leaves out the roots themselves.`,
   ],
   test: (x) => holds(evalPoly([3, 1, -2], x), '<'),
   critical: [q(-1), TWO3],
+  nudge: t`Not quite. Factorise and check the signs of the roots carefully; the strict inequality matters at the ends.`,
+  hints: [
+    t`How does ${math`${3}x^{${2}} + x - ${2}`} factorise?`,
+    t`What are its roots, with their signs?`,
+    t`Is an upward parabola negative between its roots or outside them, and are the roots themselves included?`,
+  ],
 });
 
 const nstA5 = setProblem({
@@ -262,9 +278,16 @@ const nstA5 = setProblem({
   solution: [
     t`Subtract ${4} from both sides: ${math`x^{${2}} - ${3}x - ${4} < ${0}`}, that is ${math`(x + ${1})(x - ${4}) < ${0}`}.`,
     t`The upward parabola is negative between its roots: ${math`-${1} < x < ${4}`}.`,
+    t`Move everything to one side: only a comparison with ${0} can be read off the factors.`,
   ],
   test: (x) => holds(sub(evalPoly([1, -3, 0], x), q(4)), '<'),
   critical: [q(-1), q(4), q(0), q(3)],
+  nudge: t`Not quite. Compare with ${0}, not ${4}: move everything to one side before factorising.`,
+  hints: [
+    t`What inequality results from subtracting ${4} from both sides?`,
+    t`How does the left side then factorise, and what are its roots?`,
+    t`Where is the upward parabola below the axis?`,
+  ],
 });
 
 // STEP I Specimen Paper Q1(i) and STEP I 2006 Q3(i), (ii) (STEP Questions Database): the
@@ -287,12 +310,19 @@ const specQ1y = setProblem({
     t`As a quadratic in ${math`x`}: ${math`${4}x^{${2}} + (${16}y + ${24})x + y^{${2}} = ${0}`}. It has a real root exactly when its discriminant is not negative: ${math`(${16}y + ${24})^{${2}} - ${16}y^{${2}} \ge ${0}`}.`,
     t`Expand: ${math`${256}y^{${2}} + ${768}y + ${576} - ${16}y^{${2}} = ${240}y^{${2}} + ${768}y + ${576} = ${48}(${5}y^{${2}} + ${16}y + ${12}) = ${48}(${5}y + ${6})(y + ${2})`}.`,
     t`This is at least ${0} outside the roots: ${math`y \le -${2}`} or ${math`y \ge -\frac{${6}}{${5}}`}.`,
+    t`To find which ${math`y`} allow a real ${math`x`}, read the equation as a quadratic in ${math`x`} and use its discriminant.`,
   ],
   test: (y) => {
     const b = add(mul(q(16), y), q(24));
     return sub(mul(b, b), mul(q(16), mul(y, y))).num >= 0n;
   },
   critical: [q(-2), q(-6, 5)],
+  nudge: t`Not quite. Read the equation as a quadratic in ${math`x`}; a real ${math`x`} exists exactly when its discriminant is not negative.`,
+  hints: [
+    t`Written as a quadratic in ${math`x`}, what are its three coefficients?`,
+    t`What condition on the discriminant gives a real ${math`x`}, and is it strict?`,
+    t`How does that discriminant factorise as a quadratic in ${math`y`}, and on which side of its roots is it non-negative?`,
+  ],
 });
 
 const db06q3 = supervision({
@@ -301,6 +331,11 @@ const db06q3 = supervision({
   title: t`Sufficient, necessary, and both`,
   prompt: t`In this question ${math`b`} and ${math`c`} are real numbers. (i) By considering the graph ${math`y = x^{${2}} + bx + c`} show that ${math`c < ${0}`} is a sufficient condition for the equation ${math`x^{${2}} + bx + c = ${0}`} to have distinct real roots. Determine whether ${math`c < ${0}`} is a necessary condition for the equation to have distinct real roots. (ii) Determine necessary and sufficient conditions for the equation ${math`x^{${2}} + bx + c = ${0}`} to have distinct positive real roots.`,
   writeUp: 'proof',
+  hints: [
+    t`If ${math`c < ${0}`}, what is the value of ${math`x^{${2}} + bx + c`} at ${math`x = ${0}`}, and what does that force on the graph of an upward parabola?`,
+    t`Is there an example with ${math`c > ${0}`} and two distinct real roots?`,
+    t`For distinct positive roots, what must hold for the discriminant, for the sum of the roots ${math`-b`}, and for their product ${math`c`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

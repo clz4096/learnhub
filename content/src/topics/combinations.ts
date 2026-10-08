@@ -235,10 +235,17 @@ const q7a = auto({
   title: t`Two given people on the committee`,
   prompt: t`A committee of size ${math`r`} is chosen at random from a set of ${mn} people. Calculate directly the probability that two given people will both be on the committee. Give it in terms of ${mn} and ${math`r`}. (The sheet asks this for ${math`m`} given people; here ${math`m = ${2}`}. Binomial coefficients can be typed as C(n, r).)`,
   answer: { kind: 'expression', expected: 'r(r - 1)/(n(n - 1))', variables: ['n', 'r'], domains: { n: { kind: 'integer', min: 10, max: 30 }, r: { kind: 'integer', min: 2, max: 9 } }, binomial: true },
+  hints: [
+    t`How many committees of size ${math`r`} are there, all equally likely?`,
+    t`How many of them contain both given people?`,
+    t`What does the ratio of those two counts simplify to?`,
+  ],
+  nudge: t`Not quite. The two people are not chosen independently; count the committees that contain both.`,
   solution: [
     t`All ${binom('n', 'r')} committees are equally likely.`,
     t`Those containing both given people choose the other ${math`r - ${2}`} members from the other ${math`n - ${2}`} people: ${math`\binom{n - ${2}}{r - ${2}}`}.`,
     t`So the probability is ${math`\frac{\binom{n - ${2}}{r - ${2}}}{\binom{n}{r}} = \frac{r(r - ${1})}{n(n - ${1})}`}. In general, for ${math`m`} given people it is ${math`\binom{n - m}{r - m} \big/ \binom{n}{r}`}.`,
+    t`Fix what must be included, then choose the rest.`,
   ],
   // Typed as the learner would type the direct answer, with binomial coefficients.
   reference: 'C(n - 2, r - 2)/C(n, r)',
@@ -280,9 +287,16 @@ const q12 = auto({
   title: t`Balls in boxes, small cases`,
   prompt: t`${mn} balls are tossed independently and at random into ${mn} boxes. Find directly the probability that exactly one box is empty, for ${math`n = ${2}`} and for ${math`n = ${3}`}.`,
   answer: { kind: 'table', cell: 'exact', columns: [[math`n`], t`P(exactly one box empty)`], rows: [[t`${2}`, null], [t`${3}`, null]], expected: [str(oneEmpty(2)), str(oneEmpty(3))] },
+  hints: [
+    t`How many equally likely ways are there to toss ${mn} balls into ${mn} boxes?`,
+    t`For ${math`n = ${2}`}, when is exactly one box empty?`,
+    t`For ${math`n = ${3}`}, once the empty box is chosen, in how many ways can the three balls fill the other two boxes with neither empty?`,
+  ],
+  nudge: t`Not quite. List outcomes as each ball's choice of box: there are ${math`n^{n}`} of them.`,
   solution: [
     t`With ${math`n = ${2}`}: ${math`${2}^{${2}} = ${4}`} equally likely ways; exactly one box is empty when both balls land in the same box, ${2} ways. So ${oneEmpty(2)}.`,
     t`With ${math`n = ${3}`}: ${math`${3}^{${3}} = ${27}`} ways. Choose the empty box (${3} ways), then the three balls fill the other two boxes with neither empty: ${math`${2}^{${3}} - ${2} = ${6}`} ways. So ${math`\frac{${3} \times ${6}}{${27}} = ${oneEmpty(3)}`}.`,
+    t`List small cases directly; they check a general formula later.`,
   ],
   reference: [str(oneEmpty(2)), str(oneEmpty(3))],
   verify: () => {
@@ -310,13 +324,20 @@ const ia12 = auto({
   id: 'ia1-q12',
   source: cite('ia-prob-sheet-1', 'Q12'),
   title: t`Exactly one empty box`,
-  prompt: t`Suppose that ${mn} balls are tossed independently and at random into ${mn} boxes, where ${math`n \ge ${2}`}. What is the probability that exactly one box is empty? Give a formula in ${mn}; you may write ${math`\binom{n}{${2}}`} as C(n, ${2}) and type ${math`n!`} with an exclamation mark, as on a calculator.`,
+  prompt: t`Suppose that ${mn} balls are tossed independently and at random into ${mn} boxes, where ${math`n \ge ${2}`}. What is the probability that exactly one box is empty? Give a formula in ${mn}; ${math`\binom{n}{${2}}`} may be typed as C(n, ${2}), and ${math`n!`} with an exclamation mark, as on a calculator.`,
   answer: { kind: 'expression', expected: 'choose(n, 2) * factorial(n) / n^n', variables: ['n'], domains: { n: { kind: 'integer', min: 2, max: 9 } }, binomial: true },
+  hints: [
+    t`If exactly one box is empty, how many balls does each of the other boxes hold?`,
+    t`In how many ways can the empty box and the box with two balls be chosen?`,
+    t`Once those are fixed, in how many ways can the two sharing balls be chosen and the others placed one per box?`,
+  ],
+  nudge: t`Not quite. Exactly one empty box forces one box to hold two balls; count the choices in stages.`,
   solution: [
     t`All ${math`n^{n}`} ways of placing the balls (ball ${1} to some box, ball ${2} to some box, ...) are equally likely.`,
     t`Exactly one box empty means: one box is empty, one box holds two balls, and every other box holds one. Choose the empty box: ${mn} ways. Choose the box with two: ${math`n - ${1}`} ways. Choose which two balls share it: ${math`\binom{n}{${2}}`} ways.`,
     t`The remaining ${math`n - ${2}`} balls go one each into the remaining ${math`n - ${2}`} boxes, in order: ${math`(n - ${2})!`} ways.`,
-    t`So the count is ${math`n(n - ${1})\binom{n}{${2}}(n - ${2})! = \binom{n}{${2}}\,n!`}, and the probability is ${dmath`\frac{\binom{n}{${2}}\,n!}{n^{n}}.`} Check: ${math`n = ${2}`} gives ${math`\frac{${1} \times ${2}}{${4}} = \frac{${1}}{${2}}`} (both balls in the same box), and ${math`n = ${3}`} gives ${math`\frac{${3} \times ${6}}{${27}} = \frac{${2}}{${3}}`}.`,
+    t`So the count is ${math`n(n - ${1})\binom{n}{${2}}(n - ${2})! = \binom{n}{${2}}\,n!`}, and the probability is ${dmath`\frac{\binom{n}{${2}}\,n!}{n^{n}}.`}`,
+    t`Describe the outcome exactly, then count the choices stage by stage.`,
   ],
   reference: 'C(n, 2) n!/n^n',
   verify: () => {
@@ -336,7 +357,12 @@ const ia12proof = supervision({
   id: 'ia1-q12-check',
   source: cite('ia-prob-sheet-1', 'Q12'),
   title: t`Exactly one empty box, derived`,
-  prompt: t`Derive the probability that exactly one box is empty when ${mn} balls are tossed independently and at random into ${mn} boxes, explaining each factor in your count. Check your answer for ${math`n = ${2}`} and ${math`n = ${3}`} directly, by listing outcomes.`,
+  prompt: t`Derive the probability that exactly one box is empty when ${mn} balls are tossed independently and at random into ${mn} boxes, explaining each factor of the count. Check the result for ${math`n = ${2}`} and ${math`n = ${3}`} directly, by listing outcomes.`,
+  hints: [
+    t`Which outcomes leave exactly one box empty, described box by box?`,
+    t`Which choices, made in order, fix such an outcome, and in how many ways can each be made?`,
+    t`For ${math`n = ${2}`} and ${math`n = ${3}`}, how many outcomes are there in all, and how many leave exactly one box empty?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -353,9 +379,16 @@ const bop422 = auto({
       return bad === undefined ? null : `At n = ${bad}: ${a} × ${choose(bad, 2)} + ${b} × ${bad} is ${a * choose(bad, 2) + b * bad}, not ${bad * bad}.`;
     },
   },
+  hints: [
+    t`What are ${math`\binom{n}{${2}}`} and ${math`\binom{n}{${1}}`} as polynomials in ${mn}?`,
+    t`Comparing the ${math`n^{${2}}`} terms on both sides, what must ${math`a`} be?`,
+    t`Comparing the terms in ${mn}, what must ${math`b`} be?`,
+  ],
+  nudge: t`Not quite. Substitute small values, such as ${math`n = ${1}`} and ${math`n = ${2}`}, to get two equations.`,
   solution: [
     t`${math`\binom{n}{${2}} = \frac{n(n - ${1})}{${2}}`} and ${math`\binom{n}{${1}} = n`}, so ${math`a \cdot \frac{n^{${2}} - n}{${2}} + bn = n^{${2}}`} for every ${mn}.`,
     t`Compare: the ${math`n^{${2}}`} terms give ${math`\frac{a}{${2}} = ${1}`}, so ${math`a = ${2}`}; then ${math`-n + bn = ${0}`}, so ${math`b = ${1}`}. That is the identity of the exercise, ${math`n^{${2}} = ${2}\binom{n}{${2}} + \binom{n}{${1}}`}.`,
+    t`Pin down an identity in ${mn} by comparing coefficients or small cases.`,
   ],
   reference: 'a = 2, b = 1',
   verify: () => {
@@ -372,6 +405,11 @@ const bop423 = supervision({
   source: cite('bop', 'Chapter 4, exercise 23'),
   title: t`${math`\binom{${2}n}{n}`} is even`,
   prompt: t`Prove: if ${math`n \in \mathbb{N}`}, then ${math`\binom{${2}n}{n}`} is even. (Book of Proof's ${math`\mathbb{N}`} starts at ${1}.)`,
+  hints: [
+    t`How does Pascal's rule split ${math`\binom{${2}n}{n}`} into two coefficients from row ${math`${2}n - ${1}`}?`,
+    t`How are those two coefficients related to each other?`,
+    t`Why does that make their sum even?`,
+  ],
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 4, exercise 23'),
 });
@@ -379,7 +417,12 @@ const bop425 = supervision({
   id: 'bop-4-25',
   source: cite('bop', 'Chapter 4, exercise 25'),
   title: t`Choosing in two stages`,
-  prompt: t`Prove: if ${math`a, b, c \in \mathbb{N}`} and ${math`c \le b \le a`}, then ${math`\binom{a}{b}\binom{b}{c} = \binom{a}{b - c}\binom{a - b + c}{c}`}. Give an algebraic proof, and, if you can, a counting one: both sides count the same choices.`,
+  prompt: t`Prove: if ${math`a, b, c \in \mathbb{N}`} and ${math`c \le b \le a`}, then ${math`\binom{a}{b}\binom{b}{c} = \binom{a}{b - c}\binom{a - b + c}{c}`}. Give an algebraic proof and, if possible, a counting one: both sides count the same choices.`,
+  hints: [
+    t`What is each side when written with factorials?`,
+    t`After cancelling, which factorials remain on each side?`,
+    t`For a counting proof, what does choosing ${math`b`} people from ${math`a`}, then ${math`c`} of those ${math`b`}, count, and in what other order can the same choice be made?`,
+  ],
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 4, exercise 25'),
 });

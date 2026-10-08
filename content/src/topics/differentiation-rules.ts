@@ -159,9 +159,16 @@ const xex = auto({
   title: t`The product rule on x times e to the x`,
   prompt: t`Let ${math`f(x) = xe^{x}`}. Find ${math`f'(x)`} using the product rule.`,
   answer: { kind: 'expression', expected: '(x + 1) e^x', variables: ['x'] },
+  hints: [
+    t`With ${math`u = x`} and ${math`v = e^{x}`}, what are ${math`u'`} and ${math`v'`}?`,
+    t`What does the product rule give?`,
+    t`Which common factor can be taken out?`,
+  ],
+  nudge: t`Not quite. Use the product rule with both of its terms, then take out ${math`e^{x}`}.`,
   solution: [
     t`With ${math`u = x`} and ${math`v = e^{x}`}: ${math`u' = ${1}`}, ${math`v' = e^{x}`}.`,
     t`${math`f'(x) = ${1} \cdot e^{x} + x \cdot e^{x} = (x + ${1})e^{x}`}.`,
+    t`Product rule: differentiate one factor at a time.`,
   ],
   reference: 'e^x + x e^x',
   verify: () => agreesAt('(xe^x)\'', '(x + 1) e^x', (x) => numDeriv((u) => u * Math.exp(u), x), [-2, 0, 1.5]),
@@ -175,9 +182,16 @@ const lnSquare = auto({
   title: t`Two ways to differentiate a logarithm`,
   prompt: t`Differentiate ${math`\ln(x^{${2}})`} for ${math`x > ${0}`}, first by the chain rule and then without it.`,
   answer: { kind: 'expression', expected: '2/x', variables: ['x'], domains: DOM },
+  hints: [
+    t`With the inside ${math`u = x^{${2}}`}, what is the derivative of ${math`\ln u`} with respect to ${math`u`}?`,
+    t`What is the derivative of the inside?`,
+    t`Without the chain rule, which law of logarithms simplifies ${math`\ln(x^{${2}})`} first?`,
+  ],
+  nudge: t`Not quite. Multiply by the derivative of the inside, or simplify with a law of logarithms first.`,
   solution: [
     t`Chain rule: the inside is ${math`u = x^{${2}}`}, so the derivative is ${math`\frac{${1}}{x^{${2}}} \cdot ${2}x = \frac{${2}}{x}`}.`,
     t`Without it: ${math`\ln(x^{${2}}) = ${2}\ln x`}, whose derivative is ${math`\frac{${2}}{x}`}. The two agree.`,
+    t`Simplify with the laws of logarithms first; both routes must agree.`,
   ],
   reference: '2/x',
   verify: () => agreesAt('(ln x^2)\'', '2/x', (x) => numDeriv((u) => Math.log(u * u), x), [0.5, 1, 2.5]),
@@ -192,9 +206,16 @@ const dwdp = auto({
   title: t`How the chance of winning changes`,
   prompt: t`In a match, Younis wins with probability ${math`w = \frac{${1} - p^{${2}}}{${2} - p}`}, for ${math`${0} < p < ${1}`}. Find ${math`\frac{dw}{dp}`}.`,
   answer: { kind: 'expression', expected: '(p^2 - 4p + 1)/(2 - p)^2', variables: ['p'], domains: P01 },
+  hints: [
+    t`For the quotient, what are ${math`u`}, ${math`v`}, ${math`u'`}, and ${math`v'`}?`,
+    t`What is the quotient rule, with its terms in order?`,
+    t`After expanding the numerator, which terms combine?`,
+  ],
+  nudge: t`Not quite. Keep the order ${math`u'v - uv'`}, and watch the sign of ${math`v' = -${1}`}.`,
   solution: [
     t`Quotient rule with ${math`u = ${1} - p^{${2}}`}, ${math`v = ${2} - p`}: ${math`u' = -${2}p`}, ${math`v' = -${1}`}.`,
     t`${math`\frac{dw}{dp} = \frac{-${2}p(${2} - p) - (${1} - p^{${2}})(-${1})}{(${2} - p)^{${2}}} = \frac{-${4}p + ${2}p^{${2}} + ${1} - p^{${2}}}{(${2} - p)^{${2}}} = \frac{p^{${2}} - ${4}p + ${1}}{(${2} - p)^{${2}}}`}.`,
+    t`Quotient rule: ${math`\frac{u'v - uv'}{v^{${2}}}`}, in that order.`,
   ],
   reference: '(p^2 - 4p + 1)/(2 - p)^2',
   verify: () => {
@@ -214,10 +235,17 @@ const turnP = auto({
   title: t`Does w increase whenever p decreases?`,
   prompt: t`With ${math`w = \frac{${1} - p^{${2}}}{${2} - p}`} for ${math`${0} < p < ${1}`}, ${math`w`} does not always increase as ${math`p`} decreases. Find the value of ${math`p`} in ${math`(${0}, ${1})`} at which ${math`\frac{dw}{dp} = ${0}`}.`,
   answer: { kind: 'expression', expected: '2 - sqrt(3)', variables: [] },
+  hints: [
+    t`What is ${math`\frac{dw}{dp}`} by the quotient rule?`,
+    t`When is a fraction equal to ${0}?`,
+    t`Which root of the numerator lies in ${math`(${0}, ${1})`}?`,
+  ],
+  nudge: t`Not quite. Set the numerator of ${math`\frac{dw}{dp}`} to ${0} and keep only the root that can be a probability.`,
   solution: [
     t`${math`\frac{dw}{dp} = \frac{p^{${2}} - ${4}p + ${1}}{(${2} - p)^{${2}}} = \frac{(${2} - p)^{${2}} - ${3}}{(${2} - p)^{${2}}}`}, by completing the square.`,
     t`This is ${0} when ${math`(${2} - p)^{${2}} = ${3}`}, so ${math`p = ${2} \pm \sqrt{${3}}`}; only ${math`${2} - \sqrt{${3}}`} lies in ${math`(${0}, ${1})`}.`,
     t`For ${math`${0} < p < ${2} - \sqrt{${3}}`} the derivative is positive, so there ${math`w`} decreases as ${math`p`} decreases. So the answer to the question is no.`,
+    t`A derivative vanishes where its numerator does; keep roots in the allowed range.`,
   ],
   reference: '2 - sqrt(3)',
   verify: () => firstError(close('dw/dp at 2 - sqrt 3', numDeriv(w, 2 - Math.sqrt(3)), 0), close('dw/dp at 0.1 is positive', Math.sign(numDeriv(w, 0.1)), 1)),
@@ -230,6 +258,11 @@ const productProof = supervision({
   source: cite(F22, 'Assignment 22, Q1'),
   title: t`The product rule from the definition`,
   prompt: t`(i) Use a rough sketch to show that, for any differentiable ${math`f`}, ${math`f(x + h) \approx f(x) + hf'(x)`} when ${math`h`} is small. (ii) Let ${math`g(x) = f_{${1}}(x)f_{${2}}(x)`}, where ${math`f_{${1}}`} and ${math`f_{${2}}`} are differentiable. Use the definition ${math`g'(x) = \lim_{h \to ${0}} \frac{g(x + h) - g(x)}{h}`} and part (i) to show that ${math`g'(x) = f_{${1}}'(x)f_{${2}}(x) + f_{${1}}(x)f_{${2}}'(x)`}.`,
+  hints: [
+    t`From the sketch, why is ${math`f(x + h)`} close to ${math`f(x) + hf'(x)`}?`,
+    t`Applying that to ${math`f_{${1}}`} and ${math`f_{${2}}`}, what is ${math`g(x + h)`} approximately?`,
+    t`After subtracting ${math`g(x)`} and dividing by ${math`h`}, which terms vanish as ${math`h \to ${0}`}?`,
+  ],
   writeUp: 'proof',
   official: cite(F22H, 'Assignment 22 hints, Q1'),
 });
@@ -239,6 +272,11 @@ const chainProof = supervision({
   source: cite(F23, 'Assignment 23, Q1(iii)'),
   title: t`The chain rule from a linear approximation`,
   prompt: t`Assume that for any differentiable ${math`H`}, ${math`H(a + t) \approx H(a) + tH'(a)`} when ${math`t`} is small. (a) Write down an approximation for ${math`g(x + h)`}. (b) Write down an approximation for ${math`f(g(x) + t)`}. (c) Let ${math`F(x) = f(g(x))`}; use (a) and (b) to approximate ${math`F(x + h)`} for small ${math`h`}. (d) Deduce that ${math`F'(x) = f'(g(x))g'(x)`}.`,
+  hints: [
+    t`With ${math`H = g`}, what is ${math`g(x + h)`} approximately?`,
+    t`With ${math`t = hg'(x)`}, what is ${math`f(g(x) + t)`} approximately?`,
+    t`Combining the two, what is ${math`\frac{F(x + h) - F(x)}{h}`} approximately?`,
+  ],
   writeUp: 'proof',
   official: cite(F23H, 'Assignment 23 hints, Q1(iii)'),
 });
@@ -248,6 +286,11 @@ const tanProof = supervision({
   source: cite(F25, 'Assignment 25, Q2(iv)'),
   title: t`The derivative of tan`,
   prompt: t`Show that ${math`\frac{d}{d\theta}\tan\theta = \sec^{${2}}\theta`}, by writing ${math`\tan\theta`} as a product of ${math`\sin\theta`} and ${math`\sec\theta`}, or by the quotient rule.`,
+  hints: [
+    t`What are the derivatives of ${math`\sin\theta`} and of ${math`\sec\theta`}?`,
+    t`By the product rule, what is the derivative of ${math`\sin\theta\sec\theta`}?`,
+    t`Which identity turns the result into ${math`\sec^{${2}}\theta`}?`,
+  ],
   writeUp: 'proof',
   official: cite(F25H, 'Assignment 25 hints, Q2(iv)'),
 });
@@ -264,6 +307,11 @@ const calc1 = supervision({
   source: cite(CALC, 'Q1 (2005 STEP II Q1)'),
   title: t`Where the derivative of ${math`P(x)e^{-x^{${2}}}`} vanishes`,
   prompt: t`Find the three values of ${math`x`} for which the derivative of ${math`x^{${2}}e^{-x^{${2}}}`} is zero. Given that ${math`a`} and ${math`b`} are distinct positive numbers, find a polynomial ${math`P(x)`} such that the derivative of ${math`P(x)e^{-x^{${2}}}`} is zero for ${math`x = ${0}`}, ${math`x = \pm a`} and ${math`x = \pm b`}, but for no other values of ${math`x`}.`,
+  hints: [
+    t`What is the derivative of ${math`x^{${2}}e^{-x^{${2}}}`}, and where is it ${0}?`,
+    t`What is the derivative of ${math`P(x)e^{-x^{${2}}}`}, in terms of ${math`P`} and ${math`P'`}?`,
+    t`Which polynomial ${math`P`} makes ${math`P'(x) - ${2}xP(x)`} a multiple of ${math`x(x^{${2}} - a^{${2}})(x^{${2}} - b^{${2}})`} and nothing more?`,
+  ],
   writeUp: 'explanation',
   official: cite(CALCS, 'Q1'),
 });
@@ -288,9 +336,16 @@ const calc1zeros = auto({
       return null;
     },
   },
+  hints: [
+    t`Which rules does the derivative of ${math`x^{${2}}e^{-x^{${2}}}`} need?`,
+    t`What is the derivative, fully factorised?`,
+    t`Can ${math`e^{-x^{${2}}}`} be ${0}?`,
+  ],
+  nudge: t`Not quite. Factorise the derivative fully; ${math`e^{-x^{${2}}}`} is never ${0}.`,
   solution: [
     t`Product rule, with the chain rule for ${math`e^{-x^{${2}}}`}: ${math`\frac{d}{dx}\left(x^{${2}}e^{-x^{${2}}}\right) = ${2}xe^{-x^{${2}}} + x^{${2}} \cdot (-${2}x)e^{-x^{${2}}} = ${2}x(${1} - x^{${2}})e^{-x^{${2}}}`}.`,
     t`${math`e^{-x^{${2}}} > ${0}`} for every ${math`x`}, so the derivative is zero exactly when ${math`x(${1} - x^{${2}}) = ${0}`}: ${math`x = -${1}`}, ${0}, or ${1}.`,
+    t`Factorise the derivative; an exponential factor never vanishes.`,
   ],
   reference: '-1, 0, 1',
   verify: () => {
@@ -317,11 +372,18 @@ const db94q2iv = auto({
   title: t`A tower of powers`,
   prompt: t`Differentiate ${math`x^{(x^{x})}`} with respect to ${math`x`}, for ${math`x > ${0}`}.`,
   answer: { kind: 'expression', expected: 'x^(x^x) * x^x * ((ln(x))^2 + ln(x) + 1/x)', variables: ['x'], domains: XPOS },
+  hints: [
+    t`How can ${math`x^{x}`} be written using ${math`e`} and ${math`\ln x`}?`,
+    t`What is the derivative of ${math`x^{x}`}?`,
+    t`Writing ${math`x^{(x^{x})} = e^{x^{x}\ln x}`}, which product must be differentiated in the exponent?`,
+  ],
+  nudge: t`Not quite. The exponent varies, so write the power through ${math`e`} and ${math`\ln x`} before differentiating.`,
   solution: [
     t`Write powers with a variable exponent through ${math`e`}: ${math`x^{x} = e^{x\ln x}`}, so by the chain and product rules ${math`\frac{d}{dx}x^{x} = x^{x}(\ln x + ${1})`}.`,
     t`In the same way ${math`y = x^{(x^{x})} = e^{x^{x}\ln x}`}, so ${math`\frac{dy}{dx} = y\,\frac{d}{dx}\left(x^{x}\ln x\right)`}.`,
     t`Product rule: ${math`\frac{d}{dx}\left(x^{x}\ln x\right) = x^{x}(\ln x + ${1})\ln x + \frac{x^{x}}{x} = x^{x}\left((\ln x)^{${2}} + \ln x + \frac{${1}}{x}\right)`}.`,
     t`So ${math`\frac{dy}{dx} = x^{(x^{x})}\,x^{x}\left((\ln x)^{${2}} + \ln x + \frac{${1}}{x}\right)`}.`,
+    t`For a variable exponent, rewrite the power through ${math`e`} and ${math`\ln`} first.`,
   ],
   reference: 'x^(x^x) * x^x * ((ln(x))^2 + ln(x) + 1/x)',
   verify: () => agreesAt('d/dx x^(x^x)', 'x^(x^x) * x^x * ((ln(x))^2 + ln(x) + 1/x)', (x) => numDeriv((u) => u ** (u ** u), x), [0.6, 1, 1.5, 2.2], 1e-4),
@@ -337,9 +399,16 @@ const db94q2v = auto({
   title: t`A power of a power`,
   prompt: t`Differentiate ${math`(x^{x})^{x}`} with respect to ${math`x`}, for ${math`x > ${0}`}.`,
   answer: { kind: 'expression', expected: 'x^(x^2 + 1) * (2 ln(x) + 1)', variables: ['x'], domains: XPOS },
+  hints: [
+    t`How does ${math`(x^{x})^{x}`} simplify by the laws of indices?`,
+    t`Writing it as ${math`e^{x^{${2}}\ln x}`}, what is the derivative of the exponent?`,
+    t`How can the result be tidied into a single power of ${math`x`} times a bracket?`,
+  ],
+  nudge: t`Not quite. Simplify ${math`(x^{x})^{x}`} by the laws of indices before differentiating.`,
   solution: [
     t`${math`(x^{x})^{x} = x^{x \cdot x} = x^{x^{${2}}} = e^{x^{${2}}\ln x}`}.`,
     t`${math`\frac{d}{dx}\left(x^{${2}}\ln x\right) = ${2}x\ln x + x`}, so the derivative is ${math`x^{x^{${2}}}(${2}x\ln x + x) = x^{x^{${2}} + ${1}}(${2}\ln x + ${1})`}.`,
+    t`Simplify with the laws of indices before differentiating.`,
   ],
   reference: 'x^(x^2 + 1) * (2 ln(x) + 1)',
   verify: () => agreesAt('d/dx (x^x)^x', 'x^(x^2 + 1) * (2 ln(x) + 1)', (x) => numDeriv((u) => (u ** u) ** u, x), [0.6, 1, 1.5, 2.2], 1e-4),
@@ -354,10 +423,17 @@ const damtpQ3ii = auto({
   title: t`The third derivative of ${math`(\ln x)^{${2}}`}`,
   prompt: t`Calculate ${math`\frac{d^{${3}}}{dx^{${3}}}(\ln x)^{${2}}`}, for ${math`x > ${0}`}.`,
   answer: { kind: 'expression', expected: '(4 ln(x) - 6)/x^3', variables: ['x'], domains: XPOS },
+  hints: [
+    t`What is the first derivative, by the chain rule?`,
+    t`What is the second derivative, by the quotient rule?`,
+    t`Differentiating once more, which terms combine in the numerator?`,
+  ],
+  nudge: t`Not quite. Differentiate one step at a time and simplify after each; watch the signs.`,
   solution: [
     t`Chain rule: ${math`\frac{d}{dx}(\ln x)^{${2}} = \frac{${2}\ln x}{x}`}.`,
     t`Quotient rule: ${math`\frac{d}{dx}\frac{${2}\ln x}{x} = \frac{\frac{${2}}{x} \cdot x - ${2}\ln x}{x^{${2}}} = \frac{${2} - ${2}\ln x}{x^{${2}}}`}.`,
     t`Quotient rule again: ${math`\frac{d}{dx}\frac{${2} - ${2}\ln x}{x^{${2}}} = \frac{-\frac{${2}}{x} \cdot x^{${2}} - (${2} - ${2}\ln x) \cdot ${2}x}{x^{${4}}} = \frac{-${2}x - ${4}x + ${4}x\ln x}{x^{${4}}} = \frac{${4}\ln x - ${6}}{x^{${3}}}`}.`,
+    t`Simplify after each derivative before taking the next.`,
   ],
   reference: '(4 ln(x) - 6)/x^3',
   verify: () => {

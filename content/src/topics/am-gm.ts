@@ -198,9 +198,16 @@ const a8eq = auto({
     ],
     correct: 'eq',
   },
+  hints: [
+    t`With ${math`a = x^{${2}}`} and ${math`b = y^{${2}}`}, what is ${math`\frac{a + b}{${2}} - \sqrt{ab}`} in terms of ${mx} and ${math`y`}?`,
+    t`When is a square equal to ${0}?`,
+    t`When the gap is ${0}, what does that force on ${math`\sqrt{a}`} and ${math`\sqrt{b}`}?`,
+  ],
+  nudge: t`Not quite. Write the gap between the two means as a square; equality needs that square to vanish.`,
   solution: [
     t`Put ${math`a = x^{${2}}`}, ${math`b = y^{${2}}`} with ${math`x = \sqrt{a}`}, ${math`y = \sqrt{b}`}. Then ${math`\frac{a + b}{${2}} - \sqrt{ab} = \frac{(x - y)^{${2}}}{${2}}`}.`,
     t`This is ${0} exactly when ${math`x = y`}, that is ${math`\sqrt{a} = \sqrt{b}`}, that is ${math`a = b`}.`,
+    t`Equality in AM-GM needs the numbers to be equal.`,
   ],
   reference: 'eq',
   verify: () => {
@@ -220,6 +227,11 @@ const a8q1 = supervision({
   source: cite(F8, 'Assignment 8, Q1'),
   title: t`AM-GM for two numbers`,
   prompt: t`By considering ${math`(x - y)^{${2}}`}, prove that ${math`x^{${2}} + y^{${2}} \ge ${2}xy`}, and hence show that, if ${ma} and ${mb} are non-negative numbers, then ${math`\frac{a + b}{${2}} \ge \sqrt{ab}`}. What can you say about ${ma} and ${mb} if ${math`\frac{${1}}{${2}}(a + b) = \sqrt{ab}`}?`,
+  hints: [
+    t`What is ${math`(x - y)^{${2}}`} expanded, and what sign must it have?`,
+    t`Which substitution for ${mx} and ${math`y`} turns ${math`x^{${2}} + y^{${2}} \ge ${2}xy`} into a statement about ${ma} and ${mb}?`,
+    t`When is ${math`(x - y)^{${2}} = ${0}`}, and what does that mean for ${ma} and ${mb}?`,
+  ],
   writeUp: 'proof',
   official: cite(F8H, 'Assignment 8, Q1'),
 });
@@ -229,6 +241,11 @@ const a8q1ii = supervision({
   source: cite(F8, 'Assignment 8, Q1(ii)'),
   title: t`AM-GM for four numbers`,
   prompt: t`For non-negative ${math`p, q, r, s`}, write out ${dmath`\frac{p + q + r + s}{${4}} \ge \frac{\sqrt{pq} + \sqrt{rs}}{${2}} \ge \sqrt[${4}]{pqrs},`} giving a careful explanation of each step (for example "using the two-number case with ${math`a = p`} and ${math`b = q`}"). Lay the work out with a new line for each step.`,
+  hints: [
+    t`Which use of the two-number case gives ${math`\frac{p + q}{${2}} \ge \sqrt{pq}`}, and which gives the same for ${math`r`} and ${math`s`}?`,
+    t`How is ${math`\frac{p + q + r + s}{${4}}`} related to the average of ${math`\frac{p + q}{${2}}`} and ${math`\frac{r + s}{${2}}`}?`,
+    t`Applying the two-number case once more, to ${math`\sqrt{pq}`} and ${math`\sqrt{rs}`}, what results?`,
+  ],
   writeUp: 'proof',
   official: cite(F8H, 'Assignment 8, Q1(ii)'),
 });
@@ -238,6 +255,11 @@ const a8q1iii = supervision({
   source: cite(F8, 'Assignment 8, Q1(iii)'),
   title: t`AM-GM for three numbers`,
   prompt: t`For non-negative ${math`p, q, r`}, use the four-number case with ${math`s = \frac{p + q + r}{${3}}`} to show ${dmath`\frac{p + q + r}{${3}} = \frac{p + q + r + \frac{p + q + r}{${3}}}{${4}} \ge \sqrt[${4}]{pqr \cdot \frac{p + q + r}{${3}}},`} explaining each step, and deduce that ${math`\frac{p + q + r}{${3}} \ge \sqrt[${3}]{pqr}`}.`,
+  hints: [
+    t`With ${math`s = \frac{p + q + r}{${3}}`}, why does ${math`\frac{p + q + r + s}{${4}}`} equal ${math`\frac{p + q + r}{${3}}`}?`,
+    t`What does the four-number case then say, written with ${math`s`}?`,
+    t`After raising both sides to the fourth power, what is left once a factor ${math`s`} is divided out, and what happens when ${math`s = ${0}`}?`,
+  ],
   writeUp: 'proof',
   official: cite(F8H, 'Assignment 8, Q1(iii)'),
 });
@@ -252,6 +274,11 @@ const db14q5 = supervision({
   source: cite(DB14, 'Q5(i), (ii)', true),
   title: t`A cubic that never goes negative, and the largest ${math`xy^{${2}}`}`,
   prompt: t`(i) Let ${math`f(x) = (x + ${2}a)^{${3}} - ${27}a^{${2}}x`}, where ${math`a \ge ${0}`}. Show that ${math`f(x) \ge ${0}`} for ${math`x \ge ${0}`}. (The question asks for a sketch of ${math`f`}; an argument by AM-GM is as good.) (ii) Use part (i) to find the greatest value of ${math`xy^{${2}}`} in the region of the ${math`(x, y)`} plane given by ${math`x \ge ${0}`}, ${math`y \ge ${0}`} and ${math`x + ${2}y \le ${3}`}. For what values of ${math`x`} and ${math`y`} is this greatest value achieved?`,
+  hints: [
+    t`How can ${math`x + ${2}a`} be split into three non-negative parts whose product involves ${math`a^{${2}}x`}?`,
+    t`What does AM-GM for those three parts give?`,
+    t`For part (ii), which choice of ${ma} turns the inequality into a bound on ${math`xy^{${2}}`}, and when is it attained?`,
+  ],
   writeUp: 'proof',
   official: cite('stepdb-14-s1-ms', 'SI 2014 Q5 (page 10)'),
 });
@@ -262,10 +289,17 @@ const db14q5ii = auto({
   title: t`The largest ${math`xy^{${2}}`} under a line`,
   prompt: t`Given that ${math`(x + ${2}a)^{${3}} \ge ${27}a^{${2}}x`} for all ${math`x \ge ${0}`} and ${math`a \ge ${0}`}, find the greatest value of ${math`xy^{${2}}`} in the region of the ${math`(x, y)`} plane given by ${math`x \ge ${0}`}, ${math`y \ge ${0}`} and ${math`x + ${2}y \le ${3}`}.`,
   answer: { kind: 'exact', expected: '1' },
+  hints: [
+    t`Which choice of ${ma} turns the given inequality into a bound on ${math`xy^{${2}}`}?`,
+    t`How large can ${math`x + ${2}y`} be in the region?`,
+    t`Is the bound attained: when does equality hold in the AM-GM behind the given inequality?`,
+  ],
+  nudge: t`Not quite. Calculus is the slow route; the given inequality with a well-chosen ${ma} bounds ${math`xy^{${2}}`} at once.`,
   solution: [
     t`Take ${math`a = y`}: ${math`(x + ${2}y)^{${3}} \ge ${27}y^{${2}}x`}, so ${math`xy^{${2}} \le \frac{(x + ${2}y)^{${3}}}{${27}}`}.`,
     t`In the region ${math`${0} \le x + ${2}y \le ${3}`}, so ${math`xy^{${2}} \le \frac{${3}^{${3}}}{${27}} = ${1}`}.`,
     t`The bound is reached: equality in ${math`(x + ${2}a)^{${3}} \ge ${27}a^{${2}}x`} needs ${math`x = a`}, so ${math`x = y`}, and ${math`x + ${2}y = ${3}`} gives ${math`x = y = ${1}`}, where ${math`xy^{${2}} = ${1}`}. So the greatest value is ${1}.`,
+    t`Pick the parameter so the inequality bounds the wanted quantity; then check equality.`,
   ],
   reference: '1',
   verify: () => {
@@ -290,6 +324,11 @@ const db12q1 = supervision({
   source: cite(DB12, 'Q1, first part'),
   title: t`The shortest way round a fixed point`,
   prompt: t`The line ${math`L`} has equation ${math`y = c - mx`}, with ${math`m > ${0}`} and ${math`c > ${0}`}. It passes through the point ${math`R(a, b)`} and cuts the axes at the points ${math`P(p, ${0})`} and ${math`Q(${0}, q)`}, where ${math`a`}, ${math`b`}, ${math`p`} and ${math`q`} are all positive. Find ${math`p`} and ${math`q`} in terms of ${math`a`}, ${math`b`} and ${math`m`}. As ${math`L`} varies with ${math`R`} remaining fixed, show that the minimum value of the sum of the distances of ${math`P`} and ${math`Q`} from the origin is ${math`(a^{\frac{${1}}{${2}}} + b^{\frac{${1}}{${2}}})^{${2}}`}.`,
+  hints: [
+    t`Where does ${math`L`} meet each axis, given that it passes through ${math`R(a, b)`}?`,
+    t`Written in terms of ${math`m`}, what is ${math`p + q`}?`,
+    t`Which two terms of ${math`p + q`} have a product independent of ${math`m`}, and what does AM-GM say about their sum?`,
+  ],
   writeUp: 'proof',
   official: cite('stepdb-12-s1-ms', 'Question 1 (page 1)'),
 });
@@ -301,10 +340,17 @@ const db12q1m = auto({
   title: t`Which line is shortest round the point`,
   prompt: t`A line through the fixed point ${math`R(a, b)`}, with ${math`a, b > ${0}`}, has gradient ${math`-m`} with ${math`m > ${0}`}, and cuts the axes at ${math`P(p, ${0})`} and ${math`Q(${0}, q)`}. Then ${math`p = a + \frac{b}{m}`} and ${math`q = b + am`}. For which ${math`m`} is ${math`OP + OQ`} least? Give ${math`m`} in terms of ${math`a`} and ${math`b`}.`,
   answer: { kind: 'expression', expected: 'sqrt(b/a)', variables: ['a', 'b'], domains: ABDOM },
+  hints: [
+    t`What is ${math`OP + OQ`} in terms of ${math`m`}?`,
+    t`Which two terms vary with ${math`m`}, and what is their product?`,
+    t`When does AM-GM for two positive numbers hold with equality?`,
+  ],
+  nudge: t`Not quite. Differentiating works, but AM-GM on the two terms that depend on ${math`m`} is quicker.`,
   solution: [
     t`${math`OP + OQ = p + q = a + b + \frac{b}{m} + am`}.`,
     t`AM-GM on the two positive numbers ${math`am`} and ${math`\frac{b}{m}`}: ${math`am + \frac{b}{m} \ge ${2}\sqrt{am \cdot \frac{b}{m}} = ${2}\sqrt{ab}`}, so ${math`OP + OQ \ge a + b + ${2}\sqrt{ab} = (\sqrt{a} + \sqrt{b})^{${2}}`}.`,
     t`Equality holds exactly when ${math`am = \frac{b}{m}`}, that is ${math`m^{${2}} = \frac{b}{a}`}, so ${math`m = \sqrt{\frac{b}{a}}`} (positive, as ${math`m > ${0}`}).`,
+    t`Two terms with a fixed product have their least sum when they are equal.`,
   ],
   reference: 'sqrt(b/a)',
   verify: () => {
@@ -333,6 +379,11 @@ const db08q3 = supervision({
   source: cite(DB08, 'Q3', true),
   title: t`One of them is small`,
   prompt: t`(i) Show that ${math`x^{${2}}(${1} - x) \le \frac{${4}}{${27}}`} for all ${math`x \ge ${0}`}. (The question finds the turning points of ${math`y = ${27}x^{${3}} - ${27}x^{${2}} + ${4}`}; an argument by AM-GM is as good.) Given that each of the numbers ${math`a`}, ${math`b`} and ${math`c`} lies between ${0} and ${1}, prove by contradiction that at least one of the numbers ${math`bc(${1} - a)`}, ${math`ca(${1} - b)`} and ${math`ab(${1} - c)`} is less than or equal to ${math`\frac{${4}}{${27}}`}. (ii) Given that each of the numbers ${math`p`} and ${math`q`} lies between ${0} and ${1}, prove that at least one of the numbers ${math`p(${1} - q)`} and ${math`q(${1} - p)`} is less than or equal to ${math`\frac{${1}}{${4}}`}.`,
+  hints: [
+    t`Which three non-negative numbers with a constant sum have a product that is a fixed multiple of ${math`x^{${2}}(${1} - x)`}?`,
+    t`If all three of ${math`bc(${1} - a)`}, ${math`ca(${1} - b)`}, ${math`ab(${1} - c)`} exceeded ${math`\frac{${4}}{${27}}`}, what would their product exceed?`,
+    t`How can that product be regrouped as three factors of the form ${math`x^{${2}}(${1} - x)`}, and how does part (ii) follow the same pattern with two factors?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -404,7 +455,8 @@ export const amGm: TopicContent = {
   // The gate is three STEP questions the lesson does not touch, best first: 2014 I Q5 (a cubic
   // bound that is AM-GM in disguise, then a maximum), 2008 II Q3 (bounds on products), 2012 I Q1
   // (a minimum distance), then 2014 I Q5(ii) auto-checked. Assignment 8 Q1 is proved in the lesson.
-  gate: ['step14-q5', 'step08-q3', 'step12-q1', 'step14-q5-ii'],
+  // Not step14-q5-ii: it is part (ii) of the write-up gate step14-q5, so it stays practice.
+  gate: ['step14-q5', 'step08-q3', 'step12-q1'],
   recall: [
     { front: t`State AM-GM for two numbers, with its hypotheses and equality case.`, back: t`For ${math`a, b \ge ${0}`}: ${math`\frac{a + b}{${2}} \ge \sqrt{ab}`}, with equality if and only if ${math`a = b`}.` },
     { front: t`What square proves AM-GM for two numbers?`, back: t`${math`(\sqrt{a} - \sqrt{b})^{${2}} \ge ${0}`}, which expands to ${math`a + b \ge ${2}\sqrt{ab}`}.` },

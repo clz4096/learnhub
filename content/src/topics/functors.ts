@@ -208,13 +208,23 @@ const charOrdered = supervision({
   title: t`Why ${ml`Char`} can be passed to ${ml`Map.Make`}`,
   prompt: t`Type ${ml`module CharMap = Map.Make (Char)`} and explain the types of ${ml`CharMap.empty`}, ${ml`CharMap.add`}, and ${ml`CharMap.remove`}. Then compare the signatures of ${ml`Map.OrderedType`} and ${ml`Char`}, and explain why ${ml`Char`} may be the argument of ${ml`Map.Make`}.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which type does ${ml`CharMap.key`} become, and what type variable remains in ${ml`'a CharMap.t`}?`,
+    t`Which type and which value does ${ml`Map.OrderedType`} require?`,
+    t`Does ${ml`Char`} provide them, and does it matter that it provides more?`,
+  ],
 });
 const printFunctor = supervision({
   id: 'cs3110-5-print',
   source: cite('cs3110-ex5', 'Exercises: ToString, Print, Print Int, Print String, Print Reuse'),
   title: t`The ${ml`Print`} functor`,
-  prompt: t`Write a module type ${ml`ToString`} with an abstract type ${ml`t`} and ${ml`to_string : t -> string`}. Write a functor ${ml`Print`} taking ${ml`M : ToString`} and returning a module whose only value is ${ml`print : M.t -> unit`}. Apply it to make ${ml`PrintInt`} and ${ml`PrintString`}, explain why the argument modules must not be sealed, and say what code ${ml`Print`} reuses.`,
+  prompt: t`Write a module type ${ml`ToString`} with an abstract type ${ml`t`} and ${ml`to_string : t -> string`}. Write a functor ${ml`Print`} taking ${ml`M : ToString`} and returning a module whose only value is ${ml`print : M.t -> unit`}. Apply it to make ${ml`PrintInt`} and ${ml`PrintString`}, explain why the argument modules must not be sealed, and state what code ${ml`Print`} reuses.`,
   writeUp: 'explanation',
+  hints: [
+    t`What must ${ml`print`} do with a value of type ${ml`M.t`}, using only what ${ml`ToString`} provides?`,
+    t`For ${ml`PrintInt`}, which structure supplies ${ml`t`} and ${ml`to_string`}?`,
+    t`If the argument module were sealed with ${ml`ToString`}, could a client pass an ${ml`int`} to ${ml`PrintInt.print`}?`,
+  ],
 });
 const functorBst = supervision({
   id: 'cs3110-9-functorized-bst',
@@ -222,6 +232,11 @@ const functorBst = supervision({
   title: t`A functorized binary search tree`,
   prompt: t`Implement a ${ml`BstSet`} abstraction as a functor parameterised on a structure that supplies the client's comparison, much like the standard library's ${ml`Set.Make`}, so that clients can, for example, ignore case in strings. Give the signatures of the parameter and the result.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which type and which comparison function must the parameter supply?`,
+    t`How do insertion and membership in the tree use that comparison instead of the built in one?`,
+    t`What should the result signature expose, and what should it keep abstract?`,
+  ],
 });
 
 // CS3110 Chapter 5, Exercise: sets. A case-insensitive set of strings from Set.Make.
@@ -229,8 +244,13 @@ const caseSets = supervision({
   id: 'cs3110-5-sets',
   source: cite('cs3110-ex5', 'Exercise: sets'),
   title: t`Sets of strings that ignore case`,
-  prompt: t`The standard library's ${ml`Set`} module is quite similar to the ${ml`Map`} module. Use it to create a module that represents sets of case-insensitive strings: strings that differ only in their case should be considered equal by the set. For example, the sets ${ml`{"grr", "argh"}`} and ${ml`{"aRgh", "GRR"}`} should be considered the same, and adding ${ml`"gRr"`} to either set should not change the set. Explain why your argument to the functor makes this happen.`,
+  prompt: t`The standard library's ${ml`Set`} module is quite similar to the ${ml`Map`} module. Use it to create a module that represents sets of case-insensitive strings: strings that differ only in their case should be considered equal by the set. For example, the sets ${ml`{"grr", "argh"}`} and ${ml`{"aRgh", "GRR"}`} should be considered the same, and adding ${ml`"gRr"`} to either set should not change the set. Explain why the argument to the functor makes this happen.`,
   writeUp: 'explanation',
+  hints: [
+    t`What does ${ml`Set.Make`} require of its argument?`,
+    t`Which comparison makes strings that differ only in case compare as equal?`,
+    t`When ${ml`add`} finds an element that compares equal, what does the set do?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

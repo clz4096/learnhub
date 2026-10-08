@@ -177,8 +177,14 @@ const q12four = auto({
   source: cite('ia-prob-sheet-1', 'Q12', true),
   title: t`Four balls, four boxes`,
   prompt: t`${N4} balls are tossed independently and at random into ${N4} boxes. What is the probability that exactly one box is empty?`,
+  nudge: t`Not quite. Labelled balls make the placements equally likely; count those.`,
+  hints: [
+    t`How many equally likely placements of ${N4} labelled balls into ${N4} boxes are there?`,
+    t`With exactly one box empty, how many balls are in the fullest box?`,
+    t`In how many ways can the balls sharing a box be chosen, and the resulting groups put into different boxes?`,
+  ],
   answer: { kind: 'exact', expected: oneEmpty(N4) },
-  solution: [t`${math`\binom{${N4}}{${2}} \times ${N4}! = ${choose(N4, 2)} \times ${factorial(N4)} = ${choose(N4, 2) * factorial(N4)}`} of the ${math`${N4}^{${N4}} = ${N4 ** N4}`} equally likely placements: ${math`${q(choose(N4, 2) * factorial(N4), N4 ** N4)}`}.`],
+  solution: [t`${math`\binom{${N4}}{${2}} \times ${N4}! = ${choose(N4, 2)} \times ${factorial(N4)} = ${choose(N4, 2) * factorial(N4)}`} of the ${math`${N4}^{${N4}} = ${N4 ** N4}`} equally likely placements: ${math`${q(choose(N4, 2) * factorial(N4), N4 ** N4)}`}.`, t`Label the balls: then every placement is equally likely.`],
   reference: oneEmpty(N4),
   verify: () => same('the formula and the listing', oneEmpty(N4), str(q(choose(N4, 2) * factorial(N4), N4 ** N4))),
   misconceptions: [{ response: str(q(choose(N4, 2) * factorial(N4), choose(2 * N4 - 1, N4))), why: t`The ${choose(2 * N4 - 1, N4)} placements of identical balls are not equally likely. Count labelled balls: ${math`${N4}^{${N4}}`} outcomes.` }],
@@ -195,10 +201,17 @@ const q13auto = auto({
   source: cite('ia-prob-sheet-1', 'Q13'),
   title: t`A random increasing function`,
   prompt: t`What is the probability that a random increasing (that is, non-decreasing) function ${math`\{${1}, \ldots, k\} \to \{${1}, \ldots, n\}`} is strictly increasing? Every non-decreasing function is equally likely. Give an expression in ${mn} and ${mk}.`,
+  nudge: t`Not quite. Only non-decreasing functions are outcomes here; count them by their values.`,
+  hints: [
+    t`What determines a non-decreasing function from ${math`\{${1}, \ldots, k\}`} to ${math`\{${1}, \ldots, n\}`}?`,
+    t`How many multisets of ${mk} values from ${mn} are there, as unordered samples with replacement?`,
+    t`How many of those multisets have ${mk} distinct values?`,
+  ],
   answer: { kind: 'expression', expected: 'choose(n, k) / choose(n + k - 1, k)', variables: ['n', 'k'], domains: NK_DOM, binomial: true },
   solution: [
     t`A non-decreasing function is fixed by its multiset of values: ${mk} values from ${mn}, repeats allowed, order fixed. There are ${math`\binom{n + k - ${1}}{k}`} (unordered samples with replacement).`,
     t`A strictly increasing one is fixed by its set of ${mk} distinct values: ${math`\binom{n}{k}`}. So the probability is ${math`\binom{n}{k} \big/ \binom{n + k - ${1}}{k}`}.`,
+    t`Count restricted outcomes by what fixes them, here a multiset of values.`,
   ],
   reference: 'C(n, k) / C(n + k - 1, k)',
   verify: () => {
@@ -216,6 +229,11 @@ const q13why = supervision({
   source: cite('ia-prob-sheet-1', 'Q13'),
   title: t`Counting non-decreasing functions`,
   prompt: t`Explain why the non-decreasing functions ${math`\{${1}, \ldots, k\} \to \{${1}, \ldots, n\}`} correspond one to one with the unordered samples of size ${mk} from ${mn} with replacement, and prove there are ${math`\binom{n + k - ${1}}{k}`} of them, for example by the map ${math`f \mapsto \{f(i) + i - ${1}\}`} onto the ${mk}-subsets of ${math`\{${1}, \ldots, n + k - ${1}\}`}.`,
+  hints: [
+    t`Given the values ${math`f(${1}) \le \cdots \le f(k)`}, how is the function recovered, and which multiset does it give?`,
+    t`If ${math`f`} is non-decreasing, why are the numbers ${math`f(i) + i - ${1}`} strictly increasing, and in what range do they lie?`,
+    t`How is the map reversed, to show it is a bijection onto the ${mk}-subsets?`,
+  ],
   writeUp: 'proof',
 });
 const q12why = supervision({
@@ -223,6 +241,11 @@ const q12why = supervision({
   source: cite('ia-prob-sheet-1', 'Q12'),
   title: t`Which outcomes are equally likely?`,
   prompt: t`In Q${12}, a student counts "placements" by the number of balls in each box (unordered samples with replacement) and divides the number with exactly one empty box by the total. For ${math`n = ${3}`}, compute that student's answer and compare it with ${q(2, 3)}. Explain which sample space has equally likely outcomes when balls are tossed independently and at random, and why.`,
+  hints: [
+    t`For ${math`n = ${3}`}, how many unordered placements (counts of balls per box) are there, and how many have exactly one empty box?`,
+    t`For two balls in two boxes, how likely is each pattern of counts when each ball lands independently?`,
+    t`In which sample space does the independence of the tosses make every outcome equally likely?`,
+  ],
   writeUp: 'explanation',
 });
 

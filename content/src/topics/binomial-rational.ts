@@ -190,10 +190,17 @@ const ss5iii = auto({
   title: t`A quotient of two expansions`,
   prompt: t`Find the first four terms in the expansion in ascending powers of ${mx} of ${math`\frac{(${1} + ${2}x)^{\frac{${1}}{${2}}}}{(${2} + x)^{\frac{${1}}{${3}}}}`}, writing it as ${math`\frac{${1}}{\sqrt[${3}]{${2}}}`} times a series. Type the cube root as a power, with a caret.`,
   answer: { kind: 'expression', expected: '2^(-1/3)*(1 + 5*x/6 - 11*x^2/18 + 50*x^3/81)', variables: ['x'] },
+  hints: [
+    t`How can ${math`(${2} + x)^{-\frac{${1}}{${3}}}`} be written as ${math`${2}^{-\frac{${1}}{${3}}}`} times a power of ${math`${1} + \frac{x}{${2}}`}?`,
+    t`What are the first four terms of each of the two series?`,
+    t`Which products of terms contribute to each power of ${mx}, up to ${math`x^{${3}}`}?`,
+  ],
+  nudge: t`Not quite. Take out ${math`${2}^{-\frac{${1}}{${3}}}`} first, expand each factor to ${math`x^{${3}}`}, then collect one power at a time.`,
   solution: [
     t`${math`(${2} + x)^{-\frac{${1}}{${3}}} = ${2}^{-\frac{${1}}{${3}}}\left(${1} + \frac{x}{${2}}\right)^{-\frac{${1}}{${3}}} = ${2}^{-\frac{${1}}{${3}}}\left(${1} - \frac{x}{${6}} + \frac{x^{${2}}}{${18}} - \frac{${7}x^{${3}}}{${324}} + \cdots\right)`}, valid for ${math`|x| < ${2}`}.`,
     t`${math`(${1} + ${2}x)^{\frac{${1}}{${2}}} = ${1} + x - \frac{x^{${2}}}{${2}} + \frac{x^{${3}}}{${2}} - \cdots`}, valid for ${math`|x| < \frac{${1}}{${2}}`}.`,
     t`Multiply and collect up to ${math`x^{${3}}`}: ${math`${1} + \frac{${5}}{${6}}x - \frac{${11}}{${18}}x^{${2}} + \frac{${50}}{${81}}x^{${3}}`}, times ${math`${2}^{-\frac{${1}}{${3}}}`}; valid where both are, ${math`|x| < \frac{${1}}{${2}}`}.`,
+    t`Expand each factor to the order needed, then multiply and collect.`,
   ],
   reference: '2^(-1/3)*(1 + 5x/6 - 11x^2/18 + 50x^3/81)',
   verify: () => {
@@ -213,9 +220,16 @@ const ss5ii = auto({
   title: t`A fractional power of ${math`${2} + x`}`,
   prompt: t`Find the first four terms in the expansion of ${math`(${2} + x)^{\frac{${2}}{${5}}}`} in ascending powers of ${mx}, as ${math`${2}^{\frac{${2}}{${5}}}`} times a series. Type the constant as a power, with a caret.`,
   answer: { kind: 'expression', expected: '2^(2/5)*(1 + x/5 - 3*x^2/100 + x^3/125)', variables: ['x'] },
+  hints: [
+    t`How can ${math`(${2} + x)^{\frac{${2}}{${5}}}`} be written as ${math`${2}^{\frac{${2}}{${5}}}`} times a power of ${math`${1} + \frac{x}{${2}}`}?`,
+    t`What are the first four coefficients of ${math`(${1} + y)^{\frac{${2}}{${5}}}`}?`,
+    t`What does substituting ${math`y = \frac{x}{${2}}`} do to the coefficient of ${math`x^{k}`}?`,
+  ],
+  nudge: t`Not quite. Factor out ${math`${2}^{\frac{${2}}{${5}}}`} first, so the series is in ${math`\frac{x}{${2}}`}, not in ${mx}.`,
   solution: [
     t`${math`(${2} + x)^{\frac{${2}}{${5}}} = ${2}^{\frac{${2}}{${5}}}\left(${1} + \frac{x}{${2}}\right)^{\frac{${2}}{${5}}}`}, valid for ${math`\left|\frac{x}{${2}}\right| < ${1}`}, that is ${math`|x| < ${2}`}.`,
     t`Coefficients of ${math`y^{k}`} with ${math`n = \frac{${2}}{${5}}`}: ${1}, ${math`\frac{${2}}{${5}}`}, ${math`-\frac{${3}}{${25}}`}, ${math`\frac{${8}}{${125}}`}. With ${math`y = \frac{x}{${2}}`}: ${math`${1} + \frac{x}{${5}} - \frac{${3}x^{${2}}}{${100}} + \frac{x^{${3}}}{${125}}`}.`,
+    t`Factor out the constant so the bracket starts with ${1}.`,
   ],
   reference: '2^(2/5)*(1 + x/5 - 3x^2/100 + x^3/125)',
   verify: () => same('coefficients', [0, 1, 2, 3].map((k) => str(mul(gbinom(q(2, 5), k), pow(q(1, 2), k)))).join(','), '1,1/5,-3/100,1/125'),
@@ -229,10 +243,17 @@ const a20k = auto({
   title: t`Differentiating ${math`x^{-\frac{${1}}{${2}}}`} from first principles`,
   prompt: t`Find a number ${mk} such that, when ${math`t`} is small, ${math`\sqrt{${1} + t} \approx ${1} + kt`} (ignoring ${math`t^{${2}}`} and smaller terms). Then, using ${math`(${1} + t)^{-\frac{${1}}{${2}}} \approx ${1} - \frac{t}{${2}}`}, find the derivative of ${math`x^{-\frac{${1}}{${2}}}`} from ${math`f'(x) = \lim_{h \to ${0}} \frac{f(x + h) - f(x)}{h}`}. Give the derivative.`,
   answer: { kind: 'expression', expected: '-(1/2)*x^(-3/2)', variables: ['x'], domains: { x: { kind: 'real', min: 0.5, max: 5 } } },
+  hints: [
+    t`Squaring ${math`${1} + kt`} and ignoring ${math`t^{${2}}`}, which value of ${mk} matches ${math`${1} + t`}?`,
+    t`How can ${math`(x + h)^{-\frac{${1}}{${2}}}`} be written as ${math`x^{-\frac{${1}}{${2}}}`} times a power of ${math`${1} + \frac{h}{x}`}?`,
+    t`With the given approximation, what is the difference quotient, and what happens to the neglected terms as ${math`h \to ${0}`}?`,
+  ],
+  nudge: t`Not quite. Factor ${mx} out of ${math`x + h`} first, so the small-${math`t`} approximation applies with ${math`t = \frac{h}{x}`}.`,
   solution: [
     t`Square ${math`${1} + kt`}: ${math`${1} + ${2}kt + k^{${2}}t^{${2}} \approx ${1} + t`}; ignoring ${math`t^{${2}}`}, ${math`k = \frac{${1}}{${2}}`}.`,
     t`${math`(x + h)^{-\frac{${1}}{${2}}} = x^{-\frac{${1}}{${2}}}\left(${1} + \frac{h}{x}\right)^{-\frac{${1}}{${2}}} \approx x^{-\frac{${1}}{${2}}}\left(${1} - \frac{h}{${2}x}\right)`}, for ${math`\left|\frac{h}{x}\right|`} small.`,
     t`So ${math`\frac{f(x + h) - f(x)}{h} \approx -\frac{x^{-\frac{${1}}{${2}}}}{${2}x} = -\frac{${1}}{${2}}x^{-\frac{${3}}{${2}}}`}, and the neglected terms carry a factor ${math`h`}, which tends to ${0}. The derivative is ${math`-\frac{${1}}{${2}}x^{-\frac{${3}}{${2}}}`}.`,
+    t`Factor out the main term, so a small-${math`t`} approximation applies.`,
   ],
   reference: '-(1/2) x^(-3/2)',
   verify: () => {
@@ -255,6 +276,11 @@ const ss5sup = supervision({
   source: cite(NST, 'Sequences and series, SS5'),
   title: t`Where each expansion is valid`,
   prompt: t`For each of ${math`(${1} + x)^{\frac{${1}}{${2}}}`}, ${math`(${2} + x)^{\frac{${2}}{${5}}}`} and ${math`\frac{(${1} + ${2}x)^{\frac{${1}}{${2}}}}{(${2} + x)^{\frac{${1}}{${3}}}}`}, state for which values of ${mx} the binomial expansion is valid, and explain why, for the quotient, the range is that of the more restrictive factor.`,
+  hints: [
+    t`For which ${math`y`} is the binomial series of ${math`(${1} + y)^{n}`} valid when ${mn} is not a natural number?`,
+    t`With each factor written as a constant times ${math`(${1} + y)^{n}`}, what is ${math`y`} in each case?`,
+    t`Where are the series of both factors of the quotient valid at once?`,
+  ],
   writeUp: 'explanation',
 });
 
@@ -279,6 +305,11 @@ const misc7 = supervision({
   source: cite(MISC, 'Q7 (2007 STEP II Q1)'),
   title: t`Square and cube roots by the binomial series`,
   prompt: t`In this question, you are not required to justify the accuracy of the approximations. (i) Write down the binomial expansion of ${math`\left(${1} + \frac{k}{${100}}\right)^{\frac{${1}}{${2}}}`} in ascending powers of ${mk}, up to and including the ${math`k^{${3}}`} term. (a) Use the value ${math`k = ${8}`} to find an approximation to five decimal places for ${math`\sqrt{${3}}`}. (b) By choosing a suitable integer value of ${mk}, find an approximation to five decimal places for ${math`\sqrt{${6}}`}. (ii) By considering the first two terms of the binomial expansion of ${math`\left(${1} + \frac{k}{${1000}}\right)^{\frac{${1}}{${3}}}`}, show that ${math`\frac{${3029}}{${2100}}`} is an approximation to ${math`\sqrt[${3}]{${3}}`}.`,
+  hints: [
+    t`What are the coefficients of the series of ${math`(${1} + y)^{\frac{${1}}{${2}}}`} up to ${math`y^{${3}}`}, with ${math`y = \frac{k}{${100}}`}?`,
+    t`With ${math`k = ${8}`}, how is ${math`\sqrt{${1.08}}`} related to ${math`\sqrt{${3}}`}; and for ${math`\sqrt{${6}}`}, which small ${mk} makes ${math`${100} + k`} six times a square?`,
+    t`For part (ii), which ${mk} makes ${math`${1000} + k`} three times a cube, and what do two terms of the series then give?`,
+  ],
   writeUp: 'explanation',
   official: cite(MISCS, 'Q7'),
 });
@@ -289,10 +320,17 @@ const misc7a = auto({
   title: t`Root three from the root of ${1.08}`,
   prompt: t`Using the binomial expansion of ${math`\left(${1} + \frac{k}{${100}}\right)^{\frac{${1}}{${2}}}`} up to and including the ${math`k^{${3}}`} term, with ${math`k = ${8}`}, find an approximation to five decimal places for ${math`\sqrt{${3}}`}.`,
   answer: { kind: 'numeric', expected: Number(dp5(SQRT3_APPROX)), absTol: 0.000005 },
+  hints: [
+    t`What are the first four terms of ${math`\left(${1} + \frac{k}{${100}}\right)^{\frac{${1}}{${2}}}`} as a series in ${mk}?`,
+    t`With ${math`k = ${8}`}, how is ${math`\sqrt{${1.08}}`} related to ${math`\sqrt{${3}}`}?`,
+    t`After evaluating the series at ${math`k = ${8}`}, which factor turns the value into ${math`\sqrt{${3}}`}?`,
+  ],
+  nudge: t`Not quite. Write ${1.08} as a perfect square times ${3}, over ${100}, before using the series.`,
   solution: [
     t`${math`\left(${1} + \frac{k}{${100}}\right)^{\frac{${1}}{${2}}} = ${1} + \frac{k}{${200}} - \frac{k^{${2}}}{${80000}} + \frac{k^{${3}}}{${16000000}} + \cdots`}, from the coefficients ${math`\binom{\frac{${1}}{${2}}}{${1}} = \frac{${1}}{${2}}`}, ${math`\binom{\frac{${1}}{${2}}}{${2}} = -\frac{${1}}{${8}}`}, ${math`\binom{\frac{${1}}{${2}}}{${3}} = \frac{${1}}{${16}}`}.`,
     t`With ${math`k = ${8}`}: ${math`\sqrt{${1.08}} = \sqrt{\frac{${36} \times ${3}}{${100}}} = \frac{${6}\sqrt{${3}}}{${10}}`}, and the series gives ${math`${1} + ${0.04} - ${0.0008} + ${0.000032} = ${1.039232}`}.`,
     t`So ${math`\sqrt{${3}} \approx \frac{${10}}{${6}} \times ${1.039232} = ${1.732053}`}, which is ${Number(dp5(SQRT3_APPROX))} to five decimal places.`,
+    t`Relate the root wanted to the root the series gives.`,
   ],
   reference: dp5(SQRT3_APPROX),
   verify: () => {
@@ -314,10 +352,17 @@ const misc7b = auto({
   title: t`Root six, choosing ${mk}`,
   prompt: t`By choosing a suitable integer value of ${mk} in the binomial expansion of ${math`\left(${1} + \frac{k}{${100}}\right)^{\frac{${1}}{${2}}}`} up to and including the ${math`k^{${3}}`} term, find an approximation to five decimal places for ${math`\sqrt{${6}}`}.`,
   answer: { kind: 'numeric', expected: Number(dp5(SQRT6_APPROX)), absTol: 0.000005 },
+  hints: [
+    t`Which integer ${mk}, as small in size as possible, makes ${math`${100} + k`} six times a perfect square?`,
+    t`With that ${mk}, how is ${math`\sqrt{${1} + \frac{k}{${100}}}`} related to ${math`\sqrt{${6}}`}?`,
+    t`What does the series give at that ${mk}, to six decimal places?`,
+  ],
+  nudge: t`Not quite. Choose ${mk} so that ${math`${100} + k`} is six times a perfect square and ${math`|k|`} is small.`,
   solution: [
     t`Look for ${math`${100} + k = ${6}a^{${2}}`} with ${mk} small: ${math`a = ${4}`} gives ${math`${96}`}, so ${math`k = -${4}`} (${math`a = ${3}`} gives ${math`k = -${46}`} and ${math`a = ${5}`} gives ${math`k = ${50}`}, both too large).`,
     t`Then ${math`\sqrt{${0.96}} = \frac{${4}\sqrt{${6}}}{${10}}`}, and the series gives ${math`${1} - ${0.02} - ${0.0002} - ${0.000004} = ${0.979796}`}.`,
     t`So ${math`\sqrt{${6}} \approx \frac{${10}}{${4}} \times ${0.979796} = ${2.44949}`}.`,
+    t`Choose the expansion point so the correction terms are small.`,
   ],
   reference: dp5(SQRT6_APPROX),
   verify: () => same('sqrt 6', dp5(SQRT6_APPROX), Math.sqrt(6).toFixed(5)),
@@ -332,6 +377,11 @@ const db11q6 = supervision({
   source: cite(DB11, 'Q6'),
   title: t`Series summed by the binomial expansion`,
   prompt: t`Use the binomial expansion to show that the coefficient of ${math`x^{r}`} in the expansion of ${math`(${1} - x)^{-${3}}`} is ${math`\frac{${1}}{${2}}(r + ${1})(r + ${2})`}. (i) Show that the coefficient of ${math`x^{r}`} in the expansion of ${dmath`\frac{${1} - x + ${2}x^{${2}}}{(${1} - x)^{${3}}}`} is ${math`r^{${2}} + ${1}`} and hence find the sum of the series ${dmath`${1} + \frac{${2}}{${2}} + \frac{${5}}{${4}} + \frac{${10}}{${8}} + \frac{${17}}{${16}} + \frac{${26}}{${32}} + \frac{${37}}{${64}} + \frac{${50}}{${128}} + \cdots.`} (ii) Find the sum of the series ${dmath`${1} + ${2} + \frac{${9}}{${4}} + ${2} + \frac{${25}}{${16}} + \frac{${9}}{${8}} + \frac{${49}}{${64}} + \cdots.`}`,
+  hints: [
+    t`What is the general binomial coefficient of ${math`x^{r}`} in ${math`(${1} - x)^{-${3}}`}?`,
+    t`Multiplying by ${math`${1} - x + ${2}x^{${2}}`}, which three coefficients of ${math`(${1} - x)^{-${3}}`} combine into the coefficient of ${math`x^{r}`}?`,
+    t`At which value of ${mx} does each series appear, and for (ii), which combination of known coefficient formulas gives the numerators?`,
+  ],
   writeUp: 'proof',
   official: cite('stepdb-11-sol', 'STEP I, Question 6 (pages 21 to 23)'),
 });
@@ -349,9 +399,16 @@ const db11q6i = auto({
   title: t`The sum of ${math`\frac{r^{${2}} + ${1}}{${2}^{r}}`}`,
   prompt: t`Given that the coefficient of ${math`x^{r}`} in the expansion of ${math`\frac{${1} - x + ${2}x^{${2}}}{(${1} - x)^{${3}}}`} is ${math`r^{${2}} + ${1}`}, find the sum of the series ${dmath`${1} + \frac{${2}}{${2}} + \frac{${5}}{${4}} + \frac{${10}}{${8}} + \frac{${17}}{${16}} + \frac{${26}}{${32}} + \frac{${37}}{${64}} + \frac{${50}}{${128}} + \cdots.`}`,
   answer: { kind: 'exact', expected: '8' },
+  hints: [
+    t`Writing the ${math`r`}th term as ${math`(r^{${2}} + ${1})x^{r}`}, which value of ${mx} appears?`,
+    t`Is that value of ${mx} in the range where the expansion of ${math`(${1} - x)^{-${3}}`} is valid?`,
+    t`What is the value of the whole function at that ${mx}?`,
+  ],
+  nudge: t`Not quite. Evaluate the whole function, numerator included, at the right value of ${mx}.`,
   solution: [
     t`The ${math`r`}th term (from ${math`r = ${0}`}) is ${math`\frac{r^{${2}} + ${1}}{${2}^{r}} = (r^{${2}} + ${1})x^{r}`} at ${math`x = \frac{${1}}{${2}}`}.`,
     t`The expansion of ${math`(${1} - x)^{-${3}}`} is valid for ${math`|x| < ${1}`}, so at ${math`x = \frac{${1}}{${2}}`} the series sums to ${math`\frac{${1} - \frac{${1}}{${2}} + \frac{${2}}{${4}}}{\left(\frac{${1}}{${2}}\right)^{${3}}} = \frac{${1}}{\frac{${1}}{${8}}} = ${8}`}.`,
+    t`Recognise the coefficients, then evaluate the function at the point.`,
   ],
   reference: '8',
   verify: () => {
@@ -373,10 +430,17 @@ const db11q6ii = auto({
   title: t`The sum of ${math`\frac{(r + ${1})^{${2}}}{${2}^{r}}`}`,
   prompt: t`Find the sum of the series ${dmath`${1} + ${2} + \frac{${9}}{${4}} + ${2} + \frac{${25}}{${16}} + \frac{${9}}{${8}} + \frac{${49}}{${64}} + \cdots.`}`,
   answer: { kind: 'exact', expected: '12' },
+  hints: [
+    t`What is the ${math`r`}th term, from ${math`r = ${0}`}, written as a numerator over ${math`${2}^{r}`}?`,
+    t`How can ${math`(r + ${1})^{${2}}`} be written using ${math`\frac{(r + ${1})(r + ${2})}{${2}}`} and ${math`r + ${1}`}?`,
+    t`Which function has those coefficients, and what is its value at ${math`x = \frac{${1}}{${2}}`}?`,
+  ],
+  nudge: t`Not quite. Spot the numerators as squares, then build them from the coefficients of negative powers of ${math`${1} - x`}.`,
   solution: [
     t`The terms are ${math`\frac{${1}}{${1}}, \frac{${4}}{${2}}, \frac{${9}}{${4}}, \frac{${16}}{${8}}, \frac{${25}}{${16}}, \frac{${36}}{${32}}, \frac{${49}}{${64}}`}: the ${math`r`}th (from ${math`r = ${0}`}) is ${math`\frac{(r + ${1})^{${2}}}{${2}^{r}}`}, the coefficient of ${math`x^{r}`} in some function, at ${math`x = \frac{${1}}{${2}}`}.`,
     t`${math`(r + ${1})^{${2}} = ${2} \cdot \frac{(r + ${1})(r + ${2})}{${2}} - (r + ${1})`}. The coefficient of ${math`x^{r}`} in ${math`(${1} - x)^{-${3}}`} is ${math`\frac{(r + ${1})(r + ${2})}{${2}}`} and in ${math`(${1} - x)^{-${2}}`} it is ${math`r + ${1}`}, so the function is ${math`\frac{${2}}{(${1} - x)^{${3}}} - \frac{${1}}{(${1} - x)^{${2}}} = \frac{${1} + x}{(${1} - x)^{${3}}}`}.`,
     t`At ${math`x = \frac{${1}}{${2}}`}: ${math`\frac{${q(3, 2)}}{${q(1, 8)}} = ${12}`}.`,
+    t`Build the coefficients from known expansions, then evaluate.`,
   ],
   reference: '12',
   verify: () => {
@@ -444,7 +508,8 @@ export const binomialRational: TopicContent = {
   }),
   // Best first: two STEP questions (2007 II Q1, with official solutions; 2011 I Q6), then their
   // auto-checked parts, then the NST Workbook's SS5(iii).
-  gate: ['s2misc-q7', 'step11-q6', 's2misc-q7-i-b', 'step11-q6-ii', 'nst-ss5-iii'],
+  // Not s2misc-q7-i-b or step11-q6-ii: each is a part of a write-up gate here, so they stay practice.
+  gate: ['s2misc-q7', 'step11-q6', 'nst-ss5-iii'],
   recall: [
     { front: t`State the binomial series for rational ${mn}, with its range.`, back: t`${math`(${1} + x)^{n} = ${1} + nx + \frac{n(n - ${1})}{${2}!}x^{${2}} + \cdots`}, valid for ${math`|x| < ${1}`}.` },
     { front: t`Where is the expansion of ${math`(a + bx)^{n}`} valid?`, back: t`For ${math`\left|\frac{bx}{a}\right| < ${1}`}, after writing it as ${math`a^{n}(${1} + \frac{b}{a}x)^{n}`}.` },

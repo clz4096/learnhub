@@ -242,9 +242,16 @@ const sheet121a = auto({
   title: t`Which integers does zero divide?`,
   prompt: t`Characterise the integers ${mn} such that ${math`${0} \mid n`}: give every such ${mn}.`,
   answer: { kind: 'exact', expected: '0' },
+  hints: [
+    t`By the definition, what does ${math`${0} \mid n`} say as an equation?`,
+    t`What is ${math`l \cdot ${0}`} for any integer ${math`l`}?`,
+    t`Does the one candidate actually satisfy the definition?`,
+  ],
+  nudge: t`Not quite. Use the definition, ${math`n = l \cdot d`}, rather than division.`,
   solution: [
     t`${math`${0} \mid n`} means ${math`n = l \cdot ${0}`} for some integer ${math`l`}, so ${math`n = ${0}`}. Conversely ${math`${0} = ${0} \cdot ${0}`}, so ${math`${0} \mid ${0}`}.`,
     t`The only such integer is ${0}. Reading ${math`d \mid n`} as "${math`n / d`} is an integer" would wrongly rule out ${math`${0} \mid ${0}`}: the definition uses only multiplication.`,
+    t`Work from the definition of divides, which uses only multiplication.`,
   ],
   reference: '0',
   verify: () => same('integers from -100 to 100 that zero divides', upTo(201).map((i) => i - 101).filter((n) => upTo(21).some((l) => (l - 11) * 0 === n)).join(), '0'),
@@ -264,7 +271,16 @@ const sheet121b = auto({
   title: t`Which integers divide zero?`,
   prompt: t`Characterise the integers ${md} such that ${math`d \mid ${0}`}.`,
   answer: { kind: 'choice', options: ALL, correct: 'all' },
-  solution: [t`For every integer ${md}, ${math`${0} = ${0} \cdot d`}, so ${math`d \mid ${0}`}; this includes ${math`d = ${0}`}.`],
+  hints: [
+    t`By the definition, what does ${math`d \mid ${0}`} say as an equation?`,
+    t`Which integer ${math`l`} makes ${math`${0} = l \cdot d`} for any ${md}?`,
+    t`Does that also work when ${math`d = ${0}`}?`,
+  ],
+  nudge: t`Not quite. Use the definition, ${math`${0} = l \cdot d`}; it never divides by ${md}.`,
+  solution: [
+    t`For every integer ${md}, ${math`${0} = ${0} \cdot d`}, so ${math`d \mid ${0}`}; this includes ${math`d = ${0}`}.`,
+    t`The definition of divides never divides by ${md}.`,
+  ],
   reference: 'all',
   verify: () => same('integers from -50 to 50 that divide 0', upTo(101).every((i) => divides(i - 51, 0)), true),
   misconceptions: [{ response: 'nonzero', why: t`${math`d = ${0}`} divides ${0} as well: ${math`${0} = ${0} \cdot ${0}`}. The definition never divides by ${md}.` }],
@@ -278,9 +294,16 @@ const bop619 = auto({
   title: t`Five consecutive integers`,
   prompt: t`Book of Proof Chapter ${6}, exercise ${19}: the product of any five consecutive integers is divisible by a certain number (for example ${math`${3} \times ${4} \times ${5} \times ${6} \times ${7} = ${2520}`}). What is the largest integer that divides every such product?`,
   answer: { kind: 'exact', expected: '120' },
+  hints: [
+    t`Which small product of five consecutive positive integers is easy to compute?`,
+    t`Among five consecutive integers, which multiples of ${5}, ${3}, and ${2} must appear?`,
+    t`Why must the product be a multiple of ${8}, not just ${4}?`,
+  ],
+  nudge: t`Not quite. The answer must divide every product, including the smallest one, ${math`${1} \times ${2} \times ${3} \times ${4} \times ${5}`}.`,
   solution: [
     t`Among five consecutive integers there is a multiple of ${5}, a multiple of ${3}, and two consecutive even numbers, one of them a multiple of ${4}. So the product is a multiple of ${math`${5} \times ${3} \times ${8} = ${120}`}.`,
     t`It is the largest: ${math`${1} \times ${2} \times ${3} \times ${4} \times ${5} = ${120}`} is itself such a product. Book of Proof's second proof: the product of ${mn} down to ${math`n - ${4}`} is ${math`${120}\binom{n}{${5}}`}.`,
+    t`A divisor of every member must divide the smallest example.`,
   ],
   reference: '120',
   verify: () => same('gcd of the products from 1 to 5 up to 100 to 104', upTo(100).reduce((g, n) => gcd(g, prod5(n)), 0), 120),
@@ -303,9 +326,16 @@ const bop420 = auto({
       return got.join() === '-1,0,1' ? null : 'Some integers with this property are missing.';
     },
   },
+  hints: [
+    t`Does ${math`a = ${0}`} satisfy ${math`a^{${2}} \mid a`}?`,
+    t`If ${math`a \ne ${0}`} and ${math`a = k a^{${2}}`}, what does cancelling ${math`a`} give?`,
+    t`Which integers divide ${1}?`,
+  ],
+  nudge: t`Not quite. Treat ${math`a = ${0}`} separately, then cancel ${math`a`} in ${math`a = k a^{${2}}`}.`,
   solution: [
     t`${math`a = ${0}`} works: ${math`${0} \mid ${0}`}. If ${math`a \ne ${0}`} and ${math`a = k a^{${2}}`}, cancel ${math`a`}: ${math`${1} = k a`}, so ${math`a`} divides ${1}, and ${math`a = ${1}`} or ${math`a = -${1}`}.`,
     t`So the integers are ${math`-${1}, ${0}, ${1}`}.`,
+    t`Cancel only after setting aside the zero case.`,
   ],
   reference: '-1, 0, 1',
   verify: () => same('integers from -100 to 100', upTo(201).map((i) => i - 101).filter((a) => divides(a * a, a)).join(), '-1,0,1'),
@@ -335,6 +365,11 @@ const sheet124 = supervision({
   source: cite('cst-dm-sw1', 'Exercises 1, 1.2.4'),
   title: t`Divisibility is transitive`,
   prompt: t`Show that for all integers ${math`l, m, n`}, ${math`l \mid m \land m \mid n \Rightarrow l \mid n`}. Name the witness for ${math`l \mid n`} explicitly.`,
+  hints: [
+    t`What do ${math`l \mid m`} and ${math`m \mid n`} give as equations with integers?`,
+    t`Substituting one into the other, what is ${mn} in terms of ${math`l`}?`,
+    t`Which integer is the witness for ${math`l \mid n`}?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.2.4'),
 });
@@ -343,6 +378,11 @@ const sheet126 = supervision({
   source: cite('cst-dm-sw1', 'Exercises 1, 1.2.6'),
   title: t`Sums, multiples, and combinations`,
   prompt: t`Prove that for all integers ${math`d, k, l, m, n`}: (a) ${math`d \mid m \land d \mid n \Rightarrow d \mid (m + n)`}; (b) ${math`d \mid m \Rightarrow d \mid k m`}; (c) ${math`d \mid m \land d \mid n \Rightarrow d \mid (k m + l n)`}. Prove (c) from (a) and (b) rather than from the definition.`,
+  hints: [
+    t`For (a), with ${math`m = dx`} and ${math`n = dy`}, what is ${math`m + n`}?`,
+    t`For (b), what is ${math`km`} when ${math`m = dx`}?`,
+    t`For (c), which uses of (b) and then (a) give ${math`d \mid km + ln`}?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.2.6'),
 });
@@ -351,6 +391,11 @@ const bop411 = supervision({
   source: cite('bop', 'Chapter 4, exercise 11'),
   title: t`Products of divisors`,
   prompt: t`Suppose ${math`a, b, c, d \in \mathbb{Z}`}. Prove that if ${math`a \mid b`} and ${math`c \mid d`}, then ${math`ac \mid bd`}.`,
+  hints: [
+    t`What do ${math`a \mid b`} and ${math`c \mid d`} give, with different letters?`,
+    t`What is ${math`bd`} after substituting?`,
+    t`How can ${math`bd`} be regrouped as ${math`ac`} times an integer?`,
+  ],
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 4, exercise 11'),
 });
@@ -359,6 +404,11 @@ const a12q1iv = supervision({
   source: cite('step-f12', 'Q1(iv)'),
   title: t`A tempting wrong argument`,
   prompt: t`Show that ${math`${2}^{${2}n} - ${1}`} is divisible by ${3} for every positive integer ${mn}. The hints warn against saying "${math`(${2}^{n} - ${1})(${2}^{n} + ${1})`} is a product of two consecutive odd numbers, so one is a multiple of ${3}": give a counterexample to that reasoning, and then a correct argument.`,
+  hints: [
+    t`Do any two consecutive odd numbers include a multiple of ${3}? Which small pair settles it?`,
+    t`Of three consecutive integers ${math`${2}^{n} - ${1}`}, ${math`${2}^{n}`}, ${math`${2}^{n} + ${1}`}, which one can never be a multiple of ${3}?`,
+    t`Alternatively, what is ${math`${4}^{n}`} modulo ${3}?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f12-hints', 'Q1(iv)'),
 });

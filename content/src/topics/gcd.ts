@@ -165,9 +165,19 @@ const bop732 = auto({
   id: 'bop-7-32',
   source: cite('bop', 'Chapter 7, exercise 32', true),
   title: t`The values of ${math`\gcd(n, n + ${2})`}`,
-  prompt: t`Which values does ${math`\gcd(n, n + ${2})`} take as ${mn} runs over the integers (not both zero)? List them.`,
+  prompt: t`List the values taken by ${math`\gcd(n, n + ${2})`} as ${mn} runs over the integers.`,
   answer: { kind: 'witness', count: { min: 1, max: 10 }, unordered: true, example: '1, 2', check: isExactly([1, 2], 'a value it takes') },
-  solution: [t`${math`\gcd(n, n + ${2}) = \gcd(n, ${2})`}, which is ${2} when ${mn} is even and ${1} when ${mn} is odd.`],
+  solution: [
+    t`A common divisor of ${mn} and ${math`n + ${2}`} divides their difference ${2}, and a common divisor of ${mn} and ${2} divides ${math`n + ${2}`}. So ${math`\gcd(n, n + ${2}) = \gcd(n, ${2})`}.`,
+    t`That is ${2} when ${mn} is even and ${1} when ${mn} is odd.`,
+    t`A common divisor divides every difference.`,
+  ],
+  nudge: t`Not quite. Try a few even and a few odd values of ${mn}, then ask why.`,
+  hints: [
+    t`What is ${math`\gcd(n, n + ${2})`} for ${math`n = ${4}, ${5}, ${6}, ${7}`}?`,
+    t`If ${md} divides both ${mn} and ${math`n + ${2}`}, which small number must ${md} divide?`,
+    t`Which divisors of that number actually occur, and for which ${mn}?`,
+  ],
   reference: '1, 2',
   verify: () => same('n from -50 to 50, n not 0 or -2 together', [...new Set(Array.from({ length: 101 }, (_, i) => i - 50).map((n) => gcd(n, n + 2)))].sort((x, y) => x - y).join(), '1,2'),
   misconceptions: [{ response: '1', why: t`For even ${mn} both numbers are even: ${math`\gcd(${4}, ${6}) = ${2}`}.` }],
@@ -180,11 +190,18 @@ const sheet326 = auto({
   id: 'sheet-3-2-6-numbers',
   source: cite('cst-dm-sw1', 'Exercises 3, 3.2.6', true),
   title: t`${math`\gcd(${13}a + ${8}b, ${5}a + ${3}b)`} with numbers`,
-  prompt: t`Exercise ${3}.${2}.${6} says ${math`\gcd(${13}a + ${8}b, ${5}a + ${3}b) = \gcd(a, b)`} for positive integers. Check it for ${math`a = ${A6}`}, ${math`b = ${B6}`}: what is ${math`\gcd(${13 * A6 + 8 * B6}, ${5 * A6 + 3 * B6})`}?`,
+  prompt: t`Evaluate ${math`\gcd(${13 * A6 + 8 * B6}, ${5 * A6 + 3 * B6})`}, the value of ${math`\gcd(${13}a + ${8}b, ${5}a + ${3}b)`} at ${math`a = ${A6}`}, ${math`b = ${B6}`}.`,
   answer: { kind: 'exact', expected: String(gcd(A6, B6)) },
   solution: [
-    t`The official solution subtracts one argument from the other repeatedly, which does not change the gcd: ${math`(${13}a + ${8}b, ${5}a + ${3}b) \to (${8}a + ${5}b, \ldots) \to \cdots \to (b, a)`}.`,
-    t`So the gcd is ${math`\gcd(${A6}, ${B6}) = ${gcd(A6, B6)}`}. Directly: ${math`${13 * A6 + 8 * B6} = ${factTex(13 * A6 + 8 * B6)}`} and ${math`${5 * A6 + 3 * B6} = ${factTex(5 * A6 + 3 * B6)}`}.`,
+    t`${math`${13 * A6 + 8 * B6} = ${factTex(13 * A6 + 8 * B6)}`} and ${math`${5 * A6 + 3 * B6} = ${factTex(5 * A6 + 3 * B6)}`}.`,
+    t`The shared primes, each to the smaller power: ${math`${factTex(gcd(A6, B6))} = ${gcd(A6, B6)}`}. This equals ${math`\gcd(${A6}, ${B6})`}, as Exercise ${3}.${2}.${6} predicts.`,
+    t`Check a general identity on one case before proving it.`,
+  ],
+  nudge: t`Not quite. Run Euclid's algorithm on the two numbers, or compare their prime factorisations.`,
+  hints: [
+    t`Which method finds the gcd of two given numbers quickly?`,
+    t`What remainder does ${13 * A6 + 8 * B6} leave on division by ${5 * A6 + 3 * B6}, and what is the next step?`,
+    t`Does the result agree with ${math`\gcd(${A6}, ${B6})`}?`,
   ],
   reference: String(gcd(A6, B6)),
   verify: () => same('the two numbers by Euclid', gcd(13 * A6 + 8 * B6, 5 * A6 + 3 * B6), gcd(A6, B6)),
@@ -198,30 +215,50 @@ const sheet313 = supervision({
   title: t`The gcd divides every combination`,
   prompt: t`Prove that for all positive integers ${mm} and ${mn}, and integers ${math`k`} and ${math`l`}, ${math`\gcd(m, n) \mid (k m + l n)`}.`,
   writeUp: 'proof',
+  hints: [
+    t`What does ${math`\gcd(m, n)`} divide, by definition?`,
+    t`With ${math`g = \gcd(m, n)`}, how can ${mm} and ${mn} be written with ${math`g`} as a factor?`,
+    t`How does ${math`k m + l n`} factor once ${mm} and ${mn} are written that way?`,
+  ],
   official: cite('cst-dm-sols-2324-3', '3.1.3'),
 });
 const sheet321 = supervision({
   id: 'sheet-3-2-1',
   source: cite('cst-dm-sw1', 'Exercises 3, 3.2.1'),
   title: t`When the gcd is one of the numbers`,
-  prompt: t`Prove that for all positive integers ${mm} and ${mn}, ${math`\gcd(m, n) = m`} if and only if ${math`m \mid n`}. Give the proof from the universal property: to show ${math`g = \gcd(m, n)`}, show ${math`g \mid m`}, ${math`g \mid n`}, and that every common divisor divides ${math`g`}.`,
+  prompt: t`Prove that for all positive integers ${mm} and ${mn}, ${math`\gcd(m, n) = m`} if and only if ${math`m \mid n`}, using the universal property of the gcd.`,
   writeUp: 'proof',
+  hints: [
+    t`For the forward direction, what does ${math`\gcd(m, n) = m`} say about how ${mm} and ${mn} are related?`,
+    t`By the universal property, which three facts show that a number ${math`g`} is ${math`\gcd(m, n)`}?`,
+    t`For the backward direction, why does ${mm} satisfy each of those three facts when ${math`m \mid n`}?`,
+  ],
   official: cite('cst-dm-sols-2324-3', '3.2.1'),
 });
 const sheet326proof = supervision({
   id: 'sheet-3-2-6',
   source: cite('cst-dm-sw1', 'Exercises 3, 3.2.6'),
   title: t`A gcd that does not change`,
-  prompt: t`Prove that for all positive integers ${math`a`} and ${math`b`}, ${math`\gcd(${13}a + ${8}b, ${5}a + ${3}b) = \gcd(a, b)`}. Which lemma lets you subtract one argument from the other?`,
+  prompt: t`Prove that for all positive integers ${math`a`} and ${math`b`}, ${math`\gcd(${13}a + ${8}b, ${5}a + ${3}b) = \gcd(a, b)`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Which lemma says a gcd is unchanged when one argument is replaced by its difference with the other?`,
+    t`What is ${math`(${13}a + ${8}b) - (${5}a + ${3}b)`}, and how can that step be repeated?`,
+    t`Where does the chain of subtractions end, and why does every step keep the gcd?`,
+  ],
   official: cite('cst-dm-sols-2324-3', '3.2.6'),
 });
 const bop531 = supervision({
   id: 'bop-5-31',
   source: cite('bop', 'Chapter 5, exercise 31'),
   title: t`The gcd and the remainder`,
-  prompt: t`Suppose the division algorithm applied to ${math`a`} and ${math`b`} yields ${math`a = qb + r`}. Prove that ${math`\gcd(a, b) = \gcd(r, b)`}. Compare with the notes' Key Lemma ${72}: ${math`\mathrm{CD}(m, n) = \mathrm{CD}(m', n)`} when ${math`m \equiv m' \pmod{n}`}.`,
+  prompt: t`Suppose the division algorithm applied to ${math`a`} and ${math`b`} yields ${math`a = qb + r`}. Prove that ${math`\gcd(a, b) = \gcd(r, b)`}.`,
   writeUp: 'proof',
+  hints: [
+    t`If ${md} divides ${math`a`} and ${math`b`}, why does ${md} divide ${math`r = a - qb`}?`,
+    t`If ${md} divides ${math`r`} and ${math`b`}, why does ${md} divide ${math`a`}?`,
+    t`What do these two facts say about the sets of common divisors ${math`\mathrm{CD}(a, b)`} and ${math`\mathrm{CD}(r, b)`}, as in the notes' Key Lemma ${72}?`,
+  ],
   official: cite('bop', 'Solutions, Chapter 5, exercise 31'),
 });
 

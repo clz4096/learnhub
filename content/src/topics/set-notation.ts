@@ -242,6 +242,9 @@ const noneOption: ChoiceOption = { id: NONE, label: [math`\varnothing`, ...t` (n
 const setIds = (xs: readonly number[]): string[] => (xs.length === 0 ? [NONE] : ids(sorted(xs)));
 const listed = (xs: readonly number[]): Span => setOf(xs);
 
+/** A problem's nudge, three hints, and the one-line lesson that ends its solution (mastery/APP-LANGUAGE.md). */
+interface Help { nudge: Rich; hints: readonly Rich[]; lesson: Rich }
+
 /**
  * One part of a Book of Proof set exercise: the set is computed from a membership test
  * over the universe, and verified a second way with the list operations above.
@@ -249,6 +252,7 @@ const listed = (xs: readonly number[]): Span => setOf(xs);
 function setPart(o: {
   id: string; at: string; title: Rich; given: Rich; expr: Span; universe: readonly number[];
   test: (x: number) => boolean; second: readonly number[]; steps: (ans: number[]) => Rich[];
+  help: Help;
   official?: readonly number[];
   misconceptions?: (ans: number[]) => Misconception[];
 }): AutoProblem {
@@ -258,8 +262,10 @@ function setPart(o: {
     source: cite('bop', o.at),
     title: o.title,
     prompt: t`${o.given} Choose every element of ${o.expr}.`,
+    nudge: o.help.nudge,
+    hints: o.help.hints,
     answer: { kind: 'choice', options: [...options(sorted(o.universe)), noneOption], correct: setIds(ans) },
-    solution: o.steps(ans),
+    solution: [...o.steps(ans), o.help.lesson],
     reference: setIds(sorted(o.second)),
     verify: () => same(`Book of Proof ${o.at}`, setIds(ans).join(','), setIds(sorted(o.second)).join(',')),
     misconceptions: o.misconceptions?.(ans) ?? [],
@@ -274,18 +280,45 @@ const [inA, inB, inC] = [has(BOP15.a), has(BOP15.b), has(BOP15.c)];
 
 const bop15a = setPart({
   id: 'bop-1-5-1a', at: 'Section 1.5, exercise 1(a)', title: t`A union`, given: given15, expr: math`A \cup B`, universe: u15,
+  help: {
+    nudge: t`Not quite. A union takes everything in either set, each element once.`,
+    hints: [
+      t`Which elements are in ${A}?`,
+      t`Which elements of ${B} are not already in ${A}?`,
+      t`What do the two lists give together, with no repeats?`,
+    ],
+    lesson: t`A union is everything in either set.`,
+  },
   test: either(inA, inB), second: union(BOP15.a, BOP15.b), official: [1, 3, 4, 5, 6, 7, 8, 9],
   steps: (ans) => [t`Everything in ${A} or in ${B} or in both, each listed once: ${math`A \cup B = ${setOf(ans)}`}.`],
   misconceptions: () => [{ response: ids(sorted(inter(BOP15.a, BOP15.b))), why: t`Those are the elements in both: the intersection. The union takes everything in either set.` }],
 });
 const bop15c = setPart({
   id: 'bop-1-5-1c', at: 'Section 1.5, exercise 1(c)', title: t`A difference`, given: given15, expr: math`A - B`, universe: u15,
+  help: {
+    nudge: t`Not quite. Start from ${A} and remove only what ${B} shares with it.`,
+    hints: [
+      t`Which elements do ${A} and ${B} share?`,
+      t`Which elements of ${A} are left once those are removed?`,
+      t`Does anything in ${B} but not in ${A} belong in ${math`A - B`}?`,
+    ],
+    lesson: t`A difference keeps the first set, less what it shares with the second.`,
+  },
   test: both(inA, not(inB)), second: minus(BOP15.a, BOP15.b), official: [3, 7, 1, 9],
   steps: (ans) => [t`Start from ${A} and remove what is also in ${B} (here ${listed(sorted(inter(BOP15.a, BOP15.b)))}): ${math`A - B = ${setOf(ans)}`}.`],
   misconceptions: () => [{ response: ids(sorted(minus(BOP15.b, BOP15.a))), why: t`That is ${math`B - A`}. ${math`A - B`} keeps the elements of ${A} that are not in ${B}.` }],
 });
 const bop15d = setPart({
   id: 'bop-1-5-1d', at: 'Section 1.5, exercise 1(d)', title: t`Removing a smaller set`, given: given15, expr: math`A - C`, universe: u15,
+  help: {
+    nudge: t`Not quite. Start from ${A} and remove only what ${math`C`} shares with it.`,
+    hints: [
+      t`Which elements do ${A} and ${math`C`} share?`,
+      t`Which elements of ${A} are left once those are removed?`,
+      t`Does anything in ${math`C`} but not in ${A} belong in ${math`A - C`}?`,
+    ],
+    lesson: t`A difference keeps the first set, less what it shares with the second.`,
+  },
   test: both(inA, not(inC)), second: minus(BOP15.a, BOP15.c), official: [3, 6, 7, 1, 9],
   steps: (ans) => [
     t`The [[set-difference|difference]] ${math`A - C`} is the elements of ${A} that are not in ${math`C`}.`,
@@ -294,11 +327,29 @@ const bop15d = setPart({
 });
 const bop15g = setPart({
   id: 'bop-1-5-1g', at: 'Section 1.5, exercise 1(g)', title: t`A set inside another`, given: given15, expr: math`B \cap C`, universe: u15,
+  help: {
+    nudge: t`Not quite. An intersection keeps only what is in both sets.`,
+    hints: [
+      t`Which elements of ${math`C`} are in ${B}?`,
+      t`Is any element of ${math`C`} missing from ${B}?`,
+      t`So how does ${math`B \cap C`} compare with ${math`C`}?`,
+    ],
+    lesson: t`When one set sits inside another, their intersection is the smaller set.`,
+  },
   test: both(inB, inC), second: inter(BOP15.b, BOP15.c), official: [5, 8, 4],
   steps: (ans) => [t`Every element of ${math`C`} is also in ${B}, so the overlap is all of ${math`C`}: ${math`B \cap C = ${setOf(ans)}`}.`],
 });
 const bop15i = setPart({
   id: 'bop-1-5-1i', at: 'Section 1.5, exercise 1(i)', title: t`An empty difference`, given: given15, expr: math`C - B`, universe: u15,
+  help: {
+    nudge: t`Not quite. Start from ${math`C`}, not from ${B}.`,
+    hints: [
+      t`Which elements of ${math`C`} are also in ${B}?`,
+      t`What is left of ${math`C`} once those are removed?`,
+      t`Which option stands for a set with no elements?`,
+    ],
+    lesson: t`A difference can be empty, and the empty set is a valid answer.`,
+  },
   test: both(inC, not(inB)), second: minus(BOP15.c, BOP15.b), official: [],
   steps: () => [t`Every element of ${math`C`} is in ${B}, so removing them leaves nothing: ${math`C - B = \varnothing`}, the [[empty-set|empty set]].`],
   misconceptions: () => [{ response: ids(sorted(minus(BOP15.b, BOP15.c))), why: t`That is ${math`B - C`}. ${math`C - B`} starts from ${math`C`}.` }],
@@ -310,12 +361,30 @@ const comp = (xs: readonly number[], u: readonly number[]): number[] => minus(u,
 
 const bop16a = setPart({
   id: 'bop-1-6-1a', at: 'Section 1.6, exercise 1(a)', title: t`A complement`, given: given16, expr: math`\overline{A}`, universe: BOP16.u,
+  help: {
+    nudge: t`Not quite. The complement is taken inside the universal set ${math`U`}.`,
+    hints: [
+      t`Which elements does ${math`U`} contain?`,
+      t`Which of those are in ${A}?`,
+      t`Which elements of ${math`U`} remain once those of ${A} are removed?`,
+    ],
+    lesson: t`A complement is always taken relative to the universal set.`,
+  },
   test: not(cA), second: comp(BOP16.a, BOP16.u), official: [0, 2, 5, 8, 10],
   steps: (ans) => [t`The [[complement|complement]] ${math`\overline{A} = U - A`} is everything in ${math`U`} that is not in ${A}: ${setOf(ans)}.`],
   misconceptions: () => [{ response: ids(sorted(BOP16.a)), why: t`That is ${A} itself. The bar means complement: everything in ${math`U`} outside ${A}.` }],
 });
 const bop16g = setPart({
   id: 'bop-1-6-1g', at: 'Section 1.6, exercise 1(g)', title: t`Complements and a difference`, given: given16, expr: math`\overline{A} - \overline{B}`, universe: BOP16.u,
+  help: {
+    nudge: t`Not quite. Work out each complement first, then take the difference.`,
+    hints: [
+      t`What are ${math`\overline{A}`} and ${math`\overline{B}`} inside ${math`U`}?`,
+      t`Which elements of ${math`\overline{A}`} are not in ${math`\overline{B}`}?`,
+      t`Being outside ${math`\overline{B}`} means being in which set?`,
+    ],
+    lesson: t`Removing a complement is the same as intersecting with the set itself.`,
+  },
   test: both(not(cA), cB), second: minus(comp(BOP16.a, BOP16.u), comp(BOP16.b, BOP16.u)), official: [5, 8],
   steps: (ans) => [
     t`First the complements: ${math`\overline{A} = ${setOf(comp(BOP16.a, BOP16.u))}`} and ${math`\overline{B} = ${setOf(comp(BOP16.b, BOP16.u))}`}.`,
@@ -324,6 +393,15 @@ const bop16g = setPart({
 });
 const bop16i = setPart({
   id: 'bop-1-6-1i', at: 'Section 1.6, exercise 1(i)', title: t`The complement of an intersection`, given: given16, expr: math`\overline{\overline{A} \cap B}`, universe: BOP16.u,
+  help: {
+    nudge: t`Not quite. Work inside the long bar first, then take the complement.`,
+    hints: [
+      t`What is ${math`\overline{A}`}?`,
+      t`What is ${math`\overline{A} \cap B`}?`,
+      t`What is left of ${math`U`} once that set is removed?`,
+    ],
+    lesson: t`Evaluate from the inside out, as with brackets.`,
+  },
   test: not(both(not(cA), cB)), second: comp(inter(comp(BOP16.a, BOP16.u), BOP16.b), BOP16.u), official: [0, 1, 2, 3, 4, 6, 7, 9, 10],
   steps: (ans) => [
     t`Work inside the long bar first: ${math`\overline{A} = ${setOf(comp(BOP16.a, BOP16.u))}`}, so ${math`\overline{A} \cap B = ${setOf(sorted(inter(comp(BOP16.a, BOP16.u), BOP16.b)))}`}.`,
@@ -336,6 +414,15 @@ const given16b = t`Book of Proof sets ${math`A = ${listed(BOP16b.a)}`} and ${mat
 const [dA, dB] = [has(BOP16b.a), has(BOP16b.b)];
 const bop16b2f = setPart({
   id: 'bop-1-6-2f', at: 'Section 1.6, exercise 2(f)', title: t`The complement of a union`, given: given16b, expr: math`\overline{A \cup B}`, universe: BOP16b.u,
+  help: {
+    nudge: t`Not quite. Find ${math`A \cup B`} first, then everything in ${math`U`} outside it.`,
+    hints: [
+      t`What is ${math`A \cup B`}?`,
+      t`Which elements of ${math`U`} are not in ${math`A \cup B`}?`,
+      t`Is that the same as the elements outside ${A} and outside ${B}?`,
+    ],
+    lesson: t`Outside a union means outside each set.`,
+  },
   test: not(either(dA, dB)), second: inter(comp(BOP16b.a, BOP16b.u), comp(BOP16b.b, BOP16b.u)),
   steps: (ans) => [
     t`${math`A \cup B = ${setOf(sorted(union(BOP16b.a, BOP16b.b)))}`}, and the only element of ${math`U`} outside it is ${setOf(ans)}.`,
@@ -348,15 +435,17 @@ const SUBSETS: readonly number[][] = Array.from({ length: 8 }, (_, m) => [0, 1, 
 const U3 = [0, 1, 2];
 const sameSet = (x: readonly number[], y: readonly number[]): boolean => sorted(x).join() === sorted(y).join();
 
-function verdict(o: { id: string; at: string; title: Rich; prompt: Rich; holds: () => boolean; claim: boolean; steps: Rich[]; official?: boolean }): AutoProblem {
+function verdict(o: { id: string; at: string; title: Rich; prompt: Rich; holds: () => boolean; claim: boolean; steps: Rich[]; help: Help; official?: boolean }): AutoProblem {
   const yes = o.holds();
   const spec: Parameters<typeof auto>[0] = {
     id: o.id,
     source: cite('bop', o.at, true),
     title: o.title,
     prompt: o.prompt,
+    nudge: o.help.nudge,
+    hints: o.help.hints,
     answer: { kind: 'choice', options: [{ id: 'yes', label: t`Yes, always equal` }, { id: 'no', label: t`No, not always` }], correct: o.claim ? 'yes' : 'no' },
-    solution: o.steps,
+    solution: [...o.steps, o.help.lesson],
     reference: yes ? 'yes' : 'no',
     verify: () => same(`Book of Proof ${o.at}, checked on every A, B, C inside a three-element set`, yes, o.claim),
   };
@@ -366,6 +455,15 @@ function verdict(o: { id: string; at: string; title: Rich; prompt: Rich; holds: 
 
 const bop17_5 = verdict({
   id: 'bop-1-7-5', at: 'Section 1.7, exercise 5', title: t`A distributive law`,
+  help: {
+    nudge: t`Not quite. Compare the shaded regions of the two diagrams, region by region.`,
+    hints: [
+      t`Which regions of the three-set diagram make up ${math`B \cap C`}, and which does ${A} add?`,
+      t`Which regions lie in both ${math`A \cup B`} and ${math`A \cup C`}?`,
+      t`Do the two shadings cover exactly the same regions?`,
+    ],
+    lesson: t`Two set expressions are equal when they shade the same regions.`,
+  },
   prompt: t`Draw Venn diagrams for ${math`A \cup (B \cap C)`} and ${math`(A \cup B) \cap (A \cup C)`}. Based on your drawings, is ${math`A \cup (B \cap C) = (A \cup B) \cap (A \cup C)`} for all sets ${A}, ${B}, ${math`C`}?`,
   holds: () => SUBSETS.every((a) => SUBSETS.every((b) => SUBSETS.every((c) => sameSet(union(a, inter(b, c)), inter(union(a, b), union(a, c)))))),
   claim: true,
@@ -377,6 +475,15 @@ const bop17_5 = verdict({
 });
 const bop17_8 = verdict({
   id: 'bop-1-7-8', at: 'Section 1.7, exercise 8', title: t`The complement of a union`,
+  help: {
+    nudge: t`Not quite. Shade each side on its own diagram and compare.`,
+    hints: [
+      t`Which region of the two-set diagram is outside ${math`A \cup B`}?`,
+      t`Which region is outside ${A} and also outside ${B}?`,
+      t`Are those the same region?`,
+    ],
+    lesson: t`Outside a union is outside each set: De Morgan's law.`,
+  },
   prompt: t`Sets ${A} and ${B} are in a universal set ${math`U`}. Draw Venn diagrams for ${math`\overline{A \cup B}`} and ${math`\overline{A} \cap \overline{B}`}. Based on your drawings, is ${math`\overline{A \cup B} = \overline{A} \cap \overline{B}`} for all sets ${A} and ${B}?`,
   holds: () => SUBSETS.every((a) => SUBSETS.every((b) => sameSet(comp(union(a, b), U3), inter(comp(a, U3), comp(b, U3))))),
   claim: true,
@@ -391,6 +498,11 @@ const bop17_3 = supervision({
   source: cite('bop', 'Section 1.7, exercise 3'),
   title: t`A Venn diagram for three sets`,
   prompt: t`Draw a Venn diagram for ${math`(A - B) \cap C`}. Shade the region, and say in words which elements it holds.`,
+  hints: [
+    t`Which regions of the three-set diagram are in ${A} but not in ${B}?`,
+    t`Which of those regions are also in ${math`C`}?`,
+    t`In words, which elements does that region hold: in which sets, and not in which?`,
+  ],
   writeUp: 'sketch',
   official: cite('bop', 'Solutions, Section 1.7, exercise 3'),
 });
@@ -399,6 +511,11 @@ const bop17_10 = supervision({
   source: cite('bop', 'Section 1.7, exercise 10'),
   title: t`A difference and a union`,
   prompt: t`Draw a Venn diagram for ${math`(A - B) \cup C`}. Then explain why ${math`A - B \cup C`}, with no brackets, would not say which set is meant.`,
+  hints: [
+    t`Which regions make up ${math`A - B`}?`,
+    t`Which further regions does the union with ${math`C`} bring in?`,
+    t`With no brackets, could ${math`A - B \cup C`} also be read as ${math`A - (B \cup C)`}, and do the two readings shade the same regions?`,
+  ],
   writeUp: 'sketch',
 });
 
@@ -424,11 +541,18 @@ const sw513 = auto({
   source: cite('cst-dm-sw1', 'Exercises 5, 5.1.3(b)', true),
   title: t`A set of reals and a set of naturals`,
   prompt: t`Let ${math`C = \{x \in \mathbb{R} \mid x > ${7}\}`} and ${math`D = \{x \in \mathbb{N} \mid x > ${5}\}`}, where ${math`\mathbb{N} = \{${0}, ${1}, ${2}, \ldots\}`}. Which of these statements are true? Choose all that are.`,
+  nudge: t`Not quite. Keep track of which set allows fractions and which holds only whole numbers.`,
+  hints: [
+    t`Which numbers are in ${math`D`}, listed?`,
+    t`Which numbers are in both ${math`C`} and ${math`D`}?`,
+    t`Which numbers between ${5} and ${7} does ${math`C \cup D`} contain, and which does it miss?`,
+  ],
   answer: { kind: 'choice', options: SW513.map(({ id, label }) => ({ id, label: [label] })), correct: SW513_TRUE },
   solution: [
     t`${math`C`} holds every real number above ${7}, including fractions; ${math`D`} holds only the whole numbers ${math`${6}, ${7}, ${8}, \ldots`}.`,
     t`The intersection keeps what is in both: whole numbers above ${7}, so ${math`C \cap D = \{x \in \mathbb{N} \mid x > ${7}\}`}, and ${math`${7.5} \notin D`}.`,
     t`The union adds ${6} and ${7} from ${math`D`} to the reals above ${7}: ${math`C \cup D = \{${6}\} \cup \{x \in \mathbb{R} \mid x \ge ${7}\}`}. It is not all reals above ${5}, since it misses ${5.5}.`,
+    t`Check what kind of number each set holds before combining them.`,
   ],
   reference: SW513_TRUE,
   verify: () => same('the true statements', SW513.filter((x) => x.holds()).map((x) => x.id).join(' '), SW513_TRUE.join(' ')),

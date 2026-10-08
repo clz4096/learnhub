@@ -220,9 +220,16 @@ const q5 = auto({
   title: t`Within one standard deviation`,
   prompt: t`How large a random sample should be taken from a normal distribution in order for the probability to be at least ${0.99} that the sample mean will be within one standard deviation of the mean of the distribution? Use ${math`\Phi(${2.58}) = ${0.995}`}.`,
   answer: { kind: 'exact', expected: '7' },
+  hints: [
+    t`What is the distribution of the mean of ${math`n`} draws from ${math`N(\mu, \sigma^{${2}})`}?`,
+    t`Written with ${mPhi}, what is ${math`P(|\bar{X} - \mu| < \sigma)`}?`,
+    t`Which inequality for ${math`\sqrt{n}`} does ${math`\Phi(${2.58}) = ${0.995}`} give, and how must ${math`n`} be rounded?`,
+  ],
+  nudge: t`Not quite. Solve for ${math`\sqrt{n}`}, square before rounding, and round up.`,
   solution: [
     t`The sample mean of ${math`n`} draws from ${math`N(\mu, \sigma^{${2}})`} is exactly ${math`N(\mu, \sigma^{${2}}/n)`}, so ${math`P(|\bar{X} - \mu| < \sigma) = ${2}\Phi(\sqrt{n}) - ${1}`}.`,
-    t`We need ${math`\Phi(\sqrt{n}) \ge ${0.995}`}, so ${math`\sqrt{n} \ge ${2.58}`} and ${math`n \ge ${6.6564}`}: a sample of ${7}. For a distribution that is not normal, the central limit theorem says the same holds approximately for large ${math`n`}.`,
+    t`The condition is ${math`\Phi(\sqrt{n}) \ge ${0.995}`}, so ${math`\sqrt{n} \ge ${2.58}`} and ${math`n \ge ${6.6564}`}: a sample of ${7}. For a distribution that is not normal, the central limit theorem says the same holds approximately for large ${math`n`}.`,
+    t`Solve for ${math`n`} exactly, then round up.`,
   ],
   reference: '7',
   verify: () => {
@@ -242,9 +249,16 @@ const q13value = auto({
   title: t`The Poisson sum at ${math`n = ${N13}`}`,
   prompt: t`Q${13} says ${math`e^{-n}\left(${1} + \frac{n}{${1}!} + \frac{n^{${2}}}{${2}!} + \cdots + \frac{n^{n}}{n!}\right) \to \frac{${1}}{${2}}`}. Evaluate the left side for ${math`n = ${N13}`}, to three decimal places.`,
   answer: { kind: 'numeric', expected: dp(poissonCdf(N13, N13), 3), absTol: 0.0015, relTol: 0 },
+  hints: [
+    t`Why is ${math`\frac{n^{n}}{n!}`} awkward to compute directly, and how does each term compare with the one before?`,
+    t`Starting from ${math`e^{-n}`}, which recurrence gives each next term?`,
+    t`Summing all ${N13 + 1} terms that way, what is the total to three places?`,
+  ],
+  nudge: t`Not quite. Evaluate the sum itself, term by term with a recurrence, rather than its limit.`,
   solution: [
-    t`The bracket times ${math`e^{-n}`} is ${math`P(Y \le n)`} for ${math`Y \sim \text{Po}(n)`}, which is the sum of ${math`n`} independent ${math`\text{Po}(${1})`} variables. The central limit theorem gives ${math`P(Y \le n) = P\left(\frac{Y - n}{\sqrt{n}} \le ${0}\right) \to \Phi(${0}) = \tfrac{${1}}{${2}}`}.`,
-    t`Summing the ${N13 + 1} terms (through logarithms, as ${math`${N13}^{${N13}}`} is huge) gives about ${dp(poissonCdf(N13, N13), 4)}: the limit is approached slowly, like ${math`\tfrac{${1}}{${2}} + \frac{c}{\sqrt{n}}`}, because ${math`P(Y = n)`} itself is about ${math`${1}/\sqrt{${2}\pi n}`}.`,
+    t`Let ${math`t_{${0}} = e^{-n}`} and ${math`t_{k} = t_{k - ${1}} \cdot \frac{n}{k}`}, so ${math`t_{k} = e^{-n}\frac{n^{k}}{k!}`} without forming ${math`${N13}^{${N13}}`}.`,
+    t`Summing ${math`t_{${0}}, \ldots, t_{${N13}}`} gives about ${dp(poissonCdf(N13, N13), 4)}: still above the limit ${q(1, 2)}, which is approached slowly.`,
+    t`Compute a long sum by a term recurrence, not by huge powers.`,
   ],
   reference: String(dp(poissonCdf(N13, N13), 3)),
   verify: () => {
@@ -263,6 +277,11 @@ const q13proof = supervision({
   source: cite(SH4, 'Q13'),
   title: t`A Poisson sum tends to a half`,
   prompt: t`Show that, as ${math`n \to \infty`}, ${math`e^{-n}\left(${1} + \frac{n}{${1}!} + \frac{n^{${2}}}{${2}!} + \cdots + \frac{n^{n}}{n!}\right) \to \frac{${1}}{${2}}`}.`,
+  hints: [
+    t`Which random variable ${math`Y`} has ${math`P(Y \le n)`} equal to the left side?`,
+    t`How can that variable be written as a sum of ${math`n`} independent, identically distributed variables?`,
+    t`What does the central limit theorem say about ${math`P\left(\frac{Y - n}{\sqrt{n}} \le ${0}\right)`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -271,6 +290,11 @@ const q6b = supervision({
   source: cite(SH4, 'Q6(b)'),
   title: t`Why products are log-normal`,
   prompt: t`Log-normal distributions are used to model quantities ${math`X`} which are believed to arise as the product of many positive random factors ${math`X = \xi_{${1}}\xi_{${2}}\cdots\xi_{n}`}, such as particle sizes after a crushing process or stock prices. Making any reasonable assumptions you wish, give a justification for such a model.`,
+  hints: [
+    t`What do logarithms do to the product?`,
+    t`Which theorem applies to a sum of many independent, identically distributed terms, and what does it need of them?`,
+    t`If ${math`\log X`} is approximately normal, what is the distribution of ${math`X`}?`,
+  ],
   writeUp: 'explanation',
 });
 
@@ -279,6 +303,11 @@ const sketch = supervision({
   source: SCHEDULE,
   title: t`A sketch of the proof`,
   prompt: t`State the central limit theorem. Assuming that ${math`M(\theta) = E(e^{\theta X_{${1}}})`} is finite near ${0}, sketch its proof: show that the mgf of ${math`(S_{n} - n\mu)/(\sigma\sqrt{n})`} tends to ${math`e^{\theta^{${2}}/${2}}`}, and say which theorem turns that into convergence of distribution functions.`,
+  hints: [
+    t`What is the mgf of ${math`(S_{n} - n\mu)/(\sigma\sqrt{n})`} in terms of ${math`M`}?`,
+    t`What does a Taylor expansion near ${0}, to second order, give for that mgf?`,
+    t`Which continuity theorem turns convergence of mgfs into convergence of distribution functions?`,
+  ],
   writeUp: 'proof',
 });
 

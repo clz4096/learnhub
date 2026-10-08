@@ -262,6 +262,8 @@ th { background: var(--surface-2); }
 .result-solution { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); }
 .result-solution h4 { font-size: var(--text-md); margin: 0 0 var(--space-1); }
 .result-solution ol { margin: 0; }
+/* A Cambridge solution ends on its one-line lesson (mastery/APP-LANGUAGE.md), set apart in italics. */
+.problem-cambridge .result-solution li:last-child { font-style: italic; }
 .result-effect { margin: var(--space-3) 0 0; }
 .result-block p.result-effect:first-of-type { margin-top: 0; }
 /* The field after Check, coloured to match the result. */

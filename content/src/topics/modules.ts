@@ -221,6 +221,11 @@ const stackOption = supervision({
   title: t`A stack with options`,
   prompt: t`Write a module ${ml`Stack`} with ${ml`type 'a t = 'a list`} and ${ml`empty`}, ${ml`is_empty`}, ${ml`push`}, ${ml`peek`} (returning ${ml`None`} if empty, else ${ml`Some item`}), and ${ml`pop`} (returning ${ml`None`} or ${ml`Some remaining_stack`}). Then write a signature for it with ${ml`t`} abstract, and explain what the signature hides and why that is useful.`,
   writeUp: 'explanation',
+  hints: [
+    t`With ${ml`type 'a t = 'a list`}, which list operations implement ${ml`push`}, ${ml`peek`}, and ${ml`pop`}?`,
+    t`What should ${ml`peek`} and ${ml`pop`} return on the empty list, and on ${ml`x :: rest`}?`,
+    t`With ${ml`t`} abstract in the signature, which code could still build or inspect a stack directly as a list?`,
+  ],
 });
 const fractionReduced = supervision({
   id: 'cs3110-5-fraction-reduced',
@@ -228,6 +233,11 @@ const fractionReduced = supervision({
   title: t`Fractions with an invariant`,
   prompt: t`Implement the ${ml`Fraction`} module type (${ml`make`}, ${ml`numerator`}, ${ml`denominator`}, ${ml`to_string`}, ${ml`to_float`}, ${ml`add`}, ${ml`mul`}) so that every value returned by ${ml`make`}, ${ml`add`}, and ${ml`mul`} is in reduced form with a positive denominator. State the representation invariant and explain why the signature's abstract type means other code cannot break it.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which two conditions on the numerator and the denominator make a fraction reduced with a positive denominator?`,
+    t`Inside ${ml`make`}, how do the gcd and the sign of the denominator put any pair into that form?`,
+    t`If the type were not abstract, how could code outside the module build a value that breaks the invariant?`,
+  ],
 });
 const abstracted = supervision({
   id: 'cs3110-5-abstracted-interface',
@@ -235,6 +245,11 @@ const abstracted = supervision({
   title: t`Making a type abstract`,
   prompt: t`A file ${ml`date.ml`} defines ${ml`type date = {month : int; day : int}`} with ${ml`make_date`}, ${ml`get_month`}, ${ml`get_day`}, and ${ml`to_string`}, and ${ml`date.mli`} declares them. Change the first declaration of ${ml`date.mli`} to ${ml`type date`}. Which uses of dates in the toplevel change their responses or stop working, and why?`,
   writeUp: 'explanation',
+  hints: [
+    t`With the record type visible in ${ml`date.mli`}, what does the toplevel show for a value of type ${ml`date`}?`,
+    t`Once ${ml`date.mli`} says only ${ml`type date`}, can code outside the module write a record literal or read the field ${ml`month`}?`,
+    t`Which of ${ml`make_date`}, ${ml`get_month`}, ${ml`get_day`}, and ${ml`to_string`} still work, and why do they?`,
+  ],
 });
 
 // Computer Science Tripos Part IA 2022, Paper 1, Question 2 (a)(i), (ii): an invariant for interval lists.
@@ -244,6 +259,11 @@ const cst2022Intervals = supervision({
   title: t`Sets as lists of intervals, kept in standard form`,
   prompt: t`One way to represent sets of integers is as lists of intervals: ${ml`type intset = (int * int) list`}. For example, ${math`\{${1}, ${2}, ${3}, ${9}, ${10}, ${11}, ${12}\}`} can be represented as ${ml`[(${1},${3});(${9},${12})]`}, the union of the intervals ${math`[${1}..${3}]`} and ${math`[${9}..${12}]`}. Each set of integers has many different interval list representations. An interval list is in standard form if it is an ascending sequence of non-empty intervals that cannot be merged. (i) Write a function ${ml`is_standard : intset -> bool`} that tests whether an ${ml`intset`} is in standard form. (ii) Write a function ${ml`add_interval : (int * int) -> intset -> intset`} that adds an interval to an ${ml`intset`} in standard form, producing a new ${ml`intset`} in standard form.`,
   writeUp: 'explanation',
+  hints: [
+    t`For ${ml`is_standard`}, which conditions must each interval satisfy on its own, and which must each pair of neighbours satisfy?`,
+    t`When can two neighbouring intervals ${math`[a..b]`} and ${math`[c..d]`} with ${math`b < c`} still be merged?`,
+    t`For ${ml`add_interval`}, walking the list in order, which intervals lie wholly before the new one, which overlap or touch it, and which lie wholly after?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

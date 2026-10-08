@@ -197,9 +197,16 @@ const q6median = auto({
   title: t`A step density: the median in the second step`,
   prompt: t`${mX} has density ${math`a`} for ${math`${0} \le x < k`}, ${math`b`} for ${math`k \le x \le ${1}`}, and ${0} otherwise, where ${math`a > b > ${0}`} and ${math`${0} < k < ${1}`}. The median is ${math`\frac{${1}}{${2}a}`} if ${math`a + b \ge ${2}ab`}. Find the median, in terms of ${math`b`}, when ${math`a + b \le ${2}ab`}.`,
   answer: { kind: 'expression', expected: '1 - 1/(2b)', variables: ['b'], domains: { b: { kind: 'real', min: 0.55, max: 0.95 } } },
+  hints: [
+    t`What does a total area of ${1} give for ${math`k`} in terms of ${math`a`} and ${math`b`}?`,
+    t`When the median lies in the second step, what is the area to its right?`,
+    t`Which equation in ${math`M`} does that area give?`,
+  ],
+  nudge: t`Not quite. Work from the right-hand end: the area to the right of the median is ${q(1, 2)}.`,
   solution: [
     t`Total area ${1} gives ${math`ak + b(${1} - k) = ${1}`}, so ${math`k = \frac{${1} - b}{a - b}`}. The median is at most ${math`k`} exactly when ${math`ak \ge \tfrac{${1}}{${2}}`}, which rearranges to ${math`a + b \ge ${2}ab`}.`,
     t`Otherwise the median is in the second step. The area to its right is ${math`(${1} - M)\,b = \tfrac{${1}}{${2}}`}, so ${math`M = ${1} - \frac{${1}}{${2}b}`}.`,
+    t`Find the median from whichever end is simpler.`,
   ],
   reference: '1 - 1/(2b)',
   verify: () => {
@@ -228,9 +235,16 @@ const q4mean = auto({
   title: t`The mean distance to the nearest supermarket`,
   prompt: t`The distance ${math`Y`} from a random point to the nearest supermarket has density ${math`${2}\pi k y\,e^{-\pi k y^{${2}}}`} for ${math`y \ge ${0}`}, where ${math`k > ${0}`}. You may assume ${math`\int_{${0}}^{\infty} e^{-x^{${2}}/${2}}\,dx = \sqrt{\pi / ${2}}`}. Find ${math`E(Y)`}.`,
   answer: { kind: 'expression', expected: '1/(2 sqrt(k))', variables: ['k'], domains: { k: { kind: 'real', min: 0.1, max: 5 } } },
+  hints: [
+    t`Which integral gives ${math`E(Y)`}?`,
+    t`Integrating by parts with ${math`u = y`}, what is ${math`v`}, and what is left to integrate?`,
+    t`Which substitution turns the remaining integral into the one given?`,
+  ],
+  nudge: t`Not quite. Integrate by parts so that the given integral appears, then substitute to match it exactly.`,
   solution: [
     t`${math`E(Y) = \int_{${0}}^{\infty} ${2}\pi k y^{${2}} e^{-\pi k y^{${2}}}\,dy`}. By parts, with ${math`u = y`} and ${math`v' = ${2}\pi k y\,e^{-\pi k y^{${2}}}`}, so ${math`v = -e^{-\pi k y^{${2}}}`}: ${math`E(Y) = \left[-y\,e^{-\pi k y^{${2}}}\right]_{${0}}^{\infty} + \int_{${0}}^{\infty} e^{-\pi k y^{${2}}}\,dy`}.`,
     t`The bracket is ${0}. Substitute ${math`x = y\sqrt{${2}\pi k}`}: ${math`\int_{${0}}^{\infty} e^{-\pi k y^{${2}}}\,dy = \frac{${1}}{\sqrt{${2}\pi k}}\sqrt{\frac{\pi}{${2}}} = \frac{${1}}{${2}\sqrt{k}}`}.`,
+    t`Integrate by parts to reach an integral that is already known.`,
   ],
   reference: '1/(2 sqrt(k))',
   verify: () => {
@@ -260,9 +274,16 @@ const s3mean = auto({
   title: t`The expected speed of a gas molecule`,
   prompt: t`The speed ${math`V`} has density ${math`f(x) = \frac{C k^{a + ${1}} x^{a}}{(x + k)^{${2}a + ${2}}}`} for ${math`x \ge ${0}`}, where ${math`a`} is a positive integer, ${math`k > ${0}`}, and ${math`C = \frac{(${2}a + ${1})!}{a!\,a!}`}. You may use ${math`\int_{${0}}^{\infty} \frac{t^{m}}{(t + k)^{n + ${2}}}\,dt = \frac{m!\,(n - m)!}{(n + ${1})!\,k^{n - m + ${1}}}`} for positive integers ${math`n \ge m`}. Find ${math`E(V)`}.`,
   answer: { kind: 'expression', expected: 'k(a + 1)/a', variables: ['k', 'a'], domains: { k: { kind: 'real', min: 0.5, max: 4 }, a: { kind: 'integer', min: 1, max: 8 } } },
+  hints: [
+    t`Which integral gives ${math`E(V)`}, with the constants taken outside?`,
+    t`Which values of ${math`m`} and ${math`n`} match the given integral?`,
+    t`After substituting the factorials, what cancels with ${math`C`}?`,
+  ],
+  nudge: t`Not quite. Match the integrand to the given formula: the power on top is one more than in the density.`,
   solution: [
     t`${math`E(V) = C k^{a + ${1}} \int_{${0}}^{\infty} \frac{x^{a + ${1}}}{(x + k)^{${2}a + ${2}}}\,dx`}. Use the given integral with ${math`m = a + ${1}`} and ${math`n = ${2}a`}: it is ${math`\frac{(a + ${1})!\,(a - ${1})!}{(${2}a + ${1})!\,k^{a}}`}.`,
     t`So ${math`E(V) = \frac{(${2}a + ${1})!}{a!\,a!}\,k^{a + ${1}} \cdot \frac{(a + ${1})!\,(a - ${1})!}{(${2}a + ${1})!\,k^{a}} = \frac{k(a + ${1})}{a}`}.`,
+    t`Match an integral to a given formula by choosing its parameters.`,
   ],
   reference: 'k(a + 1)/a',
   verify: () => {
@@ -284,11 +305,19 @@ const s3time = auto({
   id: 's3-q4-mean-time',
   source: cite(S3, 'Q4', true),
   title: t`The expected time to travel a distance`,
-  prompt: t`With ${math`V`} as above, the time to travel a fixed distance ${math`s`} is ${math`T = s / V`}, which has density ${math`\frac{C (s/k)^{a + ${1}} t^{a}}{(t + s/k)^{${2}a + ${2}}}`} for ${math`t \ge ${0}`}: the density of ${math`V`} with ${math`k`} replaced by ${math`s / k`}. Find ${math`E(T)`}.`,
+  prompt: t`A speed ${math`V`} has density ${math`\frac{C k^{a + ${1}} x^{a}}{(x + k)^{${2}a + ${2}}}`} for ${math`x \ge ${0}`}, where ${math`a`} is a positive integer, ${math`k > ${0}`}, and ${math`C = \frac{(${2}a + ${1})!}{a!\,a!}`}. The integral ${math`\int_{${0}}^{\infty} \frac{t^{m}}{(t + k)^{n + ${2}}}\,dt = \frac{m!\,(n - m)!}{(n + ${1})!\,k^{n - m + ${1}}}`}, for positive integers ${math`n \ge m`}, may be used. The time to travel a fixed distance ${math`s`} is ${math`T = s / V`}, which has density ${math`\frac{C (s/k)^{a + ${1}} t^{a}}{(t + s/k)^{${2}a + ${2}}}`} for ${math`t \ge ${0}`}: the density of ${math`V`} with ${math`k`} replaced by ${math`s / k`}. Find ${math`E(T)`}.`,
   answer: { kind: 'expression', expected: 's(a + 1)/(k a)', variables: ['s', 'k', 'a'], domains: { s: { kind: 'real', min: 0.5, max: 4 }, k: { kind: 'real', min: 0.5, max: 4 }, a: { kind: 'integer', min: 1, max: 8 } } },
+  hints: [
+    t`Which integral gives ${math`E(T)`}?`,
+    t`Which values of ${math`m`} and ${math`n`}, and which constant in place of ${math`k`}, match the given integral?`,
+    t`After substituting, what cancels with ${math`C`}?`,
+  ],
+  nudge: t`Not quite. The mean of ${math`s/V`} is not ${math`s`} over the mean of ${math`V`}; integrate against the density of ${math`T`}.`,
   solution: [
-    t`The density of ${math`T`} has the form of the density of ${math`V`} with ${math`s / k`} in place of ${math`k`}, so ${math`E(T)`} is ${math`E(V) = \frac{k(a + ${1})}{a}`} with that replacement: ${math`E(T) = \frac{s(a + ${1})}{ka}`}.`,
-    t`Then ${math`E(T)\,E(V) = s\left(\frac{a + ${1}}{a}\right)^{${2}} > s`}, although the medians multiply to exactly ${math`s`}: ${math`\frac{s}{k} \times k = s`}.`,
+    t`${math`E(T) = C\left(\frac{s}{k}\right)^{a + ${1}} \int_{${0}}^{\infty} \frac{t^{a + ${1}}}{(t + s/k)^{${2}a + ${2}}}\,dt`}.`,
+    t`The given integral with ${math`m = a + ${1}`}, ${math`n = ${2}a`}, and ${math`s/k`} in place of ${math`k`} is ${math`\frac{(a + ${1})!\,(a - ${1})!}{(${2}a + ${1})!\,(s/k)^{a}}`}.`,
+    t`So ${math`E(T) = \frac{(${2}a + ${1})!}{a!\,a!}\left(\frac{s}{k}\right)^{a + ${1}} \cdot \frac{(a + ${1})!\,(a - ${1})!}{(${2}a + ${1})!\,(s/k)^{a}} = \frac{s(a + ${1})}{ka}`}.`,
+    t`Match the integral to the given formula, then simplify the factorials.`,
   ],
   reference: 's(a + 1)/(k a)',
   verify: () => {
@@ -317,9 +346,16 @@ const q9median = auto({
   title: t`The median distance of a shot from the centre`,
   prompt: t`The distance ${math`R`} of a bullet hole from the centre of a target has density ${math`r e^{-r^{${2}}/${2}}`} for ${math`r \ge ${0}`}. Find the median of ${math`R`}.`,
   answer: { kind: 'expression', expected: 'sqrt(ln(4))', variables: [] },
+  hints: [
+    t`What is ${math`F(r)`}, the integral of the density from ${0} to ${math`r`}?`,
+    t`Which equation does ${math`F(m) = \tfrac{${1}}{${2}}`} give?`,
+    t`After taking logarithms, what is ${math`m^{${2}}`}?`,
+  ],
+  nudge: t`Not quite. The median solves ${math`F(m) = \tfrac{${1}}{${2}}`}; integrate the density first.`,
   solution: [
     t`${math`F(r) = \int_{${0}}^{r} u\,e^{-u^{${2}}/${2}}\,du = ${1} - e^{-r^{${2}}/${2}}`}.`,
     t`${math`F(m) = \tfrac{${1}}{${2}}`} gives ${math`e^{-m^{${2}}/${2}} = \tfrac{${1}}{${2}}`}, so ${math`m^{${2}} = ${2}\ln ${2} = \ln ${4}`} and ${math`m = \sqrt{\ln ${4}} \approx ${Number(Math.sqrt(Math.log(4)).toFixed(4))}`}.`,
+    t`The median solves ${math`F(m) = \tfrac{${1}}{${2}}`}.`,
   ],
   reference: 'sqrt(ln(4))',
   verify: () => near('median by bisection on the integrated density', bisect((m) => simpson(rayleigh, 0, m) - 0.5, 0, 5, 60), Math.sqrt(Math.log(4)), 1e-8),
@@ -337,9 +373,16 @@ const q9mean = auto({
   title: t`The mean distance of a shot from the centre`,
   prompt: t`The distance ${math`R`} has density ${math`r e^{-r^{${2}}/${2}}`} for ${math`r \ge ${0}`}. Using ${math`\int_{${0}}^{\infty} e^{-r^{${2}}/${2}}\,dr = \sqrt{\pi/${2}}`}, find ${math`E(R)`}.`,
   answer: { kind: 'expression', expected: 'sqrt(pi/2)', variables: [] },
+  hints: [
+    t`Which integral gives ${math`E(R)`}?`,
+    t`Integrating by parts with ${math`u = r`}, what is ${math`v`}?`,
+    t`What happens to the boundary term, and which integral is left?`,
+  ],
+  nudge: t`Not quite. Integrate ${math`r\,f(r)`} by parts so that the given integral appears.`,
   solution: [
     t`${math`E(R) = \int_{${0}}^{\infty} r^{${2}} e^{-r^{${2}}/${2}}\,dr`}. By parts with ${math`u = r`}, ${math`v = -e^{-r^{${2}}/${2}}`}: ${math`\left[-r e^{-r^{${2}}/${2}}\right]_{${0}}^{\infty} + \int_{${0}}^{\infty} e^{-r^{${2}}/${2}}\,dr`}.`,
     t`The bracket is ${0}, so ${math`E(R) = \sqrt{\pi/${2}} \approx ${Number(Math.sqrt(Math.PI / 2).toFixed(4))}`}.`,
+    t`Integrate by parts to reach the given integral.`,
   ],
   reference: 'sqrt(pi/2)',
   verify: () => near('E(R) by numerical integration', integrateToInfinity((r) => r * rayleigh(r), 0), Math.sqrt(Math.PI / 2), 1e-8),
@@ -355,6 +398,11 @@ const q4var = supervision({
   source: cite(S2, 'Q4'),
   title: t`The variance of the distance to the nearest supermarket`,
   prompt: t`For the density ${math`${2}\pi k y\,e^{-\pi k y^{${2}}}`} on ${math`y \ge ${0}`}, show that ${math`\operatorname{Var}(Y) = \frac{${4} - \pi}{${4}\pi k}`}.`,
+  hints: [
+    t`Which integral gives ${math`E(Y^{${2}})`}, and which substitution simplifies it?`,
+    t`What are ${math`E(Y^{${2}})`} and ${math`E(Y)^{${2}}`}?`,
+    t`How does ${math`\operatorname{Var}(Y) = E(Y^{${2}}) - E(Y)^{${2}}`} simplify?`,
+  ],
   writeUp: 'proof',
   official: cite(S2SOL, 'Q4'),
 });
@@ -363,6 +411,11 @@ const q6proofs = supervision({
   source: cite(S2, 'Q6(i), (iii)'),
   title: t`A step density: its mean, and the median below it`,
   prompt: t`For the step density ${math`a`} on ${math`[${0}, k)`} and ${math`b`} on ${math`[k, ${1}]`}, with ${math`a > b > ${0}`}, show that ${math`E(X) = \frac{${1} - ${2}b + ab}{${2}(a - b)}`}, and show that the median ${math`M`} satisfies ${math`M < E(X)`} in both cases of part (ii).`,
+  hints: [
+    t`What is ${math`E(X)`} as the sum of two integrals over the steps, with ${math`k = \frac{${1} - b}{a - b}`}?`,
+    t`In the case ${math`a + b \ge ${2}ab`}, which inequality in ${math`a`} and ${math`b`} does ${math`M < E(X)`} reduce to?`,
+    t`In the other case, what does ${math`M < E(X)`} reduce to, and why does ${math`a > b > ${0}`} settle it?`,
+  ],
   writeUp: 'proof',
   official: cite(S2SOL, 'Q6(i), (iii)'),
 });
@@ -371,6 +424,11 @@ const s3medians = supervision({
   source: cite(S3, 'Q4'),
   title: t`Median speed and median time`,
   prompt: t`For the speed ${math`V`} with density ${math`\frac{C k^{a + ${1}} x^{a}}{(x + k)^{${2}a + ${2}}}`}, show by the substitution ${math`u = k^{${2}}/x`} that the median of ${math`V`} is ${math`k`}. Then show that the median time times the median speed is ${math`s`}, but the expected time times the expected speed is greater than ${math`s`}, and explain why the two products differ.`,
+  hints: [
+    t`Under ${math`u = k^{${2}}/x`}, what does ${math`\int_{${0}}^{k} f(x)\,dx`} become?`,
+    t`Why does that show that the area below ${math`k`} equals the area above it?`,
+    t`Why does ${math`T = s/V`} have median ${math`s/k`}, and how do ${math`E(${1}/V)`} and ${math`${1}/E(V)`} compare?`,
+  ],
   writeUp: 'proof',
   official: cite(S3SOL, 'Q4'),
 });

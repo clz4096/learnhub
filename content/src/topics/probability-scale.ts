@@ -260,10 +260,16 @@ const a12Mint = auto({
   title: t`The first sweet`,
   prompt: t`A bag contains ${9} mint imperials and ${6} lemon sherbets. I take one sweet out without looking. What is the probability that it is a mint imperial? Give it in lowest terms.`,
   answer: { kind: 'exact', expected: str(q(9, 15)) },
-  solution: [t`Each of the ${15} sweets is equally likely, and ${9} are mints: ${math`\frac{${9}}{${15}} = ${q(9, 15)}`}.`],
+  solution: [t`Each of the ${15} sweets is equally likely, and ${9} are mints: ${math`\frac{${9}}{${15}} = ${q(9, 15)}`}.`, t`With equally likely outcomes, the probability is favourable over total.`],
   reference: '0.6',
   verify: () => same('9 of 15', str(q(9, 9 + 6)), '3/5'),
   misconceptions: [{ response: str(q(9, 6)), why: t`That compares mints with lemons. A probability compares mints with all ${15} sweets.` }],
+  nudge: t`Not quite. A probability compares the mints with all the sweets, not with the lemons.`,
+  hints: [
+    t`How many sweets are in the bag altogether?`,
+    t`How many of them are mints, and is each sweet equally likely to be taken?`,
+    t`What is that fraction in lowest terms?`,
+  ],
 });
 
 const a12Goggles = auto({
@@ -275,6 +281,7 @@ const a12Goggles = auto({
   solution: [
     t`The question is about one child only. Whatever the other two do, the first child has goggles with probability ${q(1, 4)}.`,
     t`(Listing all ${8} cases for the three children gives the same: the cases where the first child has goggles add up to ${q(1, 4)}.)`,
+    t`Ignore what the event does not mention.`,
   ],
   reference: '1/4',
   verify: () => {
@@ -290,6 +297,12 @@ const a12Goggles = auto({
   },
   misconceptions: [{ response: str(q(1, 64)), why: t`That is the chance that all three have goggles. The question asks about the first child only.` }],
   official: { source: cite('step-f12-hints', 'Q2(iv)(b)'), answer: '1/4', agrees: true },
+  nudge: t`Not quite. The question is about one child only; the other two do not matter.`,
+  hints: [
+    t`Which child does the event concern?`,
+    t`Does what the other two children do affect whether the first has goggles?`,
+    t`What probability is given for a single child?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
@@ -314,6 +327,7 @@ const gs3110 = auto({
     t`The last card dealt is the card in place ${DEALT} of the shuffled deck. The earlier cards are not looked at, so they change nothing.`,
     t`Shuffling makes every order of the ${52} cards equally likely, so each of the ${52} cards is equally likely to be in place ${DEALT}: swapping the cards in places ${1} and ${DEALT} pairs off the orders, and the same holds for any two places.`,
     t`${4} of the ${52} cards are aces, so the probability is ${math`\frac{${4}}{${52}} = ${LAST_ACE}`}, the same as for the first card.`,
+    t`Symmetry: every place in a shuffled deck is like the first.`,
   ],
   reference: str(LAST_ACE),
   verify: () => {
@@ -325,6 +339,12 @@ const gs3110 = auto({
   misconceptions: [
     { response: str(q(4, DEALT)), why: t`That divides the ${4} aces by the ${DEALT} cards dealt. The last card can be any of the ${52} cards, each equally likely, so divide by ${52}.` },
     { response: str(sub(q(1), q(chooseBig(48, DEALT), chooseBig(52, DEALT)))), why: t`That is the chance of at least one ace among the ${DEALT} cards. The question asks about the last card only.` },
+  ],
+  nudge: t`Not quite. The cards dealt before the last are never looked at; a symmetry argument is quicker than any count.`,
+  hints: [
+    t`In the shuffled deck, which place does the last card dealt occupy?`,
+    t`Why is each of the ${52} cards equally likely to be in any given place?`,
+    t`How many of the ${52} cards are aces?`,
   ],
 });
 
@@ -357,6 +377,7 @@ const step94Colleges = auto({
     t`"At random" makes every college equally likely to be Anya's first choice: ${COLLEGES} equally likely outcomes, ${SINGLE_SEX} of them single-sex. So (i) is ${math`\frac{${SINGLE_SEX}}{${COLLEGES}} = ${q(SINGLE_SEX, COLLEGES)}`}.`,
     t`For (ii), think of all the forms Betty could fill in, each equally likely. No college is special, so each of the ${COLLEGES} colleges appears on the same share of them. Each form names ${PICKS} colleges, so the shares add up to ${PICKS}, and each college, Newnham included, is on ${q(PICKS, COLLEGES)} of the forms.`,
     t`For (iv), Doreen's first choice is fixed as Newnham, and her other ${PICKS - 1} choices are different colleges from the remaining ${COLLEGES - 1}, every pair equally likely. The same argument with ${COLLEGES - 1} colleges and ${PICKS - 1} places gives ${q(PICKS - 1, COLLEGES - 1)}: knowing Newnham is taken changes the chance for New Hall from ${q(PICKS, COLLEGES)} to ${q(PICKS - 1, COLLEGES - 1)}.`,
+    t`When no outcome is special, symmetry gives each the same share.`,
   ],
   reference: COLLEGE_ANSWERS,
   verify: () => {
@@ -372,6 +393,12 @@ const step94Colleges = auto({
     { response: [str(q(SINGLE_SEX, COLLEGES)), str(q(1, COLLEGES)), str(q(PICKS - 1, COLLEGES - 1))], why: t`In (ii) Betty has three choices, not one: Newnham can be her first, second, or third, so the chance is ${q(PICKS, COLLEGES)}.` },
     { response: [str(q(SINGLE_SEX, COLLEGES)), str(q(PICKS, COLLEGES)), str(q(1, COLLEGES - 1))], why: t`In (iv) Doreen still has two choices left, and either could be New Hall: ${q(PICKS - 1, COLLEGES - 1)}.` },
     { response: [str(q(SINGLE_SEX, COLLEGES)), str(q(PICKS, COLLEGES)), str(q(PICKS - 1, COLLEGES))], why: t`In (iv) Newnham is already taken, so the other two choices come from ${COLLEGES - 1} colleges, not ${COLLEGES}.` },
+  ],
+  nudge: t`Not quite. Each part is a symmetry argument: no college is special, so count shares rather than list forms.`,
+  hints: [
+    t`For (i), how many colleges are single-sex, out of how many equally likely first choices?`,
+    t`For (ii), Betty names ${PICKS} colleges: why does each college appear on the same share of the possible forms, and what do those shares add up to?`,
+    t`For (iv), with Newnham fixed, from how many colleges are the other two choices made?`,
   ],
 });
 

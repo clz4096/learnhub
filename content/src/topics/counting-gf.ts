@@ -239,9 +239,16 @@ const q3even = auto({
   title: t`An even number of successes`,
   prompt: t`Independent trials each succeed with probability ${math`p`}. Using the generating function ${math`(q + pt)^{n}`} of the number of successes, where ${math`q = ${1} - p`}, find the probability ${math`P_{n}`} that ${mn} trials give an even number of successes, as an expression in ${mn} and ${math`p`}.`,
   answer: { kind: 'expression', expected: '(1 + (1 - 2p)^n)/2', variables: ['n', 'p'], domains: NP_DOM },
+  hints: [
+    t`What does ${math`(q + pt)^{n}`} equal at ${math`t = ${1}`}?`,
+    t`What does it give at ${math`t = -${1}`}, in terms of the even and odd probabilities?`,
+    t`Which combination of the two values keeps only the even terms?`,
+  ],
+  nudge: t`Not quite. Evaluate the generating function at ${math`t = ${1}`} and ${math`t = -${1}`}, then combine.`,
   solution: [
     t`${math`(q + pt)^{n} = \sum_{k} P(k \text{ successes})t^{k}`}. At ${math`t = ${1}`} it is ${math`${1}`}; at ${math`t = -${1}`} it is ${math`\sum_{k} (-${1})^{k}P(k)`}, the even terms minus the odd terms.`,
     t`Adding, the odd terms cancel: ${math`${2}P_{n} = ${1} + (q - p)^{n}`}, so ${math`P_{n} = \frac{${1}}{${2}}\left(${1} + (${1} - ${2}p)^{n}\right)`}.`,
+    t`Average a generating function at ${1} and ${-1} to keep the even terms.`,
   ],
   reference: '1/2 + (1 - 2p)^n/2',
   verify: () => {
@@ -288,9 +295,16 @@ const euler = auto({
   title: t`Partitions into distinct parts`,
   prompt: t`A partition of ${N_PART} into distinct parts writes ${N_PART} as a sum of different positive integers, ignoring order, such as ${math`${7} + ${2} + ${1}`}. The number of them is the coefficient of ${math`x^{${N_PART}}`} in ${math`(${1} + x)(${1} + x^{${2}})(${1} + x^{${3}})\cdots`}. How many are there?`,
   answer: { kind: 'exact', expected: String(distinctParts(N_PART)) },
+  hints: [
+    t`Which factor of the product records whether the part ${math`k`} is used?`,
+    t`Which factors can contribute to ${math`x^{${N_PART}}`}?`,
+    t`Listing the partitions into distinct parts by their largest part, how many are there?`,
+  ],
+  nudge: t`Not quite. Each part appears at most once; list the partitions systematically by largest part.`,
   solution: [
     t`Each part ${math`k`} is used once or not at all: the factor ${math`${1} + x^{k}`}. Only factors up to ${math`k = ${N_PART}`} matter for ${math`x^{${N_PART}}`}.`,
     t`Multiplying out, the coefficient of ${math`x^{${N_PART}}`} is ${distinctParts(N_PART)}. Since ${math`${1} + x^{k} = \frac{${1} - x^{${2}k}}{${1} - x^{k}}`}, the product telescopes to ${math`\prod_{k \text{ odd}} \frac{${1}}{${1} - x^{k}}`}: there are just as many partitions into odd parts, ${oddParts(N_PART)}.`,
+    t`List systematically by the largest part, or expand the product.`,
   ],
   reference: String(distinctParts(N_PART)),
   verify: () => {
@@ -306,6 +320,11 @@ const eulerProof = supervision({
   source: SCHEDULE,
   title: t`Distinct parts and odd parts`,
   prompt: t`Prove with generating functions that, for every ${mn}, the number of partitions of ${mn} into distinct parts equals the number of partitions of ${mn} into odd parts. Explain why the formal manipulation of the infinite products is justified for the coefficient of ${math`x^{n}`}.`,
+  hints: [
+    t`Which product generates partitions into distinct parts, and which generates partitions into odd parts?`,
+    t`How does ${math`${1} + x^{k} = \frac{${1} - x^{${2}k}}{${1} - x^{k}}`} make the first product telescope?`,
+    t`Why does only a finite part of each product affect the coefficient of ${math`x^{n}`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -314,6 +333,11 @@ const q3proof = supervision({
   source: cite(SH2, 'Q3'),
   title: t`Even successes, two ways`,
   prompt: t`Independent trials are performed, each with probability ${math`p`} of success. Let ${math`P_{n}`} be the probability that ${mn} trials result in an even number of successes. Show that ${math`P_{n} = \frac{${1}}{${2}}\left(${1} + (${1} - ${2}p)^{n}\right)`}, once with the generating function ${math`(q + pt)^{n}`} and once by a recurrence conditioning on the last trial.`,
+  hints: [
+    t`What do the values of ${math`(q + pt)^{n}`} at ${math`t = ${1}`} and ${math`t = -${1}`} give?`,
+    t`Conditioning on the last trial, how is ${math`P_{n}`} related to ${math`P_{n - ${1}}`}?`,
+    t`What is the solution of that recurrence with ${math`P_{${0}} = ${1}`}?`,
+  ],
   writeUp: 'proof',
 });
 

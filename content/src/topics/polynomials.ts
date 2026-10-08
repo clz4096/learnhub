@@ -177,6 +177,7 @@ const a15 = auto({
     t`Factor out ${math`${15}^{${2}}`} to keep the numbers small: ${math`f(${15}) = ${15}^{${2}}(${225} - ${270} + ${35} + ${12} - ${2}) = ${0}`}.`,
     t`Divide by ${math`x - ${15}`}: the quotient is ${math`x^{${3}} - ${3}x^{${2}} - ${10}x + ${30} = x^{${2}}(x - ${3}) - ${10}(x - ${3}) = (x - ${3})(x^{${2}} - ${10})`}.`,
     t`So ${math`p = ${0}`}, ${math`q = -${10}`}, and the roots are ${15}, ${3}, ${math`\sqrt{${10}}`}, and ${math`-\sqrt{${10}}`}.`,
+    t`Divide out a known root, then look for grouping in what remains.`,
   ],
   reference: 'p = 0, q = -10',
   verify: () => {
@@ -186,6 +187,12 @@ const a15 = auto({
     return same('the expansion', full.join(','), '1,-18,35,180,-450');
   },
   misconceptions: [{ response: 'p = 0, q = 10', why: t`${math`x^{${2}}(x - ${3}) - ${10}(x - ${3}) = (x - ${3})(x^{${2}} - ${10})`}: the sign of the ${10} carries into the bracket.` }],
+  nudge: t`Not quite. After dividing by ${math`x - ${15}`}, the cubic factorises by grouping; watch the sign in the last factor.`,
+  hints: [
+    t`How can ${math`f(${15})`} be checked without large numbers, for example by taking out a factor ${math`${15}^{${2}}`}?`,
+    t`Which cubic is left after dividing by ${math`x - ${15}`}?`,
+    t`How does that cubic factorise by grouping, and which quadratic factor remains?`,
+  ],
 });
 
 const a16iii = auto({
@@ -198,6 +205,7 @@ const a16iii = auto({
     t`Each term at ${math`x = ${1} + \sqrt{${2}}`} has the factor ${math`${1} + \sqrt{${2}}`}: the value is ${math`(${1} + \sqrt{${2}})\left[${2}(${3} + ${2}\sqrt{${2}}) - (${8}\sqrt{${2}} + ${10}) + (${4}\sqrt{${2}} + ${5}) - ${1}\right] = (${1} + \sqrt{${2}}) \times ${0} = ${0}`}.`,
     t`Divide by ${math`x - ${1} - \sqrt{${2}}`}: the quotient is ${math`${2}x^{${2}} - ${4}x + ${1}`}, as multiplying back out confirms.`,
     t`${math`${2}x^{${2}} - ${4}x + ${1} = ${0}`} gives ${math`x = \frac{${4} \pm \sqrt{${16} - ${8}}}{${4}} = ${1} \pm \frac{\sqrt{${2}}}{${2}}`}. The smaller is ${math`${1} - \frac{\sqrt{${2}}}{${2}}`}.`,
+    t`Conjugate surd roots come in pairs only when the coefficients are rational.`,
   ],
   reference: '1 - sqrt(2)/2',
   verify: () => {
@@ -207,6 +215,12 @@ const a16iii = auto({
     return bad === undefined ? null : `${bad} is not a root`;
   },
   misconceptions: [{ response: '1 - sqrt(2)', why: t`${math`${1} - \sqrt{${2}}`} is the conjugate of the given root, but the cubic has surd coefficients, so conjugates need not be roots. Divide out the factor and solve the quadratic.` }],
+  nudge: t`Not quite. The coefficients involve ${math`\sqrt{${2}}`}, so the conjugate need not be a root; divide by the known factor instead.`,
+  hints: [
+    t`What common factor do all the terms share at ${math`x = ${1} + \sqrt{${2}}`}?`,
+    t`Which quadratic is left after dividing the cubic by ${math`x - ${1} - \sqrt{${2}}`}?`,
+    t`What are the roots of that quadratic, and which is smaller?`,
+  ],
 });
 
 const a16iv = auto({
@@ -219,6 +233,7 @@ const a16iv = auto({
     t`${math`x = ${1}`} is a root, and ${math`${2}x^{${3}} - ${5}x^{${2}} - ${6}x + ${9} = (x - ${1})(${2}x^{${2}} - ${3}x - ${9}) = (x - ${1})(x - ${3})(${2}x + ${3})`}: roots ${1}, ${3}, ${math`-${q(3, 2)}`}.`,
     t`Put ${math`x = ky`}: ${math`${2}k^{${3}}y^{${3}} - ${5}k^{${2}}y^{${2}} - ${6}ky + ${9} = ${0}`}. Dividing by ${9}, ${math`k = ${3}`} gives ${math`${6}y^{${3}} - ${5}y^{${2}} - ${2}y + ${1} = ${0}`}.`,
     t`So ${math`y = \frac{x}{${3}}`}: ${math`y = ${q(1, 3)}, ${1}, -${q(1, 2)}`}.`,
+    t`A substitution ${math`x = ky`} rescales every root by the same factor.`,
   ],
   reference: '1/3, 1, -1/2',
   verify: () => {
@@ -227,6 +242,12 @@ const a16iv = auto({
     return bad === undefined ? same('the x roots', setKey([q(1), q(3), q(-3, 2)].filter((x) => evalPoly([2, -5, -6, 9], x).num === 0n)), setKey([q(1), q(3), q(-3, 2)])) : `${str(bad)} is not a root`;
   },
   misconceptions: [{ response: '3, 9, -9/2', why: t`${math`x = ${3}y`}, so ${math`y = \frac{x}{${3}}`}: divide the roots by ${3}, do not multiply.` }],
+  nudge: t`Not quite. Solve the cubic in ${math`x`} first; the substitution only rescales its roots.`,
+  hints: [
+    t`Which small integer is a root of ${math`${2}x^{${3}} - ${5}x^{${2}} - ${6}x + ${9}`}?`,
+    t`After putting ${math`x = ky`}, which ${math`k`} makes the coefficients proportional to those of the cubic in ${math`y`}?`,
+    t`With ${math`x = ky`}, how are the roots in ${math`y`} obtained from the roots in ${math`x`}?`,
+  ],
 });
 
 const a18i = auto({
@@ -238,6 +259,7 @@ const a18i = auto({
   solution: [
     t`At ${math`x = ${1}`}: ${math`a + ${2} - ${2} - a = ${0}`}, so ${math`x - ${1}`} is a factor.`,
     t`${math`(a + ${2})x^{${2}} - ${2}x - a = (x - ${1})((a + ${2})x + a)`}, as expanding confirms. The other root is ${math`x = -\frac{a}{a + ${2}}`}.`,
+    t`With one root known, use the product or the sum of the roots.`,
   ],
   reference: '-a/(a + 2)',
   verify: () => {
@@ -246,6 +268,12 @@ const a18i = auto({
   },
   misconceptions: [{ response: 'a/(a + 2)', why: t`The product of the roots is ${math`\frac{-a}{a + ${2}}`}; with one root ${1}, the other is ${math`-\frac{a}{a + ${2}}`}.` }],
   official: { source: cite('step-f18-hints', 'Q2(i)'), answer: '-a/(a + 2)', agrees: true },
+  nudge: t`Not quite. With one root known, the product of the roots gives the other at once.`,
+  hints: [
+    t`Why is ${math`x - ${1}`} a factor?`,
+    t`What is the product of the roots of ${math`(a + ${2})x^{${2}} - ${2}x - a = ${0}`}?`,
+    t`With one root equal to ${1}, what must the other be?`,
+  ],
 });
 
 const nstA6 = auto({
@@ -257,10 +285,17 @@ const nstA6 = auto({
   solution: [
     t`${math`x^{${3}} + ${5}x^{${2}} - ${2}x - ${24} = (x + ${4})(x^{${2}} + x - ${6})`}: compare the ${math`x^{${2}}`} terms, ${math`${4} + ${1} = ${5}`}, and the constants, ${math`${4} \times (-${6}) = -${24}`}.`,
     t`${math`x^{${2}} + x - ${6} = (x + ${3})(x - ${2})`}, so the roots are ${math`-${4}`}, ${math`-${3}`}, and ${2}.`,
+    t`The factor ${math`x + ${4}`} gives the root ${math`-${4}`}: the sign flips.`,
   ],
   reference: '-4, -3, 2',
   verify: () => same('integer roots', integerRoots([1, 5, -2, -24]).join(','), '-4,-3,2'),
   misconceptions: [{ response: '4, 3, -2', why: t`The factor ${math`x + ${4}`} is ${0} at ${math`x = -${4}`}: the root has the opposite sign.` }],
+  nudge: t`Not quite. After dividing, factorise the quadratic; each factor ${math`x - r`} gives the root ${math`r`}, sign included.`,
+  hints: [
+    t`Which quadratic results from dividing by ${math`x + ${4}`}?`,
+    t`How does that quadratic factorise?`,
+    t`Which value of ${math`x`} makes each factor zero?`,
+  ],
 });
 
 const step2014 = supervision({
@@ -270,6 +305,11 @@ const step2014 = supervision({
   prompt: t`The numbers ${math`a`} and ${math`b`}, where ${math`b > a \ge ${0}`}, are such that ${math`\int_{a}^{b} x^{${2}}\,dx = \left(\int_{a}^{b} x\,dx\right)^{${2}}`}. (i) In the case ${math`a = ${0}`} and ${math`b > ${0}`}, find the value of ${math`b`}. (ii) In the case ${math`a = ${1}`}, show that ${math`b`} satisfies ${math`${3}b^{${3}} - b^{${2}} - ${7}b - ${7} = ${0}`}. Show further, with the help of a sketch, that there is only one real value of ${math`b`} that satisfies this equation and that it lies between ${2} and ${3}. (iii) Show that ${math`${3}p^{${2}} + q^{${2}} = ${3}p^{${2}}q`}, where ${math`p = b + a`} and ${math`q = b - a`}, and express ${math`p^{${2}}`} in terms of ${math`q`}. Deduce that ${math`${1} < b - a \le ${q(4, 3)}`}.`,
   writeUp: 'proof',
   official: cite('step-f18-hints', 'Q3'),
+  hints: [
+    t`For (i), what are the two integrals when ${math`a = ${0}`}, and which ${math`b > ${0}`} makes them agree?`,
+    t`For (ii), after evaluating both integrals with ${math`a = ${1}`}, what do clearing fractions and dividing by ${math`b - ${1}`} give?`,
+    t`For (iii), how are ${math`b^{${3}} - a^{${3}}`} and ${math`(b^{${2}} - a^{${2}})^{${2}}`} written using ${math`p`} and ${math`q`}, and why does ${math`p \ge q`} bound ${math`q`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

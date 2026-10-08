@@ -198,10 +198,17 @@ const q8ratio = auto({
   source: cite(SH4, 'Q8'),
   title: t`The share of the first variable in the sum`,
   prompt: t`${mX} and ${mY} are independent, each ${math`\mathrm{Exp}(\lambda)`}. What is the distribution of ${math`X/(X + Y)`}?`,
+  nudge: t`Not quite. Find the joint density of the sum and the share, and see how it depends on the share.`,
+  hints: [
+    t`With ${math`u = x + y`} and ${math`v = x/(x + y)`}, what are ${math`x`} and ${math`y`} in terms of ${math`u`} and ${math`v`}?`,
+    t`What is the Jacobian, and so the joint density of ${math`(U, V)`}?`,
+    t`Does that density depend on ${math`v`}, and what range does ${math`v`} take?`,
+  ],
   answer: { kind: 'choice', options: DIST_OPTIONS, correct: 'uniform' },
   solution: [
     t`With ${math`u = x + y`} and ${math`v = x/(x + y)`}, the joint density of ${math`(U, V)`} is ${math`\lambda^{${2}}u\,e^{-\lambda u}`} for ${math`u > ${0}`}, ${math`${0} < v < ${1}`}, with ${math`|J| = u`}.`,
     t`It does not depend on ${math`v`}, so ${mV} is uniform on ${math`(${0}, ${1})`}, and independent of ${mU}, for every ${math`\lambda`}.`,
+    t`A joint density with no dependence on a variable makes that variable uniform on its range.`,
   ],
   reference: 'uniform',
   verify: () => {
@@ -226,10 +233,17 @@ const q7dist = auto({
   source: cite(SH4, 'Q7'),
   title: t`Rotating two standard normals`,
   prompt: t`${mX} and ${mY} are independent ${math`N(${0}, ${1})`}, and for a fixed ${math`\theta`}, ${math`U = X\cos\theta + Y\sin\theta`}. What is the distribution of ${mU}?`,
+  nudge: t`Not quite. Independent variances add; standard deviations do not.`,
+  hints: [
+    t`What are the means and variances of ${math`X\cos\theta`} and ${math`Y\sin\theta`}?`,
+    t`For independent normals, what is the distribution of their sum?`,
+    t`What is ${math`\cos^{${2}}\theta + \sin^{${2}}\theta`}?`,
+  ],
   answer: { kind: 'choice', options: NORMAL_OPTIONS, correct: 'n01' },
   solution: [
     t`${math`(U, V) = (X\cos\theta + Y\sin\theta,\ -X\sin\theta + Y\cos\theta)`} is a rotation, with Jacobian ${1}, and it keeps ${math`x^{${2}} + y^{${2}} = u^{${2}} + v^{${2}}`}.`,
     t`So ${math`f_{U,V}(u, v) = \frac{${1}}{${2}\pi}e^{-(u^{${2}} + v^{${2}})/${2}}`}: ${mU} and ${mV} are independent ${math`N(${0}, ${1})`}. The variance checks: ${math`\cos^{${2}}\theta + \sin^{${2}}\theta = ${1}`}.`,
+    t`A rotation of independent standard normals is again independent standard normals.`,
   ],
   reference: 'n01',
   verify: () => {
@@ -252,13 +266,23 @@ const q7proof = supervision({
   source: cite(SH4, 'Q7'),
   title: t`Rotations keep independent standard normals`,
   prompt: t`${mX} and ${mY} are independent ${math`N(${0}, ${1})`}. Show that, for any fixed ${math`\theta`}, ${math`U = X\cos\theta + Y\sin\theta`} and ${math`V = -X\sin\theta + Y\cos\theta`} are independent, and find their distributions.`,
+  hints: [
+    t`What is the inverse of the map ${math`(x, y) \mapsto (u, v)`}, and what is its Jacobian?`,
+    t`How does ${math`u^{${2}} + v^{${2}}`} compare with ${math`x^{${2}} + y^{${2}}`}?`,
+    t`Does the joint density of ${math`(U, V)`} factorise, and into which densities?`,
+  ],
   writeUp: 'proof',
 });
 const q8proof = supervision({
   id: 'ia4-q8',
   source: cite(SH4, 'Q8'),
   title: t`The sum and the share are independent`,
-  prompt: t`${mX} and ${mY} are independent ${math`\mathrm{Exp}(\lambda)`}. Show that ${math`X + Y`} and ${math`X/(X + Y)`} are independent, and find their distributions. Check that your map is one to one, and say onto which region.`,
+  prompt: t`${mX} and ${mY} are independent ${math`\mathrm{Exp}(\lambda)`}. Show that ${math`X + Y`} and ${math`X/(X + Y)`} are independent, and find their distributions. Check that the map is one to one, and state onto which region.`,
+  hints: [
+    t`What is the inverse of ${math`(x, y) \mapsto (x + y,\ x/(x + y))`}, and onto which region does it map ${math`(${0}, \infty)^{${2}}`}?`,
+    t`What is the absolute value of the Jacobian?`,
+    t`Does the joint density of the sum and the share factorise, and what are the two factors?`,
+  ],
   writeUp: 'proof',
 });
 const q9a = supervision({
@@ -266,6 +290,11 @@ const q9a = supervision({
   source: cite(SH4, 'Q9(a)'),
   title: t`The distance of a shot from the centre`,
   prompt: t`A shot is fired at a circular target; the coordinates of the hole, from the centre, are independent ${math`N(${0}, ${1})`}. Show that the distance of the hole from the centre has density ${math`r e^{-r^{${2}}/${2}}`} on ${math`[${0}, \infty)`}.`,
+  hints: [
+    t`What is the joint density of the two coordinates, written with ${math`r^{${2}} = x^{${2}} + y^{${2}}`}?`,
+    t`In polar coordinates, what Jacobian factor appears, and what is the joint density of ${math`(R, \Theta)`}?`,
+    t`Integrating out ${math`\Theta`} over ${math`[${0}, ${2}\pi)`}, what is the density of ${math`R`}?`,
+  ],
   writeUp: 'proof',
 });
 

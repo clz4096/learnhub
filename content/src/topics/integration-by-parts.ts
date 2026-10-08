@@ -168,11 +168,18 @@ const xExpQ = auto({
   solution: [
     t`${math`u = x`}, ${math`v' = e^{x}`}: ${math`u' = ${1}`}, ${math`v = e^{x}`}.`,
     t`${math`\int xe^{x}\,dx = xe^{x} - \int e^{x}\,dx = xe^{x} - e^{x} + c = (x - ${1})e^{x} + c`}.`,
+    t`Differentiate the factor that simplifies, and check by differentiating back.`,
   ],
   reference: 'x e^x - e^x',
   verify: () => agreesAt('d/dx of the answer', 'x e^x', (x) => (fn('(x - 1) e^x')(x + 1e-6) - fn('(x - 1) e^x')(x - 1e-6)) / 2e-6, [-1, 0.5, 2], 1e-5),
   misconceptions: [{ response: '(x + 1) e^x', why: t`That is the derivative of ${math`xe^{x}`}. Integrating subtracts: ${math`xe^{x} - e^{x}`}.` }],
   official: { source: cite(F24H, 'Assignment 24 hints, Q1(ii)(a)'), answer: 'x e^x - e^x', agrees: true },
+  nudge: t`Not quite. Differentiating the answer should give back ${math`xe^{x}`}; that check shows which sign slipped.`,
+  hints: [
+    t`Which factor of ${math`xe^{x}`} becomes simpler when differentiated?`,
+    t`With ${math`u = x`} and ${math`v' = e^{x}`}, what are ${math`u'`} and ${math`v`}?`,
+    t`What does ${math`\int uv'\,dx = uv - \int u'v\,dx`} then give?`,
+  ],
 });
 
 const lnQ = auto({
@@ -184,11 +191,18 @@ const lnQ = auto({
   solution: [
     t`${math`u = \ln x`}, ${math`v' = ${1}`}: ${math`u' = \frac{${1}}{x}`}, ${math`v = x`}.`,
     t`${math`\int \ln x\,dx = x\ln x - \int x \cdot \frac{${1}}{x}\,dx = x\ln x - x + c`}.`,
+    t`A lone ${math`\ln x`} is integrated by parts against ${1}.`,
   ],
   reference: 'x ln(x) - x',
   verify: () => close('from 1 to 3', simpson(Math.log, 1, 3), value('3 ln(3) - 3') - value('1 ln(1) - 1')),
   misconceptions: [{ response: '1/x', why: t`That is the derivative of ${math`\ln x`}, not its integral.` }],
   official: { source: cite(F24H, 'Assignment 24 hints, Q1(ii)(c)'), answer: 'x ln(x) - x', agrees: true },
+  nudge: t`Not quite. Differentiating the answer should return ${math`\ln x`}; that check catches most slips.`,
+  hints: [
+    t`In ${math`\ln x = ${1} \times \ln x`}, which factor should be differentiated, and which integrated?`,
+    t`With ${math`u = \ln x`} and ${math`v' = ${1}`}, what are ${math`u'`} and ${math`v`}?`,
+    t`What is ${math`\int x \cdot \frac{${1}}{x}\,dx`}?`,
+  ],
 });
 
 const In = (n: number): number => simpson((x) => (x < 1e-12 ? (Math.PI / 2) * (2 * n + 1) : ((Math.PI / 2 - x) * Math.sin((n + 0.5) * x)) / Math.sin(x / 2)), 0, Math.PI, 20000);
@@ -201,11 +215,18 @@ const step1998 = auto({
   solution: [
     t`${math`I_{n} = (I_{n} - I_{n - ${1}}) + \cdots + (I_{${1}} - I_{${0}}) + I_{${0}}`}. The differences are ${4} for ${math`n = ${1}`}, ${0} for ${math`n = ${2}`}, and ${math`\frac{${4}}{${9}}`} for ${math`n = ${3}`}.`,
     t`So ${math`I_{${3}} = ${4} + ${0} + \frac{${4}}{${9}} = ${q(40, 9)}`}.`,
+    t`A rule for differences gives the value by telescoping back to the start.`,
   ],
   reference: '40/9',
   verify: () => firstError(close('I_3 numerically', In(3), 40 / 9, 1e-6), close('I_1 numerically', In(1), 4, 1e-6), close('I_0', In(0), 0, 1e-6)),
   misconceptions: [{ response: '4/9', why: t`That is only ${math`I_{${3}} - I_{${2}}`}. Add up all the differences, back to ${math`I_{${0}} = ${0}`}.` }],
   official: { source: cite(F24H, 'Assignment 24 hints, Q3'), answer: '40/9', agrees: true, note: 'The hints give I_n as a sum, 2 times the sum of (1 - (-1)^i)/i^2 for i from 1 to n; at n = 3 that is 40/9.' },
+  nudge: t`Not quite. Writing ${math`I_{${3}}`} as a sum of differences back to ${math`I_{${0}}`} is safer than spotting a pattern.`,
+  hints: [
+    t`How can ${math`I_{${3}}`} be written using ${math`I_{${3}} - I_{${2}}`}, ${math`I_{${2}} - I_{${1}}`}, ${math`I_{${1}} - I_{${0}}`}, and ${math`I_{${0}}`}?`,
+    t`What is ${math`${1} - (-${1})^{n}`} when ${math`n`} is even, and when ${math`n`} is odd?`,
+    t`What is each difference for ${math`n = ${1}, ${2}, ${3}`}?`,
+  ],
 });
 
 const step1998full = supervision({
@@ -215,6 +236,11 @@ const step1998full = supervision({
   prompt: t`The integral ${math`I_{n}`} is defined by ${math`I_{n} = \int_{${0}}^{\pi} \left(\frac{${1}}{${2}}\pi - x\right)\sin\left(nx + \frac{${1}}{${2}}x\right)\operatorname{cosec}\left(\frac{${1}}{${2}}x\right)dx`}, where ${math`n`} is a positive integer. Evaluate ${math`I_{n} - I_{n - ${1}}`}, and hence evaluate ${math`I_{n}`}, leaving your answer in the form of a sum.`,
   writeUp: 'proof',
   official: cite(F24H, 'Assignment 24 hints, Q3'),
+  hints: [
+    t`What does ${math`\sin A - \sin B = ${2}\cos\frac{A + B}{${2}}\sin\frac{A - B}{${2}}`} give for ${math`\sin\left(nx + \frac{${1}}{${2}}x\right) - \sin\left((n - ${1})x + \frac{${1}}{${2}}x\right)`}?`,
+    t`What happens to the factor ${math`\operatorname{cosec}\left(\frac{${1}}{${2}}x\right)`} in ${math`I_{n} - I_{n - ${1}}`}, and what integral is left?`,
+    t`How is that integral done by parts, what is ${math`I_{${0}}`}, and how do the differences then add up to ${math`I_{n}`}?`,
+  ],
 });
 
 const nstI2 = auto({
@@ -226,6 +252,7 @@ const nstI2 = auto({
   solution: [
     t`${math`u = x`}, ${math`v' = e^{-x}`}: ${math`v = -e^{-x}`}. So ${math`\int_{${0}}^{L} xe^{-x}\,dx = \left[-xe^{-x}\right]_{${0}}^{L} + \int_{${0}}^{L} e^{-x}\,dx = -Le^{-L} + ${1} - e^{-L}`}.`,
     t`That is ${math`${1} - (${1} + L)e^{-L}`}. As ${math`L \to \infty`} it tends to ${1}.`,
+    t`With limits, evaluate the ${math`uv`} bracket at both ends before the remaining integral.`,
   ],
   reference: '1 - e^(-L) - L e^(-L)',
   verify: () => {
@@ -237,6 +264,12 @@ const nstI2 = auto({
   },
   misconceptions: [{ response: '1 - (1 - L) e^(-L)', why: t`${math`\left[-xe^{-x}\right]_{${0}}^{L} = -Le^{-L}`}: the sign of ${math`L`} follows from ${math`v = -e^{-x}`}.` }],
   official: { source: cite(NST, 'Answers to Section 1, I2(i)'), answer: '1 - (1 + L) e^(-L)', agrees: true },
+  nudge: t`Not quite. Differentiating the result with respect to ${math`L`} should give ${math`Le^{-L}`}; that check finds the slip.`,
+  hints: [
+    t`Which factor should be ${math`u`}, and what is ${math`v`} when ${math`v' = e^{-x}`}?`,
+    t`What is ${math`\left[-xe^{-x}\right]`} evaluated from ${0} to ${math`L`}?`,
+    t`What is ${math`\int_{${0}}^{L} e^{-x}\,dx`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

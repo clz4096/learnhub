@@ -158,9 +158,16 @@ const bop51 = auto({
   title: t`Which are congruences?`,
   prompt: t`Which of these are true? ${join(EX51.map(([a, b, n]) => [cong(a, b, n)]), '; ')}. Choose all that are.`,
   answer: { kind: 'choice', options: EX51.map(([a, b, n], i) => ({ id: `e${i}`, label: [cong(a, b, n)] })), correct: EX51.flatMap(([a, b, n], i) => (isCong(a, b, n) ? [`e${i}`] : [])) },
+  hints: [
+    t`For each one, what is the difference ${math`a - b`}?`,
+    t`Does the modulus divide that difference, counting negative multiples?`,
+    t`As a check, do the two numbers leave the same remainder on division by the modulus?`,
+  ],
+  nudge: t`Not quite. Test each one by whether the modulus divides the difference; negative differences count.`,
   solution: [
     t`Check whether the modulus divides the difference: ${math`${9} - ${1} = ${8}`}, ${math`${6} - ${10} = -${4}`}, ${math`${14} - ${8} = ${6}`}, ${math`${20} - ${4} = ${16}`}, ${math`${17} - (-${4}) = ${21}`}.`,
     t`Only ${math`${14} \equiv ${8} \pmod{${4}}`} fails: ${4} does not divide ${6}. In remainders: ${14} leaves ${2} and ${8} leaves ${0}.`,
+    t`${math`a \equiv b \pmod{n}`} exactly when ${math`n`} divides ${math`a - b`}.`,
   ],
   reference: EX51.flatMap(([a, b, n], i) => (isCong(a, b, n) ? [`e${i}`] : [])),
   verify: () => same('remainders compared', EX51.map(([a, b, n]) => mod(a, n) === mod(b, n)).join(), 'true,true,false,true,true'),
@@ -174,9 +181,16 @@ const sheet324 = auto({
   title: t`Reducing a congruence`,
   prompt: t`The official solution to exercise ${3}.${2}.${10}(b) reduces ${math`${12} y \equiv ${30} \pmod{${54}}`} by exercise ${3}.${2}.${4}: dividing by ${6}, which divides ${12}, ${30}, and ${54}, it becomes ${math`${2} y \equiv ${5} \pmod{d}`}. What is ${math`d`}?`,
   answer: { kind: 'exact', expected: '9' },
+  hints: [
+    t`What does ${math`${12} y \equiv ${30} \pmod{${54}}`} say as an equation with an integer ${mk}?`,
+    t`What happens to every term of that equation when it is divided by ${6}?`,
+    t`Which number now plays the part of the modulus?`,
+  ],
+  nudge: t`Not quite. Write the congruence as an equation with an integer ${mk}, then divide every term.`,
   solution: [
     t`${math`${12} y - ${30} = ${54} k`} for an integer ${mk} exactly when ${math`${2} y - ${5} = ${9} k`}: divide the equation by ${6}.`,
     t`So ${math`d = ${54} / ${6} = ${9}`}: the modulus is divided too.`,
+    t`Dividing a congruence through by a common factor divides the modulus too.`,
   ],
   reference: '9',
   verify: () => same('the solutions y from 0 to 53 of both congruences', Array.from({ length: 54 }, (_, y) => y).filter((y) => (12 * y - 30) % 54 === 0).join(), Array.from({ length: 54 }, (_, y) => y).filter((y) => (2 * y - 5) % 9 === 0).join()),
@@ -189,6 +203,11 @@ const sheet211 = supervision({
   source: cite('cst-dm-sw1', 'Exercises 2, 2.1.1'),
   title: t`Congruence is an equivalence relation`,
   prompt: t`Let ${math`i, j, k`} be integers and ${mm} a positive integer. Show: (a) ${math`i \equiv i \pmod{m}`}; (b) ${math`i \equiv j \pmod{m} \Rightarrow j \equiv i \pmod{m}`}; (c) ${math`i \equiv j \pmod{m} \land j \equiv k \pmod{m} \Rightarrow i \equiv k \pmod{m}`}. Say which facts about divisibility each part uses.`,
+  hints: [
+    t`What does ${math`i \equiv j \pmod{m}`} mean in terms of divisibility?`,
+    t`Which multiple of ${mm} is ${math`i - i`}, and how is ${math`j - i`} related to ${math`i - j`}?`,
+    t`How can ${math`i - k`} be written using ${math`i - j`} and ${math`j - k`}?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-2', '2.1.1'),
 });
@@ -196,7 +215,12 @@ const sheet324proof = supervision({
   id: 'sheet-3-2-4',
   source: cite('cst-dm-sw1', 'Exercises 3, 3.2.4'),
   title: t`Cancelling in a congruence`,
-  prompt: t`Prove that for all positive integers ${math`m, n`} and integers ${math`i, j`}: ${math`n i \equiv n j \pmod{m} \iff i \equiv j \pmod{m / \gcd(m, n)}`}. You may use Euclid's theorem: if ${math`k \mid ab`} and ${math`\gcd(k, a) = ${1}`} then ${math`k \mid b`}.`,
+  prompt: t`Prove that for all positive integers ${math`m, n`} and integers ${math`i, j`}: ${math`n i \equiv n j \pmod{m} \iff i \equiv j \pmod{m / \gcd(m, n)}`}. Euclid's theorem may be used: if ${math`k \mid ab`} and ${math`\gcd(k, a) = ${1}`} then ${math`k \mid b`}.`,
+  hints: [
+    t`With ${math`g = \gcd(m, n)`}, ${math`m = gm'`}, and ${math`n = gn'`}, what is ${math`\gcd(m', n')`}?`,
+    t`If ${math`m \mid n(i - j)`}, what does dividing by ${math`g`} give, and which theorem then applies?`,
+    t`For the converse, if ${math`m' \mid i - j`}, why does ${math`m \mid n(i - j)`}?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-3', '3.2.4'),
 });
@@ -204,7 +228,12 @@ const bop521 = supervision({
   id: 'bop-5-21',
   source: cite('bop', 'Chapter 5, exercise 21'),
   title: t`Cubes of congruent numbers`,
-  prompt: t`Let ${math`a, b \in \mathbb{Z}`} and ${math`n \in \mathbb{N}`}. Prove that if ${math`a \equiv b \pmod{n}`}, then ${math`a^{${3}} \equiv b^{${3}} \pmod{n}`}. Book of Proof proves the version for squares by multiplying ${math`a - b = nc`} by ${math`a + b`}; what do you multiply by here?`,
+  prompt: t`Let ${math`a, b \in \mathbb{Z}`} and ${math`n \in \mathbb{N}`}. Prove that if ${math`a \equiv b \pmod{n}`}, then ${math`a^{${3}} \equiv b^{${3}} \pmod{n}`}. Book of Proof proves the version for squares by multiplying ${math`a - b = nc`} by ${math`a + b`}; which factor plays that part here?`,
+  hints: [
+    t`What does ${math`a \equiv b \pmod{n}`} give as an equation?`,
+    t`Which factor turns ${math`a - b`} into ${math`a^{${3}} - b^{${3}}`}?`,
+    t`Why is ${math`n`} times an integer times that factor a multiple of ${math`n`}?`,
+  ],
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 5, exercise 21'),
 });
@@ -213,6 +242,11 @@ const bop532 = supervision({
   source: cite('bop', 'Chapter 5, exercise 32'),
   title: t`Congruent numbers have the same remainder`,
   prompt: t`Prove that if ${math`a \equiv b \pmod{n}`}, then ${math`a`} and ${math`b`} have the same remainder when divided by ${math`n`}. (Book of Proof proves the converse in Section ${5}.${2}; the CST notes' version is Proposition ${58}.)`,
+  hints: [
+    t`By the division theorem, how are ${math`a`} and ${math`b`} written with remainders ${math`r`} and ${math`s`} between ${0} and ${math`n - ${1}`}?`,
+    t`What is ${math`a - b`} in those terms, and what does ${math`n \mid a - b`} say about ${math`r - s`}?`,
+    t`Which multiples of ${math`n`} lie strictly between ${math`-n`} and ${math`n`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -224,6 +258,11 @@ const step04Classes = supervision({
   source: cite('stepdb-04-s1', 'Q5'),
   title: t`Five progressions, and two impossible equations`,
   prompt: t`The positive integers can be split into five distinct arithmetic progressions, as shown: ${math`A`}: ${progression(1)}; ${math`B`}: ${progression(2)}; ${math`C`}: ${progression(3)}; ${math`D`}: ${progression(4)}; ${math`E`}: ${progression(5)}. Write down an expression for the value of the general term in each of the five progressions. Hence prove that the sum of any term in ${math`B`} and any term in ${math`C`} is a term in ${math`E`}. Prove also that the square of every term in ${math`B`} is a term in ${math`D`}. State and prove a similar claim about the square of every term in ${math`C`}. (i) Prove that there are no positive integers ${math`x`} and ${math`y`} such that ${math`x^{${2}} + ${5}y = ${243723}`}. (ii) Prove also that there are no positive integers ${math`x`} and ${math`y`} such that ${math`x^{${4}} + ${2}y^{${4}} = ${26081974}`}.`,
+  hints: [
+    t`What is the general term of each progression, with an integer parameter?`,
+    t`Adding a term of ${math`B`} to a term of ${math`C`}, or squaring a term of ${math`B`}, which progression's form appears?`,
+    t`For (i) and (ii), which progressions can ${math`x^{${2}}`} and ${math`x^{${4}}`} lie in, and what do the right-hand sides leave on division by ${5}?`,
+  ],
   writeUp: 'proof',
   official: cite('stepdb-04-ha', 'STEP I, Q5 (page 6 of the STEP I hints)'),
 });

@@ -328,7 +328,7 @@ const notes173 = auto({
   official: { source: cite(NOTES, 'printed page 173, Remark'), answer: ['0', '1'], agrees: true },
 });
 
-const extend = (o: { id: string; what: Rich; ans: 'Z' | 'Q'; steps: Rich[]; check: () => boolean }) => auto({
+const extend = (o: { id: string; what: Rich; ans: 'Z' | 'Q'; steps: Rich[]; check: () => boolean; hints?: readonly Rich[]; nudge?: Rich }) => auto({
   id: o.id,
   source: cite(NOTES, 'printed page 174', true),
   title: o.ans === 'Z' ? t`Admitting additive inverses` : t`Admitting multiplicative inverses`,
@@ -338,6 +338,8 @@ const extend = (o: { id: string; what: Rich; ans: 'Z' | 'Q'; steps: Rich[]; chec
   reference: o.ans,
   verify: () => (o.check() ? null : `${o.id}: the search disagrees`),
   misconceptions: [{ response: 'N', why: t`Try a case: ${o.ans === 'Z' ? t`${math`x + ${3} = ${1}`} has the solution ${math`${-2}`}, which is not natural` : t`${math`${2}x = ${1}`} has no solution in ${N}`}.` }],
+  ...(o.hints === undefined ? {} : { hints: o.hints }),
+  ...(o.nudge === undefined ? {} : { nudge: o.nudge }),
 });
 
 const notes174z = extend({
@@ -346,6 +348,7 @@ const notes174z = extend({
   steps: [
     t`The solution is ${math`x = b - a`}. In ${N} that fails when ${math`a > b`}: ${math`x + ${3} = ${1}`} needs ${math`x = ${-2}`}.`,
     t`Admitting every additive inverse gives the integers ${Z}, where ${math`b - a`} always exists. The notes call ${Z} a commutative ring.`,
+    t`Each extension of ${N} adds just the inverses that some equation needs.`,
   ],
   check: () => {
     const ns = upTo(10).map((x) => x - 1);
@@ -353,6 +356,12 @@ const notes174z = extend({
     const zs = upTo(21).map((x) => x - 11);
     return failsInN && ns.every((a) => ns.every((b) => zs.some((x) => x + a === b)));
   },
+  nudge: t`Not quite. Try an equation ${math`x + a = b`} with ${math`a`} larger than ${math`b`}, and ask where its solution lives.`,
+  hints: [
+    t`What is the solution of ${math`x + a = b`}?`,
+    t`Is that solution natural when ${math`a > b`}?`,
+    t`Which of the three sets first contains ${math`b - a`} for all natural ${math`a`} and ${math`b`}?`,
+  ],
 });
 const notes174q = extend({
   id: 'notes-174-q', ans: 'Q',
@@ -360,12 +369,19 @@ const notes174q = extend({
   steps: [
     t`The solution is ${math`x = \frac{b}{a}`}. In ${Z} that fails unless ${math`a`} divides ${math`b`}: ${math`${2}x = ${1}`} has no integer solution.`,
     t`Admitting a multiplicative inverse for every nonzero number gives the rationals ${Q}. The notes call ${Q} a field.`,
+    t`Solving ${math`a \cdot x = b`} in general needs multiplicative inverses, and so the rationals.`,
   ],
   check: () => {
     const zs = upTo(13).map((x) => x - 7);
     const failsInZ = zs.some((a) => a !== 0 && zs.some((b) => !zs.some((x) => a * x === b)));
     return failsInZ && zs.every((a) => a === 0 || zs.every((b) => { const x = q(b, a); return x.num * BigInt(a) === BigInt(b) * x.den; }));
   },
+  nudge: t`Not quite. Try an equation ${math`a \cdot x = b`} in which ${math`a`} does not divide ${math`b`}.`,
+  hints: [
+    t`What is the solution of ${math`a \cdot x = b`} when ${math`a \ne ${0}`}?`,
+    t`Is that solution an integer when ${math`a`} does not divide ${math`b`}?`,
+    t`Which of the three sets first contains ${math`\frac{b}{a}`} for all integers ${math`b`} and ${math`a \ne ${0}`}?`,
+  ],
 });
 
 const notes167 = auto({
@@ -385,6 +401,7 @@ const notes167 = auto({
   solution: [
     t`If ${math`k \ne ${0}`}, ${math`k \cdot m = k \cdot n`} forces ${math`m = n`}, so the example must have ${math`k = ${0}`}.`,
     t`Then ${math`${0} \cdot m = ${0} = ${0} \cdot n`} for every ${math`m`} and ${math`n`}: for example ${math`k = ${0}`}, ${math`m = ${1}`}, ${math`n = ${2}`}.`,
+    t`To show a hypothesis is needed, drop it and watch the conclusion fail.`,
   ],
   reference: 'k = 0, m = 1, n = 2',
   verify: () => {
@@ -394,6 +411,12 @@ const notes167 = auto({
     return same('every counterexample has k = 0', [...new Set(found)].join(','), '0');
   },
   misconceptions: [{ response: 'k = 2, m = 1, n = 2', why: t`${math`${2} \cdot ${1} = ${2}`} but ${math`${2} \cdot ${2} = ${4}`}: with ${math`k \ne ${0}`} cancellation works. Use ${math`k = ${0}`}.` }],
+  nudge: t`Not quite. Ask which value of ${math`k`} the statement excludes, and why.`,
+  hints: [
+    t`If ${math`k \ne ${0}`}, does ${math`k \cdot m = k \cdot n`} force ${math`m = n`}?`,
+    t`So which value must ${math`k`} take in a counterexample?`,
+    t`With that ${math`k`}, what is ${math`k \cdot m`} for every ${math`m`}?`,
+  ],
 });
 
 const sw325 = supervision({
@@ -403,6 +426,11 @@ const sw325 = supervision({
   prompt: t`Prove that for all positive integers ${math`m, n, p, q`} with ${math`\gcd(m, n) = \gcd(p, q) = ${1}`}, if ${math`q \cdot m = p \cdot n`} then ${math`m = p`} and ${math`n = q`}. That is: a positive rational has only one way of being written in lowest terms. (This uses the gcd, taught later; come back to it then.)`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-3', '3.2.5'),
+  hints: [
+    t`From ${math`q \cdot m = p \cdot n`}, why does ${math`m`} divide ${math`p \cdot n`}, and what does ${math`\gcd(m, n) = ${1}`} then give?`,
+    t`By the same argument with the roles swapped, why does ${math`p`} divide ${math`m`}?`,
+    t`With ${math`m`} dividing ${math`p`} and ${math`p`} dividing ${math`m`}, both positive, what follows, and then what is ${math`n`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -184,7 +184,7 @@ const sw421b = auto({
   id: 'sw-4-2-1-b',
   source: cite(SW, 'Exercises 4, 4.2.1(b)', true),
   title: t`${math`${2}^{${K}} - ${1}`} is not prime`,
-  prompt: t`Part (b): if ${math`k`} is a positive integer that is not prime, then ${math`${2}^{k} - ${1}`} is not prime. For ${math`k = ${K}`}, show it: give a divisor ${math`d`} of ${math`${2}^{${K}} - ${1} = ${2 ** K - 1}`} with ${math`${1} < d < ${2 ** K - 1}`}.`,
+  prompt: t`If ${math`k`} is a positive integer that is not prime, then ${math`${2}^{k} - ${1}`} is not prime. For ${math`k = ${K}`}, give a divisor ${math`d`} of ${math`${2}^{${K}} - ${1} = ${2 ** K - 1}`} with ${math`${1} < d < ${2 ** K - 1}`}.`,
   answer: {
     kind: 'witness', count: 1, names: ['d'], example: `d = ${2 ** 3 - 1}`,
     check: ([v]) => {
@@ -195,8 +195,15 @@ const sw421b = auto({
     },
   },
   solution: [
-    t`${math`${K} = ${3} \times ${5}`}. By part (a) with ${math`n = ${3}`} and ${math`m = ${5}`}, ${math`${2}^{${K}} - ${1} = (${2}^{${3}} - ${1}) \sum_{i = ${0}}^{${4}} ${2}^{${3}i}`}.`,
-    t`So ${math`${2}^{${3}} - ${1} = ${7}`} divides ${2 ** K - 1}: ${math`${2 ** K - 1} = ${7} \times ${(2 ** K - 1) / 7}`}. With ${math`n = ${5}`} instead, ${math`${2}^{${5}} - ${1} = ${31}`} is another divisor.`,
+    t`${math`${K} = ${3} \times ${5}`}. The geometric series with ratio ${math`${2}^{${3}}`} and ${5} terms gives ${math`${2}^{${K}} - ${1} = (${2}^{${3}} - ${1}) \sum_{i = ${0}}^{${4}} ${2}^{${3}i}`}.`,
+    t`So ${math`${2}^{${3}} - ${1} = ${7}`} divides ${2 ** K - 1}: ${math`${2 ** K - 1} = ${7} \times ${(2 ** K - 1) / 7}`}. With ratio ${math`${2}^{${5}}`} instead, ${math`${2}^{${5}} - ${1} = ${31}`} is another divisor.`,
+    t`A factor of the exponent gives a factor of ${math`${2}^{k} - ${1}`}.`,
+  ],
+  nudge: t`Not quite. Trial division of ${2 ** K - 1} is the slow route; the exponent ${K} factorises.`,
+  hints: [
+    t`How does the exponent ${K} factorise?`,
+    t`What is ${math`(x - ${1})(${1} + x + x^{${2}} + \cdots + x^{m - ${1}})`}?`,
+    t`With ${math`x = ${2}^{n}`} and ${math`${K} = mn`}, which number of the form ${math`${2}^{n} - ${1}`} must divide ${math`${2}^{${K}} - ${1}`}?`,
   ],
   reference: `d = ${2 ** 3 - 1}`,
   verify: () => {
@@ -211,9 +218,18 @@ const bop105 = auto({
   id: 'bop-10-5',
   source: cite('bop', 'Chapter 10, exercise 5', true),
   title: t`Powers of ${2}`,
-  prompt: t`Find ${math`${2}^{${1}} + ${2}^{${2}} + ${2}^{${3}} + \cdots + ${2}^{n}`} as a formula in ${mn}. (Book of Proof proves it by induction; here, use the geometric series.)`,
+  prompt: t`Find ${math`${2}^{${1}} + ${2}^{${2}} + ${2}^{${3}} + \cdots + ${2}^{n}`} in terms of ${mn}.`,
   answer: { kind: 'expression', expected: '2^(n + 1) - 2', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 20 } } },
-  solution: [t`First term ${2}, ratio ${2}, ${mn} terms: ${math`\frac{${2}(${2}^{n} - ${1})}{${2} - ${1}} = ${2}^{n + ${1}} - ${2}`}.`],
+  solution: [
+    t`First term ${2}, ratio ${2}, ${mn} terms: ${math`\frac{${2}(${2}^{n} - ${1})}{${2} - ${1}} = ${2}^{n + ${1}} - ${2}`}.`,
+    t`Read off the first term, the ratio, and the number of terms before using the formula.`,
+  ],
+  nudge: t`Not quite. Check the first term and the number of terms before using the series formula.`,
+  hints: [
+    t`What are the first term and the common ratio?`,
+    t`How many terms are there?`,
+    t`What does the formula for a finite geometric series give with those values?`,
+  ],
   reference: '2^(n + 1) - 2',
   verify: () => {
     for (let n = 1; n <= 20; n++) { const e = same(`n = ${n}`, Array.from({ length: n }, (_, i) => 2 ** (i + 1)).reduce((x, y) => x + y, 0), 2 ** (n + 1) - 2); if (e !== null) return e; }

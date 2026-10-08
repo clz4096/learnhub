@@ -157,6 +157,11 @@ const a19q1 = supervision({
   source: cite('step-f19', 'Q1(i), (ii), (iii), (v)'),
   title: t`${math`\frac{\sin\theta}{\theta} \to ${1}`} by comparing areas`,
   prompt: t`A circle has radius ${math`r`} and centre ${math`O`}; ${math`OBT`} is a right-angled triangle with the right angle at ${math`B`} on the circle, ${math`\angle BOT = \theta`} with ${math`${0} < \theta < \frac{\pi}{${2}}`}, and ${math`A`} is where ${math`OT`} meets the circle. (i) By considering the areas of triangle ${math`OBT`}, sector ${math`OBA`}, and triangle ${math`OBA`}, show that ${math`\frac{${1}}{\cos\theta} > \frac{\theta}{\sin\theta} > ${1}`}. (ii) Given ${math`\lim_{\theta \to ${0}} \frac{${1}}{\cos\theta} = ${1}`}, find ${math`\lim_{\theta \to ${0}} \frac{\theta}{\sin\theta}`}, with a brief justification, and give an approximation for ${math`\sin\theta`} when ${mth} is small. (iii) Show similarly that ${math`\lim_{\theta \to ${0}} \frac{\theta}{\tan\theta} = ${1}`}. (v) Where in your proofs did you assume that ${mth} is measured in radians?`,
+  hints: [
+    t`Which of the three regions contains which, and what are their areas in terms of ${math`r`} and ${mth}?`,
+    t`Dividing the chain of areas through by ${math`\frac{${1}}{${2}}r^{${2}}\sin\theta`}, what results?`,
+    t`As ${math`\theta \to ${0}`}, what squeezes ${math`\frac{\theta}{\sin\theta}`}, and where was the sector area ${math`\frac{${1}}{${2}}r^{${2}}\theta`} used?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f19-hints', 'Q1'),
 });
@@ -166,11 +171,18 @@ const ss6 = auto({
   source: cite('nst-workbook', 'SS6'),
   title: t`Composing small angle approximations`,
   prompt: t`Given that, for small ${mth}, ${math`\sin\theta \approx \theta - \frac{${1}}{${6}}\theta^{${3}}`} and ${math`\cos\theta \approx ${1} - \frac{${1}}{${2}}\theta^{${2}}`}, find an approximation, ignoring powers of ${mth} greater than ${3}, for ${math`\sin\left(\frac{${1}}{${2}}\theta\right)\cos\theta + \sec ${2}\theta`}, where ${math`\sec u = \frac{${1}}{\cos u}`}. Write ${mth} as ${math`x`}.`,
+  nudge: t`Not quite. Expand each piece only as far as needed, then multiply and collect up to the cube.`,
+  hints: [
+    t`What is ${math`\sin\frac{\theta}{${2}}`}, from the given approximation with ${math`\frac{\theta}{${2}}`} in place of ${mth}?`,
+    t`Multiplying by ${math`\cos\theta \approx ${1} - \frac{${1}}{${2}}\theta^{${2}}`}, which products give powers up to ${math`\theta^{${3}}`}?`,
+    t`With ${math`\cos ${2}\theta \approx ${1} - ${2}\theta^{${2}}`}, what does the binomial expansion give for ${math`\sec ${2}\theta`}, to the power needed?`,
+  ],
   answer: { kind: 'expression', expected: '1 + x/2 + 2x^2 - 13x^3/48', variables: ['x'], domains: SMALL },
   solution: [
     t`${math`\sin\frac{\theta}{${2}} \approx \frac{\theta}{${2}} - \frac{\theta^{${3}}}{${48}}`}. Multiply by ${math`\cos\theta \approx ${1} - \frac{\theta^{${2}}}{${2}}`}, keeping powers up to ${3}: ${math`\frac{\theta}{${2}} - \frac{\theta^{${3}}}{${48}} - \frac{\theta^{${3}}}{${4}} = \frac{\theta}{${2}} - \frac{${13}\theta^{${3}}}{${48}}`}.`,
     t`${math`\cos ${2}\theta \approx ${1} - ${2}\theta^{${2}}`}, so ${math`\sec ${2}\theta \approx (${1} - ${2}\theta^{${2}})^{-${1}} \approx ${1} + ${2}\theta^{${2}}`} by the binomial expansion; the next term is in ${math`\theta^{${4}}`}.`,
     t`Total: ${math`${1} + \frac{\theta}{${2}} + ${2}\theta^{${2}} - \frac{${13}}{${48}}\theta^{${3}}`}.`,
+    t`Expand each factor to the order needed, then multiply and truncate.`,
   ],
   reference: '1 + x/2 + 2x^2 - 13x^3/48',
   verify: () => {
@@ -192,6 +204,11 @@ const db99q5 = supervision({
   source: cite(DB99, 'Q5'),
   title: t`How far a satellite can be seen`,
   prompt: t`For this question, you may use the following approximations, valid if ${math`\theta`} is small: ${math`\sin\theta \approx \theta`} and ${math`\cos\theta \approx ${1} - \frac{\theta^{${2}}}{${2}}`}. A satellite ${math`X`} is directly above the point ${math`Y`} on the Earth's surface and can just be seen (on the horizon) from another point ${math`Z`} on the Earth's surface. The radius of the Earth is ${math`R`} and the height of the satellite above the Earth is ${math`h`}. (i) Find the distance ${math`d`} of ${math`Z`} from ${math`Y`} along the Earth's surface. (ii) If the satellite is in low orbit (so that ${math`h`} is small compared with ${math`R`}), show that ${math`d \approx k(Rh)^{\frac{${1}}{${2}}}`}, where ${math`k`} is to be found. (iii) If the satellite is very distant from the Earth (so that ${math`R`} is small compared with ${math`h`}), show that ${math`d \approx aR + b\frac{R^{${2}}}{h}`}, where ${math`a`} and ${math`b`} are to be found.`,
+  hints: [
+    t`The line of sight from ${math`Z`} touches the Earth: what angle does it make with the radius at ${math`Z`}, and what is the cosine of the angle at the centre?`,
+    t`For small ${math`h`}, how does ${math`\cos\theta \approx ${1} - \frac{\theta^{${2}}}{${2}}`} give an approximation for ${mth}, and so for ${math`d = R\theta`}?`,
+    t`For large ${math`h`} the angle is near ${math`\frac{\pi}{${2}}`}: writing ${math`\theta = \frac{\pi}{${2}} - \phi`}, what is ${math`\sin\phi`}, and how small is it?`,
+  ],
   writeUp: 'explanation',
 });
 
@@ -203,11 +220,18 @@ const db99q5k = auto({
   source: cite(DB99, 'Q5(ii)'),
   title: t`A low satellite`,
   prompt: t`A satellite at height ${math`h`} above a point ${math`Y`} on the Earth (radius ${math`R`}) can just be seen from ${math`Z`}, at distance ${math`d`} from ${math`Y`} along the surface. If ${math`h`} is small compared with ${math`R`}, then ${math`d \approx k(Rh)^{\frac{${1}}{${2}}}`}. Find ${math`k`}, using ${math`\cos\theta \approx ${1} - \frac{\theta^{${2}}}{${2}}`}.`,
+  nudge: t`Not quite. Set up the right triangle at the point of tangency, then use the cosine approximation.`,
+  hints: [
+    t`Why is the line of sight from ${math`Z`} at right angles to the radius at ${math`Z`}, and what is ${math`\cos\theta`} for the angle ${mth} at the centre?`,
+    t`With ${math`\cos\theta \approx ${1} - \frac{\theta^{${2}}}{${2}}`}, what is ${math`\theta^{${2}}`} approximately, when ${math`h`} is small compared with ${math`R`}?`,
+    t`With ${math`d = R\theta`}, how does the result take the form ${math`k(Rh)^{\frac{${1}}{${2}}}`}?`,
+  ],
   answer: { kind: 'expression', expected: 'sqrt(2)', variables: [] },
   solution: [
     t`The line of sight ${math`ZX`} touches the Earth at ${math`Z`}, so it is at right angles to the radius ${math`OZ`}. In the right triangle ${math`OZX`}, ${math`OZ = R`} and ${math`OX = R + h`}, so the angle ${math`\theta = \angle ZOX`} has ${math`\cos\theta = \frac{R}{R + h}`}, and ${math`d = R\theta`}.`,
     t`For small ${math`h`}, ${mth} is small: ${math`${1} - \frac{\theta^{${2}}}{${2}} \approx \frac{R}{R + h}`}, so ${math`\theta^{${2}} \approx ${2}\left(${1} - \frac{R}{R + h}\right) = \frac{${2}h}{R + h} \approx \frac{${2}h}{R}`}.`,
     t`So ${math`d = R\theta \approx R\sqrt{\frac{${2}h}{R}} = \sqrt{${2}}\,(Rh)^{\frac{${1}}{${2}}}`}: ${math`k = \sqrt{${2}}`}.`,
+    t`A tangent meets the radius at a right angle; then the small angle approximation does the rest.`,
   ],
   reference: 'sqrt(2)',
   verify: () => close('d / sqrt(Rh) for small h', horizon(6400, 0.001) / Math.sqrt(6400 * 0.001), Math.SQRT2, 1e-6),
@@ -223,11 +247,18 @@ const db99q5ab = auto({
   source: cite(DB99, 'Q5(iii)', true),
   title: t`A distant satellite`,
   prompt: t`With ${math`d = R\theta`} and ${math`\cos\theta = \frac{R}{R + h}`} as for a satellite at height ${math`h`} above an Earth of radius ${math`R`}, suppose ${math`R`} is small compared with ${math`h`}. Find the approximation ${math`d \approx aR + b\frac{R^{${2}}}{h}`}: give the expression ${math`aR + b\frac{R^{${2}}}{h}`} with ${math`a`} and ${math`b`} found.`,
+  nudge: t`Not quite. The angle is close to a right angle here; approximate its distance from ${math`\frac{\pi}{${2}}`}.`,
+  hints: [
+    t`When ${math`R`} is small compared with ${math`h`}, is ${math`\cos\theta = \frac{R}{R + h}`} small or close to ${1}, and so where is ${mth}?`,
+    t`Writing ${math`\theta = \frac{\pi}{${2}} - \phi`}, what is ${math`\sin\phi`}?`,
+    t`With ${math`\phi`} small, so that ${math`\phi \approx \sin\phi`}, what is ${math`\phi`} approximately, and so ${math`d = R\theta`}?`,
+  ],
   answer: { kind: 'expression', expected: 'pi/2 * R - R^2/h', variables: ['R', 'h'], domains: RH },
   solution: [
     t`${math`\frac{R}{R + h}`} is small, so ${mth} is close to ${math`\frac{\pi}{${2}}`}. Write ${math`\theta = \frac{\pi}{${2}} - \phi`}; then ${math`\sin\phi = \cos\theta = \frac{R}{R + h}`}, and ${math`\phi`} is small.`,
     t`So ${math`\phi \approx \sin\phi = \frac{R}{R + h} \approx \frac{R}{h}`}, because ${math`R + h \approx h`}.`,
     t`${math`d = R\theta = R\left(\frac{\pi}{${2}} - \phi\right) \approx \frac{\pi}{${2}}R - \frac{R^{${2}}}{h}`}: ${math`a = \frac{\pi}{${2}}`} and ${math`b = -${1}`}.`,
+    t`Near a known angle, write the angle as that value plus a small correction.`,
   ],
   reference: 'pi/2 * R - R^2/h',
   verify: () => {
@@ -248,7 +279,12 @@ const db06q4 = supervision({
   id: 'step06-q4',
   source: cite(DB06, 'Q4', true),
   title: t`Polygons that fill their circle`,
-  prompt: t`By sketching on the same axes the graphs of ${math`y = \sin x`} and ${math`y = x`}, show that, for ${math`x > ${0}`}: (i) ${math`x > \sin x`}; (ii) ${math`\frac{\sin x}{x} \approx ${1}`} for small ${math`x`}. A regular polygon has ${math`n`} sides, and perimeter ${math`P`}. Show that the area of the polygon is ${dmath`\frac{P^{${2}}}{${4}n\tan\left(\frac{\pi}{n}\right)}.`} Show also that, for large ${math`n`}, the ratio of the area of the polygon to the area of the smallest circle which can be drawn around the polygon is approximately ${1}. (The paper also asks you to show, by differentiation, that the area increases with ${math`n`} for fixed ${math`P`}; that part is left out here.)`,
+  prompt: t`By sketching on the same axes the graphs of ${math`y = \sin x`} and ${math`y = x`}, show that, for ${math`x > ${0}`}: (i) ${math`x > \sin x`}; (ii) ${math`\frac{\sin x}{x} \approx ${1}`} for small ${math`x`}. A regular polygon has ${math`n`} sides, and perimeter ${math`P`}. Show that the area of the polygon is ${dmath`\frac{P^{${2}}}{${4}n\tan\left(\frac{\pi}{n}\right)}.`} Show also that, for large ${math`n`}, the ratio of the area of the polygon to the area of the smallest circle which can be drawn around the polygon is approximately ${1}. (The paper also asks for a proof, by differentiation, that the area increases with ${math`n`} for fixed ${math`P`}; that part is left out here.)`,
+  hints: [
+    t`Comparing the graphs of ${math`y = \sin x`} and ${math`y = x`}, which lies above for ${math`x > ${0}`}, and how close are they near ${0}?`,
+    t`Splitting the polygon into ${math`n`} isosceles triangles from the centre, what are the base and height of each, in terms of ${math`P`}, ${math`n`}, and ${math`\frac{\pi}{n}`}?`,
+    t`For large ${math`n`}, how does writing the ratio of areas in terms of ${math`x = \frac{${2}\pi}{n}`} bring in part (ii)?`,
+  ],
   writeUp: 'proof',
 });
 

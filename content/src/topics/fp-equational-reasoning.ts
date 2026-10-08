@@ -152,27 +152,47 @@ const fibi = supervision({
   title: t`The iterative Fibonacci is correct`,
   prompt: t`Prove that ${code`fib n = fibi n (${0}, ${1})`} for all ${math`n \ge ${1}`}, where ${codeBlock(code`let rec fib n = if n = ${1} then ${1} else if n = ${2} then ${1} else fib (n - ${2}) + fib (n - ${1})`, code`let rec fibi n (prev, curr) = if n = ${1} then curr else fibi (n - ${1}) (curr, prev + curr)`)} Proceed by induction on ${math`n`}. Hint: first state and prove a claim about ${code`fibi n (fib k, fib (k + ${1}))`} for every ${math`k`}, as the lesson strengthened the claim about ${code`facti`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Unfolding ${code`fibi`} once from ${code`(fib k, fib (k + ${1}))`}, which pair does the next call receive?`,
+    t`Which claim about ${code`fibi n (fib k, fib (k + ${1}))`}, for every ${math`k`}, can be proved by induction on ${math`n`}?`,
+    t`Which choice of ${math`k`} turns that claim into ${code`fib n = fibi n (${0}, ${1})`}, given that ${code`fib`} is only defined from ${1}?`,
+  ],
 });
 const expsq = supervision({
   id: 'cs3110-ex8-expsq',
   source: cite('cs3110-ex8', 'Exercise "expsq"'),
   title: t`Repeated squaring is correct`,
-  prompt: t`Prove that ${code`expsq x n = exp x n`} for all ${math`n \ge ${0}`}, where ${code`expsq`} is ${codeBlock(code`let rec expsq x n =`, code`  if n = ${0} then ${1} else if n = ${1} then x`, code`  else (if n mod ${2} = ${0} then ${1} else x) * expsq (x * x) (n / ${2})`)} Proceed by strong induction on ${math`n`}, using the exercise "exp" and the fact ${code`exp (x * x) k = exp x (${2} * k)`}, which you should also prove.`,
+  prompt: t`Prove that ${code`expsq x n = exp x n`} for all ${math`n \ge ${0}`}, where ${code`expsq`} is ${codeBlock(code`let rec expsq x n =`, code`  if n = ${0} then ${1} else if n = ${1} then x`, code`  else (if n mod ${2} = ${0} then ${1} else x) * expsq (x * x) (n / ${2})`)} Proceed by strong induction on ${math`n`}, using the exercise "exp" and the fact ${code`exp (x * x) k = exp x (${2} * k)`}, which also needs a proof.`,
   writeUp: 'proof',
+  hints: [
+    t`How does ${code`exp (x * x) k = exp x (${2} * k)`} follow by induction on ${math`k`}, using "exp"?`,
+    t`For even ${math`n \ge ${2}`}, what does one evaluation step give, and why may the hypothesis be used at ${math`n / ${2}`}?`,
+    t`For odd ${math`n \ge ${3}`}, how does ${math`n = ${2}(n / ${2}) + ${1}`} combine with "exp" to finish the case?`,
+  ],
 });
 const expsqSimple = supervision({
   id: 'cs3110-ex8-expsq-simplified',
   source: cite('cs3110-ex8', 'Exercise "expsq simplified"'),
   title: t`Repeated squaring, simplified`,
-  prompt: t`Redo the proof that ${code`expsq' x n = exp x n`} for the simplified ${codeBlock(code`let rec expsq' x n =`, code`  if n = ${0} then ${1}`, code`  else (if n mod ${2} = ${0} then ${1} else x) * expsq' (x * x) (n / ${2})`)} It needs less code but one extra recursive call. Which case of your previous proof disappears, and which step must now cover it?`,
+  prompt: t`Redo the proof that ${code`expsq' x n = exp x n`} for the simplified ${codeBlock(code`let rec expsq' x n =`, code`  if n = ${0} then ${1}`, code`  else (if n mod ${2} = ${0} then ${1} else x) * expsq' (x * x) (n / ${2})`)} It needs less code but one extra recursive call. Which case of the previous proof disappears, and which step must now cover it?`,
   writeUp: 'proof',
+  hints: [
+    t`What does ${code`expsq' x ${1}`} evaluate to, step by step?`,
+    t`Which case of the previous proof handled ${math`n = ${1}`} directly?`,
+    t`Does the odd case of the strong induction now cover ${math`n = ${1}`}, and which fact about ${math`n / ${2}`} does it need?`,
+  ],
 });
 const mult = supervision({
   id: 'cs3110-ex8-mult',
   source: cite('cs3110-ex8', 'Exercise "mult"'),
   title: t`Multiplying by zero`,
-  prompt: t`With natural numbers as ${code`type nat = Z | S of nat`}, and ${codeBlock(code`let rec plus a b = match a with Z -> b | S k -> S (plus k b)`, code`let rec mult a b = match a with Z -> Z | S k -> plus b (mult k b)`)} prove that ${code`mult n Z = Z`} for all ${code`n`}, by induction on ${code`n`}. You will need a fact about ${code`plus Z`}: state it and say why it holds.`,
+  prompt: t`With natural numbers as ${code`type nat = Z | S of nat`}, and ${codeBlock(code`let rec plus a b = match a with Z -> b | S k -> S (plus k b)`, code`let rec mult a b = match a with Z -> Z | S k -> plus b (mult k b)`)} prove that ${code`mult n Z = Z`} for all ${code`n`}, by induction on ${code`n`}. A fact about ${code`plus Z`} is needed: state it and why it holds.`,
   writeUp: 'proof',
+  hints: [
+    t`What does ${code`mult Z Z`} evaluate to?`,
+    t`For ${code`n = S k`}, what does ${code`mult (S k) Z`} evaluate to in one step?`,
+    t`What is ${code`plus Z b`} for any ${code`b`}, and how does it combine with the hypothesis?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -177,6 +177,13 @@ const d5 = auto({
   solution: [
     t`By the quotient rule, ${math`\frac{dy}{dt} = \frac{(t - ${2}) - (t + ${1})}{(t - ${2})^{${2}}} = \frac{-${3}}{(t - ${2})^{${2}}}`} and ${math`\frac{dx}{dt} = \frac{${2}(t - ${3}) - (${2}t + ${1})}{(t - ${3})^{${2}}} = \frac{-${7}}{(t - ${3})^{${2}}}`}.`,
     t`${math`\frac{dy}{dx} = \frac{dy/dt}{dx/dt} = \frac{${3}(t - ${3})^{${2}}}{${7}(t - ${2})^{${2}}}`}, which at ${math`t = ${1}`} is ${math`\frac{${3} \cdot ${4}}{${7} \cdot ${1}} = ${q(12, 7)}`}.`,
+    t`Parametric: ${math`\frac{dy}{dx} = \frac{dy/dt}{dx/dt}`}.`,
+  ],
+  nudge: t`Not quite. Find ${math`\frac{dy}{dt}`} and ${math`\frac{dx}{dt}`} separately, then divide in the right order.`,
+  hints: [
+    t`What is ${math`\frac{dy}{dt}`}, by the quotient rule?`,
+    t`What is ${math`\frac{dx}{dt}`}?`,
+    t`How do ${math`\frac{dy}{dt}`} and ${math`\frac{dx}{dt}`} combine to give ${math`\frac{dy}{dx}`}, and what is its value at ${math`t = ${1}`}?`,
   ],
   reference: '12/7',
   verify: () => {
@@ -198,6 +205,13 @@ const ax = auto({
   solution: [
     t`Take logs: ${math`\ln y = x\ln a`}. Differentiate implicitly: ${math`\frac{${1}}{y}\frac{dy}{dx} = \ln a`}.`,
     t`So ${math`\frac{dy}{dx} = y\ln a = a^{x}\ln a`}. (Not ${math`xa^{x - ${1}}`}: the variable is in the exponent.)`,
+    t`A variable in the exponent: take logs, then differentiate implicitly.`,
+  ],
+  nudge: t`Not quite. The power rule needs a fixed power; here the variable is in the exponent.`,
+  hints: [
+    t`Taking natural logs, what is ${math`\ln y`}?`,
+    t`Differentiating both sides with respect to ${math`x`}, what is the derivative of ${math`\ln y`}?`,
+    t`Solving for ${math`\frac{dy}{dx}`}, what is it in terms of ${math`a`} and ${math`x`}?`,
   ],
   reference: 'a^x ln(a)',
   verify: () => {
@@ -220,6 +234,13 @@ const xx = auto({
   solution: [
     t`Neither the power rule nor the exponential rule applies: both base and power vary. Take logs: ${math`\ln y = x\ln x`}.`,
     t`Differentiate implicitly, with the product rule on the right: ${math`\frac{${1}}{y}\frac{dy}{dx} = \ln x + x \cdot \frac{${1}}{x} = \ln x + ${1}`}. So ${math`\frac{dy}{dx} = x^{x}(\ln x + ${1})`}.`,
+    t`Base and power both varying: take logs first.`,
+  ],
+  nudge: t`Not quite. Both the base and the power vary, so neither the power rule nor the exponential rule applies.`,
+  hints: [
+    t`Taking natural logs, what is ${math`\ln y`}?`,
+    t`What is the derivative of ${math`x\ln x`}, by the product rule?`,
+    t`Solving for ${math`\frac{dy}{dx}`}, what is it in terms of ${math`x`}?`,
   ],
   reference: 'x^x ln(x) + x^x',
   verify: () => agreesAt('derivative of x^x', 'x^x (ln(x) + 1)', (x) => numDeriv((u) => u ** u, x), [0.4, 1, 2.5]),
@@ -233,6 +254,11 @@ const writeUp = supervision({
   title: t`Implicit and parametric, explained`,
   prompt: t`(i) If ${math`y + e^{y} = x + x^{${3}} + ${1}`}, find ${math`\frac{dy}{dx}`} in terms of ${math`y`} and ${math`x`}, explaining why the chain rule applies to ${math`e^{y}`}. (ii) If ${math`y = \frac{t + ${1}}{t - ${2}}`} and ${math`x = \frac{${2}t + ${1}}{t - ${3}}`}, find ${math`\frac{dy}{dx}`} when ${math`t = ${1}`}, justifying the formula ${math`\frac{dy}{dx} = \frac{dy/dt}{dx/dt}`}.`,
   writeUp: 'explanation',
+  hints: [
+    t`In (i), since ${math`y`} depends on ${math`x`}, what is the derivative of ${math`e^{y}`} with respect to ${math`x`}?`,
+    t`After differentiating both sides in (i), how can ${math`\frac{dy}{dx}`} be collected and isolated?`,
+    t`In (ii), why does the chain rule give ${math`\frac{dy}{dt} = \frac{dy}{dx} \cdot \frac{dx}{dt}`}, and what are ${math`\frac{dy}{dt}`} and ${math`\frac{dx}{dt}`} at ${math`t = ${1}`}?`,
+  ],
 });
 
 // 2011 STEP I Q1: a line touching, or normal to, a curve given implicitly.
@@ -242,6 +268,11 @@ const step11Tangent = supervision({
   title: t`A line that touches a curve, and one that is normal`,
   prompt: t`(i) Show that the gradient of the curve ${math`\frac{a}{x} + \frac{b}{y} = ${1}`}, where ${math`b \ne ${0}`}, is ${math`-\frac{ay^{${2}}}{bx^{${2}}}`}. The point ${math`(p, q)`} lies on both the straight line ${math`ax + by = ${1}`} and the curve ${math`\frac{a}{x} + \frac{b}{y} = ${1}`}, where ${math`ab \ne ${0}`}. Given that, at this point, the line and the curve have the same gradient, show that ${math`p = \pm q`}. Show further that either ${math`(a - b)^{${2}} = ${1}`} or ${math`(a + b)^{${2}} = ${1}`}. (ii) Show that if the straight line ${math`ax + by = ${1}`}, where ${math`ab \ne ${0}`}, is a normal to the curve ${math`\frac{a}{x} - \frac{b}{y} = ${1}`}, then ${math`a^{${2}} - b^{${2}} = \frac{${1}}{${2}}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Differentiating ${math`\frac{a}{x} + \frac{b}{y} = ${1}`} implicitly, what is ${math`\frac{dy}{dx}`}, and what is the gradient of ${math`ax + by = ${1}`}?`,
+    t`In (i), equating the gradients at ${math`(p, q)`}, what follows about ${math`p`} and ${math`q`}, and what do the line and the curve then give when ${math`p = q`} and when ${math`p = -q`}?`,
+    t`In (ii), which condition on the two gradients makes the line a normal, and how can the point's coordinates then be eliminated?`,
+  ],
   official: cite('stepdb-11-sol', 'STEP I, Question 1 (pages 4 to 6)'),
 });
 

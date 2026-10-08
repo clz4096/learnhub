@@ -172,10 +172,17 @@ const pascalCount = auto({
     rows: [[t`(i) not chosen`, null], [t`(ii) chosen`, null], [t`in all`, null]],
     expected: [String(choose(PN, PK)), String(choose(PN, PK - 1)), String(choose(PN + 1, PK))],
   },
+  hints: [
+    t`In case (i), from how many objects are all ${PK} chosen?`,
+    t`In case (ii), how many more objects are chosen, and from which?`,
+    t`Why do the two cases together cover every choice exactly once?`,
+  ],
+  nudge: t`Not quite. In case (ii) one object is already fixed; count only the rest.`,
   solution: [
     t`(i) All ${PK} objects come from ${math`o_{${1}}, \ldots, o_{${PN}}`}: ${math`\binom{${PN}}{${PK}} = ${choose(PN, PK)}`} ways.`,
     t`(ii) ${math`o_{${PN + 1}}`} is one of them, and the other ${PK - 1} come from the first ${PN}: ${math`\binom{${PN}}{${PK - 1}} = ${choose(PN, PK - 1)}`} ways.`,
     t`In all ${math`${choose(PN, PK)} + ${choose(PN, PK - 1)} = ${choose(PN + 1, PK)} = \binom{${PN + 1}}{${PK}}`}: the conjecture (Pascal's rule) for these numbers.`,
+    t`Split on one object, in or out: that is Pascal's rule.`,
   ],
   reference: [String(choose(PN, PK)), String(choose(PN, PK - 1)), String(choose(PN + 1, PK))],
   verify: () => {
@@ -198,9 +205,16 @@ const unfold = auto({
     rows: unfoldRows.map((k) => [[mono(UN + 1 - k, k)], null, null, null]),
     expected: unfoldRows.flatMap((k) => [String(choose(UN, k)), String(choose(UN, k - 1)), String(choose(UN + 1, k))]),
   },
+  hints: [
+    t`How is the first sum related to ${math`x(x + y)^{${UN}}`}?`,
+    t`How is the second sum related to ${math`y(x + y)^{${UN}}`}, and how does multiplying by ${math`y`} shift the powers?`,
+    t`Adding the two sums power by power, what is each total, and which known expansion should the totals match?`,
+  ],
+  nudge: t`Not quite. Multiplying by ${math`y`} moves each coefficient one power along; line the two sums up by power.`,
   solution: [
     t`The first sum is ${math`x`} times ${math`(x + y)^{${UN}}`}: its coefficients are row ${UN} of Pascal's triangle, ${listOf(expand(UN))}, on the powers from ${mono(UN + 1, 0)} down to ${mono(1, UN)}, and nothing on ${mono(0, UN + 1)}.`,
     t`The second sum is ${math`y`} times it: the same row moved one place along, nothing on ${mono(UN + 1, 0)}. Adding gives row ${UN + 1}, ${listOf(expand(UN + 1))}, which is ${math`(x + y)^{${UN + 1}}`}.`,
+    t`Multiplying by ${math`x`} or ${math`y`} shifts a row; the two shifts add to the next row.`,
   ],
   reference: unfoldRows.flatMap((k) => [String(choose(UN, k)), String(choose(UN, k - 1)), String(choose(UN + 1, k))]),
   verify: () => {
@@ -219,6 +233,11 @@ const bop1023 = supervision({
   source: cite('bop', 'Chapter 10, exercise 23'),
   title: t`Book of Proof's version`,
   prompt: t`Use induction to prove the binomial theorem ${math`(x + y)^{n} = \sum_{i = ${0}}^{n} \binom{n}{i} x^{n - i} y^{i}`}. Then compare with the solution at the back of Book of Proof, which checks ${math`n = ${1}`} and then assumes the theorem "for some ${math`n > ${1}`}": which case does that wording leave out, which base case do the CST notes use instead, and which convention about ${math`\binom{n}{-${1}}`} does the solution use when it merges the two sums?`,
+  hints: [
+    t`What are the base case and the induction hypothesis, stated with the sum?`,
+    t`After multiplying ${math`(x + y)^{n}`} by ${math`x + y`} and reindexing one sum, which coefficients are added at each power?`,
+    t`Which value of ${mn} does the wording ${math`n > ${1}`} never cover, and how does ${math`\binom{n}{-${1}} = ${0}`} let the two sums merge?`,
+  ],
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 10, exercise 23'),
 });
@@ -228,6 +247,11 @@ const semiring = supervision({
   source: cite('cst-dm-notes', 'printed page 278, the remark that the proof works in any commutative semiring'),
   title: t`Where commutativity is used`,
   prompt: t`The notes remark that the proof works in any commutative semiring. Point to the step of the inductive proof that uses ${math`xy = yx`}. Then show that the theorem fails without it: for ${math`${2} \times ${2}`} matrices ${math`A`} and ${math`B`} with ${math`AB \ne BA`}, expand ${math`(A + B)^{${2}}`} and compare it with ${math`A^{${2}} + ${2}AB + B^{${2}}`}.`,
+  hints: [
+    t`In the inductive step, where are ${math`x^{n - k + ${1}}y^{k}`} and ${math`x^{n - k}y^{k + ${1}}`} written as powers of the same shape?`,
+    t`What does writing them that way assume about the order of ${math`x`} and ${math`y`} in a product?`,
+    t`Expanding ${math`(A + B)^{${2}}`} term by term, without reordering any product, which terms appear?`,
+  ],
   writeUp: 'explanation',
 });
 

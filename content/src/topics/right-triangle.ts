@@ -209,6 +209,11 @@ const a5q1i = supervision({
   source: cite('step-f05', 'Q1(i)'),
   title: t`Cosine and sine from the sides; the Pythagorean identity`,
   prompt: t`The triangle ${math`ABC`} has a right angle at ${math`C`}. The lengths of the sides ${math`BC`}, ${math`CA`}, and ${math`AB`} are ${math`a`}, ${math`b`}, and ${math`c`}. Angle ${math`CAB`} is ${mt}. Express ${math`\cos \theta`} and ${math`\sin \theta`} in terms of ${math`a`}, ${math`b`}, and ${math`c`}, and hence show that ${math`\cos^{${2}} \theta + \sin^{${2}} \theta = ${1}`}. Is ${math`\cos \theta + \sin \theta = ${1}`} ever true for an acute ${mt}?`,
+  hints: [
+    t`Which sides are adjacent to ${mt}, opposite ${mt}, and the hypotenuse?`,
+    t`What does Pythagoras give for ${math`a^{${2}} + b^{${2}}`}, and how does it become a statement about ${math`\cos^{${2}} \theta + \sin^{${2}} \theta`}?`,
+    t`For an acute ${mt}, how does ${math`a + b`} compare with ${math`c`} in a triangle?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f05-hints', 'Q1(i)'),
 });
@@ -247,6 +252,11 @@ const misc2 = supervision({
   source: cite(MISC, 'Q2 (2010 STEP II Q6)'),
   title: t`Inside a regular tetrahedron`,
   prompt: t`Each edge of the tetrahedron ${math`ABCD`} has unit length. The face ${math`ABC`} is horizontal, and ${math`P`} is the point in ${math`ABC`} that is vertically below ${math`D`}. (i) Find the length of ${math`PD`}. (ii) Show that the cosine of the angle between adjacent faces of the tetrahedron is ${math`\frac{${1}}{${3}}`}. (iii) Find the radius of the largest sphere that can fit inside the tetrahedron.`,
+  hints: [
+    t`Since ${math`DA = DB = DC`}, which point of the face ${math`ABC`} is ${math`P`}, and how far is it from each vertex?`,
+    t`The angle between the faces ${math`ABC`} and ${math`ABD`} lies in the plane through ${math`D`}, ${math`P`}, and the midpoint ${math`M`} of ${math`AB`}: which right triangle gives its cosine?`,
+    t`Where must the centre of the largest sphere lie, and which right triangle, or which split of the volume into four pyramids, gives its radius?`,
+  ],
   writeUp: 'proof',
   official: cite(MISCS, 'Q2'),
 });
@@ -256,11 +266,18 @@ const misc2pd = auto({
   source: cite(MISC, 'Q2(i) (2010 STEP II Q6)'),
   title: t`The height of a regular tetrahedron`,
   prompt: t`Each edge of the tetrahedron ${math`ABCD`} has unit length. The face ${math`ABC`} is horizontal, and ${math`P`} is the point in ${math`ABC`} that is vertically below ${math`D`}. Find the length of ${math`PD`}, exactly.`,
+  nudge: t`Not quite. The foot ${math`P`} is the centre of the base; find its distance from a vertex first.`,
+  hints: [
+    t`Since ${math`DA = DB = DC`}, what does Pythagoras say about ${math`PA`}, ${math`PB`}, and ${math`PC`}, and so where is ${math`P`}?`,
+    t`How far is the centre of an equilateral triangle of side ${1} from each vertex?`,
+    t`In the right triangle ${math`DPA`}, what is ${math`PD^{${2}}`} in terms of ${math`DA`} and ${math`PA`}?`,
+  ],
   answer: { kind: 'expression', expected: 'sqrt(6)/3', variables: [] },
   solution: [
     t`${math`DA = DB = DC = ${1}`} and ${math`DP`} is vertical, so the right triangles ${math`DPA`}, ${math`DPB`}, ${math`DPC`} give ${math`PA^{${2}} = PB^{${2}} = PC^{${2}} = ${1} - PD^{${2}}`}: ${math`P`} is the centre of the equilateral triangle ${math`ABC`}.`,
     t`Let ${math`M`} be the midpoint of ${math`AB`}. In the right triangle ${math`AMP`}, the angle at ${math`A`} is ${math`${30}^\circ`} (half of ${math`${60}^\circ`}) and ${math`AM = \frac{${1}}{${2}}`}, so ${math`PA = \frac{AM}{\cos ${30}^\circ} = \frac{${1}/${2}}{\sqrt{${3}}/${2}} = \frac{${1}}{\sqrt{${3}}}`}.`,
     t`So ${math`PD^{${2}} = ${1} - \frac{${1}}{${3}} = \frac{${2}}{${3}}`} and ${math`PD = \sqrt{\frac{${2}}{${3}}} = \frac{\sqrt{${6}}}{${3}}`}.`,
+    t`Find the foot of the perpendicular first; then one right triangle gives the height.`,
   ],
   reference: 'sqrt(6)/3',
   verify: () => close('PD', pyramid(1, 1).height, Math.sqrt(6) / 3, 1e-12),
@@ -275,12 +292,19 @@ const misc2r = auto({
   source: cite(MISC, 'Q2(iii) (2010 STEP II Q6)'),
   title: t`The largest sphere inside a regular tetrahedron`,
   prompt: t`Each edge of the tetrahedron ${math`ABCD`} has unit length, and ${math`P`}, the centre of the face ${math`ABC`}, is the foot of the perpendicular from ${math`D`}, with ${math`PD = \frac{\sqrt{${6}}}{${3}}`}. Find the radius of the largest sphere that can fit inside the tetrahedron, exactly.`,
+  nudge: t`Not quite. Symmetry places the centre on ${math`DP`}; one right triangle then fixes the radius.`,
+  hints: [
+    t`Where must the centre of the largest sphere lie, by symmetry, and how far is it from each face?`,
+    t`Where does the sphere touch the face ${math`ABD`}, and which equal tangent lengths from the midpoint ${math`M`} of ${math`AB`} locate that point?`,
+    t`In the right triangle formed by ${math`D`}, the centre, and the point of contact on ${math`ABD`}, what equation in ${math`r`} results?`,
+  ],
   answer: { kind: 'expression', expected: 'sqrt(6)/12', variables: [] },
   solution: [
     t`By symmetry the sphere's centre ${math`S`} is on ${math`DP`}, at distance ${math`r`} from every face; it touches ${math`ABC`} at ${math`P`}, so ${math`SP = r`} and ${math`DS = PD - r`}.`,
     t`It touches the face ${math`ABD`} at ${math`X`}, on the line from ${math`D`} to the midpoint ${math`M`} of ${math`AB`}. The tangents from ${math`M`} are equal: ${math`MX = MP = \frac{${1}}{${2}\sqrt{${3}}}`}, so ${math`DX = DM - MX = \frac{\sqrt{${3}}}{${2}} - \frac{${1}}{${2}\sqrt{${3}}} = \frac{${1}}{\sqrt{${3}}}`}.`,
     t`The radius ${math`SX`} meets the face at a right angle, so in triangle ${math`DXS`}: ${math`(PD - r)^{${2}} = r^{${2}} + \frac{${1}}{${3}}`}. With ${math`PD^{${2}} = \frac{${2}}{${3}}`}: ${math`\frac{${2}}{${3}} - ${2}r\,PD = \frac{${1}}{${3}}`}, so ${math`r = \frac{${1}}{${6}\,PD} = \frac{${1}}{${6}} \cdot \frac{${3}}{\sqrt{${6}}} = \frac{\sqrt{${6}}}{${12}}`}.`,
     t`That is a quarter of ${math`PD`}: the centre is a quarter of the way up the height.`,
+    t`Use symmetry to place the centre, then one right triangle fixes the radius.`,
   ],
   reference: 'sqrt(6)/12',
   verify: () => {
@@ -300,6 +324,11 @@ const db02q6 = supervision({
   source: cite(DB02, 'Q6'),
   title: t`A pyramid on an equilateral base, tipped over`,
   prompt: t`A pyramid stands on horizontal ground. Its base is an equilateral triangle with sides of length ${math`a`}, the other three sides of the pyramid are of length ${math`b`} and its volume is ${math`V`}. Given that the formula for the volume of any pyramid is ${math`\frac{${1}}{${3}} \times \text{area of base} \times \text{height}`}, show that ${dmath`V = \frac{${1}}{${12}}a^{${2}}(${3}b^{${2}} - a^{${2}})^{\frac{${1}}{${2}}}.`} The pyramid is then placed so that a non-equilateral face lies on the ground. Show that the new height, ${math`h`}, of the pyramid is given by ${dmath`h^{${2}} = \frac{a^{${2}}(${3}b^{${2}} - a^{${2}})}{${4}b^{${2}} - a^{${2}}}.`} Find, in terms of ${math`a`} and ${math`b`}, the angle between the equilateral triangle and the horizontal.`,
+  hints: [
+    t`Where is the apex above the base, and what does Pythagoras give for the height in terms of ${math`a`} and ${math`b`}?`,
+    t`What is the area of a non-equilateral face, and how does writing ${math`V`} with that face as the base give ${math`h`}?`,
+    t`For the angle, which line in the base and which line in a sloping face meet their common edge at right angles?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -309,12 +338,19 @@ const db02q6angle = auto({
   source: cite(DB02, 'Q6', true),
   title: t`The tilt of the equilateral face`,
   prompt: t`A pyramid has an equilateral base of side ${math`a`} and three other edges of length ${math`b`}, with its apex above the centre of the base. It is placed so that a non-equilateral face lies on the ground. The angle ${mt} between the equilateral face and the horizontal is the angle between the base and a sloping face. Find ${math`\tan \theta`} in terms of ${math`a`} and ${math`b`}.`,
+  nudge: t`Not quite. The angle between two faces is measured in a plane at right angles to their common edge.`,
+  hints: [
+    t`Which two lines, one in each face, meet the common edge ${math`AB`} at right angles at its midpoint ${math`M`}?`,
+    t`How far is the centre ${math`G`} of the base from ${math`M`}, and how high is the apex above ${math`G`}?`,
+    t`In the right triangle with vertices at the apex, ${math`G`}, and ${math`M`}, which ratio is ${math`\tan \theta`}?`,
+  ],
   answer: { kind: 'expression', expected: '2 sqrt(3b^2 - a^2)/a', variables: ['a', 'b'], domains: PYR },
   solution: [
     t`Stand the pyramid on its base, with apex ${math`D`} above the centre ${math`G`}. The face on edge ${math`AB`} meets the base along ${math`AB`}; let ${math`M`} be the midpoint of ${math`AB`}. Both ${math`GM`} and ${math`DM`} are at right angles to ${math`AB`}, so the angle between the two faces is the angle ${math`DMG`}.`,
     t`${math`GA = \frac{a}{\sqrt{${3}}}`} (as for the centre of any equilateral triangle) and ${math`GM = \frac{a}{${2}\sqrt{${3}}}`}. By Pythagoras in the right triangle ${math`DGA`}, the height is ${math`DG = \sqrt{b^{${2}} - \frac{a^{${2}}}{${3}}}`}.`,
     t`In the right triangle ${math`DGM`}: ${math`\tan \theta = \frac{DG}{GM} = \sqrt{b^{${2}} - \frac{a^{${2}}}{${3}}} \cdot \frac{${2}\sqrt{${3}}}{a} = \frac{${2}\sqrt{${3}b^{${2}} - a^{${2}}}}{a}`}.`,
     t`Tipping the pyramid onto that face turns the whole solid, so the angle between the two faces stays ${mt}, now between the equilateral face and the ground.`,
+    t`Measure the angle between two planes in a plane at right angles to their common line.`,
   ],
   reference: '2 sqrt(3b^2 - a^2)/a',
   verify: () => {
@@ -393,10 +429,10 @@ export const rightTriangle: TopicContent = {
     's2misc-q2-iii': { sections: ['Shape, not size'], note: t`The radius of the inscribed sphere from right triangles` },
     'step02-q6-angle': { sections: ['Shape, not size'], note: t`The tangent of a tilt angle from a right triangle` },
   }),
-  // The gate is two STEP questions on right triangles inside solids, best first: 2010 II Q6 (the
-  // regular tetrahedron, with official solutions) and 2002 I Q6 (a pyramid tipped onto a face),
-  // then their auto-checked parts. Assignment 5 Q1(i) is the lesson's own proof.
-  gate: ['s2misc-q2', 'step02-q6', 's2misc-q2-iii', 'step02-q6-angle'],
+  // The gate is right triangles inside solids, best first: 2002 I Q6 (a pyramid tipped onto a
+  // face), then the auto-checked parts. The 2010 II Q6 write-up stays practice: the prompt of its
+  // part (iii) states the answer to its part (i). Assignment 5 Q1(i) is the lesson's own proof.
+  gate: ['step02-q6', 's2misc-q2-iii', 'step02-q6-angle'],
   recall: [
     { front: t`Define ${math`\sin \theta`}, ${math`\cos \theta`}, ${math`\tan \theta`} for an acute angle of a right triangle.`, back: t`Opposite over hypotenuse, adjacent over hypotenuse, and opposite over adjacent.` },
     { front: t`State the Pythagorean identity and its proof in one line.`, back: t`${math`\cos^{${2}} \theta + \sin^{${2}} \theta = ${1}`}: divide ${math`a^{${2}} + b^{${2}} = c^{${2}}`} by ${math`c^{${2}}`}.` },

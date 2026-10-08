@@ -148,11 +148,17 @@ const notes62 = auto({
   title: t`A row of the table of ${Z(5)}`,
   prompt: t`Example ${62} of the notes gives the multiplication table of ${Z(5)}. Fill in its row for ${2}: ${math`${2} \cdot_{${5}} j`} for ${math`j = ${0}, \ldots, ${4}`}.`,
   answer: { kind: 'table', cell: 'exact', columns: [t`${math`j`}`, t`${math`${2} \cdot_{${5}} j`}`], rows: upTo(5).map((j) => [t`${j - 1}`, null]), expected: upTo(5).map((j) => String(mod(2 * (j - 1), 5))) },
-  solution: [t`${math`${2} \times ${0}, \ldots, ${2} \times ${4}`} are ${math`${0}, ${2}, ${4}, ${6}, ${8}`}, which reduce to ${math`${0}, ${2}, ${4}, ${1}, ${3}`}. The non-zero entries are ${1} to ${4} in a new order: the "permutation pattern" the notes point out, and the ${1} in column ${3} says ${math`${2}^{-${1}} = ${3}`}.`],
+  solution: [t`${math`${2} \times ${0}, \ldots, ${2} \times ${4}`} are ${math`${0}, ${2}, ${4}, ${6}, ${8}`}, which reduce to ${math`${0}, ${2}, ${4}, ${1}, ${3}`}. The non-zero entries are ${1} to ${4} in a new order: the "permutation pattern" the notes point out, and the ${1} in column ${3} says ${math`${2}^{-${1}} = ${3}`}.`, t`Multiply, then reduce: every entry of a table of ${Z(mm)} lies between ${0} and ${math`m - ${1}`}.`],
   reference: upTo(5).map((j) => String(mod(2 * (j - 1), 5))),
   verify: () => same('the row by repeated addition', upTo(5).map((j) => { let x = 0; for (let i = 0; i < j - 1; i++) x = (x + 2) % 5; return x; }).join(), '0,2,4,1,3'),
   misconceptions: [{ response: ['0', '2', '4', '6', '8'], why: t`${6} and ${8} are not in ${Z(5)}: reduce them to ${1} and ${3}.` }],
   official: { source: cite('cst-dm-notes', 'printed page 193, Example 62'), answer: ['0', '2', '4', '1', '3'], agrees: true },
+  nudge: t`Not quite. Every entry must be reduced to a remainder from ${0} to ${4}.`,
+  hints: [
+    t`What are the products ${math`${2} \times j`} for ${math`j = ${0}, \ldots, ${4}`}, before reducing?`,
+    t`Which of those products are ${5} or more, and what are their remainders on division by ${5}?`,
+    t`Does each non-zero element of ${Z(5)} appear exactly once in the row?`,
+  ],
 });
 
 const sheet226 = auto({
@@ -161,11 +167,17 @@ const sheet226 = auto({
   title: t`Additive inverses in ${Z(6)}`,
   prompt: t`Exercise ${2}.${2}.${6} asks for the inverse tables of ${Z(3)}, ${Z(6)}, and ${Z(7)}. Give the additive inverse ${math`-k`} of each ${math`k`} in ${Z(6)}.`,
   answer: { kind: 'table', cell: 'exact', columns: [t`${mk}`, t`${math`-k`} in ${Z(6)}`], rows: upTo(6).map((k) => [t`${k - 1}`, null]), expected: upTo(6).map((k) => String(mod(-(k - 1), 6))) },
-  solution: [t`${math`-k = [-k]_{${6}} = ${6} - k`} for ${math`k \ne ${0}`}, and ${math`-${0} = ${0}`}: ${math`${0}, ${5}, ${4}, ${3}, ${2}, ${1}`}. Every element has an additive inverse, whatever ${mm} is; multiplicative inverses are another matter.`],
+  solution: [t`${math`-k = [-k]_{${6}} = ${6} - k`} for ${math`k \ne ${0}`}, and ${math`-${0} = ${0}`}: ${math`${0}, ${5}, ${4}, ${3}, ${2}, ${1}`}. Every element has an additive inverse, whatever ${mm} is; multiplicative inverses are another matter.`, t`In ${Z(mm)}, ${math`-k`} is ${math`m - k`} for ${math`k \ne ${0}`}: every element has an additive inverse.`],
   reference: upTo(6).map((k) => String(mod(-(k - 1), 6))),
   verify: () => same('the l with k + l = 0 found by search', upTo(6).map((k) => upTo(6).map((l) => l - 1).find((l) => (k - 1 + l) % 6 === 0)).join(), '0,5,4,3,2,1'),
   misconceptions: [{ response: ['0', '-1', '-2', '-3', '-4', '-5'], why: t`Negative numbers are not elements of ${Z(6)}: ${math`-${1}`} is represented by ${5}, and so on.` }],
   official: { source: cite('cst-dm-sols-2324-2', '2.2.6'), answer: ['0', '5', '4', '3', '2', '1'], agrees: true },
+  nudge: t`Not quite. The inverse of ${mk} is the element that adds to ${mk} to give ${0} modulo ${6}, and it must itself lie in ${Z(6)}.`,
+  hints: [
+    t`Which element ${math`l`} of ${Z(6)} satisfies ${math`k +_{${6}} l = ${0}`}?`,
+    t`Why is the additive inverse of ${0} equal to ${0}?`,
+    t`For ${math`k \ne ${0}`}, which number from ${1} to ${5} adds to ${mk} to make ${6}?`,
+  ],
 });
 
 const sheet214 = supervision({
@@ -175,6 +187,11 @@ const sheet214 = supervision({
   prompt: t`Let ${mm} be a positive integer. (a) Prove that addition and multiplication in ${Z(mm)} are associative: ${math`(i +_{m} j) +_{m} k = i +_{m} (j +_{m} k)`} and the same for ${math`\cdot_{m}`}. (b) Prove that the additive inverse of ${mk} in ${Z(mm)} is ${math`[-k]_{m}`}. Use the remainder identities of exercise ${2}.${1}.${3}.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-2', '2.1.4'),
+  hints: [
+    t`What does ${math`i +_{m} j`} mean in terms of the remainder of ${math`i + j`} on division by ${mm}?`,
+    t`Which identity of exercise ${2}.${1}.${3} shows that taking remainders inside a sum or product does not change the final remainder?`,
+    t`For (b), what is ${math`k +_{m} [-k]_{m}`}, by the same identity?`,
+  ],
 });
 const bop1158 = supervision({
   id: 'bop-11-5-8',
@@ -182,6 +199,11 @@ const bop1158 = supervision({
   title: t`Addition is well defined`,
   prompt: t`Suppose ${math`[a], [b] \in \mathbb{Z}_{n}`}, and ${math`[a] = [a']`} and ${math`[b] = [b']`}. Alice adds them as ${math`[a + b]`}; Bob as ${math`[a' + b']`}. Show that their answers are the same. Why is this needed before ${math`\mathbb{Z}_{n}`} can be said to have an addition at all?`,
   writeUp: 'proof',
+  hints: [
+    t`What does ${math`[a] = [a']`} say about ${math`n`} and ${math`a - a'`}?`,
+    t`What is ${math`(a + b) - (a' + b')`} in terms of ${math`a - a'`} and ${math`b - b'`}?`,
+    t`If the result depended on the representatives chosen, what would ${math`[a] + [b]`} mean?`,
+  ],
 });
 const notes60 = supervision({
   id: 'notes-190-example-60',
@@ -189,6 +211,11 @@ const notes60 = supervision({
   title: t`${Z(2)} is the booleans`,
   prompt: t`Example ${60} of the notes: ${math`(\mathbb{Z}_{${2}}, ${0}, +_{${2}}, ${1}, \cdot_{${2}})`} is the booleans with XOR as addition and AND as multiplication. Write out both tables of ${Z(2)} and the truth tables of XOR and AND, and explain the correspondence. Which boolean operation would ${math`+`} be if ${0} stood for true?`,
   writeUp: 'explanation',
+  hints: [
+    t`What are ${math`${0} +_{${2}} ${0}`}, ${math`${0} +_{${2}} ${1}`}, ${math`${1} +_{${2}} ${0}`}, and ${math`${1} +_{${2}} ${1}`}?`,
+    t`With ${1} as true and ${0} as false, which truth table matches ${math`+_{${2}}`}, and which matches ${math`\cdot_{${2}}`}?`,
+    t`If ${0} stood for true, what would each row of the ${math`+_{${2}}`} table say about the truth values?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -256,12 +256,18 @@ const a22zero = auto({
   id: 'a22-q3-iv',
   source: cite('step-f22', 'Q3(iv)(b)'),
   title: t`The zeros of ${math`\sin(x^{${2}})`}`,
-  prompt: t`List the non-negative solutions of ${math`\sin(x^{${2}}) = ${0}`} in increasing order, starting with ${math`x = ${0}`}. Find the fourth one. Write square roots as sqrt and ${math`\pi`} as pi.`,
+  prompt: t`The non-negative solutions of ${math`\sin(x^{${2}}) = ${0}`}, in increasing order, start at ${math`x = ${0}`}. Find the fourth. Write square roots as sqrt and ${math`\pi`} as pi.`,
+  nudge: t`Not quite. Treat ${math`x^{${2}}`} as one unknown first; its values are the easy list.`,
+  hints: [
+    t`For which values of ${math`u`} is ${math`\sin u = ${0}`}?`,
+    t`If ${math`x^{${2}}`} must be one of those values, which ${math`x \ge ${0}`} comes from each?`,
+    t`Counting ${math`x = ${0}`} as the first, which multiple of ${math`\pi`} does the fourth solution square to?`,
+  ],
   answer: { kind: 'expression', expected: 'sqrt(3*pi)', variables: [] },
   solution: [
     t`${math`\sin u = ${0}`} exactly when ${math`u`} is a multiple of ${math`\pi`}: ${math`u = ${0}, \pi, ${2}\pi, ${3}\pi, \ldots`}, from the graph of sine.`,
     t`So ${math`x^{${2}} = ${0}, \pi, ${2}\pi, ${3}\pi`}, and for non-negative ${math`x`}, ${math`x = ${0}, \sqrt{\pi}, \sqrt{${2}\pi}, \sqrt{${3}\pi}`}. The fourth is ${math`\sqrt{${3}\pi}`}.`,
-    t`The zeros crowd together as ${math`x`} grows, because ${math`x^{${2}}`} grows faster and faster. And ${math`\sin((-a)^{${2}}) = \sin(a^{${2}})`}, so the graph is symmetric about the ${math`y`}-axis.`,
+    t`Solve for the inside of the function first, then undo the square.`,
   ],
   reference: 'sqrt(3 pi)',
   verify: () => {
@@ -286,8 +292,14 @@ const g2perim = auto({
   source: cite('nst-workbook', 'G2(i)'),
   title: t`The perimeter of a sector`,
   prompt: t`Find the length of the perimeter of a sector of angle ${math`\frac{\pi}{${3}}`} radians of a disc of radius ${3}. Write ${math`\pi`} as pi.`,
+  nudge: t`Not quite. Trace the whole boundary of the sector and add up every piece.`,
+  hints: [
+    t`Which pieces make up the boundary of a sector?`,
+    t`How long is an arc of angle ${mth} in a circle of radius ${math`r`}, with ${mth} in radians?`,
+    t`What is ${math`r\theta`} here, and how many radii join it to close the shape?`,
+  ],
   answer: { kind: 'expression', expected: '6 + pi', variables: [] },
-  solution: [t`The arc is ${math`r\theta = ${3} \times \frac{\pi}{${3}} = \pi`}.`, t`The perimeter is the arc plus two radii: ${math`\pi + ${6}`}.`],
+  solution: [t`The arc is ${math`r\theta = ${3} \times \frac{\pi}{${3}} = \pi`}.`, t`The perimeter is the arc plus two radii: ${math`\pi + ${6}`}.`, t`A sector's perimeter is its arc plus two radii.`],
   reference: '6 + pi',
   verify: () => (far(3 * (Math.PI / 3) + 6, 6 + Math.PI) ? 'perimeter' : null),
   misconceptions: [{ response: 'pi', why: t`That is the arc alone. The perimeter goes round the whole sector, including the two straight radii.` }],
@@ -298,8 +310,14 @@ const g2area = auto({
   source: cite('nst-workbook', 'G2(ii)'),
   title: t`The area of a sector`,
   prompt: t`Find the area of a sector of angle ${math`\frac{\pi}{${3}}`} radians of a disc of radius ${3}. Write ${math`\pi`} as pi.`,
+  nudge: t`Not quite. The sector is a simple fraction of the whole disc, which gives a quick check.`,
+  hints: [
+    t`What fraction of a full turn is ${math`\frac{\pi}{${3}}`}?`,
+    t`What is the area of the whole disc of radius ${3}?`,
+    t`Which formula gives a sector's area from ${math`r`} and ${mth} in radians, and does it agree with the fraction of the disc?`,
+  ],
   answer: { kind: 'expression', expected: '3*pi/2', variables: [] },
-  solution: [t`The area is ${math`\frac{${1}}{${2}}r^{${2}}\theta = \frac{${1}}{${2}} \times ${9} \times \frac{\pi}{${3}} = \frac{${3}\pi}{${2}}`}.`, t`Check: the sector is a sixth of the disc, and ${math`\frac{${9}\pi}{${6}} = \frac{${3}\pi}{${2}}`}.`],
+  solution: [t`The area is ${math`\frac{${1}}{${2}}r^{${2}}\theta = \frac{${1}}{${2}} \times ${9} \times \frac{\pi}{${3}} = \frac{${3}\pi}{${2}}`}.`, t`Check: the sector is a sixth of the disc, and ${math`\frac{${9}\pi}{${6}} = \frac{${3}\pi}{${2}}`}.`, t`Check a sector against its fraction of the whole disc.`],
   reference: '3pi/2',
   verify: () => (far(0.5 * 9 * (Math.PI / 3), (Math.PI * 9) / 6) ? 'area' : null),
   misconceptions: [{ response: '3*pi', why: t`The sector area has a half: ${math`\frac{${1}}{${2}}r^{${2}}\theta`}.` }],
@@ -311,6 +329,11 @@ const fc4 = supervision({
   title: t`Sketching ${math`\cos ${2}x`} and ${math`\sin^{${2}} x`}`,
   prompt: t`Sketch the curves ${math`y = \cos ${2}x`} and ${math`y = (\sin x)^{${2}}`} for ${math`-${2}\pi \le x \le ${2}\pi`}, marking where each crosses or touches the axes, its greatest and least values, and its period. Explain how the two graphs are related.`,
   writeUp: 'sketch',
+  hints: [
+    t`Where does each curve meet the ${math`x`}-axis, and where does each reach its greatest and least values?`,
+    t`After how long does each curve repeat?`,
+    t`Which double angle identity links ${math`\cos ${2}x`} to ${math`\sin^{${2}} x`}, and what stretch and shift of one graph does it describe?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

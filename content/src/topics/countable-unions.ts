@@ -239,7 +239,7 @@ const mn = math`n`;
 const S1 = 'ia-prob-sheet-1';
 const Q6_DEFS = t`For a sequence of events ${math`(A_n : n \in \mathbb{N})`}, the sheet sets ${dmath`A = \{\omega \in \Omega : \omega \in A_n \text{ infinitely often}\}, \qquad B = \{\omega \in \Omega : \omega \in A_n \text{ for all sufficiently large } n\}.`}`;
 
-function q6Example(o: { id: string; f: Family; ask: 'io' | 'eventually'; title: Rich; steps: Rich[]; check: number[] }) {
+function q6Example(o: { id: string; f: Family; ask: 'io' | 'eventually'; title: Rich; steps: Rich[]; check: number[]; hints?: Rich[]; nudge?: Rich }) {
   const { io, ev } = limits(o.f);
   const ans = o.ask === 'io' ? io : ev;
   return auto({
@@ -248,6 +248,8 @@ function q6Example(o: { id: string; f: Family; ask: 'io' | 'eventually'; title: 
     title: o.title,
     prompt: t`${Q6_DEFS} Take ${math`\Omega = ${setOf([...OMEGA])}`} and ${familyText(o.f)}. What is ${o.ask === 'io' ? mA : mB}? Choose all its elements.`,
     answer: { kind: 'choice', options: OPTIONS, correct: ids(ans) },
+    ...(o.hints === undefined ? {} : { hints: o.hints }),
+    ...(o.nudge === undefined ? {} : { nudge: o.nudge }),
     solution: o.steps,
     reference: ids(ans),
     verify: () => same(`${o.id}, by the definition`, ans.join(','), o.check.join(',')),
@@ -267,21 +269,42 @@ const q6divB = q6Example({
   steps: [
     t`${math`${1}`} divides every ${math`n`}, so ${1} is in every ${math`A_n`}.`,
     t`For ${math`\omega \ge ${2}`}, the numbers ${math`n`} that ${mw} does not divide go on for ever (for example ${math`n = k\omega + ${1}`}), so ${mw} is not in all ${math`A_n`} from any point on. So ${math`B = \{${1}\}`}.`,
+    t`Eventually means in every set from some point on.`,
   ],
+  hints: [
+    t`For which ${math`n`} is a point ${mw} in ${math`A_n`}?`,
+    t`Is ${1} in every ${math`A_n`}?`,
+    t`For ${math`\omega \ge ${2}`}, are there infinitely many ${math`n`} that ${mw} does not divide?`,
+  ],
+  nudge: t`Not quite. Eventually means in every ${math`A_n`} from some point on; test each point against all large ${math`n`}.`,
 });
 const q6parity = q6Example({
   id: 'q6-parity-b', f: 'parity', ask: 'eventually', title: t`Alternating sets`, check: [],
   steps: [
     t`Every ${mw} is in ${math`A_n`} for every other ${math`n`}: the even points for even ${math`n`}, the odd ones for odd ${math`n`}.`,
     t`So each point is in ${math`A_n`} infinitely often, ${math`A = \Omega`}, but no point is in every ${math`A_n`} from some point on: ${math`B = \varnothing`}. The two sets can be as far apart as possible.`,
+    t`Infinitely often is weaker than eventually.`,
   ],
+  hints: [
+    t`Which points lie in ${math`A_n`} for even ${math`n`}, and which for odd ${math`n`}?`,
+    t`Does any point stay in ${math`A_n`} for two consecutive values of ${math`n`}?`,
+    t`What does "for all sufficiently large ${math`n`}" require of a point?`,
+  ],
+  nudge: t`Not quite. Follow one point through consecutive values of ${math`n`}.`,
 });
 const q6fixed = q6Example({
   id: 'q6-fixed-a', f: 'fixed-plus', ask: 'io', title: t`Two fixed points and two that alternate`, check: [1, 2, 3, 4],
   steps: [
     t`${1} and ${2} are in every ${math`A_n`}; ${3} is in ${math`A_n`} for every even ${math`n`}, and ${4} for every odd ${math`n`}; ${5} and ${6} never are.`,
     t`So ${math`A = \{${1}, ${2}, ${3}, ${4}\}`}, while ${math`B = \{${1}, ${2}\}`}.`,
+    t`Infinitely often: the point keeps coming back.`,
   ],
+  hints: [
+    t`Which points are in every ${math`A_n`}?`,
+    t`Which points come back for every even ${math`n`}, or for every odd ${math`n`}?`,
+    t`Which points are in no ${math`A_n`} at all?`,
+  ],
+  nudge: t`Not quite. Infinitely often needs only that a point keeps coming back, not that it stays.`,
 });
 
 const deMorgan = supervision({
@@ -289,6 +312,11 @@ const deMorgan = supervision({
   source: cite(S1, 'Q4(a), the countable intersection', true),
   title: t`De Morgan's law for a sequence`,
   prompt: t`Let ${math`A_{${1}}, A_{${2}}, \ldots`} be subsets of ${math`\Omega`}. Prove that ${math`\left(\bigcup_{n = ${1}}^{\infty} A_n\right)^{c} = \bigcap_{n = ${1}}^{\infty} A_n^{c}`}: show each side is a subset of the other, by taking a point ${mw} and saying what membership of each side means. Then deduce ${math`\bigcap_{n} A_n = \left(\bigcup_n A_n^{c}\right)^{c}`}, the step the sheet's fourth question needs.`,
+  hints: [
+    t`What does ${math`\omega \in \left(\bigcup_{n} A_n\right)^{c}`} say about every ${math`n`}?`,
+    t`What does ${math`\omega \in \bigcap_{n} A_n^{c}`} say?`,
+    t`Applying the law to the sets ${math`A_n^{c}`} and taking complements, what results?`,
+  ],
   writeUp: 'proof',
 });
 const ioWords = supervision({
@@ -296,6 +324,11 @@ const ioWords = supervision({
   source: cite(S1, 'Q6', true),
   title: t`Infinitely often, in quantifiers`,
   prompt: t`${Q6_DEFS} Write "${mw} is in ${math`A_n`} infinitely often" and "${mw} is in ${math`A_n`} for all sufficiently large ${math`n`}" with the quantifiers "for every" and "there exists", and explain why every point of ${mB} is a point of ${mA}. Give a sequence of sets for which ${mA} is not a subset of ${mB}.`,
+  hints: [
+    t`With quantifiers, what does being in ${math`A_n`} for infinitely many ${math`n`} say about every ${math`N`}?`,
+    t`What does being in ${math`A_n`} for all sufficiently large ${math`n`} say, starting with there exists ${math`N`}?`,
+    t`Why does the second imply the first, and which alternating sequence breaks the converse?`,
+  ],
   writeUp: 'explanation',
 });
 

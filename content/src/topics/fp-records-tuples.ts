@@ -224,7 +224,7 @@ const pokerecord = auto({
   id: 'cs3110-ex3-pokerecord',
   source: cite('cs3110-ex3', 'Exercise "pokerecord"', true),
   title: t`Building a record`,
-  prompt: t`Given ${codeBlock(code`type poketype = Normal | Fire | Water`, code`type pokemon = { name : string; hp : int; ptype : poketype }`)} which of these define a ${code`pokemon`} named ${code`"charizard"`} with ${78} HP and type ${code`Fire`}? Choose all that apply.`,
+  prompt: t`Given ${codeBlock(code`type poketype = Normal | Fire | Water`, code`type pokemon = { name : string; hp : int; ptype : poketype }`)} which of these define a ${code`pokemon`} named ${code`"charizard"`} with ${78} HP and type ${code`Fire`}? Choose all that do.`,
   answer: {
     kind: 'choice',
     options: [
@@ -239,6 +239,13 @@ const pokerecord = auto({
     t`A record value gives every field a value, by name, in braces. The fields are found by name, so their order does not matter: the first two are the same record, and OCaml says they are equal.`,
     t`A tuple has no field names: ${code`("charizard", ${78}, Fire)`} is a value of type ${code`string * int * poketype`}, not a ${code`pokemon`}.`,
     t`Leaving out ${code`ptype`} is an error: OCaml reports that some record fields are undefined.`,
+    t`Record fields are found by name, and every field must be given.`,
+  ],
+  nudge: t`Not quite. Check two things for each: is it a record at all, and is every field given?`,
+  hints: [
+    t`Does the order of fields matter when a record is written with names?`,
+    t`Does a tuple with the same values have the record's type?`,
+    t`What happens if a field is left out?`,
   ],
   reference: ['inorder', 'reordered'],
   // OCaml 4.11.1: the two records are equal (charizard = c2 is true); the tuple and the record without ptype are errors.
@@ -257,22 +264,37 @@ const dateBefore = supervision({
   id: 'cs3110-ex3-date-before',
   source: cite('cs3110-ex3', 'Exercise "date before"'),
   title: t`Comparing dates`,
-  prompt: t`A date is a triple of type ${code`int * int * int`}, year, month, day, such as ${code`(${2013}, ${2}, ${1})`}. Write ${code`is_before`}, taking two dates and returning ${code`true`} exactly when the first comes strictly before the second. Take the triples apart with a pattern, and explain why your function is right on dates even though it never checks that its inputs are valid dates.`,
+  prompt: t`A date is a triple of type ${code`int * int * int`}, year, month, day, such as ${code`(${2013}, ${2}, ${1})`}. Write ${code`is_before`}, taking two dates and returning ${code`true`} exactly when the first comes strictly before the second. Take the triples apart with a pattern, and explain why the function is right on dates even though it never checks that its inputs are valid dates.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which pattern names the three parts of each date?`,
+    t`If the years differ, what decides the answer, and if they are equal, what is compared next?`,
+    t`Why does comparing year, then month, then day give the right order for any two valid dates?`,
+  ],
 });
 const focs43 = supervision({
   id: 'focs-4-3',
   source: cite('focs-notes', 'Lecture 4, Exercise 4.3'),
   title: t`A zip without the wildcard`,
-  prompt: t`How does this version of ${code`zip`} differ from FoCS's? ${codeBlock(code`let rec zip xs ys = match xs, ys with`, code`  | (x :: xs, y :: ys) -> (x, y) :: zip xs ys`, code`  | ([], []) -> []`)} OCaml warns that the match is not exhaustive, with the example ${code`(_ :: _, [])`}. Say what happens on lists of different lengths, and when you might prefer this version.`,
+  prompt: t`How does this version of ${code`zip`} differ from FoCS's? ${codeBlock(code`let rec zip xs ys = match xs, ys with`, code`  | (x :: xs, y :: ys) -> (x, y) :: zip xs ys`, code`  | ([], []) -> []`)} OCaml warns that the match is not exhaustive, with the example ${code`(_ :: _, [])`}. State what happens on lists of different lengths, and when this version might be preferred.`,
   writeUp: 'explanation',
+  hints: [
+    t`What does the FoCS version return when one list runs out before the other?`,
+    t`What happens at run time in this version when the lists have different lengths?`,
+    t`When is failing loudly on unequal lengths better than silently dropping elements?`,
+  ],
 });
 const focs46 = supervision({
   id: 'focs-4-6',
   source: cite('focs-notes', 'Lecture 4, Exercise 4.6'),
   title: t`What a type tells you`,
-  prompt: t`We know nothing about the functions ${code`f`} and ${code`g`} other than their polymorphic types: ${code`f : 'a * 'b -> 'b * 'a`} and ${code`g : 'a -> 'a list`}. Suppose ${code`f (${1}, true)`} and ${code`g ${0}`} are evaluated and return results. State, with reasons, what you think the resulting values will be.`,
+  prompt: t`We know nothing about the functions ${code`f`} and ${code`g`} other than their polymorphic types: ${code`f : 'a * 'b -> 'b * 'a`} and ${code`g : 'a -> 'a list`}. Suppose ${code`f (${1}, true)`} and ${code`g ${0}`} are evaluated and return results. State, with reasons, what the resulting values should be.`,
   writeUp: 'explanation',
+  hints: [
+    t`Knowing nothing about ${code`'a`} and ${code`'b`}, where can ${code`f`} find values of those types for its result?`,
+    t`Can ${code`g`} make a value of type ${code`'a`} other than its argument?`,
+    t`Which lists of type ${code`int list`} could ${code`g ${0}`} return, and what does that leave open?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

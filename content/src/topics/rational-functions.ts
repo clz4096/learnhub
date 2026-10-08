@@ -150,7 +150,7 @@ const obliqueQ = auto({
   prompt: t`Write ${math`y = \frac{x^{${2}}}{x - ${1}}`} in the form ${math`ax + b + \frac{c}{x - ${1}}`}, and hence find the line that the curve approaches as ${math`x \to \pm\infty`}. Type the right side of ${math`y = ax + b`}.`,
   answer: { kind: 'expression', expected: 'x + 1', variables: ['x'] },
   solution: [
-    t`We want ${math`x^{${2}} \equiv (ax + b)(x - ${1}) + c`}. Multiply out the right side: ${math`ax^{${2}} + (b - a)x + (c - b)`}.`,
+    t`The aim is ${math`x^{${2}} \equiv (ax + b)(x - ${1}) + c`}. Multiply out the right side: ${math`ax^{${2}} + (b - a)x + (c - b)`}.`,
     t`Compare coefficients: ${math`a = ${1}`}; ${math`b - a = ${0}`}, so ${math`b = ${1}`}; ${math`c - b = ${0}`}, so ${math`c = ${1}`}. Hence ${math`\frac{x^{${2}}}{x - ${1}} = x + ${1} + \frac{${1}}{x - ${1}}`}.`,
     t`As ${math`x \to \pm\infty`}, ${math`\frac{${1}}{x - ${1}} \to ${0}`}, so the curve approaches the line ${math`y = x + ${1}`}.`,
     t`It never meets it: ${math`\frac{${1}}{x - ${1}}`} is never ${0}. Above the line for ${math`x > ${1}`}, below it for ${math`x < ${1}`}.`,
@@ -169,10 +169,17 @@ const turnsQ = auto({
   source: cite(F18, 'Assignment 18, Q1(iii)', true),
   title: t`Turning points of x squared over x minus one`,
   prompt: t`Find the ${math`x`} coordinates of the turning points of ${math`y = \frac{x^{${2}}}{x - ${1}}`}.`,
+  nudge: t`Not quite. Differentiating the divided form is quicker than differentiating the quotient.`,
+  hints: [
+    t`How can ${math`\frac{x^{${2}}}{x - ${1}}`} be split into a linear part plus a proper fraction?`,
+    t`What is the derivative of ${math`(x - ${1})^{${-1}}`}?`,
+    t`Setting ${math`\frac{dy}{dx} = ${0}`}, what equation does ${math`(x - ${1})^{${2}}`} satisfy, and which ${math`x`} solve it?`,
+  ],
   answer: { kind: 'witness', count: 2, unordered: true, example: '0, 2', check: (vals) => (setKey(vals) === setKey([q(0), q(2)]) ? null : 'Differentiate x + 1 + 1/(x - 1) and set the derivative to 0.') },
   solution: [
     t`From ${math`y = x + ${1} + (x - ${1})^{${-1}}`}: ${math`\frac{dy}{dx} = ${1} - \frac{${1}}{(x - ${1})^{${2}}}`}, using the derivative ${math`-(x - ${1})^{${-2}}`} of ${math`(x - ${1})^{${-1}}`}.`,
     t`This is ${0} when ${math`(x - ${1})^{${2}} = ${1}`}, so ${math`x - ${1} = \pm ${1}`}: ${math`x = ${0}`} or ${math`x = ${2}`}, at ${math`(${0}, ${0})`} and ${math`(${2}, ${4})`}.`,
+    t`Divide before differentiating: the simpler form gives the simpler derivative.`,
   ],
   reference: '0, 2',
   verify: () => firstError(close('slope at 0', numDeriv(sq, 0), 0), close('slope at 2', numDeriv(sq, 2), 0), same('y(2)', sq(2), 4)),
@@ -185,10 +192,17 @@ const horizQ = auto({
   source: cite(F18, 'Assignment 18, Q1(ii)'),
   title: t`What happens far out?`,
   prompt: t`Write ${math`\frac{x}{x - ${1}}`} in the form ${math`a + \frac{b}{x - ${1}}`}. What value does ${math`y = \frac{x}{x - ${1}}`} approach as ${math`x \to \pm\infty`}?`,
+  nudge: t`Not quite. Split off a whole part first; then only one piece changes far out.`,
+  hints: [
+    t`How can the numerator ${math`x`} be written as ${math`x - ${1}`} plus a constant?`,
+    t`What values of ${math`a`} and ${math`b`} does that give?`,
+    t`As ${math`x \to \pm\infty`}, which piece of ${math`a + \frac{b}{x - ${1}}`} tends to ${0}?`,
+  ],
   answer: { kind: 'exact', expected: '1' },
   solution: [
     t`${math`x = (x - ${1}) + ${1}`}, so ${math`\frac{x}{x - ${1}} = ${1} + \frac{${1}}{x - ${1}}`}: the curve ${math`y = \frac{${1}}{x - ${1}}`} moved up by ${1}.`,
     t`As ${math`x \to \pm\infty`} the fraction tends to ${0}, so ${math`y \to ${1}`}.`,
+    t`Split off the whole part; the proper fraction is what fades far out.`,
   ],
   reference: '1',
   verify: () => close('y at 10^8', 1e8 / (1e8 - 1), 1, 1e-6),
@@ -201,10 +215,17 @@ const sumQ = auto({
   source: cite(F18, 'Assignment 18, Q1(iv)', true),
   title: t`Two reciprocals added`,
   prompt: t`How many turning points does ${math`y = \frac{${1}}{x - ${1}} + \frac{${1}}{x + ${1}}`} have?`,
+  nudge: t`Not quite. The sign of the derivative settles this without solving an equation.`,
+  hints: [
+    t`What is ${math`\frac{dy}{dx}`}, term by term?`,
+    t`What sign does each term of ${math`\frac{dy}{dx}`} have wherever it is defined?`,
+    t`Can a derivative of that sign ever equal ${0}?`,
+  ],
   answer: { kind: 'exact', expected: '0' },
   solution: [
     t`${math`\frac{dy}{dx} = -\frac{${1}}{(x - ${1})^{${2}}} - \frac{${1}}{(x + ${1})^{${2}}}`}.`,
     t`Each fraction is positive wherever it is defined, so the gradient is always negative: the curve heads downwards on every branch and has no turning points.`,
+    t`A derivative that keeps one sign means no turning points.`,
   ],
   reference: '0',
   verify: () => {
@@ -222,10 +243,17 @@ const crossQ = auto({
   source: cite(F07, 'Assignment 7, Q1(i)(d)'),
   title: t`Where x minus its reciprocal crosses the axis`,
   prompt: t`Find the values of ${math`x`} where the graph of ${math`y = x - \frac{${1}}{x}`} crosses the ${math`x`} axis.`,
+  nudge: t`Not quite. Clear the fraction, and remember which ${math`x`} is not on the curve.`,
+  hints: [
+    t`What equation in ${math`x`} does ${math`y = ${0}`} give?`,
+    t`Multiplying by ${math`x`}, allowed because ${math`x \ne ${0}`} on the curve, what equation results?`,
+    t`Which values of ${math`x`} solve it, and are they all on the curve?`,
+  ],
   answer: { kind: 'witness', count: 2, unordered: true, example: '-1, 1', check: (vals) => (setKey(vals) === setKey([q(-1), q(1)]) ? null : 'Multiply x - 1/x = 0 by x (which is not 0).') },
   solution: [
     t`${math`y = ${0}`} means ${math`x = \frac{${1}}{x}`}. Multiply by ${math`x`}, allowed because ${math`x \ne ${0}`} on the curve: ${math`x^{${2}} = ${1}`}.`,
     t`So ${math`x = ${1}`} or ${math`x = ${-1}`}.`,
+    t`Multiply through by a factor only after checking it is not zero.`,
   ],
   reference: '-1, 1',
   verify: () => firstError(same('y(1)', 1 - 1 / 1, 0), same('y(-1)', -1 - 1 / -1, 0)),
@@ -238,6 +266,11 @@ const sketchAll = supervision({
   source: cite(F18, 'Assignment 18, Q1'),
   title: t`Four rational curves`,
   prompt: t`Sketch the curves ${math`y = \frac{${1}}{x - ${1}}`}, ${math`y = \frac{x}{x - ${1}}`}, ${math`y = \frac{x^{${2}}}{x - ${1}}`}, and ${math`y = \frac{${1}}{x - ${1}} + \frac{${1}}{x + ${1}}`}, showing the intercepts with the axes, the turning points, and the asymptotes, and whether each curve approaches a horizontal asymptote from above or from below.`,
+  hints: [
+    t`For each curve, where is it undefined, and what does ${math`y`} do just either side of each such ${math`x`}?`,
+    t`Written as a polynomial plus a proper fraction, what does each curve approach far out, and from which side?`,
+    t`Where is ${math`\frac{dy}{dx} = ${0}`} on each curve, and where does each meet the axes?`,
+  ],
   writeUp: 'sketch',
   official: cite(F18H, 'Assignment 18 hints, Q1'),
 });
@@ -249,6 +282,11 @@ const db12q5 = supervision({
   source: cite('stepdb-12-s2', 'Q5(i)'),
   title: t`A reciprocal quadratic, moved by ${math`a`}`,
   prompt: t`Sketch the curve ${math`y = f(x)`}, where ${dmath`f(x) = \frac{${1}}{(x - a)^{${2}} - ${1}} \qquad (x \ne a \pm ${1}),`} and ${math`a`} is a constant.`,
+  hints: [
+    t`With ${math`u = x - a`}, what curve in ${math`u`} is being sketched, and how does going back to ${math`x`} move it?`,
+    t`For ${math`y = \frac{${1}}{u^{${2}} - ${1}}`}, where are the vertical asymptotes, and what sign is ${math`y`} between them and outside them?`,
+    t`Where does ${math`u^{${2}} - ${1}`} take its least value, and what does that give for a turning point of the curve?`,
+  ],
   writeUp: 'sketch',
 });
 

@@ -310,6 +310,9 @@ const firstConverseFailure = (f: Fact): number => upTo(200).find((n) => f.holdsQ
 
 // ---------------------------------------------------------------- Cambridge problems
 
+/** A problem with its "Not right yet" line and three escalating hints (mastery/APP-LANGUAGE.md). */
+const helped = (p: AutoProblem, nudge: Rich, hints: readonly Rich[]): AutoProblem => ({ ...p, nudge, hints });
+
 function bopTable(n: number, f: F, helpers: readonly F[], steps: Rich[], official?: readonly string[]): AutoProblem {
   const at = `Section 2.5, exercise ${n}`;
   const vs = varsOf(f);
@@ -332,20 +335,32 @@ function bopTable(n: number, f: F, helpers: readonly F[], steps: Rich[], officia
   return auto(spec);
 }
 
-const bop25_1 = bopTable(1, or(P, imp(Q, R)), [imp(Q, R)], [
+const bop25_1 = helped(bopTable(1, or(P, imp(Q, R)), [imp(Q, R)], [
   t`${math`Q \Rightarrow R`} is false only when ${math`Q`} is true and ${math`R`} is false: rows ${2} and ${6}.`,
-  t`${math`P \lor (Q \Rightarrow R)`} is then false only where both parts are false: row ${6}, where ${mP} is false, ${mQ} true, and ${math`R`} false.`,
-], ['T', 'T', 'F', 'T', 'T', 'T', 'T', 'T', 'T', 'T', 'F', 'F', 'T', 'T', 'T', 'T']);
+  t`${math`P \lor (Q \Rightarrow R)`} is false only where both parts are false: row ${6}, where ${mP} is false, ${mQ} true, and ${math`R`} false.`,
+  t`Fill the inner column first, then the outer one.`,
+], ['T', 'T', 'F', 'T', 'T', 'T', 'T', 'T', 'T', 'T', 'F', 'F', 'T', 'T', 'T', 'T']),
+t`Not quite. Fill the column for ${math`Q \Rightarrow R`} first; it is false in very few rows.`, [
+  t`In which rows is ${math`Q \Rightarrow R`} false?`,
+  t`When is a statement of the form ${math`A \lor B`} false?`,
+  t`In which rows are ${mP} and ${math`Q \Rightarrow R`} both false?`,
+]);
 
 const bop25_3 = bopTable(3, not(imp(P, Q)), [imp(P, Q)], [
   t`${IMP} is false only in row ${2}, where ${mP} is true and ${mQ} is false.`,
   t`Its negation is true only in that row: ${math`\lnot (P \Rightarrow Q)`} says "${mP} and not ${mQ}".`,
 ], ['T', 'F', 'F', 'T', 'T', 'F', 'T', 'F']);
 
-const bop25_7 = bopTable(7, imp(and(P, not(P)), Q), [and(P, not(P))], [
+const bop25_7 = helped(bopTable(7, imp(and(P, not(P)), Q), [and(P, not(P))], [
   t`${math`P \land \lnot P`} is false in every row: a statement and its negation are never both true.`,
-  t`So the implication has a false left side in every row, and is true in every row. A false statement implies anything.`,
-], ['F', 'T', 'F', 'T', 'F', 'T', 'F', 'T']);
+  t`So the implication has a false left side in every row, and is true in every row.`,
+  t`A false hypothesis makes an implication true.`,
+], ['F', 'T', 'F', 'T', 'F', 'T', 'F', 'T']),
+t`Not quite. Look at the left side on its own first: can it ever be true?`, [
+  t`In which rows is ${math`P \land \lnot P`} true?`,
+  t`What is the truth value of an implication whose left side is false?`,
+  t`What does that make ${math`(P \land \lnot P) \Rightarrow Q`} in each row?`,
+]);
 
 /** Truth values of named letters as a table answer. */
 function valuesProblem(o: { n: number; f: F; given: Record<string, boolean>; truth: boolean; ask: readonly V[]; steps: Rich[]; derived: readonly string[]; official?: readonly string[] }): AutoProblem {
@@ -379,30 +394,40 @@ function valuesProblem(o: { n: number; f: F; given: Record<string, boolean>; tru
 }
 
 const S = Vr('S');
-const bop25_10 = valuesProblem({
+const bop25_10 = helped(valuesProblem({
   n: 10, f: imp(or(and(P, Q), R), or(R, S)), given: {}, truth: false, ask: ['P', 'Q', 'R', 'S'], derived: ['T', 'T', 'F', 'F'],
   steps: [
     t`The implication is false, so its left side ${math`(P \land Q) \lor R`} is true and its right side ${math`R \lor S`} is false.`,
     t`${math`R \lor S`} false means ${math`R`} and ${math`S`} are both false.`,
     t`Then ${math`(P \land Q) \lor R`} true with ${math`R`} false means ${math`P \land Q`} is true: ${mP} and ${mQ} are both true.`,
+    t`A false implication fixes both sides: true left, false right.`,
   ],
-});
-const bop25_11 = valuesProblem({
+}), t`Not quite. A false implication pins down both of its sides; start there.`, [
+  t`In which single case is an implication false?`,
+  t`What does ${math`R \lor S`} being false say about ${math`R`} and ${math`S`}?`,
+  t`With that value of ${math`R`}, what must ${math`P \land Q`} be?`,
+]);
+const bop25_11 = helped(valuesProblem({
   n: 11, f: { op: 'iff', a: imp(Vr('R'), S), b: and(P, Q) }, given: { P: false }, truth: true, ask: ['R', 'S'], derived: ['T', 'F'],
   steps: [
     t`${math`\Leftrightarrow`} (if and only if) is true when both sides have the same truth value.`,
-    t`${mP} is false, so ${math`P \land Q`} is false. For the "if and only if" to be true, ${math`R \Rightarrow S`} must be false too.`,
-    t`The only way for ${math`R \Rightarrow S`} to be false is ${math`R`} true and ${math`S`} false.`,
+    t`${mP} is false, so ${math`P \land Q`} is false, and ${math`R \Rightarrow S`} must be false too.`,
+    t`${math`R \Rightarrow S`} is false only with ${math`R`} true and ${math`S`} false.`,
+    t`Start from the known values; an implication is false in only one case.`,
   ],
   official: ['T', 'F'],
-});
+}), t`Not quite. Start from the side whose truth value is already known.`, [
+  t`With ${mP} false, what is the truth value of ${math`P \land Q`}?`,
+  t`If the "if and only if" is true, how must the truth values of its two sides compare?`,
+  t`In which single case is ${math`R \Rightarrow S`} false?`,
+]);
 
 /** A Book of Proof Section 2.3 sentence: the "If P, then Q" form, its converse, and its inverse. */
 type Kind = 'necessary' | 'only-if' | 'whenever' | 'provided';
 /** Which clause is the hypothesis, read from the sentence's construction alone. */
 const hypothesisIsFirst = (k: Kind): boolean => k === 'necessary' || k === 'only-if';
 
-function bop23(o: { n: number; kind: Kind; text: Rich; first: [Rich, Rich]; second: [Rich, Rich]; right: Rich; official: boolean; check?: () => boolean }): AutoProblem {
+function bop23(o: { n: number; kind: Kind; text: Rich; first: [Rich, Rich]; second: [Rich, Rich]; right: Rich; lesson: Rich; nudge: Rich; hints: readonly Rich[]; official: boolean; check?: () => boolean }): AutoProblem {
   const at = `Section 2.3, exercise ${o.n}`;
   // first and second: the two clauses as they appear, each as [positive, negative].
   const [hyp, concl] = hypothesisIsFirst(o.kind) ? [o.first, o.second] : [o.second, o.first];
@@ -415,9 +440,11 @@ function bop23(o: { n: number; kind: Kind; text: Rich; first: [Rich, Rich]; seco
     id: `bop-2-3-${o.n}`,
     source: cite('bop', at, true),
     title: t`In the form "If ${mP}, then ${mQ}"`,
-    prompt: t`Without changing its meaning, which sentence of the form "If ${mP}, then ${mQ}" says the same as: "${o.text}"`,
+    prompt: t`Choose the sentence of the form "If ${mP}, then ${mQ}" with the same meaning as: "${o.text}"`,
     answer: { kind: 'choice', options, correct: 'right' },
-    solution: [o.right],
+    solution: [o.right, o.lesson],
+    nudge: o.nudge,
+    hints: o.hints,
     reference: 'right',
     // The construction decides the hypothesis; with numbers, check the implication holds and its converse does not.
     verify: () => (o.check === undefined || o.check() ? null : `Book of Proof ${at}: the numbers disagree`),
@@ -435,12 +462,26 @@ const bop23_3 = bop23({
   text: t`For a function to be continuous, it is necessary that it is integrable.`,
   first: [t`a function is continuous`, t`a function is not continuous`], second: [t`it is integrable`, t`it is not integrable`],
   right: t`A necessary condition is one the other cannot hold without: a continuous function must be integrable. So: if a function is continuous, then it is integrable.`,
+  lesson: t`${mQ} is necessary for ${mP}: ${IMP}.`,
+  nudge: t`Not quite. Ask which of the two can hold without the other.`,
+  hints: [
+    t`If a condition is necessary for something, can that something hold without it?`,
+    t`According to the sentence, which property must every continuous function have?`,
+    t`Which clause, then, is the hypothesis, and which the conclusion?`,
+  ],
 });
 const bop23_5 = bop23({
   n: 5, kind: 'only-if', official: true,
   text: t`An integer is divisible by ${8} only if it is divisible by ${4}.`,
   first: [t`an integer is divisible by ${8}`, t`an integer is not divisible by ${8}`], second: [t`it is divisible by ${4}`, t`it is not divisible by ${4}`],
   right: t`"${mP} only if ${mQ}" means ${IMP}: an integer cannot be divisible by ${8} without being divisible by ${4}.`,
+  lesson: t`"${mP} only if ${mQ}" is ${IMP}.`,
+  nudge: t`Not quite. Ask which of the two the sentence says cannot happen without the other.`,
+  hints: [
+    t`Does "${mP} only if ${mQ}" allow ${mP} to be true while ${mQ} is false?`,
+    t`Can an integer be divisible by ${8} without being divisible by ${4}?`,
+    t`Which divisibility statement, then, is the hypothesis?`,
+  ],
   check: () => upTo(400).every((n) => n % 8 !== 0 || n % 4 === 0) && upTo(400).some((n) => n % 4 === 0 && n % 8 !== 0),
 });
 const bop23_7 = bop23({
@@ -448,12 +489,26 @@ const bop23_7 = bop23({
   text: t`A series converges whenever it converges absolutely.`,
   first: [t`a series converges`, t`a series does not converge`], second: [t`it converges absolutely`, t`it does not converge absolutely`],
   right: t`"${mQ} whenever ${mP}" means ${IMP}. The condition is converging absolutely: if a series converges absolutely, then it converges.`,
+  lesson: t`"${mQ} whenever ${mP}" is ${IMP}.`,
+  nudge: t`Not quite. Ask which condition, once met, guarantees the other.`,
+  hints: [
+    t`In "${mQ} whenever ${mP}", which clause is the condition?`,
+    t`Does the sentence promise that every convergent series converges absolutely, or the other way round?`,
+    t`Which clause, then, belongs after "If"?`,
+  ],
 });
 const bop23_11 = bop23({
   n: 11, kind: 'only-if', official: true,
   text: t`You fail only if you stop writing. (Ray Bradbury)`,
   first: [t`you fail`, t`you do not fail`], second: [t`you have stopped writing`, t`you have not stopped writing`],
-  right: t`"${mP} only if ${mQ}": you cannot fail without having stopped writing. So: if you fail, then you have stopped writing.`,
+  right: t`"${mP} only if ${mQ}" means ${IMP}: failing cannot happen without having stopped writing. So: "If you fail, then you have stopped writing."`,
+  lesson: t`"${mP} only if ${mQ}" is ${IMP}, not its converse.`,
+  nudge: t`Not quite. "Only if" names what must already be true; ask which part cannot happen without the other.`,
+  hints: [
+    t`Does "${mP} only if ${mQ}" allow ${mP} to be true while ${mQ} is false?`,
+    t`According to the sentence, can failing happen without having stopped writing?`,
+    t`Which clause, then, is the hypothesis?`,
+  ],
 });
 
 /** TMUA Exercise E, question 4, as a table: the truth of if A then (A or B), and if A then (A and B). */
@@ -468,11 +523,18 @@ const tmuaE4 = (() => {
     id: 'tmua-e-4',
     source: cite('tmua-logic-proof', 'Exercise E, question 4', true),
     title: t`If ${mP} then (${mP} or ${mQ})`,
-    prompt: t`What can you say about the truth of "if ${mP} then (${mP} or ${mQ})" and "if ${mP} then (${mP} and ${mQ})"? Fill in both columns. (TMUA writes A and B; the course writes ${mP} and ${mQ}.)`,
+    prompt: t`Fill in the truth values of "if ${mP} then (${mP} or ${mQ})" and "if ${mP} then (${mP} and ${mQ})" in every row. (TMUA writes A and B; the course writes ${mP} and ${mQ}.)`,
     answer,
     solution: [
-      t`When ${mP} is true, ${math`P \lor Q`} is true too, so the first implication never has a true left side and a false right side: it is true in every row, whatever ${mP} and ${mQ} are.`,
+      t`When ${mP} is true, ${math`P \lor Q`} is true too, so the first implication never has a true left side and a false right side: it is true in every row.`,
       t`The second fails in one row: ${mP} true and ${mQ} false, where ${math`P \land Q`} is false. It says the same as ${IMP}.`,
+      t`An implication fails only on a true hypothesis with a false conclusion.`,
+    ],
+    nudge: t`Not quite. An implication is false in one case only; check each row for that case.`,
+    hints: [
+      t`When ${mP} is true, what must be true of ${math`P \lor Q`}?`,
+      t`In which rows is the left side ${mP} true?`,
+      t`For each implication, is there a row with ${mP} true and the right side false?`,
     ],
     reference: second(),
     verify: () => same('TMUA E4, two evaluators', answer.expected.join(''), second().join('')),
@@ -484,7 +546,7 @@ const tmua29 = auto({
   id: 'tmua-p29',
   source: cite('tmua-logic-proof', 'Combining statements, if A then B, page 29', true),
   title: t`True or false implications`,
-  prompt: t`Write T or F: is each statement true or false?`,
+  prompt: t`Decide whether each implication is true (T) or false (F).`,
   answer: {
     kind: 'table', cell: 'truth', columns: [t`statement`, t`true or false`],
     rows: [
@@ -498,6 +560,13 @@ const tmua29 = auto({
     t`The first is false: when ${math`x = ${4}`} is true, ${math`x^{${2}} = ${4 * 4}`}, so ${math`x^{${2}} = ${8}`} is false. A true left side with a false right side.`,
     t`The second is true, because ${math`${0} = ${1}`} is false: an implication with a false left side is true, even though ${math`${2} + ${2} = ${5}`} is false too.`,
     t`The third is true: whenever ${math`a`} and ${math`b`} are odd, ${math`a + b`} is even.`,
+    t`An implication with a false hypothesis is true.`,
+  ],
+  nudge: t`Not quite. Recall the one case in which an implication is false, and test each statement against it.`,
+  hints: [
+    t`In which single case is an implication false?`,
+    t`In the first statement, is the conclusion true when the hypothesis holds?`,
+    t`Can a statement whose hypothesis is false ever be broken?`,
   ],
   reference: ['F', 'T', 'T'],
   verify: () => {
@@ -530,16 +599,26 @@ const prop10 = supervision({
   id: 'notes-50-prop10',
   source: cite('cst-dm-notes', 'printed page 50, Proposition 10'),
   title: t`If ${math`\sqrt{x}`} is rational, so is ${math`x`}`,
-  prompt: t`Let ${math`x`} be a positive real number. Prove that if ${math`\sqrt{x}`} is rational, then so is ${math`x`}. Say what you assume, and what you show.`,
+  prompt: t`Let ${math`x`} be a positive real number. Prove that if ${math`\sqrt{x}`} is rational, then so is ${math`x`}. State the assumption and the conclusion.`,
   writeUp: 'proof',
+  hints: [
+    t`What does it mean for ${math`\sqrt{x}`} to be rational, written with integers?`,
+    t`How is ${math`x`} related to ${math`\sqrt{x}`}, and what does that give for ${math`x`} in terms of those integers?`,
+    t`Why is the result a ratio of integers with a non-zero denominator?`,
+  ],
   official: cite('cst-dm-notes', 'printed page 51, the notes\' proof'),
 });
 const tmuaE1 = supervision({
   id: 'tmua-e-1-2',
   source: cite('tmua-logic-proof', 'Exercise E, questions 1 and 2', true),
   title: t`If ${mP} then ${mQ}, with and, or, not`,
-  prompt: t`The truth table of "if ${mP} then ${mQ}" has three trues and one false. Write it using only and, or, and not, without the arrow, and justify that your statement has the same truth table.`,
+  prompt: t`The truth table of "if ${mP} then ${mQ}" has three trues and one false. Write a statement with the same truth table using only and, or, and not, without the arrow, and justify that the two truth tables agree.`,
   writeUp: 'explanation',
+  hints: [
+    t`In which row is "if ${mP} then ${mQ}" false?`,
+    t`Which statement built from ${mP}, ${mQ}, and not is false in exactly that row?`,
+    t`How can the two truth tables be compared row by row?`,
+  ],
 });
 const tmuaJ = supervision({
   id: 'tmua-j-3-4',
@@ -547,6 +626,11 @@ const tmuaJ = supervision({
   title: t`Converses`,
   prompt: t`Write the converse of each statement, and say which converses are true: (a) if two triangles are congruent then they have the same area; (b) if two triangles are similar then they have the same internal angles; (c) if I am human then I am mortal; (d) if I am a bachelor then I am an unmarried man.`,
   writeUp: 'explanation',
+  hints: [
+    t`How is the converse of "if ${mP} then ${mQ}" formed?`,
+    t`For each converse, can a single example be found where the new hypothesis holds and the new conclusion fails?`,
+    t`Which converses follow from the definitions of the words alone?`,
+  ],
 });
 
 // STEP Support Assignment 4, Q4(i): four cards, a number on one side and a letter on the other.
@@ -568,7 +652,7 @@ const a4Cards = auto({
   id: 'a4-q4-i',
   source: cite('step-f04', 'Q4(i)'),
   title: t`Four cards and a claim`,
-  prompt: t`I have ${4} double-sided cards in front of me. Each has a number on one side and a letter on the other. The faces that are up show ${6}, E, Q, and ${7}. I claim that if there is an even number on one side of a card, then there is a vowel on the other. Which cards do you need to turn over in order to check my claim? Choose all that you must turn over.`,
+  prompt: t`I have ${4} double-sided cards in front of me. Each has a number on one side and a letter on the other. The faces that are up show ${6}, E, Q, and ${7}. I claim that if there is an even number on one side of a card, then there is a vowel on the other. Which cards do you need to turn over in order to check my claim? Choose every card that must be turned over.`,
   answer: {
     kind: 'choice',
     options: [
@@ -580,9 +664,16 @@ const a4Cards = auto({
     correct: ['six', 'q'],
   },
   solution: [
-    t`For one card the claim is an implication ${math`P \Rightarrow V`}, where ${math`P`} is "this card has an even number" and ${math`V`} is "this card has a vowel". An implication is false only when ${math`P`} is true and ${math`V`} is false. So the claim fails exactly on a card with an even number and a consonant, and a card needs turning only if it could be such a card.`,
-    t`The ${6}: its number is even, so ${math`P`} is true. A consonant on the back would break the claim: turn it. The Q: its letter is a consonant, so ${math`V`} is false. An even number on the back would break the claim: turn it.`,
-    t`The E: its letter is a vowel, so ${math`V`} is true and the implication holds whatever the number. The ${7}: its number is odd, so ${math`P`} is false and the implication holds whatever the letter, as the umbrella promise does on a sunny day. Neither can break the claim. Turning the E would test the converse, "a vowel has an even number behind it", which was never claimed.`,
+    t`On one card the claim is ${math`P \Rightarrow V`}, with ${math`P`} "the number is even" and ${math`V`} "the letter is a vowel". It is false only with ${math`P`} true and ${math`V`} false: an even number with a consonant.`,
+    t`The ${6}: ${math`P`} is true, and a consonant behind would break the claim, so turn it. The Q: ${math`V`} is false, and an even number behind would break the claim, so turn it.`,
+    t`The E: ${math`V`} is true, so the claim holds whatever the number. The ${7}: ${math`P`} is false, so the claim holds whatever the letter. Turning the E would test the converse, which was never claimed.`,
+    t`Check only the cases that could break an implication: true hypothesis, false conclusion.`,
+  ],
+  nudge: t`Not quite. Look only for the cards that could break the claim.`,
+  hints: [
+    t`On a single card, which combination of number and letter would make the claim false?`,
+    t`For each visible face, could the hidden face complete that combination?`,
+    t`Which visible faces make the claim hold whatever is on the back?`,
   ],
   reference: ['six', 'q'],
   verify: () => same('the cards whose hidden face could break the claim', mustTurn().join(), 'six,q'),

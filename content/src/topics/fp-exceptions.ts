@@ -264,12 +264,19 @@ const listMax = auto({
   id: 'cs3110-ex3-list-max-exn',
   source: cite('cs3110-ex3', 'Exercise "list max exn"', true),
   title: t`Catching Failure`,
-  prompt: t`The exercise asks for ${code`list_max : int list -> int`}, returning the maximum, or raising ${code`Failure "empty"`} on the empty list; ${code`failwith s`} raises ${code`Failure s`}. With ${codeBlock(code`let rec list_max = function`, code`  | [] -> failwith "empty"`, code`  | [h] -> h`, code`  | h :: t -> max h (list_max t)`)} what is ${code`try list_max [] with Failure s -> String.length s`}?`,
+  prompt: t`The exercise asks for ${code`list_max : int list -> int`}, returning the maximum, or raising ${code`Failure "empty"`} on the empty list; ${code`failwith s`} raises ${code`Failure s`}. With ${codeBlock(code`let rec list_max = function`, code`  | [] -> failwith "empty"`, code`  | [h] -> h`, code`  | h :: t -> max h (list_max t)`)} evaluate ${code`try list_max [] with Failure s -> String.length s`}.`,
   answer: { kind: 'exact', expected: String(MAX_LEN) },
   solution: [
     t`${code`list_max []`} matches the first case and raises ${code`Failure "empty"`}.`,
     t`The handler's pattern ${code`Failure s`} matches it and binds ${code`s`} to the string ${code`"empty"`}, just as a pattern binds a constructor's argument: exceptions are constructors of the type ${code`exn`}.`,
     t`${code`String.length "empty"`} is ${MAX_LEN}, the value of the whole expression.`,
+    t`A handler pattern binds an exception's argument like any constructor pattern.`,
+  ],
+  nudge: t`Not quite. Follow the exception: which pattern catches it, and what is bound to ${code`s`}?`,
+  hints: [
+    t`Which case of ${code`list_max`} does ${code`[]`} match, and what does it raise?`,
+    t`Does the handler's pattern ${code`Failure s`} match that exception, and what is ${code`s`}?`,
+    t`What is the length of that string?`,
   ],
   reference: String(MAX_LEN),
   // OCaml 4.11.1: try list_max [] with Failure s -> String.length s = 5.
@@ -283,15 +290,25 @@ const listMaxString = supervision({
   id: 'cs3110-ex3-list-max-exn-string',
   source: cite('cs3110-ex3', 'Exercise "list max exn string"'),
   title: t`From an exception to a string`,
-  prompt: t`Write ${code`list_max_string : int list -> string`}, returning a string containing the maximum integer in a list, or the string ${code`"empty"`} (not the exception ${code`Failure "empty"`}, just the string) if the list is empty. Use your ${code`list_max`} and a handler, and explain why the handler's value must have type ${code`string`}.`,
+  prompt: t`Write ${code`list_max_string : int list -> string`}, returning a string containing the maximum integer in a list, or the string ${code`"empty"`} (not the exception ${code`Failure "empty"`}, just the string) if the list is empty. Use ${code`list_max`} and a handler, and explain why the handler's value must have type ${code`string`}.`,
   writeUp: 'explanation',
+  hints: [
+    t`What does the normal branch need to do to the integer that ${code`list_max`} returns?`,
+    t`Which exception pattern should the handler match, and what should it return?`,
+    t`In ${code`try e with p -> h`}, why must ${code`e`} and ${code`h`} have the same type?`,
+  ],
 });
 const focs65 = supervision({
   id: 'focs-6-5',
   source: cite('focs-notes', 'Lecture 6, Exercises 6.4 and 6.5'),
   title: t`An evaluator that raises`,
-  prompt: t`Give the declaration of an OCaml type for arithmetic expressions with these possibilities: floating point numbers, variables (represented by strings), or expressions of the form ${math`-E`}, ${math`E + E`}, ${math`E \times E`}. Then write a function that evaluates an expression. If the expression contains any variables, your function should raise an exception indicating the variable name.`,
+  prompt: t`Give the declaration of an OCaml type for arithmetic expressions with these possibilities: floating point numbers, variables (represented by strings), or expressions of the form ${math`-E`}, ${math`E + E`}, ${math`E \times E`}. Then write a function that evaluates an expression. If the expression contains any variables, the function should raise an exception indicating the variable name.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which constructors does the type need, and what does each carry?`,
+    t`Which exception declaration lets the variable's name travel with the exception?`,
+    t`In the evaluator, which case raises, and how do the other cases recurse?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

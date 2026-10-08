@@ -192,6 +192,13 @@ const xexSeries = auto({
     t`${math`xe^{x} = x + x^{${2}} + \frac{x^{${3}}}{${2}!} + \frac{x^{${4}}}{${3}!} + \cdots`}, so its derivative is ${math`${1} + ${2}x + \frac{${3}x^{${2}}}{${2}!} + \frac{${4}x^{${3}}}{${3}!} + \cdots`}.`,
     t`Split each coefficient ${math`n + ${1}`} as ${math`${1} + n`}: ${math`\left(${1} + x + \frac{x^{${2}}}{${2}!} + \cdots\right) + \left(x + \frac{${2}x^{${2}}}{${2}!} + \frac{${3}x^{${3}}}{${3}!} + \cdots\right) = e^{x} + x\left(${1} + x + \frac{x^{${2}}}{${2}!} + \cdots\right)`}.`,
     t`That is ${math`e^{x} + xe^{x} = (x + ${1})e^{x}`}.`,
+    t`Split the coefficients to recognise known series.`,
+  ],
+  nudge: t`Not quite. Write ${math`xe^{x}`} as a series, differentiate term by term, then split each coefficient.`,
+  hints: [
+    t`What is ${math`xe^{x}`} as a power series in ${math`x`}?`,
+    t`Differentiating term by term, what is the coefficient of ${math`x^{n}`}?`,
+    t`How can that coefficient be split so that two familiar series appear?`,
   ],
   reference: 'e^x + x e^x',
   verify: () => agreesAt('(xe^x)\'', '(x + 1) e^x', (x) => numDeriv((u) => u * Math.exp(u), x), [-1, 0.5, 2]),
@@ -205,6 +212,11 @@ const productQ = supervision({
   title: t`Index laws from the series`,
   prompt: t`With ${math`e^{x}`} defined by its series, and without using any rules of indices: use the product rule to show that ${math`\frac{d}{dx}(e^{ax}e^{bx}) = (a + b)e^{ax}e^{bx}`}. Starting with this result, show that ${math`e^{x}e^{-x} = ${1}`}, so that ${math`e^{-x} = \frac{${1}}{e^{x}}`}. Use this result and the series to show that ${math`xe^{x} \to ${0}`} as ${math`x \to -\infty`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Given ${math`\frac{d}{dx}e^{kx} = ke^{kx}`} from the series, what does the product rule give for ${math`\frac{d}{dx}(e^{ax}e^{bx})`}?`,
+    t`With ${math`a = ${1}`} and ${math`b = -${1}`}, what is the derivative of ${math`e^{x}e^{-x}`}, and what is its value at ${math`x = ${0}`}?`,
+    t`Writing ${math`x = -y`} with ${math`y > ${0}`}, how does ${math`e^{y} > \frac{y^{${2}}}{${2}}`}, from the series, bound ${math`|xe^{x}|`}?`,
+  ],
   official: cite(F22H, 'Assignment 22 hints, Q2(iv)'),
 });
 

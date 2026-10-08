@@ -289,7 +289,7 @@ const ftreeInorder = auto({
   id: 'focs-6-3-inorder',
   source: cite('focs-notes', 'Lecture 6, Exercise 6.3, with Lecture 7, Section 7.5', true),
   title: t`The inorder of ftree`,
-  prompt: t`With FoCS's ${FTREE_DEF} and ${codeBlock(code`let rec inorder = function`, code`  | Lf -> []`, code`  | Br (v, t${1}, t${2}) -> inorder t${1} @ [v] @ inorder t${2}`)} what is ${code`inorder (ftree ${1} ${FT_N})`}?`,
+  prompt: t`With FoCS's ${FTREE_DEF} and ${codeBlock(code`let rec inorder = function`, code`  | Lf -> []`, code`  | Br (v, t${1}, t${2}) -> inorder t${1} @ [v] @ inorder t${2}`)} give ${code`inorder (ftree ${1} ${FT_N})`}.`,
   answer: {
     kind: 'choice',
     options: [
@@ -304,6 +304,13 @@ const ftreeInorder = auto({
     t`${code`ftree ${1} ${FT_N}`} is ${code`${oc(treeSrc(FT))}`}.`,
     t`Inorder lists the left subtree, then the root, then the right subtree. The left subtree, rooted at ${2}, gives ${code`[${4}; ${2}; ${5}]`}; then ${1}; then the right subtree gives ${code`[${6}; ${3}; ${7}]`}.`,
     t`So the result is ${code`${oc(showList(inorder(FT)))}`}.`,
+    t`Build the tree first, then traverse it: left, root, right.`,
+  ],
+  nudge: t`Not quite. Draw the tree first, then list left subtree, root, right subtree.`,
+  hints: [
+    t`What tree does ${code`ftree ${1} ${FT_N}`} build?`,
+    t`In inorder, in what order are a node, its left subtree, and its right subtree listed?`,
+    t`What does the left subtree, rooted at ${2}, give in inorder?`,
   ],
   reference: ['right'],
   // OCaml 4.11.1: inorder (ftree 1 3) = [4; 2; 5; 1; 6; 3; 7].
@@ -320,6 +327,11 @@ const depthEx = supervision({
   title: t`The depth of a tree`,
   prompt: t`Write ${code`depth : 'a tree -> int`}, returning the number of nodes in any longest path from the root to a leaf, so that the depth of ${code`Leaf`} is ${0}. (CS${3110} writes ${code`Leaf`} and ${code`Node`} where FoCS writes ${code`Lf`} and ${code`Br`}.) Use the library function ${code`max`}, and explain why ${code`depth`} visits each node exactly once.`,
   writeUp: 'explanation',
+  hints: [
+    t`What is the depth of ${code`Leaf`}?`,
+    t`For a ${code`Node`}, how does its depth follow from the depths of its two subtrees?`,
+    t`How many recursive calls does each node cause, and on which parts of the tree?`,
+  ],
 });
 const shapeEx = supervision({
   id: 'cs3110-ex3-shape',
@@ -327,13 +339,23 @@ const shapeEx = supervision({
   title: t`Trees of the same shape`,
   prompt: t`Write ${code`same_shape : 'a tree -> 'b tree -> bool`}, which decides whether two trees have the same shape, regardless of the values they carry at each node. Use a pattern match with three branches on the pair of trees, and explain why three branches are enough.`,
   writeUp: 'explanation',
+  hints: [
+    t`When do two leaves have the same shape?`,
+    t`For two nodes, which recursive checks decide the answer, and is the value at each node needed?`,
+    t`Which pairs of trees remain, and what single answer covers all of them?`,
+  ],
 });
 const focs62 = supervision({
   id: 'focs-6-2',
   source: cite('focs-notes', 'Lecture 6, Exercise 6.2'),
   title: t`The sum of a tree`,
-  prompt: t`Write an OCaml function taking a binary tree labelled with integers and returning their sum. Give its type, and say what it returns for ${code`Lf`} and why.`,
+  prompt: t`Write an OCaml function taking a binary tree labelled with integers and returning their sum. Give its type, and state what it returns for ${code`Lf`} and why.`,
   writeUp: 'explanation',
+  hints: [
+    t`What should the sum of the labels of an empty tree be, so that sums combine correctly?`,
+    t`For ${code`Br (v, t${1}, t${2})`}, how does the sum follow from ${code`v`} and the sums of the subtrees?`,
+    t`What type does the function have, given that the labels are integers?`,
+  ],
 });
 const focs76 = supervision({
   id: 'focs-7-6',
@@ -341,6 +363,11 @@ const focs76 = supervision({
   title: t`Traversals with append are quadratic`,
   prompt: t`Show that the functions ${code`preorder`}, ${code`inorder`}, and ${code`postorder`}, written with ${code`@`}, all require ${math`O(n^{${2}})`} time in the worst case, where ${math`n`} is the size of the tree. Find a family of trees on which the cost really is quadratic, and count the conses.`,
   writeUp: 'proof',
+  hints: [
+    t`What does ${code`xs @ ys`} cost, in terms of the lengths of ${code`xs`} and ${code`ys`}?`,
+    t`For a tree whose every left subtree holds all but one of the nodes, how long are the lists appended at each level?`,
+    t`Summing those lengths over the levels, which formula for the total, and so which bound, results?`,
+  ],
 });
 
 // Computer Science Tripos Part IA 2013, Paper 1, Question 1 (b) and (c), in OCaml.
@@ -350,6 +377,11 @@ const cst2013Trees = supervision({
   title: t`Every tree with a given inorder`,
   prompt: t`Use the type ${code`type 'a tree = Lf | Br of 'a * 'a tree * 'a tree`}. (b) Write an OCaml function that takes a label and two lists of trees, and returns all trees that consist of a branch with the given label, with the left subtree taken from the first list of trees and the right subtree taken from the second. (c) Write an OCaml function that, given a list of distinct values, returns a list of all possible binary trees whose labels, listed in inorder, match that list. For example, given ${code`${oc(showList([1, 2, 3]))}`} your function should return, in any order, the ${5} trees with inorder ${code`${oc(showList([1, 2, 3]))}`}. Explain your code, and keep it free of needless complexity.`,
   writeUp: 'explanation',
+  hints: [
+    t`In (b), how can every pair of a tree from the first list and a tree from the second be formed, for example with a nested map?`,
+    t`In (c), if the root's label is the ${math`k`}th element, which elements must form the left subtree and which the right?`,
+    t`What should (c) return on the empty list, and how does (b) combine the recursive results for each choice of root?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -192,9 +192,16 @@ const sw232a = auto({
     rows: [[t`decimal`, null, null, null], [t`binary`, null, null, null]],
     expected: [...[1, 2, 3].map((k) => String(repunit(10, k))), ...[1, 2, 3].map((k) => String(repunit(2, k)))],
   },
+  hints: [
+    t`Which decimal numbers are written with one, two, and three ones?`,
+    t`In base ${2}, what are the place values of the last three digits?`,
+    t`What is the value of the binary numeral with three ones?`,
+  ],
+  nudge: t`Not quite. The binary repunits are wanted as ordinary numbers: convert them from base ${2}.`,
   solution: [
     t`Decimal: ${listOf([1, 2, 3].map((k) => Number(repunit(10, k))))}.`,
     t`Binary: one, one one, one one one in base ${2}, which are ${math`${1}`}, ${math`${2} + ${1} = ${3}`}, and ${math`${4} + ${2} + ${1} = ${7}`}.`,
+    t`A numeral's value depends on its base: convert before comparing.`,
   ],
   reference: [...[1, 2, 3].map((k) => String(repunit(10, k))), ...[1, 2, 3].map((k) => String(repunit(2, k)))],
   verify: () => same('by reading the digits', [1, 2, 3].map((k) => Number.parseInt('1'.repeat(k), 10)).join() + '|' + [1, 2, 3].map((k) => Number.parseInt('1'.repeat(k), 2)).join(), '1,11,111|1,3,7'),
@@ -238,8 +245,15 @@ const sw232base = auto({
       return [s - 1n, s, s + 1n].some((x) => x * x === n) ? null : `The repunit with ${k} ones in base ${r} is ${n}, not a square.`;
     },
   },
+  hints: [
+    t`With ${math`k`} ones in base ${math`r`}, what is the repunit as a sum of powers of ${math`r`}?`,
+    t`With just two ones, what is that sum?`,
+    t`Which perfect squares can ${math`r + ${1}`} be, given ${math`r \ge ${2}`}?`,
+  ],
+  nudge: t`Not quite. Start with the shortest repunit, two ones, and ask when it is a square.`,
   solution: [
     t`With two ones, the repunit in base ${math`r`} is ${math`r + ${1}`}. That is a square when ${math`r = ${3}`}: ${math`${3} + ${1} = ${4} = ${2}^{${2}}`}. So the claim fails for base ${3}, as the official solution says; ${math`r = ${8}`} works too.`,
+    t`To refute a claim about every base, one example base is enough.`,
   ],
   reference: 'r = 3, k = 2',
   verify: () => {
@@ -256,9 +270,16 @@ const bop11 = auto({
   title: t`No ${ma}, ${mb} with ${math`${18}a + ${6}b = ${1}`}`,
   prompt: t`Prove by contradiction that there exist no integers ${ma} and ${mb} for which ${math`${18}a + ${6}b = ${1}`}: give an integer ${math`d > ${1}`} that divides ${math`${18}a + ${6}b`} for every ${ma} and ${mb} but not ${1}.`,
   answer: noSolutions.at({ p: 18, q: 6, c: 1 }).problem.answer,
+  hints: [
+    t`Which common factors do ${18} and ${6} have?`,
+    t`If ${math`${18}a + ${6}b = ${1}`}, what does taking out a common factor say about ${1}?`,
+    t`Which ${math`d > ${1}`} divides ${math`${18}a + ${6}b`} for every ${ma} and ${mb} but not ${1}?`,
+  ],
+  nudge: t`Not quite. Take out a common divisor of ${18} and ${6}; it cannot divide ${1}.`,
   solution: [
     t`Suppose, for contradiction, that ${math`${18}a + ${6}b = ${1}`}. Book of Proof's solution: then ${math`${1} = ${2}(${9}a + ${3}b)`}, so ${1} is even, a contradiction. Here ${math`d = ${2}`}.`,
     t`${3} or ${6} would do as well: each divides ${18} and ${6}, and none divides ${1}.`,
+    t`A common factor of the coefficients must divide the right-hand side.`,
   ],
   reference: 'd = 2',
   verify: () => same('the values of 18a + 6b are the multiples of 6', upTo(25).map((k) => k - 13).flatMap((a) => upTo(25).map((k) => 18 * a + 6 * (k - 13))).every((v) => v % 6 === 0), true),
@@ -272,7 +293,16 @@ const bop10 = auto({
   title: t`No ${ma}, ${mb} with ${math`${21}a + ${30}b = ${1}`}`,
   prompt: t`Prove by contradiction that there exist no integers ${ma} and ${mb} for which ${math`${21}a + ${30}b = ${1}`}: give an integer ${math`d > ${1}`} that divides ${math`${21}a + ${30}b`} for every ${ma} and ${mb} but not ${1}.`,
   answer: noSolutions.at({ p: 21, q: 30, c: 1 }).problem.answer,
-  solution: [t`If ${math`${21}a + ${30}b = ${1}`}, then ${math`${1} = ${3}(${7}a + ${10}b)`} would be a multiple of ${3}: a contradiction. Here ${math`d = ${3}`}, the only choice, since ${math`\gcd(${21}, ${30}) = ${gcd(21, 30)}`}.`],
+  hints: [
+    t`What are the divisors of ${21}, and of ${30}?`,
+    t`Which divisor greater than ${1} is common to both?`,
+    t`If ${math`${21}a + ${30}b = ${1}`}, what does taking out that divisor say about ${1}?`,
+  ],
+  nudge: t`Not quite. The divisor must divide both ${21} and ${30}; check each candidate against both.`,
+  solution: [
+    t`If ${math`${21}a + ${30}b = ${1}`}, then ${math`${1} = ${3}(${7}a + ${10}b)`} would be a multiple of ${3}: a contradiction. Here ${math`d = ${3}`}, the only choice, since ${math`\gcd(${21}, ${30}) = ${gcd(21, 30)}`}.`,
+    t`A common factor of the coefficients must divide the right-hand side.`,
+  ],
   reference: 'd = 3',
   verify: () => same('gcd(21, 30)', gcd(21, 30), 3),
   misconceptions: [{ response: 'd = 2', why: t`${2} divides ${30} but not ${21}, so it need not divide ${math`${21}a + ${30}b`}.` }],
@@ -283,6 +313,11 @@ const sw232b = supervision({
   source: cite('cst-dm-sw1', 'Exercises 2, 2.3.2(b)'),
   title: t`No repunit is a square`,
   prompt: t`Show that no decimal repunit strictly greater than ${1} is a square, and that the same holds for binary repunits. Is this the case for every base? Write it as a proof by contradiction: assume such a repunit is a square, and use remainders on division by ${4}.`,
+  hints: [
+    t`What remainder does a decimal repunit greater than ${1} leave on division by ${4}, and what about a binary one?`,
+    t`What remainders can a square leave on division by ${4}?`,
+    t`For the last question, which short repunit in a small base is worth testing?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-2', '2.3.2(b)'),
 });
@@ -291,6 +326,11 @@ const tmuaO1 = supervision({
   source: cite('tmua-logic-proof', 'Exercise O, question 1'),
   title: t`Replace ${2} by ${9}`,
   prompt: t`Replace ${2} by ${9} in the proof that ${math`\sqrt{${2}}`} is irrational. Why does the proof no longer work? Point to the exact step that fails, and say what is true instead.`,
+  hints: [
+    t`In the proof for ${math`\sqrt{${2}}`}, which step uses the fact that if ${math`a^{${2}}`} is even then ${ma} is even?`,
+    t`What is the analogue of that fact with ${9}, and is it true?`,
+    t`What is ${math`\sqrt{${9}}`}, and at which step does the argument break?`,
+  ],
   writeUp: 'explanation',
 });
 const tmuaO2 = supervision({
@@ -298,13 +338,23 @@ const tmuaO2 = supervision({
   source: cite('tmua-logic-proof', 'Exercise O, question 2'),
   title: t`${math`\sqrt{p}`} for a prime ${math`p`}`,
   prompt: t`Adapt the proof that ${math`\sqrt{${2}}`} is irrational to show that ${math`\sqrt{p}`} is irrational for every prime ${math`p`}. Which fact about primes replaces "if ${math`a^{${2}}`} is even then ${ma} is even"?`,
+  hints: [
+    t`Starting from ${math`\sqrt{p} = \frac{a}{b}`} in lowest terms, what equation follows after squaring?`,
+    t`What does ${math`p \mid a^{${2}}`} give, using that ${math`p`} is prime?`,
+    t`Once ${math`p \mid a`}, how does ${math`p`} come to divide ${mb} as well?`,
+  ],
   writeUp: 'proof',
 });
 const bop5 = supervision({
   id: 'bop-6-5',
   source: cite('bop', 'Chapter 6, exercise 5'),
   title: t`${math`\sqrt{${3}}`} is irrational`,
-  prompt: t`Prove that ${math`\sqrt{${3}}`} is irrational. Inside the proof you will need "if ${math`${3} \mid a^{${2}}`} then ${math`${3} \mid a`}": prove that too, by cases on the remainder of ${ma} on division by ${3}.`,
+  prompt: t`Prove that ${math`\sqrt{${3}}`} is irrational. The proof needs "if ${math`${3} \mid a^{${2}}`} then ${math`${3} \mid a`}": prove that too, by cases on the remainder of ${ma} on division by ${3}.`,
+  hints: [
+    t`Assuming ${math`\sqrt{${3}} = \frac{a}{b}`} in lowest terms, what equation follows?`,
+    t`What is ${math`a^{${2}}`} modulo ${3} when ${ma} leaves remainder ${0}, ${1}, or ${2}?`,
+    t`Once ${math`${3} \mid a`}, what does substituting ${math`a = ${3}c`} give for ${mb}?`,
+  ],
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 6, exercise 5'),
 });
@@ -313,6 +363,11 @@ const bop7 = supervision({
   source: cite('bop', 'Chapter 6, exercise 7'),
   title: t`${math`a^{${2}} - ${4}b - ${3} \ne ${0}`}`,
   prompt: t`Prove by contradiction: if ${ma} and ${mb} are integers, then ${math`a^{${2}} - ${4}b - ${3} \ne ${0}`}.`,
+  hints: [
+    t`Assuming ${math`a^{${2}} - ${4}b - ${3} = ${0}`}, what is ${math`a^{${2}}`} in terms of ${mb}?`,
+    t`What does that say about the parity of ${ma}, and what is ${math`a^{${2}}`} when ${math`a = ${2}c + ${1}`}?`,
+    t`Which equation in ${mb} and ${math`c`} results, and why is it impossible?`,
+  ],
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 6, exercise 7'),
 });
@@ -326,6 +381,11 @@ const step08Irrational = supervision({
   source: cite('stepdb-08-s1', 'Q1', true),
   title: t`Irrational sums and products`,
   prompt: t`What does it mean to say that a number ${math`x`} is irrational? Prove statements A and B below, where ${math`p`} and ${math`q`} are real numbers. A: if ${math`pq`} is irrational, then at least one of ${math`p`} and ${math`q`} is irrational. B: if ${math`p + q`} is irrational, then at least one of ${math`p`} and ${math`q`} is irrational. Disprove by means of a counterexample statement C below, where ${math`p`} and ${math`q`} are real numbers. C: if ${math`p`} and ${math`q`} are irrational, then ${math`p + q`} is irrational. If the numbers ${math`e`}, ${math`\pi`}, ${math`\pi^{${2}}`}, ${math`e^{${2}}`}, and ${math`e\pi`} are irrational, prove that at most one of the numbers ${math`\pi + e`}, ${math`\pi - e`}, ${math`\pi^{${2}} - e^{${2}}`}, ${math`\pi^{${2}} + e^{${2}}`} is rational.`,
+  hints: [
+    t`If ${math`p`} and ${math`q`} were both rational, what would ${math`pq`} and ${math`p + q`} be?`,
+    t`For C, which pair of irrational numbers has a rational sum?`,
+    t`If two of the four numbers were rational, which sum, difference, product, or quotient of them would be rational, against the given facts?`,
+  ],
   writeUp: 'proof',
   official: cite('stepdb-08-s1-sol', 'Question 1 (pages 2 to 4)'),
 });

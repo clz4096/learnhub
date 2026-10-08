@@ -277,6 +277,7 @@ const q6var = auto({
   solution: [
     t`${math`E(X^{${2}}) = E(e^{${2}Y}) = M_{Y}(${2}) = e^{${2}\mu + ${2}\sigma^{${2}}}`}.`,
     t`${math`\operatorname{Var}(X) = e^{${2}\mu + ${2}\sigma^{${2}}} - \left(e^{\mu + \sigma^{${2}}/${2}}\right)^{${2}} = e^{${2}\mu + \sigma^{${2}}}\left(e^{\sigma^{${2}}} - ${1}\right)`}.`,
+    t`The moments of ${math`e^{Y}`} are values of the mgf of ${math`Y`}.`,
   ],
   reference: 'exp(2 mu + 2 sigma^2) - exp(2 mu + sigma^2)',
   verify: () => {
@@ -290,6 +291,12 @@ const q6var = auto({
     { response: 'exp(2*mu + 2*sigma^2)', why: t`That is ${math`E(X^{${2}})`}. Subtract ${math`E(X)^{${2}} = e^{${2}\mu + \sigma^{${2}}}`}.` },
     { response: 'exp(2*mu)*(exp(sigma^2) - 1)', why: t`${math`E(X)^{${2}} = e^{${2}\mu + \sigma^{${2}}}`}: the factor ${math`e^{\sigma^{${2}}}`} belongs with it.` },
   ],
+  nudge: t`Not quite. Both moments of ${mX} come from the mgf of ${math`\log X`}; find ${math`E(X^{${2}})`} that way, then subtract ${math`E(X)^{${2}}`}.`,
+  hints: [
+    t`With ${math`Y = \log X`}, how are ${math`E(X)`} and ${math`E(X^{${2}})`} values of the mgf of ${math`Y`}?`,
+    t`What is the mgf of ${math`N(\mu, \sigma^{${2}})`} at ${math`t`}, and so what are ${math`M_{Y}(${1})`} and ${math`M_{Y}(${2})`}?`,
+    t`What does ${math`\operatorname{Var}(X) = E(X^{${2}}) - E(X)^{${2}}`} give, with the common factor taken out?`,
+  ],
 });
 
 const XL_DOM = { lambda: { kind: 'real' as const, min: 0.5, max: 2 }, x: { kind: 'real' as const, min: 2, max: 6 } };
@@ -302,6 +309,7 @@ const q3beta = auto({
   solution: [
     t`The bound is ${math`\exp\left(\lambda(e^{\beta} - ${1}) - \beta x\right)`}. Its exponent has derivative ${math`\lambda e^{\beta} - x`} in ${math`\beta`}, which is ${0} at ${math`e^{\beta} = x/\lambda`}, and the exponent is convex, so this is the minimum.`,
     t`So ${math`\beta = \log(x/\lambda)`}, which is ${math`\ge ${0}`} because ${math`x \ge \lambda`}. Substituting gives the sheet's bound ${math`\exp\{-x\log(x/\lambda) - \lambda + x\}`}.`,
+    t`To minimise an exponential, minimise its exponent.`,
   ],
   reference: 'ln(x) - ln(lambda)',
   verify: () => {
@@ -319,6 +327,12 @@ const q3beta = auto({
     { response: 'x/lambda', why: t`That is ${math`e^{\beta}`} at the minimum. Take the logarithm.` },
     { response: 'ln(lambda/x)', why: t`Check the sign: ${math`\beta \ge ${0}`} needs ${math`x/\lambda \ge ${1}`}, so ${math`\beta = \log(x/\lambda)`}.` },
   ],
+  nudge: t`Not quite. Minimise the exponent rather than the whole bound; its derivative in ${math`\beta`} is simple.`,
+  hints: [
+    t`Since ${math`\exp`} is increasing, which function of ${math`\beta`} must be minimised?`,
+    t`What is the derivative of ${math`\lambda(e^{\beta} - ${1}) - \beta x`} with respect to ${math`\beta`}?`,
+    t`Where is that derivative zero, and why is that point a minimum?`,
+  ],
 });
 
 const q2b = supervision({
@@ -327,6 +341,11 @@ const q2b = supervision({
   title: t`The exponential Markov bound`,
   prompt: t`Let ${mX} be a random variable. Show that, for all ${math`\beta \ge ${0}`}, ${math`P(X \ge x) \le E(e^{\beta X})e^{-\beta x}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Is ${math`e^{\beta X}`} nonnegative?`,
+    t`For ${math`\beta \ge ${0}`}, why does ${math`X \ge x`} imply ${math`e^{\beta X} \ge e^{\beta x}`}?`,
+    t`What does Markov's inequality, applied to ${math`e^{\beta X}`} at the level ${math`e^{\beta x}`}, give?`,
+  ],
 });
 
 const q3 = supervision({
@@ -335,14 +354,24 @@ const q3 = supervision({
   title: t`A Poisson tail, bounded and estimated`,
   prompt: t`Let ${mX} be Poisson with parameter ${math`\lambda \in (${0}, \infty)`}. (a) By optimizing the estimate of Q${2}(b) over ${math`\beta`}, show that for all ${math`x \ge \lambda`}, ${math`P(X \ge x) \le \exp\{-x\log(x/\lambda) - \lambda + x\}`}. (b) Show that, for integers ${math`x`}, as ${math`x \to \infty`}, ${math`P(X = x) \sim \frac{${1}}{\sqrt{${2}\pi x}}\exp\{-x\log(x/\lambda) - \lambda + x\}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`For (a), what is the bound as a function of ${math`\beta`}, and where is its exponent least?`,
+    t`For (b), what is ${math`P(X = x)`} exactly for a Poisson variable?`,
+    t`Which approximation to ${math`x!`} for large ${math`x`} turns that into the stated form?`,
+  ],
 });
 
 const continuity = supervision({
   id: 'schedule-continuity',
   source: SCHEDULE,
   title: t`The continuity theorem at work`,
-  prompt: t`State the continuity theorem for moment generating functions. Show that the mgf of ${math`B(n, \lambda/n)`} tends to the mgf of ${math`\text{Po}(\lambda)`} as ${math`n \to \infty`}, and explain what the continuity theorem lets you conclude, and why it does not by itself give ${math`P(B(n, \lambda/n) = k) \to e^{-\lambda}\lambda^{k}/k!`} without a further remark about integer-valued variables.`,
+  prompt: t`State the continuity theorem for moment generating functions. Show that the mgf of ${math`B(n, \lambda/n)`} tends to the mgf of ${math`\text{Po}(\lambda)`} as ${math`n \to \infty`}, and explain what follows from the continuity theorem, and why it does not by itself give ${math`P(B(n, \lambda/n) = k) \to e^{-\lambda}\lambda^{k}/k!`} without a further remark about integer-valued variables.`,
   writeUp: 'explanation',
+  hints: [
+    t`What does the continuity theorem say when mgfs converge on an open interval around ${0}?`,
+    t`What is the mgf of ${math`B(n, p)`}, and what is the limit of ${math`\left(${1} + \frac{a}{n}\right)^{n}`}?`,
+    t`Convergence in distribution concerns ${math`P(X \le x)`} at points of continuity: how does that give ${math`P(X = k)`} for integer-valued variables?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

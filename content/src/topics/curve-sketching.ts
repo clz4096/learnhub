@@ -219,10 +219,17 @@ const whichThree = auto({
   title: t`Which cubics cross the axis three times?`,
   prompt: t`Each cubic below has a turning point on the ${math`y`} axis. Find the turning points, and decide which graphs have three ${math`x`} intercepts. Choose all that apply.`,
   answer: { kind: 'choice', options: OPT6, correct: ['b', 'd'] },
+  hints: [
+    t`For ${math`y = ax^{${3}} + bx^{${2}} + d`}, where are the turning points?`,
+    t`What is the height of each turning point, for each cubic?`,
+    t`When does a cubic cross the axis three times, in terms of its two turning heights?`,
+  ],
+  nudge: t`Not quite. Compare the signs of the two turning heights; a negative ${math`y`} intercept alone is not enough.`,
   solution: [
     t`For ${math`y = ax^{${3}} + bx^{${2}} + d`}, ${math`\frac{dy}{dx} = x(${3}ax + ${2}b)`}, so the turning points are at ${math`x = ${0}`} and ${math`x = -\frac{${2}b}{${3}a}`}.`,
     t`The turning points are: (a) ${math`(${-2}, ${5})`}, ${math`(${0}, ${1})`}; (b) ${math`(${-2}, ${5})`}, ${math`(${0}, ${-3})`}; (c) ${math`(${-1}, ${-1})`}, ${math`(${0}, ${-3})`}; (d) ${math`(${0}, ${2})`}, ${math`(${4}, ${-30})`}; (e) ${math`(${0}, ${2})`}, ${math`(${1}, ${1})`}; (f) ${math`(${0}, ${-6})`}, ${math`(${8}, ${-262})`}.`,
     t`A cubic has three ${math`x`} intercepts exactly when its turning points are on opposite sides of the axis: that is (b) and (d).`,
+    t`Three crossings exactly when the turning points are on opposite sides of the axis.`,
   ],
   reference: ['b', 'd'],
   verify: () => {
@@ -240,9 +247,16 @@ const sketchFRoots = auto({
   title: t`A repeated root`,
   prompt: t`By factorising ${math`x^{${3}} - ${3}x + ${2}`} and finding its turning points, decide how many distinct roots the equation ${math`x^{${3}} - ${3}x + ${2} = ${0}`} has.`,
   answer: { kind: 'exact', expected: '2' },
+  hints: [
+    t`Which small integer is a root of ${math`x^{${3}} - ${3}x + ${2}`}?`,
+    t`After that factor is divided out, which quadratic is left, and does it factorise?`,
+    t`Are any of the roots repeated?`,
+  ],
+  nudge: t`Not quite. Factorise fully and count each distinct root once.`,
   solution: [
     t`${math`x = ${1}`} is a root (${math`${1} - ${3} + ${2} = ${0}`}), and dividing out gives ${math`x^{${3}} - ${3}x + ${2} = (x - ${1})^{${2}}(x + ${2})`}.`,
     t`The turning points are ${math`(${-1}, ${4})`} and ${math`(${1}, ${0})`}: the minimum sits on the axis. The distinct roots are ${math`x = ${1}`} (repeated) and ${math`x = ${-2}`}, so there are ${2}.`,
+    t`A turning point on the axis gives a repeated root; count it once.`,
   ],
   reference: '2',
   verify: () => firstError(same('distinct roots', rootsOfLevel([1, 0, -3, 2], [-1, 1], 0), 2), same('value at -2', polyAt([1, 0, -3, 2], -2), 0)),
@@ -256,9 +270,16 @@ const step2012 = auto({
   title: t`Exactly three roots of a quartic`,
   prompt: t`Let ${math`n`} be the number of distinct real values of ${math`x`} for which ${math`x^{${4}} - ${6}x^{${2}} + b = ${0}`}. For which value of ${math`b`} is ${math`n = ${3}`}?`,
   answer: { kind: 'exact', expected: '0' },
+  hints: [
+    t`Where are the stationary points of ${math`y = x^{${4}} - ${6}x^{${2}}`}, and what are their heights?`,
+    t`How does adding ${math`b`} move the curve?`,
+    t`Which position of the W makes it meet the axis at exactly three points?`,
+  ],
+  nudge: t`Not quite. Sketch the W and slide it vertically; three roots need a turning point on the axis.`,
   solution: [
     t`${math`y = x^{${4}} - ${6}x^{${2}}`} has ${math`\frac{dy}{dx} = ${4}x(x^{${2}} - ${3})`}: a maximum at ${math`(${0}, ${0})`} and minima at ${math`(\pm\sqrt{${3}}, ${-9})`}.`,
     t`Adding ${math`b`} moves the W up by ${math`b`}. Three distinct roots need the maximum exactly on the axis (with the minima below), so ${math`${0} + b = ${0}`}: ${math`b = ${0}`}.`,
+    t`Slide the graph to count roots as a constant changes.`,
   ],
   reference: '0',
   verify: () => {
@@ -276,10 +297,17 @@ const step2015 = auto({
   title: t`How many solutions for a given level?`,
   prompt: t`The curve ${math`y = e^{x}(${2}x^{${2}} - ${5}x + ${2})`} has stationary points at ${math`x = ${-1}`} and ${math`x = ${q(3, 2)}`}. How many real values of ${math`x`} satisfy ${math`e^{x}(${2}x^{${2}} - ${5}x + ${2}) = ${1}`}? You may assume that ${math`x^{n}e^{x} \to ${0}`} as ${math`x \to -\infty`}.`,
   answer: { kind: 'exact', expected: '3' },
+  hints: [
+    t`Using the given stationary points, what are the maximum and minimum values?`,
+    t`How does the curve behave as ${math`x \to -\infty`} and as ${math`x \to \infty`}?`,
+    t`Comparing the level ${1} with the turning values, on how many monotone pieces does the line cross the curve?`,
+  ],
+  nudge: t`Not quite. Compare the level with both turning values, and check every monotone piece, the far left included.`,
   solution: [
     t`By the product rule, ${math`\frac{dy}{dx} = e^{x}(${2}x^{${2}} - x - ${3}) = e^{x}(${2}x - ${3})(x + ${1})`}: a maximum at ${math`(${-1}, \frac{${9}}{e})`} and a minimum at ${math`(${q(3, 2)}, -e^{${q(3, 2)}})`}. The curve crosses the axis at ${math`x = ${q(1, 2)}`} and ${math`x = ${2}`}.`,
     t`As ${math`x \to -\infty`}, ${math`y \to ${0}`} from above; as ${math`x \to \infty`}, ${math`y \to \infty`}.`,
     t`${math`\frac{${9}}{e}`} is about ${Math.round(900 / Math.E) / 100}, more than ${1}. So the line ${math`y = ${1}`} crosses the rising piece from ${0} up to the maximum, the falling piece, and the final rising piece: ${3} solutions.`,
+    t`Count solutions piece by piece, where the graph is monotone.`,
   ],
   reference: '3',
   verify: () => {
@@ -295,6 +323,11 @@ const step2015full = supervision({
   source: cite(F22, 'Assignment 22, Q4'),
   title: t`STEP: a cubic times an exponential`,
   prompt: t`(i) Sketch the curve ${math`y = e^{x}(${2}x^{${2}} - ${5}x + ${2})`}. Hence determine how many real values of ${math`x`} satisfy the equation ${math`e^{x}(${2}x^{${2}} - ${5}x + ${2}) = k`} in the different cases that arise according to the value of ${math`k`}. You may assume that ${math`x^{n}e^{x} \to ${0}`} as ${math`x \to -\infty`} for any integer ${math`n`}. (ii) Sketch the curve ${math`y = e^{x^{${2}}}(${2}x^{${4}} - ${5}x^{${2}} + ${2})`}.`,
+  hints: [
+    t`What are ${math`\frac{dy}{dx}`} and the stationary points, and where does the curve cross the axis?`,
+    t`Using the turning values and the behaviour as ${math`x \to \pm\infty`}, how many solutions are there for each range of ${math`k`}?`,
+    t`For (ii), how does putting ${math`x^{${2}}`} in place of ${math`x`} change the curve, and what symmetry does it have?`,
+  ],
   writeUp: 'sketch',
   official: cite(F22H, 'Assignment 22 hints, Q4'),
 });
@@ -304,6 +337,11 @@ const step2012full = supervision({
   source: cite(F13, 'Assignment 13, Q3'),
   title: t`STEP: a quartic and its roots`,
   prompt: t`(i) Sketch the curve ${math`y = x^{${4}} - ${6}x^{${2}} + ${9}`}, giving the coordinates of the stationary points. Let ${math`n`} be the number of distinct real values of ${math`x`} for which ${math`x^{${4}} - ${6}x^{${2}} + b = ${0}`}. State the values of ${math`b`}, if any, for which ${math`n = ${0}`}, ${math`n = ${1}`}, ${math`n = ${2}`}, ${math`n = ${3}`}, ${math`n = ${4}`}. (ii) For which values of ${math`a`} does the curve ${math`y = x^{${4}} - ${6}x^{${2}} + ax + b`} have a point at which both ${math`\frac{dy}{dx} = ${0}`} and ${math`\frac{d^{${2}}y}{dx^{${2}}} = ${0}`}? For these values of ${math`a`}, find the number of distinct real values of ${math`x`} for which ${math`x^{${4}} - ${6}x^{${2}} + ax + b = ${0}`}, in the different cases that arise according to the value of ${math`b`}. (iii) Sketch the curve ${math`y = x^{${4}} - ${6}x^{${2}} + ax`} in the case ${math`a > ${8}`}.`,
+  hints: [
+    t`What are the stationary points of ${math`y = x^{${4}} - ${6}x^{${2}} + ${9}`}?`,
+    t`As ${math`b`} varies, which positions of the curve relative to the axis give each value of ${math`n`}?`,
+    t`For (ii), where can ${math`\frac{dy}{dx}`} and ${math`\frac{d^{${2}}y}{dx^{${2}}}`} vanish at the same ${math`x`}, and what does that force for ${math`a`}?`,
+  ],
   writeUp: 'explanation',
   official: cite(F13H, 'Assignment 13 hints, Q3'),
 });
@@ -313,6 +351,11 @@ const step1993 = supervision({
   source: cite(F09, 'Assignment 9, Q3'),
   title: t`STEP: when a cubic has three real roots`,
   prompt: t`Sketch the curve ${math`f(x) = x^{${3}} + Ax^{${2}} + B`}, first in the case ${math`A > ${0}`} and ${math`B > ${0}`}, and then in the case ${math`A < ${0}`} and ${math`B > ${0}`}. Show that the equation ${math`x^{${3}} + ax^{${2}} + b = ${0}`}, where ${math`a`} and ${math`b`} are real, will have three distinct real roots if ${math`${27}b^{${2}} + ${4}a^{${3}}b < ${0}`}, but will have fewer than three if ${math`${27}b^{${2}} + ${4}a^{${3}}b > ${0}`}.`,
+  hints: [
+    t`Where are the turning points of ${math`x^{${3}} + ax^{${2}} + b`}, and what are their heights?`,
+    t`When do the two turning heights have opposite signs?`,
+    t`How does the product of the two turning heights compare with ${math`${27}b^{${2}} + ${4}a^{${3}}b`}?`,
+  ],
   writeUp: 'proof',
   official: cite(F09H, 'Assignment 9 hints, Q3'),
 });

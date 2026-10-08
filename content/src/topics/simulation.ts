@@ -202,10 +202,17 @@ const rejectAuto = auto({
   source: cite(SCHED, SIM_AT, true),
   title: t`Rejection sampling from ${math`${6}x(${1} - x)`}`,
   prompt: t`To sample from ${math`f(x) = ${6}x(${1} - x)`} on ${math`[${0}, ${1}]`}, propose ${math`Y`} uniform on ${math`[${0}, ${1}]`} and accept with probability ${math`f(Y)/M`}, with ${math`M`} the smallest constant for which this is a probability. What fraction of proposals is accepted, on average?`,
+  nudge: t`Not quite. Find the smallest valid ${math`M`} first; the acceptance rate follows from it.`,
+  hints: [
+    t`For ${math`f(Y)/M`} to be a probability for every ${math`Y`}, how large must ${math`M`} be?`,
+    t`Where does ${math`${6}x(${1} - x)`} take its greatest value on ${math`[${0}, ${1}]`}?`,
+    t`Averaging ${math`f(Y)/M`} over a uniform ${math`Y`}, which integral gives the acceptance probability?`,
+  ],
   answer: { kind: 'exact', expected: '2/3' },
   solution: [
     t`${math`f'(x) = ${6} - ${12}x`} vanishes at ${math`x = \tfrac{${1}}{${2}}`}, so ${math`M = f(\tfrac{${1}}{${2}}) = ${maxOf(BETA)}`}.`,
     t`A proposal is accepted with probability ${math`\int_{${0}}^{${1}} \frac{f(y)}{M}\,dy = \frac{${1}}{M} = ${q(2, 3)}`}.`,
+    t`The acceptance rate of rejection sampling is one over the bound.`,
   ],
   reference: '2/3',
   verify: () => {
@@ -233,6 +240,11 @@ const inverseProof = supervision({
   source: cite(SCHED, SIM_AT, true),
   title: t`Why the inverse transform works`,
   prompt: t`Let ${math`F`} be a continuous, strictly increasing distribution function and ${mU} uniform on ${math`(${0}, ${1})`}. Prove that ${math`F^{-${1}}(U)`} has distribution function ${math`F`}. Use it to give a way of simulating ${math`\mathrm{Exp}(\lambda)`}, and explain why ${math`-\frac{${1}}{\lambda}\ln U`} works as well as ${math`-\frac{${1}}{\lambda}\ln(${1} - U)`}.`,
+  hints: [
+    t`How does the event ${math`F^{-${1}}(U) \le x`} compare with the event ${math`U \le F(x)`}?`,
+    t`What is ${math`P(U \le F(x))`} for a uniform ${mU}?`,
+    t`Inverting ${math`F(x) = ${1} - e^{-\lambda x}`}, which formula in ${mU} results, and why is ${math`${1} - U`} uniform when ${mU} is?`,
+  ],
   writeUp: 'proof',
 });
 const bmProof = supervision({
@@ -240,6 +252,11 @@ const bmProof = supervision({
   source: cite(SCHED, SIM_AT, true),
   title: t`The Box-Muller transform`,
   prompt: t`${math`U_{${1}}`} and ${math`U_{${2}}`} are independent and uniform on ${math`(${0}, ${1})`}. Let ${math`R = \sqrt{-${2}\ln U_{${1}}}`} and ${math`\Theta = ${2}\pi U_{${2}}`}. Prove that ${math`X = R\cos\Theta`} and ${math`Y = R\sin\Theta`} are independent ${math`N(${0}, ${1})`} variables, by finding the joint density of ${math`(R, \Theta)`} and changing variables.`,
+  hints: [
+    t`What are the densities of ${math`R`} and of ${math`\Theta`}, and why are they independent?`,
+    t`For the map ${math`(r, \theta) \mapsto (r\cos\theta, r\sin\theta)`}, what is the Jacobian?`,
+    t`Does the joint density of ${math`(X, Y)`} factorise into two standard normal densities?`,
+  ],
   writeUp: 'proof',
 });
 const rejectProof = supervision({
@@ -247,6 +264,11 @@ const rejectProof = supervision({
   source: cite(SCHED, SIM_AT, true),
   title: t`Why rejection sampling works`,
   prompt: t`A density ${math`f`} on ${math`[${0}, ${1}]`} satisfies ${math`f \le M`}. Repeatedly propose ${math`Y`} uniform on ${math`[${0}, ${1}]`} and an independent ${mU} uniform on ${math`[${0}, ${1}]`}, until ${math`U \le f(Y)/M`}, and output that ${math`Y`}. Prove that the output has density ${math`f`}, and that the number of proposals is geometric with mean ${math`M`}. How does the method change with a proposal density ${math`g`} and ${math`f \le Mg`}?`,
+  hints: [
+    t`On one proposal, what is ${math`P(Y \le y \text{ and } U \le f(Y)/M)`}?`,
+    t`How likely is a single proposal to be accepted, and so how is the number of proposals distributed?`,
+    t`With a proposal density ${math`g`}, which acceptance probability replaces ${math`f(Y)/M`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -265,6 +287,11 @@ const gs5221 = supervision({
   source: cite('gs-ch5', 'Section 5.2, Exercise 21 (page 221)'),
   title: t`The distribution function makes a uniform`,
   prompt: t`Let ${math`X`} be a continuous random variable with cumulative distribution function ${math`F`} strictly increasing on the range of ${math`X`}. Let ${math`Y = F(X)`}. Show that ${math`Y`} is uniformly distributed in the interval ${math`[${0}, ${1}]`}. (The formula ${math`X = F^{-${1}}(Y)`} then tells us how to construct ${math`X`} from a uniform random variable ${math`Y`}.)`,
+  hints: [
+    t`For ${math`${0} < y < ${1}`}, which event about ${math`X`} is the same as ${math`F(X) \le y`}?`,
+    t`What is ${math`P(X \le F^{-${1}}(y))`}?`,
+    t`What is ${math`P(Y \le y)`} for ${math`y < ${0}`} and for ${math`y > ${1}`}, and which distribution has this distribution function?`,
+  ],
   writeUp: 'proof',
   official: cite('gs-answers-odd', 'Section 5.2, Exercise 21'),
 });
@@ -282,6 +309,11 @@ const gs523 = supervision({
   source: cite('gs-ch5', 'Section 5.2, Exercise 3 (page 219)', true),
   title: t`Exponential samples from uniform ones`,
   prompt: t`Grinstead and Snell's Corollary ${5.2} is the inverse transform: if ${math`F`} is a distribution function that is strictly increasing when ${math`${0} < F(y) < ${1}`}, and ${math`U`} is uniform on ${math`[${0}, ${1}]`}, then ${math`F^{-${1}}(U)`} has distribution function ${math`F`}. Use it to derive that ${math`Y = -\frac{${1}}{\lambda} \ln U`} is exponentially distributed with parameter ${math`\lambda`}, that is, ${math`P(Y \le y) = ${1} - e^{-\lambda y}`} for ${math`y \ge ${0}`}. (Hint: ${math`${1} - U`} and ${math`U`} are identically distributed.)`,
+  hints: [
+    t`What is the distribution function of the exponential distribution with parameter ${math`\lambda`}?`,
+    t`Solving ${math`u = ${1} - e^{-\lambda y}`} for ${math`y`}, what is ${math`F^{-${1}}(u)`}?`,
+    t`Since ${math`${1} - U`} has the same distribution as ${math`U`}, what can replace ${math`\ln(${1} - U)`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -290,10 +322,17 @@ const gs527 = auto({
   source: cite('gs-ch5', 'Section 5.2, Exercise 7 (page 220)', true),
   title: t`Sampling with distribution function x squared`,
   prompt: t`Explain how you can generate a random variable ${math`X`} whose cumulative distribution function is ${math`F(x) = ${0}`} for ${math`x < ${0}`}, ${math`F(x) = x^{${2}}`} for ${math`${0} \le x \le ${1}`}, and ${math`F(x) = ${1}`} for ${math`x > ${1}`}: give ${math`X`} as the inverse transform ${math`F^{-${1}}(U)`} of a uniform random number ${math`U`} on ${math`[${0}, ${1}]`}, as a formula in ${math`U`}.`,
+  nudge: t`Not quite. The inverse transform applies the inverse of ${math`F`} to the uniform value.`,
+  hints: [
+    t`Which function of ${math`U`} does the inverse transform use: ${math`F`}, or its inverse?`,
+    t`On ${math`[${0}, ${1}]`}, solving ${math`u = x^{${2}}`} for ${math`x \ge ${0}`}, what is ${math`x`}?`,
+    t`How can the answer be checked by computing ${math`P(X \le x)`} for ${math`${0} \le x \le ${1}`}?`,
+  ],
   answer: { kind: 'expression', expected: 'sqrt(U)', variables: ['U'], domains: { U: { kind: 'real', min: 0.001, max: 1 } } },
   solution: [
     t`On ${math`[${0}, ${1}]`}, ${math`F`} is continuous and strictly increasing, and ${math`u = x^{${2}}`} with ${math`x \ge ${0}`} inverts to ${math`x = \sqrt{u}`}.`,
     t`So ${math`X = \sqrt{U}`}. Check: ${math`P(\sqrt{U} \le x) = P(U \le x^{${2}}) = x^{${2}}`} for ${math`${0} \le x \le ${1}`}.`,
+    t`To simulate from a distribution function, apply its inverse to a uniform.`,
   ],
   reference: 'sqrt(U)',
   verify: () => {

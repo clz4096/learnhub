@@ -260,10 +260,17 @@ const q5b = auto({
   source: cite(S2, 'Q5(b)'),
   title: t`Bernoulli variables with parameter ${q(1, 3)}`,
   prompt: t`On ${math`\Omega = \{${0}, ${1}\}^{${3}}`} with equally likely outcomes, how many Bernoulli random variables of parameter ${q(1, 3)} can be defined?`,
+  nudge: t`Not quite. Before counting, check which probabilities an event on this space can have at all.`,
+  hints: [
+    t`What probability does an event made of ${math`k`} outcomes of ${math`\Omega`} have?`,
+    t`For which ${math`k`} would that probability equal ${q(1, 3)}?`,
+    t`Which values of ${math`k`} from ${0} to ${8} are possible, and does any of them work?`,
+  ],
   answer: { kind: 'exact', expected: '0' },
   solution: [
     t`Every event of ${math`\Omega`} has probability a multiple of ${q(1, 8)}: ${math`\frac{k}{${8}}`} for ${math`k`} outcomes.`,
     t`${math`\frac{k}{${8}} = ${q(1, 3)}`} would need ${math`${3}k = ${8}`}, which no whole number ${math`k`} solves. So there are none.`,
+    t`Check that a probability can be reached before counting the ways to reach it.`,
   ],
   reference: '0',
   verify: () => same('Bernoulli(1/3) functions on {0,1}^3', bernoulliOnCube(q(1, 3)), 0),
@@ -277,8 +284,14 @@ const quarter = auto({
   source: cite(S2, 'Q5', true),
   title: t`Bernoulli variables with parameter ${q(1, 4)}`,
   prompt: t`On ${math`\Omega = \{${0}, ${1}\}^{${3}}`} with equally likely outcomes, how many Bernoulli random variables of parameter ${q(1, 4)} can be defined?`,
+  nudge: t`Not quite. A Bernoulli variable is fixed by one event, so count events rather than functions.`,
+  hints: [
+    t`Which event on ${math`\Omega`} determines a Bernoulli random variable completely?`,
+    t`How many outcomes must that event contain for its probability to be ${q(1, 4)}?`,
+    t`How many subsets of that size does a set of ${8} outcomes have?`,
+  ],
   answer: { kind: 'exact', expected: String(choose(8, 2)) },
-  solution: [t`The event ${math`\{X = ${1}\}`} needs probability ${math`${q(1, 4)} = \frac{${2}}{${8}}`}, so ${2} of the ${8} outcomes: ${math`\binom{${8}}{${2}} = ${choose(8, 2)}`}.`],
+  solution: [t`The event ${math`\{X = ${1}\}`} needs probability ${math`${q(1, 4)} = \frac{${2}}{${8}}`}, so ${2} of the ${8} outcomes: ${math`\binom{${8}}{${2}} = ${choose(8, 2)}`}.`, t`A Bernoulli variable is the indicator of an event, so counting them is counting events.`],
   reference: String(choose(8, 2)),
   verify: () => same('Bernoulli(1/4) functions on {0,1}^3', bernoulliOnCube(q(1, 4)), choose(8, 2)),
   misconceptions: [{ response: String(choose(8, 4)), why: t`That is the count for parameter ${q(1, 2)}. Parameter ${q(1, 4)} needs events of ${2} outcomes.` }],
@@ -288,6 +301,11 @@ const scheduleRv = supervision({
   source: cite('tripos-schedules', 'IA Probability, Discrete random variables', true),
   title: t`Functions of random variables`,
   prompt: t`Let ${math`\Omega`} be countable with point masses ${math`p_{\omega}`}, and let ${math`X, Y`} be random variables on it. Show that ${math`X + Y`}, ${math`XY`}, and ${math`g(X)`} for any ${math`g: \mathbb{R} \to \mathbb{R}`} are random variables, and that ${math`\mathbb{P}(g(X) = y) = \sum_{x : g(x) = y} \mathbb{P}(X = x)`}. Give two different random variables on a fair die's ${math`\Omega`} with the same distribution. Does the distribution of ${math`X`} and of ${math`Y`} determine the distribution of ${math`X + Y`}?`,
+  hints: [
+    t`On a countable ${math`\Omega`} where every subset is an event, which functions ${math`\Omega \to \mathbb{R}`} are random variables?`,
+    t`The event ${math`\{g(X) = y\}`} is a union of events ${math`\{X = x\}`}: which ones, and are they disjoint?`,
+    t`For the last two parts, which rearrangement of a die's faces keeps the distribution of the score, and does it keep the distribution of a sum?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -310,6 +328,12 @@ const gs4138 = auto({
   source: cite('gs-ch4', 'Section 4.1, Exercise 38 (page 156)'),
   title: t`Heads before and after`,
   prompt: t`A fair coin is tossed three times. Let ${math`X`} be the number of heads that turn up on the first two tosses and ${math`Y`} the number of heads that turn up on the third toss. Give the distribution of ${math`X`}, ${math`Y`}, ${math`Z = X + Y`}, and ${math`W = X - Y`}: write each probability in the table, ${0} where the value cannot happen.`,
+  nudge: t`Not quite. List the eight equally likely outcomes once and read every variable off that list.`,
+  hints: [
+    t`How many equally likely outcomes do three tosses have?`,
+    t`For each outcome, what are ${math`X`} and ${math`Y`}, and so ${math`Z`} and ${math`W`}?`,
+    t`For each variable, how many outcomes give each value from ${math`${-1}`} to ${3}?`,
+  ],
   answer: {
     kind: 'table', columns: [t`variable`, ...VALUES38.map((v) => [math`${v}`])], cell: 'exact',
     rows: RV38.map(({ name }) => [name, ...VALUES38.map(() => null)]),
@@ -319,6 +343,7 @@ const gs4138 = auto({
     t`The ${8} sequences of three tosses are equally likely. ${math`X`} is ${0}, ${1}, ${2} with probabilities ${q(1, 4)}, ${q(1, 2)}, ${q(1, 4)}, and ${math`Y`} is ${0} or ${1}, each ${q(1, 2)}.`,
     t`${math`Z`} counts all the heads: ${0}, ${1}, ${2}, ${3} in ${1}, ${3}, ${3}, ${1} of the ${8} sequences.`,
     t`${math`W = ${-1}`} needs no head first and a head third: ${1} sequence. ${math`W = ${0}`}: both zero, or one head first and one third, ${math`${1} + ${2} = ${3}`} sequences. ${math`W = ${1}`}: one head first and none third, or two first and one third, ${math`${2} + ${1} = ${3}`}. ${math`W = ${2}`}: ${1} sequence.`,
+    t`List the outcomes once; every variable on the space is read off the same list.`,
   ],
   reference: RV38.flatMap(({ f }) => dist38(f)),
   verify: () => {
@@ -347,10 +372,17 @@ const gs4134 = auto({
   source: cite('gs-ch4', 'Section 4.1, Exercise 34, first question (page 155)', true),
   title: t`Her own hat back`,
   prompt: t`Four women, A, B, C, and D, check their hats, and the hats are returned in a random manner. Let ${math`\Omega`} be the set of all possible permutations of A, B, C, D, each equally likely. Let ${math`X_j = ${1}`} if the ${math`j`}th woman gets her own hat back and ${0} otherwise. ${math`X_j`} is a Bernoulli random variable: find ${math`\mathbb{P}(X_j = ${1})`}.`,
+  nudge: t`Not quite. Fix woman ${math`j`}'s hat in place and count the ways to hand out the rest.`,
+  hints: [
+    t`How many equally likely ways are there to return four hats?`,
+    t`If woman ${math`j`} gets her own hat, how freely can the other three hats be handed out?`,
+    t`What fraction of all the orders is that?`,
+  ],
   answer: { kind: 'exact', expected: str(q(1, HATS)) },
   solution: [
     t`There are ${math`${4}! = ${24}`} equally likely ways to return the hats. Woman ${math`j`} gets her own hat when the other three hats go to the other three women in any order: ${math`${3}! = ${6}`} ways.`,
     t`So ${math`\mathbb{P}(X_j = ${1}) = \frac{${6}}{${24}} = ${q(1, HATS)}`} and ${math`\mathbb{P}(X_j = ${0}) = ${q(3, 4)}`}, the same for every ${math`j`}.`,
+    t`Fix the one position the event cares about and count the rest freely.`,
   ],
   reference: str(q(1, HATS)),
   verify: () => {

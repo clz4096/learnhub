@@ -188,11 +188,18 @@ const a6k = auto({
   source: cite('step-f06', 'Q1(ii)'),
   title: t`When a system has no solution`,
   prompt: t`Solve ${math`ka + b - c = ${2}`}, ${math`a - b + c = ${0}`}, ${math`-a + b + c = ${8}`}, where ${math`k`} is a fixed but unknown number. For which value of ${math`k`} do the equations have no solution?`,
+  nudge: t`Not quite. Eliminate in pairs as before, and look for a coefficient that can vanish.`,
+  hints: [
+    t`Adding the second and third equations, what is ${math`c`}?`,
+    t`Adding the first two, which equation in ${math`a`} and ${math`k`} results?`,
+    t`For which ${math`k`} does that equation have no solution for ${math`a`}?`,
+  ],
   answer: { kind: 'exact', expected: '-1' },
   solution: [
     t`Adding the second and third still gives ${math`c = ${4}`}. Adding the first two gives ${math`(k + ${1})a = ${2}`}.`,
     t`If ${math`k \ne -${1}`}, then ${math`a = \frac{${2}}{k + ${1}}`}, and the second equation gives ${math`b = \frac{${2}}{k + ${1}} + ${4}`}: one solution.`,
     t`If ${math`k = -${1}`}, the equation ${math`(k + ${1})a = ${2}`} reads ${math`${0} = ${2}`}, which no ${math`a`} satisfies. So there is no solution exactly when ${math`k = -${1}`}.`,
+    t`A system fails when elimination leaves a zero coefficient against a non-zero right side.`,
   ],
   reference: '-1',
   verify: () => {
@@ -210,11 +217,18 @@ const a17 = auto({
   source: cite('step-f17', 'Q2(i)'),
   title: t`Four equations in four unknowns`,
   prompt: t`Solve ${math`w + x + y + z = ${1}`}, ${math`w - x + y - z = ${0}`}, ${math`${4}w + ${3}x + ${2}y + ${3}z = ${3}`}, ${math`${4}w - ${3}x + ${2}y - ${9}z = -${1}`}.`,
+  nudge: t`Not quite. Add and subtract the equations in pairs to split the unknowns.`,
+  hints: [
+    t`What do the sum and the difference of the first two equations give?`,
+    t`What do the sum and the difference of the last two give?`,
+    t`Which pairs of the new equations can then be solved for one unknown at a time?`,
+  ],
   answer: namedAnswer(['w', 'x', 'y', 'z'], [q(1, 4), q(1, 3), q(1, 4), q(1, 6)], 'Add and subtract the first two to split the unknowns into pairs.'),
   solution: [
     t`Add the first two: ${math`${2}(w + y) = ${1}`}, so ${math`w + y = ${q(1, 2)}`}. Subtract: ${math`${2}(x + z) = ${1}`}, so ${math`x + z = ${q(1, 2)}`}.`,
     t`Add the last two: ${math`${8}w + ${4}y - ${6}z = ${2}`}. Subtract them: ${math`${6}x + ${12}z = ${4}`}, so ${math`x + ${2}z = ${q(2, 3)}`}; with ${math`x + z = ${q(1, 2)}`} this gives ${math`z = ${q(1, 6)}`} and ${math`x = ${q(1, 3)}`}.`,
     t`Then ${math`${8}w + ${4}y = ${2} + ${1} = ${3}`}, and ${math`w + y = ${q(1, 2)}`} gives ${math`${4}y = ${4} - ${3} = ${1}`}: ${math`y = ${q(1, 4)}`}, ${math`w = ${q(1, 4)}`}.`,
+    t`Add and subtract equations in pairs to uncouple the unknowns.`,
   ],
   reference: 'w = 1/4, x = 1/3, y = 1/4, z = 1/6',
   verify: () => same('Gaussian elimination', (gauss([[1, 1, 1, 1], [1, -1, 1, -1], [4, 3, 2, 3], [4, -3, 2, -9]], [1, 0, 3, -1]) as Rational[]).map(str).join(','), '1/4,1/3,1/4,1/6'),
@@ -227,11 +241,18 @@ const a14 = auto({
   source: cite('step-f14', 'Q2(iii)', true),
   title: t`Three equations, one of them quadratic`,
   prompt: t`Find the real solutions of ${math`x^{${2}} - y^{${2}} = z`}, ${math`x - y = z`}, ${math`xy = -${2}`}. Give the solution with ${math`x > ${0}`}.`,
+  nudge: t`Not quite. Factorise ${math`x^{${2}} - y^{${2}}`}, and check whether ${math`z`} can be ${0} before dividing by it.`,
+  hints: [
+    t`How does ${math`x^{${2}} - y^{${2}}`} factorise, and what does the first equation become using the second?`,
+    t`Which two cases does ${math`z(x + y) = z`} leave?`,
+    t`In each case, what quadratic does ${math`xy = -${2}`} give?`,
+  ],
   answer: namedAnswer(['x', 'y', 'z'], [q(2), q(-1), q(3)], 'Factorise x^2 - y^2, and treat z = 0 as a separate case.'),
   solution: [
     t`${math`x^{${2}} - y^{${2}} = (x - y)(x + y)`}, so the first equation is ${math`z(x + y) = z`}: either ${math`z = ${0}`} or ${math`x + y = ${1}`}. Do not divide by ${math`z`} without checking it is not ${0}.`,
     t`If ${math`z = ${0}`}: ${math`x = y`} and ${math`x^{${2}} = -${2}`}, with no real solution.`,
     t`If ${math`x + y = ${1}`}: ${math`x(${1} - x) = -${2}`}, so ${math`x^{${2}} - x - ${2} = (x - ${2})(x + ${1}) = ${0}`}. This gives ${math`(x, y, z) = (${2}, -${1}, ${3})`} or ${math`(-${1}, ${2}, -${3})`}. The one with ${math`x > ${0}`} is ${math`(${2}, -${1}, ${3})`}.`,
+    t`Factorise before dividing, and treat the zero case separately.`,
   ],
   reference: 'x = 2, y = -1, z = 3',
   verify: () => {

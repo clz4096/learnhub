@@ -298,10 +298,17 @@ const q12 = auto({
   source: cite(S2, 'Q12', true),
   title: t`Two record years`,
   prompt: t`Let ${math`a_{${1}}, \ldots, a_{${RN}}`} be a ranking of the yearly rainfalls in Cambridge over the next ${RN} years, a uniformly random permutation of ${math`${1}, \ldots, ${RN}`}. Year ${math`k`} is a record year if ${math`a_{k} < a_{i}`} for all ${math`i < k`}. What is the probability that years ${RA} and ${RB} are both record years?`,
+  nudge: t`Not quite. Find the chance that each year alone is a record, then decide whether the two events interact.`,
+  hints: [
+    t`When is year ${math`k`} a record, in terms of ${math`a_{${1}}, \ldots, a_{k}`}?`,
+    t`By symmetry, what is the probability that year ${math`k`} is a record?`,
+    t`Does whether year ${RB} is a record depend on the order among the first ${RB - 1} years, and so how do the two probabilities combine?`,
+  ],
   answer: { kind: 'exact', expected: str(q(1, RA * RB)) },
   solution: [
     t`Year ${math`k`} is a record when ${math`a_{k}`} is the smallest of ${math`a_{${1}}, \ldots, a_{k}`}. By symmetry each of these ${math`k`} values is equally likely to be the smallest, so ${math`\mathbb{P}(Y_{k} = ${1}) = ${1}/k`}.`,
     t`The ${math`Y_{k}`} are independent: whether ${math`a_{k}`} is the least of the first ${math`k`} does not depend on the order among the first ${math`k - ${1}`}. So ${math`\mathbb{P}(Y_{${RA}} = Y_{${RB}} = ${1}) = ${q(1, RA)} \cdot ${q(1, RB)} = ${q(1, RA * RB)}`}.`,
+    t`Symmetry gives each record chance; independence lets them multiply.`,
   ],
   reference: str(q(1, RA * RB)),
   verify: () => same(`records at ${RA} and ${RB} among ${RN}! permutations`, str(recordsBoth(RN, RA, RB)), str(q(1, RA * RB))),
@@ -316,6 +323,11 @@ const q12proof = supervision({
   source: cite(S2, 'Q12'),
   title: t`Record years are independent`,
   prompt: t`In Q${12}, with ${math`Y_{i} = ${1}`} if year ${math`i`} is a record and ${math`${0}`} otherwise, find the distribution of ${math`Y_{i}`} and show that ${math`Y_{${1}}, \ldots, Y_{n}`} are independent. Hint: count the permutations with prescribed record years by placing the values of ${math`a_{n}, a_{n - ${1}}, \ldots`} in turn.`,
+  hints: [
+    t`Among ${math`a_{${1}}, \ldots, a_{i}`}, how likely is each to be the smallest, and so what is ${math`\mathbb{P}(Y_{i} = ${1})`}?`,
+    t`Placing ${math`a_{n}`}, then ${math`a_{n - ${1}}`}, and so on, how many choices at each step keep a prescribed pattern of record years?`,
+    t`Does that count factorise as a product over the years, matching the product of the separate probabilities?`,
+  ],
   writeUp: 'proof',
 });
 const q5cProof = supervision({
@@ -323,13 +335,23 @@ const q5cProof = supervision({
   source: cite(S2, 'Q5(c)'),
   title: t`Why not four?`,
   prompt: t`Show that no four independent Bernoulli random variables of parameter ${q(1, 2)} can be defined on ${math`\{${0}, ${1}\}^{${3}}`} with equally likely outcomes. More generally, on a space of ${math`N`} equally likely outcomes, how long can a sequence of independent Bernoulli(${q(1, 2)}) variables be?`,
+  hints: [
+    t`If four independent Bernoulli(${q(1, 2)}) variables existed, what probability would each pattern of their four values have?`,
+    t`What probabilities can an event of ${math`\{${0}, ${1}\}^{${3}}`} have, with eight equally likely outcomes?`,
+    t`On ${math`N`} equally likely outcomes, for which ${math`k`} can ${math`${2}^{-k}`} be a whole multiple of ${math`\frac{${1}}{N}`}?`,
+  ],
   writeUp: 'proof',
 });
 const q7order = supervision({
   id: 'ia-s3-q7',
   source: cite('ia-prob-sheet-3', 'Q7'),
   title: t`The Chebyshev order inequality`,
-  prompt: t`Let ${math`X`} be a real-valued random variable and ${math`f, g: \mathbb{R} \to \mathbb{R}`} non-decreasing. Prove that ${math`\mathbb{E}(f(X))\,\mathbb{E}(g(X)) \le \mathbb{E}(f(X)g(X))`}. Hint: consider ${math`(f(X_{${1}}) - f(X_{${2}}))(g(X_{${1}}) - g(X_{${2}}))`}, where ${math`X_{${1}}`} and ${math`X_{${2}}`} are independent copies of ${math`X`}. Which property of independent variables do you use?`,
+  prompt: t`Let ${math`X`} be a real-valued random variable and ${math`f, g: \mathbb{R} \to \mathbb{R}`} non-decreasing. Prove that ${math`\mathbb{E}(f(X))\,\mathbb{E}(g(X)) \le \mathbb{E}(f(X)g(X))`}. Hint: consider ${math`(f(X_{${1}}) - f(X_{${2}}))(g(X_{${1}}) - g(X_{${2}}))`}, where ${math`X_{${1}}`} and ${math`X_{${2}}`} are independent copies of ${math`X`}. State which property of independent variables is used.`,
+  hints: [
+    t`For non-decreasing ${math`f`} and ${math`g`}, what sign does ${math`(f(x_{${1}}) - f(x_{${2}}))(g(x_{${1}}) - g(x_{${2}}))`} have, for any ${math`x_{${1}}`} and ${math`x_{${2}}`}?`,
+    t`Expanding that product with ${math`X_{${1}}`} and ${math`X_{${2}}`} and taking expectations, which terms equal ${math`\mathbb{E}(f(X)g(X))`}?`,
+    t`Which property of independent random variables turns ${math`\mathbb{E}(f(X_{${1}})g(X_{${2}}))`} into a product of expectations?`,
+  ],
   writeUp: 'proof',
 });
 

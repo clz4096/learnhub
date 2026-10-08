@@ -140,6 +140,13 @@ const a2i = auto({
   solution: [
     t`Difference of two squares: ${math`[(${2}x - ${3}) + (x - ${1})][(${2}x - ${3}) - (x - ${1})]`}.`,
     t`Simplify each bracket: ${math`(${3}x - ${4})(x - ${2})`}. Check at ${math`x = ${1}`}: ${math`${1} - ${0} = ${1}`} and ${math`(-${1})(-${1}) = ${1}`}.`,
+    t`Spot a difference of squares before expanding.`,
+  ],
+  nudge: t`Not quite. Expanding both squares is the slow route; look at the shape of the expression.`,
+  hints: [
+    t`Which form ${math`A^{${2}} - B^{${2}}`} does the expression have, and what are ${math`A`} and ${math`B`}?`,
+    t`How does ${math`A^{${2}} - B^{${2}}`} factorise?`,
+    t`What do ${math`A + B`} and ${math`A - B`} simplify to?`,
   ],
   reference: '(3x - 4)(x - 2)',
   verify: () => { for (const x of [-2, 0, 1, 2.5, 6]) if (!near((2 * x - 3) ** 2 - (x - 1) ** 2, (3 * x - 4) * (x - 2))) return `x = ${x}`; return null; },
@@ -156,6 +163,13 @@ const a14six = auto({
   solution: [
     t`First as a difference of squares: ${math`(x^{${3}})^{${2}} - (y^{${3}})^{${2}} = (x^{${3}} - y^{${3}})(x^{${3}} + y^{${3}})`}.`,
     t`Then each cube: ${math`(x - y)(x^{${2}} + xy + y^{${2}})(x + y)(x^{${2}} - xy + y^{${2}})`}.`,
+    t`Factorise in stages: squares first, then cubes.`,
+  ],
+  nudge: t`Not quite. Check that every factor is fully factorised: the answer has two linear and two quadratic factors.`,
+  hints: [
+    t`Which powers of ${math`x`} and ${math`y`}, when squared, give ${math`x^{${6}}`} and ${math`y^{${6}}`}?`,
+    t`After a difference of two squares, which two factors appear?`,
+    t`How do ${math`a^{${3}} - b^{${3}}`} and ${math`a^{${3}} + b^{${3}}`} factorise?`,
   ],
   reference: '(x - y)(x + y)(x^2 + xy + y^2)(x^2 - xy + y^2)',
   verify: () => { for (const [x, y] of [[2, 1], [-1.5, 3], [0.7, -2]] as const) if (!near((x - y) * (x + y) * (x * x + x * y + y * y) * (x * x - x * y + y * y), x ** 6 - y ** 6)) return `at ${x}, ${y}`; return null; },
@@ -173,6 +187,13 @@ const a10ii = auto({
     t`Let the numbers be ${math`a`} and ${math`b`} with ${math`a - b = ${3}`}. Then ${math`a^{${3}} - b^{${3}} = (a - b)(a^{${2}} + ab + b^{${2}}) = ${279}`}, so ${math`a^{${2}} + ab + b^{${2}} = ${93}`}.`,
     t`Put ${math`a = b + ${3}`}: ${math`${3}b^{${2}} + ${9}b + ${9} = ${93}`}, so ${math`b^{${2}} + ${3}b - ${28} = (b + ${7})(b - ${4}) = ${0}`}.`,
     t`${math`b = ${4}`} gives ${7} and ${4}; ${math`b = -${7}`} gives ${math`-${4}`} and ${math`-${7}`}. The larger numbers are ${7} and ${math`-${4}`}.`,
+    t`Factorise so that the given information can be used.`,
+  ],
+  nudge: t`Not quite. Use the factorisation of ${math`a^{${3}} - b^{${3}}`} to bring in ${math`a - b = ${3}`}.`,
+  hints: [
+    t`How does ${math`a^{${3}} - b^{${3}}`} factorise, and what does ${math`a - b = ${3}`} then give for ${math`a^{${2}} + ab + b^{${2}}`}?`,
+    t`Substituting ${math`a = b + ${3}`}, which quadratic does ${math`b`} satisfy?`,
+    t`What are the two pairs, and which number in each is larger?`,
   ],
   reference: '7, -4',
   verify: () => {
@@ -189,6 +210,11 @@ const a14q1 = supervision({
   title: t`Cubes, fifth powers, and ${math`x^{${4}} = -${1}`}`,
   prompt: t`(i) Show that ${math`(a - b)(a^{${2}} + ab + b^{${2}}) = a^{${3}} - b^{${3}}`}, and find a similar factorisation for ${math`a^{${3}} + b^{${3}}`}. (iii) Find the sum of ${math`${1} + t + t^{${2}} + t^{${3}} + t^{${4}}`}, and deduce, by choosing ${math`t`} suitably, that ${math`a^{${5}} - b^{${5}} = (a - b)(a^{${4}} + a^{${3}}b + a^{${2}}b^{${2}} + ab^{${3}} + b^{${4}})`}; write down a factorisation of ${math`a^{${5}} + b^{${5}}`}. (iv) Simplify ${math`(x^{${2}} + y^{${2}} - \sqrt{${2}}xy)(x^{${2}} + y^{${2}} + \sqrt{${2}}xy)`}, and use it to find the four values of ${math`x`} with ${math`x^{${4}} = -${1}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`In (i), what does expanding ${math`(a - b)(a^{${2}} + ab + b^{${2}})`} give, and what happens on replacing ${math`b`} by ${math`-b`}?`,
+    t`In (iii), what is ${math`(${1} - t)(${1} + t + t^{${2}} + t^{${3}} + t^{${4}})`}, and which ${math`t`} turns it into a statement about ${math`a`} and ${math`b`}?`,
+    t`In (iv), what does the product simplify to, and what does putting ${math`y = ${1}`} say about ${math`x^{${4}} + ${1}`}?`,
+  ],
   official: cite('step-f14-hints', 'Q1'),
 });
 

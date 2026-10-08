@@ -217,7 +217,17 @@ const sheet314a = auto({
       return 30 * x + 22 * y === 2 ? null : `${x} × 30 + ${y} × 22 is ${30 * x + 22 * y}, not gcd(30, 22) = 2.`;
     },
   },
-  solution: [t`${math`\gcd(${30}, ${22}) = ${2}`}: ${math`${8} = ${30} - ${22}`}, ${math`${6} = ${22} - ${2} \cdot ${8} = ${3} \cdot ${22} - ${2} \cdot ${30}`}, ${math`${2} = ${8} - ${6} = ${3} \cdot ${30} - ${4} \cdot ${22}`}. So ${math`x = ${3}`}, ${math`y = -${4}`}, as in the official solution.`],
+  solution: [
+    t`${math`\gcd(${30}, ${22}) = ${2}`}: ${math`${8} = ${30} - ${22}`}, ${math`${6} = ${22} - ${2} \cdot ${8} = ${3} \cdot ${22} - ${2} \cdot ${30}`}, ${math`${2} = ${8} - ${6} = ${3} \cdot ${30} - ${4} \cdot ${22}`}.`,
+    t`So ${math`x = ${3}`}, ${math`y = -${4}`}, as in the official solution.`,
+    t`Keep each remainder as a combination of the inputs; the last non-zero one is the answer.`,
+  ],
+  nudge: t`Not quite. Run Euclid's algorithm on ${30} and ${22}, then work back through the remainders.`,
+  hints: [
+    t`What are the remainders when Euclid's algorithm runs on ${30} and ${22}?`,
+    t`How can each remainder be written as a combination of ${30} and ${22}?`,
+    t`Which of those combinations gives the last non-zero remainder?`,
+  ],
   reference: 'x = 3, y = -4',
   verify: () => same('egcd(30, 22)', [egcd(30, 22).s, egcd(30, 22).t, egcd(30, 22).g].join(), '3,-4,2'),
   misconceptions: [{ response: 'x = -3, y = 4', why: t`That gives ${math`-${2}`}. Keep the signs from the back-substitution.` }],
@@ -228,7 +238,7 @@ const sheet314b = auto({
   id: 'sheet-3-1-4-b',
   source: cite('cst-dm-sw1', 'Exercises 3, 3.1.4'),
   title: t`A solution with ${math`${0} \le y' < ${30}`}`,
-  prompt: t`Now find integers ${math`x'`} and ${math`y'`} with ${math`${0} \le y' < ${30}`} such that ${math`x' \cdot ${30} + y' \cdot ${22} = \gcd(${30}, ${22})`}.`,
+  prompt: t`Find integers ${math`x'`} and ${math`y'`} with ${math`${0} \le y' < ${30}`} such that ${math`x' \cdot ${30} + y' \cdot ${22} = \gcd(${30}, ${22})`}.`,
   answer: {
     kind: 'witness', count: 2, names: ["x'", "y'"], example: "x' = -8, y' = 11",
     check: ([vx, vy]) => {
@@ -239,8 +249,16 @@ const sheet314b = auto({
     },
   },
   solution: [
-    t`From ${math`(${3}, -${4})`}, the official solution uses ${math`(x + ${11}l) \cdot ${30} + (y - ${15}l) \cdot ${22} = ${2}`} for every integer ${math`l`}: ${math`${11} = ${22} / ${2}`} and ${math`${15} = ${30} / ${2}`}.`,
+    t`One solution, from Euclid's algorithm: ${math`(x, y) = (${3}, -${4})`}.`,
+    t`Since ${math`${11} \cdot ${30} = ${15} \cdot ${22}`}, the pair ${math`(x + ${11}l, y - ${15}l)`} is a solution for every integer ${math`l`}.`,
     t`${math`l = -${1}`} gives ${math`(-${8}, ${11})`} and ${math`l = -${2}`} gives ${math`(-${19}, ${26})`}; both have ${math`${0} \le y' < ${30}`}.`,
+    t`From one solution, shift by a combination worth zero to reach the range asked for.`,
+  ],
+  nudge: t`Not quite. Start from any one solution and shift it by a combination that adds zero.`,
+  hints: [
+    t`What is one pair of integers ${math`x, y`} with ${math`${30}x + ${22}y = ${2}`}?`,
+    t`Which multiples of ${30} and of ${22} are equal, so that adding one and subtracting the other leaves the total unchanged?`,
+    t`How many such shifts bring ${math`y`} into the range ${math`${0} \le y < ${30}`}?`,
   ],
   reference: "x' = -8, y' = 11",
   verify: () => same('every y from 0 to 29 that works', Array.from({ length: 30 }, (_, y) => y).filter((y) => (2 - 22 * y) % 30 === 0).join(), '11,26'),
@@ -252,11 +270,18 @@ const notes90 = auto({
   id: 'notes-255-example-90',
   source: cite('cst-dm-notes', 'printed page 255, Example 90'),
   title: t`The notes' ${math`\mathrm{egcd}(${13}, ${34})`}`,
-  prompt: t`The notes' ${math`\mathrm{egcd}`} starts from ${math`((${1}, ${0}), m)`} and ${math`((${0}, ${1}), n)`} and repeatedly replaces the older pair by the older minus ${math`q`} times the newer, until the remainder is ${0}. What does ${math`\mathrm{egcd}(${13}, ${34})`} return: the coefficients ${math`(s, t)`} with ${math`s \cdot ${13} + t \cdot ${34} = ${1}`}?`,
+  prompt: t`The notes' ${math`\mathrm{egcd}`} starts from ${math`((${1}, ${0}), m)`} and ${math`((${0}, ${1}), n)`} and repeatedly replaces the older pair by the older minus ${math`q`} times the newer, until the remainder is ${0}. Find the coefficients ${math`(s, t)`}, with ${math`s \cdot ${13} + t \cdot ${34} = ${1}`}, that ${math`\mathrm{egcd}(${13}, ${34})`} returns.`,
   answer: { kind: 'table', cell: 'exact', columns: [t`coefficient`, t`value`], rows: [[t`${math`s`}`, null], [t`${math`t`}`, null]], expected: [String(egcd(13, 34).s), String(egcd(13, 34).t)] },
   solution: [
     t`The rows ${math`((s, t), r)`} are ${math`${rowsTex(13, 34)}`}.`,
     t`The next remainder would be ${0}, so it returns ${math`((${egcd(13, 34).s}, ${egcd(13, 34).t}), ${1})`}, matching Example ${87} with the roles swapped (Proposition ${91}).`,
+    t`Each row of ${math`\mathrm{egcd}`} keeps its remainder as a combination of the inputs.`,
+  ],
+  nudge: t`Not quite. Keep the arguments in the order given: ${math`s`} goes with ${13}.`,
+  hints: [
+    t`The first two rows are ${math`((${1}, ${0}), ${13})`} and ${math`((${0}, ${1}), ${34})`}: what is the first quotient?`,
+    t`How does each new row follow from the two before it?`,
+    t`At which row does the next remainder become ${0}, and what pair does that row hold?`,
   ],
   reference: [String(egcd(13, 34).s), String(egcd(13, 34).t)],
   verify: () => same('13 s + 34 t', 13 * egcd(13, 34).s + 34 * egcd(13, 34).t, 1),
@@ -268,8 +293,13 @@ const sheet315 = supervision({
   id: 'sheet-3-1-5',
   source: cite('cst-dm-sw1', 'Exercises 3, 3.1.5'),
   title: t`One as a combination`,
-  prompt: t`Prove that for all positive integers ${mm} and ${mn}, there exist integers ${math`k`} and ${math`l`} with ${math`k m + l n = ${1}`} if and only if ${math`\gcd(m, n) = ${1}`}. Which direction needs the extended algorithm?`,
+  prompt: t`Prove that for all positive integers ${mm} and ${mn}, there exist integers ${math`k`} and ${math`l`} with ${math`k m + l n = ${1}`} if and only if ${math`\gcd(m, n) = ${1}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`If ${math`k m + l n = ${1}`}, why must every common divisor of ${mm} and ${mn} divide ${1}?`,
+    t`If ${math`\gcd(m, n) = ${1}`}, which result writes ${1} as a combination of ${mm} and ${mn}?`,
+    t`Which direction needs the extended algorithm, and which only the definition of a common divisor?`,
+  ],
   official: cite('cst-dm-sols-2324-3', '3.1.5'),
 });
 const bop71 = supervision({
@@ -278,13 +308,23 @@ const bop71 = supervision({
   title: t`The gcd is the least positive combination`,
   prompt: t`Book of Proof proves ${math`\gcd(a, b) = ak + b\ell`} for some integers by taking ${math`d`}, the smallest positive element of ${math`\{ax + by : x, y \in \mathbb{Z}\}`}, and showing ${math`d \mid a`} with the division algorithm. Write out that proof, and explain how it differs from the CST notes' proof of Theorem ${92}, which uses the extended algorithm.`,
   writeUp: 'proof',
+  hints: [
+    t`Why is the set ${math`\{ax + by : x, y \in \mathbb{Z}\}`} sure to have a smallest positive element?`,
+    t`Dividing ${math`a`} by ${math`d`}, why is the remainder also of the form ${math`ax + by`}, and why must it be ${0}?`,
+    t`Why does every common divisor of ${math`a`} and ${math`b`} divide ${math`d`}, and what does that make ${math`d`}?`,
+  ],
 });
 const allCombos = supervision({
   id: 'notes-249-all-combinations',
   source: cite('cst-dm-notes', 'printed page 249, the remark on linear combinations'),
   title: t`Every solution`,
-  prompt: t`The notes remark that ${math`s m + t n = r`} implies ${math`(s + kn) m + (t - km) n = r`} for every integer ${math`k`}. Prove that when ${math`\gcd(m, n) = ${1}`} these are all the solutions: if ${math`s'm + t'n = r`} too, then ${math`s' = s + kn`} for some ${math`k`}. Where do you use coprimality?`,
+  prompt: t`The notes remark that ${math`s m + t n = r`} implies ${math`(s + kn) m + (t - km) n = r`} for every integer ${math`k`}. Prove that when ${math`\gcd(m, n) = ${1}`} these are all the solutions: if ${math`s'm + t'n = r`} too, then ${math`s' = s + kn`} for some ${math`k`}. State where coprimality is used.`,
   writeUp: 'proof',
+  hints: [
+    t`Subtracting the two equations, what is ${math`(s' - s)m + (t' - t)n`}?`,
+    t`Since ${mn} divides ${math`(s' - s)m`}, what does ${math`\gcd(m, n) = ${1}`} allow to be concluded?`,
+    t`Once ${math`s' - s = kn`}, what must ${math`t' - t`} be?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -217,8 +217,14 @@ const a24b = auto({
   source: cite('step-f24', 'Q2(ii)(b)'),
   title: t`${math`\csc\frac{${5}\pi}{${6}}`}`,
   prompt: t`Find the value of ${math`\csc\frac{${5}\pi}{${6}}`}.`,
+  nudge: t`Not quite. Find the sine first, with its sign from the quadrant, then take the reciprocal.`,
+  hints: [
+    t`Which quadrant is ${math`\frac{${5}\pi}{${6}}`} in, and what sign does sine have there?`,
+    t`What is the reference angle of ${math`\frac{${5}\pi}{${6}}`}?`,
+    t`What is the sine of that reference angle, and what is its reciprocal?`,
+  ],
   answer: { kind: 'exact', expected: '2' },
-  solution: [t`${math`\frac{${5}\pi}{${6}} = \pi - \frac{\pi}{${6}}`}, and ${math`\sin(\pi - x) = \sin x`}, so ${math`\sin\frac{${5}\pi}{${6}} = \frac{${1}}{${2}}`}.`, t`So ${math`\csc\frac{${5}\pi}{${6}} = ${2}`}.`],
+  solution: [t`${math`\frac{${5}\pi}{${6}} = \pi - \frac{\pi}{${6}}`}, and ${math`\sin(\pi - x) = \sin x`}, so ${math`\sin\frac{${5}\pi}{${6}} = \frac{${1}}{${2}}`}.`, t`So ${math`\csc\frac{${5}\pi}{${6}} = ${2}`}.`, t`Find the partner function with its sign, then take the reciprocal.`],
   reference: '2',
   verify: () => (far(1 / Math.sin((5 * Math.PI) / 6), 2) ? 'cosec 5pi/6' : null),
   misconceptions: [{ response: '-2', why: t`${math`\frac{${5}\pi}{${6}}`} is in the second quadrant, where sine is positive.` }],
@@ -230,6 +236,11 @@ const a25iii = supervision({
   source: cite('step-f25', 'Q2(iii)'),
   title: t`Tangent and secant`,
   prompt: t`By starting with ${math`\sin^{${2}}\theta + \cos^{${2}}\theta = ${1}`}, find a relationship between ${math`\tan\theta`} and ${math`\sec\theta`}, where ${math`\sec\theta = \frac{${1}}{\cos\theta}`}. State for which ${mth} it holds, and find the corresponding relationship between ${math`\cot\theta`} and ${math`\csc\theta`}.`,
+  hints: [
+    t`By which expression can both sides be divided to bring in ${math`\tan\theta`} and ${math`\sec\theta`}?`,
+    t`For which ${mth} is that division allowed?`,
+    t`Which other division brings in ${math`\cot\theta`} and ${math`\csc\theta`}, and when is it allowed?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f25-hints', 'Q2(iii)'),
 });
@@ -239,6 +250,11 @@ const t2 = supervision({
   source: cite('nst-workbook', 'T2'),
   title: t`An identity with cot and cosec`,
   prompt: t`Prove that ${math`\frac{\cot^{${2}} x + \sin^{${2}} x}{\cos x + \csc x} = \csc x - \cos x`} for every ${math`x`} where both sides are defined.`,
+  hints: [
+    t`Multiplying both sides by the denominator, which product must equal ${math`\cot^{${2}} x + \sin^{${2}} x`}?`,
+    t`What does the difference of two squares give for ${math`(\csc x - \cos x)(\csc x + \cos x)`}?`,
+    t`Which Pythagorean identities turn ${math`\csc^{${2}} x`} and ${math`\cos^{${2}} x`} into expressions in ${math`\cot^{${2}} x`} and ${math`\sin^{${2}} x`}, and where is the denominator non-zero?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -247,10 +263,17 @@ const t3 = auto({
   source: cite('nst-workbook', 'T3(iii)'),
   title: t`${math`\cot\frac{\pi}{${12}}`}`,
   prompt: t`By writing ${math`\frac{\pi}{${12}} = \frac{\pi}{${3}} - \frac{\pi}{${4}}`}, evaluate ${math`\cot\frac{\pi}{${12}}`} exactly. Write square roots as sqrt.`,
+  nudge: t`Not quite. Find ${math`\tan\frac{\pi}{${12}}`} exactly first, then take the reciprocal and rationalise.`,
+  hints: [
+    t`Which compound angle formula gives ${math`\tan(A - B)`} in terms of ${math`\tan A`} and ${math`\tan B`}?`,
+    t`What are ${math`\tan\frac{\pi}{${3}}`} and ${math`\tan\frac{\pi}{${4}}`}?`,
+    t`With ${math`\cot\frac{\pi}{${12}}`} written as a fraction with surds below the line, which conjugate rationalises it?`,
+  ],
   answer: { kind: 'expression', expected: '2 + sqrt(3)', variables: [] },
   solution: [
     t`${math`\tan\frac{\pi}{${12}} = \frac{\tan\frac{\pi}{${3}} - \tan\frac{\pi}{${4}}}{${1} + \tan\frac{\pi}{${3}}\tan\frac{\pi}{${4}}} = \frac{\sqrt{${3}} - ${1}}{${1} + \sqrt{${3}}}`}.`,
     t`So ${math`\cot\frac{\pi}{${12}} = \frac{\sqrt{${3}} + ${1}}{\sqrt{${3}} - ${1}}`}. Multiply top and bottom by ${math`\sqrt{${3}} + ${1}`}: ${math`\frac{(\sqrt{${3}} + ${1})^{${2}}}{${3} - ${1}} = \frac{${4} + ${2}\sqrt{${3}}}{${2}} = ${2} + \sqrt{${3}}`}.`,
+    t`Reach an awkward angle through a difference of known ones, then rationalise.`,
   ],
   reference: '2 + sqrt(3)',
   verify: () => (far(1 / Math.tan(Math.PI / 12), 2 + Math.sqrt(3)) ? 'cot pi/12' : null),
@@ -263,6 +286,11 @@ const s2TrigSec = supervision({
   source: cite('step-s2-trig', 'Q2(i), (ii) (2009 STEP II Q3)'),
   title: t`Secant minus tangent`,
   prompt: t`(i) Prove that ${dmath`\tan\left(\tfrac{${1}}{${4}}\pi - \tfrac{${1}}{${2}}x\right) \equiv \sec x - \tan x. \qquad (*)`} Use ${math`(*)`} to find the value of ${math`\tan\frac{${1}}{${8}}\pi`}. Hence show that ${dmath`\tan\frac{${11}}{${24}}\pi = \frac{\sqrt{${3}} + \sqrt{${2}} - ${1}}{\sqrt{${3}} - \sqrt{${6}} + ${1}}.`} (ii) Show that ${dmath`\frac{\sqrt{${3}} + \sqrt{${2}} - ${1}}{\sqrt{${3}} - \sqrt{${6}} + ${1}} = ${2} + \sqrt{${2}} + \sqrt{${3}} + \sqrt{${6}}.`}`,
+  hints: [
+    t`By the compound angle formula, how does ${math`\tan\left(\frac{\pi}{${4}} - \frac{x}{${2}}\right)`} look written with ${math`\cos\frac{x}{${2}}`} and ${math`\sin\frac{x}{${2}}`}?`,
+    t`After multiplying top and bottom by ${math`\cos\frac{x}{${2}} - \sin\frac{x}{${2}}`}, which double angle formulae turn the result into an expression in ${math`\sin x`} and ${math`\cos x`}?`,
+    t`Which values of ${math`x`} make ${math`\frac{\pi}{${4}} - \frac{x}{${2}}`} equal to ${math`\frac{\pi}{${8}}`} and to ${math`\frac{${11}\pi}{${24}}`}, and for (ii), which conjugates clear the surds from the denominator one at a time?`,
+  ],
   writeUp: 'proof',
   official: cite('step-s2-trig-solutions', 'Q2 (page 3)'),
 });

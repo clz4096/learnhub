@@ -216,7 +216,7 @@ const recurrence = generator<RecP>({
 const F = (n: number): number => { let [a, b] = [0, 1]; for (let i = 0; i < n; i++) [a, b] = [b, a + b]; return a; };
 const N_DOMAIN = { n: { kind: 'integer' as const, min: 0, max: 15 } };
 
-const fibSum = (o: { part: string; label: Rich; term: (i: number) => number; index: string; minus: number; official: string; steps: Rich[] }) => auto({
+const fibSum = (o: { part: string; label: Rich; term: (i: number) => number; index: string; minus: number; official: string; steps: Rich[]; hints?: readonly Rich[]; nudge?: Rich }) => auto({
   id: `sw-4-2-3-g-${o.part}`,
   source: cite('cst-dm-sw1', `Exercises 4, 4.2.3(g)(${o.part})`, true),
   title: t`A sum of Fibonacci numbers`,
@@ -233,6 +233,8 @@ const fibSum = (o: { part: string; label: Rich; term: (i: number) => number; ind
     return null;
   },
   official: { source: cite('cst-dm-sols-2324-4', `4.2.3(g)(${o.part})`), answer: o.official, agrees: true },
+  ...(o.hints === undefined ? {} : { hints: o.hints }),
+  ...(o.nudge === undefined ? {} : { nudge: o.nudge }),
 });
 
 const fibI = fibSum({
@@ -247,6 +249,13 @@ const fibII = fibSum({
   steps: [
     t`Test cases: ${math`F_{${1}} = ${1} = F_{${2}}`}; ${math`F_{${1}} + F_{${3}} = ${F(1) + F(3)} = F_{${4}}`}. Conjecture ${math`\sum_{i=${0}}^{n} F_{${2}i + ${1}} = F_{${2}n + ${2}}`}.`,
     t`Inductive step: ${math`F_{${2}k + ${3}} + F_{${2}k + ${2}} = F_{${2}k + ${4}} = F_{${2}(k + ${1}) + ${2}}`}.`,
+    t`Conjecture from small cases, then prove the pattern by induction.`,
+  ],
+  nudge: t`Not quite. Compute the sum for ${math`n = ${0}, ${1}, ${2}`} and compare each value with the list of Fibonacci numbers.`,
+  hints: [
+    t`What are the sums for ${math`n = ${0}, ${1}, ${2}`}?`,
+    t`Which Fibonacci numbers equal those sums, and what are their indices?`,
+    t`How does the index grow as ${mn} goes up by ${1}?`,
   ],
 });
 const fibIII = fibSum({
@@ -254,6 +263,13 @@ const fibIII = fibSum({
   steps: [
     t`Test cases: ${math`${0}, ${1}, ${2}, ${4}, ${7}`} for ${math`n = ${0}, \ldots, ${4}`}, each one less than ${math`F_{${2}}, \ldots, F_{${6}}`}. Conjecture ${math`\sum_{i=${0}}^{n} F_{i} = F_{n + ${2}} - ${1}`}.`,
     t`Inductive step: ${math`(F_{k + ${2}} - ${1}) + F_{k + ${1}} = F_{k + ${3}} - ${1}`}. The official solution also derives it from parts (i) and (ii), by cases on whether ${mn} is even or odd.`,
+    t`Conjecture from small cases, then prove the pattern by induction.`,
+  ],
+  nudge: t`Not quite. Compute the sum for small ${mn} and compare each value with the Fibonacci numbers; every sum is off by the same amount.`,
+  hints: [
+    t`What are the sums for ${math`n = ${0}, \ldots, ${4}`}?`,
+    t`How does each sum compare with a nearby Fibonacci number?`,
+    t`How does that Fibonacci number's index depend on ${mn}?`,
   ],
 });
 
@@ -266,6 +282,7 @@ const bop9 = auto({
   solution: [
     t`From the hypothesis, ${math`${5}^{${2}k} = ${24}a + ${1}`}. Then ${math`${5}^{${2}(k + ${1})} - ${1} = ${25} \times ${5}^{${2}k} - ${1} = ${25}(${24}a + ${1}) - ${1} = ${24}(${25}a + ${1})`}.`,
     t`So ${24} divides ${math`${5}^{${2}(k + ${1})} - ${1}`}. With the base case ${math`n = ${0}`}, where ${math`${5}^{${0}} - ${1} = ${0}`}, this proves it for every ${math`n \ge ${0}`}.`,
+    t`In an inductive step, write the next case in terms of the last, then use the hypothesis.`,
   ],
   reference: '25a + 1',
   verify: () => {
@@ -277,17 +294,24 @@ const bop9 = auto({
   },
   misconceptions: [{ response: '25a', why: t`${math`${25}(${24}a + ${1}) - ${1} = ${24} \times ${25}a + ${24}`}: the ${24} left over is ${math`${24} \times ${1}`}.` }],
   official: { source: cite('bop', 'Solutions, Chapter 10, exercise 9'), answer: '25a + 1', agrees: true },
+  nudge: t`Not quite. Write ${math`${5}^{${2}(k + ${1})}`} as ${math`${25} \times ${5}^{${2}k}`}, then use the hypothesis to replace ${math`${5}^{${2}k}`}.`,
+  hints: [
+    t`How is ${math`${5}^{${2}(k + ${1})}`} related to ${math`${5}^{${2}k}`}?`,
+    t`From the hypothesis, what is ${math`${5}^{${2}k}`} in terms of ${math`a`}?`,
+    t`After substituting, which common factor can be taken out?`,
+  ],
 });
 
 const tromino = auto({
   id: 'sw-4-1-2-count',
   source: cite('cst-dm-sw1', 'Exercises 4, 4.1.2', true),
   title: t`How many L-shaped pieces`,
-  prompt: t`A ${math`${2}^{n} \times ${2}^{n}`} square grid with any one square removed can be tiled with L-shaped pieces of ${3} squares (a supervision exercise asks you to prove it). How many pieces does such a tiling use? Give the number in terms of ${mn}.`,
+  prompt: t`A ${math`${2}^{n} \times ${2}^{n}`} square grid with any one square removed can be tiled with L-shaped pieces of ${3} squares (a supervision exercise asks for a proof). How many pieces does such a tiling use? Give the number in terms of ${mn}.`,
   answer: { kind: 'expression', expected: '(4^n - 1)/3', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 8 } } },
   solution: [
     t`The grid has ${math`${4}^{n}`} squares; one is removed, and each piece covers ${3}. So there are ${math`\frac{${4}^{n} - ${1}}{${3}}`} pieces.`,
     t`The induction gives the same: the inductive step uses four tilings of the quarters and one extra piece in the middle, so ${math`T_{k + ${1}} = ${4}T_{k} + ${1}`} with ${math`T_{${1}} = ${1}`}.`,
+    t`Counting area gives the number of pieces without building the tiling.`,
   ],
   reference: '(4^n - 1)/3',
   verify: () => {
@@ -299,6 +323,12 @@ const tromino = auto({
     return null;
   },
   misconceptions: [{ response: '4^n/3', why: t`One square is removed first: ${math`${4}^{n} - ${1}`} squares are covered, three per piece.` }],
+  nudge: t`Not quite. Count squares: how many are covered, and how many does each piece cover?`,
+  hints: [
+    t`How many squares does a ${math`${2}^{n} \times ${2}^{n}`} grid have?`,
+    t`How many are left once one is removed?`,
+    t`How many squares does each piece cover?`,
+  ],
 });
 
 const polygon = auto({
@@ -310,11 +340,18 @@ const polygon = auto({
   solution: [
     t`The cut adds the triangle's three angles to the ${mk}-gon's: ${180} degrees.`,
     t`So ${math`S_{k + ${1}} = S_{k} + ${180} = ${180}(k - ${2}) + ${180} = ${180}((k + ${1}) - ${2})`}, the formula for ${math`k + ${1}`}. The base case is the triangle, ${math`n = ${3}`}: an induction from basis ${3}.`,
+    t`An inductive step adds exactly what the cut takes away.`,
   ],
   reference: '180',
   verify: () => same('180(n - 2) steps by 180', upTo(20).map((n) => 180 * (n + 1 - 2) - 180 * (n - 2)).every((d) => d === 180), true),
   misconceptions: [{ response: '360', why: t`The new piece is a triangle, whose angles add up to ${180} degrees.` }],
   official: { source: cite('cst-dm-sols-2324-4', '4.1.1'), answer: '180', agrees: true },
+  nudge: t`Not quite. The piece cut off is a triangle; what do its angles add up to?`,
+  hints: [
+    t`When the polygon with ${math`k + ${1}`} vertices is cut along a chord, what are the two pieces?`,
+    t`How do the angles of the two pieces make up the angles of the larger polygon?`,
+    t`What is the angle sum of the piece that is not the ${mk}-gon?`,
+  ],
 });
 
 /** The Polya urn: the probability of each number of white balls when there are n balls, exactly. */
@@ -341,6 +378,7 @@ const polyaQ = auto({
   solution: [
     t`Work out small cases: with ${3} balls, ${1} or ${2} white, each with probability ${q(1, 2)}; with ${4} balls, each of ${1}, ${2}, ${3} white has probability ${q(1, 3)}. Conjecture: every possible number of white balls is equally likely, ${math`\frac{${1}}{n - ${1}}`}.`,
     t`Induction on ${mn}: if it holds for ${mn} balls, ${math`i`} white balls with ${math`n + ${1}`} in the urn come from ${math`i - ${1}`} white (then a white is drawn) or ${math`i`} white (then a black is drawn): ${math`\frac{${1}}{n - ${1}} \left(\frac{i - ${1}}{n} + \frac{n - i}{n}\right) = \frac{${1}}{n}`}. That is the formula for ${math`n + ${1}`}.`,
+    t`Compute small cases, conjecture, then check that the step keeps the pattern.`,
   ],
   reference: '1/(n - 1)',
   verify: () => {
@@ -351,6 +389,12 @@ const polyaQ = auto({
     return null;
   },
   misconceptions: [{ response: '1/n', why: t`With ${mn} balls the number of white ones runs from ${1} to ${math`n - ${1}`}: there are ${math`n - ${1}`} equally likely values.` }],
+  nudge: t`Not quite. Work out the distribution for ${3} and ${4} balls by hand; a simple pattern appears.`,
+  hints: [
+    t`With ${3} balls in the urn, what are the possible numbers of white balls, and their probabilities?`,
+    t`With ${4} balls, what are they?`,
+    t`Which pattern do the small cases suggest, and does a step from ${mn} to ${math`n + ${1}`} balls keep it?`,
+  ],
 });
 
 const bop13 = supervision({
@@ -359,6 +403,11 @@ const bop13 = supervision({
   title: t`${6} divides ${math`n^{${3}} - n`}`,
   prompt: t`Prove by induction that ${math`${6} \mid (n^{${3}} - n)`} for every integer ${math`n \ge ${0}`}. In the inductive step, expand ${math`(k + ${1})^{${3}} - (k + ${1})`} and find ${math`k^{${3}} - k`} inside it; then say why the rest is a multiple of ${6}.`,
   writeUp: 'proof',
+  hints: [
+    t`What is the base case ${math`n = ${0}`}?`,
+    t`Expanding ${math`(k + ${1})^{${3}} - (k + ${1})`}, where does ${math`k^{${3}} - k`} appear inside it?`,
+    t`Why is ${math`${3}k^{${2}} + ${3}k = ${3}k(k + ${1})`} a multiple of ${6}?`,
+  ],
 });
 const sw412 = supervision({
   id: 'sw-4-1-2',
@@ -367,22 +416,37 @@ const sw412 = supervision({
   prompt: t`Prove that, for any positive integer ${mn}, a ${math`${2}^{n} \times ${2}^{n}`} square grid with any one square removed can be tiled with L-shaped pieces consisting of ${3} squares. State the induction hypothesis carefully: it must cover every possible missing square.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-4', '4.1.2'),
+  hints: [
+    t`What must the induction hypothesis say about every possible missing square in a ${math`${2}^{k} \times ${2}^{k}`} grid?`,
+    t`How does a ${math`${2}^{k + ${1}} \times ${2}^{k + ${1}}`} grid split into four quarters, and which quarter holds the missing square?`,
+    t`Where can one L-shaped piece go so that each of the other three quarters has exactly one square covered?`,
+  ],
 });
 const sw422 = supervision({
   id: 'sw-4-2-2',
   source: cite('cst-dm-sw1', 'Exercises 4, 4.2.2'),
   title: t`Bernoulli's inequality`,
-  prompt: t`Prove that for every natural number ${mn} and every real ${math`x \ge -${1}`}, ${math`(${1} + x)^{n} \ge ${1} + nx`}. Where in the inductive step do you use ${math`x \ge -${1}`}?`,
+  prompt: t`Prove that for every natural number ${mn} and every real ${math`x \ge -${1}`}, ${math`(${1} + x)^{n} \ge ${1} + nx`}. Where in the inductive step is ${math`x \ge -${1}`} used?`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-4', '4.2.2'),
+  hints: [
+    t`What is the base case ${math`n = ${0}`}?`,
+    t`From ${math`(${1} + x)^{k} \ge ${1} + kx`}, what does multiplying both sides by ${math`${1} + x`} give, and why does the inequality survive?`,
+    t`Why is ${math`(${1} + kx)(${1} + x)`} at least ${math`${1} + (k + ${1})x`}?`,
+  ],
 });
 const sw411 = supervision({
   id: 'sw-4-1-1',
   source: cite('cst-dm-sw1', 'Exercises 4, 4.1.1'),
   title: t`Angles of a polygon`,
-  prompt: t`Prove that for all natural numbers ${math`n \ge ${3}`}, if ${mn} distinct points on a circle are joined in consecutive order by straight lines, then the interior angles of the resulting polygon add up to ${math`${180}(n - ${2})`} degrees. Take care in the inductive step: you are given the polygon with ${math`k + ${1}`} vertices, and must cut it, not build it from a smaller one.`,
+  prompt: t`Prove that for all natural numbers ${math`n \ge ${3}`}, if ${mn} distinct points on a circle are joined in consecutive order by straight lines, then the interior angles of the resulting polygon add up to ${math`${180}(n - ${2})`} degrees. Take care in the inductive step: the polygon with ${math`k + ${1}`} vertices is given, and must be cut, not built from a smaller one.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-4', '4.1.1'),
+  hints: [
+    t`What is the base case, and why is it a triangle?`,
+    t`Given ${math`k + ${1}`} points on a circle, which chord cuts the polygon into a ${mk}-gon and a triangle, and why is the ${mk}-gon again of the right kind?`,
+    t`How do the angles of the ${mk}-gon and the triangle add up to those of the larger polygon?`,
+  ],
 });
 const polyaProof = supervision({
   id: 'ia-q10-proof',
@@ -390,6 +454,11 @@ const polyaProof = supervision({
   title: t`The Polya urn, proved`,
   prompt: t`For the Polya urn (one white and one black ball to start; draw a ball at random and return it with one more of the same colour), prove by induction on ${mn} that when there are ${mn} balls, each number of white balls from ${1} to ${math`n - ${1}`} has probability ${math`\frac{${1}}{n - ${1}}`}. Do you think the proportion of white balls might tend to a limit?`,
   writeUp: 'proof',
+  hints: [
+    t`With ${math`n + ${1}`} balls and ${math`i`} white, what could the urn have held one step earlier?`,
+    t`In each case, what is the probability of drawing the colour that leads to ${math`i`} white balls?`,
+    t`Using the hypothesis for ${mn} balls, what do the two cases add up to?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

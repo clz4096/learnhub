@@ -197,10 +197,17 @@ const a19q2i = auto({
   source: cite(F19, 'Q2(i)'),
   title: t`The distance from a fixed point`,
   prompt: t`Find an expression for the distance between ${math`P(${2}, -${2})`} and ${math`X(x, y)`}.`,
+  nudge: t`Not quite. Take the gaps in ${math`x`} and in ${math`y`}, with care over the sign of the coordinates of ${math`P`}.`,
+  hints: [
+    t`What is the horizontal gap between ${math`P`} and ${math`X`}?`,
+    t`What is the vertical gap, given that ${math`P`} has ${math`y`}-coordinate ${math`-${2}`}?`,
+    t`How does Pythagoras combine the two gaps?`,
+  ],
   answer: { kind: 'expression', expected: 'sqrt((x - 2)^2 + (y + 2)^2)', variables: ['x', 'y'] },
   solution: [
     t`The horizontal gap is ${math`x - ${2}`} and the vertical gap is ${math`y - (-${2}) = y + ${2}`}.`,
     t`By Pythagoras the distance is ${math`\sqrt{(x - ${2})^{${2}} + (y + ${2})^{${2}}}`}, which expands to ${math`\sqrt{x^{${2}} + y^{${2}} - ${4}x + ${4}y + ${8}}`}.`,
+    t`Distance is Pythagoras on the coordinate gaps; subtract coordinates carefully.`,
   ],
   reference: 'sqrt((x - 2)^2 + (y + 2)^2)',
   verify: () => {
@@ -216,10 +223,17 @@ const a19q2iii = auto({
   source: cite(F19, 'Q2(iii)', true),
   title: t`Two equations for the same line`,
   prompt: t`Find the values of ${math`a`} and ${math`b`}, with ${math`a > ${0}`}, for which ${math`x + ay = ${2}`} and ${math`ax + ${4}y = b`} describe the same line. (Note that ${math`x + y = ${1}`} and ${math`${2}x + ${2}y = ${2}`} describe the same line.)`,
+  nudge: t`Not quite. Two equations give the same line when one is a whole multiple of the other.`,
+  hints: [
+    t`If the second equation is ${math`k`} times the first, what are its coefficients of ${math`x`} and ${math`y`} in terms of ${math`k`}?`,
+    t`Matching coefficients, what equation does ${math`a`} satisfy?`,
+    t`With ${math`a > ${0}`}, which multiple is it, and so what is ${math`b`}?`,
+  ],
   answer: namedAnswer(['a', 'b'], [q(2), q(4)], 'The coefficients and the constants must be in the same ratio.'),
   solution: [
     t`Two equations give the same line exactly when one is a multiple of the other: ${math`\frac{a}{${1}} = \frac{${4}}{a} = \frac{b}{${2}}`}.`,
     t`${math`a^{${2}} = ${4}`}, so ${math`a = ${2}`} (taking ${math`a > ${0}`}; ${math`a = -${2}`} gives the other pair, ${math`b = -${4}`}). Then ${math`b = ${2}a = ${4}`}.`,
+    t`The same line means proportional equations, constants included.`,
   ],
   reference: 'a = 2, b = 4',
   verify: () => {
@@ -237,11 +251,18 @@ const a19q2iv = auto({
   source: cite(F19, 'Q2(iv)'),
   title: t`Change the subject`,
   prompt: t`Given that ${math`${5} = \frac{${2}px - y}{${1} - p}`}, find ${math`p`} in terms of ${math`x`} and ${math`y`}.`,
+  nudge: t`Not quite. Clear the fraction, then collect every ${math`p`} term on one side.`,
+  hints: [
+    t`What does multiplying both sides by ${math`${1} - p`} give?`,
+    t`Which terms contain ${math`p`}, and how are they moved to one side?`,
+    t`After taking out the factor ${math`p`}, what is left to divide by?`,
+  ],
   answer: { kind: 'expression', expected: '(5 + y)/(2x + 5)', variables: ['x', 'y'] },
   solution: [
     t`Multiply both sides by ${math`${1} - p`}: ${math`${5} - ${5}p = ${2}px - y`}.`,
     t`Collect the ${math`p`} terms on one side: ${math`${5} + y = ${2}px + ${5}p = p(${2}x + ${5})`}.`,
     t`Divide by ${math`${2}x + ${5}`}: ${math`p = \frac{${5} + y}{${2}x + ${5}}`}.`,
+    t`To change the subject, clear fractions, collect, factorise, then divide.`,
   ],
   reference: '(y + 5)/(2x + 5)',
   verify: () => {
@@ -260,11 +281,18 @@ const a2q2iii = auto({
   source: cite('step-f02', 'Q2(iii)'),
   title: t`The greatest value of a line on an interval`,
   prompt: t`Sketch ${math`y = mx + ${1}`} for ${math`-${2} \le x \le ${2}`} in the cases ${math`m > ${0}`}, ${math`m = ${0}`}, and ${math`m < ${0}`}. Find a single expression for the greatest value of ${math`mx + ${1}`} on this range, valid for every ${math`m`}. (Type ${math`|m|`} as abs(m).)`,
+  nudge: t`Not quite. A line is greatest at an end of the interval; which end depends on the sign of ${math`m`}.`,
+  hints: [
+    t`Where on ${math`-${2} \le x \le ${2}`} is a rising line greatest, and where is a falling line greatest?`,
+    t`What are the greatest values in the cases ${math`m > ${0}`}, ${math`m = ${0}`}, and ${math`m < ${0}`}?`,
+    t`Which single expression with ${math`|m|`} matches all three cases?`,
+  ],
   answer: { kind: 'expression', expected: '1 + 2abs(m)', variables: ['m'] },
   solution: [
     t`A line is greatest at one end of an interval. If ${math`m > ${0}`} it rises, so the greatest value is at ${math`x = ${2}`}: ${math`${2}m + ${1}`}.`,
     t`If ${math`m < ${0}`} it falls, so the greatest is at ${math`x = -${2}`}: ${math`-${2}m + ${1}`}. If ${math`m = ${0}`} it is ${1} everywhere.`,
     t`All three are ${math`${1} + ${2}|m|`}, since ${math`|m| = m`} for ${math`m \ge ${0}`} and ${math`|m| = -m`} for ${math`m < ${0}`}. (The least value is ${math`${1} - ${2}|m|`}.)`,
+    t`Split by sign, then combine the cases with a modulus.`,
   ],
   reference: '1 + 2abs(m)',
   verify: () => {

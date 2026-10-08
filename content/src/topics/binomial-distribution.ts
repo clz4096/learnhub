@@ -170,9 +170,16 @@ const a19two = auto({
   title: t`At least two sixes`,
   prompt: t`Three fair dice are thrown. What is the probability of at least two sixes?`,
   answer: { kind: 'exact', expected: str(add(pmf(3, 2, SIX), pmf(3, 3, SIX))) },
+  hints: [
+    t`Which values of the number of sixes count as at least two?`,
+    t`What is ${math`P(X = ${2})`} by the binomial formula?`,
+    t`What is ${math`P(X = ${3})`}, and why may the two probabilities be added?`,
+  ],
+  nudge: t`Not quite. List which numbers of sixes count, then use the binomial formula for each.`,
   solution: [
     t`${math`P(X = ${2}) = \binom{${3}}{${2}}\left(${SIX}\right)^{${2}} ${q(5, 6)} = \frac{${15}}{${216}}`} and ${math`P(X = ${3}) = \left(${SIX}\right)^{${3}} = \frac{${1}}{${216}}`}.`,
     t`Together ${math`\frac{${16}}{${216}} = ${add(pmf(3, 2, SIX), pmf(3, 3, SIX))}`}.`,
+    t`For at least, add the exact cases, or subtract the rest from ${1}.`,
   ],
   reference: str(add(pmf(3, 2, SIX), pmf(3, 3, SIX))),
   verify: () => same('every outcome of three dice listed', str(add(byListing(3, SIX)[2] as Rational, byListing(3, SIX)[3] as Rational)), '2/27'),
@@ -188,9 +195,16 @@ const a12two = auto({
   title: t`Exactly two children with goggles`,
   prompt: t`Three children have a swimming lesson. Each remembers to bring goggles with probability ${GOG}, independently of the other two. What is the probability that exactly two of them have goggles?`,
   answer: { kind: 'exact', expected: str(pmf(3, 2, GOG)) },
+  hints: [
+    t`What is the probability of one particular arrangement, such as the first two children with goggles and the third without?`,
+    t`How many arrangements have exactly two children with goggles?`,
+    t`Why may the probabilities of those arrangements be added?`,
+  ],
+  nudge: t`Not quite. Count every arrangement with exactly two, not just one order.`,
   solution: [
     t`Question (iv)(c) found one case: the middle child without goggles and the other two with them, ${math`${GOG} \times ${q(3, 4)} \times ${GOG} = ${q(3, 64)}`}.`,
     t`The child without goggles could be any of the three, so, as the hints remark, multiply by ${3}: ${math`${3} \times ${q(3, 64)} = ${pmf(3, 2, GOG)}`}, which is ${math`\binom{${3}}{${2}} \left(${GOG}\right)^{${2}} ${q(3, 4)}`}.`,
+    t`The chance of one order, times the number of orders.`,
   ],
   reference: str(pmf(3, 2, GOG)),
   verify: () => same('the eight cases listed', str(byListing(3, GOG)[2] as Rational), str(q(9, 64))),
@@ -205,9 +219,16 @@ const a12dist = auto({
   title: t`The whole distribution`,
   prompt: t`For the three children, each with goggles with probability ${GOG} independently, give the probability that ${0}, ${1}, ${2}, and ${3} of them have goggles.`,
   answer: { kind: 'table', cell: 'exact', columns: [t`children with goggles`, t`probability`], rows: [0, 1, 2, 3].map((k) => [t`${k}`, null]), expected: [0, 1, 2, 3].map((k) => str(pmf(3, k, GOG))) },
+  hints: [
+    t`What is the probability of one particular order in which ${math`k`} children have goggles?`,
+    t`How many such orders are there for each ${math`k`}?`,
+    t`Do the four probabilities add to ${1}?`,
+  ],
+  nudge: t`Not quite. Multiply the chance of a single order by the number of ways to choose which children have goggles.`,
   solution: [
     t`${math`P(X = k) = \binom{${3}}{k}\left(${GOG}\right)^{k}\left(${q(3, 4)}\right)^{${3} - k}`}: ${math`${pmf(3, 0, GOG)}, ${pmf(3, 1, GOG)}, ${pmf(3, 2, GOG)}, ${pmf(3, 3, GOG)}`}.`,
     t`They add to ${1}. The hints' answer to (iv)(a), at least one, is ${math`${1} - ${pmf(3, 0, GOG)} = ${sub(q(1), pmf(3, 0, GOG))}`}.`,
+    t`Binomial: the chance of one order times the binomial coefficient.`,
   ],
   reference: [0, 1, 2, 3].map((k) => str(pmf(3, k, GOG))),
   verify: () => same('the eight cases listed', byListing(3, GOG).map(str).join(' '), [0, 1, 2, 3].map((k) => str(pmf(3, k, GOG))).join(' ')),
@@ -219,6 +240,11 @@ const a19why = supervision({
   source: cite('step-f19', 'Q4(ii)'),
   title: t`Why the number of sixes is binomial`,
   prompt: t`For three dice, explain what the trials, the success, and ${mp} are, and where independence is used, so that the number of sixes is ${math`B(${3}, ${SIX})`}. Then explain why ${math`P(\text{two sixes})`} is ${math`${3} \times \left(${SIX}\right)^{${2}} \times ${q(5, 6)}`}, and give an example of three dice-like trials whose number of successes is not binomial.`,
+  hints: [
+    t`What is one trial here, and what counts as a success?`,
+    t`Where is the independence of the dice used, in multiplying probabilities?`,
+    t`Which three trials, where one result changes the chance of another, break the binomial model?`,
+  ],
   writeUp: 'explanation',
   official: cite('step-f19-hints', 'Q4(ii)'),
 });
@@ -283,7 +309,8 @@ export const binomialDistribution: TopicContent = {
     'a19-q4-ii-at-least-two': { sections: ['At least, at most'], note: t`An "at least" probability for a binomial` },
     'a12-q2-iv-distribution': { sections: ['Trials and the binomial'], note: t`A whole binomial distribution` },
   }),
-  gate: ['a19-q4-ii-why-binomial', 'a19-q4-ii-at-least-two', 'a12-q2-iv-distribution'],
+  // Not a19-q4-ii-at-least-two: the write-up gate a19-q4-ii-why-binomial gives P(two sixes), so it stays practice.
+  gate: ['a19-q4-ii-why-binomial', 'a12-q2-iv-distribution'],
   recall: [
     { front: t`When is a count binomial?`, back: t`A fixed number ${mn} of independent trials, each a success with the same probability ${mp}.` },
     { front: t`${math`P(X = k)`} for ${math`X \sim B(n, p)`}.`, back: t`${math`\binom{n}{k} p^{k}(${1} - p)^{n - k}`}.` },

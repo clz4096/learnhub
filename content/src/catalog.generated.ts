@@ -148,7 +148,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a12-q2-iii-b", title: "Three blackcurrant chews", mode: "auto", gate: true },
     { id: "a12-q2-iv-a", title: "At least one child has goggles", mode: "auto", gate: true },
     { id: "a12-q2-iv-c", title: "Only the middle child forgets", mode: "auto", gate: false },
-    { id: "a12-q2-ii-methods", title: "One after the other, or both at once", mode: "supervision", gate: true },
+    { id: "a12-q2-ii-methods", title: "One after the other, or both at once", mode: "supervision", gate: false },
     { id: "a6-q4-i-tree", title: "A tree for the smokers", mode: "supervision", gate: true },
   ],
   "pre.algebraic-argument": [
@@ -285,7 +285,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   "pre.two-way-tables": [
     { id: "a6-q4-i-regions", title: "The four regions of the diagram", mode: "auto", gate: true },
     { id: "a6-q4-i-e-woman", title: "A woman, given a non-smoker", mode: "auto", gate: true },
-    { id: "a6-q4-i-diagram", title: "Reading a condition from the diagram", mode: "supervision", gate: true },
+    { id: "a6-q4-i-diagram", title: "Reading a condition from the diagram", mode: "supervision", gate: false },
   ],
   "comb.binomial-theorem": [
     { id: "cst-cor-33-p5", title: "The Freshman's Dream for 5", mode: "auto", gate: true },
@@ -484,7 +484,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "sheet-2-1-3", title: "Three remainder identities", mode: "supervision", gate: true },
   ],
   "prob.binomial-distribution": [
-    { id: "a19-q4-ii-at-least-two", title: "At least two sixes", mode: "auto", gate: true },
+    { id: "a19-q4-ii-at-least-two", title: "At least two sixes", mode: "auto", gate: false },
     { id: "a12-q2-iv-two", title: "Exactly two children with goggles", mode: "auto", gate: false },
     { id: "a12-q2-iv-distribution", title: "The whole distribution", mode: "auto", gate: true },
     { id: "a19-q4-ii-why-binomial", title: "Why the number of sixes is binomial", mode: "supervision", gate: true },
@@ -637,7 +637,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   ],
   "prob.total-probability": [
     { id: "ia-q9-same-twice", title: "Voting the same way twice", mode: "auto", gate: true },
-    { id: "ia-q8-reading", title: "Which probabilities are which?", mode: "supervision", gate: true },
+    { id: "ia-q8-reading", title: "Which probabilities are which?", mode: "supervision", gate: false },
     { id: "schedule-total-probability", title: "The law, for a countable partition", mode: "supervision", gate: false },
   ],
   "prob.independence": [
@@ -840,7 +840,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   "gf.random-sums": [
     { id: "ia-s3-q10-a", title: "Immature individuals in the next generation", mode: "auto", gate: true },
     { id: "ia-s3-q10-b", title: "Mature individuals in the next generation", mode: "auto", gate: true },
-    { id: "ia-s3-q8-a", title: "The mean and variance of a random sum", mode: "supervision", gate: true },
+    { id: "ia-s3-q8-a", title: "The mean and variance of a random sum", mode: "supervision", gate: false },
     { id: "ia-s3-q10-c", title: "Same mean, different variance", mode: "supervision", gate: true },
   ],
   "gf.combinatorial": [
@@ -1315,7 +1315,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "step14-q5", title: "A cubic that never goes negative, and the largest xy^2", mode: "supervision", gate: true },
     { id: "step08-q3", title: "One of them is small", mode: "supervision", gate: true },
     { id: "step12-q1", title: "The shortest way round a fixed point", mode: "supervision", gate: true },
-    { id: "step14-q5-ii", title: "The largest xy^2 under a line", mode: "auto", gate: true },
+    { id: "step14-q5-ii", title: "The largest xy^2 under a line", mode: "auto", gate: false },
     { id: "step12-q1-gradient", title: "Which line is shortest round the point", mode: "auto", gate: false },
     { id: "a8-q1-ii", title: "AM-GM for four numbers", mode: "supervision", gate: false },
     { id: "a8-q1-iii", title: "AM-GM for three numbers", mode: "supervision", gate: false },
@@ -1365,9 +1365,9 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "s2misc-q7", title: "Square and cube roots by the binomial series", mode: "supervision", gate: true },
     { id: "step11-q6", title: "Series summed by the binomial expansion", mode: "supervision", gate: true },
     { id: "s2misc-q7-i-a", title: "Root three from the root of 1.08", mode: "auto", gate: false },
-    { id: "s2misc-q7-i-b", title: "Root six, choosing k", mode: "auto", gate: true },
+    { id: "s2misc-q7-i-b", title: "Root six, choosing k", mode: "auto", gate: false },
     { id: "step11-q6-i", title: "The sum of \\fracr^2 + 12^r", mode: "auto", gate: false },
-    { id: "step11-q6-ii", title: "The sum of \\frac(r + 1)^22^r", mode: "auto", gate: true },
+    { id: "step11-q6-ii", title: "The sum of \\frac(r + 1)^22^r", mode: "auto", gate: false },
     { id: "a20-q1-iii", title: "Differentiating x^-1/2 from first principles", mode: "auto", gate: false },
     { id: "nst-ss5-iii", title: "A quotient of two expansions", mode: "auto", gate: true },
     { id: "nst-ss5-ii", title: "A fractional power of 2 + x", mode: "auto", gate: false },
@@ -1555,7 +1555,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "a21-q4-ii", title: "A point on the inscribed circle of a square", mode: "supervision", gate: false },
   ],
   "trig.right-triangle": [
-    { id: "s2misc-q2", title: "Inside a regular tetrahedron", mode: "supervision", gate: true },
+    { id: "s2misc-q2", title: "Inside a regular tetrahedron", mode: "supervision", gate: false },
     { id: "step02-q6", title: "A pyramid on an equilateral base, tipped over", mode: "supervision", gate: true },
     { id: "s2misc-q2-i", title: "The height of a regular tetrahedron", mode: "auto", gate: false },
     { id: "s2misc-q2-iii", title: "The largest sphere inside a regular tetrahedron", mode: "auto", gate: true },
@@ -1613,7 +1613,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   ],
   "trig.equations": [
     { id: "a16-q3-iii", title: "A cubic solved by \\cos 3\\alpha", mode: "auto", gate: true },
-    { id: "a16-q3-ii", title: "The roots of 4x^3 - 3x - \\cos 3\\alpha = 0", mode: "supervision", gate: true },
+    { id: "a16-q3-ii", title: "The roots of 4x^3 - 3x - \\cos 3\\alpha = 0", mode: "supervision", gate: false },
     { id: "nst-t8", title: "\\cos\\theta + \\cos 3\\theta = \\sin\\theta + \\sin 3\\theta", mode: "auto", gate: true },
     { id: "nst-t1", title: "Four values with 2\\sin^2\\theta = 1", mode: "auto", gate: false },
     { id: "nst-t7", title: "√(3)\\sin\\theta + \\cos\\theta as one sine", mode: "auto", gate: false },
@@ -1627,7 +1627,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
     { id: "nst-ss6", title: "Composing small angle approximations", mode: "auto", gate: true },
   ],
   "geom.loci": [
-    { id: "a19-q3-i", title: "A circle of Apollonius", mode: "auto", gate: true },
+    { id: "a19-q3-i", title: "A circle of Apollonius", mode: "auto", gate: false },
     { id: "a19-q3-ii", title: "The same circle from two other points", mode: "supervision", gate: true },
   ],
   "trig.reciprocal-functions": [
@@ -1639,7 +1639,7 @@ export const CATALOG: Readonly<Record<string, readonly CatalogProblem[]>> = {
   ],
   "geom.vectors": [
     { id: "damtp-vm1-q7", title: "The altitudes of a triangle meet", mode: "supervision", gate: true },
-    { id: "s2vec-q2", title: "Two reflections", mode: "supervision", gate: true },
+    { id: "s2vec-q2", title: "Two reflections", mode: "supervision", gate: false },
     { id: "s2vec-q1", title: "Two lines at π/4 to two others", mode: "supervision", gate: true },
     { id: "s2vec-q2-cos", title: "The angle that makes D the midpoint", mode: "auto", gate: true },
     { id: "s2vec-q1-cos", title: "The angle between the two new lines", mode: "auto", gate: false },

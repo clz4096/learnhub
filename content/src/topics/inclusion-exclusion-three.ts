@@ -209,6 +209,13 @@ const iaQ5bAny = auto({
   solution: [
     t`Singles: ${math`${fl(N5, 3)} + ${fl(N5, 5)} + ${fl(N5, 7)} = ${fl(N5, 3) + fl(N5, 5) + fl(N5, 7)}`}. Pairs: multiples of ${15}, ${21}, ${35}: ${math`${fl(N5, 15)} + ${fl(N5, 21)} + ${fl(N5, 35)} = ${fl(N5, 15) + fl(N5, 21) + fl(N5, 35)}`}. Triple: multiples of ${105}, ${fl(N5, 105)}.`,
     t`${math`${fl(N5, 3) + fl(N5, 5) + fl(N5, 7)} - ${fl(N5, 15) + fl(N5, 21) + fl(N5, 35)} + ${fl(N5, 105)} = ${anyOfThree}`}.`,
+    t`Add the singles, subtract the pairs, add back the triple.`,
+  ],
+  nudge: t`Not quite. Adding the three counts counts some numbers more than once; correct for the overlaps.`,
+  hints: [
+    t`How many multiples of ${3}, of ${5}, and of ${7} are there up to ${N5}?`,
+    t`Which numbers are counted twice in that total, and what are they multiples of?`,
+    t`After the pairs are subtracted, how many times is a multiple of ${105} counted?`,
   ],
   reference: String(anyOfThree),
   verify: () => same('by checking every number', multiples.at({ n: N5, a: 3, b: 5, c: 7 }).reference, anyOfThree),
@@ -226,8 +233,15 @@ const iaQ5aNum = auto({
   prompt: t`Events ${mA}, ${mB}, ${mC} have ${math`P(B) = ${RT.b}`}, ${math`P(C) = ${RT.c}`}, ${math`P(B \cap C) = ${RT.bc}`}, ${math`P(C \cap A) = ${RT.ac}`}, ${math`P(A \cap B) = ${RT.ab}`}, and ${math`P(A \cap B \cap C) = ${RT.abc}`}. Find ${math`P(A^{c} \cap (B \cup C))`}.`,
   answer: { kind: 'exact', expected: str(lhs) },
   solution: [
-    t`Question ${5}(a)'s identity: ${math`P(A^{c} \cap (B \cup C)) = P(B) + P(C) - P(B \cap C) - P(C \cap A) - P(A \cap B) + P(A \cap B \cap C)`}.`,
+    t`The identity of Q${5}(a): ${math`P(A^{c} \cap (B \cup C)) = P(B) + P(C) - P(B \cap C) - P(C \cap A) - P(A \cap B) + P(A \cap B \cap C)`}.`,
     t`${math`= ${RT.b} + ${RT.c} - ${RT.bc} - ${RT.ac} - ${RT.ab} + ${RT.abc} = ${lhs}`}.`,
+    t`Outside ${mA}: take ${math`P(B \cup C)`} and remove the part inside ${mA}.`,
+  ],
+  nudge: t`Not quite. Split ${math`B \cup C`} into the part outside ${mA} and the part inside ${mA}.`,
+  hints: [
+    t`What is ${math`P(B \cup C)`} from the given values?`,
+    t`Which part of ${math`B \cup C`} lies inside ${mA}, and which of the given probabilities describe it?`,
+    t`How does removing the part inside ${mA} from ${math`P(B \cup C)`} give the probability asked for?`,
   ],
   reference: str(lhs),
   verify: () => {
@@ -241,15 +255,25 @@ const iaQ5a = supervision({
   id: 'ia-q5-a',
   source: cite('ia-prob-sheet-1', 'Q5(a)'),
   title: t`The identity for ${math`A^{c} \cap (B \cup C)`}`,
-  prompt: t`Show that, for any three events ${mA}, ${mB}, ${mC}, ${math`P(A^{c} \cap (B \cup C)) = P(B) + P(C) - P(B \cap C) - P(C \cap A) - P(A \cap B) + P(A \cap B \cap C)`}. Hint: ${math`B \cup C`} is the disjoint union of ${math`A^{c} \cap (B \cup C)`} and ${math`A \cap (B \cup C)`}.`,
+  prompt: t`Show that, for any three events ${mA}, ${mB}, ${mC}, ${math`P(A^{c} \cap (B \cup C)) = P(B) + P(C) - P(B \cap C) - P(C \cap A) - P(A \cap B) + P(A \cap B \cap C)`}.`,
   writeUp: 'proof',
+  hints: [
+    t`How does ${math`B \cup C`} split into a part outside ${mA} and a part inside ${mA}, and why are the two parts disjoint?`,
+    t`What is ${math`A \cap (B \cup C)`} as a union of two events?`,
+    t`What does the two-event rule give for ${math`P(B \cup C)`} and for that union?`,
+  ],
 });
 const derive = supervision({
   id: 'ia-q5-three',
   source: cite('ia-prob-sheet-1', 'Q5', true),
   title: t`Inclusion-exclusion for three, derived`,
-  prompt: t`Derive ${math`P(A \cup B \cup C) = \sum P(A) - \sum P(A \cap B) + P(A \cap B \cap C)`} from the two-event rule ${math`P(X \cup Y) = P(X) + P(Y) - P(X \cap Y)`}, by taking ${math`X = A \cup B`} and ${math`Y = C`}. Then explain with a Venn diagram why a point in all three events is counted exactly once.`,
+  prompt: t`Derive ${math`P(A \cup B \cup C) = \sum P(A) - \sum P(A \cap B) + P(A \cap B \cap C)`} from the two-event rule ${math`P(X \cup Y) = P(X) + P(Y) - P(X \cap Y)`}. Then explain with a Venn diagram why a point in all three events is counted exactly once.`,
   writeUp: 'proof',
+  hints: [
+    t`Which choice of ${math`X`} and ${math`Y`} makes ${math`A \cup B \cup C`} a union of two events?`,
+    t`How does the distributive law rewrite ${math`(A \cup B) \cap C`}, and which rule then gives its probability?`,
+    t`How many times is a point in all three events counted by the singles, by the pairs, and by the triple?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

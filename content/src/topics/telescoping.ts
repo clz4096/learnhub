@@ -163,11 +163,18 @@ const a6General = auto({
   source: cite(F06, 'Q1(i), second part'),
   title: t`A product that cancels, to ${mn} brackets`,
   prompt: t`Find, in terms of ${mn}, the value of ${a6Tex}.`,
+  nudge: t`Not quite. Write each pair of brackets as a single fraction first, then look for cancelling.`,
+  hints: [
+    t`What is ${math`\frac{${1} + \frac{${1}}{${2}r}}{${1} - \frac{${1}}{${2}r}}`} as a single fraction?`,
+    t`Writing out the first few of those fractions, which numerator cancels which denominator?`,
+    t`After the cancelling, which numerator and which denominator survive?`,
+  ],
   answer: { kind: 'expression', expected: '2n + 1', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 30 } } },
   solution: [
     t`Take the ${mr}th bracket on top with the ${mr}th underneath, and multiply top and bottom by ${math`${2}r`}: ${math`\frac{${1} + \frac{${1}}{${2}r}}{${1} - \frac{${1}}{${2}r}} = \frac{${2}r + ${1}}{${2}r - ${1}}`}.`,
     t`With ${math`g(r) = ${2}r + ${1}`}, this is ${math`\frac{g(r)}{g(r - ${1})}`}, because ${math`g(r - ${1}) = ${2}(r - ${1}) + ${1} = ${2}r - ${1}`}. So the whole product is ${math`\prod_{r = ${1}}^{n} \frac{g(r)}{g(r - ${1})}`}, a telescoping product.`,
     t`It telescopes to ${math`\frac{g(n)}{g(${0})} = \frac{${2}n + ${1}}{${1}} = ${2}n + ${1}`}. With ${math`n = ${4}`} that is ${a6Product(4)}, the first part of the question.`,
+    t`Simplify each factor, then let the product telescope.`,
   ],
   reference: '2n + 1',
   verify: () => {
@@ -188,7 +195,12 @@ const a6Show = supervision({
   id: 'a6-q1-i-show',
   source: cite(F06, 'Q1(i), second part', true),
   title: t`Why the product is ${math`${2}n + ${1}`}`,
-  prompt: t`Show carefully that ${a6Tex} equals ${math`${2}n + ${1}`} for every positive integer ${mn}. Generalising from a few cases is not enough: say exactly which factors cancel and why the cancelling leaves only ${math`${2}n + ${1}`}.`,
+  prompt: t`Show carefully that ${a6Tex} equals ${math`${2}n + ${1}`} for every positive integer ${mn}. Generalising from a few cases is not enough: state exactly which factors cancel and why the cancelling leaves only ${math`${2}n + ${1}`}.`,
+  hints: [
+    t`What does the ${mr}th bracket on top over the ${mr}th underneath simplify to?`,
+    t`With ${math`g(r) = ${2}r + ${1}`}, how is that fraction written using ${math`g(r)`} and ${math`g(r - ${1})`}?`,
+    t`In the product of ${math`\frac{g(r)}{g(r - ${1})}`} from ${math`r = ${1}`} to ${mn}, which factors survive, and what is ${math`g(${0})`}?`,
+  ],
   writeUp: 'explanation',
   official: cite('step-f06-hints', 'Q1(i)'),
 });
@@ -218,8 +230,14 @@ const a17n = auto({
   source: cite(F17, 'Assignment 17, Q2(iii)'),
   title: t`The general sum`,
   prompt: t`Find an expression for ${math`\sum_{r = ${1}}^{n} \frac{${1}}{r(r + ${1})}`} in terms of ${mn}, and check it with ${math`n = ${3}`}.`,
+  nudge: t`Not quite. Write each term as a difference and let the middle cancel.`,
+  hints: [
+    t`How does ${math`\frac{${1}}{r(r + ${1})}`} split as a difference of two fractions?`,
+    t`Writing out the first few differences, what cancels?`,
+    t`What is left from the first and last terms, and does it agree with ${math`n = ${3}`}?`,
+  ],
   answer: { kind: 'expression', expected: 'n/(n + 1)', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 30 } } },
-  solution: [t`It telescopes to ${math`${1} - \frac{${1}}{n + ${1}} = \frac{n}{n + ${1}}`}. Check: ${math`\frac{${1}}{${2}} + \frac{${1}}{${6}} + \frac{${1}}{${12}} = \frac{${9}}{${12}} = \frac{${3}}{${4}}`}.`],
+  solution: [t`It telescopes to ${math`${1} - \frac{${1}}{n + ${1}} = \frac{n}{n + ${1}}`}. Check: ${math`\frac{${1}}{${2}} + \frac{${1}}{${6}} + \frac{${1}}{${12}} = \frac{${9}}{${12}} = \frac{${3}}{${4}}`}.`, t`Split into differences, cancel the middle, then check a small case.`],
   reference: 'n/(n + 1)',
   verify: () => {
     for (let n = 1; n <= 30; n++) { const e = same(`n = ${n}`, str(sumQ(1, n, (r) => q(1, r * (r + 1)))), str(q(n, n + 1))); if (e !== null) return e; }
@@ -234,8 +252,14 @@ const a15prod = auto({
   source: cite('step-f15', 'Assignment 15, Q1(iii)(b)'),
   title: t`A product of fractions`,
   prompt: t`The notation ${math`\prod_{r = ${1}}^{n} f(r)`} means ${math`f(${1}) \times f(${2}) \times \cdots \times f(n)`}. Simplify ${math`\prod_{r = ${1}}^{n} \frac{r}{r + ${1}}`}.`,
+  nudge: t`Not quite. Write out the first few factors and watch the cancelling.`,
+  hints: [
+    t`What are the first three factors?`,
+    t`Which numerator cancels which denominator?`,
+    t`Which numerator and which denominator survive?`,
+  ],
   answer: { kind: 'expression', expected: '1/(n + 1)', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 30 } } },
-  solution: [t`${math`\frac{${1}}{${2}} \times \frac{${2}}{${3}} \times \cdots \times \frac{n - ${1}}{n} \times \frac{n}{n + ${1}}`}: every numerator from ${2} on cancels the denominator before it, leaving ${math`\frac{${1}}{n + ${1}}`}.`],
+  solution: [t`${math`\frac{${1}}{${2}} \times \frac{${2}}{${3}} \times \cdots \times \frac{n - ${1}}{n} \times \frac{n}{n + ${1}}`}: every numerator from ${2} on cancels the denominator before it, leaving ${math`\frac{${1}}{n + ${1}}`}.`, t`In a telescoping product only the ends survive.`],
   reference: '1/(n + 1)',
   verify: () => {
     for (let n = 1; n <= 30; n++) { const e = same(`n = ${n}`, str(prodQ(1, n, (r) => q(r, r + 1))), str(q(1, n + 1))); if (e !== null) return e; }
@@ -250,8 +274,14 @@ const a24sq = auto({
   source: cite(F24, 'Assignment 24, Q2(iii)'),
   title: t`A sum of root differences`,
   prompt: t`Simplify ${math`\sum_{k = ${1}}^{n} \left(\sqrt{k} - \sqrt{k - ${1}}\right)`}. Type a square root as sqrt(n).`,
+  nudge: t`Not quite. Write out the first few terms and see what cancels.`,
+  hints: [
+    t`What are the terms for ${math`k = ${1}`}, ${2}, and ${3}?`,
+    t`Which parts cancel between neighbouring terms?`,
+    t`What survives from the first term and the last?`,
+  ],
   answer: { kind: 'expression', expected: 'sqrt(n)', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 50 } } },
-  solution: [t`The terms are ${math`(\sqrt{${1}} - \sqrt{${0}}) + (\sqrt{${2}} - \sqrt{${1}}) + \cdots + (\sqrt{n} - \sqrt{n - ${1}})`}: all cancel but ${math`\sqrt{n} - \sqrt{${0}} = \sqrt{n}`}.`],
+  solution: [t`The terms are ${math`(\sqrt{${1}} - \sqrt{${0}}) + (\sqrt{${2}} - \sqrt{${1}}) + \cdots + (\sqrt{n} - \sqrt{n - ${1}})`}: all cancel but ${math`\sqrt{n} - \sqrt{${0}} = \sqrt{n}`}.`, t`In a telescoping sum only the ends survive.`],
   reference: 'sqrt(n)',
   verify: () => {
     for (let n = 1; n <= 50; n++) { let s = 0; for (let k = 1; k <= n; k++) s += Math.sqrt(k) - Math.sqrt(k - 1); if (Math.abs(s - Math.sqrt(n)) > 1e-9) return `n = ${n}`; }
@@ -277,12 +307,19 @@ const a24q3 = auto({
   id: 'a24-q3',
   source: cite(F24, 'Assignment 24, Q3'),
   title: t`A recurrence for an integral`,
-  prompt: t`(${1998} STEP II, Question ${4}.) For a positive integer ${mn} let ${math`I_{n} = \int_{${0}}^{\pi} \left(\tfrac{${1}}{${2}}\pi - x\right) \sin\left(nx + \tfrac{${1}}{${2}}x\right) \operatorname{cosec}\left(\tfrac{${1}}{${2}}x\right) dx`}. Evaluate ${math`I_{n} - I_{n - ${1}}`} as a formula in ${mn}. (Type pi for ${math`\pi`} if you need it.)`,
+  prompt: t`(${1998} STEP II, Question ${4}.) For a positive integer ${mn} let ${math`I_{n} = \int_{${0}}^{\pi} \left(\tfrac{${1}}{${2}}\pi - x\right) \sin\left(nx + \tfrac{${1}}{${2}}x\right) \operatorname{cosec}\left(\tfrac{${1}}{${2}}x\right) dx`}. Evaluate ${math`I_{n} - I_{n - ${1}}`} as a formula in ${mn}. (Type ${math`\pi`} as pi if needed.)`,
+  nudge: t`Not quite. Combine the two sines into a product so that the cosecant cancels.`,
+  hints: [
+    t`Which identity writes a difference of two sines as a product?`,
+    t`After the cosecant cancels, which integral of ${math`(\pi - ${2}x)\cos(nx)`} remains?`,
+    t`Integrating ${math`x\cos(nx)`} by parts, what are the values at ${math`\pi`} and ${0}, with ${math`\cos(n\pi) = (-${1})^{n}`}?`,
+  ],
   answer: { kind: 'expression', expected: '2*(1 - (-1)^n)/n^2', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 20 } } },
   solution: [
     t`${math`\sin\left(nx + \tfrac{${1}}{${2}}x\right) - \sin\left(nx - \tfrac{${1}}{${2}}x\right) = ${2}\cos(nx)\sin\left(\tfrac{${1}}{${2}}x\right)`}, and the ${math`\sin\left(\tfrac{${1}}{${2}}x\right)`} cancels the cosecant: ${math`I_{n} - I_{n - ${1}} = \int_{${0}}^{\pi} (\pi - ${2}x)\cos(nx)\,dx`}.`,
     t`${math`\int_{${0}}^{\pi} \pi\cos(nx)\,dx = ${0}`}, and by parts ${math`\int_{${0}}^{\pi} x\cos(nx)\,dx = \left[\frac{x\sin(nx)}{n} + \frac{\cos(nx)}{n^{${2}}}\right]_{${0}}^{\pi} = \frac{(-${1})^{n} - ${1}}{n^{${2}}}`}.`,
     t`So ${math`I_{n} - I_{n - ${1}} = -${2} \cdot \frac{(-${1})^{n} - ${1}}{n^{${2}}} = \frac{${2}(${1} - (-${1})^{n})}{n^{${2}}}`}: ${0} for even ${mn}, ${math`\frac{${4}}{n^{${2}}}`} for odd ${mn}. With ${math`I_{${0}} = \int_{${0}}^{\pi} \left(\tfrac{${1}}{${2}}\pi - x\right)dx = ${0}`}, the differences telescope: ${math`I_{n} = \sum_{k = ${1}}^{n} \frac{${2}(${1} - (-${1})^{k})}{k^{${2}}}`}.`,
+    t`Take differences to cancel an awkward factor, then integrate what is left.`,
   ],
   reference: '2(1 - (-1)^n)/n^2',
   verify: () => {
@@ -307,7 +344,12 @@ const a24q3sup = supervision({
   id: 'a24-q3-proof',
   source: cite(F24, 'Assignment 24, Q3'),
   title: t`Hence evaluate ${math`I_{n}`}`,
-  prompt: t`(${1998} STEP II, Question ${4}.) With ${math`I_{n}`} as above, evaluate ${math`I_{n} - I_{n - ${1}}`}, and hence evaluate ${math`I_{n}`}, leaving your answer in the form of a sum. Show the telescoping step explicitly, including the value of ${math`I_{${0}}`}.`,
+  prompt: t`(${1998} STEP II, Question ${4}.) For a positive integer ${mn} let ${math`I_{n} = \int_{${0}}^{\pi} \left(\tfrac{${1}}{${2}}\pi - x\right) \sin\left(nx + \tfrac{${1}}{${2}}x\right) \operatorname{cosec}\left(\tfrac{${1}}{${2}}x\right) dx`}. Evaluate ${math`I_{n} - I_{n - ${1}}`}, and hence evaluate ${math`I_{n}`}, leaving your answer in the form of a sum. Show the telescoping step explicitly, including the value of ${math`I_{${0}}`}.`,
+  hints: [
+    t`Which identity writes the difference of the two sines as a product, and what then cancels?`,
+    t`What is ${math`\int_{${0}}^{\pi} (\pi - ${2}x)\cos(nx)\,dx`} for even and for odd ${mn}?`,
+    t`What is ${math`I_{${0}}`}, and how do the differences add up to ${math`I_{n}`}?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f24-hints', 'Assignment 24, Q3'),
 });

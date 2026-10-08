@@ -189,9 +189,16 @@ const solveQuad = auto({
     kind: 'witness', count: 2, unordered: true, example: '0, -3/5',
     check: (vals) => (setKey(vals) === setKey([q(0), q(-3, 5)]) ? null : 'Factorise: x(5x + 3) = 0.'),
   },
+  hints: [
+    t`What is the risk in dividing both sides by ${math`x`}?`,
+    t`Which common factor can be taken out?`,
+    t`When is a product of two factors equal to ${0}?`,
+  ],
+  nudge: t`Not quite. Factorise instead of dividing by ${math`x`}, which could be ${0}.`,
   solution: [
     t`Factorise rather than divide by ${math`x`}, which might be ${0}: ${math`x(${5}x + ${3}) = ${0}`}.`,
     t`A product is ${0} only when a factor is: ${math`x = ${0}`} or ${math`x = ${q(-3, 5)}`}.`,
+    t`Factorise; never divide by something that might be zero.`,
   ],
   reference: '0, -3/5',
   verify: () => {
@@ -211,9 +218,16 @@ const turningY = auto({
     kind: 'witness', count: 2, example: '17, -15',
     check: (vals) => (vals.map(str).join(',') === '17,-15' ? null : 'Substitute each turning point into y; the maximum is the one on the left for a cubic with positive x^3 term.'),
   },
+  hints: [
+    t`Where are the turning points?`,
+    t`Which one is the maximum, given how a cubic with a positive ${math`x^{${3}}`} term behaves for large ${math`x`}?`,
+    t`What is ${math`y`} at each turning point?`,
+  ],
+  nudge: t`Not quite. Decide which turning point is the maximum from the shape of the cubic, then substitute.`,
   solution: [
     t`The turning points are at ${math`x = \pm ${2}`}. For large positive ${math`x`} the ${math`x^{${3}}`} term wins and ${math`y`} is large and positive, so the curve rises after the second turning point: the maximum is at ${math`x = ${-2}`} and the minimum at ${math`x = ${2}`}.`,
     t`At ${math`x = ${-2}`}: ${math`y = ${-8} + ${24} + ${1} = ${polyAt(CUBIC, -2)}`}. At ${math`x = ${2}`}: ${math`y = ${8} - ${24} + ${1} = ${polyAt(CUBIC, 2)}`}.`,
+    t`The leading term fixes the shape; substitute to get the heights.`,
   ],
   reference: '17, -15',
   verify: () => firstError(same('y(-2)', polyAt(CUBIC, -2), 17), same('y(2)', polyAt(CUBIC, 2), -15), same('second derivative at -2 negative', polyAt(polyDeriv(polyDeriv(CUBIC)), -2) < 0, true)),
@@ -225,11 +239,18 @@ const rootCount = auto({
   id: 'a9-q2-ii-e',
   source: cite(F09, 'Assignment 9, Q2(ii)(e)'),
   title: t`How many real roots?`,
-  prompt: t`The graph of ${math`y = ${cubicTex}`} has a maximum at ${math`(${-2}, ${17})`} and a minimum at ${math`(${2}, ${-15})`}. How many real roots does the equation ${math`${cubicTex} = ${0}`} have? You are not asked to find them.`,
+  prompt: t`The graph of ${math`y = ${cubicTex}`} has a maximum at ${math`(${-2}, ${17})`} and a minimum at ${math`(${2}, ${-15})`}. How many real roots does the equation ${math`${cubicTex} = ${0}`} have? The roots need not be found.`,
   answer: { kind: 'exact', expected: '3' },
+  hints: [
+    t`Is the maximum above or below the ${math`x`} axis, and the minimum?`,
+    t`How does ${math`y`} behave far to the left and far to the right?`,
+    t`On how many separate stretches does the curve cross the axis?`,
+  ],
+  nudge: t`Not quite. Follow the curve from far left to far right and count the crossings.`,
   solution: [
     t`The maximum is above the ${math`x`} axis and the minimum below it. Coming from the far left, where ${math`y`} is large and negative, the curve crosses the axis on its way up to the maximum.`,
     t`It crosses again on its way down to the minimum, and a third time on its way back up. So there are ${3} real roots.`,
+    t`Turning points on opposite sides of the axis give three real roots.`,
   ],
   reference: '3',
   // Sign changes of y on a fine grid, an independent count.
@@ -247,6 +268,11 @@ const sketch = supervision({
   source: cite(F09, 'Assignment 9, Q2(ii)'),
   title: t`Sketch the cubic and count its roots`,
   prompt: t`Consider the graph of ${math`y = ${cubicTex}`}. Find the ${math`x`} coordinates of the turning points; by considering the shape of the graph, state which is the maximum and which the minimum; find where the graph meets the ${math`y`} axis; find the ${math`y`} coordinates of the turning points and sketch the graph. How many real roots does ${math`${cubicTex} = ${0}`} have? Do not find the roots.`,
+  hints: [
+    t`What is ${math`\frac{dy}{dx}`}, and where is it ${0}?`,
+    t`Which turning point is the maximum, and what are the heights of both?`,
+    t`Where does the curve meet the ${math`y`} axis, and how many times does it cross the ${math`x`} axis?`,
+  ],
   writeUp: 'sketch',
   official: cite(F09H, 'Assignment 9 hints, Q2(ii)'),
 });
@@ -259,6 +285,11 @@ const db13q1 = supervision({
   source: cite(DB13, 'Q1'),
   title: t`Lines across ${math`y = \ln x`}, and ${math`\pi^{e}`} against ${math`e^{\pi}`}`,
   prompt: t`(i) Find the value of ${math`m`} for which the line ${math`y = mx`} touches the curve ${math`y = \ln x`}. If instead the line intersects the curve when ${math`x = a`} and ${math`x = b`}, where ${math`a < b`}, show that ${math`a^{b} = b^{a}`}. Show by means of a sketch that ${math`a < e < b`}. (ii) The line ${math`y = mx + c`}, where ${math`c > ${0}`}, intersects the curve ${math`y = \ln x`} when ${math`x = p`} and ${math`x = q`}, where ${math`p < q`}. Show by means of a sketch, or otherwise, that ${math`p^{q} > q^{p}`}. (iii) Show by means of a sketch that the straight line through the points ${math`(p, \ln p)`} and ${math`(q, \ln q)`}, where ${math`e \le p < q`}, intersects the ${math`y`}-axis at a positive value of ${math`y`}. Which is greater, ${math`\pi^{e}`} or ${math`e^{\pi}`}? (iv) Show, using a sketch or otherwise, that if ${math`${0} < p < q`} and ${math`\frac{\ln q - \ln p}{q - p} = e^{-${1}}`}, then ${math`q^{p} > p^{q}`}.`,
+  hints: [
+    t`For the touching line, which two conditions must hold at the point of contact?`,
+    t`If ${math`y = mx`} meets ${math`y = \ln x`} at ${math`a`} and ${math`b`}, what do ${math`\frac{\ln a}{a}`} and ${math`\frac{\ln b}{b}`} equal?`,
+    t`For ${math`\pi^{e}`} against ${math`e^{\pi}`}, which comparison of ${math`\frac{\ln x}{x}`} at ${math`e`} and at ${math`\pi`} settles it?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -268,9 +299,16 @@ const db13q1m = auto({
   title: t`The tangent to ${math`y = \ln x`} through the origin`,
   prompt: t`Find the value of ${math`m`} for which the line ${math`y = mx`} touches the curve ${math`y = \ln x`}. Give it exactly.`,
   answer: { kind: 'expression', expected: '1/e', variables: [] },
+  hints: [
+    t`At the point of contact ${math`(x_{${0}}, \ln x_{${0}})`}, which two conditions must hold?`,
+    t`What is the gradient of ${math`y = \ln x`} at ${math`x_{${0}}`}?`,
+    t`Substituting one condition into the other, what is ${math`\ln x_{${0}}`}?`,
+  ],
+  nudge: t`Not quite. Match both the height and the gradient at the point of contact.`,
   solution: [
     t`At the point of contact ${math`(x_{${0}}, \ln x_{${0}})`} the line and the curve have the same height and the same gradient: ${math`mx_{${0}} = \ln x_{${0}}`} and ${math`m = \frac{${1}}{x_{${0}}}`}.`,
     t`Substitute the second into the first: ${math`${1} = \ln x_{${0}}`}, so ${math`x_{${0}} = e`} and ${math`m = \frac{${1}}{e}`}.`,
+    t`Touching means the same height and the same gradient.`,
   ],
   reference: '1/e',
   verify: () => {

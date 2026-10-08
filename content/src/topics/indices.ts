@@ -212,11 +212,18 @@ const sw123verdict = auto({
   solution: [
     t`At ${math`n = ${0}`}, ${math`${2}^{${0}} = ${1}`}, the [[zero-index|zero index]] rule, and ${2} does not divide ${1}.`,
     t`So the statement is false, though it holds for every ${math`n \ge ${1}`}. The official solution adds that this is a gentle reminder that ${0} is a natural number.`,
+    t`Test the edge case first: it is where general claims break.`,
   ],
   reference: 'false',
   verify: () => same('the first n in 0..20 with 2^n odd', Array.from({ length: 21 }, (_, n) => n).find((n) => 2 ** n % 2 !== 0), 0),
   misconceptions: [{ response: 'true', why: t`Check the smallest natural number. ${math`\mathbb{N}`} starts at ${0} here, and ${math`${2}^{${0}} = ${1}`}.` }],
   official: { source: cite('cst-dm-sols-2324-1', '1.2.3'), answer: 'false', agrees: true },
+  nudge: t`Not quite. Before trusting the pattern, test the very first natural number.`,
+  hints: [
+    t`Where does ${math`\mathbb{N}`} start in this course?`,
+    t`What is ${math`${2}^{n}`} for the smallest natural number?`,
+    t`Does ${2} divide that value?`,
+  ],
 });
 const sw123witness = auto({
   id: 'sw-1-2-3-witness',
@@ -231,20 +238,31 @@ const sw123witness = auto({
       return n.num === 0n ? null : `${n.num} is at least 1, so 2^${n.num} has 2 as a factor.`;
     },
   },
-  solution: [t`${math`n = ${0}`}: ${math`${2}^{${0}} = ${1}`}, and ${2} does not divide ${1}. Every larger ${math`n`} gives a multiple of ${2}.`],
+  solution: [t`${math`n = ${0}`}: ${math`${2}^{${0}} = ${1}`}, and ${2} does not divide ${1}. Every larger ${math`n`} gives a multiple of ${2}.`, t`A counterexample often hides at the boundary.`],
   reference: 'n = 0',
   verify: () => same('the only n in 0..30 that fails', Array.from({ length: 31 }, (_, n) => n).filter((n) => 2 ** n % 2 !== 0).join(), '0'),
   misconceptions: [{ response: '1', why: t`${math`${2}^{${1}} = ${2}`}, which ${2} divides. Try the smallest natural number.` }],
   official: { source: cite('cst-dm-sols-2324-1', '1.2.3'), answer: '0', agrees: true },
+  nudge: t`Not quite. Large values of ${math`n`} are hopeless here; look at the very start of ${math`\mathbb{N}`}.`,
+  hints: [
+    t`Where does ${math`\mathbb{N}`} start in this course?`,
+    t`For which ${math`n`} is ${math`${2}^{n} = ${2} \times ${2}^{n - ${1}}`} with ${math`${2}^{n - ${1}}`} a whole number?`,
+    t`Which natural number does that leave out, and what is ${2} to that power?`,
+  ],
 });
 
 const a12Q1iii = supervision({
   id: 'a12-q1-iii',
   source: cite('step-f12', 'Q1(iii)'),
   title: t`${math`n^{${5}} - n^{${3}}`} and ${24}`,
-  prompt: t`Show that ${math`n^{${5}} - n^{${3}}`} is divisible by ${24} for every positive integer ${math`n`}. Start by taking out the largest power of ${math`n`} you can.`,
+  prompt: t`Show that ${math`n^{${5}} - n^{${3}}`} is divisible by ${24} for every positive integer ${math`n`}. Start by taking out the largest possible power of ${math`n`}.`,
   writeUp: 'proof',
   official: cite('step-f12-hints', 'Q1(iii)'),
+  hints: [
+    t`After taking out ${math`n^{${3}}`}, what is the remaining factor, and how does it factorise further?`,
+    t`Since ${math`${24} = ${3} \times ${8}`}, why is a product of three consecutive integers divisible by ${3}?`,
+    t`For the factor ${8}: when ${math`n`} is even, what divides ${math`n^{${3}}`}, and when ${math`n`} is odd, what can be said of ${math`n - ${1}`} and ${math`n + ${1}`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
@@ -272,6 +290,7 @@ const nstA1 = auto({
     t`Write every factor as a power of ${math`x`}. On top, ${math`\left(x^{\frac{${2}}{${3}}}\right)^{${6}} = x^{\frac{${2}}{${3}} \times ${6}} = x^{${4}}`}, by the power of a power law, so the top is ${math`x^{-\frac{${1}}{${5}}} \times x^{${4}} = x^{${A1_TOP.reduce(add, q(0))}}`}.`,
     t`Underneath, a root is a fractional index: ${math`\sqrt{x^{${5}}} = x^{\frac{${5}}{${2}}}`} and ${math`\sqrt[${5}]{x^{${2}}} = x^{\frac{${2}}{${5}}}`}. So the bottom is ${math`x^{${1}} \times x^{\frac{${5}}{${2}}} \times x^{\frac{${2}}{${5}}} = x^{${A1_BOTTOM.reduce(add, q(0))}}`}, adding the indices.`,
     t`Dividing subtracts the indices: ${math`${A1_TOP.reduce(add, q(0))} - ${A1_BOTTOM.reduce(add, q(0))} = ${A1_INDEX}`}. So the expression is ${math`x^{${A1_INDEX}}`}, and ${math`k = ${A1_INDEX}`}.`,
+    t`Write every factor as a power of ${math`x`}; then the indices just add and subtract.`,
   ],
   reference: str(A1_INDEX),
   verify: () => {
@@ -287,6 +306,12 @@ const nstA1 = auto({
     { response: str(add(add(q(-1, 5), q(2, 3)), mul(q(-1), A1_BOTTOM.reduce(add, q(0))))), why: t`The power of a power multiplies the indices: ${math`\left(x^{\frac{${2}}{${3}}}\right)^{${6}} = x^{${4}}`}, not ${math`x^{\frac{${2}}{${3}}}`}.` },
   ],
   official: { source: cite('nst-workbook', 'Answers, A1'), answer: str(A1_INDEX), agrees: true },
+  nudge: t`Not quite. Turning every root into a fractional index first leaves only adding and subtracting.`,
+  hints: [
+    t`How is a square root, or a fifth root, written as a power?`,
+    t`After adding indices, what single index does the top have, and what does the bottom have?`,
+    t`When one power of ${math`x`} is divided by another, what happens to the indices?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

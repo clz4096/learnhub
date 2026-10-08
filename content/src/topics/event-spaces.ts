@@ -190,8 +190,13 @@ const q4def = supervision({
   id: 'q4-definitions',
   source: cite(S1, 'Q4, first sentence'),
   title: t`State the definitions`,
-  prompt: t`State what it means for ${mF} to be a sigma-algebra on ${mO}, and for ${math`\mathbb{P}`} to be a probability measure on ${math`(\Omega, \mathcal{F})`}. Say why the definition asks for countable unions, not only unions of two events.`,
+  prompt: t`State what it means for ${mF} to be a sigma-algebra on ${mO}, and for ${math`\mathbb{P}`} to be a probability measure on ${math`(\Omega, \mathcal{F})`}. Explain why the definition asks for countable unions, not only unions of two events.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which set must a sigma-algebra contain, and under which operations is it closed?`,
+    t`What must ${math`\mathbb{P}`} give to ${mO}, and what must it do on a sequence of pairwise disjoint events?`,
+    t`Which natural events, such as a six eventually appearing in repeated throws, are built from infinitely many simpler events?`,
+  ],
 });
 
 const q4aSecond = supervision({
@@ -200,6 +205,11 @@ const q4aSecond = supervision({
   title: t`Finite unions and intersections`,
   prompt: t`From the definition of a sigma-algebra alone, show that if ${math`A_{${1}}, \ldots, A_{n}`} are events then so are ${math`A_{${1}} \cup \cdots \cup A_n`}, ${math`A_{${1}} \cap \cdots \cap A_n`}, and ${math`A_{${1}} \setminus A_{${2}}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Which event could fill the places after ${math`A_n`} so that the finite union becomes a countable one, and why is it an event?`,
+    t`Which law turns an intersection into the complement of a union of complements?`,
+    t`How can ${math`A_{${1}} \setminus A_{${2}}`} be written with an intersection and a complement?`,
+  ],
 });
 
 const q6b = supervision({
@@ -208,6 +218,11 @@ const q6b = supervision({
   title: t`"Infinitely often" is an event`,
   prompt: t`Let ${math`(A_n : n \in \mathbb{N})`} be events in ${math`(\Omega, \mathcal{F}, \mathbb{P})`}, and let ${math`A = \{\omega \in \Omega : \omega \in A_n \text{ infinitely often}\}`} and ${math`B = \{\omega \in \Omega : \omega \in A_n \text{ for all sufficiently large } n\}`}. Show that ${math`B = \bigcup_{n = ${1}}^{\infty} \bigcap_{k = n}^{\infty} A_k`}, write ${math`A`} in the same way, and show that ${math`A`} is an event.`,
   writeUp: 'proof',
+  hints: [
+    t`In words, what does ${math`\omega \in \bigcap_{k = n}^{\infty} A_k`} say about ${math`\omega`}?`,
+    t`To prove two sets equal, which two inclusions are needed, and how does "for some ${math`n`}" become a union?`,
+    t`How do "for every ${math`n`}" and "for some ${math`k \ge n`}" translate into intersections and unions, and which closure properties then make ${math`A`} an event?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -301,11 +301,18 @@ const q9a = auto({
   id: 'ia-s3-q9-a',
   source: cite(SH3, 'Q9(a)'),
   title: t`No white cells yet`,
-  prompt: t`In the blood culture of Q${9} (one red cell at time ${0}; each red cell, after a minute, becomes ${2} red with probability ${q(1, 4)}, ${1} red and ${1} white with probability ${q(2, 3)}, or ${2} white with probability ${q(1, 12)}), what is the probability that no white cells have appeared by time ${math`n + \tfrac{${1}}{${2}}`} minutes? Give an expression in ${math`n`}.`,
+  prompt: t`In the blood culture of Q${9} (one red cell at time ${0}; each red cell, after a minute, becomes ${2} red with probability ${q(1, 4)}, ${1} red and ${1} white with probability ${q(2, 3)}, or ${2} white with probability ${q(1, 12)}), find the probability that no white cells have appeared by time ${math`n + \tfrac{${1}}{${2}}`} minutes, as an expression in ${math`n`}.`,
   answer: { kind: 'expression', expected: '(1/4)^(2^n - 1)', variables: ['n'], domains: N_DOM },
   solution: [
     t`No white cell by time ${math`n + \tfrac{${1}}{${2}}`} means every division so far gave two red cells. Generation ${math`k`} then has ${math`${2}^{k}`} red cells, each dividing into two red cells with probability ${q(1, 4)}.`,
     t`The divisions at times ${math`${1}, \ldots, n`} involve ${math`${1} + ${2} + \cdots + ${2}^{n - ${1}} = ${2}^{n} - ${1}`} cells, so the probability is ${math`\left(\tfrac{${1}}{${4}}\right)^{${2}^{n} - ${1}}`}.`,
+    t`Count the independent events that must all happen, then multiply.`,
+  ],
+  nudge: t`Not quite. Count how many divisions have happened by then; every one must give two red cells.`,
+  hints: [
+    t`If no white cell has appeared, how many red cells are there after each minute?`,
+    t`How many divisions take place at the times ${math`${1}, \ldots, n`}?`,
+    t`Each division gives two red cells with probability ${q(1, 4)}: how do the probabilities of all those divisions combine?`,
   ],
   reference: '4^(1 - 2^n)',
   verify: () => {
@@ -334,6 +341,13 @@ const q12 = auto({
   solution: [
     t`Solve ${math`t = F(t)`}: ${math`${1} - t = p(${1} - t)^{\beta}`}. Either ${math`t = ${1}`}, or ${math`(${1} - t)^{${1} - \beta} = p`}, that is ${math`t = ${1} - p^{${1}/(${1} - \beta)}`}.`,
     t`The second root lies in ${math`(${0}, ${1})`}, so it is the smallest root in ${math`[${0}, ${1}]`}: the extinction probability is ${math`${1} - p^{${1}/(${1} - \beta)}`}. Consistently, the mean is infinite: ${math`F'(t) = p\beta(${1} - t)^{\beta - ${1}} \to \infty`} as ${math`t \uparrow ${1}`}.`,
+    t`Extinction probability: the smallest root of ${math`t = F(t)`} in ${math`[${0}, ${1}]`}.`,
+  ],
+  nudge: t`Not quite. Solve ${math`t = F(t)`}, and choose the right root in ${math`[${0}, ${1}]`}.`,
+  hints: [
+    t`Writing ${math`t = F(t)`} as ${math`${1} - t = p(${1} - t)^{\beta}`}, which root is always there?`,
+    t`Dividing by ${math`(${1} - t)^{\beta}`}, which equation does the other root satisfy?`,
+    t`Which root in ${math`[${0}, ${1}]`} is the extinction probability, and why?`,
   ],
   reference: '1 - exp(ln(p)/(1 - beta))',
   verify: () => {
@@ -357,14 +371,24 @@ const q12proof = supervision({
   title: t`The iterates of ${math`F`}`,
   prompt: t`Let ${math`F(t) = ${1} - p(${1} - t)^{\beta}`}, where ${math`p, \beta \in (${0}, ${1})`}. Show that ${math`F`} is the generating function of a probability distribution on ${math`\mathbb{Z}^{+}`} and that its iterates are ${math`F_{n}(t) = ${1} - p^{${1} + \beta + \cdots + \beta^{n - ${1}}}(${1} - t)^{\beta^{n}}`} for ${math`n = ${1}, ${2}, \ldots`}. Find the mean ${math`m`} of the distribution and the extinction probability of the branching process with offspring generating function ${math`F`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Expanding ${math`(${1} - t)^{\beta}`} by the binomial series, are the coefficients of ${math`F`} non-negative, and what is ${math`F(${1})`}?`,
+    t`Assuming the formula for ${math`F_{n}`}, what is ${math`F(F_{n}(t))`}, and does it match the formula for ${math`F_{n + ${1}}`}?`,
+    t`What is ${math`F'(t)`} as ${math`t \uparrow ${1}`}, and what does ${math`F_{n}(${0})`} tend to as ${math`n \to \infty`}?`,
+  ],
 });
 
 const theorem = supervision({
   id: 'schedule-extinction',
   source: SCHEDULE,
   title: t`The extinction theorem`,
-  prompt: t`In a branching process from one individual with offspring pgf ${mG}, prove that ${mZ} has pgf ${math`G_{n} = G \circ G_{n - ${1}}`}, that the extinction probability ${math`q`} is the smallest non-negative root of ${math`t = G(t)`}, and that ${math`q = ${1}`} if and only if ${math`G'(${1}) \le ${1}`}, unless ${math`G(t) = t`}. Say where continuity of probability and the convexity of ${mG} are used.`,
+  prompt: t`In a branching process from one individual with offspring pgf ${mG}, prove that ${mZ} has pgf ${math`G_{n} = G \circ G_{n - ${1}}`}, that the extinction probability ${math`q`} is the smallest non-negative root of ${math`t = G(t)`}, and that ${math`q = ${1}`} if and only if ${math`G'(${1}) \le ${1}`}, unless ${math`G(t) = t`}. State where continuity of probability and the convexity of ${mG} are used.`,
   writeUp: 'proof',
+  hints: [
+    t`Conditioning on ${math`Z_{${1}}`}, how is the pgf of ${mZ} expressed through ${mG} and the pgf of ${math`Z_{n - ${1}}`}?`,
+    t`Why is ${math`P(Z_{n} = ${0}) = G_{n}(${0})`} increasing in ${math`n`}, and why does its limit satisfy ${math`q = G(q)`}?`,
+    t`If ${math`t^{*}`} is any non-negative root, why is ${math`G_{n}(${0}) \le t^{*}`} for every ${math`n`}, and how does convexity decide whether a root below ${1} exists?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

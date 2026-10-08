@@ -198,6 +198,7 @@ const q3a = auto({
     t`For a Poisson variable ${math`\mathbb{E}(e^{\beta X}) = \sum_{k} e^{\beta k}e^{-\lambda}\frac{\lambda^{k}}{k!} = e^{\lambda(e^{\beta} - ${1})}`}, so the bound is ${math`\exp\left(\lambda(e^{\beta} - ${1}) - \beta x\right)`}.`,
     t`The exponent is least where its derivative ${math`\lambda e^{\beta} - x`} vanishes: ${math`e^{\beta} = x/\lambda`}, allowed since ${math`x \ge \lambda`}. Then the bound is ${math`\exp\left(-x\log(x/\lambda) - \lambda + x\right)`}.`,
     t`With ${math`\lambda = ${LAMBDA}`} and ${math`x = ${XQ}`}: ${math`\exp\left(-${XQ}\log ${XQ / LAMBDA} - ${LAMBDA} + ${XQ}\right) \approx ${chernoff}`}.`,
+    t`A family of bounds is only as good as its best member: optimise the free parameter.`,
   ],
   reference: chernoff.toPrecision(3),
   verify: () => {
@@ -215,6 +216,12 @@ const q3a = auto({
     { response: (LAMBDA / XQ).toPrecision(3), why: t`That is Markov's bound ${math`\mathbb{E}(X)/x`}. The exponential moment with the best ${math`\beta`} gives a much smaller bound.` },
     { response: Math.exp(LAMBDA * (Math.E - 1) - XQ).toPrecision(3), why: t`That takes ${math`\beta = ${1}`}. Choose ${math`\beta`} to make the bound smallest: ${math`e^{\beta} = x/\lambda`}.` },
   ],
+  nudge: t`Not quite. Write the bound as one exponential in ${math`\beta`} and minimise its exponent by calculus.`,
+  hints: [
+    t`What is ${math`\mathbb{E}(e^{\beta X})`} for a Poisson variable with parameter ${math`\lambda`}?`,
+    t`Which value of ${math`\beta`} makes the exponent ${math`\lambda(e^{\beta} - ${1}) - \beta x`} least?`,
+    t`With that ${math`\beta`}, what is the bound at ${math`\lambda = ${LAMBDA}`} and ${math`x = ${XQ}`}?`,
+  ],
 });
 
 const q2proof = supervision({
@@ -223,6 +230,11 @@ const q2proof = supervision({
   title: t`Markov's inequality in two more forms`,
   prompt: t`Let ${math`X`} be a random variable. Show that, for all ${math`p > ${0}`} and ${math`x > ${0}`}, ${math`\mathbb{P}(|X| \ge x) \le \mathbb{E}(|X|^{p})x^{-p}`}, and that, for all ${math`\beta \ge ${0}`}, ${math`\mathbb{P}(X \ge x) \le \mathbb{E}(e^{\beta X})e^{-\beta x}`}. Which earlier inequality is the case ${math`p = ${2}`} applied to ${math`X - \mu`}?`,
   writeUp: 'proof',
+  hints: [
+    t`For ${math`p > ${0}`} and ${math`x > ${0}`}, why is the event ${math`\{|X| \ge x\}`} the same as ${math`\{|X|^{p} \ge x^{p}\}`}?`,
+    t`What does Markov's inequality give when applied to the nonnegative variable ${math`|X|^{p}`}?`,
+    t`For the exponential form, which increasing function of ${math`X`} turns ${math`\{X \ge x\}`} into an event about a nonnegative variable?`,
+  ],
 });
 const q3proof = supervision({
   id: 'ia-s3-q3-a',
@@ -230,6 +242,11 @@ const q3proof = supervision({
   title: t`Optimising the exponential bound`,
   prompt: t`Let ${math`X`} be Poisson with parameter ${math`\lambda > ${0}`}. By optimising the estimate of Q${2}(b) over ${math`\beta`}, show that ${math`\mathbb{P}(X \ge x) \le \exp\left(-x\log(x/\lambda) - \lambda + x\right)`} for all ${math`x \ge \lambda`}. Why is the restriction ${math`x \ge \lambda`} needed?`,
   writeUp: 'proof',
+  hints: [
+    t`For a Poisson variable, what is ${math`\mathbb{E}(e^{\beta X})`}, and so what is the bound as a function of ${math`\beta`}?`,
+    t`Where does the derivative of the exponent with respect to ${math`\beta`} vanish?`,
+    t`Is that ${math`\beta`} nonnegative for every ${math`x`}, and what goes wrong when ${math`x < \lambda`}?`,
+  ],
 });
 const scheduleProof = supervision({
   id: 'schedule-markov-chebyshev',
@@ -237,6 +254,11 @@ const scheduleProof = supervision({
   title: t`Proving both, and when they are sharp`,
   prompt: t`Prove Markov's inequality for a nonnegative random variable, and deduce Chebyshev's inequality ${math`\mathbb{P}(|X - \mu| \ge c) \le \sigma^{${2}}/c^{${2}}`}. For given ${math`\mu`}, ${math`\sigma`}, and ${math`c > \sigma`}, find a random variable for which Chebyshev's inequality holds with equality. For a fair die, compare ${math`\mathbb{P}(X \ge ${5})`} with the bound Markov's inequality gives.`,
   writeUp: 'proof',
+  hints: [
+    t`For a nonnegative ${math`X`} and ${math`a > ${0}`}, how does ${math`X`} compare with ${math`a`} times the indicator of ${math`\{X \ge a\}`}?`,
+    t`Which nonnegative variable built from ${math`X - \mu`} gives Chebyshev's inequality when Markov's inequality is applied to it?`,
+    t`For equality, which distribution puts all its mass at ${math`\mu`} and at ${math`\mu \pm c`}, with weights chosen to give variance ${math`\sigma^{${2}}`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -252,7 +252,13 @@ const b819 = auto({
   id: 'b8-19',
   source: cite('bop', 'Chapter 8, exercise 19', true),
   title: t`Powers of ${9} and powers of ${3}`,
-  prompt: t`Book of Proof asks you to prove ${math`\{${9}^{n} : n \in \mathbb{Z}\} \subseteq \{${3}^{n} : n \in \mathbb{Z}\}`}, but ${math`\{${9}^{n} : n \in \mathbb{Z}\} \neq \{${3}^{n} : n \in \mathbb{Z}\}`}. The inequality needs a witness: give a number ${mx} in ${math`\{${3}^{n} : n \in \mathbb{Z}\}`} that is not in ${math`\{${9}^{n} : n \in \mathbb{Z}\}`}.`,
+  prompt: t`Book of Proof asks for a proof that ${math`\{${9}^{n} : n \in \mathbb{Z}\} \subseteq \{${3}^{n} : n \in \mathbb{Z}\}`}, but ${math`\{${9}^{n} : n \in \mathbb{Z}\} \neq \{${3}^{n} : n \in \mathbb{Z}\}`}. The inequality needs a witness: give a number ${mx} in ${math`\{${3}^{n} : n \in \mathbb{Z}\}`} that is not in ${math`\{${9}^{n} : n \in \mathbb{Z}\}`}.`,
+  nudge: t`Not quite. Write a power of ${9} as a power of ${3} and look at the exponent.`,
+  hints: [
+    t`What is ${math`${9}^{n}`} written as a power of ${3}?`,
+    t`Which exponents of ${3} can a power of ${9} have?`,
+    t`Which power of ${3} has an exponent that no power of ${9} has?`,
+  ],
   answer: {
     kind: 'witness', count: 1, names: ['x'], example: 'x = 3',
     check: ([v]) => {
@@ -269,6 +275,7 @@ const b819 = auto({
   solution: [
     t`The inclusion: if ${math`a = ${9}^{n}`}, then ${math`a = (${3}^{${2}})^{n} = ${3}^{${2}n}`}, a power of ${3}.`,
     t`For the inequality take ${math`x = ${3} = ${3}^{${1}}`}. If ${math`${3} = ${9}^{n}`} for an integer ${math`n`}, then ${math`${3}^{${1}} = ${3}^{${2}n}`}, so ${math`${2}n = ${1}`}, impossible for an integer. So ${3} is in the second set and not the first.`,
+    t`To show two sets differ, one element in one and not the other is enough.`,
   ],
   reference: 'x = 3',
   verify: () => same('3 is not a power of 9', [-3, -2, -1, 0, 1, 2, 3].some((n) => 9 ** n === 3), false),
@@ -282,7 +289,13 @@ const b828 = auto({
   id: 'b8-28',
   source: cite('bop', 'Chapter 8, exercise 28', true),
   title: t`Every integer is ${math`${12}a + ${25}b`}`,
-  prompt: t`Book of Proof asks you to prove ${math`\{${12}a + ${25}b : a, b \in \mathbb{Z}\} = \mathbb{Z}`}. The key step: find integers ${math`a`} and ${math`b`} with ${math`${12}a + ${25}b = ${1}`}.`,
+  prompt: t`Book of Proof asks for a proof that ${math`\{${12}a + ${25}b : a, b \in \mathbb{Z}\} = \mathbb{Z}`}. The key step: find integers ${math`a`} and ${math`b`} with ${math`${12}a + ${25}b = ${1}`}.`,
+  nudge: t`Not quite. Divide ${25} by ${12} and rearrange the remainder.`,
+  hints: [
+    t`What is the remainder when ${25} is divided by ${12}?`,
+    t`How does that division write ${1} as a combination of ${25} and ${12}?`,
+    t`Which ${math`a`} and ${math`b`} does that give?`,
+  ],
   answer: {
     kind: 'witness', count: 2, names: ['a', 'b'], example: 'a = -2, b = 1',
     check: ([a, b]) => (a === undefined || b === undefined || a.den !== 1n || b.den !== 1n ? 'Give two integers.' : 12n * a.num + 25n * b.num === 1n ? null : `12a + 25b is ${12n * a.num + 25n * b.num}, not 1.`),
@@ -290,6 +303,7 @@ const b828 = auto({
   solution: [
     t`${math`${25} = ${2} \times ${12} + ${1}`}, so ${math`${1} = ${25} - ${2} \times ${12}`}: take ${math`a = -${2}`}, ${math`b = ${1}`}.`,
     t`Then for any integer ${math`k`}, ${math`k = ${12}(-${2}k) + ${25}(k)`}, so ${math`\mathbb{Z} \subseteq \{${12}a + ${25}b\}`}. The other inclusion holds because ${math`${12}a + ${25}b`} is always an integer.`,
+    t`Write one as a combination; every integer then follows by scaling.`,
   ],
   reference: 'a = -2, b = 1',
   verify: () => same('12(-2) + 25(1)', 12 * -2 + 25 * 1, 1),
@@ -298,10 +312,38 @@ const b828 = auto({
 
 const sup = (id: string, at: string, title: ReturnType<typeof t>, prompt: ReturnType<typeof t>, doc: 'bop' | 'cst-dm-sw1' = 'bop') => supervision({ id, source: cite(doc, at), title, prompt, writeUp: 'proof' });
 
-const b82 = sup('b8-2', 'Chapter 8, exercise 2', t`Multiples of ${6}`, t`Prove that ${math`\{${6}n : n \in \mathbb{Z}\} = \{${2}n : n \in \mathbb{Z}\} \cap \{${3}n : n \in \mathbb{Z}\}`}.`);
-const b88 = sup('b8-8', 'Chapter 8, exercise 8', t`Union over intersection`, t`If ${mA}, ${mB} and ${mC} are sets, prove that ${math`A \cup (B \cap C) = (A \cup B) \cap (A \cup C)`}.`);
-const b810 = sup('b8-10', 'Chapter 8, exercise 10', t`De Morgan for intersections`, t`If ${mA} and ${mB} are sets in a universal set ${math`U`}, prove that ${math`\overline{A \cap B} = \overline{A} \cup \overline{B}`}.`);
-const b826 = sup('b8-26', 'Chapter 8, exercise 26', t`Two descriptions of one set`, t`Prove that ${math`\{${4}k + ${5} : k \in \mathbb{Z}\} = \{${4}k + ${1} : k \in \mathbb{Z}\}`}.`);
+const b82 = {
+  ...sup('b8-2', 'Chapter 8, exercise 2', t`Multiples of ${6}`, t`Prove that ${math`\{${6}n : n \in \mathbb{Z}\} = \{${2}n : n \in \mathbb{Z}\} \cap \{${3}n : n \in \mathbb{Z}\}`}.`),
+  hints: [
+    t`If ${math`a = ${6}n`}, how can ${math`a`} be written as ${2} times an integer, and as ${3} times an integer?`,
+    t`For the other inclusion, given ${math`a = ${2}m`} and ${math`a = ${3}l`}, which combination of the two expressions for ${math`a`} has a factor of ${6}?`,
+    t`What is ${math`${3}a - ${2}a`}, with each ${math`a`} replaced by a different expression?`,
+  ],
+};
+const b88 = {
+  ...sup('b8-8', 'Chapter 8, exercise 8', t`Union over intersection`, t`If ${mA}, ${mB} and ${mC} are sets, prove that ${math`A \cup (B \cap C) = (A \cup B) \cap (A \cup C)`}.`),
+  hints: [
+    t`Which two inclusions must be proved?`,
+    t`If ${math`x \in A \cup (B \cap C)`}, what are the cases, and is ${mx} in ${math`A \cup B`} and in ${math`A \cup C`} in each?`,
+    t`For the reverse, if ${math`x \in (A \cup B) \cap (A \cup C)`} and ${math`x \notin A`}, where must ${mx} be?`,
+  ],
+};
+const b810 = {
+  ...sup('b8-10', 'Chapter 8, exercise 10', t`De Morgan for intersections`, t`If ${mA} and ${mB} are sets in a universal set ${math`U`}, prove that ${math`\overline{A \cap B} = \overline{A} \cup \overline{B}`}.`),
+  hints: [
+    t`What does ${math`x \in \overline{A \cap B}`} say about membership of ${mA} and ${mB}?`,
+    t`How does the negation of an and turn into an or?`,
+    t`Is each step reversible, so that both inclusions follow at once?`,
+  ],
+};
+const b826 = {
+  ...sup('b8-26', 'Chapter 8, exercise 26', t`Two descriptions of one set`, t`Prove that ${math`\{${4}k + ${5} : k \in \mathbb{Z}\} = \{${4}k + ${1} : k \in \mathbb{Z}\}`}.`),
+  hints: [
+    t`If ${math`a = ${4}k + ${5}`}, which integer ${math`m`} makes ${math`a = ${4}m + ${1}`}?`,
+    t`Conversely, if ${math`a = ${4}k + ${1}`}, how is it written as ${math`${4}m + ${5}`}?`,
+    t`As ${math`k`} runs over all integers, why are the shifted indices integers too?`,
+  ],
+};
 /*
  * Outline for marking sw-5-1-6 (20 marks):
  * (a) 8 marks. If the complement of A is B: every x in U is in A or not in A, so A u B = U; no x is
@@ -312,7 +354,15 @@ const b826 = sup('b8-26', 'Chapter 8, exercise 26', t`Two descriptions of one se
  * (c) 8 marks. Each De Morgan law element by element ("not (P or Q)" is "not P and not Q"), or from
  *     (a): check union and intersection with the claimed complement are U and the empty set.
  */
-const sw516 = { ...sup('sw-5-1-6', 'Exercises 5, 5.1.6', t`Complements and De Morgan`, t`Let ${math`U`} be a set. For all ${math`A, B \in \mathcal{P}(U)`}, prove that: (a) ${math`A^{c} = B \iff (A \cup B = U \wedge A \cap B = \varnothing)`}; (b) ${math`(A^{c})^{c} = A`}; (c) ${math`(A \cup B)^{c} = A^{c} \cap B^{c}`} and ${math`(A \cap B)^{c} = A^{c} \cup B^{c}`}.`, 'cst-dm-sw1'), official: cite('cst-dm-sols-2324-5', '5.1.6') };
+const sw516 = {
+  ...sup('sw-5-1-6', 'Exercises 5, 5.1.6', t`Complements and De Morgan`, t`Let ${math`U`} be a set. For all ${math`A, B \in \mathcal{P}(U)`}, prove that: (a) ${math`A^{c} = B \iff (A \cup B = U \wedge A \cap B = \varnothing)`}; (b) ${math`(A^{c})^{c} = A`}; (c) ${math`(A \cup B)^{c} = A^{c} \cap B^{c}`} and ${math`(A \cap B)^{c} = A^{c} \cup B^{c}`}.`, 'cst-dm-sw1'),
+  official: cite('cst-dm-sols-2324-5', '5.1.6'),
+  hints: [
+    t`For (a), if ${math`A^{c} = B`}, why does every ${math`x \in U`} lie in ${math`A \cup B`}, and why can no ${mx} lie in ${math`A \cap B`}?`,
+    t`For the converse in (a), what do ${math`A \cup B = U`} and ${math`A \cap B = \varnothing`} say about an element outside ${mA}, and about an element of ${mB}?`,
+    t`For (b) and (c), how can (a) be used, by checking a union and an intersection with the claimed complement?`,
+  ],
+};
 /*
  * Outline for marking sw-5-2-3 (20 marks): a cycle of implications, each by elements.
  * (a) => (b): A is inside A u B = B (4).
@@ -322,7 +372,15 @@ const sw516 = { ...sup('sw-5-1-6', 'Exercises 5, 5.1.6', t`Complements and De Mo
  * (b) => (a): B is inside A u B always; A and B inside B give A u B inside B (4).
  * (Any cycle, or pairs of implications, that links all four earns full credit.)
  */
-const sw523 = { ...sup('sw-5-2-3', 'Exercises 5, 5.2.3', t`Four ways to say A is inside B`, t`Let ${math`U`} be a set. For all ${math`A, B \in \mathcal{P}(U)`}, prove that the following are equivalent: (a) ${math`A \cup B = B`}; (b) ${math`A \subseteq B`}; (c) ${math`A \cap B = A`}; (d) ${math`B^{c} \subseteq A^{c}`}.`, 'cst-dm-sw1'), official: cite('cst-dm-sols-2324-5', '5.2.3') };
+const sw523 = {
+  ...sup('sw-5-2-3', 'Exercises 5, 5.2.3', t`Four ways to say A is inside B`, t`Let ${math`U`} be a set. For all ${math`A, B \in \mathcal{P}(U)`}, prove that the following are equivalent: (a) ${math`A \cup B = B`}; (b) ${math`A \subseteq B`}; (c) ${math`A \cap B = A`}; (d) ${math`B^{c} \subseteq A^{c}`}.`, 'cst-dm-sw1'),
+  official: cite('cst-dm-sols-2324-5', '5.2.3'),
+  hints: [
+    t`Which cycle of implications, such as (a) to (b) to (c) to (d) and back to (a), would link all four?`,
+    t`Given ${math`A \cup B = B`}, why is every element of ${mA} in ${mB}; and given ${math`A \subseteq B`}, why is ${math`A \cap B = A`}?`,
+    t`For (d), if ${math`x \notin B`}, what does ${math`A \cap B = A`} say about whether ${math`x \in A`}, and how does (d) lead back to the start of the cycle?`,
+  ],
+};
 
 // ---------------------------------------------------------------- Cambridge problems moved here (Rule 1, 2026-10-08)
 
@@ -342,6 +400,11 @@ const ns1q6 = supervision({
   source: cite('ia-ns-sheet-1', 'Q6', true),
   title: t`A difference from a union`,
   prompt: t`Prove that ${math`A - (B \cup C) = (A - B) \cap (A - C)`} for all sets ${mA}, ${mB}, ${math`C`}.`,
+  hints: [
+    t`What does ${math`x \in A - (B \cup C)`} say about ${mx} and each of ${mA}, ${mB}, ${math`C`}?`,
+    t`How does the negation of ${math`x \in B`} or ${math`x \in C`} rewrite?`,
+    t`How can the three conditions on ${mx} be regrouped into two, each about ${mA} and one other set?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -360,6 +423,11 @@ const ns1q13 = supervision({
   source: cite('ia-ns-sheet-1', 'Q13', true),
   title: t`The symmetric difference`,
   prompt: t`The symmetric difference ${math`A \mathbin{\triangle} B`} of two sets ${mA} and ${mB} is the set of elements that belong to exactly one of ${mA} and ${mB}. Express this in terms of ${math`\cap`}, ${math`\cup`}, and ${math`-`}. Prove that ${math`\triangle`} is associative: ${math`(A \mathbin{\triangle} B) \mathbin{\triangle} C = A \mathbin{\triangle} (B \mathbin{\triangle} C)`} for all sets ${mA}, ${mB}, ${math`C`}.`,
+  hints: [
+    t`Which elements of ${math`A \cup B`} are left out of ${math`A \mathbin{\triangle} B`}, and how can that be written with ${math`-`} and ${math`\cap`}?`,
+    t`In how many of ${mA}, ${mB} is an element of ${math`A \mathbin{\triangle} B`}?`,
+    t`For an element of ${math`(A \mathbin{\triangle} B) \mathbin{\triangle} C`}, in how many of ${mA}, ${mB}, ${math`C`} must it be, and is that condition symmetric in the three sets?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -368,6 +436,11 @@ const equalProof = supervision({
   source: cite('cst-dm-notes', 'printed pages 205 and 206, Set equality', true),
   title: t`Proving two sets equal`,
   prompt: t`Prove that ${math`\{x \in \mathbb{N} \mid ${2} \text{ divides } x \text{ and } x \text{ is prime}\} = \{${2}\}`}. Show both directions: every element of the left side is ${2}, and ${2} is an element of the left side.`,
+  hints: [
+    t`If ${mx} is in the left side, it is even and prime: what can its divisors be?`,
+    t`Since ${2} divides ${mx} and ${mx} is prime, what must ${mx} equal?`,
+    t`Does ${2} itself meet both conditions?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -376,6 +449,11 @@ const cstPowersProof = supervision({
   source: cite('cst-dm-sw1', 'Exercises 5, 5.2.2'),
   title: t`Prove or disprove the power set statements`,
   prompt: t`Either prove or disprove that, for all sets ${mA} and ${mB}: (a) ${math`A \subseteq B \implies \mathcal{P}(A) \subseteq \mathcal{P}(B)`}; (b) ${math`\mathcal{P}(A \cup B) \subseteq \mathcal{P}(A) \cup \mathcal{P}(B)`}; (c) ${math`\mathcal{P}(A) \cup \mathcal{P}(B) \subseteq \mathcal{P}(A \cup B)`}; (d) ${math`\mathcal{P}(A \cap B) \subseteq \mathcal{P}(A) \cap \mathcal{P}(B)`}; (e) ${math`\mathcal{P}(A) \cap \mathcal{P}(B) \subseteq \mathcal{P}(A \cap B)`}.`,
+  hints: [
+    t`For (a), if ${math`X \subseteq A`} and ${math`A \subseteq B`}, why is ${math`X \subseteq B`}?`,
+    t`For (b), can a subset of ${math`A \cup B`} take elements from both ${mA} and ${mB}, and which small example tests it?`,
+    t`For (d) and (e), what does ${math`X \subseteq A \cap B`} say about ${math`X \subseteq A`} and ${math`X \subseteq B`}, in each direction?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -384,6 +462,11 @@ const sw524Proof = supervision({
   source: cite('cst-dm-sw1', 'Exercises 5, 5.2.4'),
   title: t`Prove or disprove three product statements`,
   prompt: t`For sets ${mA}, ${mB}, ${mC}, ${math`D`}, prove or disprove at least three of: (a) ${math`(A \subseteq C \wedge B \subseteq D) \implies A \times B \subseteq C \times D`}; (b) ${math`(A \cup C) \times (B \cup D) \subseteq (A \times B) \cup (C \times D)`}; (c) ${math`(A \times C) \cup (B \times D) \subseteq (A \cup B) \times (C \cup D)`}; (d) ${math`A \times (B \cup C) \subseteq (A \times B) \cup (A \times C)`}; (e) ${math`(A \times B) \cup (A \times D) \subseteq A \times (B \cup D)`}.`,
+  hints: [
+    t`For (a), if ${math`(x, y) \in A \times B`}, where are ${mx} and ${math`y`}, and so where is ${math`(x, y)`}?`,
+    t`For (b), can ${mx} come from ${mA} while ${math`y`} comes from ${math`D`}, and which small sets test it?`,
+    t`For (d) and (e), if ${math`(x, y) \in A \times (B \cup C)`}, what are the cases for ${math`y`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -392,7 +475,12 @@ const prop109 = supervision({
   id: 'notes-353-prop109',
   source: cite('cst-dm-notes', 'printed pages 348 to 353, Propositions 108 and 109', true),
   title: t`An ordered pair made of sets`,
-  prompt: t`Sets forget order, but an ordered pair can be built from them. For any ${math`a`} and ${math`b`}, define ${math`\langle a, b \rangle = \{\{a\}, \{a, b\}\}`}. Prove that for all ${math`a, b, x, y`}: if ${math`\langle a, b \rangle = \langle x, y \rangle`}, then ${math`a = x`} and ${math`b = y`}. You may use the fact that ${math`\{c, u\} = \{c, v\}`} implies ${math`u = v`}, for any ${math`c`}, ${math`u`}, ${math`v`} (sets included).`,
+  prompt: t`Sets forget order, but an ordered pair can be built from them. For any ${math`a`} and ${math`b`}, define ${math`\langle a, b \rangle = \{\{a\}, \{a, b\}\}`}. Prove that for all ${math`a, b, x, y`}: if ${math`\langle a, b \rangle = \langle x, y \rangle`}, then ${math`a = x`} and ${math`b = y`}. The fact that ${math`\{c, u\} = \{c, v\}`} implies ${math`u = v`}, for any ${math`c`}, ${math`u`}, ${math`v`} (sets included), may be used.`,
+  hints: [
+    t`If ${math`\{\{a\}, \{a, b\}\} = \{\{x\}, \{x, y\}\}`}, which element of the right side can ${math`\{a\}`} equal?`,
+    t`In each case, why does ${math`a = x`} follow?`,
+    t`With ${math`a = x`}, how can the given fact be applied twice to compare ${math`b`} and ${math`y`}?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-notes', 'printed page 353, the proof of Proposition 109'),
 });
@@ -402,6 +490,11 @@ const sw526 = supervision({
   source: cite('cst-dm-sw1', 'Exercises 5, 5.2.6'),
   title: t`Big unions and intersections`,
   prompt: t`Let ${math`\mathcal{F} \subseteq \mathcal{P}(A)`} be a family of subsets of a set ${math`A`}. Prove: (a) for all ${math`U \subseteq A`}, ${math`(\forall X \in \mathcal{F}.\ X \subseteq U) \iff \bigcup \mathcal{F} \subseteq U`}; (b) for all ${math`L \subseteq A`}, ${math`(\forall X \in \mathcal{F}.\ L \subseteq X) \iff L \subseteq \bigcap \mathcal{F}`}. (For (b), take ${math`\bigcap \mathcal{F}`} to mean the elements of ${math`A`} in every member of ${math`\mathcal{F}`}.)`,
+  hints: [
+    t`For (a), if every ${math`X \in \mathcal{F}`} is inside ${math`U`}, where is an element of ${math`\bigcup \mathcal{F}`}?`,
+    t`Conversely, if ${math`\bigcup \mathcal{F} \subseteq U`}, why is each ${math`X \in \mathcal{F}`} inside ${math`U`}?`,
+    t`For (b), which quantifier replaces some member when moving from unions to intersections?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -420,6 +513,11 @@ const sw527 = supervision({
   source: cite('cst-dm-sw1', 'Exercises 5, 5.2.7'),
   title: t`Unions as intersections`,
   prompt: t`Let ${math`A`} be a set. (a) For a family ${math`\mathcal{F} \subseteq \mathcal{P}(A)`}, let ${math`\mathcal{U} = \{U \subseteq A \mid \forall S \in \mathcal{F}.\ S \subseteq U\}`}. Prove that ${math`\bigcup \mathcal{F} = \bigcap \mathcal{U}`}. (b) Analogously, define a family ${math`\mathcal{L} \subseteq \mathcal{P}(A)`} such that ${math`\bigcap \mathcal{F} = \bigcup \mathcal{L}`}, and prove this statement.`,
+  hints: [
+    t`Is ${math`\bigcup \mathcal{F}`} itself a member of ${math`\mathcal{U}`}, and what does that give for ${math`\bigcap \mathcal{U}`}?`,
+    t`Why does every ${math`U \in \mathcal{U}`} contain ${math`\bigcup \mathcal{F}`}, and what does that give for the reverse inclusion?`,
+    t`For (b), which family of subsets of ${math`A`}, defined by lying inside every member of ${math`\mathcal{F}`}, plays the part of ${math`\mathcal{U}`}?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-5', '5.2.7'),
 });
@@ -438,6 +536,11 @@ const sw531 = supervision({
   source: cite('cst-dm-sw1', 'Exercises 5, 5.3.1'),
   title: t`Unions of two families`,
   prompt: t`Prove that for all families of sets ${math`\mathcal{F}_{${1}}`} and ${math`\mathcal{F}_{${2}}`}, ${math`\left(\bigcup \mathcal{F}_{${1}}\right) \cup \left(\bigcup \mathcal{F}_{${2}}\right) = \bigcup \left(\mathcal{F}_{${1}} \cup \mathcal{F}_{${2}}\right)`}. State and prove the analogous property for intersections of non-empty families of sets.`,
+  hints: [
+    t`What does ${math`x \in \left(\bigcup \mathcal{F}_{${1}}\right) \cup \left(\bigcup \mathcal{F}_{${2}}\right)`} say about ${mx} and the members of the two families?`,
+    t`How does being in some member of ${math`\mathcal{F}_{${1}}`} or some member of ${math`\mathcal{F}_{${2}}`} become a statement about ${math`\mathcal{F}_{${1}} \cup \mathcal{F}_{${2}}`}?`,
+    t`For intersections, which word replaces some, and why must the families be non-empty?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-5', '5.3.1'),
 });

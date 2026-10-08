@@ -176,10 +176,17 @@ const account = auto({
   source: cite('focs-notes', 'Lecture 11, Sections 11.6 and 11.7', true),
   title: t`Two bank accounts`,
   prompt: t`FoCS's ${ml`makeAccount initBalance`} creates a private reference ${ml`balance`} and returns ${ml`withdraw`}, which raises ${ml`TooMuch (amt - !balance)`} if ${ml`amt > !balance`} and otherwise subtracts ${ml`amt`} and returns the new balance. After ${ml`let student = makeAccount ${500}`} and ${ml`student ${5}`}, the call ${ml`student ${500}`} raises ${ml`TooMuch n`}. What is ${ml`n`}?`,
+  nudge: t`Not quite. The private balance persists between calls; trace it through both withdrawals.`,
+  hints: [
+    t`What does the reference ${ml`balance`} hold after ${ml`student ${5}`}?`,
+    t`Is ${500} more than that balance, and so which branch of ${ml`withdraw`} runs?`,
+    t`What does the exception carry: the balance, or the shortfall?`,
+  ],
   answer: { kind: 'exact', expected: String(500 - (500 - 5)) },
   solution: [
     t`${ml`student ${5}`} changes the private balance from ${500} to ${495}; the reference persists between calls because ${ml`withdraw`} holds on to it.`,
     t`${ml`student ${500}`}: ${math`${500} > ${495}`}, so it raises ${ml`TooMuch (${500} - ${495})`}, that is ${ml`TooMuch ${5}`}.`,
+    t`A reference captured by a closure keeps its value between calls.`,
   ],
   reference: '5',
   verify: () => {
@@ -195,6 +202,11 @@ const focs111 = supervision({
   source: cite('focs-notes', 'Lecture 11, Exercise 11.1'),
   title: t`${ml`int ref list`} against ${ml`int list ref`}`,
   prompt: t`Comment, with examples, on the differences between an ${ml`int ref list`} and an ${ml`int list ref`}. Which can change its length, which can change its elements, and how?`,
+  hints: [
+    t`In an ${ml`int ref list`}, what is fixed when the list is built, and what can still be assigned?`,
+    t`In an ${ml`int list ref`}, what does an assignment to the reference replace?`,
+    t`For each type, which operation changes an element, and which changes the length?`,
+  ],
   writeUp: 'explanation',
 });
 const focs112 = supervision({
@@ -202,6 +214,11 @@ const focs112 = supervision({
   source: cite('focs-notes', 'Lecture 11, Exercise 11.2'),
   title: t`${ml`power`} with ${ml`while`}`,
   prompt: t`Write a version of the function ${ml`power`} (Lecture ${1}) using ${ml`while`} instead of recursion. Explain what each reference holds at the start of each pass of the loop.`,
+  hints: [
+    t`Which quantities does the recursive ${ml`power`} carry from one call to the next?`,
+    t`Which references would hold those quantities, and how does each pass of the loop update them?`,
+    t`What stays true of the references at the start of every pass, and why does it give the answer when the loop stops?`,
+  ],
   writeUp: 'explanation',
 });
 const focs113 = supervision({
@@ -209,6 +226,11 @@ const focs113 = supervision({
   source: cite('focs-notes', 'Lecture 11, Exercise 11.3'),
   title: t`A command before the test`,
   prompt: t`What is the effect of ${ml`while C${1}; B do C${2} done`}? Express it with a plain ${ml`while B do C done`} loop and explain.`,
+  hints: [
+    t`In ${ml`while C${1}; B do C${2} done`}, when does ${ml`C${1}`} run, relative to each test of ${ml`B`}?`,
+    t`How many times does ${ml`C${1}`} run when ${ml`B`} is false at the first test?`,
+    t`Where must copies of ${ml`C${1}`} go in a plain loop so that it still runs before every test of ${ml`B`}?`,
+  ],
   writeUp: 'explanation',
 });
 const focs115 = supervision({
@@ -216,6 +238,11 @@ const focs115 = supervision({
   source: cite('focs-notes', 'Lecture 11, Exercise 11.5'),
   title: t`Identity and transpose with arrays`,
   prompt: t`Arrays of several dimensions are arrays of arrays. Write functions to (a) create the ${math`n \times n`} identity matrix, given ${math`n`}, and (b) transpose an ${math`m \times n`} matrix. Watch for ${ml`Array.make n (Array.make n ${0})`}: explain what goes wrong with it.`,
+  hints: [
+    t`How many arrays does ${ml`Array.make n (Array.make n ${0})`} create, and what does each row refer to?`,
+    t`How can each row be made a fresh array, for example with ${ml`Array.init`}?`,
+    t`For the transpose of an ${math`m \times n`} matrix, what shape is the result, and which entry of the original goes in row ${math`j`}, column ${math`i`}?`,
+  ],
   writeUp: 'explanation',
 });
 

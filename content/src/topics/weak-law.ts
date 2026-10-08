@@ -201,10 +201,17 @@ const q4 = auto({
   source: cite(SH3, 'Q4'),
   title: t`A sample size that works for every distribution`,
   prompt: t`A random sample ${math`X_{${1}}, \ldots, X_{n}`} is taken from a distribution with mean ${math`\mu`} and variance ${math`\sigma^{${2}} < \infty`}. Use Chebyshev's inequality to determine the smallest sample size ${math`n`} that is sufficient, whatever the distribution, for the probability to be at least ${0.99} that the sample mean ${mXbar} is within two standard deviations of ${math`\mu`}.`,
+  nudge: t`Not quite. Apply Chebyshev to the sample mean, whose variance shrinks like ${math`\frac{${1}}{n}`}.`,
+  hints: [
+    t`What is the variance of the sample mean ${mXbar}?`,
+    t`With a distance of ${math`${2}\sigma`}, what bound does Chebyshev's inequality give for ${math`P(|\bar{X}_{n} - \mu| \ge ${2}\sigma)`}?`,
+    t`For which ${math`n`} is that bound at most ${0.01}?`,
+  ],
   answer: { kind: 'exact', expected: '25' },
   solution: [
     t`${math`\operatorname{Var}(\bar{X}_{n}) = \sigma^{${2}}/n`}, and "within two standard deviations" means ${math`|\bar{X}_{n} - \mu| < ${2}\sigma`}.`,
     t`Chebyshev: ${math`P(|\bar{X}_{n} - \mu| \ge ${2}\sigma) \le \frac{\sigma^{${2}}/n}{${4}\sigma^{${2}}} = \frac{${1}}{${4}n}`}. This is at most ${0.01} exactly when ${math`n \ge ${25}`}.`,
+    t`Chebyshev on the sample mean gives a sample size that works for every distribution.`,
   ],
   reference: '25',
   verify: () => {
@@ -236,6 +243,11 @@ const q13b = supervision({
   source: cite(SH3, 'Q13'),
   title: t`The weak law for the sample variance`,
   prompt: t`With ${math`\hat{\mu}_{n}`} as above and ${math`\hat{\sigma}_{n}^{${2}} = \frac{${1}}{n}\sum_{i = ${1}}^{n}(X_{i} - \hat{\mu}_{n})^{${2}}`}, show that, provided ${math`E(X_{${1}}^{${4}}) < \infty`}, ${math`P(|\hat{\sigma}_{n}^{${2}} - \sigma^{${2}}| > \varepsilon) \to ${0}`} for all ${math`\varepsilon > ${0}`}. Hint: show first that ${math`\hat{\sigma}_{n}^{${2}} = \frac{${1}}{n}\sum_{i = ${1}}^{n}(X_{i} - \mu)^{${2}} - (\hat{\mu}_{n} - \mu)^{${2}}`}.`,
+  hints: [
+    t`Expanding ${math`(X_{i} - \hat{\mu}_{n})^{${2}}`} as ${math`((X_{i} - \mu) - (\hat{\mu}_{n} - \mu))^{${2}}`} and summing, how does the hinted identity follow?`,
+    t`Applying the weak law to the variables ${math`(X_{i} - \mu)^{${2}}`}, which need a finite variance, what does their average tend to?`,
+    t`If ${math`(\hat{\mu}_{n} - \mu)^{${2}}`} tends to ${0} in probability, how do the two pieces combine with ${math`\frac{\varepsilon}{${2}}`} each?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -244,6 +256,11 @@ const uncorrelated = supervision({
   source: SCHEDULE,
   title: t`Uncorrelated is enough`,
   prompt: t`Prove the weak law of large numbers when the ${math`X_{i}`} all have mean ${math`\mu`} and variance ${math`\sigma^{${2}}`} and are only pairwise uncorrelated, ${math`\operatorname{cov}(X_{i}, X_{j}) = ${0}`} for ${math`i \ne j`}. Where does the proof use the covariances? Give an example of a sequence with equal means and variances, not independent, for which the sample mean does not converge to ${math`\mu`} in probability.`,
+  hints: [
+    t`What is ${math`\operatorname{Var}\left(\sum_{i} X_{i}\right)`} in terms of the variances and the covariances?`,
+    t`With every covariance zero, what is the variance of the sample mean, and what does Chebyshev's inequality then give?`,
+    t`For the example, what happens to the sample mean if every ${math`X_{i}`} equals the same random variable?`,
+  ],
   writeUp: 'proof',
 });
 

@@ -246,9 +246,16 @@ const a19i = auto({
   title: t`Three coins, by the formula`,
   prompt: t`A bag holds three coins: a normal one, one with heads on both sides, and one with tails on both sides. I pick a coin at random and look at a random side of it: a head. Let ${math`D`} be "I picked the double-headed coin" and ${math`H`} be "I see a head". Find ${math`P(D \mid H)`} from ${math`P(D \cap H)`} and ${math`P(H)`}.`,
   answer: { kind: 'exact', expected: str(q(2, 3)) },
+  hints: [
+    t`What is ${math`P(D \cap H)`}, given that the double-headed coin always shows a head?`,
+    t`Of the six equally likely sides, how many are heads?`,
+    t`What does ${math`P(D \mid H) = \frac{P(D \cap H)}{P(H)}`} then give?`,
+  ],
+  nudge: t`Not quite. Count sides, not coins: each of the six sides is equally likely to be seen.`,
   solution: [
     t`${math`P(D \cap H) = P(D) = ${q(1, 3)}`}: the double-headed coin always shows a head. ${math`P(H) = ${q(1, 2)}`}: three of the six sides are heads, each side equally likely to be seen.`,
     t`${math`P(D \mid H) = \frac{${q(1, 3)}}{${q(1, 2)}} = ${q(2, 3)}`}, the hints' answer for "the other side is a head".`,
+    t`Condition on what is seen, counting the equally likely sides.`,
   ],
   reference: str(q(2, 3)),
   verify: () => {
@@ -280,9 +287,16 @@ const raffle121 = auto({
   title: t`The raffle queue starts ${1}, ${2}, ${1}`,
   prompt: t`I sell raffle tickets for £${1}. The queue has ${math`m`} people with a £${1} coin and ${2} people with a £${2} coin, every arrangement equally likely. One queue that lets me sell to everyone starts with a £${1}, then a £${2}, then a £${1}. Find the probability that the queue starts this way, as an expression in ${math`m`}, by multiplying conditional probabilities.`,
   answer: { kind: 'expression', expected: 'm/(m + 2) * 2/(m + 1) * (m - 1)/m', variables: ['m'], domains: M_DOMAIN },
+  hints: [
+    t`What is the probability that the first person has a £${1} coin?`,
+    t`Given that, how many people remain, and how many of them have £${2} coins?`,
+    t`Given both, what is the chance that the third has a £${1} coin, and what is the product of the three?`,
+  ],
+  nudge: t`Not quite. Each person leaves the queue once served, so the counts fall at every step.`,
   solution: [
     t`The first person has a £${1} coin with probability ${math`\frac{m}{m + ${2}}`}. Given that, the second has a £${2} coin with probability ${math`\frac{${2}}{m + ${1}}`}: ${math`m + ${1}`} people remain, ${2} of them with £${2}.`,
     t`Given both, the third has a £${1} coin with probability ${math`\frac{m - ${1}}{m}`}. Multiplying: ${math`\frac{m}{m + ${2}} \times \frac{${2}}{m + ${1}} \times \frac{m - ${1}}{m} = \frac{${2}(m - ${1})}{(m + ${2})(m + ${1})}`}.`,
+    t`Multiply conditional probabilities, updating the counts after each draw.`,
   ],
   reference: '2(m - 1)/((m + 2)(m + 1))',
   verify: () => {
@@ -303,7 +317,17 @@ const raffle11 = auto({
   title: t`The raffle queue starts ${1}, ${1}`,
   prompt: t`In the same queue (${math`m`} people with £${1}, ${2} with £${2}, every arrangement equally likely), find the probability that the first two people both have £${1} coins, as an expression in ${math`m`}.`,
   answer: { kind: 'expression', expected: 'm/(m + 2) * (m - 1)/(m + 1)', variables: ['m'], domains: M_DOMAIN },
-  solution: [t`The first person has a £${1} coin with probability ${math`\frac{m}{m + ${2}}`}; given that, ${math`m - ${1}`} of the remaining ${math`m + ${1}`} have one. So the probability is ${math`\frac{m}{m + ${2}} \times \frac{m - ${1}}{m + ${1}}`}.`],
+  hints: [
+    t`What is the probability that the first person has a £${1} coin?`,
+    t`After that person, how many remain, and how many of them have £${1} coins?`,
+    t`Which rule combines the two probabilities?`,
+  ],
+  nudge: t`Not quite. Draws from the queue are without replacement; update both counts after the first person.`,
+  solution: [
+    t`The first person has a £${1} coin with probability ${math`\frac{m}{m + ${2}}`}.`,
+    t`Given that, ${math`m - ${1}`} of the remaining ${math`m + ${1}`} have one: ${math`\frac{m}{m + ${2}} \times \frac{m - ${1}}{m + ${1}}`}.`,
+    t`Without replacement, both counts drop after each draw.`,
+  ],
   reference: 'm(m - 1)/((m + 2)(m + 1))',
   verify: () => {
     for (let m = 2; m <= 9; m++) {
@@ -320,7 +344,12 @@ const raffle3 = supervision({
   id: 'a12-q3-iii',
   source: cite('step-f12', 'Q3(iii) (2011 STEP I Q12)'),
   title: t`Three people with £${2} coins`,
-  prompt: t`With ${math`m`} people holding £${1} coins and ${3} holding £${2} coins (${math`m \ge ${3}`}), show that the probability I can sell a ticket to everyone is ${math`\frac{m - ${2}}{m + ${1}}`}. List the starts of the queues that work in a logical order, find each probability by multiplying conditional probabilities, and explain why your list is complete.`,
+  prompt: t`With ${math`m`} people holding £${1} coins and ${3} holding £${2} coins (${math`m \ge ${3}`}), show that the probability I can sell a ticket to everyone is ${math`\frac{m - ${2}}{m + ${1}}`}. List the starts of the queues that work in a logical order, find each probability by multiplying conditional probabilities, and explain why the list is complete.`,
+  hints: [
+    t`Which coin must the first person in a successful queue have, and why?`,
+    t`Listing starts by how many £${1} coins come before each £${2} coin, which starts let every £${2} coin get change?`,
+    t`For each start, what is the product of conditional probabilities, and why does no other start work?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f12-hints', 'Q3(iii)'),
 });
@@ -329,6 +358,11 @@ const smokersReverse = supervision({
   source: cite('step-f06', 'Q4(i)(d), (e)'),
   title: t`Both directions by the formula`,
   prompt: t`In the smokers question, write ${math`P(W \mid S)`} and ${math`P(M \mid S^{c})`} as quotients ${math`P(\cdot \cap \cdot) / P(\cdot)`}, and evaluate them. Then explain, using the formula, why ${math`P(W \mid S)`} and ${math`P(S \mid W)`} have the same numerator but different denominators.`,
+  hints: [
+    t`Which joint probability is the numerator of ${math`P(W \mid S)`}, and which of ${math`P(M \mid S^{c})`}?`,
+    t`What are ${math`P(S)`} and ${math`P(S^{c})`}, split over men and women?`,
+    t`In ${math`P(W \mid S)`} and ${math`P(S \mid W)`}, which event is conditioned on, and how does that decide the denominator?`,
+  ],
   writeUp: 'explanation',
   official: cite('step-f06-hints', 'Q4(i)'),
 });

@@ -234,6 +234,12 @@ const a5alt = auto({
   source: cite('step-f05', 'Q2(i)'),
   title: t`The triangle ${10}, ${9}, ${17}: area and altitudes`,
   prompt: t`The triangle ${math`ABC`} has ${math`AB = ${T.c}`}, ${math`BC = ${T.a}`}, and ${math`CA = ${T.b}`}, and ${math`\cos C = ${COS_C}`}. Find ${math`\sin C`} and show the area is ${36}. Then find the three altitudes (the perpendicular heights onto ${math`AB`}, ${math`BC`}, and ${math`CA`}), in that order, as fractions in lowest terms.`,
+  nudge: t`Not quite. Find the area once; every altitude follows from it.`,
+  hints: [
+    t`From ${math`\cos C`}, what is ${math`\sin C`}, and why is it positive?`,
+    t`Which area formula uses two sides and the sine of the angle between them?`,
+    t`With the area known, how does each side's length give the height onto it?`,
+  ],
   answer: {
     kind: 'witness', count: 3, example: listText(ALTS),
     check: (v) => (v.map(str).join(',') === ALTS.map(str).join(',') ? null : valuesKey(v) === valuesKey(ALTS) ? 'Those are the right heights, but give them in the order AB, BC, CA.' : 'Each altitude is twice the area divided by its base.'),
@@ -242,6 +248,7 @@ const a5alt = auto({
     t`${math`\sin^{${2}} C = ${1} - \left(\frac{${15}}{${17}}\right)^{${2}} = \frac{${64}}{${289}}`}, and ${math`\sin C > ${0}`} in a triangle, so ${math`\sin C = \frac{${8}}{${17}}`}.`,
     t`Area ${math`= \frac{${1}}{${2}}ab\sin C = \frac{${1}}{${2}} \times ${9} \times ${17} \times \frac{${8}}{${17}} = ${36}`}.`,
     t`Area ${math`= \frac{${1}}{${2}} \times \text{base} \times \text{height}`}, so each height is ${math`\frac{${2} \times ${36}}{\text{base}} = \frac{${72}}{\text{base}}`}: ${math`\frac{${72}}{${10}} = ${q(36, 5)}`} onto ${math`AB`}, ${math`\frac{${72}}{${9}} = ${8}`} onto ${math`BC`}, and ${math`\frac{${72}}{${17}}`} onto ${math`CA`}.`,
+    t`Find the area once; each altitude is twice the area over its base.`,
   ],
   reference: listText(ALTS),
   verify: () => {
@@ -261,6 +268,11 @@ const a5q1ii = supervision({
   source: cite('step-f05', 'Q1(ii)'),
   title: t`The cosine rule from coordinates`,
   prompt: t`The points ${math`A`}, ${math`B`}, ${math`C`} have coordinates ${math`(x, y)`}, ${math`(a, ${0})`}, ${math`(${0}, ${0})`}, where ${math`a`}, ${math`x`}, ${math`y`} are positive. The lengths ${math`AB`} and ${math`AC`} are ${mc} and ${mb}. Write down ${math`b^{${2}}`} and ${math`c^{${2}}`} in terms of ${math`x`}, ${math`y`}, ${math`a`}, and show that ${math`b^{${2}} - x^{${2}} = c^{${2}} - (x - a)^{${2}}`}. With ${math`\angle ACB = C`}, express ${math`x`} in terms of ${mb} and ${mC}, and deduce ${math`c^{${2}} = a^{${2}} + b^{${2}} - ${2}ab\cos C`}. Is there a difference between the cases ${math`a > x`} and ${math`a < x`}?`,
+  hints: [
+    t`What are ${math`b^{${2}}`} and ${math`c^{${2}}`} by the distance formula?`,
+    t`Taking ${math`y^{${2}}`} from both, what is left on each side?`,
+    t`In the right triangle with vertices ${math`A`}, ${math`C`}, and the foot of the perpendicular from ${math`A`}, what is ${math`x`} in terms of ${mb} and ${mC}, and what changes when ${math`a < x`}?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f05-hints', 'Q1(ii)'),
 });
@@ -270,6 +282,11 @@ const a9q1 = supervision({
   source: cite('step-f09', 'Q1(ii), (iii)'),
   title: t`The area formula, the sine rule, and ${math`\sin ${2}\alpha`}`,
   prompt: t`(ii) Triangle ${math`ABC`} has ${math`BC = a`}, ${math`CA = b`}, ${math`AB = c`}. Using area ${math`= \frac{${1}}{${2}}`} base ${math`\times`} height with base ${math`AC`}, show that the area is ${math`\frac{${1}}{${2}}ab\sin C`}. Show also that it is ${math`\frac{${1}}{${2}}bc\sin A`}, and deduce the sine rule ${math`\frac{\sin A}{a} = \frac{\sin B}{b} = \frac{\sin C}{c}`}. (iii) In triangle ${math`ABC`}, ${math`AB = BC = ${1}`}, ${math`M`} is the midpoint of ${math`AC`}, and ${math`\angle ABM = \angle CBM = \alpha`}. Show that ${math`AC = ${2}\sin\alpha`} and, by the sine rule, that ${math`\sin ${2}\alpha = ${2}\sin\alpha\cos\alpha`}.`,
+  hints: [
+    t`With base ${math`AC`}, what is the height from ${math`B`}, in terms of ${math`a`} and ${math`C`}?`,
+    t`With a different base, which other expression for the area follows, and what does equating the expressions give?`,
+    t`In the isosceles triangle, what is ${math`AM`} from the right triangle ${math`ABM`}, and what are the angles of triangle ${math`ABC`} for the sine rule?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f09-hints', 'Q1(ii), (iii)'),
 });
@@ -278,7 +295,12 @@ const a20q5 = supervision({
   id: 'a20-q5',
   source: cite('step-f20', 'Q5'),
   title: t`A ${math`${30}^\circ`} triangle whose height equals a median`,
-  prompt: t`Triangle ${math`ABC`} has ${math`\angle CAB = ${30}^\circ`}. The point ${math`M`} is the midpoint of ${math`AC`}, and the height ${math`h`} of the triangle (from ${math`B`} to ${math`AC`}) equals ${math`MB`}. Show that ${math`\angle ABC = ${45}^\circ`}. (i) Find the height of triangle ${math`MBC`} in terms of ${math`h`}, and show ${math`\angle MBC = ${30}^\circ`}. (ii) Show ${math`\angle BMC = \angle ABC`}. (iii) Find ${math`AB`} in terms of ${math`h`} and ${math`\angle ABC`}, and show ${math`\sin^{${2}} \angle ABC = \frac{${1}}{${2}}`} by the sine rule in triangle ${math`ABM`}.`,
+  prompt: t`Triangle ${math`ABC`} has ${math`\angle CAB = ${30}^\circ`}. The point ${math`M`} is the midpoint of ${math`AC`}, and the height ${math`h`} of the triangle (from ${math`A`} to the line ${math`BC`}) equals ${math`MB`}. Show that ${math`\angle ABC = ${45}^\circ`}. (i) Find the height of triangle ${math`MBC`} in terms of ${math`h`}, and show ${math`\angle MBC = ${30}^\circ`}. (ii) Show ${math`\angle BMC = \angle ABC`}. (iii) Find ${math`AB`} in terms of ${math`h`} and ${math`\angle ABC`}, and show ${math`\sin^{${2}} \angle ABC = \frac{${1}}{${2}}`} by the sine rule in triangle ${math`ABM`}.`,
+  hints: [
+    t`With ${math`M`} the midpoint of ${math`AC`}, how does the distance from ${math`M`} to the line ${math`BC`} compare with the height ${math`h`} from ${math`A`}?`,
+    t`In the right triangle with vertices ${math`B`}, ${math`M`}, and the foot of the perpendicular from ${math`M`}, what is ${math`\sin \angle MBC`}?`,
+    t`Triangles ${math`ACB`} and ${math`MCB`} share the angle at ${math`C`}: what follows for their third angles, and how does the sine rule in triangle ${math`ABM`} then finish?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f20-hints', 'Q5'),
 });
@@ -288,6 +310,12 @@ const g1ii = auto({
   source: cite('nst-workbook', 'G1(ii)', true),
   title: t`The angles of the triangle ${2}, ${2}, ${3}`,
   prompt: t`In triangle ${math`ABC`}, ${math`AB = ${2}`}, ${math`BC = ${2}`}, and ${math`AC = ${3}`}. Find ${math`\cos B`} and ${math`\cos A`}, in that order, as fractions.`,
+  nudge: t`Not quite. Match each angle with the side opposite it before using the cosine rule.`,
+  hints: [
+    t`Which side is opposite ${math`B`}, and which is opposite ${math`A`}?`,
+    t`What does the cosine rule give for ${math`\cos B`}?`,
+    t`Using the same rule at ${math`A`}, what is ${math`\cos A`}?`,
+  ],
   answer: {
     kind: 'witness', count: 2, example: '-1/8, 3/4',
     check: (v) => (v.map(str).join(',') === '-1/8,3/4' ? null : 'Use the cosine rule at each vertex: subtract the square of the opposite side.'),
@@ -295,6 +323,7 @@ const g1ii = auto({
   solution: [
     t`${math`B`} is opposite ${math`AC = ${3}`}: ${math`\cos B = \frac{${2}^{${2}} + ${2}^{${2}} - ${3}^{${2}}}{${2} \times ${2} \times ${2}} = -\frac{${1}}{${8}}`}, so ${math`B`} is obtuse.`,
     t`${math`A`} is opposite ${math`BC = ${2}`}: ${math`\cos A = \frac{${2}^{${2}} + ${3}^{${2}} - ${2}^{${2}}}{${2} \times ${2} \times ${3}} = \frac{${3}}{${4}}`}. The triangle is isosceles with ${math`AB = BC`}, so ${math`C = A`}, and the angles are ${math`\arccos\left(-\frac{${1}}{${8}}\right)`} and twice ${math`\arccos \frac{${3}}{${4}}`}.`,
+    t`In the cosine rule, the side opposite the angle is the one subtracted.`,
   ],
   reference: '-1/8, 3/4',
   verify: () => {

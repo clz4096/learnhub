@@ -269,6 +269,7 @@ const q5mean = auto({
   solution: [
     t`Take logarithms: ${math`\ln G(t) = a\ln p + a\ln t - a\ln(${1} - qt)`}, so ${math`\frac{G'(t)}{G(t)} = \frac{a}{t} + \frac{aq}{${1} - qt}`}.`,
     t`At ${math`t = ${1}`}, ${math`G(${1}) = ${1}`} and ${math`${1} - q = p`}: ${math`E(X) = G'(${1}) = a + \frac{aq}{p} = \frac{a}{p}`}.`,
+    t`${math`E(X) = G'(${1})`}, and logarithmic differentiation tames products of powers.`,
   ],
   reference: 'a/p',
   verify: () => {
@@ -280,6 +281,12 @@ const q5mean = auto({
     { response: '1/p', why: t`${math`${1}/p`} is the wait for one success. The ${math`a`}th success takes ${math`a`} such waits.` },
   ],
   official: { source: cite(SH3, 'Q5'), answer: 'a/p', agrees: true },
+  nudge: t`Not quite. Taking logarithms before differentiating makes ${math`G'(${1})`} a short calculation.`,
+  hints: [
+    t`How is ${math`E(X)`} obtained from a pgf?`,
+    t`What is the derivative of ${math`\ln G(t)`}?`,
+    t`What are ${math`G(${1})`} and ${math`${1} - q`} at ${math`t = ${1}`}?`,
+  ],
 });
 
 const q5var = auto({
@@ -291,6 +298,7 @@ const q5var = auto({
   solution: [
     t`Differentiate ${math`\frac{G'(t)}{G(t)} = \frac{a}{t} + \frac{aq}{${1} - qt}`} again: ${math`\frac{G''(t)}{G(t)} - \left(\frac{G'(t)}{G(t)}\right)^{${2}} = -\frac{a}{t^{${2}}} + \frac{aq^{${2}}}{(${1} - qt)^{${2}}}`}.`,
     t`At ${math`t = ${1}`}: ${math`G''(${1}) - G'(${1})^{${2}} = -a + \frac{aq^{${2}}}{p^{${2}}}`}, and ${math`\operatorname{Var}(X) = G''(${1}) + G'(${1}) - G'(${1})^{${2}} = -a + \frac{aq^{${2}}}{p^{${2}}} + \frac{a}{p} = \frac{aq}{p^{${2}}}`}.`,
+    t`The variance from a pgf is ${math`G''(${1}) + G'(${1}) - G'(${1})^{${2}}`}; for a sum of independent parts, add their variances.`,
   ],
   reference: 'a(1 - p)/p^2',
   verify: () => {
@@ -306,6 +314,12 @@ const q5var = auto({
   ],
   // The sheet states var(X) = aq/p^2.
   official: { source: cite(SH3, 'Q5'), answer: 'a(1 - p)/p^2', agrees: true },
+  nudge: t`Not quite. Differentiating ${math`\ln G`} twice gives ${math`G''(${1}) - G'(${1})^{${2}}`} in one step; the variance needs ${math`G'(${1})`} added.`,
+  hints: [
+    t`How is ${math`\operatorname{Var}(X)`} written using ${math`G'(${1})`} and ${math`G''(${1})`}?`,
+    t`What does differentiating ${math`\frac{G'(t)}{G(t)}`} once more give, and what is it at ${math`t = ${1}`}?`,
+    t`Alternatively, ${mX} is a sum of how many independent geometric waits, and what is the variance of one?`,
+  ],
 });
 
 const q5proof = supervision({
@@ -314,6 +328,11 @@ const q5proof = supervision({
   title: t`The negative binomial distribution`,
   prompt: t`Independent Bernoulli trials succeed with probability ${math`p`}; ${mX} is the number of trials up to and including the ${math`a`}th success. Show that ${math`P(X = r) = \binom{r - ${1}}{a - ${1}}p^{a}q^{r - a}`} for ${math`r = a, a + ${1}, \ldots`}, and that its generating function is ${math`p^{a}t^{a}(${1} - qt)^{-a}`}. Deduce ${math`E(X) = a/p`} and ${math`\operatorname{var}(X) = aq/p^{${2}}`}. Explain how ${mX} is a sum of ${math`a`} independent random variables with the same distribution, and use this to derive the mean and variance again.`,
   writeUp: 'proof',
+  hints: [
+    t`For ${math`X = r`}, what must happen on trial ${math`r`}, and how many of the first ${math`r - ${1}`} trials must succeed?`,
+    t`What is the sum over ${math`r`} of these probabilities times ${math`t^{r}`}, using the binomial series for ${math`(${1} - qt)^{-a}`}?`,
+    t`Which ${math`a`} independent waits add up to ${mX}, and what are the pgf, mean, and variance of each?`,
+  ],
 });
 
 const schedule = supervision({
@@ -322,6 +341,11 @@ const schedule = supervision({
   title: t`Why pgfs work`,
   prompt: t`Let ${mX} take values in ${math`\{${0}, ${1}, ${2}, \ldots\}`} with pgf ${math`G`}. Prove: (a) ${math`G`} determines the distribution of ${mX}; (b) if ${math`E(X) < \infty`} then ${math`E(X) = \lim_{t \uparrow ${1}} G'(t)`}; (c) if ${mX} and ${math`Y`} are independent then ${math`G_{X + Y} = G_{X}G_{Y}`}. In (b), explain why a limit is needed rather than ${math`G'(${1})`} directly.`,
   writeUp: 'proof',
+  hints: [
+    t`For (a), how are the probabilities ${math`P(X = k)`} recovered from the derivatives of ${math`G`} at ${0}?`,
+    t`For (b), why is ${math`G'(t) = \sum_{k} kP(X = k)t^{k - ${1}}`} for ${math`|t| < ${1}`}, and what happens to that sum as ${math`t`} increases to ${1}?`,
+    t`For (c), how does independence give ${math`E(t^{X + Y}) = E(t^{X})E(t^{Y})`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

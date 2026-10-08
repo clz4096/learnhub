@@ -178,7 +178,14 @@ const a16ii = auto({
   answer: { kind: 'expression', expected: 'sqrt(1 + y^2)', variables: ['y'], domains: { y: { kind: 'real', min: 0, max: 5 } } },
   solution: [
     t`Put ${math`y = x^{${2}}`}. Then ${math`x^{${4}} = y^{${2}}`}, so ${math`f(y) = \sqrt{${1} + y^{${2}}}`}.`,
-    t`This holds only for ${math`y \ge ${0}`}, since ${math`y = x^{${2}}`} is never negative: the equation tells us nothing about ${math`f`} at negative inputs.`,
+    t`This holds only for ${math`y \ge ${0}`}, since ${math`y = x^{${2}}`} is never negative: the equation says nothing about ${math`f`} at negative inputs.`,
+    t`Substitute to free the function's input, then note where the result holds.`,
+  ],
+  nudge: t`Not quite. Substitute ${math`y = x^{${2}}`} and write everything in terms of ${math`y`}.`,
+  hints: [
+    t`If ${math`y = x^{${2}}`}, what is ${math`x^{${4}}`} in terms of ${math`y`}?`,
+    t`After that substitution, what does the given equation say about ${math`f(y)`}?`,
+    t`For which ${math`y`} does the equation give any information, given that ${math`y = x^{${2}}`}?`,
   ],
   reference: 'sqrt(1 + y^2)',
   verify: () => { for (const x of [-2, -0.5, 0, 1.3, 3]) if (!near(Math.sqrt(1 + (x * x) ** 2), Math.sqrt(1 + x ** 4))) return `x = ${x}`; return null; },
@@ -194,6 +201,13 @@ const a16v = auto({
   solution: [
     t`${math`a^{x + y} = a^{x}a^{y}`} by the index law, and ${math`f(${1}) = a = ${2}`}: ${math`f(x) = ${2}^{x}`}.`,
     t`The inverse of ${math`${2}^{x}`} turns products into sums: ${math`\log_{${2}}(xy) = \log_{${2}} x + \log_{${2}} y`}, and ${math`\log_{${2}} ${2} = ${1}`}. So ${math`f(x) = \log_{${2}} x = \frac{\ln x}{\ln ${2}}`} works.`,
+    t`Logarithms turn products into sums.`,
+  ],
+  nudge: t`Not quite. Ask which familiar function turns products into sums.`,
+  hints: [
+    t`What does ${math`f(x + y) = f(x)f(y)`} say about how ${math`a^{x}`} treats sums?`,
+    t`Which familiar function does the opposite, turning products into sums?`,
+    t`Which base makes that function equal ${1} at ${math`x = ${2}`}?`,
   ],
   reference: 'ln(x)/ln(2)',
   verify: () => {
@@ -211,6 +225,11 @@ const a21 = supervision({
   title: t`Two new functions and their identities`,
   prompt: t`Define ${math`C(x) = \frac{${1}}{${2}}(a^{x} + a^{-x})`} and ${math`S(x) = \frac{${1}}{${2}}(a^{x} - a^{-x})`}, where ${math`a`} is a fixed positive real number. Show, using these definitions, that (a) ${math`C(x)^{${2}} - S(x)^{${2}} = ${1}`}; (b) ${math`C(x)C(y) + S(x)S(y) = C(x + y)`}; (c) ${math`C(x)S(y) + S(x)C(y) = S(x + y)`}. Deduce an expression for ${math`C(${2}x)`} in terms of ${math`C(x)`}.`,
   writeUp: 'proof',
+  hints: [
+    t`In (a), what are ${math`C(x)^{${2}}`} and ${math`S(x)^{${2}}`} when expanded, using ${math`a^{x}a^{-x} = ${1}`}?`,
+    t`In (b) and (c), which products of ${math`a^{\pm x}`} and ${math`a^{\pm y}`} appear, and which cancel?`,
+    t`Putting ${math`y = x`} in (b), how can (a) remove ${math`S(x)^{${2}}`} to leave ${math`C(${2}x)`} in terms of ${math`C(x)`} alone?`,
+  ],
   official: cite('step-f21-hints', 'Q1(i)'),
 });
 

@@ -181,11 +181,18 @@ const notes98 = auto({
   id: 'notes-304-example-98',
   source: cite('cst-dm-notes', 'printed page 304, Example 98', true),
   title: t`The power of ${2} in ${1224}`,
-  prompt: t`Example ${98} of the notes writes ${1224} as a product of prime powers. What is the exponent of ${2} in the prime factorisation of ${1224}?`,
+  prompt: t`Find the exponent of ${2} in the prime factorisation of ${1224} (Example ${98} of the notes).`,
   answer: { kind: 'exact', expected: String(expOf(1224, 2)) },
   solution: [
     t`Halve until odd: ${math`${1224} \to ${612} \to ${306} \to ${153}`}, three halvings, and ${math`${153} = ${3}^{${2}} \times ${17}`}. So ${math`${1224} = ${factTex(1224)}`}: the exponent of ${2} is ${expOf(1224, 2)}.`,
     t`The notes print ${math`${2}^{${2}} \cdot ${3}^{${2}} \cdot ${17}`}, which is ${4 * 9 * 17}: a misprint. Their Example ${68} lists ${divisors(1224).length} divisors of ${1224}, which fits ${math`(${3} + ${1})(${2} + ${1})(${1} + ${1}) = ${24}`}, not ${math`(${2} + ${1})(${2} + ${1})(${1} + ${1}) = ${18}`}.`,
+    t`Check a factorisation by multiplying it back out.`,
+  ],
+  nudge: t`Not quite. Halve ${1224} repeatedly and count the halvings until the number is odd.`,
+  hints: [
+    t`Is ${1224} even, and what is half of it?`,
+    t`How many times can ${1224} be halved before the result is odd?`,
+    t`Does the product of the prime powers found give back ${1224} exactly?`,
   ],
   reference: String(expOf(1224, 2)),
   verify: () => same('the factorisation by trial division', factorise(1224).map(([p, e]) => `${p}^${e}`).join(' '), '2^3 3^2 17^1'),
@@ -198,9 +205,19 @@ const notes68 = auto({
   id: 'notes-208-example-68',
   source: cite('cst-dm-notes', 'printed page 208, Example 68', true),
   title: t`How many divisors has ${1224}?`,
-  prompt: t`Example ${68} of the notes lists ${math`D(${1224})`}, the divisors of ${1224}. Without listing them, how many are there?`,
+  prompt: t`Without listing them, find the number of positive divisors of ${1224}, the set ${math`D(${1224})`} of Example ${68} of the notes.`,
   answer: { kind: 'exact', expected: String(divisors(1224).length) },
-  solution: [t`${math`${1224} = ${factTex(1224)}`}, so a divisor is ${math`${2}^{a}${3}^{b}${17}^{c}`} with ${math`${0} \le a \le ${3}`}, ${math`${0} \le b \le ${2}`}, ${math`${0} \le c \le ${1}`}: ${math`${4} \times ${3} \times ${2} = ${24}`} divisors, the length of the notes' list.`],
+  solution: [
+    t`${math`${1224} = ${factTex(1224)}`}, so a divisor is ${math`${2}^{a}${3}^{b}${17}^{c}`} with ${math`${0} \le a \le ${3}`}, ${math`${0} \le b \le ${2}`}, ${math`${0} \le c \le ${1}`}.`,
+    t`That is ${math`${4} \times ${3} \times ${2} = ${24}`} divisors, the length of the notes' list.`,
+    t`The number of divisors is the product of one more than each exponent.`,
+  ],
+  nudge: t`Not quite. Factorise ${1224} first, then count the choices for each exponent.`,
+  hints: [
+    t`What is the prime factorisation of ${1224}?`,
+    t`What form does every divisor take, in terms of that factorisation?`,
+    t`How many choices are there for each exponent, and how do the choices combine?`,
+  ],
   reference: '24',
   verify: () => same('trial division', divisors(1224).length, 24),
   misconceptions: [{ response: '18', why: t`That uses ${math`${2}^{${2}}`}; ${1224} has ${math`${2}^{${3}}`}, so the exponent of ${2} has four choices.` }],
@@ -213,6 +230,11 @@ const homework302 = supervision({
   title: t`Uniqueness by induction`,
   prompt: t`The notes prove uniqueness of prime factorisation twice: by "iterating" (if ${math`p_{${1}} \cdots p_{\ell} = q_{${1}} \cdots q_{k}`} then ${math`p_{${1}} = q_{${1}}`} by Euclid's theorem, cancel, repeat) and by induction on ${math`\ell`}. Do the Homework: show that uniqueness also follows from ${math`\forall \ell \ge ${1}.\ P'(\ell)`}, where ${math`P'(\ell)`} quantifies over ${math`k \ge \ell`} only, and prove that statement by induction. Where is Euclid's theorem used, and why must the primes be ordered?`,
   writeUp: 'proof',
+  hints: [
+    t`What exactly does ${math`P'(\ell)`} assert, and how does uniqueness follow from it for every ${math`\ell`}?`,
+    t`In the step from ${math`\ell`} to ${math`\ell + ${1}`}, which prime on one side must equal a prime on the other, and by which theorem?`,
+    t`Why does ordering the primes give ${math`p_{${1}} = q_{${1}}`}, rather than only that ${math`p_{${1}}`} equals some ${math`q_{j}`}?`,
+  ],
 });
 const bop101 = supervision({
   id: 'bop-10-4-theorem-10-1',
@@ -220,6 +242,11 @@ const bop101 = supervision({
   title: t`Uniqueness by a smallest counterexample`,
   prompt: t`Book of Proof proves uniqueness by assuming a smallest ${math`n > ${2}`} with two different prime factorisations and producing a smaller one. Write that proof in full. Which fact about primes does it use (Book of Proof's Proposition ${10}.${1}, the notes' Corollary ${84}), and what goes wrong in ${math`\{${1}, ${5}, ${9}, ${13}, \ldots\}`}, the numbers ${math`\equiv ${1} \pmod{${4}}`}, where ${math`${441} = ${9} \times ${49} = ${21} \times ${21}`}?`,
   writeUp: 'proof',
+  hints: [
+    t`If ${math`n`} has two factorisations ${math`p_{${1}} \cdots p_{k} = q_{${1}} \cdots q_{\ell}`}, why may it be assumed that no ${math`p_{i}`} equals any ${math`q_{j}`}?`,
+    t`Since ${math`p_{${1}}`} divides ${math`q_{${1}} \cdots q_{\ell}`}, which fact about primes gives ${math`p_{${1}} \mid q_{j}`} for some ${math`j`}?`,
+    t`In ${math`\{${1}, ${5}, ${9}, ${13}, \ldots\}`}, does ${21} divide ${math`${9} \times ${49}`}, and does it divide either factor?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
@@ -240,6 +267,11 @@ const ns3q11 = supervision({
   title: t`Roots of monic integer polynomials`,
   prompt: t`Suppose that ${math`x \in \mathbb{R}`} is a root of a monic integer polynomial, that is, ${math`x^{n} + a_{n - ${1}}x^{n - ${1}} + a_{n - ${2}}x^{n - ${2}} + \cdots + a_{${0}} = ${0}`} for some integers ${math`a_{n - ${1}}, \ldots, a_{${0}}`}. Prove that ${math`x`} is either an integer or irrational.`,
   writeUp: 'proof',
+  hints: [
+    t`Writing a rational ${math`x`} as ${math`p / q`} in lowest terms with ${math`q \ge ${1}`}, what equation results after multiplying through by ${math`q^{n}`}?`,
+    t`Which terms of that equation are multiples of ${math`q`}, and what does that say about ${math`p^{n}`}?`,
+    t`If ${math`q > ${1}`}, what must a prime factor of ${math`q`} divide, and why is that impossible?`,
+  ],
 });
 
 /*
@@ -256,6 +288,11 @@ const sw323 = supervision({
   title: t`A coprime factor does not change the gcd`,
   prompt: t`Prove that for all positive integers ${math`a, b, c`}, if ${math`\gcd(a, c) = ${1}`} then ${math`\gcd(a \cdot b, c) = \gcd(b, c)`}.`,
   writeUp: 'proof',
+  hints: [
+    t`How is ${math`\gcd(u, v)`} expressed through the exponents of the primes in ${math`u`} and ${math`v`}?`,
+    t`What does ${math`\gcd(a, c) = ${1}`} say about the primes that divide both ${math`a`} and ${math`c`}?`,
+    t`For a prime dividing ${math`c`}, how do its exponents in ${math`a \cdot b`} and in ${math`b`} compare?`,
+  ],
   official: cite('cst-dm-sols-2324-3', '3.2.3'),
 });
 

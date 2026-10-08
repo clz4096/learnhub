@@ -151,17 +151,29 @@ const interleaveEx = auto({
   solution: [
     t`The sequence begins ${math`${0}, ${1}, ${1}, ${2}, ${2}, ${4}, ${3}, ${8}, \ldots`}: even positions from ${ml`nats`}, odd positions from ${ml`pow${2}`}.`,
     t`Position ${7} is odd, the fourth element of ${ml`pow${2}`}: ${pow2At(3)}.`,
+    t`Interleaving splits positions by parity: halve the index to find the source element.`,
   ],
   reference: '8',
   verify: () => same('position 7', interAt({ a: 0, b: 1, r: 2, j: 7 }, 7), 8),
   misconceptions: [{ response: '3', why: t`That is position ${6}, from ${ml`nats`}. Position ${7} is odd, so it comes from ${ml`pow${2}`}.` }, { response: '7', why: t`The two sequences alternate: position ${7} is not element ${7} of ${ml`nats`}.` }],
+  nudge: t`Not quite. Even and odd positions come from different sequences; settle which, then count within it.`,
+  hints: [
+    t`Which positions of ${ml`interleave a b`} come from ${ml`a`}, and which from ${ml`b`}?`,
+    t`Is position ${7} even or odd, and so which sequence does it come from?`,
+    t`Counting from zero within that sequence, which element is it?`,
+  ],
 });
 const focs91 = supervision({
   id: 'focs-9-1',
   source: cite('focs-notes', 'Lecture 9, Exercise 9.1'),
   title: t`${ml`map`} for sequences`,
-  prompt: t`Code an analogue of ${ml`map`} for the sequences of the lecture, ${ml`'a seq = Nil | Cons of 'a * (unit -> 'a seq)`}. Explain why every force in your code must be inside a delay.`,
+  prompt: t`Code an analogue of ${ml`map`} for the sequences of the lecture, ${ml`'a seq = Nil | Cons of 'a * (unit -> 'a seq)`}. Explain why every force in the code must be inside a delay.`,
   writeUp: 'explanation',
+  hints: [
+    t`What should the function return on ${ml`Nil`}, and on ${ml`Cons (x, xf)`}?`,
+    t`The tail ${ml`xf`} is a function from ${ml`unit`}: how can the mapped tail be built without calling ${ml`xf`} straight away?`,
+    t`What would happen on an infinite sequence if ${ml`xf ()`} were evaluated outside a ${ml`fun () -> ...`}?`,
+  ],
 });
 const focs92 = supervision({
   id: 'focs-9-2',
@@ -169,6 +181,11 @@ const focs92 = supervision({
   title: t`Concatenating a sequence of sequences`,
   prompt: t`The list function ${ml`concat`} concatenates a list of lists. Can it be generalised to concatenate a sequence of sequences? What can go wrong?`,
   writeUp: 'explanation',
+  hints: [
+    t`On a sequence of sequences, what should the function do when the first inner sequence is ${ml`Nil`}?`,
+    t`If the first inner sequence is infinite, do the elements of the second ever appear?`,
+    t`If every inner sequence from some point on is empty, does the function ever produce its next element or finish?`,
+  ],
 });
 const focs94 = supervision({
   id: 'focs-9-4',
@@ -176,6 +193,11 @@ const focs94 = supervision({
   title: t`Lazy binary trees`,
   prompt: t`A lazy binary tree is either empty or a branch containing a label and two lazy binary trees, possibly to infinite depth. Present an OCaml datatype to represent lazy binary trees, and a function that accepts a lazy binary tree and produces a lazy list containing all of the tree's labels.`,
   writeUp: 'explanation',
+  hints: [
+    t`How does the lazy list type delay its tail, and how can a branch delay its two subtrees in the same way?`,
+    t`Why does a depth-first traversal fail on a tree that is infinitely deep on the left?`,
+    t`How does a queue of subtrees, visited breadth-first, make sure that every label is eventually produced?`,
+  ],
 });
 const focs95 = supervision({
   id: 'focs-9-5',
@@ -183,6 +205,11 @@ const focs95 = supervision({
   title: t`All lists of zeroes and ones`,
   prompt: t`Code the lazy list whose elements are all ordinary lists of zeroes and ones: ${ml`[]; [${0}]; [${1}]; [${0}; ${0}]; [${0}; ${1}]; [${1}; ${0}]; [${1}; ${1}]; [${0}; ${0}; ${0}]; ...`}. Explain why every such list eventually appears.`,
   writeUp: 'explanation',
+  hints: [
+    t`How can the lists of length ${math`n + ${1}`} be made from the lists of length ${math`n`}?`,
+    t`In what order should the lists be produced so that all lists of one length come before any longer list?`,
+    t`Since there are finitely many lists of each length, why does any given list appear after finitely many steps?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

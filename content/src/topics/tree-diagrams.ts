@@ -269,10 +269,17 @@ const a12iiib = auto({
   source: cite('step-f12', 'Q2(iii)(b)'),
   title: t`Three blackcurrant chews`,
   prompt: t`I have another bag of sweets, with ${math`a`} apple sours and ${math`b`} blackcurrant chews. I take three sweets one after the other and eat them. What is the probability that they are all blackcurrant chews? Leave it as a product of three fractions, or as one fraction, in ${math`a`} and ${math`b`}.`,
+  nudge: t`Not quite. Each sweet eaten changes both the number of chews and the number of sweets left.`,
+  hints: [
+    t`What is the probability that the first sweet is a blackcurrant chew?`,
+    t`Given that, how many chews and how many sweets are left for the second draw?`,
+    t`Along the all-blackcurrant branch, which three fractions multiply?`,
+  ],
   answer: { kind: 'expression', expected: 'b/(a+b) * (b-1)/(a+b-1) * (b-2)/(a+b-2)', variables: ['a', 'b'], domains: { a: { kind: 'integer', min: 1, max: 30 }, b: { kind: 'integer', min: 3, max: 30 } } },
   solution: [
     t`Each sweet eaten leaves one blackcurrant chew fewer and one sweet fewer. Multiply along the branch:`,
     t`${math`\frac{b}{a + b} \times \frac{b - ${1}}{a + b - ${1}} \times \frac{b - ${2}}{a + b - ${2}}`}.`,
+    t`Without replacement, update both counts at every branch.`,
   ],
   reference: 'b(b - 1)(b - 2)/((a + b)(a + b - 1)(a + b - 2))',
   verify: () => {
@@ -302,10 +309,17 @@ const a12iva = auto({
   source: cite('step-f12', 'Q2(iv)(a)'),
   title: t`At least one child has goggles`,
   prompt: t`Three children have a swimming lesson. Each child, independently of the other two, has probability ${GOGGLES} of remembering to bring goggles. By considering the different possibilities, find the probability that at least one child has goggles.`,
+  nudge: t`Not quite. At least one is the complement of a single branch.`,
+  hints: [
+    t`Which branch of the tree has no child with goggles?`,
+    t`What is the probability of that branch?`,
+    t`How does the complement give the probability of at least one?`,
+  ],
   answer: { kind: 'exact', expected: str(sub(q(1), pow(sub(q(1), GOGGLES), 3))) },
   solution: [
     t`The tree has ${8} branches. The easiest approach is to find the probability that all three have forgotten, the one branch with no goggles, and subtract it from ${1}.`,
     t`${math`${1} - \left(${sub(q(1), GOGGLES)}\right)^{${3}} = ${1} - ${pow(sub(q(1), GOGGLES), 3)} = ${sub(q(1), pow(sub(q(1), GOGGLES), 3))}`}.`,
+    t`For at least one, subtract the probability of none from one.`,
   ],
   reference: str(sub(q(1), pow(sub(q(1), GOGGLES), 3))),
   verify: () => same('at least one, by the eight branches', atLeastOne.at({ n: 1, d: 4, k: 3 }).reference as string, str(sub(q(1), pow(sub(q(1), GOGGLES), 3)))),
@@ -319,11 +333,18 @@ const a12ivc = auto({
   source: cite('step-f12', 'Q2(iv)(c)'),
   title: t`Only the middle child forgets`,
   prompt: t`The same three children, each remembering goggles with probability ${GOGGLES}, independently. What is the probability that the middle child has not got goggles, but the other two have?`,
+  nudge: t`Not quite. The question names one particular child; only one branch counts.`,
+  hints: [
+    t`Which branch of the tree matches the event exactly?`,
+    t`What are the probabilities on each step of that branch?`,
+    t`What is their product?`,
+  ],
   answer: { kind: 'exact', expected: str(middle) },
   solution: [
     t`This is one branch of the tree: first child has goggles, middle child forgets, last child has goggles.`,
     t`Multiply along it: ${math`${GOGGLES} \times ${sub(q(1), GOGGLES)} \times ${GOGGLES} = ${middle}`}.`,
     t`The hints point out the order is not what matters: it is that one particular child forgets. If any one of the three could be the one, there would be three such branches, and the answer would be multiplied by ${3}.`,
+    t`A named outcome is one branch: multiply along it.`,
   ],
   reference: str(middle),
   verify: () => {
@@ -346,6 +367,11 @@ const a12methods = supervision({
   source: cite('step-f12', 'Q2(ii)', true),
   title: t`One after the other, or both at once`,
   prompt: t`A bag holds ${MINTS} mint imperials and ${LEMONS} lemon sherbets, and I eat two. Work out the probability that they are the same flavour in two ways: by a tree diagram, taking them one after the other, and by counting pairs, taking both at once. Explain why the two methods must agree.`,
+  hints: [
+    t`On the tree, what are the probabilities of two mints and of two lemons, one after the other?`,
+    t`Counting unordered pairs, how many pairs are there in all, and how many of each flavour?`,
+    t`Why does the order of taking the sweets not change which pairs are equally likely?`,
+  ],
   writeUp: 'explanation',
   official: cite('step-f12-hints', 'Q2(ii)'),
 });
@@ -354,7 +380,12 @@ const smokers = supervision({
   id: 'a6-q4-i-tree',
   source: cite('step-f06', 'Q4(i)', true),
   title: t`A tree for the smokers`,
-  prompt: t`A study of a large population found that ${40}% were men and ${60}% were women. Of the men ${50}% were smokers, and of the women ${30}%. Draw the tree diagram, with the first branches for man or woman and the second for smoker or not, and label every branch. Use it to find the probability that a person picked at random is a smoker, and explain which branches you added and why.`,
+  prompt: t`A study of a large population found that ${40}% were men and ${60}% were women. Of the men ${50}% were smokers, and of the women ${30}%. Draw the tree diagram, with the first branches for man or woman and the second for smoker or not, and label every branch. Use it to find the probability that a person picked at random is a smoker, and explain which branches are added and why.`,
+  hints: [
+    t`What probabilities go on the first two branches, and on the second level after each?`,
+    t`Which branches end in a smoker?`,
+    t`Why are the probabilities along a branch multiplied, and those of different branches added?`,
+  ],
   writeUp: 'explanation',
   official: cite('step-f06-hints', 'Q4(i)'),
 });
@@ -439,10 +470,10 @@ export const treeDiagrams: TopicContent = {
     'a12-q2-iii-b': { sections: ['When the second draw remembers the first', 'Multiplying along a path'], note: t`Multiplying along a path without replacement` },
     'a12-q2-iv-a': { sections: ['Independent stages and "at least one"'], note: t`"At least one" by the complement` },
   }),
-  // Best first: the two-method write-up, the labelled smokers tree, the three draws in
-  // letters, then at least one child with goggles. The middle child alone (one product) is too
-  // slight to gate.
-  gate: ['a12-q2-ii-methods', 'a6-q4-i-tree', 'a12-q2-iii-b', 'a12-q2-iv-a'],
+  // Best first: the labelled smokers tree, the three draws in letters, then at least one child
+  // with goggles. The middle child alone (one product) is too slight to gate. The two-method
+  // write-up stays practice: the worked example a12-q2-ii works both of its methods.
+  gate: ['a6-q4-i-tree', 'a12-q2-iii-b', 'a12-q2-iv-a'],
   recall: [
     { front: t`How do you find the probability of one path through a tree?`, back: t`Multiply the probabilities on its branches, each given what came before.` },
     { front: t`How do you combine several paths?`, back: t`Add them: different paths cannot both happen.` },

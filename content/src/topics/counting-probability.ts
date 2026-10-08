@@ -210,10 +210,17 @@ const q3ii = auto({
   title: t`Two people with ${2} pound coins`,
   prompt: t`${raffleIntro} In the case ${math`n = ${2}`} and ${math`m \ge ${2}`}, find the probability that I can sell one ticket to each person, by considering the first three people in the queue. Give it in terms of ${mm}.`,
   answer: { kind: 'expression', expected: '(m - 1)/(m + 1)', variables: ['m'], domains: M_DOMAIN(2) },
+  hints: [
+    t`Which coin must the first person have?`,
+    t`After a ${1} pound coin first, which second persons are fine, and what must the third have if the second has a ${2} pound coin?`,
+    t`What is the probability of each successful start, multiplying conditional probabilities?`,
+  ],
+  nudge: t`Not quite. List every successful start of the queue; a ${2} pound coin second can still work.`,
   solution: [
     t`The queues that work start ${math`${1}, ${1}`} (then I always have two ${1} pound coins for change) or ${math`${1}, ${2}, ${1}`}.`,
     t`${math`P(${1}, ${1}) = \frac{m}{m + ${2}} \times \frac{m - ${1}}{m + ${1}}`} and ${math`P(${1}, ${2}, ${1}) = \frac{m}{m + ${2}} \times \frac{${2}}{m + ${1}} \times \frac{m - ${1}}{m}`}.`,
     t`Adding: ${math`\frac{m(m - ${1}) + ${2}(m - ${1})}{(m + ${2})(m + ${1})} = \frac{(m - ${1})(m + ${2})}{(m + ${2})(m + ${1})} = \frac{m - ${1}}{m + ${1}}`}.`,
+    t`List the successful starts, multiply along each, then add.`,
   ],
   reference: '(m - 1)/(m + 1)',
   verify: () => {
@@ -234,9 +241,16 @@ const q3iii = auto({
   title: t`Three people with ${2} pound coins`,
   prompt: t`${raffleIntro} In the case ${math`n = ${3}`} and ${math`m \ge ${3}`}, find the probability that I can sell one ticket to each person. Give it in terms of ${mm}.`,
   answer: { kind: 'expression', expected: '(m - 2)/(m + 1)', variables: ['m'], domains: M_DOMAIN(3) },
+  hints: [
+    t`Which starts of the queue guarantee enough ${1} pound coins for everyone after them?`,
+    t`Listing those starts by where the ${2} pound coins fall, how many are there?`,
+    t`Multiplying conditional probabilities along each start and adding, which common factor can be cancelled first?`,
+  ],
+  nudge: t`Not quite. Check the list of successful starts; ordering them by where each ${2} pound coin falls makes it complete.`,
   solution: [
     t`List the starts that work, in a logical order, as the hints do: ${math`${1}, ${1}, ${1}`}; ${math`${1}, ${1}, ${2}, ${1}`}; ${math`${1}, ${1}, ${2}, ${2}, ${1}`}; ${math`${1}, ${2}, ${1}, ${1}`}; ${math`${1}, ${2}, ${1}, ${2}, ${1}`}. After each, I have enough ${1} pound coins for the rest.`,
-    t`Multiplying along each and adding (cancel before adding) gives ${math`\frac{m - ${2}}{m + ${1}}`}, the pattern the Discussion conjectures in general: ${math`\frac{m + ${1} - n}{m + ${1}}`}.`,
+    t`Multiplying along each and adding (cancel before adding) gives ${math`\frac{m - ${2}}{m + ${1}}`}.`,
+    t`Order the cases logically so that none is missed.`,
   ],
   reference: '(m - 2)/(m + 1)',
   verify: () => {
@@ -264,9 +278,16 @@ const twoMints = auto({
   title: t`Two mints, by counting pairs`,
   prompt: t`A bag of sweets contains ${MINTS} mint imperials and ${LEMONS} lemon sherbets. I take two sweets at once without looking. By counting pairs, find the probability that both are mints.`,
   answer: { kind: 'exact', expected: str(q(choose(MINTS, 2), choose(MINTS + LEMONS, 2))) },
+  hints: [
+    t`How many equally likely pairs of sweets are there?`,
+    t`How many of those pairs are both mints?`,
+    t`What is the ratio of the two counts?`,
+  ],
+  nudge: t`Not quite. Both sweets are taken, so count pairs of different sweets.`,
   solution: [
     t`All outcomes: ${math`${binom(MINTS + LEMONS, 2)} = ${choose(MINTS + LEMONS, 2)}`} equally likely pairs. Favourable: ${math`${binom(MINTS, 2)} = ${choose(MINTS, 2)}`} pairs of mints.`,
     t`Probability ${math`\frac{${choose(MINTS, 2)}}{${choose(MINTS + LEMONS, 2)}} = ${q(choose(MINTS, 2), choose(MINTS + LEMONS, 2))}`}: the hints' Method ${2}. One after the other gives the same, ${math`\frac{${MINTS}}{${MINTS + LEMONS}} \times \frac{${MINTS - 1}}{${MINTS + LEMONS - 1}}`}.`,
+    t`Count pairs: favourable over total.`,
   ],
   reference: str(q(choose(MINTS, 2), choose(MINTS + LEMONS, 2))),
   verify: () => same('pairs against one after the other', str(q(choose(MINTS, 2), choose(MINTS + LEMONS, 2))), str(q(MINTS * (MINTS - 1), (MINTS + LEMONS) * (MINTS + LEMONS - 1)))),
@@ -278,6 +299,11 @@ const q3iiShow = supervision({
   source: cite(A12, 'Q3(ii)'),
   title: t`Justify the case ${math`n = ${2}`}`,
   prompt: t`${raffleIntro} By considering the first three people in the queue, show that the probability that I can sell one ticket to each person in the case ${math`n = ${2}`} and ${math`m \ge ${2}`} is ${math`\frac{m - ${1}}{m + ${1}}`}. The answer is given, so justify every case, set out in a logical order.`,
+  hints: [
+    t`Why must the first person have a ${1} pound coin?`,
+    t`Which starts of three people let every ${2} pound coin get change?`,
+    t`What is the probability of each start, and does their sum simplify to the given answer?`,
+  ],
   writeUp: 'proof',
   official: cite(H12, 'Q3(ii)'),
 });
@@ -285,7 +311,12 @@ const q3general = supervision({
   id: 'a12-q3-discussion',
   source: cite(A12, 'Q3, Discussion'),
   title: t`The general conjecture`,
-  prompt: t`From the cases ${math`n = ${1}, ${2}, ${3}`}, the Discussion conjectures that the probability of selling to everyone, when ${math`m \ge n`}, is ${math`\frac{m + ${1} - n}{m + ${1}}`}. Test it on a case you can list completely, such as ${math`m = n = ${2}`}, by writing out every equally likely queue. Then explain why the case ${math`m < n`} gives ${0}.`,
+  prompt: t`From the cases ${math`n = ${1}, ${2}, ${3}`}, the Discussion conjectures that the probability of selling to everyone, when ${math`m \ge n`}, is ${math`\frac{m + ${1} - n}{m + ${1}}`}. Test it on a case that can be listed completely, such as ${math`m = n = ${2}`}, by writing out every equally likely queue. Then explain why the case ${math`m < n`} gives ${0}.`,
+  hints: [
+    t`With ${math`m = n = ${2}`}, how many equally likely queues are there?`,
+    t`In which of them can every ${2} pound coin get change?`,
+    t`If ${math`m < n`}, how many ${1} pound coins can there be for change, compared with the ${2} pound coins needing it?`,
+  ],
   writeUp: 'explanation',
 });
 

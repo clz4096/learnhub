@@ -190,6 +190,11 @@ const ia4e = supervision({
   source: cite('ia-prob-sheet-1', 'Q4(e)'),
   title: t`The addition rule from the axioms`,
   prompt: t`Let ${math`(\Omega, \mathcal{F}, \mathbb{P})`} be a probability space and ${math`A_{${1}}, A_{${2}}`} events. Starting from the definitions (in particular, that ${math`\mathbb{P}`} adds over disjoint events), show that ${math`\mathbb{P}(A_{${1}} \cup A_{${2}}) = \mathbb{P}(A_{${1}}) + \mathbb{P}(A_{${2}}) - \mathbb{P}(A_{${1}} \cap A_{${2}})`}.`,
+  hints: [
+    t`Into which pairwise disjoint pieces does ${math`A_{${1}} \cup A_{${2}}`} split?`,
+    t`How can ${math`A_{${1}}`} and ${math`A_{${2}}`} each be written as a disjoint union with ${math`A_{${1}} \cap A_{${2}}`} as one part?`,
+    t`After applying additivity to all three decompositions, which probability has been counted twice?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -198,6 +203,11 @@ const ia5a = supervision({
   source: cite('ia-prob-sheet-1', 'Q5(a)'),
   title: t`Not ${mA}, but ${mB} or ${math`C`}`,
   prompt: t`Show that, for any three events ${mA}, ${mB}, ${math`C`}, ${math`\mathbb{P}(A^{c} \cap (B \cup C)) = \mathbb{P}(B) + \mathbb{P}(C) - \mathbb{P}(B \cap C) - \mathbb{P}(C \cap A) - \mathbb{P}(A \cap B) + \mathbb{P}(A \cap B \cap C)`}.`,
+  hints: [
+    t`Of which event is ${math`A^{c} \cap (B \cup C)`} the part outside ${mA}?`,
+    t`How does ${math`A \cap (B \cup C)`} distribute, and what is the probability of a union of two events?`,
+    t`What is the intersection of ${math`A \cap B`} and ${math`A \cap C`}, and where does the triple term come from?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -207,9 +217,17 @@ const a6or = auto({
   title: t`A woman or a smoker`,
   prompt: t`In the population of STEP Support Assignment ${6}, ${40}% are men and ${60}% women; ${50}% of the men and ${30}% of the women smoke. Find the probability that a person picked at random is a woman or a smoker.`,
   answer: { kind: 'exact', expected: str(q(80, 100)) },
+  hints: [
+    t`What is ${math`P(W)`}, and what is ${math`P(S)`} once it is split over men and women?`,
+    t`What is ${math`P(W \cap S)`}, the chance of a woman who smokes?`,
+    t`Which term does the addition rule take away from ${math`P(W) + P(S)`}, and why?`,
+  ],
+  nudge: t`Not quite. Check whether any group of people is counted twice; the complement gives a quick check.`,
   solution: [
-    t`${math`P(W) = ${q(60, 100)}`}. ${math`P(S) = ${q(40, 100)} \times ${q(50, 100)} + ${q(60, 100)} \times ${q(30, 100)} = ${q(38, 100)}`}. ${math`P(W \cap S) = ${q(60, 100)} \times ${q(30, 100)} = ${q(18, 100)}`}.`,
-    t`${math`P(W \cup S) = ${q(60, 100)} + ${q(38, 100)} - ${q(18, 100)} = ${q(80, 100)}`}. Check: the only people left out are the male non-smokers, ${math`${q(40, 100)} \times ${q(50, 100)} = ${q(20, 100)}`}.`,
+    t`${math`P(W) = ${q(60, 100)}`}, ${math`P(S) = ${q(40, 100)} \times ${q(50, 100)} + ${q(60, 100)} \times ${q(30, 100)} = ${q(38, 100)}`}, ${math`P(W \cap S) = ${q(60, 100)} \times ${q(30, 100)} = ${q(18, 100)}`}.`,
+    t`${math`P(W \cup S) = ${q(60, 100)} + ${q(38, 100)} - ${q(18, 100)} = ${q(80, 100)}`}.`,
+    t`Check: only the male non-smokers are left out, ${math`${q(40, 100)} \times ${q(50, 100)} = ${q(20, 100)}`}.`,
+    t`Add the two chances, then take off the overlap once.`,
   ],
   reference: '4/5',
   verify: () => same('per 100 people', 60 + 38 - 18, 100 - 20),
@@ -231,11 +249,18 @@ const step94Either = auto({
   title: t`At least one single-sex college`,
   prompt: t`There are ${N_COLLEGES} colleges in Cambridge, of which two (New Hall and Newnham) are for women only. Celia has picked ${N_PICKS} different colleges at random, in order of preference, to enter on her application form. What is the probability that Celia has picked at least one single-sex college? Give a fraction in lowest terms.`,
   answer: { kind: 'exact', expected: str(P_EITHER) },
+  hints: [
+    t`With ${mA} the event that Newnham is picked and ${mB} that New Hall is picked, which probability is wanted, and can ${mA} and ${mB} happen together?`,
+    t`Each college is equally likely to be on the form, so what is ${math`P(A)`}?`,
+    t`Counting ordered picks, how many forms contain both single-sex colleges, out of how many?`,
+  ],
+  nudge: t`Not quite. The complement, no single-sex college at all, is a one-line count and checks the answer.`,
   solution: [
-    t`Let ${mA} be "she has picked Newnham" and ${mB} "she has picked New Hall". The question asks for ${math`P(A \cup B)`}, and the two events can happen together, so use the addition rule: ${math`P(A \cup B) = P(A) + P(B) - P(A \cap B)`}.`,
-    t`No college is special, so each appears on the same share of her possible forms, and the shares add to ${N_PICKS}, the number of colleges on a form: ${math`P(A) = P(B) = ${P_ONE}`}.`,
-    t`For ${math`A \cap B`}, count ordered picks. There are ${math`${N_COLLEGES} \times ${N_COLLEGES - 1} \times ${N_COLLEGES - 2}`} equally likely ones. Those with both colleges: a place for Newnham (${N_PICKS} ways), a place for New Hall (${N_PICKS - 1} ways), and any of the other ${N_COLLEGES - 2} colleges in the last place. So ${math`P(A \cap B) = \frac{${N_PICKS} \times ${N_PICKS - 1} \times ${N_COLLEGES - 2}}{${N_COLLEGES} \times ${N_COLLEGES - 1} \times ${N_COLLEGES - 2}} = ${P_BOTH}`}.`,
-    t`So ${math`P(A \cup B) = ${P_ONE} + ${P_ONE} - ${P_BOTH} = ${P_EITHER}`}. Check by the complement: she picks no single-sex college with probability ${math`\frac{${N_COLLEGES - 2} \times ${N_COLLEGES - 3} \times ${N_COLLEGES - 4}}{${N_COLLEGES} \times ${N_COLLEGES - 1} \times ${N_COLLEGES - 2}} = ${sub(q(1), P_EITHER)}`}, and ${math`${1} - ${sub(q(1), P_EITHER)} = ${P_EITHER}`}.`,
+    t`${mA}: Newnham is picked; ${mB}: New Hall is picked. ${math`P(A \cup B) = P(A) + P(B) - P(A \cap B)`}.`,
+    t`By symmetry each college is on the form with probability ${math`${P_ONE}`}, so ${math`P(A) = P(B) = ${P_ONE}`}.`,
+    t`Ordered picks: ${math`P(A \cap B) = \frac{${N_PICKS} \times ${N_PICKS - 1} \times ${N_COLLEGES - 2}}{${N_COLLEGES} \times ${N_COLLEGES - 1} \times ${N_COLLEGES - 2}} = ${P_BOTH}`}.`,
+    t`${math`P(A \cup B) = ${P_ONE} + ${P_ONE} - ${P_BOTH} = ${P_EITHER}`}. Check: no single-sex college has probability ${math`\frac{${N_COLLEGES - 2} \times ${N_COLLEGES - 3} \times ${N_COLLEGES - 4}}{${N_COLLEGES} \times ${N_COLLEGES - 1} \times ${N_COLLEGES - 2}} = ${sub(q(1), P_EITHER)}`}.`,
+    t`Events that can happen together: add, then subtract the overlap.`,
   ],
   reference: str(P_EITHER),
   verify: () => {

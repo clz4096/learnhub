@@ -191,19 +191,26 @@ const tmuaN = auto({
   solution: [
     t`(i) to (iv) say "for each number, there is a bigger one" or "a smaller one": true, with the witness ${math`x - ${1}`} or ${math`x + ${1}`} chosen after the first variable.`,
     t`(v) to (viii) say one number is bigger, or smaller, than every real at once: false, since that number would have to beat itself plus or minus one, and itself (${math`x > x`} fails).`,
+    t`${math`\forall\exists`} lets the witness depend on the first variable; ${math`\exists\forall`} asks for one value that works for all.`,
   ],
   reference: N_ITEMS.map((s) => TF(s.value)),
   verify: () => same('TMUA N, by witnesses on a grid', checkN(), true),
   misconceptions: [{ response: N_ITEMS.map(() => 'T'), why: t`With ${math`\exists`} first, one number must work for every value of the other at once: no real is bigger than every real.` }],
+  nudge: t`Not quite. The order of the quantifiers decides each line: "for all, there exists" lets the witness depend on the first variable.`,
+  hints: [
+    t`In ${math`\forall x\ \exists y.\ x > y`}, may ${my} be chosen after ${mx} is known?`,
+    t`In ${math`\exists x\ \forall y.\ x > y`}, one ${mx} must beat every ${my} at once: what happens when ${math`y = x`}?`,
+    t`Which lines have ${math`\forall`} first and which have ${math`\exists`} first, and does the letter naming the larger number change the verdict?`,
+  ],
 });
 
-function bop27(o: { n: number; statement: Span; value: boolean; steps: Rich[]; check: () => boolean; official: boolean }): AutoProblem {
+function bop27(o: { n: number; statement: Span; value: boolean; steps: Rich[]; check: () => boolean; official: boolean; hints?: readonly Rich[]; nudge?: Rich }): AutoProblem {
   const at = `Section 2.7, exercise ${o.n}`;
   const spec: Parameters<typeof auto>[0] = {
     id: `bop-2-7-${o.n}`,
     source: cite('bop', at),
     title: t`True or false`,
-    prompt: t`Write ${o.statement} as an English sentence in your head, and say whether it is true or false.`,
+    prompt: t`Read ${o.statement} as an English sentence, and say whether it is true or false.`,
     answer: { kind: 'choice', options: [{ id: 'true', label: t`True` }, { id: 'false', label: t`False` }], correct: o.value ? 'true' : 'false' },
     solution: o.steps,
     reference: o.value ? 'true' : 'false',
@@ -211,6 +218,8 @@ function bop27(o: { n: number; statement: Span; value: boolean; steps: Rich[]; c
     misconceptions: [{ response: o.value ? 'false' : 'true', why: o.value ? t`Find the witness for the "there exists", given the earlier variable.` : t`With ${math`\exists`} first, one value must work for every value of the next variable.` }],
   };
   if (o.official) spec.official = { source: cite('bop', `Solutions, ${at}`), answer: o.value ? 'true' : 'false', agrees: true };
+  if (o.hints !== undefined) spec.hints = o.hints;
+  if (o.nudge !== undefined) spec.nudge = o.nudge;
   return auto(spec);
 }
 
@@ -224,17 +233,29 @@ const bop27_3 = bop27({
 const bop27_9 = bop27({
   n: 9, value: true, official: true,
   statement: math`\forall n \in \mathbb{Z},\ \exists m \in \mathbb{Z},\ m = n + ${5}`,
-  steps: [t`"For every integer ${math`n`} there is an integer ${math`m`} with ${math`m = n + ${5}`}." True: given ${math`n`}, take ${math`m = n + ${5}`}.`],
+  steps: [t`"For every integer ${math`n`} there is an integer ${math`m`} with ${math`m = n + ${5}`}." True: given ${math`n`}, take ${math`m = n + ${5}`}.`, t`With ${math`\forall`} then ${math`\exists`}, the witness may depend on the first variable.`],
   check: () => ints.every((n) => ints.concat(ints.map((x) => x + 40)).some((m) => m === n + 5)),
+  nudge: t`Not quite. Read the quantifiers in order: the second variable may be chosen after the first is known.`,
+  hints: [
+    t`Which variable is chosen first, and which may depend on it?`,
+    t`Given an integer ${math`n`}, which ${math`m`} would make ${math`m = n + ${5}`}?`,
+    t`Is that ${math`m`} an integer for every ${math`n`}?`,
+  ],
 });
 const bop27_10 = bop27({
   n: 10, value: false, official: false,
   statement: math`\exists m \in \mathbb{Z},\ \forall n \in \mathbb{Z},\ m = n + ${5}`,
-  steps: [t`"There is an integer ${math`m`} with ${math`m = n + ${5}`} for every integer ${math`n`}." False: ${math`m`} would equal ${5} (at ${math`n = ${0}`}) and ${6} (at ${math`n = ${1}`}) at once.`],
+  steps: [t`"There is an integer ${math`m`} with ${math`m = n + ${5}`} for every integer ${math`n`}." False: ${math`m`} would equal ${5} (at ${math`n = ${0}`}) and ${6} (at ${math`n = ${1}`}) at once.`, t`With ${math`\exists`} then ${math`\forall`}, one value must work for everything: test two cases.`],
   check: () => ints.some((m) => ints.every((n) => m === n + 5)),
+  nudge: t`Not quite. With ${math`\exists`} first, one ${math`m`} must work for every ${math`n`} at once.`,
+  hints: [
+    t`Which variable is chosen first here, and must it work for every value of the other?`,
+    t`If ${math`m = n + ${5}`} at ${math`n = ${0}`}, what is ${math`m`}?`,
+    t`Does that same ${math`m`} work at ${math`n = ${1}`}?`,
+  ],
 });
 
-function bop29(o: { n: number; english: Rich; forms: [Span, Span, Span]; steps: Rich[] }): AutoProblem {
+function bop29(o: { n: number; english: Rich; forms: [Span, Span, Span]; steps: Rich[]; hints?: readonly Rich[]; nudge?: Rich }): AutoProblem {
   const at = `Section 2.9, exercise ${o.n}`;
   return auto({
     id: `bop-2-9-${o.n}`,
@@ -247,13 +268,21 @@ function bop29(o: { n: number; english: Rich; forms: [Span, Span, Span]; steps: 
     verify: () => null,
     misconceptions: [{ response: 'swapped', why: t`The order of the quantifiers changes the meaning.` }],
     official: { source: cite('bop', `Solutions, ${at}`), answer: 'right', agrees: true },
+    ...(o.hints === undefined ? {} : { hints: o.hints }),
+    ...(o.nudge === undefined ? {} : { nudge: o.nudge }),
   });
 }
 const bop29_7 = bop29({
   n: 7,
   english: t`There exists a real number ${math`a`} for which ${math`a + x = x`} for every real number ${mx}.`,
   forms: [math`\exists a \in \mathbb{R},\ \forall x \in \mathbb{R},\ a + x = x`, math`\forall x \in \mathbb{R},\ \exists a \in \mathbb{R},\ a + x = x`, math`\exists a \in \mathbb{R},\ \exists x \in \mathbb{R},\ a + x = x`],
-  steps: [t`One ${math`a`} is chosen first and must work for every ${mx}: ${math`\exists a \in \mathbb{R},\ \forall x \in \mathbb{R},\ a + x = x`}, as in the solutions. (It is true, with ${math`a = ${0}`}.)`],
+  steps: [t`One ${math`a`} is chosen first and must work for every ${mx}: ${math`\exists a \in \mathbb{R},\ \forall x \in \mathbb{R},\ a + x = x`}, as in the solutions. (It is true, with ${math`a = ${0}`}.)`, t`The order in which the sentence chooses its variables fixes the order of the quantifiers.`],
+  nudge: t`Not quite. Decide which variable the sentence chooses first; the one that must work "for every" value of the other comes first.`,
+  hints: [
+    t`In the sentence, is ${math`a`} chosen before ${mx} or after?`,
+    t`Must the same ${math`a`} work for every ${mx}, or may ${math`a`} depend on ${mx}?`,
+    t`Which order of ${math`\exists a`} and ${math`\forall x`} expresses that?`,
+  ],
 });
 const bop29_5 = bop29({
   n: 5,
@@ -263,7 +292,13 @@ const bop29_5 = bop29({
     math`\exists \delta \in \mathbb{R}, \delta > ${0},\ \forall \varepsilon \in \mathbb{R}, \varepsilon > ${0},\ (|x - a| < \delta) \Rightarrow (|f(x) - f(a)| < \varepsilon)`,
     math`\forall \varepsilon \in \mathbb{R}, \varepsilon > ${0},\ \exists \delta \in \mathbb{R}, \delta > ${0},\ (|f(x) - f(a)| < \varepsilon) \Rightarrow (|x - a| < \delta)`,
   ],
-  steps: [t`${math`\varepsilon`} is given first, then ${math`\delta`} is found, and may depend on ${math`\varepsilon`}: ${math`\forall \varepsilon\, \exists \delta`}. The implication goes from closeness of ${mx} to ${math`a`} to closeness of ${math`f(x)`} to ${math`f(a)`}. This is the definition of continuity at ${math`a`}.`],
+  steps: [t`${math`\varepsilon`} is given first, then ${math`\delta`} is found, and may depend on ${math`\varepsilon`}: ${math`\forall \varepsilon\, \exists \delta`}. The implication goes from closeness of ${mx} to ${math`a`} to closeness of ${math`f(x)`} to ${math`f(a)`}. This is the definition of continuity at ${math`a`}.`, t`Read off who chooses first, then which statement implies which.`],
+  nudge: t`Not quite. Two things to check: which quantifier comes first, and which way the implication runs.`,
+  hints: [
+    t`Which is given first, ${math`\varepsilon`} or ${math`\delta`}?`,
+    t`May ${math`\delta`} depend on ${math`\varepsilon`}?`,
+    t`In "A implies B", which of ${math`|x - a| < \delta`} and ${math`|f(x) - f(a)| < \varepsilon`} is A?`,
+  ],
 });
 
 const s1s2 = supervision({
@@ -272,14 +307,24 @@ const s1s2 = supervision({
   title: t`${S1} and ${S2}`,
   prompt: t`Explain why ${S1}: "for all positive real ${mx} there exists a real ${my} such that ${math`y^{${2}} = x`}" is true, and ${S2}: "there exists a real ${my} such that for all positive real ${mx}, ${math`y^{${2}} = x`}" is false. In ${S1}, what does the choice of ${my} depend on?`,
   writeUp: 'explanation',
+  hints: [
+    t`In ${S1}, given a positive ${mx}, which real ${my} satisfies ${math`y^{${2}} = x`}?`,
+    t`In ${S2}, one ${my} is fixed before ${mx} is chosen: what would ${math`y^{${2}}`} have to equal for ${math`x = ${1}`} and for ${math`x = ${4}`}?`,
+    t`So in ${S1}, what does the choice of ${my} depend on, and why does ${S2} forbid that?`,
+  ],
 });
 const bop29_13 = supervision({
   id: 'bop-2-9-13',
   source: cite('bop', 'Section 2.9, exercise 13'),
   title: t`Funny, as long as`,
-  prompt: t`Translate into symbolic logic: "Everything is funny as long as it is happening to somebody else." (Will Rogers.) Say what each predicate you use means, and which quantifier comes first.`,
+  prompt: t`Translate into symbolic logic: "Everything is funny as long as it is happening to somebody else." (Will Rogers.) State what each predicate used means, and which quantifier comes first.`,
   writeUp: 'explanation',
   official: cite('bop', 'Solutions, Section 2.9, exercise 13'),
+  hints: [
+    t`Which two predicates are needed, one for "is funny" and one for "is happening to somebody else"?`,
+    t`Is "as long as" a condition, and which way does the implication go?`,
+    t`Over what does "everything" range, and does "somebody else" need a quantifier of its own?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
@@ -322,6 +367,7 @@ const lp12 = auto({
     t`The universal relation and equality satisfy all three, and so does "${math`x + y`} is even": ${math`x + x = ${2}x`} is even; the sum is symmetric; and if ${math`x + y`} and ${math`y + z`} are even then ${math`x + z = (x + y) + (y + z) - ${2}y`} is even.`,
     t`"${math`x + y = ${100}`}": (${1}) fails at ${math`x = ${0}`}; (${2}) holds since addition is symmetric; (${3}) fails: ${math`${0} + ${100} = ${100}`} and ${math`${100} + ${0} = ${100}`}, but ${math`${0} + ${0} \ne ${100}`}.`,
     t`${math`x \le y`}: (${1}) and (${3}) hold; (${2}) fails, since ${math`${0} \le ${1}`} but not ${math`${1} \le ${0}`}.`,
+    t`An axiom fails only with a counterexample; with no pair to test, it holds vacuously.`,
   ],
   reference: LP12.flatMap(({ answers }) => answers.map(TF)),
   verify: () => {
@@ -335,6 +381,12 @@ const lp12 = auto({
     response: LP12.flatMap(({ answers }, i) => (i === 0 ? [false, false, false] : answers).map(TF)),
     why: t`For the empty relation, (${2}) and (${3}) are implications whose hypothesis is never true, so they hold: there is no pair to break them.`,
   }],
+  nudge: t`Not quite. For the empty relation, an implication whose hypothesis never holds is true.`,
+  hints: [
+    t`For each relation, does ${math`x \approx x`} hold for every natural number ${mx}?`,
+    t`For symmetry and transitivity, can a counterexample be found among small numbers, or does the hypothesis never hold?`,
+    t`For ${math`x + y = ${100}`}, which triple ${math`x, y, z`} could break transitivity?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

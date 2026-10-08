@@ -208,15 +208,17 @@ const POLY: Readonly<Record<'f' | 'g' | 'h' | 'i', Decl>> = {
 /** As the OCaml 4.11.1 toplevel printed them. */
 const PRINTED: Readonly<Record<'f' | 'g' | 'h' | 'i', string>> = { f: 'bool -> bool', g: "'a -> bool -> 'a", h: "bool -> 'a -> 'a -> 'a", i: "bool -> 'a -> 'b -> 'a" };
 
-function polyProblem(name: 'f' | 'g' | 'h' | 'i', wrong: readonly [string, Rich][], steps: readonly Rich[]) {
+function polyProblem(name: 'f' | 'g' | 'h' | 'i', wrong: readonly [string, Rich][], steps: readonly Rich[], hints: readonly Rich[]) {
   const d = POLY[name];
   return auto({
     id: `cs3110-ex2-poly-types-${name}`,
     source: cite('cs3110-ex2', `Exercise "poly types", function ${name}`),
     title: t`The type of ${code`${name}`}`,
-    prompt: t`What is the type of the function ${code`${oc(declSource(d))}`}?`,
+    prompt: t`Choose the type of the function ${code`${oc(declSource(d))}`}.`,
     answer: { kind: 'choice', options: typeOptions([PRINTED[name], ...wrong.map(([w]) => w)]), correct: tyId(PRINTED[name]) },
-    solution: steps,
+    solution: [...steps, t`Each use of an argument constrains its type; whatever is unconstrained stays a type variable.`],
+    nudge: t`Not quite. Find which argument is the condition of the ${code`if`}, and which types the two branches force to be equal.`,
+    hints,
     reference: [tyId(PRINTED[name])],
     // Checked against the toplevel's answer by independent unification inference.
     verify: () => (typeOfDecl(d) === PRINTED[name] ? null : `${name}: inferred ${String(typeOfDecl(d))}, toplevel ${PRINTED[name]}`),
@@ -232,26 +234,47 @@ const polyH = polyProblem('h', [
   t`${code`x`} is the condition of the ${code`if`}, so ${code`t${1}`} is ${code`bool`}.`,
   t`The branches ${code`y`} and ${code`z`} must have the same type, so ${code`t${2}`} and ${code`t${3}`} are equal, and the result is that type: ${code`r`} is ${code`t${2}`}.`,
   t`Nothing more is known about ${code`t${2}`}: it stays a variable, which OCaml names ${code`'a`}. So ${code`h : bool -> 'a -> 'a -> 'a`}.`,
+], [
+  t`Which argument is the condition of the ${code`if`}, and what type must it have?`,
+  t`What are the two branches, and why must they have the same type?`,
+  t`Is any argument left with no constraint, and which type variable does it get?`,
 ]);
 const polyF = polyProblem('f', [
   ["'a -> 'a", t`${code`x`} is used as the condition, so it must be a ${code`bool`}; the result is ${code`x`}, also a ${code`bool`}.`],
   ["bool -> 'a", t`The result is ${code`x`} in both branches, and ${code`x`} is a ${code`bool`}.`],
-], [t`${code`x`} is the condition, so it is a ${code`bool`}; both branches are ${code`x`}, so the result is a ${code`bool`}: ${code`bool -> bool`}.`]);
+], [t`${code`x`} is the condition, so it is a ${code`bool`}; both branches are ${code`x`}, so the result is a ${code`bool`}: ${code`bool -> bool`}.`], [
+  t`Which argument is the condition of the ${code`if`}, and what type must it have?`,
+  t`What are the two branches, and why must they have the same type?`,
+  t`What is the result type when both branches are the condition itself?`,
+]);
 const polyG = polyProblem('g', [
   ["bool -> 'a -> 'a", t`The condition is ${code`y`}, the second argument, so the ${code`bool`} is the second argument type.`],
   ["'a -> 'b -> 'a", t`${code`y`} is the condition of the ${code`if`}, which forces it to be a ${code`bool`}.`],
-], [t`${code`y`} is the condition, so it is a ${code`bool`}. Both branches are ${code`x`}, which is otherwise unconstrained: ${code`'a`}. So ${code`g : 'a -> bool -> 'a`}.`]);
+], [t`${code`y`} is the condition, so it is a ${code`bool`}. Both branches are ${code`x`}, which is otherwise unconstrained: ${code`'a`}. So ${code`g : 'a -> bool -> 'a`}.`], [
+  t`Which argument is the condition of the ${code`if`}, and what type must it have?`,
+  t`What are the two branches, and why must they have the same type?`,
+  t`Is ${code`x`} constrained by anything, and what type variable does it get?`,
+]);
 const polyI = polyProblem('i', [
   ["bool -> 'a -> 'a -> 'a", t`${code`z`} is never used, so nothing ties its type to that of ${code`y`}: it gets its own variable ${code`'b`}.`],
   ["bool -> 'a -> 'b -> 'b", t`Both branches are ${code`y`}, so the result has the type of ${code`y`}, the second argument.`],
-], [t`${code`x`} is the condition: ${code`bool`}. Both branches are ${code`y`}: the result has the type of ${code`y`}, ${code`'a`}. ${code`z`} is never used, so it has its own variable ${code`'b`}: ${code`i : bool -> 'a -> 'b -> 'a`}.`]);
+], [t`${code`x`} is the condition: ${code`bool`}. Both branches are ${code`y`}: the result has the type of ${code`y`}, ${code`'a`}. ${code`z`} is never used, so it has its own variable ${code`'b`}: ${code`i : bool -> 'a -> 'b -> 'a`}.`], [
+  t`Which argument is the condition of the ${code`if`}, and what type must it have?`,
+  t`What are the two branches, and why must they have the same type?`,
+  t`Is ${code`z`} used anywhere, and does anything tie its type to another argument?`,
+]);
 
 const focs34 = supervision({
   id: 'focs-3-4',
   source: cite('focs-notes', 'Lecture 3, Exercise 3.4'),
   title: t`Why ${code`'a -> 'b`} makes sense`,
-  prompt: t`Consider ${code`let id x = x`}, with type ${code`'a -> 'a`}, and ${code`let rec loop x = loop x`}, with type ${code`'a -> 'b`}. Explain why these types make logical sense, preventing run time type errors, even for expressions like ${code`id [id [id ${0}]]`} or ${code`loop true / loop ${3}`}. (${code`/`} is integer division.) What does ${code`'b`} in the result type of ${code`loop`} tell you about what ${code`loop`} can return?`,
+  prompt: t`Consider ${code`let id x = x`}, with type ${code`'a -> 'a`}, and ${code`let rec loop x = loop x`}, with type ${code`'a -> 'b`}. Explain why these types make logical sense, preventing run time type errors, even for expressions like ${code`id [id [id ${0}]]`} or ${code`loop true / loop ${3}`}. (${code`/`} is integer division.) What does ${code`'b`} in the result type of ${code`loop`} say about what ${code`loop`} can return?`,
   writeUp: 'explanation',
+  hints: [
+    t`Whatever type of argument ${code`id`} receives, what type must its result have?`,
+    t`Does ${code`loop x`} ever return a value?`,
+    t`If a function never returns, why is it safe for its result to be given any type at all?`,
+  ],
 });
 
 // Computer Science Tripos Part IA 2025, Paper 1, Question 1(b): a polymorphic test of order. The
@@ -263,6 +286,11 @@ const cst25b = supervision({
   title: t`Is this list sorted?`,
   prompt: t`Write a function ${code`val check_sorted : 'a list -> bool`} that returns ${code`true`} if the input list is already sorted. (Hint: you can use the polymorphic ${code`<=`} operator here.) Explain why OCaml infers the type ${code`'a list -> bool`} for your function rather than ${code`int list -> bool`}.`,
   writeUp: 'explanation',
+  hints: [
+    t`What should ${code`check_sorted`} return on the empty list and on a one-element list?`,
+    t`For a list with at least two elements, which two elements are compared, and on what does the function recurse?`,
+    t`What type does the polymorphic ${code`<=`} have, and does anything in the function force the elements to be ints?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -161,10 +161,17 @@ const cor85 = auto({
   solution: [
     t`${math`\binom{${P85 - 1}}{${M85}} = ${C(P85 - 1, M85)}`}, and ${math`${C(P85 - 1, M85)} / ${P85 - M85} = ${C(P85 - 1, M85) / BigInt(P85 - M85)}`}.`,
     t`It is no accident that this is ${math`\binom{${P85}}{${M85}} / ${P85} = ${C(P85, M85)} / ${P85}`}: both are the two sides of ${math`p\binom{p - ${1}}{m} = (p - m)\binom{p}{m}`}, divided by ${math`p(p - m)`}.`,
+    t`An identity between binomial coefficients often turns a division into a check.`,
   ],
   reference: String(C(P85 - 1, M85) / BigInt(P85 - M85)),
   verify: () => same('the identity p C(p - 1, m) = (p - m) C(p, m)', BigInt(P85) * C(P85 - 1, M85), BigInt(P85 - M85) * C(P85, M85)),
   misconceptions: [{ response: String(C(P85 - 1, M85)), why: t`Divide ${math`\binom{${P85 - 1}}{${M85}}`} by ${math`p - m = ${P85 - M85}`}.` }],
+  nudge: t`Not quite. The identity ${math`p\binom{p - ${1}}{m} = (p - m)\binom{p}{m}`} gives the quotient as a check on a smaller division.`,
+  hints: [
+    t`What is ${math`\binom{${P85 - 1}}{${M85}}`}?`,
+    t`What is ${math`p - m`} here?`,
+    t`How does the identity ${math`p\binom{p - ${1}}{m} = (p - m)\binom{p}{m}`} show that the quotient equals ${math`\binom{p}{m} / p`}?`,
+  ],
 });
 
 const bop421 = supervision({
@@ -174,6 +181,11 @@ const bop421 = supervision({
   prompt: t`If ${mp} is prime and ${math`${0} < k < p`}, then ${math`p \mid \binom{p}{k}`}. Book of Proof's solution writes ${math`p! = \binom{p}{k}(p - k)!\,k!`} and argues with prime factorisations: ${mp} appears in the factorisation of the left side but not in those of ${math`k!`} and ${math`(p - k)!`}. Write that proof, and say which theorem justifies "appears in the factorisation of a product, so appears in that of a factor".`,
   writeUp: 'proof',
   official: cite('bop', 'Solutions, Chapter 4, exercise 21'),
+  hints: [
+    t`Why does ${mp} divide ${math`p!`}?`,
+    t`Why does ${mp} divide neither ${math`k!`} nor ${math`(p - k)!`} when ${math`${0} < k < p`}?`,
+    t`If ${mp} did not divide ${math`\binom{p}{k}`}, what would follow about ${mp} and the product ${math`\binom{p}{k}(p - k)!\,k!`}?`,
+  ],
 });
 const lemma27 = supervision({
   id: 'notes-116-lemmas-27-29',
@@ -181,6 +193,11 @@ const lemma27 = supervision({
   title: t`The ends of the row and the proof by cases`,
   prompt: t`Prove Lemma ${27} (for positive ${mp} and natural ${math`m`}, if ${math`m = ${0}`} or ${math`m = p`} then ${math`\binom{p}{m} \equiv ${1} \pmod{p}`}) using the strategy for a disjunctive assumption, and then Proposition ${29} by the three cases ${math`m = ${0}`}, ${math`${0} < m < p`}, ${math`m = p`}. Why does Lemma ${27} not need ${mp} prime?`,
   writeUp: 'proof',
+  hints: [
+    t`For the assumption "${math`m = ${0}`} or ${math`m = p`}", which two cases must each be proved?`,
+    t`What are ${math`\binom{p}{${0}}`} and ${math`\binom{p}{p}`}?`,
+    t`In the case ${math`${0} < m < p`}, which earlier result uses that ${mp} is prime, and does either end case use it?`,
+  ],
 });
 
 // 2016 STEP III Q5: primes dividing a middle binomial coefficient, and a bound on their product.
@@ -192,6 +209,11 @@ const step16Primes = supervision({
   prompt: t`(i) By considering the binomial expansion of ${math`(${1} + x)^{${2}m + ${1}}`}, prove that ${math`\binom{${2}m + ${1}}{m} < ${2}^{${2}m}`} for any positive integer ${mm}. (ii) For any positive integers ${mr} and ${ms} with ${math`r < s`}, ${math`P_{r,s}`} is defined as follows: ${math`P_{r,s}`} is the product of all the prime numbers greater than ${mr} and less than or equal to ${ms}, if there are any such prime numbers; if there are none, then ${math`P_{r,s} = ${1}`}. For example, ${math`P_{${3},${7}} = ${35}`}, ${math`P_{${7},${10}} = ${1}`}, and ${math`P_{${14},${18}} = ${17}`}. Show that, for any positive integer ${mm}, ${math`P_{m + ${1}, ${2}m + ${1}}`} divides ${math`\binom{${2}m + ${1}}{m}`}, and deduce that ${math`P_{m + ${1}, ${2}m + ${1}} < ${2}^{${2}m}`}. (iii) Show that, if ${math`P_{${1},k} < ${4}^{k}`} for ${math`k = ${2}, ${3}, \ldots, ${2}m`}, then ${math`P_{${1},${2}m + ${1}} < ${4}^{${2}m + ${1}}`}. (iv) Prove that ${math`P_{${1},n} < ${4}^{n}`} for ${math`n \ge ${2}`}.`,
   writeUp: 'proof',
   official: cite('stepdb-16-sol', 'STEP III, Question 5 (pages 24 and 25)'),
+  hints: [
+    t`For (i), which two terms of the expansion of ${math`(${1} + x)^{${2}m + ${1}}`} at ${math`x = ${1}`} equal ${math`\binom{${2}m + ${1}}{m}`}, and what is the total?`,
+    t`For (ii), why does each prime ${mp} with ${math`m + ${1} < p \le ${2}m + ${1}`} divide ${math`(${2}m + ${1})!`} but not ${math`m!\,(m + ${1})!`}?`,
+    t`For (iii) and (iv), how does ${math`P_{${1},${2}m + ${1}} = P_{${1},m + ${1}}P_{m + ${1},${2}m + ${1}}`} combine with the bounds, and why is the case of even ${math`n`} immediate?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

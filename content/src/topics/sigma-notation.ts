@@ -243,15 +243,20 @@ const sw432c = auto({
   official: { source: cite('cst-dm-sols-2324-4', '4.3.2(c)'), answer: 'n^3/3 + n^2/2 + n/6', agrees: true },
 });
 
-function bopSum(o: { n: number; title: Rich; body: Span; expected: string; f: (i: number) => Rational; steps: Rich[]; hasSolution: boolean; hint?: Rich; wrong: Misconception[] }) {
+/** A problem's nudge, three hints, and the one-line lesson that ends its solution (mastery/APP-LANGUAGE.md). */
+interface Help { nudge: Rich; hints: readonly Rich[]; lesson: Rich }
+
+function bopSum(o: { n: number; title: Rich; body: Span; expected: string; f: (i: number) => Rational; steps: Rich[]; hasSolution: boolean; hint?: Rich; wrong: Misconception[]; help: Help }) {
   const at = `Chapter 10, exercise ${o.n}`;
   return auto({
     id: `bop-10-${o.n}`,
     source: cite('bop', at, true),
     title: o.title,
     prompt: t`Find ${sigma(1, mn, o.body)} as a formula in ${mn}${o.hint === undefined ? t`` : t`, ${o.hint}`}. (Book of Proof proves the formula by induction; here, find it by manipulating the sum.)`,
+    nudge: o.help.nudge,
+    hints: o.help.hints,
     answer: { kind: 'expression', expected: o.expected, variables: ['n'], domains: NDOM },
-    solution: o.steps,
+    solution: [...o.steps, o.help.lesson],
     reference: o.expected,
     verify: () => checkClosed((n) => evalClosed(o.expected, n), o.f, 1, `Book of Proof ${at}`),
     misconceptions: o.wrong,
@@ -277,6 +282,15 @@ const KNOWN = t`using the sums of ${mi} and of ${math`i^{${2}}`}`;
 
 const bop10_1 = bopSum({
   n: 1, title: t`The sum of the first ${mn} integers`, body: math`i`, expected: '(n^2 + n)/2', f: (i) => q(i), hasSolution: true,
+  help: {
+    nudge: t`Not quite. Simplify each telescoping term, then sum both sides.`,
+    hints: [
+      t`What does ${math`(i + ${1})^{${2}} - i^{${2}}`} simplify to?`,
+      t`What does the telescoping sum collapse to?`,
+      t`Equating the two, what equation does ${math`\sum i`} satisfy?`,
+    ],
+    lesson: t`Telescope a difference of powers to find a sum one power lower.`,
+  },
   hint: t`by the telescoping trick ${math`(n + ${1})^{${2}} - ${1} = \sum_{i = ${1}}^{n} \big((i + ${1})^{${2}} - i^{${2}}\big)`}`,
   steps: [
     t`Each term is ${math`(i + ${1})^{${2}} - i^{${2}} = ${2}i + ${1}`}, and the sum telescopes to ${math`(n + ${1})^{${2}} - ${1}^{${2}}`}.`,
@@ -286,6 +300,15 @@ const bop10_1 = bopSum({
 });
 const bop10_4 = bopSum({
   n: 4, title: t`Products of neighbours`, body: math`i(i + ${1})`, expected: 'n(n + 1)(n + 2)/3', f: (i) => q(i * (i + 1)), hasSolution: false, hint: KNOWN,
+  help: {
+    nudge: t`Not quite. Split the term into powers of ${mi} and use the known sums.`,
+    hints: [
+      t`What is ${math`i(i + ${1})`} as a sum of powers of ${mi}?`,
+      t`What are ${math`\sum i^{${2}}`} and ${math`\sum i`} in closed form?`,
+      t`Which common factor tidies the total?`,
+    ],
+    lesson: t`Split into known sums, then factor out what they share.`,
+  },
   steps: [
     t`${math`i(i + ${1}) = i^{${2}} + i`}, so the sum splits: ${math`\sum i^{${2}} + \sum i = \frac{n(n + ${1})(${2}n + ${1})}{${6}} + \frac{n(n + ${1})}{${2}}`}.`,
     t`Take out ${math`\frac{n(n + ${1})}{${6}}`}: ${math`\frac{n(n + ${1})}{${6}}\big((${2}n + ${1}) + ${3}\big) = \frac{n(n + ${1})(n + ${2})}{${3}}`}.`,
@@ -294,6 +317,15 @@ const bop10_4 = bopSum({
 });
 const bop10_6 = bopSum({
   n: 6, title: t`An arithmetic sum`, body: math`(${8}i - ${5})`, expected: '4n^2 - n', f: (i) => q(8 * i - 5), hasSolution: false, hint: t`using the sum of ${mi}`,
+  help: {
+    nudge: t`Not quite. Split the sum into a multiple of ${math`\sum i`} and a sum of constants.`,
+    hints: [
+      t`How does the sum split into ${math`${8}\sum i`} and a sum of constants?`,
+      t`What is ${math`\sum_{i = ${1}}^{n} ${5}`}?`,
+      t`What is ${8} times ${math`\frac{n(n + ${1})}{${2}}`}?`,
+    ],
+    lesson: t`A linear term sums to a multiple of the sum of the integers plus the constant times the number of terms.`,
+  },
   steps: [
     t`Split: ${math`${8}\sum_{i = ${1}}^{n} i - \sum_{i = ${1}}^{n} ${5} = ${8} \cdot \frac{n(n + ${1})}{${2}} - ${5}n`}.`,
     t`That is ${math`${4}n^{${2}} + ${4}n - ${5}n = ${4}n^{${2}} - n`}.`,
@@ -302,6 +334,15 @@ const bop10_6 = bopSum({
 });
 const bop10_7 = bopSum({
   n: 7, title: t`Products two apart`, body: math`i(i + ${2})`, expected: 'n(n + 1)(2n + 7)/6', f: (i) => q(i * (i + 2)), hasSolution: true, hint: KNOWN,
+  help: {
+    nudge: t`Not quite. Split the term into powers of ${mi} and use the known sums.`,
+    hints: [
+      t`What is ${math`i(i + ${2})`} as a sum of powers of ${mi}?`,
+      t`What do ${math`\sum i^{${2}}`} and ${math`${2}\sum i`} give in closed form?`,
+      t`Which common factor tidies the total?`,
+    ],
+    lesson: t`Split into known sums, then factor out what they share.`,
+  },
   steps: [
     t`${math`i(i + ${2}) = i^{${2}} + ${2}i`}, so the sum is ${math`\frac{n(n + ${1})(${2}n + ${1})}{${6}} + ${2} \cdot \frac{n(n + ${1})}{${2}}`}.`,
     t`Take out ${math`\frac{n(n + ${1})}{${6}}`}: ${math`\frac{n(n + ${1})}{${6}}\big((${2}n + ${1}) + ${6}\big) = \frac{n(n + ${1})(${2}n + ${7})}{${6}}`}.`,
@@ -310,6 +351,15 @@ const bop10_7 = bopSum({
 });
 const bop10_15 = bopSum({
   n: 15, title: t`A telescoping sum`, body: math`\frac{${1}}{i(i + ${1})}`, expected: '1 - 1/(n + 1)', f: (i) => q(1, i * (i + 1)), hasSolution: true,
+  help: {
+    nudge: t`Not quite. Write out the first few terms as differences and see what cancels.`,
+    hints: [
+      t`What are the first three terms, each written as a difference?`,
+      t`Which parts cancel between neighbouring terms?`,
+      t`What is left from the first term and the last?`,
+    ],
+    lesson: t`Write the terms as differences, and the middle cancels.`,
+  },
   hint: t`by writing ${math`\frac{${1}}{i(i + ${1})} = \frac{${1}}{i} - \frac{${1}}{i + ${1}}`}`,
   steps: [
     t`With ${math`\frac{${1}}{i(i + ${1})} = \frac{${1}}{i} - \frac{${1}}{i + ${1}}`}, the sum is ${math`\left(${1} - \frac{${1}}{${2}}\right) + \left(\frac{${1}}{${2}} - \frac{${1}}{${3}}\right) + \cdots + \left(\frac{${1}}{n} - \frac{${1}}{n + ${1}}\right)`}.`,
@@ -319,6 +369,15 @@ const bop10_15 = bopSum({
 });
 const bop10_3 = bopSum({
   n: 3, title: t`The sum of cubes`, body: math`i^{${3}}`, expected: 'n^2(n + 1)^2/4', f: (i) => q(i * i * i), hasSolution: true,
+  help: {
+    nudge: t`Not quite. Expand ${math`(i + ${1})^{${4}} - i^{${4}}`} and solve for the sum of cubes.`,
+    hints: [
+      t`What does ${math`(i + ${1})^{${4}} - i^{${4}}`} expand to?`,
+      t`Summing from ${1} to ${mn}, what does each side become?`,
+      t`After substituting ${math`\sum i^{${2}}`} and ${math`\sum i`}, how does the result factorise?`,
+    ],
+    lesson: t`Telescope one power higher to reach the sum wanted.`,
+  },
   hint: t`using ${math`(n + ${1})^{${4}} - ${1} = \sum_{i = ${1}}^{n} \big((i + ${1})^{${4}} - i^{${4}}\big)`} and the sums of ${mi} and ${math`i^{${2}}`}`,
   steps: [
     t`${math`(i + ${1})^{${4}} - i^{${4}} = ${4}i^{${3}} + ${6}i^{${2}} + ${4}i + ${1}`}, so ${math`(n + ${1})^{${4}} - ${1} = ${4}\sum i^{${3}} + ${6}\sum i^{${2}} + ${4}\sum i + n`}.`,
@@ -332,6 +391,11 @@ const sw432d = supervision({
   source: cite('cst-dm-sw1', 'Exercises 4, 4.3.2(d)'),
   title: t`Every power sum is a polynomial`,
   prompt: t`Show that, for every ${math`k \in \mathbb{N}`}, there exists a polynomial ${math`p_k(x)`} such that, for all ${math`n \in \mathbb{N}`}, ${math`p_k(n) = \sum_{i = ${0}}^{n} i^{k} = ${0}^{k} + ${1}^{k} + \cdots + n^{k}`}. Hint: generalise the identity ${math`(n + ${1})^{${2}} = \sum_{i = ${0}}^{n} (i + ${1})^{${2}} - \sum_{i = ${0}}^{n} i^{${2}}`}.`,
+  hints: [
+    t`Generalising the identity to ${math`(n + ${1})^{k + ${1}}`}, what does expanding each ${math`(i + ${1})^{k + ${1}}`} give?`,
+    t`Which power sum appears with a non-zero coefficient, and which lower power sums appear with it?`,
+    t`How does strong induction on ${math`k`} turn that equation into a polynomial for ${math`\sum_{i = ${0}}^{n} i^{k}`}?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-4', '4.3.2(d)'),
 });
@@ -339,7 +403,12 @@ const bop10_20 = supervision({
   id: 'bop-10-20',
   source: cite('bop', 'Chapter 10, exercise 20', true),
   title: t`Square of a sum, sum of cubes`,
-  prompt: t`Prove that ${math`(${1} + ${2} + ${3} + \cdots + n)^{${2}} = ${1}^{${3}} + ${2}^{${3}} + ${3}^{${3}} + \cdots + n^{${3}}`} for every ${math`n \in \mathbb{N}`}. Write both sides with sigma notation first. (Book of Proof expects induction; a proof from the two closed forms is also fine, if you say where they come from.)`,
+  prompt: t`Prove that ${math`(${1} + ${2} + ${3} + \cdots + n)^{${2}} = ${1}^{${3}} + ${2}^{${3}} + ${3}^{${3}} + \cdots + n^{${3}}`} for every ${math`n \in \mathbb{N}`}. Write both sides with sigma notation first. (Book of Proof expects induction; a proof from the two closed forms is also accepted, if it says where they come from.)`,
+  hints: [
+    t`Written with sigma notation, what are the two sides?`,
+    t`Assuming the identity for ${mn}, what is added to each side in passing to ${math`n + ${1}`}?`,
+    t`Is ${math`\left(\sum_{i = ${1}}^{n + ${1}} i\right)^{${2}} - \left(\sum_{i = ${1}}^{n} i\right)^{${2}}`} equal to ${math`(n + ${1})^{${3}}`}, as a difference of two squares?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -354,7 +423,12 @@ const db95q3 = supervision({
   id: 'step95-q3-iii',
   source: cite(DB95, 'Q3(iii)'),
   title: t`An alternating sum of cubes`,
-  prompt: t`You may use ${math`\sum_{r = ${1}}^{n} r^{${3}} = \frac{${1}}{${4}}n^{${2}}(n + ${1})^{${2}}`}. Find the sum of the series ${math`${1}^{${3}} - ${2}^{${3}} + ${3}^{${3}} - ${4}^{${3}} + \cdots + (${2}n + ${1})^{${3}}`}, simplifying your answer as far as possible, and explain each step.`,
+  prompt: t`Given ${math`\sum_{r = ${1}}^{n} r^{${3}} = \frac{${1}}{${4}}n^{${2}}(n + ${1})^{${2}}`}, find the sum of the series ${math`${1}^{${3}} - ${2}^{${3}} + ${3}^{${3}} - ${4}^{${3}} + \cdots + (${2}n + ${1})^{${3}}`}, simplifying your answer as far as possible, and explain each step.`,
+  hints: [
+    t`How does the series compare with the sum of all the cubes up to ${math`(${2}n + ${1})^{${3}}`}?`,
+    t`What must be subtracted, and how many times, to turn the even cubes from plus to minus?`,
+    t`How do the sum of all the cubes and the sum of the even cubes ${math`(${2}s)^{${3}}`} follow from the given formula?`,
+  ],
   writeUp: 'explanation',
 });
 
@@ -363,11 +437,18 @@ const db95q3auto = auto({
   source: cite(DB95, 'Q3(iii)'),
   title: t`The alternating cubes, in closed form`,
   prompt: t`Given ${math`\sum_{r = ${1}}^{n} r^{${3}} = \frac{${1}}{${4}}n^{${2}}(n + ${1})^{${2}}`}, find ${math`${1}^{${3}} - ${2}^{${3}} + ${3}^{${3}} - ${4}^{${3}} + \cdots + (${2}n + ${1})^{${3}}`} in terms of ${math`n`}, as a product of factors.`,
+  nudge: t`Not quite. Compare the series with the plain sum of all the cubes; the difference is easy to sum.`,
+  hints: [
+    t`Which terms of ${math`${1}^{${3}} + ${2}^{${3}} + \cdots + (${2}n + ${1})^{${3}}`} have the wrong sign for the series?`,
+    t`How many times must the even cubes be subtracted from the full sum?`,
+    t`What is ${math`\sum_{s = ${1}}^{n} (${2}s)^{${3}}`} by the given formula, and what common factor do the two pieces share?`,
+  ],
   answer: { kind: 'expression', expected: '(n + 1)^2 (4n + 1)', variables: ['n'], domains: NPOS, form: 'product' },
   solution: [
     t`Add all the cubes up to ${math`(${2}n + ${1})^{${3}}`}, then take the even ones off twice: the series is ${math`\sum_{r = ${1}}^{${2}n + ${1}} r^{${3}} - ${2}\sum_{s = ${1}}^{n} (${2}s)^{${3}}`}.`,
     t`${math`\sum_{r = ${1}}^{${2}n + ${1}} r^{${3}} = \frac{${1}}{${4}}(${2}n + ${1})^{${2}}(${2}n + ${2})^{${2}} = (${2}n + ${1})^{${2}}(n + ${1})^{${2}}`}, and ${math`${2}\sum_{s = ${1}}^{n} ${8}s^{${3}} = ${16} \cdot \frac{${1}}{${4}}n^{${2}}(n + ${1})^{${2}} = ${4}n^{${2}}(n + ${1})^{${2}}`}.`,
     t`The difference is ${math`(n + ${1})^{${2}}\big((${2}n + ${1})^{${2}} - ${4}n^{${2}}\big) = (n + ${1})^{${2}}(${4}n + ${1})`}.`,
+    t`Write an alternating sum as the full sum minus twice the terms that change sign.`,
   ],
   reference: '(n + 1)^2 (4n + 1)',
   verify: () => {
@@ -388,10 +469,17 @@ const db05q7i = auto({
   source: cite(DB05, 'Q7(i)'),
   title: t`A product that telescopes`,
   prompt: t`The notation ${math`\prod_{r = ${1}}^{n} f(r)`} denotes the product ${math`f(${1}) \times f(${2}) \times f(${3}) \times \cdots \times f(n)`}. Simplify ${math`\prod_{r = ${1}}^{n} \frac{r + ${1}}{r}`} as far as possible.`,
+  nudge: t`Not quite. Write out the first few factors and watch what cancels.`,
+  hints: [
+    t`What are the first three factors of the product?`,
+    t`Which numerator cancels which denominator?`,
+    t`What is left after all the cancelling?`,
+  ],
   answer: { kind: 'expression', expected: 'n + 1', variables: ['n'], domains: NPOS },
   solution: [
     t`Write it out: ${math`\frac{${2}}{${1}} \times \frac{${3}}{${2}} \times \frac{${4}}{${3}} \times \cdots \times \frac{n + ${1}}{n}`}.`,
     t`Each numerator cancels the next denominator, as the terms of a telescoping sum cancel, leaving ${math`\frac{n + ${1}}{${1}} = n + ${1}`}.`,
+    t`In a telescoping product, each numerator cancels the next denominator.`,
   ],
   reference: 'n + 1',
   verify: () => {
@@ -410,11 +498,18 @@ const db05q7ii = auto({
   source: cite(DB05, 'Q7(ii)'),
   title: t`A product of ${math`${1} - \frac{${1}}{r^{${2}}}`}`,
   prompt: t`The notation ${math`\prod_{r = ${2}}^{n} f(r)`} denotes the product ${math`f(${2}) \times f(${3}) \times \cdots \times f(n)`}. Simplify ${math`\prod_{r = ${2}}^{n} \frac{r^{${2}} - ${1}}{r^{${2}}}`} as far as possible.`,
+  nudge: t`Not quite. Factorise each term first; then two simpler products telescope.`,
+  hints: [
+    t`How does ${math`r^{${2}} - ${1}`} factorise?`,
+    t`How does the product split into two products, each of a simple fraction in ${math`r`}?`,
+    t`Starting at ${math`r = ${2}`}, what does each of the two products telescope to?`,
+  ],
   answer: { kind: 'expression', expected: '(n + 1)/(2n)', variables: ['n'], domains: NTWO },
   solution: [
     t`Factorise: ${math`\frac{r^{${2}} - ${1}}{r^{${2}}} = \frac{r - ${1}}{r} \cdot \frac{r + ${1}}{r}`}, so the product is ${math`\prod_{r = ${2}}^{n} \frac{r - ${1}}{r} \times \prod_{r = ${2}}^{n} \frac{r + ${1}}{r}`}.`,
     t`The first telescopes: ${math`\frac{${1}}{${2}} \times \frac{${2}}{${3}} \times \cdots \times \frac{n - ${1}}{n} = \frac{${1}}{n}`}. The second: ${math`\frac{${3}}{${2}} \times \frac{${4}}{${3}} \times \cdots \times \frac{n + ${1}}{n} = \frac{n + ${1}}{${2}}`}.`,
     t`So the product is ${math`\frac{${1}}{n} \cdot \frac{n + ${1}}{${2}} = \frac{n + ${1}}{${2}n}`}.`,
+    t`Factorise each term, then let each product telescope.`,
   ],
   reference: '(n + 1)/(2n)',
   verify: () => {

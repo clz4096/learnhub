@@ -170,8 +170,14 @@ const de1Value = auto({
   source: cite(NST, 'Differential equations, DE1', true),
   title: t`Where the solution reaches minus a half`,
   prompt: t`The solution of ${math`x\frac{dy}{dx} + (${1} - y^{${2}}) = ${0}`} with ${math`y(${1}) = ${0}`} is ${math`y = \frac{${1} - x^{${2}}}{${1} + x^{${2}}}`}. For which ${math`x > ${0}`} is ${math`y = -\frac{${1}}{${2}}`}?`,
+  nudge: t`Not quite. Set the given solution equal to ${math`-\frac{${1}}{${2}}`} and clear the fraction.`,
+  hints: [
+    t`What equation in ${math`x`} does ${math`y = -\frac{${1}}{${2}}`} give?`,
+    t`After multiplying both sides by ${math`${2}(${1} + x^{${2}})`}, what is ${math`x^{${2}}`}?`,
+    t`Which square root does ${math`x > ${0}`} select?`,
+  ],
   answer: { kind: 'expression', expected: 'sqrt(3)', variables: [] },
-  solution: [t`${math`\frac{${1} - x^{${2}}}{${1} + x^{${2}}} = -\frac{${1}}{${2}}`} gives ${math`${2} - ${2}x^{${2}} = -${1} - x^{${2}}`}, so ${math`x^{${2}} = ${3}`}.`, t`With ${math`x > ${0}`}, ${math`x = \sqrt{${3}}`}.`],
+  solution: [t`${math`\frac{${1} - x^{${2}}}{${1} + x^{${2}}} = -\frac{${1}}{${2}}`} gives ${math`${2} - ${2}x^{${2}} = -${1} - x^{${2}}`}, so ${math`x^{${2}} = ${3}`}.`, t`With ${math`x > ${0}`}, ${math`x = \sqrt{${3}}`}.`, t`Clear the denominator, then respect the stated domain.`],
   reference: 'sqrt(3)',
   verify: () => close('y at sqrt 3', solY(Math.sqrt(3)), -0.5),
   misconceptions: [{ response: '3', why: t`${3} is ${math`x^{${2}}`}; take the positive square root.` }],
@@ -181,7 +187,12 @@ const de1Write = supervision({
   id: 'nst-de1-write',
   source: cite(NST, 'Differential equations, DE1', true),
   title: t`The full solution, with the constant solutions`,
-  prompt: t`Solve ${math`x\frac{dy}{dx} + (${1} - y^{${2}}) = ${0}`} with ${math`y = ${0}`} when ${math`x = ${1}`}. In your write-up, say where you divide by ${math`y^{${2}} - ${1}`}, note the constant solutions ${math`y = ${1}`} and ${math`y = -${1}`}, and explain why the condition rules them out and fixes the sign inside the modulus.`,
+  prompt: t`Solve ${math`x\frac{dy}{dx} + (${1} - y^{${2}}) = ${0}`} with ${math`y = ${0}`} when ${math`x = ${1}`}. The write-up should say where the division by ${math`y^{${2}} - ${1}`} happens, note the constant solutions ${math`y = ${1}`} and ${math`y = -${1}`}, and explain why the condition rules them out and fixes the sign inside the modulus.`,
+  hints: [
+    t`After moving ${math`${1} - y^{${2}}`} across, how do the variables separate, and which values of ${math`y`} must be set aside first?`,
+    t`How do partial fractions split ${math`\frac{${1}}{y^{${2}} - ${1}}`}, and what do the two sides integrate to?`,
+    t`Since a solution cannot cross ${math`y = \pm ${1}`}, which sign of ${math`\frac{y - ${1}}{y + ${1}}`} does the condition at ${math`x = ${1}`} force?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -191,6 +202,11 @@ const step03Reaction = supervision({
   source: cite('stepdb-03-s1', 'Q8'),
   title: t`A reaction that never finishes`,
   prompt: t`A liquid of fixed volume ${math`V`} is made up of two chemicals ${math`A`} and ${math`B`}. A reaction takes place in which ${math`A`} converts to ${math`B`}. The volume of ${math`A`} at time ${math`t`} is ${math`xV`} and the volume of ${math`B`} at time ${math`t`} is ${math`yV`}, where ${math`x`} and ${math`y`} depend on ${math`t`} and ${math`x + y = ${1}`}. The rate at which ${math`A`} converts into ${math`B`} is given by ${math`kVxy`}, where ${math`k`} is a positive constant. Show that if both ${math`x`} and ${math`y`} are strictly positive at the start, then at time ${math`t`} ${dmath`y = \frac{De^{kt}}{${1} + De^{kt}},`} where ${math`D`} is a constant. Does ${math`A`} ever completely convert to ${math`B`}? Justify your answer.`,
+  hints: [
+    t`What differential equation does the rate ${math`kVxy`} give for ${math`y`}, using ${math`x = ${1} - y`}?`,
+    t`How do partial fractions split ${math`\frac{${1}}{y(${1} - y)}`}?`,
+    t`From the form of the solution, can ${math`y`} ever equal ${1} at a finite time?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -202,11 +218,18 @@ const step96Tank = auto({
   source: cite('stepdb-96-s1', 'Q7', true),
   title: t`A tank filling and emptying`,
   prompt: t`At time ${math`t = ${0}`} a tank contains one unit of water, and water flows out at a rate proportional to the amount ${math`y`} in the tank; then ${math`y = b^{t}`} for a constant ${math`b`} with ${math`${0} < b < ${1}`}. Suppose instead that the tank contains one unit of water at time ${math`t = ${0}`}, but that in addition to water flowing out as described, water is added at a steady rate ${math`a > ${0}`}. Then ${dmath`\frac{dy}{dt} - y\ln b = a.`} Find ${math`y`} in terms of ${math`a`}, ${math`b`}, and ${math`t`}. (Type ${math`\ln`} as ln.)`,
+  nudge: t`Not quite. Separate the variables, and fix the constant from the starting level.`,
+  hints: [
+    t`Written as ${math`\frac{dy}{dt} = a + y\ln b`}, why do the variables separate?`,
+    t`What is the integral of ${math`\frac{${1}}{a + y\ln b}`} with respect to ${math`y`}?`,
+    t`After exponentiating, which value of the constant makes ${math`y = ${1}`} at ${math`t = ${0}`}?`,
+  ],
   answer: { kind: 'expression', expected: 'b^t + a (b^t - 1)/ln(b)', variables: ['a', 'b', 't'], domains: { a: { kind: 'real', min: 0.1, max: 5 }, b: { kind: 'real', min: 0.1, max: 0.9 }, t: { kind: 'real', min: 0, max: 5 } } },
   solution: [
     t`Write the equation as ${math`\frac{dy}{dt} = a + y\ln b`}: the right side depends on ${math`y`} only, so the variables separate. Where ${math`a + y\ln b \ne ${0}`}, ${math`\int \frac{dy}{a + y\ln b} = \int dt`}, so ${math`\frac{${1}}{\ln b}\ln|a + y\ln b| = t + C`}.`,
     t`Multiply by ${math`\ln b`} and exponentiate: ${math`a + y\ln b = Ae^{t\ln b} = Ab^{t}`} for a constant ${math`A`}. At ${math`t = ${0}`}, ${math`y = ${1}`}, so ${math`A = a + \ln b`}.`,
     t`So ${math`y = \frac{(a + \ln b)b^{t} - a}{\ln b} = b^{t} + \frac{a(b^{t} - ${1})}{\ln b}`}. As ${math`t \to \infty`}, ${math`b^{t} \to ${0}`} and ${math`y \to -\frac{a}{\ln b}`}, the constant solution at which inflow and outflow balance (positive, since ${math`\ln b < ${0}`}).`,
+    t`Separate, integrate, then fix the constant from the initial condition.`,
   ],
   reference: 'b^t + a(b^t - 1)/ln(b)',
   verify: () => {

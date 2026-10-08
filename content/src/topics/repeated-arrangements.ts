@@ -195,10 +195,17 @@ const a6q2ii = auto({
   source: cite(A6, 'Q2(ii)'),
   title: t`Names with one repeated letter`,
   prompt: t`In how many distinct ways can each of these people arrange the letters of their name?`,
+  nudge: t`Not quite. Count as if every letter were different, then divide out the swaps of the repeated letter.`,
+  hints: [
+    t`How many letters does each name have, and which letter repeats, how many times?`,
+    t`If the copies of the repeated letter were labelled as different, how many arrangements would there be?`,
+    t`How many of those labelled arrangements look the same once the labels are removed?`,
+  ],
   answer: { kind: 'table', cell: 'exact', columns: [t`name`, t`arrangements`], rows: Q2II.map((nm) => [t`${nm}`, null]), expected: Q2II.map((nm) => String(multinomial(nameCounts(nm)))) },
   solution: [
     t`Each name has one letter repeated (ignoring capitals): Emma two M's, David two D's, Stephen two E's, Poppy three P's, Ebenezer four E's.`,
     t`Divide the factorial of the length by the factorial of the repeat: ${Q2II.map((nm) => [math`${computedTex(formulaTex(nameCounts(nm)))} = ${multinomial(nameCounts(nm))}`]).flatMap((r, i) => (i === 0 ? [...r] : [...t`; `, ...r]))}.`,
+    t`Count with labels, then divide by the orders of the repeated letter.`,
   ],
   reference: Q2II.map((nm) => String(multinomial(nameCounts(nm)))),
   verify: () => Q2II.map(verifyName).find((x) => x !== null) ?? null,
@@ -212,10 +219,17 @@ const a6q2iii = auto({
   source: cite(A6, 'Q2(iii)'),
   title: t`Reggie, Hannah, and Marshmallow`,
   prompt: t`How many distinct ways are there of arranging the letters in Reggie, Hannah, and Marshmallow?`,
+  nudge: t`Not quite. Check every letter of each name for repeats, not only the first one spotted.`,
+  hints: [
+    t`Which letters repeat in each name, and how many times each?`,
+    t`With every copy labelled as different, how many arrangements does each name have?`,
+    t`For each repeated letter, by what does swapping its copies among themselves divide the count?`,
+  ],
   answer: { kind: 'table', cell: 'exact', columns: [t`name`, t`arrangements`], rows: Q2III.map((nm) => [t`${nm}`, null]), expected: Q2III.map((nm) => String(multinomial(nameCounts(nm)))) },
   solution: [
     t`Reggie: two G's and two E's, ${math`\frac{${6}!}{${2}! \times ${2}!} = ${multinomial(nameCounts('Reggie'))}`}. Hannah: two H's, two A's, two N's, ${math`\frac{${6}!}{${2}! \times ${2}! \times ${2}!} = ${multinomial(nameCounts('Hannah'))}`}.`,
     t`Marshmallow: ${11} letters with two M's, two A's, two L's: ${math`\frac{${11}!}{${2}! \times ${2}! \times ${2}!} = ${multinomial(nameCounts('Marshmallow'))}`}.`,
+    t`Divide once for every repeated letter, by the factorial of its count.`,
   ],
   reference: Q2III.map((nm) => String(multinomial(nameCounts(nm)))),
   verify: () => Q2III.map(verifyName).find((x) => x !== null) ?? null,
@@ -230,10 +244,17 @@ const a6q2v = auto({
   source: cite(A6, 'Q2(v)'),
   title: t`MISSISSIPPI`,
   prompt: t`In how many distinct ways can you arrange the letters in ${computed(MISS)}?`,
+  nudge: t`Not quite. Count each letter's copies carefully, then divide by the factorial of each count.`,
+  hints: [
+    t`How many letters are there, and how many copies of each different letter?`,
+    t`If every copy were labelled as different, how many arrangements would there be?`,
+    t`By what must that count be divided for each letter whose copies are interchangeable?`,
+  ],
   answer: { kind: 'exact', expected: String(multinomial(nameCounts(MISS))) },
   solution: [
     t`${11} letters: four I's, four S's, two P's, one M.`,
     t`${math`\frac{${11}!}{${4}! \times ${4}! \times ${2}!} = \frac{${factorial(11)}}{${24 * 24 * 2}} = ${multinomial(nameCounts(MISS))}`}.`,
+    t`Divide by the factorial of each letter's count.`,
   ],
   reference: String(multinomial(nameCounts(MISS))),
   verify: () => verifyName(MISS),
@@ -248,10 +269,17 @@ const a6q5iii = auto({
   source: cite(A6, 'Q5(iii), the arrangements examples'),
   title: t`Anna's two pairs`,
   prompt: t`Anna has two different letters that repeat. How many distinct ways can she arrange the letters of her name?`,
+  nudge: t`Not quite. Label the copies as different, count, then undo the labelling for every repeated letter.`,
+  hints: [
+    t`With the A's and N's labelled as different, how many arrangements are there?`,
+    t`How many labelled arrangements give the same word when only the A's are swapped?`,
+    t`What further division do the N's need?`,
+  ],
   answer: { kind: 'exact', expected: String(multinomial(nameCounts(ANNA))) },
   solution: [
     t`She labels the letters as if they were distinct, ${math`A_{${1}}, N_{${1}}, N_{${2}}, A_{${2}}`}: ${math`${4}! = ${factorial(4)}`} arrangements.`,
     t`Swapping ${math`A_{${1}}`} and ${math`A_{${2}}`} gives an identical arrangement, so divide by ${2}; the same for the N's, divide by ${2} again: ${math`\frac{${4}!}{${2}! \times ${2}!} = ${multinomial(nameCounts(ANNA))}`}.`,
+    t`Label, count, then divide once for each repeated letter.`,
   ],
   reference: String(multinomial(nameCounts(ANNA))),
   verify: () => verifyName(ANNA),
@@ -263,6 +291,11 @@ const lillian = supervision({
   source: cite(A6, 'Q2(iv)'),
   title: t`Lillian`,
   prompt: t`Lillian now wants a go. Show carefully that the number of distinct ways she can write her name is ${math`\frac{${7}!}{${3}! \times ${2}!}`}. "Show carefully" means explain every division, leaving no gaps for an examiner to fill.`,
+  hints: [
+    t`Which letters of Lillian repeat, and how many times each?`,
+    t`With every copy labelled as different, how many arrangements are there, and how many labelled arrangements collapse to each written name?`,
+    t`Why is the number of labelled arrangements per written name a product of two factorials, rather than a sum?`,
+  ],
   writeUp: 'explanation',
   official: cite(H6, 'Q2(iv)'),
 });
@@ -270,7 +303,12 @@ const general = supervision({
   id: 'a6-q2-general',
   source: cite(H6, 'Q2, the general formula', true),
   title: t`Why the general formula holds`,
-  prompt: t`The hints state: if you have ${mn} objects where ${math`r_{${1}}`} are identical, another ${math`r_{${2}}`} are identical, and so on up to ${math`r_{k}`}, then there are ${math`\frac{n!}{r_{${1}}! \times r_{${2}}! \times \cdots \times r_{k}!}`} distinct arrangements. Explain why, by labelling the identical objects as Anna does, and say why the divisions do not interfere with each other.`,
+  prompt: t`The hints state that ${mn} objects, of which ${math`r_{${1}}`} are identical, another ${math`r_{${2}}`} are identical, and so on up to ${math`r_{k}`}, have ${math`\frac{n!}{r_{${1}}! \times r_{${2}}! \times \cdots \times r_{k}!}`} distinct arrangements. Explain why, by labelling the identical objects as Anna does, and say why the divisions do not interfere with each other.`,
+  hints: [
+    t`With every object labelled as different, how many arrangements are there?`,
+    t`For one unlabelled arrangement, in how many ways can the labels within each identical group be permuted?`,
+    t`Why does each unlabelled arrangement come from exactly ${math`r_{${1}}! \times \cdots \times r_{k}!`} labelled ones, with each group permuted independently of the others?`,
+  ],
   writeUp: 'explanation',
 });
 

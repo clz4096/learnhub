@@ -198,11 +198,18 @@ const focsTwoN = auto({
   id: 'focs-10-analysis',
   source: cite('focs-notes', 'Lecture 10, Section 10.5', true),
   title: t`The amortised count for a full run`,
-  prompt: t`Starting from the empty two-list queue, ${1000} ${ml`enq`} operations are followed by ${1000} ${ml`deq`} operations. Counting one per cons in ${ml`enq`} and one per element moved by a reversal, what is the total cost?`,
+  prompt: t`Starting from the empty two-list queue, ${1000} ${ml`enq`} operations are followed by ${1000} ${ml`deq`} operations. Counting one per cons in ${ml`enq`} and one per element moved by a reversal, find the total cost.`,
   answer: { kind: 'exact', expected: String(run([...Array.from({ length: 1000 }, (_, i): QOp => ({ enq: i })), ...Array.from({ length: 1000 }, (): QOp => 'deq')]).conses) },
   solution: [
     t`Each element is consed onto the rear once (${1000} in all) and moved to the front by a reversal once, before it can be dequeued (${1000} more).`,
     t`Total ${2000}, an average of ${2} per operation: ${math`O(${1})`} amortised. But the single ${ml`deq`} that triggers the big reversal costs ${999} on its own.`,
+    t`Amortised cost: count what happens to each element over its whole life.`,
+  ],
+  nudge: t`Not quite. Follow one element through the queue and count every step it takes part in.`,
+  hints: [
+    t`How many times is each element consed onto the rear list?`,
+    t`How many times is each element moved by a reversal before it is dequeued?`,
+    t`What do those counts give over all ${1000} elements?`,
   ],
   reference: '2000',
   verify: () => same('2n conses for n = 1000', run([...Array.from({ length: 1000 }, (_, i): QOp => ({ enq: i })), ...Array.from({ length: 1000 }, (): QOp => 'deq')]).conses, 2000),
@@ -213,15 +220,25 @@ const queueOption = supervision({
   id: 'cs3110-5-queue-option',
   source: cite('cs3110-ex5', 'Exercise: queue option'),
   title: t`A queue with options`,
-  prompt: t`Write a module ${ml`Queue`} with ${ml`type 'a t = 'a list`}, the next item to be removed at the head, and ${ml`empty`}, ${ml`is_empty`}, ${ml`enqueue`}, ${ml`peek`}, and ${ml`dequeue`}, the last two returning options. State the cost of each operation and say which one makes the representation slow.`,
+  prompt: t`Write a module ${ml`Queue`} with ${ml`type 'a t = 'a list`}, the next item to be removed at the head, and ${ml`empty`}, ${ml`is_empty`}, ${ml`enqueue`}, ${ml`peek`}, and ${ml`dequeue`}, the last two returning options. State the cost of each operation and which one makes the representation slow.`,
   writeUp: 'explanation',
+  hints: [
+    t`With the next item at the head, what do ${ml`peek`} and ${ml`dequeue`} return on the empty list, and on ${ml`h :: t`}?`,
+    t`Where must ${ml`enqueue`} put the new element, and what does that cost on a list?`,
+    t`Which operation's cost grows with the length of the queue?`,
+  ],
 });
 const focs101 = supervision({
   id: 'focs-10-1',
   source: cite('focs-notes', 'Lecture 10, Exercise 10.1'),
   title: t`Queues from balanced trees`,
-  prompt: t`Suppose we have an implementation of queues, based on binary trees, such that each operation takes logarithmic time in the worst case. Outline the advantages and drawbacks of such an implementation compared with the two-list queue of the lecture.`,
+  prompt: t`Suppose queues are implemented with binary trees, so that each operation takes logarithmic time in the worst case. Outline the advantages and drawbacks of such an implementation compared with the two-list queue of the lecture.`,
   writeUp: 'explanation',
+  hints: [
+    t`What does the two-list queue guarantee for a single operation, and what only on average?`,
+    t`When does a worst-case bound on every operation matter more than an amortised one?`,
+    t`How do the constant factors and the code of a balanced tree compare with two lists?`,
+  ],
 });
 
 // Computer Science Tripos Part IA 2018, Paper 1, Question 2(b): a functional deque. The paper
@@ -233,6 +250,11 @@ const cst18 = supervision({
   title: t`A functional deque`,
   prompt: t`A row of coins is held as a list, and a game removes coins from either end. We are interested in implementing a functional deque that computes ${ml`poplast`} (the deque without its last element) and ${ml`last`} (its last element) in amortised constant time, and that also enables access to the first element in amortised constant time. Write the OCaml code for the data type, and functions ${ml`poplast`} and ${ml`last`}. You may also need to code a function ${ml`norm`} that guarantees amortised constant time in all circumstances. Explain why your operations are amortised constant time.`,
   writeUp: 'explanation',
+  hints: [
+    t`How can two lists, one holding the front and one the rear reversed, represent a deque?`,
+    t`When one list is empty and an element is needed from its end, what should ${ml`norm`} do with the other list?`,
+    t`Which credit argument shows that each element is moved only a bounded number of times?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

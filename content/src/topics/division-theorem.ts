@@ -181,9 +181,15 @@ const sheet213 = auto({
   title: t`Cancelling a multiple in a remainder`,
   prompt: t`Exercise ${2}.${1}.${3}(a) states ${math`\mathrm{rem}(k \cdot m + l, m) = \mathrm{rem}(l, m)`}. Use it to find ${math`\mathrm{rem}(${K3} \times ${M3} + ${L3}, ${M3})`} without multiplying out.`,
   answer: { kind: 'exact', expected: String(L3 % M3) },
+  hints: [
+    t`Which part of ${math`${K3} \times ${M3} + ${L3}`} is a multiple of ${M3}?`,
+    t`By the stated rule, which remainder is left to find?`,
+    t`What is ${L3} on division by ${M3}?`,
+  ],
+  nudge: t`Not quite. Drop the multiple of ${M3}, then make sure what remains is below ${M3}.`,
   solution: [
     t`${math`\mathrm{rem}(${K3} \times ${M3} + ${L3}, ${M3}) = \mathrm{rem}(${L3}, ${M3}) = ${L3 % M3}`}, since ${math`${L3} = ${Math.floor(L3 / M3)} \times ${M3} + ${L3 % M3}`}.`,
-    t`The official solution proves the rule by uniqueness: ${math`k m + l = (k + \mathrm{quo}(l, m))\,m + \mathrm{rem}(l, m)`} is a division of ${math`km + l`} by ${mm} with remainder below ${mm}, and there is only one.`,
+    t`Multiples of the divisor can be dropped before dividing.`,
   ],
   reference: String(L3 % M3),
   verify: () => same('multiplying out and dividing', (K3 * M3 + L3) % M3, L3 % M3),
@@ -199,9 +205,16 @@ const cor59 = auto({
   title: t`The notes' formula for ${math`[k]_{m}`}`,
   prompt: t`Corollary ${59} of the notes defines ${math`[k]_{m} = \mathrm{rem}(k + |k| \cdot m, m)`} for an integer ${math`k`}. Compute ${math`[${KN}]_{${MN}}`} this way.`,
   answer: { kind: 'exact', expected: String(mod(KN, MN)) },
+  hints: [
+    t`What is ${math`|k| \cdot m`} for ${math`k = ${KN}`} and ${math`m = ${MN}`}?`,
+    t`What is ${math`k + |k| \cdot m`}, and why is it a natural number?`,
+    t`What is its remainder on division by ${MN}?`,
+  ],
+  nudge: t`Not quite. Follow the formula exactly: add ${math`|k| \cdot m`} first, then take the remainder.`,
   solution: [
     t`${math`k + |k| \cdot m = ${KN} + ${-KN} \times ${MN} = ${KN - KN * MN}`}, a natural number congruent to ${KN} mod ${MN}.`,
     t`${math`\mathrm{rem}(${KN - KN * MN}, ${MN}) = ${mod(KN, MN)}`}. Check: ${math`${KN} - ${mod(KN, MN)} = ${KN - mod(KN, MN)}`}, a multiple of ${MN}.`,
+    t`Shift a negative number by a multiple of ${math`m`} until it is natural.`,
   ],
   reference: String(mod(KN, MN)),
   verify: () => same('the formula and a search of 0 to 4', (KN - KN * MN) % MN, upTo(MN).map((x) => x - 1).find((r) => (KN - r) % MN === 0)),
@@ -213,6 +226,11 @@ const bop728 = supervision({
   source: cite('bop', 'Chapter 7, exercise 28'),
   title: t`Uniqueness in the division algorithm`,
   prompt: t`Prove the division algorithm: if ${math`a, b \in \mathbb{N}`}, there exist unique integers ${mq}, ${mr} with ${math`a = bq + r`} and ${math`${0} \le r < b`}. Existence is in Book of Proof Section ${1}.${9}; prove uniqueness, either directly or, as the CST notes do (Lemma ${56}), by showing that ${math`q \cdot n + r = ${0}`} with ${math`${0} \le r < n`} forces ${math`q = ${0}`}.`,
+  hints: [
+    t`Suppose ${math`a = bq + r = bq' + r'`} with both remainders in range. What does subtracting give?`,
+    t`How large can ${math`|r - r'|`} be?`,
+    t`Which multiple of ${math`b`} lies strictly between ${math`-b`} and ${math`b`}?`,
+  ],
   writeUp: 'proof',
 });
 const theorem57 = supervision({
@@ -220,13 +238,23 @@ const theorem57 = supervision({
   source: cite('cst-dm-notes', 'printed pages 180 to 183, Theorem 57'),
   title: t`Why the algorithm is right`,
   prompt: t`For the notes' ${math`\mathrm{divalg}`}, explain (i) why ${math`\mathrm{divalg}(m, n)`} terminates for every natural ${mm} and positive ${mn}, and (ii) why every call ${math`\mathrm{diviter}(q, r)`} satisfies ${math`${0} \le q`}, ${math`${0} \le r`}, and ${math`m = q \cdot n + r`}, and how that gives the result. What is the worst-case number of steps?`,
+  hints: [
+    t`Which quantity decreases at every step of ${math`\mathrm{diviter}`}, and why can it not decrease for ever?`,
+    t`If ${math`m = q \cdot n + r`} holds before a step, why does it hold after?`,
+    t`When the loop stops, what is known about ${math`r`}, and how many steps can there be?`,
+  ],
   writeUp: 'explanation',
 });
 const sheet213all = supervision({
   id: 'sheet-2-1-3',
   source: cite('cst-dm-sw1', 'Exercises 2, 2.1.3'),
   title: t`Three remainder identities`,
-  prompt: t`Prove that for all natural numbers ${math`k, l`} and positive integers ${mm}: (a) ${math`\mathrm{rem}(k m + l, m) = \mathrm{rem}(l, m)`}; (b) ${math`\mathrm{rem}(k + l, m) = \mathrm{rem}(\mathrm{rem}(k, m) + l, m)`}; (c) ${math`\mathrm{rem}(k l, m) = \mathrm{rem}(k \cdot \mathrm{rem}(l, m), m)`}. Use the uniqueness in the Division Theorem, not the arithmetic of your favourite programming language.`,
+  prompt: t`Prove that for all natural numbers ${math`k, l`} and positive integers ${mm}: (a) ${math`\mathrm{rem}(k m + l, m) = \mathrm{rem}(l, m)`}; (b) ${math`\mathrm{rem}(k + l, m) = \mathrm{rem}(\mathrm{rem}(k, m) + l, m)`}; (c) ${math`\mathrm{rem}(k l, m) = \mathrm{rem}(k \cdot \mathrm{rem}(l, m), m)`}. Use the uniqueness in the Division Theorem, not the arithmetic of a programming language.`,
+  hints: [
+    t`For (a), with ${math`l = \mathrm{quo}(l, m)\,m + \mathrm{rem}(l, m)`}, how can ${math`km + l`} be written as a multiple of ${mm} plus something in range?`,
+    t`Why does uniqueness in the Division Theorem then identify the remainder?`,
+    t`For (b) and (c), which substitution for ${math`k`} or ${math`l`} reduces each to the same pattern?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-2', '2.1.3'),
 });

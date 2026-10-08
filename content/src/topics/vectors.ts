@@ -189,10 +189,17 @@ const v1ii = auto({
   source: cite('nst-workbook', 'V1(ii)'),
   title: t`The distance between two position vectors`,
   prompt: t`Calculate the distance between the points with position vectors ${math`\mathbf{A} = ${col(VA)}`} and ${math`\mathbf{B} = ${col(VB)}`}. Write square roots as sqrt.`,
+  nudge: t`Not quite. The distance is the magnitude of the difference of the two position vectors.`,
+  hints: [
+    t`What is ${math`\mathbf{A} - \mathbf{B}`}?`,
+    t`What is ${math`|\mathbf{A} - \mathbf{B}|^{${2}}`}, the sum of the squares of its components?`,
+    t`What is the largest square factor of that number, to simplify its root?`,
+  ],
   answer: { kind: 'expression', expected: surd(1, norm2(sub3(VA, VB))).expr, variables: [] },
   solution: [
     t`The distance is ${math`|\mathbf{A} - \mathbf{B}|`}, with ${math`\mathbf{A} - \mathbf{B} = ${col(sub3(VA, VB))}`}.`,
     t`${math`|\mathbf{A} - \mathbf{B}|^{${2}} = ${144} + ${400} + ${100} = ${norm2(sub3(VA, VB))}`}, so the distance is ${math`\sqrt{${644}} = ${computedTex(surd(1, 644).tex)}`}.`,
+    t`The distance between two points is the length of the difference of their position vectors.`,
   ],
   reference: '2 sqrt(161)',
   verify: () => (far(Math.hypot(...sub3(VA, VB)), 2 * Math.sqrt(161)) ? 'distance' : null),
@@ -204,6 +211,11 @@ const a5angle = supervision({
   source: cite('step-f05', 'Q3(ii)', true),
   title: t`The tetrahedron's angle by the scalar product`,
   prompt: t`The points ${math`A = (a, ${0}, ${0})`}, ${math`B = (${0}, b, ${0})`}, ${math`C = (${0}, ${0}, c)`} have ${math`a, b, c > ${0}`}, and ${math`\theta = \angle ACB`}. Using the scalar product of ${math`\overrightarrow{CA}`} and ${math`\overrightarrow{CB}`}, show that ${math`\cos\theta = \frac{c^{${2}}}{\sqrt{(a^{${2}} + c^{${2}})(b^{${2}} + c^{${2}})}}`}, and explain why ${mth} is always acute.`,
+  hints: [
+    t`What are ${math`\overrightarrow{CA}`} and ${math`\overrightarrow{CB}`}?`,
+    t`What are their scalar product and their lengths?`,
+    t`What sign does the resulting cosine have, and what does that say about ${mth}?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f05-hints', 'Q3'),
 });
@@ -220,6 +232,11 @@ const damtpQ7 = supervision({
   source: cite('damtp-ia-vm1', 'Q7'),
   title: t`The altitudes of a triangle meet`,
   prompt: t`Show by vector methods that the altitudes of a triangle are concurrent. [Hint: let the altitudes ${math`AD`}, ${math`BE`} of ${math`\triangle ABC`} meet at ${math`H`}, and show that ${math`CH`} is perpendicular to ${math`AB`}.]`,
+  hints: [
+    t`With position vectors ${math`\mathbf{a}, \mathbf{b}, \mathbf{c}, \mathbf{h}`}, what scalar product equations say that ${math`AH \perp BC`} and ${math`BH \perp CA`}?`,
+    t`Expanding those two equations, which terms appear in both?`,
+    t`Subtracting one equation from the other, which scalar product is shown to be zero, and what does it say about ${math`CH`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -228,6 +245,11 @@ const vec2 = supervision({
   source: cite(VEC, 'Q2 (2011 STEP II Q5)'),
   title: t`Two reflections`,
   prompt: t`The points ${math`A`} and ${math`B`} have position vectors ${math`\mathbf{a}`} and ${math`\mathbf{b}`} with respect to an origin ${math`O`}, and ${math`O`}, ${math`A`} and ${math`B`} are non-collinear. The point ${math`C`}, with position vector ${math`\mathbf{c}`}, is the reflection of ${math`B`} in the line through ${math`O`} and ${math`A`}. Show that ${math`\mathbf{c}`} can be written in the form ${math`\mathbf{c} = \lambda\mathbf{a} - \mathbf{b}`}, where ${math`\lambda = \frac{${2}\,\mathbf{a} \cdot \mathbf{b}}{\mathbf{a} \cdot \mathbf{a}}`}. The point ${math`D`}, with position vector ${math`\mathbf{d}`}, is the reflection of ${math`C`} in the line through ${math`O`} and ${math`B`}. Show that ${math`\mathbf{d}`} can be written in the form ${math`\mathbf{d} = \mu\mathbf{b} - \lambda\mathbf{a}`} for some scalar ${math`\mu`} to be determined. Given that ${math`A`}, ${math`B`} and ${math`D`} are collinear, find the relationship between ${math`\lambda`} and ${math`\mu`}. In the case ${math`\lambda = -\frac{${1}}{${2}}`}, determine the cosine of ${math`\angle AOB`} and describe the relative positions of ${math`A`}, ${math`B`} and ${math`D`}.`,
+  hints: [
+    t`The midpoint of ${math`B`} and ${math`C`} is the foot of the perpendicular from ${math`B`} to ${math`OA`}: what is it, as a multiple of ${math`\mathbf{a}`}?`,
+    t`Reflecting ${math`\mathbf{c}`} in ${math`OB`} the same way, what is ${math`\mathbf{d}`}, and so ${math`\mu`}?`,
+    t`If ${math`A`}, ${math`B`}, ${math`D`} are collinear, ${math`\mathbf{d} = s\mathbf{a} + (${1} - s)\mathbf{b}`}: what does comparing coefficients give, and how is ${math`\mu`} written through ${math`\cos \angle AOB`}?`,
+  ],
   writeUp: 'proof',
   official: cite(VECS, 'Q2'),
 });
@@ -245,11 +267,18 @@ const vec2cos = auto({
   source: cite(VEC, 'Q2 (2011 STEP II Q5)', true),
   title: t`The angle that makes ${math`D`} the midpoint`,
   prompt: t`${math`C`} is the reflection of ${math`B`} in the line ${math`OA`}, so ${math`\mathbf{c} = \lambda\mathbf{a} - \mathbf{b}`} with ${math`\lambda = \frac{${2}\,\mathbf{a} \cdot \mathbf{b}}{\mathbf{a} \cdot \mathbf{a}}`}, and ${math`D`} is the reflection of ${math`C`} in the line ${math`OB`}, so ${math`\mathbf{d} = \mu\mathbf{b} - \lambda\mathbf{a}`} with ${math`\mu = \frac{${4}(\mathbf{a} \cdot \mathbf{b})^{${2}}}{(\mathbf{a} \cdot \mathbf{a})(\mathbf{b} \cdot \mathbf{b})} - ${1}`}. Given that ${math`A`}, ${math`B`} and ${math`D`} are collinear and ${math`\lambda = -\frac{${1}}{${2}}`}, find the cosine of ${math`\angle AOB`} exactly.`,
+  nudge: t`Not quite. Use collinearity to fix ${math`\mu`}, then write ${math`\mu`} through the cosine and mind its sign.`,
+  hints: [
+    t`If ${math`A`}, ${math`B`}, ${math`D`} are collinear, how are the coefficients of ${math`\mathbf{a}`} and ${math`\mathbf{b}`} in ${math`\mathbf{d}`} related, so what is ${math`\mu`}?`,
+    t`With ${math`\cos\theta = \frac{\mathbf{a} \cdot \mathbf{b}}{|\mathbf{a}||\mathbf{b}|}`}, how does the formula for ${math`\mu`} read?`,
+    t`What sign must ${math`\mathbf{a} \cdot \mathbf{b}`} have, given the sign of ${math`\lambda`}?`,
+  ],
   answer: { kind: 'expression', expected: COS_AOB, variables: [] },
   solution: [
     t`${math`A`}, ${math`B`}, ${math`D`} are collinear exactly when ${math`\mathbf{d} = s\mathbf{a} + (${1} - s)\mathbf{b}`} for some ${math`s`}; as ${math`\mathbf{a}`} and ${math`\mathbf{b}`} are not parallel, compare coefficients: ${math`s = -\lambda`} and ${math`${1} - s = \mu`}, so ${math`\mu = \lambda + ${1}`}. With ${math`\lambda = -\frac{${1}}{${2}}`}, ${math`\mu = \frac{${1}}{${2}}`}.`,
     t`With ${math`\cos\theta = \frac{\mathbf{a} \cdot \mathbf{b}}{|\mathbf{a}||\mathbf{b}|}`}, the formula for ${math`\mu`} reads ${math`\mu = ${4}\cos^{${2}}\theta - ${1}`}. So ${math`${4}\cos^{${2}}\theta = \frac{${3}}{${2}}`} and ${math`\cos^{${2}}\theta = \frac{${3}}{${8}}`}.`,
     t`${math`\lambda`} has the sign of ${math`\mathbf{a} \cdot \mathbf{b}`}, which is negative, so ${math`\cos\theta = -\sqrt{\frac{${3}}{${8}}} = -\frac{\sqrt{${6}}}{${4}}`}. Then ${math`\mathbf{d} = \frac{${1}}{${2}}\mathbf{a} + \frac{${1}}{${2}}\mathbf{b}`}: ${math`D`} is the midpoint of ${math`AB`}.`,
+    t`Collinearity means coefficients adding to one; the sign comes from a scalar product.`,
   ],
   reference: COS_AOB,
   verify: () => {
@@ -274,6 +303,11 @@ const vec1 = supervision({
   source: cite(VEC, 'Q1 (2002 STEP II Q7), first paragraph'),
   title: t`Two lines at ${math`\frac{\pi}{${4}}`} to two others`,
   prompt: t`In ${3}-dimensional space, the lines ${math`m_{${1}}`} and ${math`m_{${2}}`} pass through the origin and have directions ${math`\mathbf{i} + \mathbf{j}`} and ${math`\mathbf{i} + \mathbf{k}`}, respectively. Find the directions of the two lines ${math`m_{${3}}`} and ${math`m_{${4}}`} that pass through the origin and make angles of ${math`\frac{\pi}{${4}}`} with both ${math`m_{${1}}`} and ${math`m_{${2}}`}. Find also the cosine of the acute angle between ${math`m_{${3}}`} and ${math`m_{${4}}`}.`,
+  hints: [
+    t`For a unit direction ${math`x\mathbf{i} + y\mathbf{j} + z\mathbf{k}`}, what does an angle of ${math`\frac{\pi}{${4}}`} with ${math`\mathbf{i} + \mathbf{j}`} say about ${math`x + y`}?`,
+    t`With the same for ${math`\mathbf{i} + \mathbf{k}`}, which sign cases arise, and what equation in ${math`x`} does each give?`,
+    t`For the two directions found, what is their scalar product?`,
+  ],
   writeUp: 'explanation',
   official: cite(VECS, 'Q1'),
 });
@@ -283,11 +317,18 @@ const vec1cos = auto({
   source: cite(VEC, 'Q1 (2002 STEP II Q7), first paragraph'),
   title: t`The angle between the two new lines`,
   prompt: t`The lines ${math`m_{${1}}`} and ${math`m_{${2}}`} pass through the origin with directions ${math`\mathbf{i} + \mathbf{j}`} and ${math`\mathbf{i} + \mathbf{k}`}. The two lines ${math`m_{${3}}`} and ${math`m_{${4}}`} through the origin each make angles of ${math`\frac{\pi}{${4}}`} with both ${math`m_{${1}}`} and ${math`m_{${2}}`}. Find the cosine of the acute angle between ${math`m_{${3}}`} and ${math`m_{${4}}`}.`,
+  nudge: t`Not quite. Find the two directions explicitly as unit vectors, then take their scalar product.`,
+  hints: [
+    t`For a unit direction ${math`x\mathbf{i} + y\mathbf{j} + z\mathbf{k}`}, what conditions on ${math`x + y`} and ${math`x + z`} does the angle ${math`\frac{\pi}{${4}}`} give?`,
+    t`With ${math`y = z = ${1} - x`}, what quadratic in ${math`x`} does the unit length give?`,
+    t`What is the scalar product of the two unit directions found?`,
+  ],
   answer: { kind: 'exact', expected: '1/3' },
   solution: [
     t`Let a unit direction be ${math`x\mathbf{i} + y\mathbf{j} + z\mathbf{k}`}. The angle with ${math`\mathbf{i} + \mathbf{j}`} (length ${math`\sqrt{${2}}`}) is ${math`\frac{\pi}{${4}}`}, so ${math`\frac{|x + y|}{\sqrt{${2}}} = \frac{${1}}{\sqrt{${2}}}`}: ${math`|x + y| = ${1}`}. Likewise ${math`|x + z| = ${1}`}.`,
     t`If ${math`x + y = ${1}`} and ${math`x + z = ${1}`} (or both ${math`-${1}`}, the same line reversed), then ${math`y = z = ${1} - x`} and ${math`x^{${2}} + ${2}(${1} - x)^{${2}} = ${1}`}, so ${math`${3}x^{${2}} - ${4}x + ${1} = ${0}`}: ${math`x = ${1}`} or ${math`x = \frac{${1}}{${3}}`}. Mixed signs give ${math`${3}x^{${2}} + ${2} = ${1}`}, impossible.`,
     t`The directions are ${math`\mathbf{i}`} and ${math`\frac{${1}}{${3}}(\mathbf{i} + ${2}\mathbf{j} + ${2}\mathbf{k})`}, both unit vectors, with scalar product ${math`\frac{${1}}{${3}}`}: the cosine of the acute angle is ${math`\frac{${1}}{${3}}`}.`,
+    t`Turn angle conditions into scalar product equations on a unit vector.`,
   ],
   reference: '1/3',
   verify: () => {
@@ -363,9 +404,10 @@ export const vectors: TopicContent = {
     'a5-q3-ii-scalar': { sections: ['The scalar product'], note: t`An angle in a tetrahedron by the scalar product` },
     's2vec-q2-cos': { sections: ['The scalar product'], note: t`Two reflections and the angle that makes a midpoint` },
   }),
-  // Best first: the IA sheet's altitudes (DAMTP), 2011 STEP II Q5 (two reflections), 2002 STEP II
-  // Q7's first paragraph, Assignment 5 Q3(ii), then the auto-checked cosine of 2011 Q5.
-  gate: ['damtp-vm1-q7', 's2vec-q2', 's2vec-q1', 'a5-q3-ii-scalar', 's2vec-q2-cos'],
+  // Best first: the IA sheet's altitudes (DAMTP), 2002 STEP II Q7's first paragraph, Assignment 5
+  // Q3(ii), then the auto-checked cosine of 2011 STEP II Q5. The 2011 Q5 write-up stays practice:
+  // the cosine problem's prompt states its mu.
+  gate: ['damtp-vm1-q7', 's2vec-q1', 'a5-q3-ii-scalar', 's2vec-q2-cos'],
   recall: [
     { front: t`Define the scalar product and state its geometric meaning.`, back: t`${math`\mathbf{a} \cdot \mathbf{b} = a_{${1}}b_{${1}} + a_{${2}}b_{${2}} + a_{${3}}b_{${3}} = |\mathbf{a}||\mathbf{b}|\cos\theta`}.` },
     { front: t`When are two nonzero vectors perpendicular?`, back: t`Exactly when their scalar product is ${0}.` },

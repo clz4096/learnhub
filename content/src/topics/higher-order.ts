@@ -189,11 +189,18 @@ const mystery2 = auto({
   id: 'cs3110-4-mystery-2',
   source: cite('cs3110-ex4', 'Exercise: mystery operator 2', true),
   title: t`The mystery operator ${ml`@@`}`,
-  prompt: t`Define ${ml`let ( @@ ) f g x = x |> g |> f`}. What is ${ml`(String.length @@ string_of_int) ${100}`}? (This ${ml`@@`} shadows the standard one.)`,
+  prompt: t`Define ${ml`let ( @@ ) f g x = x |> g |> f`}. Evaluate ${ml`(String.length @@ string_of_int) ${100}`}. (This ${ml`@@`} shadows the standard one.)`,
   answer: { kind: 'exact', expected: String(digits(100)) },
   solution: [
     t`${ml`x |> g |> f`} is ${ml`f (g x)`}, so ${ml`f @@ g`} is the composition of ${ml`f`} after ${ml`g`}.`,
     t`${ml`string_of_int ${100}`} is the string ${ml`"${100}"`}, and its length is ${digits(100)}. In general the composite counts the digits of a natural number: ${1}, ${digits(10)}, ${digits(100)} on ${1}, ${10}, ${100}.`,
+    t`A pipeline reads left to right; the composite applies the right-hand function first.`,
+  ],
+  nudge: t`Not quite. Unfold the definition: which function is applied to ${100} first?`,
+  hints: [
+    t`What is ${ml`x |> g |> f`} written with ordinary application?`,
+    t`With ${ml`f`} as ${ml`String.length`} and ${ml`g`} as ${ml`string_of_int`}, which is applied first?`,
+    t`What string does ${ml`string_of_int ${100}`} give, and how long is it?`,
   ],
   reference: String(digits(100)),
   verify: () => same('digits of 1, 10, 100', [1, 10, 100].map(digits).join(','), '1,2,3'),
@@ -210,11 +217,18 @@ const twiceNoArgs = auto({
   id: 'cs3110-4-twice',
   source: cite('cs3110-ex4', 'Exercise: twice, no arguments', true),
   title: t`The type of ${ml`quad`}`,
-  prompt: t`With ${ml`let double x = ${2} * x`}, ${ml`let twice f x = f (f x)`}, and ${ml`let quad = twice double`}, what is the type of ${ml`quad`}? It is not written as a function of an argument: explain to yourself why it is one.`,
+  prompt: t`With ${ml`let double x = ${2} * x`}, ${ml`let twice f x = f (f x)`}, and ${ml`let quad = twice double`}, choose the type of ${ml`quad`}. It is not written as a function of an argument, yet it is one.`,
   answer: { kind: 'choice', options: twiceTypes, correct: 'int-int' },
   solution: [
     t`${ml`twice`} has type ${ml`('a -> 'a) -> 'a -> 'a`}: it is curried, so it takes ${ml`f`} and returns a function waiting for ${ml`x`}.`,
     t`Applying it to ${ml`double : int -> int`} fixes ${ml`'a`} as ${ml`int`} and leaves ${ml`int -> int`}. So ${ml`quad`} is a function by partial application, and ${ml`quad ${3}`} is ${2 * (2 * 3)}.`,
+    t`A curried function given fewer arguments returns a function.`,
+  ],
+  nudge: t`Not quite. Count the arguments ${ml`twice`} takes, and how many ${ml`quad`} supplies.`,
+  hints: [
+    t`What is the type of ${ml`twice`}?`,
+    t`What does applying ${ml`twice`} to ${ml`double`} alone fix the type variable to?`,
+    t`With one argument supplied, which part of the type of ${ml`twice`} remains?`,
   ],
   reference: ['int-int'],
   verify: () => same('quad 3', 2 * (2 * 3), 12),
@@ -230,13 +244,23 @@ const repeatEx = supervision({
   title: t`Generalise ${ml`twice`} to ${ml`repeat`}`,
   prompt: t`Write ${ml`repeat`} such that ${ml`repeat f n x`} applies ${ml`f`} to ${ml`x`} a total of ${ml`n`} times: ${ml`repeat f ${0} x`} is ${ml`x`}, ${ml`repeat f ${1} x`} is ${ml`f x`}, ${ml`repeat f ${2} x`} is ${ml`f (f x)`}. Give its type and explain why it is a higher-order function.`,
   writeUp: 'explanation',
+  hints: [
+    t`What should ${ml`repeat f ${0} x`} return, and how does ${ml`repeat f n x`} relate to ${ml`repeat f (n - ${1})`}?`,
+    t`What types must ${ml`f`} and ${ml`x`} have for ${ml`f`} to be applied repeatedly?`,
+    t`Which of its arguments is itself a function?`,
+  ],
 });
 const uncurried = supervision({
   id: 'cs3110-4-uncurried',
   source: cite('cs3110-ex4', 'Exercise: library uncurried'),
   title: t`Uncurried library functions`,
-  prompt: t`${ml`let uncurried_nth (lst, n) = List.nth lst n`} is an uncurried ${ml`List.nth`}. In the same way write uncurried versions of ${ml`List.append`}, ${ml`Char.compare`}, and ${ml`Stdlib.max`}, give the type of each, and say what partial application they lose.`,
+  prompt: t`${ml`let uncurried_nth (lst, n) = List.nth lst n`} is an uncurried ${ml`List.nth`}. In the same way write uncurried versions of ${ml`List.append`}, ${ml`Char.compare`}, and ${ml`Stdlib.max`}, give the type of each, and state what partial application they lose.`,
   writeUp: 'explanation',
+  hints: [
+    t`How does a tuple pattern in the argument turn two curried arguments into one?`,
+    t`What are the curried types of ${ml`List.append`}, ${ml`Char.compare`}, and ${ml`Stdlib.max`}, and how do the tuple types differ?`,
+    t`With a pair as the only argument, can the function be given its first component alone?`,
+  ],
 });
 const focs81 = supervision({
   id: 'focs-8-1',
@@ -244,6 +268,11 @@ const focs81 = supervision({
   title: t`What does ${ml`sw`} do?`,
   prompt: t`What does the function ${ml`let sw f x y = f y x`}, of type ${ml`('a -> 'b -> 'c) -> 'b -> 'a -> 'c`}, do, and what are its uses? Give an example with partial application.`,
   writeUp: 'explanation',
+  hints: [
+    t`How do the arguments of ${ml`sw f`} relate to those of ${ml`f`}?`,
+    t`For a curried function, which argument can be fixed by partial application, and which cannot?`,
+    t`With a function such as ${ml`( - )`} or ${ml`List.nth`}, what does ${ml`sw`} make possible to fix first?`,
+  ],
 });
 const focs82 = supervision({
   id: 'focs-8-2',
@@ -251,6 +280,11 @@ const focs82 = supervision({
   title: t`Combining two orderings lexicographically`,
   prompt: t`The lexicographic ordering uses two keys: ${math`(x', y') < (x, y) \iff x' < x \lor (x' = x \land y' < y)`}. Write an OCaml function that combines two orderings, each supplied as a function, lexicographically. Explain how it lets the curried ${ml`insort`} of Lecture ${8} sort a list of pairs.`,
   writeUp: 'explanation',
+  hints: [
+    t`What type does an ordering supplied as a function have, for example ${ml`( < )`}?`,
+    t`Given orderings on the first and second components, how should two pairs be compared, using both?`,
+    t`Since ${ml`insort`} takes the ordering as its first argument, what is passed to it to sort pairs?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

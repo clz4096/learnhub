@@ -209,9 +209,16 @@ const focs22exp = auto({
   title: t`The ${60}-hour column, exponential row`,
   prompt: t`An algorithm of complexity ${math`${2}^{n}`} takes ${math`${2}^{n}`} milliseconds on an input of size ${math`n`}: ${9} in a second, ${15} in a minute, ${21} in an hour. What is the largest ${math`n`} it handles in ${60} hours?`,
   answer: { kind: 'exact', expected: String(largest('exp', SIXTY_HOURS)) },
+  hints: [
+    t`How many milliseconds are ${60} hours?`,
+    t`Which inequality must ${math`${2}^{n}`} satisfy?`,
+    t`Which is the largest power of ${2} that fits?`,
+  ],
+  nudge: t`Not quite. Convert ${60} hours to milliseconds, then find the largest power of ${2} that fits, rounding down.`,
   solution: [
-    t`We need ${math`${2}^{n} \le ${SIXTY_HOURS}`}, that is ${math`n \le \log_{${2}} ${SIXTY_HOURS} \approx ${Math.log2(SIXTY_HOURS)}`}, so ${math`n = ${largest('exp', SIXTY_HOURS)}`}.`,
+    t`The condition is ${math`${2}^{n} \le ${SIXTY_HOURS}`}, that is ${math`n \le \log_{${2}} ${SIXTY_HOURS} \approx ${Math.log2(SIXTY_HOURS)}`}, so ${math`n = ${largest('exp', SIXTY_HOURS)}`}.`,
     t`Sixty times the time adds only about ${math`\log_{${2}} ${60} \approx ${Math.log2(60)}`} to the input: exponential cost is hopeless for large inputs.`,
+    t`Exponential cost: more time adds only a constant to the input size.`,
   ],
   reference: String(largest('exp', SIXTY_HOURS)),
   verify: () => same('the table rows', [largest('exp', 1000), largest('exp', 60000), largest('exp', 3600000)].join(','), '9,15,21') ?? same('60 hours', largest('exp', SIXTY_HOURS), 27),
@@ -225,9 +232,16 @@ const focs24value = auto({
   title: t`A divide and conquer recurrence`,
   prompt: t`Let ${math`T(${1}) = ${1}`} and ${math`T(n) = ${2}T(n/${2}) + ${1}`}. Compute ${math`T(${1024})`}, and from the pattern guess a bound tighter than ${math`O(n \log n)`}.`,
   answer: { kind: 'exact', expected: String(doublingT(1024)) },
+  hints: [
+    t`What are ${math`T(${2})`}, ${math`T(${4})`}, and ${math`T(${8})`}?`,
+    t`Which simple formula in ${math`n`} fits those values?`,
+    t`How can the guessed formula be checked against the recurrence itself?`,
+  ],
+  nudge: t`Not quite. Unfold the recurrence for small powers of ${2} and look for a pattern.`,
   solution: [
     t`${math`T(${2}) = ${doublingT(2)}`}, ${math`T(${4}) = ${doublingT(4)}`}, ${math`T(${8}) = ${doublingT(8)}`}: each is ${math`${2}n - ${1}`}.`,
     t`So ${math`T(${1024}) = ${2} \times ${1024} - ${1} = ${doublingT(1024)}`}, and the bound is ${math`O(n)`}.`,
+    t`Compute small cases, guess the pattern, then check it in the recurrence.`,
   ],
   reference: String(doublingT(1024)),
   verify: () => same('T(1024) against 2n - 1', doublingT(1024), 2 * 1024 - 1),
@@ -239,6 +253,11 @@ const focs24proof = supervision({
   source: cite('focs-notes', 'Lecture 2, Exercise 2.4'),
   title: t`A tighter bound for ${math`T(n) = ${2}T(n/${2}) + ${1}`}`,
   prompt: t`Find an upper bound for the recurrence ${math`T(${1}) = ${1}`}, ${math`T(n) = ${2}T(n/${2}) + ${1}`} that is tighter than ${math`O(n \log n)`}. Prove ${math`T(n) = ${2}n - ${1}`} for every power of ${2} by induction, and deduce the bound in O-notation.`,
+  hints: [
+    t`What is the base case ${math`n = ${1}`}?`,
+    t`Assuming ${math`T(n/${2}) = ${2}(n/${2}) - ${1}`}, what does the recurrence give for ${math`T(n)`}?`,
+    t`Which constant ${math`c`} makes ${math`${2}n - ${1} \le cn`} for every ${math`n \ge ${1}`}?`,
+  ],
   writeUp: 'proof',
 });
 const focs23 = supervision({
@@ -246,6 +265,11 @@ const focs23 = supervision({
   source: cite('focs-notes', 'Lecture 2, Exercise 2.3'),
   title: t`Constant factors inside a sum`,
   prompt: t`Let ${math`g_{${1}}, \ldots, g_{k}`} be functions with ${math`g_{i}(n) \ge ${0}`} for ${math`i = ${1}, \ldots, k`} and all sufficiently large ${math`n`}. Show that if ${math`f(n) = O(a_{${1}}g_{${1}}(n) + \cdots + a_{k}g_{k}(n))`} then ${math`f(n) = O(g_{${1}}(n) + \cdots + g_{k}(n))`}.`,
+  hints: [
+    t`What does ${math`f(n) = O(h(n))`} mean, with constants ${math`c`} and ${math`n_{${0}}`}?`,
+    t`With ${math`A = \max_{i} |a_{i}|`}, how does ${math`a_{${1}}g_{${1}}(n) + \cdots + a_{k}g_{k}(n)`} compare with ${math`A(g_{${1}}(n) + \cdots + g_{k}(n))`} for large ${math`n`}?`,
+    t`Which constant then witnesses ${math`f(n) = O(g_{${1}}(n) + \cdots + g_{k}(n))`}?`,
+  ],
   writeUp: 'proof',
 });
 const focs21 = supervision({
@@ -253,6 +277,11 @@ const focs21 = supervision({
   source: cite('focs-notes', 'Lecture 2, Exercise 2.1'),
   title: t`An iterative ${ml`power`}`,
   prompt: t`Code an iterative (tail-recursive) version of the function ${ml`power`}, using an accumulator. State its time and space costs in O-notation and compare them with the original.`,
+  hints: [
+    t`Which extra argument can carry the product computed so far?`,
+    t`In the recursive call, how do the exponent and the accumulator change?`,
+    t`How many calls are made, and does any call need stack space after its recursive call returns?`,
+  ],
   writeUp: 'explanation',
 });
 

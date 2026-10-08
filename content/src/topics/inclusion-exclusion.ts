@@ -195,10 +195,17 @@ const q7id = auto({
   solution: [
     t`The terms are ${math`${computedTex(identityRhs.map((v, j) => (j === 0 ? String(v) : `${v < 0 ? '-' : '+'} ${Math.abs(v)}`)).join(' '))}`}, which add to ${identityRhs.reduce((a, b) => a + b, 0)}.`,
     t`The left side is ${math`\binom{${NI - MI}}{${RI - MI}} = ${choose(NI - MI, RI - MI)}`}: the two counts of committees containing the ${MI} given people agree.`,
+    t`A proved identity is a shortcut: evaluate the easier side.`,
   ],
   reference: String(identityRhs.reduce((a, b) => a + b, 0)),
   verify: () => same('the left side', identityRhs.reduce((a, b) => a + b, 0), choose(NI - MI, RI - MI)),
   misconceptions: [{ response: String(choose(NI, RI)), why: t`That is only the ${math`j = ${0}`} term. Include the alternating terms.` }],
+  nudge: t`Not quite. Expanding every term is the slow route; the identity just stated gives the value more directly.`,
+  hints: [
+    t`How many terms does the sum have for ${math`m = ${MI}`}, and what sign does each carry?`,
+    t`The prompt states an identity: which side of it is quicker to evaluate?`,
+    t`The left side is ${math`\binom{n - m}{r - m}`}: what are ${math`n - m`} and ${math`r - m`} here?`,
+  ],
 });
 
 const q7proof = supervision({
@@ -207,6 +214,11 @@ const q7proof = supervision({
   title: t`Two counts of one event`,
   prompt: t`A committee of size ${math`r`} is chosen at random from ${mn} people. Calculate the probability that ${math`m`} given people will all be on the committee (a) directly, (b) using the inclusion-exclusion formula. Deduce that ${math`\binom{n - m}{r - m} = \sum_{j = ${0}}^{m} (-${1})^{j}\binom{m}{j}\binom{n - j}{r}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Directly: how many committees of size ${math`r`} contain all ${math`m`} given people, and how many committees are there in all?`,
+    t`With ${math`A_{i}`} the event that given person ${math`i`} is not on the committee, how is "all ${math`m`} on it" written using the ${math`A_{i}`}?`,
+    t`If ${math`j`} given people are all absent, from how many people is the committee chosen, and what follows from equating the answers to (a) and (b)?`,
+  ],
 });
 const ieProof = supervision({
   id: 'schedule-inclusion-exclusion',
@@ -214,6 +226,11 @@ const ieProof = supervision({
   title: t`Proving the formula`,
   prompt: t`Prove the inclusion-exclusion formula ${math`\mathbb{P}\left(\bigcup_{i = ${1}}^{n} A_{i}\right) = \sum_{k = ${1}}^{n} (-${1})^{k + ${1}} \sum_{i_{${1}} < \cdots < i_{k}} \mathbb{P}(A_{i_{${1}}} \cap \cdots \cap A_{i_{k}})`} by induction on ${mn}, from the two-event addition rule. Then give a second proof for a finite equally likely space: an outcome in exactly ${math`t \ge ${1}`} of the events is counted ${math`\sum_{k \ge ${1}} (-${1})^{k + ${1}}\binom{t}{k}`} times; use the binomial theorem to show this is ${1}.`,
   writeUp: 'proof',
+  hints: [
+    t`For the inductive step, how is ${math`\bigcup_{i = ${1}}^{n + ${1}} A_{i}`} a union of just two events, so that the two-event rule applies?`,
+    t`Why is ${math`\left(\bigcup_{i = ${1}}^{n} A_{i}\right) \cap A_{n + ${1}}`} a union of ${mn} events, so that the induction hypothesis applies to it as well?`,
+    t`For the counting proof, what does the binomial theorem give for ${math`(${1} - ${1})^{t}`}, and how is that related to ${math`\sum_{k \ge ${1}} (-${1})^{k + ${1}}\binom{t}{k}`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
@@ -233,6 +250,11 @@ const gs3234a = supervision({
   title: t`Collecting every picture`,
   prompt: t`Assume that every time you buy a box of Wheaties, you receive one of the pictures of the ${mn} players on the New York Yankees, each picture equally likely and independently of the other boxes. Over a period of time, you buy ${math`m \ge n`} boxes of Wheaties. Use the inclusion-exclusion formula to show that the probability that you get all ${mn} pictures is ${dmath`${1} - \binom{n}{${1}}\left(\frac{n - ${1}}{n}\right)^{m} + \binom{n}{${2}}\left(\frac{n - ${2}}{n}\right)^{m} - \cdots + (-${1})^{n - ${1}}\binom{n}{n - ${1}}\left(\frac{${1}}{n}\right)^{m}.`} (Hint: let ${math`E_k`} be the event that you do not get the ${math`k`}th player's picture.)`,
   writeUp: 'proof',
+  hints: [
+    t`With ${math`E_{k}`} the event that the ${math`k`}th picture is missing after ${math`m`} boxes, how is "all ${mn} pictures" written using the ${math`E_{k}`}?`,
+    t`For ${math`j`} given pictures, what is the probability that none of the ${math`m`} boxes holds any of them, and why may the boxes be multiplied?`,
+    t`In how many ways can the ${math`j`} pictures be chosen, and what happens to the term with ${math`j = n`}?`,
+  ],
 });
 
 /** Grinstead and Snell 3.1.15: n jobs on 3 processors; exactly one idle. */
@@ -256,6 +278,7 @@ const gs3115 = auto({
     t`Choose the idle processor: ${3} ways. The jobs then go to the other two, ${math`${2}^{n}`} ways, but two of those put every job on one processor, leaving two idle: ${math`${2}^{n} - ${2}`} ways.`,
     t`These counts do not overlap (the idle processor is named), so the probability is ${math`\frac{${3}(${2}^{n} - ${2})}{${3}^{n}}`}.`,
     t`Check at ${math`n = ${2}`}: exactly one processor is idle when the two jobs go to different processors, with probability ${math`\frac{${2}}{${3}}`}, and the formula gives ${math`\frac{${3}(${4} - ${2})}{${9}} = \frac{${2}}{${3}}`}.`,
+    t`Name the special object first, then count what is left.`,
   ],
   reference: '3 * (2^n - 2) / 3^n',
   verify: () => {
@@ -270,6 +293,12 @@ const gs3115 = auto({
     { response: '(2^n - 2) / 3^n', why: t`That names one processor as the idle one. Any of the ${3} processors can be the idle one: multiply by ${3}.` },
   ],
   official: { source: cite('gs-answers-odd', 'Section 3.1, Exercise 15'), answer: IDLE, agrees: true },
+  nudge: t`Not quite. Testing the formula at ${math`n = ${2}`}, where every case can be listed by hand, shows where the count goes wrong.`,
+  hints: [
+    t`In how many ways can the idle processor be chosen?`,
+    t`With the idle processor fixed, in how many ways can the jobs go to the other two, and which of those leave a second processor idle?`,
+    t`Do the counts for different idle processors overlap, and how many assignments are there in all?`,
+  ],
 });
 
 /** IA Numbers and Sets 2.9: 1001 = 7 x 11 x 13. */
@@ -286,6 +315,7 @@ const ns2q9 = auto({
     t`${math`${N1001} = ${7} \times ${11} \times ${13}`}, so a number is coprime to ${N1001} exactly when none of ${7}, ${11}, ${13} divides it. Let ${math`A_p`} be the multiples of ${math`p`} up to ${N1001}.`,
     t`${math`|A_{${7}}| = ${N1001 / 7}`}, ${math`|A_{${11}}| = ${N1001 / 11}`}, ${math`|A_{${13}}| = ${N1001 / 13}`}; the pairs give ${N1001 / 77}, ${N1001 / 91}, ${N1001 / 143}; all three give ${1}.`,
     t`So ${math`|A_{${7}} \cup A_{${11}} \cup A_{${13}}| = ${N1001 / 7 + N1001 / 11 + N1001 / 13} - ${N1001 / 77 + N1001 / 91 + N1001 / 143} + ${1} = ${N1001 - coprimeIE()}`}, and ${math`${N1001} - ${N1001 - coprimeIE()} = ${coprimeIE()}`} numbers are coprime to ${N1001}.`,
+    t`Count the complement: subtract the overlaps once, add back what was removed twice.`,
   ],
   reference: String(coprimeIE()),
   verify: () => {
@@ -296,6 +326,12 @@ const ns2q9 = auto({
   misconceptions: [
     { response: String(N1001 - (N1001 / 7 + N1001 / 11 + N1001 / 13)), why: t`That subtracts the multiples of ${7}, ${11}, and ${13}, but a multiple of two of them was subtracted twice. Add back the pairs, then subtract the triple.` },
     { response: String(coprimeIE() + 1), why: t`${N1001} itself is a multiple of all three primes. Inclusion-exclusion ends by subtracting the triple intersection once more.` },
+  ],
+  nudge: t`Not quite. Factorising ${N1001} first turns this into three overlapping sets of multiples.`,
+  hints: [
+    t`What is the prime factorisation of ${N1001}?`,
+    t`How many multiples of each prime, and of each product of two of the primes, are there up to ${N1001}?`,
+    t`After subtracting the multiples of each prime and adding back the pairs, how often has a multiple of all three primes been counted?`,
   ],
 });
 

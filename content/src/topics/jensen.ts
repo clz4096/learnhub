@@ -177,6 +177,7 @@ const q1b = auto({
   solution: [
     t`The ${6} reorderings give ${computedTex(allValues.map(texOfRational).join(', '))}.`,
     t`The largest, ${MAXV}, comes from the reversed order ${math`(${4}, ${2}, ${1})`}: put the largest ${math`y`} over the smallest ${math`x`}. The smallest is ${1}, at ${math`y = x`}, as AM-GM predicts: the product of the ${math`y_{i}/x_{i}`} is ${1}.`,
+    t`To make a sum of ratios large, put large numerators over small denominators.`,
   ],
   reference: str(MAXV),
   verify: () => {
@@ -188,6 +189,12 @@ const q1b = auto({
     { response: '1', why: t`${1} is the smallest value, at ${math`y = x`}. The largest pairs the largest ${math`y`} with the smallest ${math`x`}.` },
     { response: str(reorderValue([4, 1, 2])), why: t`Try the fully reversed order ${math`(${4}, ${2}, ${1})`}: it gives more.` },
   ],
+  nudge: t`Not quite. With only six reorderings, listing the value of each is quick and certain.`,
+  hints: [
+    t`How many reorderings of three numbers are there?`,
+    t`Which ratios ${math`\frac{y_{i}}{x_{i}}`} grow when a large ${math`y`} sits over a small ${math`x`}?`,
+    t`Which reordering puts the largest ${math`y`} over the smallest ${math`x`}, and what value does it give?`,
+  ],
 });
 // The value of the identity order, for the lesson.
 const ID_VALUE = reorderValue(XS);
@@ -198,6 +205,11 @@ const q1bProof = supervision({
   title: t`Any reordering gives at least ${1}`,
   prompt: t`Let ${math`x_{${1}}, \ldots, x_{n}`} be positive reals and ${math`y_{${1}}, \ldots, y_{n}`} any reordering of them. Show that ${math`\frac{${1}}{n}\sum_{i = ${1}}^{n} \frac{y_{i}}{x_{i}} \ge ${1}`}. Hint: what is ${math`\prod_{i} \frac{y_{i}}{x_{i}}`}? When does equality hold?`,
   writeUp: 'proof',
+  hints: [
+    t`What is the product of the ${math`n`} ratios ${math`\frac{y_{i}}{x_{i}}`}, and why?`,
+    t`Which inequality links the mean of ${math`n`} positive numbers to their product?`,
+    t`When does that inequality hold with equality, and what does that say about each ${math`y_{i}`} compared with ${math`x_{i}`}?`,
+  ],
 });
 const scheduleJensen = supervision({
   id: 'schedule-jensen',
@@ -205,6 +217,11 @@ const scheduleJensen = supervision({
   title: t`Jensen for general random variables`,
   prompt: t`Let ${math`f: \mathbb{R} \to \mathbb{R}`} be convex. Show that at every point ${math`m`} there is a line ${math`\ell(x) = f(m) + \lambda(x - m)`} with ${math`f(x) \ge \ell(x)`} for all ${math`x`}, and deduce Jensen's inequality ${math`\mathbb{E}(f(X)) \ge f(\mathbb{E}(X))`} for any ${math`X`} with finite mean. Then prove the AM-GM inequality ${math`(x_{${1}} \cdots x_{n})^{${1}/n} \le \frac{${1}}{n}\sum_{i} x_{i}`} for positive reals, and say when equality holds.`,
   writeUp: 'proof',
+  hints: [
+    t`For convex ${math`f`}, how do the slopes of chords to the left and to the right of ${math`m`} compare, and which ${math`\lambda`} lies between them?`,
+    t`With ${math`f(x) \ge f(m) + \lambda(x - m)`} for all ${math`x`}, what follows on putting ${math`x = X`}, ${math`m = \mathbb{E}(X)`}, and taking expectations?`,
+    t`For AM-GM, which convex function and which random variable with ${math`n`} equally likely values turn Jensen's inequality into AM-GM?`,
+  ],
 });
 
 // MIT 18.600 (Fall 2019) Problem Set 10, Problem C(a): relative entropy is never negative
@@ -213,8 +230,13 @@ const mitC = supervision({
   id: 'mit-ps10-c-a',
   source: cite('mit-18600-ps10', 'Problem C(a)', true),
   title: t`Expected smugness is never negative`,
-  prompt: t`There are ${math`n`} possible outcomes of a tournament. I assign them probabilities ${math`p_{${1}}, \ldots, p_{n}`} and you assign ${math`q_{${1}}, \ldots, q_{n}`}, all positive. If outcome ${math`i`} occurs, my smugness is ${math`\log\frac{p_{i}}{q_{i}}`}, so before the event my expected smugness is ${math`\sum_{i} p_{i}\log\frac{p_{i}}{q_{i}}`}. Show, using Jensen's inequality, that my expected smugness is always non-negative, and that it is zero if and only if ${math`p_{i} = q_{i}`} for all ${math`i`}. Say which random variable you apply Jensen to, and why the equality case follows.`,
+  prompt: t`There are ${math`n`} possible outcomes of a tournament. I assign them probabilities ${math`p_{${1}}, \ldots, p_{n}`} and you assign ${math`q_{${1}}, \ldots, q_{n}`}, all positive. If outcome ${math`i`} occurs, my smugness is ${math`\log\frac{p_{i}}{q_{i}}`}, so before the event my expected smugness is ${math`\sum_{i} p_{i}\log\frac{p_{i}}{q_{i}}`}. Show, using Jensen's inequality, that my expected smugness is always non-negative, and that it is zero if and only if ${math`p_{i} = q_{i}`} for all ${math`i`}. State which random variable Jensen's inequality is applied to, and why the equality case follows.`,
   writeUp: 'proof',
+  hints: [
+    t`Is ${math`-\log`} convex or concave?`,
+    t`Under the probabilities ${math`p_{i}`}, which random variable takes the value ${math`\frac{q_{i}}{p_{i}}`} on outcome ${math`i`}, and what is its mean?`,
+    t`When does Jensen's inequality hold with equality for a strictly convex function?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

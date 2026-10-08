@@ -164,10 +164,17 @@ const depthOf = auto({
   source: cite('focs-notes', 'Lecture 10, Exercise 10.5', true),
   title: t`How deep is ${100}?`,
   prompt: t`In the tree of ${ml`next n = [${2} * n; ${2} * n + ${1}]`} with root ${1} at depth ${0}, at what depth is the label ${100}, and so how many nodes does breadth-first search visit before it?`,
+  nudge: t`Not quite. Find which block of labels each depth holds, then place ${100} in one.`,
+  hints: [
+    t`Which labels sit at depth ${0}, depth ${1}, and depth ${2}?`,
+    t`Between which consecutive powers of ${2} does ${100} lie?`,
+    t`In what order does breadth-first search visit the labels of this tree?`,
+  ],
   answer: { kind: 'exact', expected: String(depth(100)) },
   solution: [
     t`Depth ${math`d`} holds the labels ${math`${2}^{d}`} to ${math`${2}^{d + ${1}} - ${1}`}, and ${math`${64} \le ${100} \le ${127}`}, so the depth is ${depth(100)}.`,
     t`Breadth first visits labels in increasing order, so it visits ${99} nodes before ${100}.`,
+    t`Read the depth off the binary length of the label.`,
   ],
   reference: '6',
   verify: () => same('depth of 100', depth(100), 6) ?? same('position of 100 in breadth-first order', bfs(6).indexOf(100), 99),
@@ -178,6 +185,11 @@ const focs102 = supervision({
   source: cite('focs-notes', 'Lecture 10, Exercise 10.2'),
   title: t`An array queue for breadth-first search`,
   prompt: t`The traditional way to implement queues uses a fixed-length array, with two indices for the start and end of the queue, which wraps round from the end of the array to the start. How appropriate is such a data structure for implementing breadth-first search?`,
+  hints: [
+    t`Does breadth-first search know in advance how long its queue can grow?`,
+    t`What happens to a fixed-length array queue when the frontier outgrows it?`,
+    t`How does the cost of each queue operation compare with the two-list queue, and what does that suggest for a search of unknown size?`,
+  ],
   writeUp: 'explanation',
 });
 const focs103 = supervision({
@@ -185,6 +197,11 @@ const focs103 = supervision({
   source: cite('focs-notes', 'Lecture 10, Exercise 10.3'),
   title: t`${ml`breadth`} with ${ml`let`}`,
   prompt: t`Write a version of the function ${ml`breadth`}, breadth-first traversal with the two-list queue, using a nested ${ml`let`} construction rather than ${ml`match`}.`,
+  hints: [
+    t`What does the ${ml`match`} in ${ml`breadth`} do with the queue: which cases does it tell apart?`,
+    t`How can ${ml`let`} bind the front element and the rest of the queue, using the queue operations instead of a pattern?`,
+    t`Where must the empty-queue test go once no ${ml`match`} catches it?`,
+  ],
   writeUp: 'explanation',
 });
 const focs104 = supervision({
@@ -192,6 +209,11 @@ const focs104 = supervision({
   source: cite('focs-notes', 'Lecture 10, Exercise 10.4'),
   title: t`When iterative deepening is wrong`,
   prompt: t`Iterative deepening is inappropriate if ${math`b \approx ${1}`}, where ${math`b`} is the branching factor. Explain why, using the cost of repeating the shallower searches, and say what search strategy is appropriate in this case.`,
+  hints: [
+    t`With branching factor ${math`b`}, how many nodes are there at depth ${math`d`}, and how many at all depths up to ${math`d`}?`,
+    t`Iterative deepening repeats every shallower search: how does that repeated work compare with the last search when ${math`b`} is large, and when ${math`b`} is close to ${1}?`,
+    t`When ${math`b`} is close to ${1} the tree is nearly a single path: what does that mean for the space a depth-first search needs?`,
+  ],
   writeUp: 'explanation',
 });
 

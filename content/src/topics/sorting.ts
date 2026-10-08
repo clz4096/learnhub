@@ -185,10 +185,17 @@ const lowerBound = auto({
   source: cite('focs-notes', 'Lecture 5, Section 5.1', true),
   title: t`How few comparisons can sort ten items?`,
   prompt: t`FoCS argues that a comparison sort must distinguish all ${math`n!`} orderings, and each comparison at best halves the possibilities, so ${math`${2}^{C(n)} \ge n!`}. What is the least whole number ${math`C`} with ${math`${2}^{C} \ge ${10}!`}?`,
+  nudge: t`Not quite. Compare ${math`${10}!`} with the neighbouring powers of ${2}, and round up.`,
+  hints: [
+    t`What is ${math`${10}!`}?`,
+    t`Between which consecutive powers of ${2} does it lie?`,
+    t`Which of those powers is the least one that is at least ${math`${10}!`}?`,
+  ],
   answer: { kind: 'exact', expected: String(Math.ceil(Math.log2(factorial(10)))) },
   solution: [
     t`${math`${10}! = ${factorial(10)}`}, and ${math`\log_{${2}} ${factorial(10)} \approx ${Math.log2(factorial(10))}`}.`,
     t`${math`${2}^{${21}} = ${2 ** 21}`} is too small and ${math`${2}^{${22}} = ${2 ** 22}`} is enough, so at least ${22} comparisons are needed in the worst case.`,
+    t`Counting outcomes gives a lower bound: the base two logarithm of their number, rounded up.`,
   ],
   reference: '22',
   verify: () => same('least C', [2 ** 21 < factorial(10), 2 ** 22 >= factorial(10)].join(), 'true,true'),
@@ -199,6 +206,11 @@ const focs52 = supervision({
   source: cite('focs-notes', 'Lecture 5, Exercise 5.2'),
   title: t`Selection sort in OCaml`,
   prompt: t`Implement selection sort (Exercise ${5}.${1}) in OCaml: a function that removes a minimal element from a list, and the sort built on it.`,
+  hints: [
+    t`What should the helper return: the minimum alone, or the minimum together with the rest of the list?`,
+    t`How does the helper compare the head with the minimum of the tail, and which element goes back into the rest?`,
+    t`With the helper, what does the sort do with the empty list, and with a non-empty one?`,
+  ],
   writeUp: 'explanation',
 });
 const focs53 = supervision({
@@ -206,6 +218,11 @@ const focs53 = supervision({
   source: cite('focs-notes', 'Lecture 5, Exercise 5.3'),
   title: t`The cost of bubble sort`,
   prompt: t`Bubble sort looks at adjacent pairs of elements, exchanging them if they are out of order, and repeats this process until no more exchanges are possible. State, with justification, the time complexity of this approach, in the worst case and in the best.`,
+  hints: [
+    t`How many comparisons does one pass over ${math`n`} elements make?`,
+    t`After the first pass, where is the largest element, and how many passes can a reversed list need?`,
+    t`For a list that is already sorted, how many passes are made before no exchange happens?`,
+  ],
   writeUp: 'explanation',
 });
 const focs54 = supervision({
@@ -213,6 +230,11 @@ const focs54 = supervision({
   source: cite('focs-notes', 'Lecture 5, Exercise 5.4'),
   title: t`Bubble sort in OCaml`,
   prompt: t`Implement bubble sort (Exercise ${5}.${3}) in OCaml on lists: one pass that swaps adjacent out-of-order pairs and reports whether it swapped, repeated until a pass makes no swap.`,
+  hints: [
+    t`What should one pass return besides the new list, to say whether it swapped?`,
+    t`How does one pass handle a list of two or more elements: compare the first two, then recurse on what?`,
+    t`How does the sort repeat passes, and when does it stop?`,
+  ],
   writeUp: 'explanation',
 });
 

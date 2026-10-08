@@ -306,10 +306,18 @@ const a7Three = auto({
   title: t`Three integer roots`,
   prompt: t`Given that ${math`${cm(poly(a7Cubic))} \equiv (x - \alpha)(x - \beta)(x - \gamma)`}, where ${math`\alpha`}, ${math`\beta`}, and ${math`\gamma`} are integers with ${math`\alpha \le \beta \le \gamma`}, find ${math`\alpha`}, ${math`\beta`}, and ${math`\gamma`}, in that order.`,
   answer: { kind: 'witness', count: 3, example: '-2, 2, 4', check: (v) => rootsOf(a7Cubic, v, true) },
+  hints: [
+    t`What does substituting ${math`x = ${0}`} into the identity give?`,
+    t`What do ${math`x = ${1}`} and ${math`x = -${1}`} give, and which values of ${math`${1} + \alpha`} are then possible?`,
+    t`Which candidates survive all three conditions at once?`,
+  ],
+  nudge: t`Not quite. Substituting a few small values of ${math`x`} into the identity traps the roots in a short list; then mind the order asked for.`,
   solution: [
-    t`Substitute ${math`x = -${1}`}: ${math`(${1} + \alpha)(${1} + \beta)(${1} + \gamma) = ${1} - b + c - d = -${15}`}, so ${math`${1} + \alpha`} is one of ${listOf([-15, -5, -3, -1, 1, 3, 5, 15])}, and ${math`\alpha`} is one of ${listOf([-16, -6, -4, -2, 0, 2, 4, 14])}.`,
-    t`Substitute ${math`x = ${0}`}: ${math`\alpha\beta\gamma = -d = -${16}`}, which rules out ${0}, ${-6}, and ${14}. Substituting ${math`x = ${1}`} gives ${math`(${1} - \alpha)(${1} - \beta)(${1} - \gamma) = ${9}`}, which leaves ${listOf([-2, 2, 4])}.`,
-    t`So ${math`\alpha = -${2}`}, ${math`\beta = ${2}`}, ${math`\gamma = ${4}`}. Check: ${cm([-2, 2, 4].map((r) => `(${factor(-r)})`).join(''))} expands to ${cm(poly(a7Cubic))}.`,
+    t`${math`x = ${0}`}: ${math`-\alpha\beta\gamma = ${16}`}, so ${math`\alpha\beta\gamma = -${16}`}.`,
+    t`${math`x = -${1}`}: ${math`(${1} + \alpha)(${1} + \beta)(${1} + \gamma) = -${15}`}, so ${math`\alpha`} is one of ${listOf([-16, -6, -4, -2, 0, 2, 4, 14])}; the product ${math`-${16}`} rules out ${0}, ${-6}, ${14}.`,
+    t`${math`x = ${1}`}: ${math`(${1} - \alpha)(${1} - \beta)(${1} - \gamma) = ${9}`}, so ${math`${1} - \alpha`} divides ${9}. That leaves ${listOf([-2, 2, 4])}.`,
+    t`${math`\alpha = -${2}`}, ${math`\beta = ${2}`}, ${math`\gamma = ${4}`}. Check: ${cm([-2, 2, 4].map((r) => `(${factor(-r)})`).join(''))} expands to ${cm(poly(a7Cubic))}.`,
+    t`Substitute easy values into an identity to trap the unknowns.`,
   ],
   reference: '-2, 2, 4',
   verify: () => {
@@ -327,10 +335,17 @@ const a7Quart = auto({
   title: t`The roots of a quartic`,
   prompt: t`Find the roots of the equation ${math`${cm(poly(a7Quartic))} = ${0}`}, given that they are all integers. List all four, repeating a repeated root.`,
   answer: { kind: 'witness', count: 4, unordered: true, example: '-2, -6, -6, -8', check: (v) => rootsOf(a7Quartic, v) },
+  hints: [
+    t`With the roots written as ${math`-k_{${1}}, \ldots, -k_{${4}}`}, what do ${math`x = ${0}`}, ${math`x = ${1}`}, and ${math`x = -${1}`} give?`,
+    t`Which of the three products has the fewest prime factors, and what does it allow for each ${math`k_i - ${1}`}?`,
+    t`Which values of ${math`k_i`} fit all three products, and what does that make the roots?`,
+  ],
+  nudge: t`Not quite. Work from the product with the fewest factors, and watch the signs: ${math`x + k`} vanishes at ${math`x = -k`}.`,
   solution: [
     t`Let the roots be ${math`-k_{${1}}, -k_{${2}}, -k_{${3}}, -k_{${4}}`}. Substituting ${math`x = ${0}`}, ${math`x = ${1}`}, and ${math`x = -${1}`} gives ${math`k_{${1}}k_{${2}}k_{${3}}k_{${4}} = ${576}`}, ${math`\prod (k_i + ${1}) = ${1 + 22 + 172 + 552 + 576}`}, and ${math`\prod (k_i - ${1}) = ${1 - 22 + 172 - 552 + 576}`}.`,
     t`Start from ${math`${175} = ${5} \times ${5} \times ${7}`}, the product with the fewest factors: it limits each ${math`k_i - ${1}`} to a divisor of ${175}. The other two products then leave ${math`k_i`} equal to ${listOf([2, 6, 6, 8])}.`,
     t`The roots are the negatives: ${listOf([-2, -6, -6, -8])}. As the hints stress, not ${listOf([2, 6, 6, 8])}. Check: ${cm(`(${factor(2)})(${factor(6)})^${2}(${factor(8)})`)} expands to the quartic.`,
+    t`Substitute small values, start from the most restrictive product, and mind the signs.`,
   ],
   reference: '-8, -6, -6, -2',
   verify: () => same('A7 Q3 by expanding', fromRoots([-2, -6, -6, -8]).join(), a7Quartic.join()),
@@ -346,10 +361,17 @@ const a12FracA = auto({
   title: t`Two algebraic fractions`,
   prompt: t`Express as a single fraction: ${math`\frac{${1}}{(x - ${1})(x + ${2})} - \frac{${1}}{(x + ${1})(x + ${2})}`}.`,
   answer: { kind: 'expression', expected: '2/((x - 1)(x + 1)(x + 2))', variables: ['x'] },
+  hints: [
+    t`Which bracket is each denominator missing from the lowest common denominator?`,
+    t`Over that common denominator, what are the two numerators?`,
+    t`What does the numerator simplify to?`,
+  ],
+  nudge: t`Not quite. Put both fractions over one common denominator before subtracting; the top then collapses.`,
   solution: [
     t`The lowest common denominator is ${math`(x - ${1})(x + ${1})(x + ${2})`}: each fraction is missing one bracket.`,
     t`So the difference is ${math`\frac{(x + ${1}) - (x - ${1})}{(x - ${1})(x + ${1})(x + ${2})}`}, and the top is ${2}.`,
     t`The answer is ${math`\frac{${2}}{(x - ${1})(x + ${1})(x + ${2})}`}.`,
+    t`Common denominator first; the numerator often simplifies.`,
   ],
   reference: '2/((x-1)(x+1)(x+2))',
   verify: () => {
@@ -371,10 +393,17 @@ const a12FracB = auto({
   title: t`Products and a sum of fractions`,
   prompt: t`Express as a single fraction: ${math`\frac{m}{m + ${2}} \times \frac{m - ${1}}{m + ${1}} + \frac{m}{m + ${2}} \times \frac{${2}}{m + ${1}} \times \frac{m - ${1}}{m}`}.`,
   answer: { kind: 'expression', expected: '(m - 1)/(m + 1)', variables: ['m'], domains: { m: { kind: 'real', min: 2, max: 9 } } },
+  hints: [
+    t`Which factor cancels inside the second product before anything else?`,
+    t`What common denominator do the two terms then share?`,
+    t`What factor does the combined numerator share with the denominator?`,
+  ],
+  nudge: t`Not quite. Cancel inside each product first; the sum then shares a factor with its denominator.`,
   solution: [
     t`Cancel the ${math`m`} in the second product first: it is ${math`\frac{${2}(m - ${1})}{(m + ${2})(m + ${1})}`}.`,
     t`Both terms now have denominator ${math`(m + ${2})(m + ${1})`}, so the sum is ${math`\frac{m(m - ${1}) + ${2}(m - ${1})}{(m + ${2})(m + ${1})} = \frac{(m + ${2})(m - ${1})}{(m + ${2})(m + ${1})}`}.`,
     t`Cancel ${math`m + ${2}`}: the answer is ${math`\frac{m - ${1}}{m + ${1}}`}. (It reappears in the raffle question of the same assignment.)`,
+    t`Cancel early, and factorise the numerator before the last cancel.`,
   ],
   reference: '(m-1)/(m+1)',
   verify: () => {
@@ -394,10 +423,17 @@ const tmuaQ = auto({
   title: t`Squaring both sides`,
   prompt: t`Solve ${math`\sqrt{${2}x + ${3}} + \sqrt{x + ${1}} = \sqrt{${7}x + ${4}}`}.`,
   answer: { kind: 'exact', expected: '3' },
+  hints: [
+    t`What does squaring both sides give, with the cross term kept?`,
+    t`After isolating the remaining square root and squaring again, which quadratic in ${math`x`} results?`,
+    t`Which root of that quadratic survives when put back into the original equation?`,
+  ],
+  nudge: t`Not quite. Squaring can add roots that do not satisfy the original equation; check each candidate there.`,
   solution: [
     t`Square both sides: ${math`(${2}x + ${3}) + (x + ${1}) + ${2}\sqrt{(${2}x + ${3})(x + ${1})} = ${7}x + ${4}`}, so ${math`\sqrt{(${2}x + ${3})(x + ${1})} = ${2}x`}.`,
     t`Square again: ${math`${2}x^{${2}} + ${5}x + ${3} = ${4}x^{${2}}`}, so ${math`${2}x^{${2}} - ${5}x - ${3} = ${0}`}, which is ${math`(${2}x + ${1})(x - ${3}) = ${0}`}: ${math`x = ${3}`} or ${math`x = ${q(-1, 2)}`}.`,
     t`Squaring can add false roots, so check both in the original. At ${math`x = ${q(-1, 2)}`}, the step ${math`\sqrt{\cdots} = ${2}x`} would make a square root negative: reject it. At ${math`x = ${3}`}: ${math`\sqrt{${9}} + \sqrt{${4}} = ${5} = \sqrt{${25}}`}. The only solution is ${math`x = ${3}`}.`,
+    t`After squaring, check every root in the original equation.`,
   ],
   reference: '3',
   verify: () => {
@@ -414,6 +450,11 @@ const a7ShowGeneral = supervision({
   source: cite(A7, 'Q3, first part (2002 STEP I Q5)'),
   title: t`The general polynomial`,
   prompt: t`Let ${math`f(x) = x^n + a_{${1}}x^{n - ${1}} + \cdots + a_n`}, and suppose ${math`f(x) = (x + k_{${1}})(x + k_{${2}}) \cdots (x + k_n)`}. By considering ${math`f(${0})`}, show that ${math`k_{${1}}k_{${2}} \cdots k_n = a_n`}. Show also that ${math`(k_{${1}} + ${1})(k_{${2}} + ${1}) \cdots (k_n + ${1}) = ${1} + a_{${1}} + a_{${2}} + \cdots + a_n`}, and give the corresponding result for ${math`(k_{${1}} - ${1})(k_{${2}} - ${1}) \cdots (k_n - ${1})`}.`,
+  hints: [
+    t`What is ${math`f(${0})`} from each of the two forms of ${math`f`}?`,
+    t`What is ${math`f(${1})`} from each form?`,
+    t`Which value of ${math`x`} produces the factors ${math`k_i - ${1}`}, and what sign does each factor then carry?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f07-hints', 'Q3'),
 });

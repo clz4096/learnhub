@@ -249,9 +249,16 @@ const q6sum = auto({
   title: t`The total of two Poissons`,
   prompt: t`${math`X`} and ${math`Y`} are independent Poisson random variables, each with parameter ${POI_L}. Find ${math`\mathbb{P}(X + Y = ${2})`}, to four significant figures.`,
   answer: { kind: 'numeric', expected: q6sumVal, relTol: 5e-4 },
+  hints: [
+    t`Which pairs of values of ${math`X`} and ${math`Y`} give ${math`X + Y = ${2}`}?`,
+    t`What is the probability of each pair, by independence?`,
+    t`Adding them, which Poisson probability does the total match?`,
+  ],
+  nudge: t`Not quite. Add the probabilities of every pair with total ${2}, or use that a sum of independent Poissons is Poisson.`,
   solution: [
     t`${math`X + Y`} is Poisson with parameter ${math`${POI_L} + ${POI_L} = ${2 * POI_L}`}: add the ways ${math`(${0}, ${2})`}, ${math`(${1}, ${1})`}, ${math`(${2}, ${0})`} and use the binomial theorem.`,
     t`${math`\mathbb{P}(X + Y = ${2}) = e^{-${2 * POI_L}}\frac{${2 * POI_L}^{${2}}}{${2}!} \approx ${q6sumVal}`}.`,
+    t`Independent Poissons add, and so do their parameters.`,
   ],
   reference: q6sumVal.toPrecision(4),
   verify: () => {
@@ -274,10 +281,17 @@ const q8b = auto({
   title: t`The variance of a random sum`,
   prompt: t`A fair die is rolled ${math`N`} times, where ${math`N`} is independent of the rolls and equally likely to be ${listOf(NUM.xs)}. Let ${math`S_{N}`} be the total score. Find ${math`\operatorname{var}(S_{N})`}.`,
   answer: { kind: 'exact', expected: str(randomSumVar) },
+  hints: [
+    t`What are the mean and variance of one roll, and of ${math`N`}?`,
+    t`Given ${math`N = n`}, what are ${math`\mathbb{E}(S_{N} \mid N = n)`} and ${math`\mathbb{E}(S_{N}^{${2}} \mid N = n)`}?`,
+    t`Averaging over ${math`N`} with the tower law, what are ${math`\mathbb{E}(S_{N})`} and ${math`\mathbb{E}(S_{N}^{${2}})`}?`,
+  ],
+  nudge: t`Not quite. The number of rolls is random too; condition on ${math`N`} and use the tower law for both moments.`,
   solution: [
     t`One roll has ${math`\mu = ${expect(DIE)}`} and ${math`\sigma^{${2}} = ${variance(DIE)}`}; ${math`\mathbb{E}(N) = ${expect(NUM)}`} and ${math`\operatorname{var}(N) = ${variance(NUM)}`}.`,
     t`Given ${math`N = n`}, ${math`\mathbb{E}(S_{N} \mid N = n) = n\mu`} and ${math`\mathbb{E}(S_{N}^{${2}} \mid N = n) = n\sigma^{${2}} + n^{${2}}\mu^{${2}}`}. The tower law gives ${math`\mathbb{E}(S_{N}^{${2}}) = \sigma^{${2}}\mathbb{E}(N) + \mu^{${2}}\mathbb{E}(N^{${2}})`}, so ${math`\operatorname{var}(S_{N}) = \sigma^{${2}}\mathbb{E}(N) + \mu^{${2}}\operatorname{var}(N)`}.`,
     t`${math`${variance(DIE)} \cdot ${expect(NUM)} + ${mul(expect(DIE), expect(DIE))} \cdot ${variance(NUM)} = ${randomSumVar}`}.`,
+    t`A random sum has variance ${math`\sigma^{${2}}\mathbb{E}(N) + \mu^{${2}}\operatorname{var}(N)`}.`,
   ],
   reference: str(randomSumVar),
   verify: () => {
@@ -305,6 +319,11 @@ const q6proof = supervision({
   source: cite(S2, 'Q6'),
   title: t`Two Poissons and their total`,
   prompt: t`Suppose ${math`X`} and ${math`Y`} are independent Poisson random variables with parameters ${math`\lambda`} and ${math`\mu`}. Find the distribution of ${math`X + Y`}. Prove that the conditional distribution of ${math`X`}, given that ${math`X + Y = n`}, is binomial with parameters ${math`n`} and ${math`\lambda/(\lambda + \mu)`}. What is ${math`\mathbb{E}(X \mid X + Y)`}?`,
+  hints: [
+    t`What is ${math`\mathbb{P}(X + Y = n)`}, summing over the value of ${math`X`}, and which theorem simplifies the sum?`,
+    t`What is ${math`\mathbb{P}(X = k, X + Y = n)`}, and what does dividing by ${math`\mathbb{P}(X + Y = n)`} give?`,
+    t`What is the mean of a binomial with those parameters, and how does it give ${math`\mathbb{E}(X \mid X + Y)`}?`,
+  ],
   writeUp: 'proof',
 });
 const q8proof = supervision({
@@ -312,6 +331,11 @@ const q8proof = supervision({
   source: cite(S3, 'Q8(a), (b)'),
   title: t`Random sums`,
   prompt: t`Let ${math`X_{${1}}, X_{${2}}, \ldots`} be i.i.d. with mean ${math`\mu`} and variance ${math`\sigma^{${2}} < \infty`}, ${math`S_{n} = X_{${1}} + \cdots + X_{n}`}, and ${math`N`} a bounded nonnegative integer random variable independent of the ${math`X_{i}`}. Show that ${math`\mathbb{E}(S_{N}) = \mu\mathbb{E}(N)`}, that ${math`\mathbb{E}(S_{N}^{${2}} \mid N = n) = n\sigma^{${2}} + n^{${2}}\mu^{${2}}`}, and hence express ${math`\operatorname{var}(S_{N})`} in terms of ${math`\operatorname{var}(N)`}. Where is the independence of ${math`N`} used?`,
+  hints: [
+    t`Given ${math`N = n`}, what is ${math`\mathbb{E}(S_{N} \mid N = n)`}, and where is the independence of ${math`N`} used?`,
+    t`What is ${math`\mathbb{E}(S_{n}^{${2}})`} in terms of ${math`\operatorname{var}(S_{n})`} and ${math`\mathbb{E}(S_{n})`}?`,
+    t`Applying the tower law to ${math`S_{N}^{${2}}`}, what is ${math`\mathbb{E}(S_{N}^{${2}})`}, and hence ${math`\operatorname{var}(S_{N})`}?`,
+  ],
   writeUp: 'proof',
 });
 const scheduleTower = supervision({
@@ -319,6 +343,11 @@ const scheduleTower = supervision({
   source: cite('tripos-schedules', 'IA Probability, Discrete random variables: "Conditional expectation."', true),
   title: t`The tower law`,
   prompt: t`For discrete ${math`X`} with finite mean and any discrete ${math`Y`}, define ${math`\psi(y) = \mathbb{E}(X \mid Y = y)`} when ${math`\mathbb{P}(Y = y) > ${0}`}. Prove that ${math`\mathbb{E}(\psi(Y)) = \mathbb{E}(X)`}, that ${math`\mathbb{E}(g(Y)X \mid Y) = g(Y)\,\mathbb{E}(X \mid Y)`} for bounded ${math`g`}, and that ${math`\mathbb{E}(X \mid Y) = \mathbb{E}(X)`} when ${math`X`} and ${math`Y`} are independent. Is the converse of the last statement true?`,
+  hints: [
+    t`Written as a sum over ${math`y`}, how does ${math`\mathbb{E}(\psi(Y))`} become a double sum over ${math`x`} and ${math`y`}?`,
+    t`Given ${math`Y = y`}, what is ${math`g(Y)`}, and why can it come out of the conditional expectation?`,
+    t`For the converse, can ${math`X`} depend on ${math`Y`} while every conditional mean of ${math`X`} stays the same, for instance through a symmetry?`,
+  ],
   writeUp: 'proof',
 });
 

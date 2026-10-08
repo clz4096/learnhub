@@ -249,9 +249,16 @@ const q10third = auto({
   title: t`The third draw`,
   prompt: t`In the same urn (one white and one black ball to start), what is the probability that the third ball drawn is white?`,
   answer: { kind: 'exact', expected: str(third()) },
+  hints: [
+    t`Into which four cases do the first two draws split?`,
+    t`What is the probability of each case, and what does the urn hold after it?`,
+    t`Given each case, what is the chance that the third ball is white, and how are the cases combined?`,
+  ],
+  nudge: t`Not quite. Weigh every history of the first two draws by its probability; a symmetry between the colours also gives it quickly.`,
   solution: [
     t`Split by the first two draws, a partition into four cases: ${math`WW`}, ${math`WB`}, ${math`BW`}, ${math`BB`}, with probabilities ${math`${q(1, 3)}, ${q(1, 6)}, ${q(1, 6)}, ${q(1, 3)}`}. Given each, the third draw is white with probability ${math`${q(3, 4)}, ${q(2, 4)}, ${q(2, 4)}, ${q(1, 4)}`}.`,
     t`Adding: ${math`${q(1, 3)} \cdot ${q(3, 4)} + ${q(1, 6)} \cdot ${q(1, 2)} + ${q(1, 6)} \cdot ${q(1, 2)} + ${q(1, 3)} \cdot ${q(1, 4)} = ${third()}`}. By symmetry between the colours this had to be ${q(1, 2)}, although the draws are far from independent.`,
+    t`Partition by the history, or spot the symmetry between the colours.`,
   ],
   reference: str(third()),
   verify: () => same('the four sequences', str(third()), '1/2'),
@@ -263,6 +270,11 @@ const exchange = supervision({
   source: cite(S1, 'Q10', true),
   title: t`Order does not matter`,
   prompt: t`For the Pólya urn starting with one white and one black ball, use the multiplication rule to show that every sequence of ${math`n`} draws with ${math`k`} whites has probability ${math`\frac{k!\,(n - k)!}{(n + ${1})!}`}. Deduce the answer to Q${10}: with ${math`n + ${2}`} balls in the urn, each number of white balls from ${1} to ${math`n + ${1}`} has probability ${math`\frac{${1}}{n + ${1}}`}.`,
+  hints: [
+    t`For a given sequence, what are the denominators of the successive conditional probabilities?`,
+    t`When the ${math`j`}th white ball is drawn, how many white balls are in the urn, and likewise for black?`,
+    t`How many sequences have exactly ${math`k`} whites, and what does multiplying by that count give?`,
+  ],
   writeUp: 'proof',
 });
 const measure = supervision({
@@ -270,6 +282,11 @@ const measure = supervision({
   source: cite('tripos-schedules', 'IA Probability, Axiomatic approach: "Conditional probability"', true),
   title: t`${math`\mathbb{P}(\cdot \mid B)`} is a probability measure`,
   prompt: t`Let ${mB} be an event with ${math`\mathbb{P}(B) > ${0}`}. Prove that ${math`\mathbb{Q}(A) = \mathbb{P}(A \mid B)`} satisfies the axioms: ${math`\mathbb{Q}(A) \ge ${0}`}, ${math`\mathbb{Q}(\Omega) = ${1}`}, and countable additivity. Then prove the multiplication rule for ${math`n`} events by induction, saying which conditional probabilities must be defined.`,
+  hints: [
+    t`Why is ${math`\mathbb{Q}(A) \ge ${0}`}, and what is ${math`\mathbb{Q}(\Omega)`}?`,
+    t`For pairwise disjoint ${math`A_{n}`}, why are the events ${math`A_{n} \cap B`} pairwise disjoint, and what is their union?`,
+    t`For the multiplication rule, which conditional probabilities appear, and why must ${math`\mathbb{P}(A_{${1}} \cap \cdots \cap A_{n - ${1}}) > ${0}`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -287,6 +304,11 @@ const gs4126 = supervision({
   source: cite('gs-ch4', 'Section 4.1, Exercise 26 (page 153)'),
   title: t`Symmetric conditioning`,
   prompt: t`Suppose that ${math`A`} and ${math`B`} are events such that ${math`\mathbb{P}(A \mid B) = \mathbb{P}(B \mid A)`}, ${math`\mathbb{P}(A \cup B) = ${1}`}, and ${math`\mathbb{P}(A \cap B) > ${0}`}. Prove that ${math`\mathbb{P}(A) > \frac{${1}}{${2}}`}.`,
+  hints: [
+    t`Written as quotients with the same numerator, what does the equality of the two conditional probabilities give?`,
+    t`What does the addition rule give for ${math`\mathbb{P}(A \cup B) = ${1}`}?`,
+    t`How does ${math`\mathbb{P}(A \cap B) > ${0}`} turn that equation into a strict inequality?`,
+  ],
   writeUp: 'proof',
 });
 

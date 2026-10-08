@@ -173,6 +173,13 @@ const invRootQ = auto({
   solution: [
     t`${math`(x + h)^{-\frac{${1}}{${2}}} = x^{-\frac{${1}}{${2}}}\left(${1} + \frac{h}{x}\right)^{-\frac{${1}}{${2}}} \approx x^{-\frac{${1}}{${2}}}\left(${1} - \frac{h}{${2}x}\right)`}.`,
     t`So the difference quotient is about ${math`x^{-\frac{${1}}{${2}}} \cdot \left(-\frac{${1}}{${2}x}\right) = -\frac{${1}}{${2}}x^{-\frac{${3}}{${2}}}`}, and that is the limit.`,
+    t`Factor out the main term, then approximate the small correction.`,
+  ],
+  nudge: t`Not quite. Factor ${math`x^{-\frac{${1}}{${2}}}`} out of ${math`(x + h)^{-\frac{${1}}{${2}}}`} first, then use the approximation.`,
+  hints: [
+    t`How can ${math`(x + h)^{-\frac{${1}}{${2}}}`} be written as ${math`x^{-\frac{${1}}{${2}}}`} times a power of ${math`${1} + \frac{h}{x}`}?`,
+    t`With ${math`t = \frac{h}{x}`}, what does the given approximation make that power?`,
+    t`What is the difference quotient then, and what is its limit as ${math`h \to ${0}`}?`,
   ],
   reference: '-1/(2 x sqrt(x))',
   verify: () => agreesAt('derivative of x^(-1/2)', '-(1/2) x^(-3/2)', (x) => numDeriv((u) => u ** -0.5, x, 1e-6), [0.5, 1, 3]),
@@ -189,6 +196,13 @@ const nstD2 = auto({
   solution: [
     t`The chord from ${math`x`} to ${math`x + h`} has gradient ${math`\frac{(x + h)^{${2}} + ${1} - (x^{${2}} + ${1})}{h} = \frac{${2}xh + h^{${2}}}{h} = ${2}x + h`}.`,
     t`As ${math`h \to ${0}`}, this tends to ${math`${2}x`}.`,
+    t`Simplify the difference quotient, then take the limit.`,
+  ],
+  nudge: t`Not quite. Write out the chord gradient and simplify it before letting ${math`h \to ${0}`}.`,
+  hints: [
+    t`What is the gradient of the chord from ${math`x`} to ${math`x + h`}?`,
+    t`After expanding ${math`(x + h)^{${2}}`}, what happens to the constant ${1}, and to the factor ${math`h`}?`,
+    t`What does the simplified gradient tend to as ${math`h \to ${0}`}?`,
   ],
   reference: '2x',
   verify: () => agreesAt('limit of the chord gradient', '2x', (x) => ((x + 1e-7) ** 2 + 1 - (x * x + 1)) / 1e-7, [-2, 0.5, 3], 1e-5),
@@ -204,6 +218,13 @@ const triangleQ = auto({
   solution: [
     t`First ${math`\triangle x^{${2}} = \triangle(x \cdot x) = x\triangle x + x\triangle x = x + x = ${2}x`}, by the product rule and ${math`\triangle x = ${1}`}.`,
     t`Then ${math`\triangle x^{${3}} = \triangle(x \cdot x^{${2}}) = x\triangle x^{${2}} + x^{${2}}\triangle x = x \cdot ${2}x + x^{${2}} \cdot ${1} = ${3}x^{${2}}`}.`,
+    t`Build powers one factor at a time with the product rule.`,
+  ],
+  nudge: t`Not quite. Build up from ${math`x`}: find ${math`\triangle x^{${2}}`} first.`,
+  hints: [
+    t`Writing ${math`x^{${2}} = x \cdot x`}, what does the product rule give for ${math`\triangle x^{${2}}`}?`,
+    t`How can ${math`x^{${3}}`} be written as a product involving ${math`x^{${2}}`}?`,
+    t`Applying the product rule to that product, what is ${math`\triangle x^{${3}}`}?`,
   ],
   reference: '3x^2',
   verify: () => {
@@ -223,6 +244,11 @@ const triangleProof = supervision({
   title: t`STEP: the operator is the derivative`,
   prompt: t`${math`\triangle`} is an operation taking polynomials in ${math`x`} to polynomials in ${math`x`}, with the rules (i) ${math`\triangle x = ${1}`}; (ii) ${math`\triangle(f(x) + g(x)) = \triangle f(x) + \triangle g(x)`}; (iii) ${math`\triangle(\lambda f(x)) = \lambda\triangle f(x)`} for any constant ${math`\lambda`}; (iv) ${math`\triangle(f(x)g(x)) = f(x)\triangle g(x) + g(x)\triangle f(x)`}. Using these rules show that if ${math`f(x)`} is a constant then ${math`\triangle f(x) = ${0}`}. Calculate ${math`\triangle x^{${2}}`} and ${math`\triangle x^{${3}}`}. Prove that ${math`\triangle h(x) \equiv \frac{dh(x)}{dx}`} for any polynomial ${math`h(x)`}, making clear whenever you use one of the rules.`,
   writeUp: 'proof',
+  hints: [
+    t`Applying rule (iv) to ${math`${1} \cdot x`}, what does it say about ${math`\triangle ${1}`}, and then rule (iii) about any constant?`,
+    t`How do ${math`\triangle x^{${2}}`} and ${math`\triangle x^{${3}}`} follow from the product rule, and what pattern do they suggest for ${math`\triangle x^{n}`}?`,
+    t`How does induction on ${math`n`} prove that pattern, and how do rules (ii) and (iii) extend it to every polynomial?`,
+  ],
   official: cite(F20H, 'Assignment 20 hints, Q4'),
 });
 
@@ -232,6 +258,11 @@ const sinProof = supervision({
   title: t`Sine, cosine, and the logarithm from first principles`,
   prompt: t`Using ${math`f'(x) = \lim_{h \to ${0}} \frac{f(x + h) - f(x)}{h}`}, ${math`\sin(A + B) = \sin A\cos B + \cos A\sin B`}, and the small angle approximations ${math`\sin\theta \approx \theta`} and ${math`\cos\theta \approx ${1} - \frac{${1}}{${2}}\theta^{${2}}`} (for ${math`\theta`} in radians), find the derivatives of ${math`\sin x`} and of ${math`\cos x`}. Then, using ${math`\ln(${1} + t) = t - \frac{${1}}{${2}}t^{${2}} + \frac{${1}}{${3}}t^{${3}} - \cdots`} for ${math`-${1} < t < ${1}`}, find the derivative of ${math`\ln x`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Expanding ${math`\sin(x + h)`} with the addition formula, what is the difference quotient?`,
+    t`With the small angle approximations, what do ${math`\frac{\cos h - ${1}}{h}`} and ${math`\frac{\sin h}{h}`} tend to?`,
+    t`For ${math`\ln x`}, how does ${math`\ln(x + h) - \ln x`} become ${math`\ln\left(${1} + \frac{h}{x}\right)`}, and what does the series give for small ${math`h`}?`,
+  ],
   official: cite(F20H, 'Assignment 20 hints, Q1(i), (ii)'),
 });
 

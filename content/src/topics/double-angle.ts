@@ -224,9 +224,16 @@ const a16sin3 = auto({
   title: t`${math`\sin ${3}A`} in terms of ${math`\sin A`}`,
   prompt: t`By first writing ${math`\sin ${3}A = \sin(${2}A + A)`}, write ${math`\sin ${3}A`} in terms of ${math`\sin A`}. Write ${math`s`} for ${math`\sin A`}.`,
   answer: { kind: 'expression', expected: '3s - 4s^3', variables: ['s'], domains: SDOM },
+  hints: [
+    t`What does the compound angle formula give for ${math`\sin(${2}A + A)`}?`,
+    t`Which double angle formulae, in terms of ${math`\sin A`}, replace ${math`\sin ${2}A`} and ${math`\cos ${2}A`}?`,
+    t`Which identity turns ${math`\cos^{${2}} A`} into an expression in ${math`s`}?`,
+  ],
+  nudge: t`Not quite. Expand ${math`\sin(${2}A + A)`}, use the double angle formulae, then remove ${math`\cos^{${2}} A`}; check the result at ${math`A = ${90}^\circ`}.`,
   solution: [
     t`${math`\sin(${2}A + A) = \sin ${2}A\cos A + \cos ${2}A\sin A = ${2}s\cos^{${2}} A + (${1} - ${2}s^{${2}})s`}.`,
     t`Replace ${math`\cos^{${2}} A`} by ${math`${1} - s^{${2}}`}: ${math`${2}s - ${2}s^{${3}} + s - ${2}s^{${3}} = ${3}s - ${4}s^{${3}}`}.`,
+    t`Expand, then use ${math`\sin^{${2}} + \cos^{${2}} = ${1}`} to keep one function.`,
   ],
   reference: '3s - 4s^3',
   verify: () => {
@@ -243,10 +250,17 @@ const a23tan = auto({
   title: t`${math`\tan ${2}\alpha`} for the line to the centre ${math`(${2}t, t)`}`,
   prompt: t`The circle ${math`(x - ${2}t)^{${2}} + (y - t)^{${2}} = t^{${2}}`}, with ${math`t > ${0}`}, has centre ${math`(${2}t, t)`}. Let ${math`\alpha`} be the acute angle between the ${math`x`}-axis and the line from the origin to the centre. Find ${math`\tan ${2}\alpha`}.`,
   answer: { kind: 'exact', expected: '4/3' },
+  hints: [
+    t`What is the gradient of the line from the origin to ${math`(${2}t, t)`}?`,
+    t`So what is ${math`\tan\alpha`}?`,
+    t`What does the double angle formula for tangent give?`,
+  ],
+  nudge: t`Not quite. ${math`\tan ${2}\alpha`} is not ${math`${2}\tan\alpha`}; use the double angle formula.`,
   solution: [
     t`The line from the origin to ${math`(${2}t, t)`} has gradient ${math`\frac{t}{${2}t} = \frac{${1}}{${2}}`}, so ${math`\tan\alpha = \frac{${1}}{${2}}`}.`,
     t`${math`\tan ${2}\alpha = \frac{${2}\tan\alpha}{${1} - \tan^{${2}}\alpha} = \frac{${1}}{${1} - \frac{${1}}{${4}}} = \frac{${4}}{${3}}`}.`,
     t`So the line through the origin at angle ${math`${2}\alpha`} is ${math`y = \frac{${4}}{${3}}x`}, that is ${math`${3}y = ${4}x`}: the second line the circle touches, by symmetry in the line to its centre.`,
+    t`Read ${math`\tan\alpha`} off a gradient, then double the angle by the formula.`,
   ],
   reference: '4/3',
   verify: () => (far(Math.tan(2 * Math.atan(0.5)), 4 / 3) ? 'tan 2 alpha' : null),
@@ -259,6 +273,11 @@ const a23q2iv = supervision({
   source: cite('step-f23', 'Q2(iv)'),
   title: t`The double angle formula for tangent`,
   prompt: t`Use the formulae for ${math`\sin ${2}\alpha`} and ${math`\cos ${2}\alpha`} in terms of ${math`\sin\alpha`} and ${math`\cos\alpha`} to show that ${math`\tan ${2}\alpha = \frac{${2}\tan\alpha}{${1} - \tan^{${2}}\alpha}`}. For which ${math`\alpha`} does the argument need care?`,
+  hints: [
+    t`What is ${math`\tan ${2}\alpha`} as a quotient of ${math`\sin ${2}\alpha`} and ${math`\cos ${2}\alpha`}?`,
+    t`Dividing the top and bottom by ${math`\cos^{${2}}\alpha`}, what does each part become?`,
+    t`For which ${math`\alpha`} is ${math`\cos\alpha = ${0}`} or ${math`\tan^{${2}}\alpha = ${1}`}, and what happens there?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f23-hints', 'Q2(iv)'),
 });
@@ -268,6 +287,11 @@ const a25q2v = supervision({
   source: cite('step-f25', 'Q2(v)'),
   title: t`A double angle identity with tangent`,
   prompt: t`Show that ${math`\frac{${1} + \sin ${2}\alpha}{${1} + \cos ${2}\alpha} = \frac{${1}}{${2}}(${1} + \tan\alpha)^{${2}}`}, stating where the identity is valid.`,
+  hints: [
+    t`Which form of ${math`\cos ${2}\alpha`} makes ${math`${1} + \cos ${2}\alpha`} a single term?`,
+    t`How can ${math`${1} + \sin ${2}\alpha`} be written as a perfect square in ${math`\sin\alpha`} and ${math`\cos\alpha`}?`,
+    t`After dividing by ${math`\cos^{${2}}\alpha`}, where must the identity exclude values of ${math`\alpha`}?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f25-hints', 'Q2(v)'),
 });
@@ -282,6 +306,11 @@ const db05q4 = supervision({
   source: cite(DB05, 'Q4'),
   title: t`Triple angles from a ${math`${3}`}, ${math`${4}`}, ${math`${5}`} triangle, and ${math`\tan ${3}\theta`}`,
   prompt: t`(i) Given that ${math`\cos\theta = \frac{${3}}{${5}}`} and that ${math`\frac{${3}\pi}{${2}} \le \theta \le ${2}\pi`}, show that ${math`\sin ${2}\theta = -\frac{${24}}{${25}}`}, and evaluate ${math`\cos ${3}\theta`}. (ii) Prove the identity ${dmath`\tan ${3}\theta \equiv \frac{${3}\tan\theta - \tan^{${3}}\theta}{${1} - ${3}\tan^{${2}}\theta}.`} Hence evaluate ${math`\tan\theta`}, given that ${math`\tan ${3}\theta = \frac{${11}}{${2}}`} and that ${math`\frac{\pi}{${4}} \le \theta \le \frac{\pi}{${2}}`}.`,
+  hints: [
+    t`In the given range, what is the sign of ${math`\sin\theta`}, and its value?`,
+    t`Which formulae give ${math`\sin ${2}\theta`} and ${math`\cos ${3}\theta`}?`,
+    t`For (ii), writing ${math`\tan ${3}\theta = \tan(${2}\theta + \theta)`}, which cubic in ${math`\tan\theta`} results, and which root fits the range?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -293,9 +322,16 @@ const db05q4cos = auto({
   title: t`${math`\cos ${3}\theta`} from ${math`\cos\theta = \frac{${3}}{${5}}`}`,
   prompt: t`Given that ${math`\cos\theta = \frac{${3}}{${5}}`} and that ${math`\frac{${3}\pi}{${2}} \le \theta \le ${2}\pi`}, evaluate ${math`\cos ${3}\theta`}.`,
   answer: { kind: 'exact', expected: str(COS3) },
+  hints: [
+    t`Which formula gives ${math`\cos ${3}\theta`} in terms of ${math`\cos\theta`} alone?`,
+    t`What is ${math`\cos^{${3}}\theta`}?`,
+    t`Does the quadrant of ${math`\theta`} matter for this formula?`,
+  ],
+  nudge: t`Not quite. Use the triple angle formula ${math`${4}\cos^{${3}}\theta - ${3}\cos\theta`}, which needs only ${math`\cos\theta`}.`,
   solution: [
     t`${math`\cos ${3}\theta = ${4}\cos^{${3}}\theta - ${3}\cos\theta`}, which needs only ${math`\cos\theta`}.`,
     t`${math`${4} \cdot \frac{${27}}{${125}} - ${3} \cdot \frac{${3}}{${5}} = \frac{${108}}{${125}} - \frac{${225}}{${125}} = ${COS3}`}.`,
+    t`Choose the form of a formula that needs only what is known.`,
   ],
   reference: str(COS3),
   verify: () => close('cos 3 theta', Math.cos(3 * (2 * Math.PI - Math.acos(0.6))), Number(COS3.num) / Number(COS3.den), 1e-12),
@@ -312,10 +348,17 @@ const db05q4tan = auto({
   title: t`${math`\tan\theta`} from ${math`\tan ${3}\theta = \frac{${11}}{${2}}`}`,
   prompt: t`Given ${math`\tan ${3}\theta = \frac{${3}\tan\theta - \tan^{${3}}\theta}{${1} - ${3}\tan^{${2}}\theta}`}, evaluate ${math`\tan\theta`}, given that ${math`\tan ${3}\theta = \frac{${11}}{${2}}`} and that ${math`\frac{\pi}{${4}} \le \theta \le \frac{\pi}{${2}}`}. Give it exactly.`,
   answer: { kind: 'expression', expected: TAN, variables: [] },
+  hints: [
+    t`With ${math`t = \tan\theta`}, which cubic does the given value produce?`,
+    t`Which simple rational root does the cubic have, and what quadratic remains?`,
+    t`In the given range, how large must ${math`\tan\theta`} be, and which root qualifies?`,
+  ],
+  nudge: t`Not quite. Find all three roots of the cubic, then use the range of ${math`\theta`} to choose.`,
   solution: [
     t`Let ${math`t = \tan\theta`}. Then ${math`${2}(${3}t - t^{${3}}) = ${11}(${1} - ${3}t^{${2}})`}, that is ${math`${2}t^{${3}} - ${33}t^{${2}} - ${6}t + ${11} = ${0}`}.`,
     t`${math`t = \frac{${1}}{${2}}`} is a root: ${math`\frac{${2}}{${8}} - \frac{${33}}{${4}} - ${3} + ${11} = ${0}`}. Dividing out, ${math`(${2}t - ${1})(t^{${2}} - ${16}t - ${11}) = ${0}`}, so ${math`t = \frac{${1}}{${2}}`} or ${math`t = ${8} \pm \sqrt{${75}} = ${8} \pm ${5}\sqrt{${3}}`}.`,
     t`For ${math`\frac{\pi}{${4}} \le \theta \le \frac{\pi}{${2}}`}, ${math`\tan\theta \ge ${1}`}: only ${math`t = ${8} + ${5}\sqrt{${3}}`} qualifies (${math`${8} - ${5}\sqrt{${3}}`} is negative).`,
+    t`Solve fully, then let the range choose the root.`,
   ],
   reference: TAN,
   verify: () => {
@@ -337,6 +380,11 @@ const db11q3 = supervision({
   source: cite(DB11, 'Q3, identity (*)'),
   title: t`A product of three sines`,
   prompt: t`Prove the identity ${dmath`${4}\sin\theta\sin\left(\tfrac{${1}}{${3}}\pi - \theta\right)\sin\left(\tfrac{${1}}{${3}}\pi + \theta\right) = \sin ${3}\theta.`}`,
+  hints: [
+    t`Which product-to-sum formula simplifies ${math`\sin\left(\tfrac{${1}}{${3}}\pi - \theta\right)\sin\left(\tfrac{${1}}{${3}}\pi + \theta\right)`}?`,
+    t`What are ${math`\cos ${2}\theta`} and ${math`\cos\tfrac{${2}}{${3}}\pi`} in the result?`,
+    t`Multiplying by ${math`${4}\sin\theta`}, how does the expression compare with ${math`${3}\sin\theta - ${4}\sin^{${3}}\theta`}?`,
+  ],
   writeUp: 'proof',
 });
 

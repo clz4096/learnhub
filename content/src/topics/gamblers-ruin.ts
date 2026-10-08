@@ -195,11 +195,18 @@ const q8top = auto({
   id: 'sheet3-q8c-top',
   source: cite(SH3, 'Q8(c)', true),
   title: t`Stopped at ${math`\pm ${A2}`}: which end?`,
-  prompt: t`A walk starts at ${0} and steps ${1} up with probability ${P23} or ${1} down otherwise, independently. It stops at the first time ${math`|S_{n}| = ${A2}`}. What is the probability that it stops at ${A2}?`,
+  prompt: t`A walk starts at ${0} and steps ${1} up with probability ${P23} or ${1} down otherwise, independently. It stops at the first time ${math`|S_{n}| = ${A2}`}. Find the probability that it stops at ${A2}.`,
   answer: { kind: 'exact', expected: str(topAt(A2, P23)) },
   solution: [
     t`Shifted by ${A2}, it is gambler's ruin from ${A2} on ${math`${0}, \ldots, ${2 * A2}`} with ${math`\rho = \frac{q}{p} = ${q(1, 2)}`}.`,
-    t`${math`h = \frac{${1} - \rho^{${A2}}}{${1} - \rho^{${2 * A2}}} = \frac{${1}}{${1} + \rho^{${A2}}} = \frac{${1}}{${1} + ${rpow(q(1, 2), A2)}} = ${topAt(A2, P23)}`}. Or directly: the first two steps decide it unless they cancel, so ${math`h = \frac{p^{${2}}}{p^{${2}} + q^{${2}}} = \frac{${q(4, 9)}}{${q(5, 9)}}`}.`,
+    t`${math`h = \frac{${1} - \rho^{${A2}}}{${1} - \rho^{${2 * A2}}} = \frac{${1}}{${1} + \rho^{${A2}}} = \frac{${1}}{${1} + ${rpow(q(1, 2), A2)}} = ${topAt(A2, P23)}`}. Or directly: the first two steps decide it unless they cancel, so ${math`h = \frac{p^{${2}}}{p^{${2}} + q^{${2}}} = \frac{${q(4, 9)}}{${q(5, 9)}} = ${topAt(A2, P23)}`}.`,
+    t`Condition on the steps that can settle the outcome; a return to the start repeats the problem.`,
+  ],
+  nudge: t`Not quite. One step up does not settle it; ask what the first two steps can do.`,
+  hints: [
+    t`After two steps, where can the walk be, and with what probabilities?`,
+    t`If the two steps cancel, where is the walk, and what then?`,
+    t`Conditioning on the first two steps, which equation does ${math`h`}, the probability of stopping at ${A2}, satisfy?`,
   ],
   reference: str(topAt(A2, P23)),
   verify: () => same('the closed form', str(topAt(A2, P23)), str(ruinTop(A2, 2 * A2, P23))) ?? same('the two-step argument', str(topAt(A2, P23)), '4/5'),
@@ -212,13 +219,23 @@ const schedule = supervision({
   title: t`Gambler's ruin, proved`,
   prompt: t`A walk on ${math`${0}, ${1}, \ldots, N`} steps up with probability ${math`p`} and down with probability ${math`q = ${1} - p`}, stopping at ${0} or ${math`N`}. Let ${math`h_{k}`} be the probability of reaching ${math`N`} first from ${math`k`}. Derive ${math`h_{k} = ph_{k + ${1}} + qh_{k - ${1}}`} and solve it, separately for ${math`p \ne q`} and ${math`p = q`}. Why is the solution of the difference equation with these boundary values unique?`,
   writeUp: 'proof',
+  hints: [
+    t`Conditioning on the first step from ${math`k`}, which equation does ${math`h_{k}`} satisfy, and what are ${math`h_{${0}}`} and ${math`h_{N}`}?`,
+    t`Writing ${math`h_{k + ${1}} - h_{k}`} in terms of ${math`h_{k} - h_{k - ${1}}`}, what pattern appears when ${math`p \ne q`}, and when ${math`p = q`}?`,
+    t`If two solutions share the boundary values, what equation and boundary values does their difference satisfy?`,
+  ],
 });
 const finiteT = supervision({
   id: 'sheet3-q8c-finite',
   source: cite(SH3, 'Q8(c)'),
   title: t`The walk stops`,
-  prompt: t`For the ${math`\pm ${1}`} walk and ${math`T = \min\{n \ge ${0} : |S_{n}| = a\}`}, explain why ${math`P(T < \infty) = ${1}`}, whatever ${math`p`} is: consider the blocks of ${math`${2}a`} consecutive steps, and the event that every step in a block is the same.`,
+  prompt: t`For the ${math`\pm ${1}`} walk and ${math`T = \min\{n \ge ${0} : |S_{n}| = a\}`}, explain why ${math`P(T < \infty) = ${1}`}, whatever ${math`p`} is.`,
   writeUp: 'explanation',
+  hints: [
+    t`If ${math`${2}a`} consecutive steps all go the same way, can the walk still be strictly between ${math`-a`} and ${math`a`} afterwards?`,
+    t`What is the probability that a given block of ${math`${2}a`} consecutive steps all go the same way, and is it positive?`,
+    t`Over ${math`m`} separate blocks, what is the probability that no block has all its steps the same, and what happens as ${math`m \to \infty`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -215,6 +215,7 @@ const a8q2iv = auto({
     t`Substitute ${math`x^{${2}} = ${4} - y^{${2}}`}: ${math`${32} - ${8}y^{${2}} + ${4}y^{${2}} - ${8}y + ${4} = ${36}`}, which simplifies to ${math`-${4}y^{${2}} - ${8}y = ${0}`}, that is ${math`${4}y(y + ${2}) = ${0}`}.`,
     t`${math`y = ${0}`} gives ${math`x^{${2}} = ${4}`}, so ${math`x = \pm ${2}`}: two points. ${math`y = -${2}`} gives ${math`x^{${2}} = ${0}`}, so ${math`x = ${0}`}: one point, where the curves touch.`,
     t`The solutions are ${math`(${2}, ${0})`}, ${math`(-${2}, ${0})`}, and ${math`(${0}, -${2})`}.`,
+    t`Each root in ${math`y`} can give two points, one, or none: count them separately.`,
   ],
   reference: listText(IV),
   verify: () => {
@@ -224,6 +225,12 @@ const a8q2iv = auto({
   },
   misconceptions: [{ response: '2, 0, 0, -2', why: t`${math`y = ${0}`} gives two values of ${math`x`}, ${math`\pm ${2}`}: three points in all.` }],
   official: { source: cite('step-f08-hints', 'Q2(iv)'), answer: '2, 0, -2, 0, 0, -2', agrees: true },
+  nudge: t`Not quite. Substituting for ${math`x^{${2}}`} leaves a quadratic in ${math`y`}, and each ${math`y`} can give two values of ${math`x`}, or only one.`,
+  hints: [
+    t`From the circle, what is ${math`x^{${2}}`} in terms of ${math`y`}?`,
+    t`After substituting into the second equation, what quadratic in ${math`y`} results, and what are its roots?`,
+    t`For each root, how many values of ${math`x`} satisfy ${math`x^{${2}} = ${4} - y^{${2}}`}?`,
+  ],
 });
 
 const ELL = [2, 1, 2, -1];
@@ -242,6 +249,7 @@ const a8q3pts = auto({
     t`Expand: ${math`${9}x^{${2}} - ${18}x + ${9} - ${8}x^{${2}} - ${32}x - ${32} = -${119}`}, that is ${math`x^{${2}} - ${50}x + ${96} = ${0}`}, so ${math`(x - ${48})(x - ${2}) = ${0}`}.`,
     t`${math`x = ${48}`} gives ${math`${2}y^{${2}} = ${18} - ${50}^{${2}} < ${0}`}: no real point. ${math`x = ${2}`} gives ${math`${16} + ${2}y^{${2}} = ${18}`}, so ${math`y = \pm ${1}`}.`,
     t`The ellipses meet at ${math`(${2}, ${1})`} and ${math`(${2}, -${1})`}.`,
+    t`Eliminate one variable, then check every root against the original curves.`,
   ],
   reference: listText(ELL),
   verify: () => {
@@ -260,6 +268,12 @@ const a8q3pts = auto({
   },
   misconceptions: [{ response: '2, 1, 2, -1, 48, 0', why: t`${math`x = ${48}`} is a root of the quadratic, but it needs ${math`y^{${2}} < ${0}`}: there is no real point there.` }],
   official: { source: cite('step-f08-hints', 'Q3'), answer: '2, 1, 2, -1', agrees: true },
+  nudge: t`Not quite. Eliminating ${math`y`} first leaves one quadratic in ${math`x`}; then check that each root gives a real ${math`y`}.`,
+  hints: [
+    t`Which multiple of the first equation makes its ${math`y^{${2}}`} term match the second equation's?`,
+    t`After subtracting to remove ${math`y`}, what quadratic in ${math`x`} is left?`,
+    t`For each root ${math`x`}, does ${math`y^{${2}}`} come out non-negative?`,
+  ],
 });
 
 const a8q3 = supervision({
@@ -269,6 +283,11 @@ const a8q3 = supervision({
   prompt: t`(${2002} STEP I Q${1}) Show that the equation of any circle passing through the points of intersection of the ellipse ${math`(x + ${2})^{${2}} + ${2}y^{${2}} = ${18}`} and the ellipse ${math`${9}(x - ${1})^{${2}} + ${16}y^{${2}} = ${25}`} can be written in the form ${math`x^{${2}} - ${2}ax + y^{${2}} = ${5} - ${4}a`}.`,
   writeUp: 'proof',
   official: cite('step-f08-hints', 'Q3'),
+  hints: [
+    t`Where do the two ellipses meet, and how does eliminating ${math`y^{${2}}`} between the equations find the ${math`x`}-coordinates?`,
+    t`The meeting points are mirror images in the ${math`x`}-axis: why must the centre of any circle through them lie on that axis?`,
+    t`With centre ${math`(a, ${0})`}, what radius makes the circle pass through the meeting points, and what equation results on expanding?`,
+  ],
 });
 
 const A23C = [-2, 1, 7, 4];
@@ -286,6 +305,7 @@ const a23c = auto({
     t`The line gives ${math`x = ${3}y - ${5}`}. Substitute: ${math`(${3}y - ${5})^{${2}} + y^{${2}} - ${6}(${3}y - ${5}) - ${2}y - ${15} = ${0}`}.`,
     t`Expand: ${math`${9}y^{${2}} - ${30}y + ${25} + y^{${2}} - ${18}y + ${30} - ${2}y - ${15} = ${10}y^{${2}} - ${50}y + ${40} = ${0}`}, that is ${math`y^{${2}} - ${5}y + ${4} = (y - ${1})(y - ${4}) = ${0}`}.`,
     t`${math`y = ${1}`} gives ${math`x = -${2}`}; ${math`y = ${4}`} gives ${math`x = ${7}`}. The points are ${math`(-${2}, ${1})`} and ${math`(${7}, ${4})`}.`,
+    t`Substitute the linear equation into the quadratic, choosing the variable that avoids fractions.`,
   ],
   reference: listText(A23C),
   verify: () => {
@@ -298,6 +318,12 @@ const a23c = auto({
   },
   misconceptions: [{ response: '1, -2, 4, 7', why: t`The coordinates are swapped: ${math`y = ${1}`} gives the point ${math`(-${2}, ${1})`}.` }],
   official: { source: cite('step-f23-hints', 'Q2(ii)(c)'), answer: '-2, 1, 7, 4', agrees: true },
+  nudge: t`Not quite. Making ${math`x`} the subject of the line avoids fractions; substituting then gives a quadratic in ${math`y`}.`,
+  hints: [
+    t`From the line, what is ${math`x`} in terms of ${math`y`}?`,
+    t`After substituting into the circle, what quadratic in ${math`y`} results?`,
+    t`What are its roots, and which ${math`x`} goes with each ${math`y`}?`,
+  ],
 });
 
 const a23iii = auto({
@@ -312,11 +338,18 @@ const a23iii = auto({
   solution: [
     t`Where they meet, ${math`x^{${2}} - ax + ${1} = ${0}`}. Two distinct points need ${math`a^{${2}} - ${4} > ${0}`}, that is ${math`a < -${2}`} or ${math`a > ${2}`}.`,
     t`The line touches when ${math`a^{${2}} - ${4} = ${0}`}: ${math`a = ${2}`} or ${math`a = -${2}`}. The tangents through ${math`(${0}, -${1})`} are ${math`y = ${2}x - ${1}`} and ${math`y = -${2}x - ${1}`}.`,
+    t`Tangency is a repeated root: set the discriminant to zero.`,
   ],
   reference: '2, -2',
   verify: () => ([2, -2].every((a) => a * a - 4 === 0) && [1.9, 2.1].every((a) => (a * a - 4 > 0) === a > 2) ? null : 'discriminant check failed'),
   misconceptions: [{ response: '1, -1', why: t`The discriminant of ${math`x^{${2}} - ax + ${1}`} is ${math`a^{${2}} - ${4}`}, with the ${4} from ${math`${4} \times ${1} \times ${1}`}.` }],
   official: { source: cite('step-f23-hints', 'Q2(iii)'), answer: '2, -2', agrees: true },
+  nudge: t`Not quite. Touching means the equation for the meeting points has exactly one root.`,
+  hints: [
+    t`Where ${math`L`} meets ${math`C`}, what quadratic equation in ${math`x`} holds?`,
+    t`What condition on the discriminant means the line touches the curve rather than crossing it?`,
+    t`For which values of ${math`a`} does that condition hold?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

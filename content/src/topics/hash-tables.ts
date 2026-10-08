@@ -179,11 +179,18 @@ const loadFactor = auto({
   id: 'cs3110-9-load-factor',
   source: cite('cs3110-ex9', 'Exercises: hashtbl usage, hashtbl stats, hashtbl load factor', true),
   title: t`The load factor of ${ml`tab`}`,
-  prompt: t`${ml`let tab = Hashtbl.create ${16}`} makes a table with ${16} buckets; then ${31} bindings with distinct keys are added. The load factor is the number of bindings divided by the number of buckets. What is the load factor of ${ml`tab`}, as a fraction?`,
+  prompt: t`${ml`let tab = Hashtbl.create ${16}`} makes a table with ${16} buckets; then ${31} bindings with distinct keys are added. The load factor is the number of bindings divided by the number of buckets. Find the load factor of ${ml`tab`}, as a fraction.`,
   answer: { kind: 'exact', expected: '31/16' },
   solution: [
     t`${ml`Hashtbl`} resizes only when the load factor goes strictly above ${2}; ${math`${31}/${16} \le ${2}`}, so there are still ${16} buckets.`,
     t`The load factor is ${math`\frac{${31}}{${16}}`}, about ${31 / 16}.`,
+    t`Check whether a resize has happened before dividing.`,
+  ],
+  nudge: t`Not quite. Check whether the table has resized before dividing.`,
+  hints: [
+    t`When does ${ml`Hashtbl`} resize?`,
+    t`With ${31} bindings in ${16} buckets, is that condition met?`,
+    t`How many bindings and how many buckets are there, then?`,
   ],
   reference: '31/16',
   verify: () => same('buckets after 31 bindings', resized({ b: 16, n: 31 }, ocamlRule), 16),
@@ -193,11 +200,18 @@ const resize33 = auto({
   id: 'cs3110-9-resize',
   source: cite('cs3110-ex9', 'Exercise: hashtbl load factor', true),
   title: t`When ${ml`Hashtbl`} resizes`,
-  prompt: t`Continuing: one more binding is added to ${ml`tab`} (${32} in all), then another (${33}). ${ml`Hashtbl`} resizes when the load factor goes strictly above ${2}, doubling its buckets. How many buckets does ${ml`tab`} have after the ${33}rd binding?`,
+  prompt: t`Continuing: one more binding is added to ${ml`tab`} (${32} in all), then another (${33}). ${ml`Hashtbl`} resizes when the load factor goes strictly above ${2}, doubling its buckets. Find the number of buckets in ${ml`tab`} after the ${33}rd binding.`,
   answer: { kind: 'exact', expected: String(resized({ b: 16, n: 33 }, ocamlRule)) },
   solution: [
     t`With ${32} bindings the load factor is ${math`${32}/${16} = ${2}`}, not strictly above ${2}: no resize.`,
     t`The ${33}rd makes it ${math`${33}/${16} > ${2}`}, so the buckets double to ${32}, and the load factor drops to ${math`${33}/${32}`}.`,
+    t`Strictly above means equality does not trigger a resize.`,
+  ],
+  nudge: t`Not quite. Check the load factor after each new binding, and mind the word "strictly".`,
+  hints: [
+    t`What is the load factor with ${32} bindings in ${16} buckets?`,
+    t`Does that trigger a resize, given the rule "strictly above ${2}"?`,
+    t`What happens with the ${33}rd binding?`,
   ],
   reference: '32',
   verify: () => same('buckets after 32 and 33 bindings', `${resized({ b: 16, n: 32 }, ocamlRule)},${resized({ b: 16, n: 33 }, ocamlRule)}`, '16,32'),
@@ -207,8 +221,13 @@ const relaxRi = supervision({
   id: 'cs3110-9-relax-ri',
   source: cite('cs3110-ex9', 'Exercises: relax bucket RI, strengthen bucket RI'),
   title: t`Changing the bucket invariant`,
-  prompt: t`Hash table buckets must not contain duplicate keys. What would happen if we relaxed this invariant to allow duplicates? And if we strengthened it to require each bucket to be sorted by key? For each change, would the efficiency of ${ml`insert`}, ${ml`find`}, or ${ml`remove`} change, and how?`,
+  prompt: t`Hash table buckets must not contain duplicate keys. What would happen if this invariant were relaxed to allow duplicates? And if it were strengthened to require each bucket to be sorted by key? For each change, would the efficiency of ${ml`insert`}, ${ml`find`}, or ${ml`remove`} change, and how?`,
   writeUp: 'explanation',
+  hints: [
+    t`With duplicates allowed, what must ${ml`insert`} still check, and what must ${ml`remove`} now do?`,
+    t`With duplicates allowed, how does a bucket's length relate to the number of distinct keys?`,
+    t`With sorted buckets, which operations must keep the order, and can ${ml`find`} stop early?`,
+  ],
 });
 const probing = supervision({
   id: 'cs3110-9-linear-probing',
@@ -216,6 +235,11 @@ const probing = supervision({
   title: t`A hash table with linear probing`,
   prompt: t`Implement a hash table that uses linear probing instead of chaining: one binding per bucket, and on a collision search forward, wrapping round. Removal leaves a "deleted" marker. Double the array when (bindings plus deleted) divided by buckets exceeds ${math`\frac{${1}}{${2}}`}, and halve it when bindings divided by buckets falls below ${math`\frac{${1}}{${8}}`}. Explain why a removed binding cannot simply leave its bucket empty.`,
   writeUp: 'explanation',
+  hints: [
+    t`On a collision, where does ${ml`insert`} put a binding, and where does ${ml`find`} look for it?`,
+    t`When does ${ml`find`} stop searching?`,
+    t`If a binding between a key's home bucket and its actual bucket were removed and left empty, what would ${ml`find`} conclude?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

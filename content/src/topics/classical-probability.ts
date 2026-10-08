@@ -202,9 +202,16 @@ const q2b = auto({
   title: t`Meeting in the final`,
   prompt: t`${tourIntro} Calculate the probability that they meet in the final.`,
   answer: { kind: 'expression', expected: '1/(2^(n - 1) * (2^n - 1))', variables: ['n'], domains: N_DOMAIN },
+  hints: [
+    t`For the two to meet in the final, where in the draw must they be?`,
+    t`What is the probability that the second player is in the other half?`,
+    t`How many matches must each win before the final, and with what probability?`,
+  ],
+  nudge: t`Not quite. Opposite halves are not enough; both players must also reach the final.`,
   solution: [
     t`They must be in opposite halves of the draw: the second player is in the other half with probability ${math`\frac{${2}^{n - ${1}}}{${2}^{n} - ${1}}`}.`,
     t`Then each must win ${math`n - ${1}`} matches, probability ${math`\left(\frac{${1}}{${2}}\right)^{n - ${1}}`} each: ${math`\frac{${2}^{n - ${1}}}{${2}^{n} - ${1}} \times \frac{${1}}{${4}^{n - ${1}}} = \frac{${1}}{${2}^{n - ${1}}(${2}^{n} - ${1})}`}.`,
+    t`Split the event into placement and results, then multiply.`,
   ],
   reference: '1/(2^(n - 1) * (2^n - 1))',
   verify: () => {
@@ -223,9 +230,16 @@ const q2c = auto({
   title: t`Meeting in any round`,
   prompt: t`${tourIntro} Calculate the probability that they meet in some round.`,
   answer: { kind: 'expression', expected: '1/2^(n - 1)', variables: ['n'], domains: N_DOMAIN },
+  hints: [
+    t`How many matches are played in the whole tournament?`,
+    t`How many pairs of players are there?`,
+    t`By symmetry, is every pair equally likely to be one of the pairs that play?`,
+  ],
+  nudge: t`Not quite. Summing round by round works, but counting all the matches is quicker.`,
   solution: [
     t`Count matches: every match knocks one player out, and all but one go out, so there are ${math`${2}^{n} - ${1}`} matches, each between a different pair.`,
     t`The chosen pair is equally likely to be any of ${math`\binom{${2}^{n}}{${2}} = ${2}^{n - ${1}}(${2}^{n} - ${1})`} pairs, and by symmetry each pair is equally likely to play, so the probability is ${math`\frac{${2}^{n} - ${1}}{${2}^{n - ${1}}(${2}^{n} - ${1})} = \frac{${1}}{${2}^{n - ${1}}}`}.`,
+    t`Count matches, not rounds: symmetry does the rest.`,
   ],
   reference: '1/2^(n - 1)',
   verify: () => {
@@ -247,9 +261,16 @@ const q3 = auto({
   title: t`Halving a deck`,
   prompt: t`A full deck of ${52} cards is divided in half at random. Find the probability that each half contains the same number of red and black cards, as a decimal to four places.`,
   answer: { kind: 'numeric', expected: Number(toFloat(deck).toFixed(4)), absTol: 0.00005 },
+  hints: [
+    t`What is the sample space, and how many equally likely outcomes does it have?`,
+    t`In how many ways can a half contain exactly ${13} red and ${13} black cards?`,
+    t`Does the first half fix the colours in the second?`,
+  ],
+  nudge: t`Not quite. Count the halves with exactly ${13} red cards, over all possible halves.`,
   solution: [
     t`The sample space: the ${math`\binom{${52}}{${26}}`} equally likely choices of the first half. Each half has ${13} red and ${13} black exactly when the first half does: ${math`\binom{${26}}{${13}}`} ways to choose its red cards and ${math`\binom{${26}}{${13}}`} its black.`,
     t`${dmath`\frac{\binom{${26}}{${13}}^{${2}}}{\binom{${52}}{${26}}} = \frac{${Number(chooseBig(26, 13))}^{${2}}}{${Number(chooseBig(52, 26))}} \approx ${Number(toFloat(deck).toFixed(4))}.`}`,
+    t`The most likely outcome can still be unlikely: count, do not guess.`,
   ],
   reference: String(Number(toFloat(deck).toFixed(4))),
   verify: () => {
@@ -283,9 +304,16 @@ const q11 = auto({
   title: t`Mary and John`,
   prompt: t`Mary tosses two coins and John tosses one coin. What is the probability that Mary gets more heads than John? Answer the same question if Mary tosses three coins and John tosses two.`,
   answer: { kind: 'table', cell: 'exact', columns: [t`Mary, John`, t`probability`], rows: [[t`${2} coins, ${1} coin`, null], [t`${3} coins, ${2} coins`, null]], expected: [str(coins(2, 1)), str(coins(3, 2))] },
+  hints: [
+    t`With two coins against one, how many equally likely outcomes are there?`,
+    t`In which of them does Mary get strictly more heads?`,
+    t`With three coins against two, which pairs of head counts favour Mary, and how likely is each?`,
+  ],
+  nudge: t`Not quite. Ties go against Mary; count only the outcomes where she is strictly ahead.`,
   solution: [
-    t`Two against one: ${8} equally likely outcomes. Mary wins with ${1} head against ${0}, or ${2} heads against at most ${1}: ${math`\frac{${2}}{${4}} \times \frac{${1}}{${2}} + \frac{${1}}{${4}} = ${coins(2, 1)}`}.`,
-    t`Three against two: ${32} outcomes; counting them gives ${coins(3, 2)} again. The conjecture: with ${math`n + ${1}`} coins against ${mn}, the answer is always ${q(1, 2)}.`,
+    t`Two against one: Mary wins with ${1} head against ${0}, or ${2} heads against at most ${1}: ${math`\frac{${2}}{${4}} \times \frac{${1}}{${2}} + \frac{${1}}{${4}} = ${coins(2, 1)}`}.`,
+    t`Three against two, by John's heads: ${math`\frac{${1}}{${4}} \times \frac{${7}}{${8}} + \frac{${2}}{${4}} \times \frac{${4}}{${8}} + \frac{${1}}{${4}} \times \frac{${1}}{${8}} = ${coins(3, 2)}`}.`,
+    t`Count equally likely outcomes; a tie is not a win.`,
   ],
   reference: [str(coins(2, 1)), str(coins(3, 2))],
   verify: () => {
@@ -299,7 +327,12 @@ const q11proof = supervision({
   id: 'ia-q11-proof',
   source: cite('ia-prob-sheet-1', 'Q11'),
   title: t`Prove the conjecture`,
-  prompt: t`Mary tosses ${math`n + ${1}`} coins and John tosses ${mn}. Prove that the probability that Mary gets more heads than John is ${q(1, 2)}. Hint: consider Mary's first ${mn} coins against John's, and her last coin; or the symmetry between heads and tails.`,
+  prompt: t`Mary tosses ${math`n + ${1}`} coins and John tosses ${mn}. Find, with proof, the probability that Mary gets more heads than John.`,
+  hints: [
+    t`Comparing Mary's first ${mn} coins with John's ${mn}, what are the three possibilities, and which two have equal probability?`,
+    t`In each of those cases, what must Mary's last coin do for her to finish with more heads?`,
+    t`Alternatively, how does swapping heads and tails turn more heads for Mary into more tails for Mary, and why does exactly one of the two happen?`,
+  ],
   writeUp: 'proof',
 });
 const q2space = supervision({
@@ -307,6 +340,11 @@ const q2space = supervision({
   source: cite('ia-prob-sheet-1', 'Q2, the hint'),
   title: t`One probability space`,
   prompt: t`For the knock-out tournament, describe one probability space that serves all three parts: what are the outcomes, why are they equally likely (or what are their probabilities), and which subset of outcomes is each event? Explain where the assumption that every match is won with probability ${q(1, 2)} enters.`,
+  hints: [
+    t`What are the outcomes: the places of the two chosen players, the results of the matches, or both?`,
+    t`Why does symmetry make every pair of places equally likely?`,
+    t`Where, in parts (b) and (c), do the match results change the probability of an event?`,
+  ],
   writeUp: 'explanation',
 });
 

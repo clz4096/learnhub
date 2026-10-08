@@ -3,6 +3,8 @@
  * one problem card, the Cambridge problems stage of a lesson with its citations, and the
  * supervision write-up with Copy for supervision (build step 3; see supervision.test.tsx).
  */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/preact';
 import type { AutoProblem, Instance } from '@learnhub/content';
@@ -86,6 +88,42 @@ describe('a table answer', () => {
     expect(document.querySelector('.result-block')).toBeNull();
     expect(document.querySelector('.error-text')?.textContent).toMatch(/Cell 2 reads "lots"/);
     expect(done).not.toHaveBeenCalled();
+  });
+});
+
+describe('the italic lesson line (mastery/APP-LANGUAGE.md: "keep the italic one-line lesson at the end")', () => {
+  // The real stylesheet, so the test fails if the rule is dropped or no longer matches.
+  // Read from disk: vitest stubs CSS imports, even with ?raw.
+  const css = readFileSync(join(import.meta.dirname, '../styles/app.css'), 'utf8');
+  const styled = (): void => {
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.append(style);
+  };
+  afterEach(() => document.head.querySelectorAll('style').forEach((s) => s.remove()));
+  const steps = (): HTMLElement[] => [...document.querySelectorAll('.result-solution li')] as HTMLElement[];
+  const missTable = (): void => {
+    fill(['1/2', '1/2', '1/2']);
+    submit();
+  };
+
+  it('sets the last step of a Cambridge solution in italics, and only that step', () => {
+    styled();
+    const inst = cambridge('prob.bayes-two-events', 'a6-q4-i-abc');
+    card(inst, 'prob.bayes-two-events');
+    missTable();
+    const li = steps();
+    expect(li).toHaveLength(inst.problem.solution.length);
+    expect(li.at(-1)?.textContent).toBe('Count a population: every probability becomes a count over a count.');
+    expect(li.map((el) => getComputedStyle(el).fontStyle)).toEqual([...li.slice(0, -1).map(() => 'normal'), 'italic']);
+  });
+
+  it('leaves a practice solution upright: only a Cambridge solution ends on a lesson line', () => {
+    styled();
+    render(<ProblemCard topicId="prob.bayes-two-events" instance={cambridge('prob.bayes-two-events', 'a6-q4-i-abc')} mode="practice" index={0} onDone={vi.fn()} />);
+    missTable();
+    expect(steps().length).toBeGreaterThan(0);
+    expect(steps().map((el) => getComputedStyle(el).fontStyle)).not.toContain('italic');
   });
 });
 

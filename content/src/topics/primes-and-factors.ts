@@ -156,11 +156,18 @@ const a10q3ia = auto({
   solution: [
     t`${math`${12} = ${2}^{${2}} \times ${3}`}: ${math`f(${12}) = ${12} \times \frac{${1}}{${2}} \times \frac{${2}}{${3}} = ${4}`}.`,
     t`${math`${180} = ${2}^{${2}} \times ${3}^{${2}} \times ${5}`}: ${math`f(${180}) = ${180} \times \frac{${1}}{${2}} \times \frac{${2}}{${3}} \times \frac{${4}}{${5}} = ${48}`}.`,
+    t`List the distinct primes first: a repeated factor does not add a bracket.`,
   ],
   reference: 'a = 4, b = 48',
   verify: () => same('f(12), f(180)', `${totient(12)},${totient(180)}`, '4,48'),
   misconceptions: [{ response: 'a = 2, b = 16', why: t`Each distinct prime gives one bracket, however many times it divides ${math`N`}: ${12} has the primes ${2} and ${3} only.` }],
   official: { source: cite(F10H, 'Q3(i)(a)'), answer: 'a = 4, b = 48', agrees: true },
+  nudge: t`Not quite. Each distinct prime factor gives one bracket, however often it divides ${math`N`}.`,
+  hints: [
+    t`What are the distinct primes dividing ${12}, and those dividing ${180}?`,
+    t`How many brackets does each ${math`N`} get?`,
+    t`What does each product simplify to?`,
+  ],
 });
 
 const a10q3iii = auto({
@@ -173,6 +180,7 @@ const a10q3iii = auto({
     t`The only prime factor of ${math`p^{m}`} is ${math`p`}, so ${math`f(p^{m}) = p^{m}\left(${1} - \frac{${1}}{p}\right) = p^{m - ${1}}(p - ${1})`}.`,
     t`Factorise: ${math`${146410} = ${10} \times ${14641} = ${10} \times ${11}^{${4}}`}, since ${math`${11}^{${2}} = ${121}`} and ${math`${121}^{${2}} = ${14641}`}.`,
     t`So ${math`p^{m - ${1}}(p - ${1}) = ${11}^{${4}} \times ${10}`} with ${math`p = ${11}`} and ${math`m - ${1} = ${4}`}: ${math`p = ${11}`}, ${math`m = ${5}`}.`,
+    t`Simplify the general form, then match it against the factorisation.`,
   ],
   reference: 'p = 11, m = 5',
   verify: () => {
@@ -182,6 +190,12 @@ const a10q3iii = auto({
   },
   misconceptions: [{ response: 'p = 11, m = 4', why: t`${math`f(p^{m}) = p^{m - ${1}}(p - ${1})`}: the power of ${11} is ${math`m - ${1} = ${4}`}, so ${math`m = ${5}`}.` }],
   official: { source: cite(F10H, 'Q3(iii)'), answer: 'p = 11, m = 5', agrees: true },
+  nudge: t`Not quite. Simplify ${math`f(p^{m})`} first, then factorise ${146410} and match the two parts.`,
+  hints: [
+    t`What is ${math`f(p^{m})`} in a simpler form?`,
+    t`What is the prime factorisation of ${146410}?`,
+    t`Which prime ${math`p`} makes ${math`p^{m - ${1}}(p - ${1})`} match it, and what is ${math`m`}?`,
+  ],
 });
 
 const a10q3ib = supervision({
@@ -191,6 +205,11 @@ const a10q3ib = supervision({
   prompt: t`With ${math`f`} as above: (i) show that ${math`f(N)`} is an integer for all ${math`N`}. (ii) Prove, or disprove by means of a counterexample, each of the following: (a) ${math`f(m)f(n) = f(mn)`}; (b) ${math`f(p)f(q) = f(pq)`} if ${math`p`} and ${math`q`} are distinct prime numbers; (c) ${math`f(p)f(q) = f(pq)`} only if ${math`p`} and ${math`q`} are distinct prime numbers.`,
   writeUp: 'proof',
   official: cite(F10H, 'Q3'),
+  hints: [
+    t`For (i), writing ${math`f(N)`} as ${math`\frac{N}{p_{${1}} \cdots p_{k}}(p_{${1}} - ${1}) \cdots (p_{k} - ${1})`}, why is ${math`\frac{N}{p_{${1}} \cdots p_{k}}`} an integer?`,
+    t`For (ii)(a), what happens when ${math`m`} and ${math`n`} share a prime factor?`,
+    t`For (ii)(c), which small values of ${math`p`} and ${math`q`}, not two distinct primes, might still satisfy ${math`f(p)f(q) = f(pq)`}?`,
+  ],
 });
 
 // IA Numbers and Sets Example Sheet 1, Q3: four primes between consecutive multiples of 10.
@@ -214,6 +233,7 @@ const ns1Q3 = auto({
     t`Between ${math`m`} and ${math`m + ${DECADE}`}, with ${math`m`} a multiple of ${DECADE}, the numbers ending in ${listOf([2, 4, 6, 8])} are even and the one ending in ${5} is a multiple of ${5}. So only ${math`m + ${1}`}, ${math`m + ${3}`}, ${math`m + ${7}`}, and ${math`m + ${9}`} can be prime, and all four must be.`,
     t`Three more cuts come from ${3}. If ${3} divides ${math`m`}, it divides ${math`m + ${3}`}; if ${math`m`} is ${2} more than a multiple of ${3}, then ${3} divides ${math`m + ${1}`}. So ${math`m`} must be ${1} more than a multiple of ${3}: from ${2 * DECADE} on, the candidates are ${listOf([40, 70, 100])}, and so on.`,
     t`Test them. ${40}: ${math`${49} = ${7} \times ${7}`}. ${70}: ${math`${77} = ${7} \times ${11}`}. ${100}: the candidates are ${listOf(primesInDecade(100))}. A composite number below ${121} has a prime factor at most ${10}, so testing ${listOf([2, 3, 5, 7])} is enough, and none divides any of them. So yes: there are four primes between ${100} and ${110}.`,
+    t`Sieve the cases with small primes first, then test the few survivors.`,
   ],
   reference: '100',
   verify: () => {
@@ -225,6 +245,12 @@ const ns1Q3 = auto({
   misconceptions: [
     { response: '40', why: t`${49} is not prime: ${math`${49} = ${7} \times ${7}`}. Between ${40} and ${50} there are only three primes.` },
     { response: '70', why: t`${77} is not prime: ${math`${77} = ${7} \times ${11}`}.` },
+  ],
+  nudge: t`Not quite. Only four endings can be prime in a run of ten; divisibility by ${3} then rules out most starting points.`,
+  hints: [
+    t`Between ${math`m`} and ${math`m + ${DECADE}`}, with ${math`m`} a multiple of ${DECADE}, which numbers can possibly be prime?`,
+    t`Which remainder must ${math`m`} leave on division by ${3} for none of those four to be a multiple of ${3}?`,
+    t`Testing the candidates in order from ${2 * DECADE}, which is the first where all four are prime?`,
   ],
 });
 

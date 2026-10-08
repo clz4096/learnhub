@@ -174,12 +174,19 @@ const ns2q13Digit = auto({
   // Adapted: the prompt states the digit sum rule (the first part, a written proof), so the gate asks only for remainders.
   source: cite('ia-ns-sheet-2', 'Q13, second part', true),
   title: t`The missing digit`,
-  prompt: t`You may use this fact: a whole number and the sum of its digits leave the same remainder on division by ${9}. The number ${math`${2}^{${POW}}`} has nine distinct digits. Which digit is missing? (Use remainders on division by ${9}, not a calculator.)`,
+  prompt: t`Given: a whole number and the sum of its digits leave the same remainder on division by ${9}. The number ${math`${2}^{${POW}}`} has nine distinct digits. Which digit is missing? (Use remainders on division by ${9}, not a calculator.)`,
+  nudge: t`Not quite. Work with remainders on division by ${9} throughout; the power and its digit sum must agree.`,
+  hints: [
+    t`What do the ten digits ${0} to ${9} add up to, and what is the sum with one digit ${math`d`} left out?`,
+    t`Which small power of ${2} leaves remainder ${1} on division by ${9}?`,
+    t`Using that power, what remainder does ${math`${2}^{${POW}}`} leave, and which ${math`d`} makes the digit sum leave the same?`,
+  ],
   answer: { kind: 'exact', expected: MISSING[0] as string },
   solution: [
     t`A number and its digit sum leave the same remainder on division by ${9}, as the question allows (the problem Nines and digit sums, in Direct proof, proves the multiple-of-${9} case). The digits ${0} to ${9} add to ${45}, a multiple of ${9}; leaving out the digit ${math`d`} gives the sum ${math`${45} - d`}.`,
     t`${math`${2}^{${3}} = ${8}`} leaves remainder ${8}, one less than ${9}. So ${math`${2}^{${6}} = ${8} \times ${8}`} leaves remainder ${1}, and so does every power ${math`${2}^{${6}k}`}. Then ${math`${2}^{${POW}} = ${2}^{${24}} \times ${2}^{${5}}`} leaves the remainder of ${math`${2}^{${5}} = ${32}`}, which is ${32 % 9}.`,
     t`So ${math`${45} - d`} leaves remainder ${32 % 9}: ${math`${45} - d = ${40}`}, since ${math`d`} is between ${0} and ${9}. The missing digit is ${Number(MISSING[0])}. (Indeed ${math`${2}^{${POW}} = ${2 ** POW}`}.)`,
+    t`Reduce a huge power through a small power that leaves remainder one.`,
   ],
   reference: MISSING[0] as string,
   verify: () => {

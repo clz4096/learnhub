@@ -220,6 +220,7 @@ const a19q3i = auto({
     t`Square: ${math`(x - ${5})^{${2}} + (y - ${16})^{${2}} = ${4}\left((x + ${4})^{${2}} + (y - ${4})^{${2}}\right)`}.`,
     t`Expand: ${math`x^{${2}} - ${10}x + y^{${2}} - ${32}y + ${281} = ${4}x^{${2}} + ${32}x + ${4}y^{${2}} - ${32}y + ${128}`}. The ${math`y`} terms cancel, leaving ${math`${3}x^{${2}} + ${3}y^{${2}} + ${42}x = ${153}`}.`,
     t`Divide by ${3}: ${math`x^{${2}} + ${14}x + y^{${2}} = ${51}`}. Complete the square: ${math`(x + ${7})^{${2}} + y^{${2}} = ${51} + ${49} = ${100}`}.`,
+    t`Square distances before expanding, and complete the square to read off a circle.`,
   ],
   reference: 'a = -7, b = 0, r = 10',
   verify: () => {
@@ -231,6 +232,12 @@ const a19q3i = auto({
   },
   misconceptions: [{ response: 'a = 7, b = 0, r = 10', why: t`${math`(x + ${7})^{${2}}`} means the centre has ${math`x = -${7}`}.` }],
   official: { source: cite('step-f19-hints', 'Q3(i)'), answer: 'a = -7, b = 0, r = 10', agrees: true },
+  nudge: t`Not quite. Squaring both distances first removes the roots; then collect terms and complete the square.`,
+  hints: [
+    t`How does squaring ${math`AP = ${2}BP`} get rid of the square roots?`,
+    t`After expanding, which terms cancel, and what common factor can be divided out?`,
+    t`How does completing the square in ${math`x`} give the centre and the radius?`,
+  ],
 });
 
 const a19q3 = supervision({
@@ -240,6 +247,11 @@ const a19q3 = supervision({
   prompt: t`(${2005} STEP I Q${6}(ii)) The path of ${math`P`} is ${math`(x + ${7})^{${2}} + y^{${2}} = ${100}`}. The point ${math`C`} has coordinates ${math`(a, ${0})`} and ${math`D`} has coordinates ${math`(b, ${0})`}, where ${math`a \neq b`}. The point ${math`Q`} moves on a path such that ${math`QC = k \times QD`}, where ${math`k > ${1}`}. Given that the path of ${math`Q`} is the same as the path of ${math`P`}, show that ${math`\frac{a + ${7}}{a^{${2}} + ${51}} = \frac{b + ${7}}{b^{${2}} + ${51}}`}, and show further that ${math`(a + ${7})(b + ${7}) = ${100}`}.`,
   writeUp: 'proof',
   official: cite('step-f19-hints', 'Q3(ii)'),
+  hints: [
+    t`Writing ${math`QC^{${2}} = k^{${2}}QD^{${2}}`} and expanding, what equation does the path of ${math`Q`} have once the ${math`x^{${2}}`} coefficient is made ${1}?`,
+    t`For that to be the given circle, which two equations must the coefficients satisfy?`,
+    t`How can ${math`k^{${2}}`} be eliminated between those two equations?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson
@@ -288,7 +300,8 @@ export const loci: TopicContent = {
     'a19-q3-ii': { sections: ['A fixed ratio of distances'], note: t`Matching two descriptions of the same circle` },
     'a19-q3-i': { sections: ['A fixed ratio of distances'], note: t`A circle of Apollonius from a ratio of distances` },
   }),
-  gate: ['a19-q3-ii', 'a19-q3-i'],
+  // Not a19-q3-i: the prompt of a19-q3-ii states its circle, so it stays practice.
+  gate: ['a19-q3-ii'],
   recall: [
     { front: t`What is the locus of points equidistant from ${math`P`} and ${math`Q`}?`, back: t`The perpendicular bisector of ${math`PQ`}: the line through the midpoint at right angles to ${math`PQ`}.` },
     { front: t`What is the locus ${math`AP = k \cdot BP`} for ${math`k \neq ${1}`}?`, back: t`A circle, the circle of Apollonius, with its centre on ${math`AB`}.` },

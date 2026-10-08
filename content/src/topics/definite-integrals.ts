@@ -158,9 +158,16 @@ const stepB = auto({
   title: t`STEP: when the integral of a square is the square of the integral`,
   prompt: t`The number ${math`b > ${0}`} is such that ${math`\int_{${0}}^{b} x^{${2}}\,dx = \left(\int_{${0}}^{b} x\,dx\right)^{${2}}`}. Find ${math`b`}.`,
   answer: { kind: 'exact', expected: '4/3' },
+  hints: [
+    t`What are ${math`\int_{${0}}^{b} x^{${2}}\,dx`} and ${math`\int_{${0}}^{b} x\,dx`}?`,
+    t`Which equation in ${math`b`} does the condition give?`,
+    t`Since ${math`b > ${0}`}, which power of ${math`b`} can be divided out?`,
+  ],
+  nudge: t`Not quite. Evaluate both integrals, then cancel a power of ${math`b`}, using ${math`b > ${0}`}.`,
   solution: [
     t`${math`\int_{${0}}^{b} x^{${2}}\,dx = \frac{b^{${3}}}{${3}}`} and ${math`\int_{${0}}^{b} x\,dx = \frac{b^{${2}}}{${2}}`}, so ${math`\frac{b^{${3}}}{${3}} = \frac{b^{${4}}}{${4}}`}.`,
-    t`Multiply by ${12}: ${math`${4}b^{${3}} = ${3}b^{${4}}`}. Since ${math`b > ${0}`} we may divide by ${math`b^{${3}}`}: ${math`b = ${q(4, 3)}`}.`,
+    t`Multiply by ${12}: ${math`${4}b^{${3}} = ${3}b^{${4}}`}. As ${math`b > ${0}`}, divide by ${math`b^{${3}}`}: ${math`b = ${q(4, 3)}`}.`,
+    t`Cancel a power only after checking that it is not zero.`,
   ],
   reference: '4/3',
   verify: () => {
@@ -186,9 +193,16 @@ const stepBroot = auto({
   title: t`STEP: the value of b when a is one`,
   prompt: t`Now ${math`a = ${1}`} and ${math`b > ${1}`} satisfy ${math`\int_{a}^{b} x^{${2}}\,dx = \left(\int_{a}^{b} x\,dx\right)^{${2}}`}, which leads to ${math`${3}b^{${3}} - b^{${2}} - ${7}b - ${7} = ${0}`}. This cubic has one real root. Find it, correct to ${3} significant figures.`,
   answer: { kind: 'numeric', expected: rootB() },
+  hints: [
+    t`What does the derivative of the cubic say about its turning points, and are they above or below the axis?`,
+    t`Between which two whole numbers does the cubic change sign?`,
+    t`Halving that interval repeatedly, where does the root lie to three significant figures?`,
+  ],
+  nudge: t`Not quite. Locate the root between two whole numbers first, then narrow the interval by halving.`,
   solution: [
     t`${math`y = ${3}b^{${3}} - b^{${2}} - ${7}b - ${7}`} has ${math`y' = ${9}b^{${2}} - ${2}b - ${7} = (b - ${1})(${9}b + ${7})`}: turning points at ${math`b = ${1}`} and ${math`b = -\frac{${7}}{${9}}`}, both below the axis, so there is one real root.`,
     t`${math`y(${2}) = ${-3}`} and ${math`y(${3}) = ${44}`}, so the root lies between ${2} and ${3}; halving the interval repeatedly gives about ${Number(rootB().toPrecision(5))}.`,
+    t`Locate a root by a change of sign, then narrow the interval.`,
   ],
   reference: String(Number(rootB().toPrecision(6))),
   verify: () => firstError(close('the cubic at the root', 3 * rootB() ** 3 - rootB() ** 2 - 7 * rootB() - 7, 0, 1e-9), close('the integrals', simpson((x) => x * x, 1, rootB()), simpson((x) => x, 1, rootB()) ** 2, 1e-6)),
@@ -201,6 +215,11 @@ const stepFull = supervision({
   source: cite(F18, 'Assignment 18, Q3'),
   title: t`STEP: the integral of a square`,
   prompt: t`The numbers ${math`a`} and ${math`b`}, where ${math`b > a \ge ${0}`}, are such that ${math`\int_{a}^{b} x^{${2}}\,dx = \left(\int_{a}^{b} x\,dx\right)^{${2}}`}. (i) In the case ${math`a = ${0}`} and ${math`b > ${0}`}, find the value of ${math`b`}. (ii) In the case ${math`a = ${1}`}, show that ${math`b`} satisfies ${math`${3}b^{${3}} - b^{${2}} - ${7}b - ${7} = ${0}`}. Show further, with the help of a sketch, that there is only one real value of ${math`b`} that satisfies this equation and that it lies between ${2} and ${3}. (iii) Show that ${math`${3}p^{${2}} + q^{${2}} = ${3}p^{${2}}q`}, where ${math`p = b + a`} and ${math`q = b - a`}, and express ${math`p^{${2}}`} in terms of ${math`q`}. Deduce that ${math`${1} < b - a \le \frac{${4}}{${3}}`}.`,
+  hints: [
+    t`What do the two integrals equal in terms of ${math`a`} and ${math`b`}?`,
+    t`With ${math`a = ${1}`}, once the factor ${math`b - ${1}`} is cancelled, which cubic remains, and what do its turning points show?`,
+    t`For (iii), how do ${math`b^{${3}} - a^{${3}}`} and ${math`b^{${2}} - a^{${2}}`} look in terms of ${math`p`} and ${math`q`}, and what does ${math`p \ge q`} give?`,
+  ],
   writeUp: 'proof',
   official: cite(F18H, 'Assignment 18 hints, Q3'),
 });

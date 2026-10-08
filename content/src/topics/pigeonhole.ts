@@ -190,7 +190,7 @@ const remainders = generator<RemP>({
 
 // ---------------------------------------------------------------- Cambridge problems
 
-const sockProblem = (o: { id: string; doc: 'step-f05' | 'step-f08'; at: string; c: number; n: number; prompt: Rich; steps: Rich[]; official: string; title: Rich }) => auto({
+const sockProblem = (o: { id: string; doc: 'step-f05' | 'step-f08'; at: string; c: number; n: number; prompt: Rich; steps: Rich[]; official: string; title: Rich; hints?: readonly Rich[]; nudge?: Rich }) => auto({
   id: o.id,
   source: cite(o.doc, o.at),
   title: o.title,
@@ -206,6 +206,8 @@ const sockProblem = (o: { id: string; doc: 'step-f05' | 'step-f08'; at: string; 
   },
   misconceptions: [{ response: String(2 * o.n + o.c - 2), why: t`That many can still fail: ${o.c === 2 ? t`for example` : t`for instance`} ${listOf([2 * o.n - 1, ...Array.from({ length: o.c - 1 }, () => 1)])}. One more sock is needed.` }],
   official: { source: cite(o.doc === 'step-f05' ? 'step-f05-hints' : 'step-f08-hints', o.at), answer: o.official, agrees: true },
+  ...(o.hints === undefined ? {} : { hints: o.hints }),
+  ...(o.nudge === undefined ? {} : { nudge: o.nudge }),
 });
 
 const twoColours = t`I have a drawer full of identical red socks and identical blue socks.`;
@@ -232,7 +234,13 @@ const a5ii = sockProblem({
 const a8i = sockProblem({
   id: 'a8-q4-i', doc: 'step-f08', at: 'Q4(i)', c: 3, n: 1, official: '4', title: t`One pair, three colours`,
   prompt: t`${threeColours} How many socks must I take to be sure that I have a matching pair?`,
-  steps: [t`${3} might be one of each colour. The fourth must match one of them, so ${4}.`],
+  steps: [t`${3} might be one of each colour. The fourth must match one of them, so ${4}.`, t`By the pigeonhole principle, the answer is one more than the largest draw that fails.`],
+  nudge: t`Not quite. Imagine the unluckiest draw: how long can it avoid a pair?`,
+  hints: [
+    t`How many socks can be drawn with no two of the same colour?`,
+    t`What colour can the next sock be?`,
+    t`So what is the smallest number that guarantees a pair?`,
+  ],
 });
 const a8ii = sockProblem({
   id: 'a8-q4-ii', doc: 'step-f08', at: 'Q4(ii)', c: 3, n: 2, official: '6', title: t`Two pairs, three colours`,
@@ -240,10 +248,17 @@ const a8ii = sockProblem({
   steps: [
     t`${5} might be one pair and one of each other colour plus a third sock of the paired colour: RRRBG has only one pair.`,
     t`The sixth sock is red, blue, or green, and matches a leftover. So ${6}.`,
+    t`The answer is one more than the largest draw that still fails.`,
+  ],
+  nudge: t`Not quite. Build the unluckiest draw that still has only one pair, then add one sock.`,
+  hints: [
+    t`What is the largest draw with exactly one pair: how many odd socks can sit beside it?`,
+    t`Can a third sock of the paired colour be in that draw without making a second pair?`,
+    t`What must the next sock do?`,
   ],
 });
 
-const general = (o: { id: string; doc: 'step-f05' | 'step-f08'; c: number; expr: string; official: string; colours: Rich }) => auto({
+const general = (o: { id: string; doc: 'step-f05' | 'step-f08'; c: number; expr: string; official: string; colours: Rich; hints: readonly Rich[]; nudge: Rich }) => auto({
   id: o.id,
   source: cite(o.doc, 'Q4(iii)'),
   title: t`${mn} pairs, ${o.c} colours`,
@@ -252,6 +267,7 @@ const general = (o: { id: string; doc: 'step-f05' | 'step-f08'; c: number; expr:
   solution: [
     t`The worst case: ${math`n - ${1}`} pairs and one odd sock of each of the ${o.c} colours, ${math`${2}(n - ${1}) + ${o.c}`} socks, still short.`,
     t`One more sock completes a pair, so the answer is ${math`${2}n + ${o.c - 1}`}.`,
+    t`Find the largest draw that still fails; one more sock forces success.`,
   ],
   reference: o.expr,
   verify: () => {
@@ -265,10 +281,28 @@ const general = (o: { id: string; doc: 'step-f05' | 'step-f08'; c: number; expr:
   },
   misconceptions: [{ response: '2n', why: t`${math`${2}n`} socks can leave odd socks over in several colours. Count the worst case.` }],
   official: { source: cite(o.doc === 'step-f05' ? 'step-f05-hints' : 'step-f08-hints', 'Q4(iii)'), answer: o.official, agrees: true },
+  hints: o.hints,
+  nudge: o.nudge,
 });
 
-const a5iii = general({ id: 'a5-q4-iii', doc: 'step-f05', c: 2, expr: '2n + 1', official: '2n + 1', colours: twoColours });
-const a8iii = general({ id: 'a8-q4-iii', doc: 'step-f08', c: 3, expr: '2n + 2', official: '2n + 2', colours: threeColours });
+const a5iii = general({
+  id: 'a5-q4-iii', doc: 'step-f05', c: 2, expr: '2n + 1', official: '2n + 1', colours: twoColours,
+  nudge: t`Not quite. Find the largest draw that still has only ${math`n - ${1}`} pairs; one more sock gives the answer.`,
+  hints: [
+    t`With two colours, how many odd socks can be left over beside the pairs?`,
+    t`What is the largest draw with only ${math`n - ${1}`} pairs?`,
+    t`What does one more sock do to that draw?`,
+  ],
+});
+const a8iii = general({
+  id: 'a8-q4-iii', doc: 'step-f08', c: 3, expr: '2n + 2', official: '2n + 2', colours: threeColours,
+  nudge: t`Not quite. Find the largest draw that still has only ${math`n - ${1}`} pairs; one more sock gives the answer.`,
+  hints: [
+    t`With three colours, how many odd socks can be left over beside the pairs?`,
+    t`What is the largest draw with only ${math`n - ${1}`} pairs?`,
+    t`What does one more sock do to that draw?`,
+  ],
+});
 
 const a5iiiShow = supervision({
   id: 'a5-q4-iii-show',
@@ -277,6 +311,11 @@ const a5iiiShow = supervision({
   prompt: t`${twoColours} Justify fully that ${math`${2}n + ${1}`} socks guarantee ${mn} matching pairs and that ${math`${2}n`} do not. The first two parts can be done by listing; extrapolation is not a proof, so the general case needs an argument (for example, by whether the numbers of red and blue socks are odd or even).`,
   writeUp: 'proof',
   official: cite('step-f05-hints', 'Q4(iii)'),
+  hints: [
+    t`With ${math`r`} red and ${math`b`} blue socks, how many pairs are there, and how does that depend on whether ${math`r`} and ${math`b`} are odd?`,
+    t`If ${math`r + b = ${2}n + ${1}`}, why is exactly one of ${math`r`} and ${math`b`} odd, and how many pairs does that give?`,
+    t`Which draw of ${math`${2}n`} socks gives fewer than ${mn} pairs?`,
+  ],
 });
 const a8iiiShow = supervision({
   id: 'a8-q4-iii-show',
@@ -285,6 +324,11 @@ const a8iiiShow = supervision({
   prompt: t`${threeColours} Explain carefully why you need ${math`${2}n + ${2}`} socks to be sure of ${mn} pairs. One approach: consider ${math`${2}n`} socks with ${math`r`} red, ${math`b`} blue, and ${math`g`} green, and the cases by which of ${math`r`}, ${math`b`}, ${math`g`} are odd. Why can all three not be odd?`,
   writeUp: 'proof',
   official: cite('step-f08-hints', 'Q4(iii)'),
+  hints: [
+    t`With ${math`${2}n`} socks, if all three of ${math`r`}, ${math`b`}, ${math`g`} were odd, what would the parity of ${math`r + b + g`} be?`,
+    t`If exactly two of ${math`r`}, ${math`b`}, ${math`g`} are odd, how many pairs are there, and which draw of ${math`${2}n + ${1}`} socks still fails?`,
+    t`Why does a draw of ${math`${2}n + ${2}`} socks always hold ${mn} pairs?`,
+  ],
 });
 const notesProof = supervision({
   id: 'notes-87-proof',
@@ -292,6 +336,11 @@ const notesProof = supervision({
   title: t`Prove the pigeonhole principle`,
   prompt: t`Let ${mn} be a positive integer. Prove that if ${math`n + ${1}`} letters are put in ${mn} pigeonholes, then there is a pigeonhole with more than one letter. Which pigeonhole is it? Explain why the proof proves an existential statement without naming the pigeonhole.`,
   writeUp: 'proof',
+  hints: [
+    t`Suppose every pigeonhole has at most one letter: how many letters can there be in all?`,
+    t`What does that contradict?`,
+    t`Does the argument say which pigeonhole has two letters, and how can a "there exists" statement be proved without naming one?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

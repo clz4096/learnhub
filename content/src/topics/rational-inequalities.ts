@@ -7,7 +7,7 @@
  * set is checked by the sign test (prep-a.ts, setWhere), which treats a zero denominator
  * as "undefined, so not a solution".
  */
-import { cite, supervision, withUses } from '../cambridge';
+import { cite, supervision, withUses, type AutoProblem } from '../cambridge';
 import { add, div, int, mul, pick, q, sub, type Rational } from '../math';
 import { generator } from '../problem';
 import { computedMath, math, t } from '../rich';
@@ -164,7 +164,7 @@ const a7b = setProblem({
   critical: [q(-1, 2), q(0), q(2)],
 });
 
-const a7a = setProblem({
+const a7aSet = setProblem({
   id: 'a7-q1-ii-a',
   source: cite('step-f07', 'Q1(ii)(a)'),
   title: t`${math`x + \frac{${1}}{x}`} against ${2}`,
@@ -177,16 +177,31 @@ const a7a = setProblem({
   solution: [
     t`Multiply by ${math`x^{${2}} > ${0}`}: ${math`x^{${3}} + x > ${2}x^{${2}}`}, so ${math`x(x^{${2}} - ${2}x + ${1}) = x(x - ${1})^{${2}} > ${0}`}.`,
     t`${math`(x - ${1})^{${2}}`} is positive except at ${1}, where it is ${0}. So the product is positive exactly when ${math`x > ${0}`} and ${math`x \ne ${1}`}.`,
+    t`Multiply an inequality by a square, never by an unknown sign.`,
   ],
   test: (x) => !isZero(x) && holds(sub(add(x, div(q(1), x)), q(2)), '>'),
   critical: [q(0), q(1)],
 });
+const a7a: AutoProblem = {
+  ...a7aSet,
+  nudge: t`Not quite. Multiplying by ${math`x`} hides the negative case; multiply by a square instead.`,
+  hints: [
+    t`Which expression, positive for every ${math`x \ne ${0}`}, can multiply both sides without changing the direction?`,
+    t`After multiplying by ${math`x^{${2}}`} and collecting terms on one side, which factor comes out, and what is left?`,
+    t`Where is each factor positive, and where is it zero?`,
+  ],
+};
 
 const a18iii = supervision({
   id: 'a18-q2-iii',
   source: cite('step-f18', 'Q2(iii)'),
   title: t`Signs of a quotient`,
-  prompt: t`If ${math`\frac{a}{b} > ${0}`}, what can be said about ${math`a`} and ${math`b`}? Let ${math`y = \frac{x}{x - ${1}}`}. If ${math`y > ${0}`} and ${math`x > ${0}`}, show that ${math`x > ${1}`}. If in addition ${math`y > x`}, show that ${math`x < ${2}`}. Do it without a sketch: the argument is a few lines.`,
+  prompt: t`If ${math`\frac{a}{b} > ${0}`}, what can be said about ${math`a`} and ${math`b`}? Let ${math`y = \frac{x}{x - ${1}}`}. If ${math`y > ${0}`} and ${math`x > ${0}`}, show that ${math`x > ${1}`}. If in addition ${math`y > x`}, show that ${math`x < ${2}`}. Argue without a sketch.`,
+  hints: [
+    t`If ${math`\frac{a}{b} > ${0}`}, what must be true of the signs of ${math`a`} and ${math`b`}?`,
+    t`With ${math`x > ${0}`} and ${math`\frac{x}{x - ${1}} > ${0}`}, what sign must ${math`x - ${1}`} have?`,
+    t`Once ${math`x - ${1} > ${0}`} is known, what does ${math`y > x`} become after multiplying by ${math`x - ${1}`}?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f18-hints', 'Q2(iii)'),
 });
@@ -198,11 +213,16 @@ const db01q2 = supervision({
   id: 'step01-q2-i',
   source: cite(DB01, 'Q2(i)'),
   title: t`A quadratic against ${math`\frac{${2}}{x}`}`,
-  prompt: t`Solve the inequality ${math`${1} + ${2}x - x^{${2}} > \frac{${2}}{x}`} ${math`(x \ne ${0})`}. Explain how you deal with the sign of ${math`x`}.`,
+  prompt: t`Solve the inequality ${math`${1} + ${2}x - x^{${2}} > \frac{${2}}{x}`} ${math`(x \ne ${0})`}. Explain how the sign of ${math`x`} is dealt with.`,
+  hints: [
+    t`Which positive quantity can multiply both sides without a case split on the sign of ${math`x`}?`,
+    t`With everything on one side, how does the resulting quartic factorise?`,
+    t`What sign does the product take between consecutive critical values, and which critical value can never be in the answer?`,
+  ],
   writeUp: 'explanation',
 });
 
-const db01q2auto = setProblem({
+const db01q2set = setProblem({
   id: 'step01-q2-i-set',
   source: cite(DB01, 'Q2(i)'),
   title: t`Solve ${math`${1} + ${2}x - x^{${2}} > \frac{${2}}{x}`}`,
@@ -214,13 +234,23 @@ const db01q2auto = setProblem({
   ],
   solution: [
     t`Multiply by ${math`x^{${2}} > ${0}`}, which keeps the direction: ${math`x^{${2}} + ${2}x^{${3}} - x^{${4}} > ${2}x`}, that is ${math`x(x^{${3}} - ${2}x^{${2}} - x + ${2}) < ${0}`}.`,
-    t`Group the cubic: ${math`x^{${2}}(x - ${2}) - (x - ${2}) = (x - ${2})(x - ${1})(x + ${1})`}. So we need ${math`x(x + ${1})(x - ${1})(x - ${2}) < ${0}`}.`,
+    t`Group the cubic: ${math`x^{${2}}(x - ${2}) - (x - ${2}) = (x - ${2})(x - ${1})(x + ${1})`}. So the condition is ${math`x(x + ${1})(x - ${1})(x - ${2}) < ${0}`}.`,
     t`The critical values are ${math`-${1}, ${0}, ${1}, ${2}`}. For large ${math`x`} the product is positive, and it changes sign at each simple root: negative on ${math`(${1}, ${2})`}, positive on ${math`(${0}, ${1})`}, negative on ${math`(-${1}, ${0})`}, positive below ${math`-${1}`}.`,
     t`So ${math`-${1} < x < ${0}`} or ${math`${1} < x < ${2}`}.`,
+    t`Multiply by a square, factorise fully, then read the signs off a diagram.`,
   ],
   test: (x) => x.num !== 0n && sub(add(q(1), sub(mul(q(2), x), mul(x, x))), div(q(2), x)).num > 0n,
   critical: [q(-1), q(0), q(1), q(2)],
 });
+const db01q2auto: AutoProblem = {
+  ...db01q2set,
+  nudge: t`Not quite. Multiplying by ${math`x`} keeps the direction only for positive ${math`x`}; a square is safer.`,
+  hints: [
+    t`What does multiplying both sides by ${math`x^{${2}}`}, positive for ${math`x \ne ${0}`}, give?`,
+    t`With everything on one side, can the quartic be split into ${math`x`} times a cubic, and the cubic factorised by grouping?`,
+    t`With the critical values marked, what sign does the product take on each interval?`,
+  ],
+};
 
 // ---------------------------------------------------------------- lesson
 

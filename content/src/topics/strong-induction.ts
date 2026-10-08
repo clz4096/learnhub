@@ -185,6 +185,12 @@ const stamps47 = auto({
   source: cite('bop', 'Section 10.2, the postage example'),
   title: t`Forty-seven cents in stamps`,
   prompt: t`Book of Proof proves by strong induction that any postage of ${8} cents or more can be made exactly with ${3}-cent and ${5}-cent stamps. Make ${47} cents: how many ${3}-cent stamps ${math`x`} and ${5}-cent stamps ${math`y`}?`,
+  nudge: t`Not quite. Any whole numbers with the right total work; try taking off ${3} cents at a time.`,
+  hints: [
+    t`What equation must ${math`x`} and ${math`y`} satisfy?`,
+    t`Taking ${3} cents off ${47} repeatedly, which small amount of at least ${8} cents is reached?`,
+    t`How is that small amount made from ${3}-cent and ${5}-cent stamps?`,
+  ],
   answer: {
     kind: 'witness', count: 2, names: ['x', 'y'], example: 'x = 9, y = 4',
     check: ([x, y]) => {
@@ -196,6 +202,7 @@ const stamps47 = auto({
   solution: [
     t`The proof's step adds one ${3}-cent stamp to an amount ${3} cents smaller, so ${47} comes from ${44}, which comes from ${41}, and so on down to a base case: ${math`${47} - ${3} \times ${13} = ${8} = ${3} + ${5}`}. That gives ${14} three-cent stamps and one five-cent stamp.`,
     t`Book of Proof's own example uses nine ${3}-cent and four ${5}-cent stamps: ${math`${9} \times ${3} + ${4} \times ${5} = ${47}`}. Any whole-number answer is right.`,
+    t`The step of a strong induction builds a big case from smaller ones; follow it down.`,
   ],
   reference: 'x = 14, y = 1',
   verify: () => {
@@ -212,10 +219,17 @@ const bop1032 = auto({
   source: cite('bop', 'Chapter 10, exercise 32', true),
   title: t`Binary numbers with no consecutive ${1}s`,
   prompt: t`Book of Proof Chapter ${10}, exercise ${32}: the number of ${mn}-digit binary numbers that have no consecutive ${1}s is the Fibonacci number ${math`F_{n + ${2}}`} (for ${math`n = ${2}`} there are three: ${math`${0}${0}`}, ${math`${0}${1}`}, ${math`${1}${0}`}). How many are there for ${math`n = ${N32}`}?`,
+  nudge: t`Not quite. Count by the last digit; the counts obey a recurrence.`,
+  hints: [
+    t`If a good string ends in ${0}, what can come before it?`,
+    t`If it ends in ${1}, what must the digit before be, and what comes before that?`,
+    t`Starting from ${math`a_{${1}} = ${2}`} and ${math`a_{${2}} = ${3}`}, what are the next terms up to ${math`n = ${N32}`}?`,
+  ],
   answer: { kind: 'exact', expected: String(fib(N32 + 2)) },
   solution: [
     t`A good string ends in ${0}, after a good string one shorter, or in ${math`${0}${1}`}, after one two shorter: ${math`a_{n} = a_{n - ${1}} + a_{n - ${2}}`}. The step reaches back two cases, so the proof is a strong induction with two base cases, ${math`a_{${1}} = ${2}`} and ${math`a_{${2}} = ${3}`}.`,
     t`Then ${listOf(byRecurrence('binary', N32).slice(1))}: for ${math`n = ${N32}`} there are ${fib(N32 + 2)}, which is ${math`F_{${N32 + 2}}`}.`,
+    t`Split by the last digits to get a recurrence, then run it.`,
   ],
   reference: String(fib(N32 + 2)),
   verify: () => same('strings listed by bitmask', countByListing('binary', N32), fib(N32 + 2)),
@@ -230,10 +244,17 @@ const bop1025 = auto({
   source: cite('bop', 'Chapter 10, exercise 25', true),
   title: t`A Fibonacci sum`,
   prompt: t`With ${math`F_{${1}} = F_{${2}} = ${1}`} and ${math`F_{n} = F_{n - ${1}} + F_{n - ${2}}`}, find ${math`F_{${1}} + F_{${2}} + \cdots + F_{${N25}}`}.`,
+  nudge: t`Not quite. The sum has a closed form a little further along the Fibonacci sequence.`,
+  hints: [
+    t`What are ${math`F_{${1}} + F_{${2}}`}, ${math`F_{${1}} + F_{${2}} + F_{${3}}`}, and ${math`F_{${1}} + \cdots + F_{${4}}`}?`,
+    t`How does each of those sums compare with a nearby Fibonacci number?`,
+    t`Which Fibonacci number is the sum up to ${math`F_{${N25}}`} one less than?`,
+  ],
   answer: { kind: 'exact', expected: String(fib(N25 + 2) - 1) },
   solution: [
     t`Book of Proof's exercise: ${math`F_{${1}} + \cdots + F_{n} = F_{n + ${2}} - ${1}`}. Its inductive step: ${math`(F_{k + ${2}} - ${1}) + F_{k + ${1}} = F_{k + ${3}} - ${1}`}, by the recurrence.`,
     t`So the sum is ${math`F_{${N25 + 2}} - ${1} = ${fib(N25 + 2)} - ${1} = ${fib(N25 + 2) - 1}`}. Adding the terms ${listOf(upTo(N25).map(fib))} gives the same.`,
+    t`Compute small cases, spot the pattern, then use it.`,
   ],
   reference: String(fib(N25 + 2) - 1),
   verify: () => same('the terms added one by one', upTo(N25).map(fib).reduce((a, b) => a + b, 0), fib(N25 + 2) - 1),
@@ -247,10 +268,17 @@ const bop1042 = auto({
   source: cite('bop', 'Chapter 10, exercise 42', true),
   title: t`Even Fibonacci numbers`,
   prompt: t`Book of Proof Chapter ${10}, exercise ${42}, says that ${math`F_{n}`} is even if and only if ${math`${3} \mid n`}. Using it, how many of ${math`F_{${1}}, F_{${2}}, \ldots, F_{${N42}}`} are even?`,
+  nudge: t`Not quite. The parities of the Fibonacci numbers repeat; count with the pattern.`,
+  hints: [
+    t`What are the parities of ${math`F_{${1}}`} to ${math`F_{${6}}`}?`,
+    t`For which ${mn} is ${math`F_{n}`} even, according to the exercise?`,
+    t`How many multiples of ${3} are there from ${1} to ${N42}?`,
+  ],
   answer: { kind: 'exact', expected: String(N42 / 3) },
   solution: [
     t`The parities repeat odd, odd, even: two odds add to an even, then odd plus even is odd, and even plus odd is odd. A strong induction makes this a proof, assuming the pattern for the two previous terms.`,
     t`So ${math`F_{n}`} is even exactly when ${math`n`} is a multiple of ${3}: ${math`n = ${3}, ${6}, \ldots, ${N42}`}, which is ${N42 / 3} numbers.`,
+    t`Use a proved pattern to count, rather than listing.`,
   ],
   reference: String(N42 / 3),
   verify: () => same('even terms among the first thirty', upTo(N42).filter((n) => fib(n) % 2 === 0).length, N42 / 3),
@@ -262,6 +290,11 @@ const sheet431 = supervision({
   source: cite('cst-dm-sw1', 'Exercises 4, 4.3.1'),
   title: t`The subtractive algorithm terminates`,
   prompt: t`Recall ${math`\mathrm{gcd}_{${0}}`} from exercise ${math`${3}.${3}.${3}`}: if ${math`m = n`} return ${math`m`}, else recurse on ${math`(\min(m, n), \max(m, n) - \min(m, n))`}. Use the Principle of Induction from basis ${2} to prove: for all natural numbers ${math`\ell \ge ${2}`}, for all positive integers ${math`m, n`}, if ${math`m + n \le \ell`} then ${math`\mathrm{gcd}_{${0}}(m, n)`} terminates. Why does the statement quantify over all ${math`m + n \le \ell`}, not only ${math`m + n = \ell`}?`,
+  hints: [
+    t`Which quantity strictly decreases from one recursive call to the next?`,
+    t`If ${math`m \ne n`}, how does the sum of the new pair compare with ${math`m + n`}?`,
+    t`Why does a hypothesis about every ${math`m + n \le \ell`} let the step use the smaller sum, whatever it is?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-4', '4.3.1'),
 });
@@ -270,13 +303,23 @@ const treeProof = supervision({
   source: cite('bop', 'Section 10.2, the proposition that a tree with n vertices has n - 1 edges'),
   title: t`Why the tree proof needs strong induction`,
   prompt: t`Book of Proof proves that a tree with ${mn} vertices has ${math`n - ${1}`} edges by removing an edge, which leaves two smaller trees with ${math`x`} and ${math`y`} vertices, ${math`x + y = k + ${1}`}. Write the proof out, and explain why the hypothesis "every tree with ${mk} vertices has ${math`k - ${1}`} edges" alone would not be enough.`,
+  hints: [
+    t`After removing one edge from a tree with ${math`k + ${1}`} vertices, what are the two pieces, and how many vertices does each have?`,
+    t`Applying the hypothesis to each piece, how many edges do they have, and how many with the removed edge?`,
+    t`Why need ${math`x`} and ${math`y`} not equal ${mk}, so that a hypothesis about ${mk} alone cannot be used?`,
+  ],
   writeUp: 'proof',
 });
 const bop1042proof = supervision({
   id: 'bop-10-42',
   source: cite('bop', 'Chapter 10, exercise 42'),
   title: t`When a Fibonacci number is even`,
-  prompt: t`Prove: the ${mn}th Fibonacci number ${math`F_{n}`} is even if and only if ${math`${3} \mid n`}. Say which earlier cases your inductive step uses, and how many base cases that needs.`,
+  prompt: t`Prove: the ${mn}th Fibonacci number ${math`F_{n}`} is even if and only if ${math`${3} \mid n`}. State which earlier cases the inductive step uses, and how many base cases that needs.`,
+  hints: [
+    t`If ${math`F_{n - ${2}}`} and ${math`F_{n - ${1}}`} are both odd, or one of them is even, what is the parity of ${math`F_{n}`}?`,
+    t`What are the parities of ${math`F_{${1}}`}, ${math`F_{${2}}`}, and ${math`F_{${3}}`}, and which pattern of three repeats?`,
+    t`Since the step looks back two terms, how many base cases does the induction need?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -296,6 +339,11 @@ const sw423b = supervision({
   source: cite('cst-dm-sw1', 'Exercises 4, 4.2.3(b)'),
   title: t`The Fibonacci addition formula`,
   prompt: t`The Fibonacci numbers ${math`F_n`} for ${math`n \in \mathbb{N}`} are defined by ${math`F_{${0}} = ${0}`}, ${math`F_{${1}} = ${1}`}, and ${math`F_{n + ${2}} = F_n + F_{n + ${1}}`}. Prove that for all natural numbers ${math`k`} and ${math`n`}, ${math`F_{n + k + ${1}} = F_{n + ${1}} F_{k + ${1}} + F_n F_k`}.`,
+  hints: [
+    t`Which variable is the induction on, and must the statement for every ${mn} be carried in the hypothesis?`,
+    t`Since the recurrence reaches back two terms, which two base cases in ${mk} are needed?`,
+    t`Assuming the formula for ${mk} and ${math`k + ${1}`}, how does ${math`F_{n + k + ${3}} = F_{n + k + ${1}} + F_{n + k + ${2}}`} combine them?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-4', '4.2.3(b)'),
 });

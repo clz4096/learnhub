@@ -288,6 +288,7 @@ const a12sets = auto({
     t`With ${math`${AGES} = ${computedTex(indexTex(AGES))}`}, list the sets in increasing order by the smallest age: it is one of ${listOf(smallest)}, since the smallest of three numbers with product ${AGES} is at most ${math`\sqrt[${3}]{${AGES}}`}, about ${Math.round(Math.cbrt(AGES) * 10) / 10}.`,
     t`By smallest age: ${smallest.map((m) => t`${m}, ${ageSets.filter(([a]) => a === m).length} sets`).reduce<Rich>((acc, r, i) => (i === 0 ? r : [...acc, ...t`; `, ...r]), [])}.`,
     t`That is ${ageSets.length} sets, the rows of the hints' table.`,
+    t`Count systematically: put the items in order and fix the smallest first.`,
   ],
   reference: String(ageSets.length),
   verify: () => {
@@ -298,6 +299,12 @@ const a12sets = auto({
   },
   misconceptions: [{ response: String(ageSets.filter(([a]) => a > 1).length), why: t`The puzzle counts every set, including those with an age of ${1}.` }],
   official: { source: cite('step-f12-hints', 'Q4, the table of possibilities'), answer: '20', agrees: true },
+  nudge: t`Not quite. List the sets by their smallest age, which is at most the cube root of ${AGES}, and count each group.`,
+  hints: [
+    t`What is the prime factorisation of ${AGES}?`,
+    t`With the ages in increasing order, how large can the smallest one be?`,
+    t`For each possible smallest age, in how many ways can the rest split into two ages, the second at least the first?`,
+  ],
 });
 
 const a12imam = auto({
@@ -310,11 +317,18 @@ const a12imam = auto({
     t`Each set of ages has a sum, and the Imam's age is half of it. The Imam knows his age, so he knows the sum.`,
     t`He could not answer, so his sum belongs to more than one set. In the list of ${ageSets.length} sets only one sum repeats: ${2 * imamAge()}, from ${math`${5} + ${10} + ${49}`} and ${math`${7} + ${7} + ${50}`}.`,
     t`So the Imam is ${math`${2 * imamAge()} \div ${2} = ${imamAge()}`}.`,
+    t`In a logic puzzle, "could not answer" is information: it rules out every case that is unique.`,
   ],
   reference: String(imamAge()),
   verify: () => same('the only repeated half-sum', imamAge(), 32),
   misconceptions: [{ response: String(2 * imamAge()), why: t`That is the sum of the ages, which is twice the Imam's age.` }],
   official: { source: cite('step-f12-hints', 'Q4'), answer: '32', agrees: true },
+  nudge: t`Not quite. The Imam knew the sum and still could not answer: look for a sum shared by two different sets.`,
+  hints: [
+    t`What does the Imam know about the sum of the three ages?`,
+    t`Why could he not answer at first, in terms of the sets with his sum?`,
+    t`In the list of sets, which sum appears more than once?`,
+  ],
 });
 
 const a12rabbi = auto({
@@ -327,20 +341,32 @@ const a12rabbi = auto({
     t`From the previous problem, the Imam is ${imamAge()} and the ages are ${math`${5}, ${10}, ${49}`} or ${math`${7}, ${7}, ${50}`}.`,
     t`The Rabbi is older than everyone else in the room. If he were ${51} or more, both sets would still be possible, and the Imam could not decide.`,
     t`If he were ${50}, the set with a ${50} would be ruled out, leaving ${math`${5}, ${10}, ${49}`}. So the Rabbi is ${rabbiAge()}.`,
+    t`A clue helps only if it splits the remaining cases; find the value for which it does.`,
   ],
   reference: String(rabbiAge()),
   verify: () => same('the one age that decides it', rabbiAge(), 50),
   misconceptions: [{ response: '51', why: t`At ${51} the Rabbi is older than both ${49} and ${50}, so both sets stay possible and the Imam still could not decide.` }],
   official: { source: cite('step-f12-hints', 'Q4'), answer: '50', agrees: true },
+  nudge: t`Not quite. The Rabbi's remark must rule out exactly one of the two remaining sets.`,
+  hints: [
+    t`Which two sets of ages remain after the Imam's first answer?`,
+    t`How does "older than anyone else in the room" compare the Rabbi's age with the bell ringers' ages?`,
+    t`For which age of the Rabbi does that remark exclude one set but not the other?`,
+  ],
 });
 
 const a12explain = supervision({
   id: 'a12-q4-explain',
   source: cite('step-f12', 'Q4'),
   title: t`Why the remark helps`,
-  prompt: t`${puzzle} Explain the whole solution as you would to someone who has not seen it: how you made sure the list of sets of ages was complete, why the Imam's first answer tells you his age, and why the Rabbi's remark settles it only for one age of the Rabbi.`,
+  prompt: t`${puzzle} Explain the whole solution for a reader who has not seen it: how the list of sets of ages is known to be complete, why the Imam's first answer gives his age, and why the Rabbi's remark settles it only for one age of the Rabbi.`,
   writeUp: 'explanation',
   official: cite('step-f12-hints', 'Q4'),
+  hints: [
+    t`How can the list of sets be shown to be complete, for example by fixing the smallest age first?`,
+    t`Why does the Imam's failure to answer mean that his sum is shared by two sets?`,
+    t`For which ages of the Rabbi does his remark rule out exactly one of those two sets?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

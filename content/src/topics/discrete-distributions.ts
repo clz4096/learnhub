@@ -184,7 +184,16 @@ const a19three = auto({
   title: t`Three sixes`,
   prompt: t`I am about to throw three fair dice. What is the probability of three sixes?`,
   answer: { kind: 'exact', expected: str(sixes(3)) },
-  solution: [t`One roll in ${216} is three sixes: ${math`\left(\frac{${1}}{${6}}\right)^{${3}} = \frac{${1}}{${216}}`}.`],
+  hints: [
+    t`What is the chance that one die shows a six?`,
+    t`Are the three dice independent?`,
+    t`How do probabilities of independent events combine when all must happen?`,
+  ],
+  nudge: t`Not quite. All three dice must show a six; independent chances multiply.`,
+  solution: [
+    t`One roll in ${216} is three sixes: ${math`\left(\frac{${1}}{${6}}\right)^{${3}} = \frac{${1}}{${216}}`}.`,
+    t`For independent events that must all happen, multiply.`,
+  ],
   reference: '1/216',
   verify: () => same('P(three sixes)', str(sixes(3)), '1/216'),
   misconceptions: [{ response: '1/18', why: t`That adds ${math`\frac{${1}}{${6}}`} three times over. All three must be sixes: multiply.` }],
@@ -196,6 +205,11 @@ const a19bet = supervision({
   source: cite(F19, 'Assignment 19, Q4(ii)'),
   title: t`Should I accept the bet?`,
   prompt: t`I throw three fair dice. My friend offers to give me ${math`\pounds ${1}`} if I throw no sixes, provided I give her ${math`\pounds ${1}`} if I throw one six, ${math`\pounds ${2}`} if I throw two sixes and ${math`\pounds ${3}`} if I throw three sixes. Write down the distribution of the number of sixes, and decide whether I should accept, explaining your reasoning (for instance by considering ${216} games).`,
+  hints: [
+    t`What are the probabilities of ${0}, ${1}, ${2}, and ${3} sixes?`,
+    t`Over ${216} games, how many of each result are expected, and how much money changes hands?`,
+    t`Is the expected gain per game positive or negative?`,
+  ],
   writeUp: 'explanation',
   official: cite('step-f19-hints', 'Assignment 19, Q4(ii)'),
 });
@@ -232,10 +246,17 @@ const ia11 = auto({
   title: t`Mary's coins against John's`,
   prompt: t`Mary tosses three fair coins and John tosses two. What is the probability that Mary gets more heads than John?`,
   answer: { kind: 'exact', expected: str(maryWins(3, 2)) },
+  hints: [
+    t`What are the distributions of Mary's number of heads and of John's?`,
+    t`For each value of John's count, what is the chance that Mary's count is strictly larger?`,
+    t`How are those cases combined, using independence?`,
+  ],
+  nudge: t`Not quite. Split by John's number of heads; ties do not count as wins for Mary.`,
   solution: [
     t`Let ${math`M`} and ${math`J`} be the numbers of heads. Their distributions: ${math`M`} takes ${math`${0}, ${1}, ${2}, ${3}`} with probabilities ${math`\frac{${1}}{${8}}, \frac{${3}}{${8}}, \frac{${3}}{${8}}, \frac{${1}}{${8}}`}; ${math`J`} takes ${math`${0}, ${1}, ${2}`} with ${math`\frac{${1}}{${4}}, \frac{${1}}{${2}}, \frac{${1}}{${4}}`}.`,
     t`Split by ${math`J`}, using independence: ${math`J = ${0}`}: ${math`\frac{${1}}{${4}} \cdot P(M \ge ${1}) = \frac{${1}}{${4}} \cdot \frac{${7}}{${8}}`}; ${math`J = ${1}`}: ${math`\frac{${1}}{${2}} \cdot \frac{${4}}{${8}}`}; ${math`J = ${2}`}: ${math`\frac{${1}}{${4}} \cdot \frac{${1}}{${8}}`}.`,
     t`Total ${math`\frac{${7} + ${8} + ${1}}{${32}} = \frac{${16}}{${32}} = \frac{${1}}{${2}}`}. (With two coins against one it is also ${math`\frac{${1}}{${2}}`}.)`,
+    t`Split by one variable, then use independence.`,
   ],
   reference: '1/2',
   verify: () => same('Mary 3 v John 2, and 2 v 1', `${str(maryWins(3, 2))} ${str(maryWins(2, 1))}`, '1/2 1/2'),
@@ -249,7 +270,12 @@ const ia11sup = supervision({
   id: 'ia1-q11-conjecture',
   source: cite('ia-prob-sheet-1', 'Q11'),
   title: t`A conjecture about coins`,
-  prompt: t`Mary tosses ${math`n + ${1}`} fair coins and John tosses ${math`n`}. Compute the probability that Mary gets more heads than John for ${math`n = ${1}`} and ${math`n = ${2}`}, make a conjecture for general ${math`n`}, and prove it. (Hint: compare Mary's first ${math`n`} coins with John's, then look at her last coin.)`,
+  prompt: t`Mary tosses ${math`n + ${1}`} fair coins and John tosses ${math`n`}. Compute the probability that Mary gets more heads than John for ${math`n = ${1}`} and ${math`n = ${2}`}, make a conjecture for general ${math`n`}, and prove it. `,
+  hints: [
+    t`What are the probabilities for ${math`n = ${1}`} and ${math`n = ${2}`}?`,
+    t`Comparing Mary's first ${math`n`} coins with John's ${math`n`}, which two of the three outcomes have equal probability?`,
+    t`In each case, what must Mary's last coin show for her to finish strictly ahead?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -277,10 +303,17 @@ const gs4136 = auto({
     rows: [1, 2, 3, 4, 5, 6].map((x) => [t`${x}`, null]),
     expected: [1, 2, 3, 4, 5, 6].map((x) => str(q(MIN2[x] as number, 36))),
   },
+  hints: [
+    t`How many equally likely ordered pairs are there?`,
+    t`In how many pairs are both dice at least ${math`x`}?`,
+    t`How does the number of pairs with smaller value exactly ${math`x`} follow from that?`,
+  ],
+  nudge: t`Not quite. Count pairs with both dice at least ${math`x`}, then subtract those with both at least ${math`x + ${1}`}.`,
   solution: [
     t`The ${36} ordered pairs are equally likely. ${math`X = x`} when both dice show at least ${math`x`} and at least one shows exactly ${math`x`}.`,
     t`Both dice at least ${math`x`}: ${math`(${7} - x)^{${2}}`} pairs; both at least ${math`x + ${1}`}: ${math`(${6} - x)^{${2}}`}. The difference is ${math`${13} - ${2}x`} pairs.`,
     t`So ${math`P(X = x) = \frac{${13} - ${2}x}{${36}}`}: ${math`\frac{${11}}{${36}}, \frac{${9}}{${36}}, \frac{${7}}{${36}}, \frac{${5}}{${36}}, \frac{${3}}{${36}}, \frac{${1}}{${36}}`}, which add to ${1}.`,
+    t`For a minimum, count the tail first, then take differences.`,
   ],
   reference: [1, 2, 3, 4, 5, 6].map((x) => str(q(13 - 2 * x, 36))),
   verify: () => same('the smaller of two dice, listed', MIN2.slice(1).join(' '), [1, 2, 3, 4, 5, 6].map((x) => 13 - 2 * x).join(' ')),
@@ -294,10 +327,17 @@ const gs516 = auto({
   title: t`The smallest of several dice`,
   prompt: t`${math`n`} dice, each with faces numbered ${1} to ${math`k`}, are rolled, and all ${math`k^{n}`} outcomes are equally likely. Let ${math`Y`} be the smallest number showing. Find ${math`P(Y = j)`} for ${math`j = ${1}, \ldots, k`}, as a formula in ${math`j`}, ${math`k`}, and ${math`n`}. (Type powers with a caret, as on a calculator.)`,
   answer: { kind: 'expression', expected: '((k - j + 1)^n - (k - j)^n) / k^n', variables: ['j', 'k', 'n'], domains: KN },
+  hints: [
+    t`What does ${math`Y \ge j`} say about every die?`,
+    t`In how many outcomes does that happen?`,
+    t`How is ${math`P(Y = j)`} obtained from two such tail probabilities?`,
+  ],
+  nudge: t`Not quite. Find ${math`P(Y \ge j)`} first; exactly ${math`j`} is a difference of two tails.`,
   solution: [
     t`First the tail: ${math`Y \ge j`} means every die shows one of the ${math`k - j + ${1}`} numbers ${math`j, \ldots, k`}. That happens in ${math`(k - j + ${1})^{n}`} of the ${math`k^{n}`} outcomes.`,
     t`Then ${math`P(Y = j) = P(Y \ge j) - P(Y \ge j + ${1}) = \frac{(k - j + ${1})^{n} - (k - j)^{n}}{k^{n}}`}.`,
-    t`Check with two six-sided dice: ${math`j = ${1}`} gives ${math`\frac{${36} - ${25}}{${36}} = \frac{${11}}{${36}}`}, as in the previous problem.`,
+    t`Check with two six-sided dice: ${math`j = ${1}`} gives ${math`\frac{${36} - ${25}}{${36}} = \frac{${11}}{${36}}`}.`,
+    t`For a minimum, find the tail, then take differences.`,
   ],
   reference: '((k - j + 1)^n - (k - j)^n) / k^n',
   verify: () => {

@@ -296,7 +296,7 @@ const b181b = auto({
   title: t`An intersection of four sets`,
   prompt: b181Prompt('inter'),
   answer: { kind: 'choice', options: letterOpts, correct: ['a', 'b'] },
-  solution: [t`An element of the intersection is in all four sets. ${math`A_{${4}} = \{a, b, h\}`} leaves only ${math`a, b, h`} to test; ${math`h`} is not in ${math`A_{${1}}`}; ${math`a`} and ${math`b`} are in all four. So the intersection is ${math`\{a, b\}`}.`],
+  solution: [t`An element of the intersection is in all four sets. ${math`A_{${4}} = \{a, b, h\}`} leaves only ${math`a, b, h`} to test; ${math`h`} is not in ${math`A_{${1}}`}; ${math`a`} and ${math`b`} are in all four. So the intersection is ${math`\{a, b\}`}.`, t`Start an intersection from the smallest set.`],
   reference: ['a', 'b'],
   verify: () => same('intersection', LET.filter((l) => B181.every((s) => s.includes(l))).join(''), 'ab'),
   misconceptions: [
@@ -304,6 +304,12 @@ const b181b = auto({
     { response: LET, why: t`That is the union. The intersection keeps only what all four share.` },
   ],
   official: { source: cite('bop', 'Solutions, Section 1.8, exercise 1(b)'), answer: ['a', 'b'], agrees: true },
+  nudge: t`Not quite. Checking only the elements of the smallest set, not of all four, is the quick route.`,
+  hints: [
+    t`What must an element satisfy to be in the intersection of the four sets?`,
+    t`Which of the four sets is smallest, and why does it limit the candidates?`,
+    t`Which elements of that smallest set are also in each of the other three?`,
+  ],
 });
 
 const b185 = auto({
@@ -324,6 +330,7 @@ const b185 = auto({
   solution: [
     t`Union: each ${math`[i, i + ${1}]`} lies in ${math`[${1}, \infty)`}. Conversely, if ${math`x \ge ${1}`}, let ${math`i`} be the largest natural number with ${math`i \le x`}; then ${math`x < i + ${1}`}, so ${math`x \in [i, i + ${1}]`}. So the union is ${math`[${1}, \infty)`}.`,
     t`Intersection: a point in every ${math`[i, i + ${1}]`} would be in ${math`[${1}, ${2}]`} and in ${math`[${3}, ${4}]`}, which share nothing. So it is ${math`\varnothing`}. (Neighbours such as ${math`[${1}, ${2}]`} and ${math`[${2}, ${3}]`} share ${2}, but ${2} is not in ${math`[${3}, ${4}]`}.)`,
+    t`A point is in an intersection only if it is in every set; two disjoint members make it empty.`,
   ],
   reference: 'r',
   verify: () => {
@@ -337,6 +344,12 @@ const b185 = auto({
     { response: 'w2', why: t`The union holds the whole intervals, so non-integers such as ${math`${1}.${5}`} too.` },
   ],
   official: { source: cite('bop', 'Solutions, Section 1.8, exercise 5'), answer: 'r', agrees: true },
+  nudge: t`Not quite. Test single points: a non-integer for the union, and one fixed number against far-apart intervals for the intersection.`,
+  hints: [
+    t`What do the first three intervals cover between them?`,
+    t`Given a real number ${math`x \ge ${1}`}, which interval ${math`[i, i + ${1}]`} contains it?`,
+    t`Can one number lie in both ${math`[${1}, ${2}]`} and ${math`[${3}, ${4}]`}?`,
+  ],
 });
 
 const b189 = auto({
@@ -356,6 +369,7 @@ const b189 = auto({
   solution: [
     t`Every ${math`X`} is a subset of ${math`\mathbb{N}`}, so the union is inside ${math`\mathbb{N}`}; and ${math`\mathbb{N}`} itself is one of the ${math`X`}, so the union is ${math`\mathbb{N}`}.`,
     t`${math`\varnothing`} is one of the ${math`X`}, and nothing is in it, so nothing is in every ${math`X`}: the intersection is ${math`\varnothing`}.`,
+    t`The extreme members of a family settle its union and its intersection.`,
   ],
   reference: 'r',
   verify: () => {
@@ -369,6 +383,12 @@ const b189 = auto({
     { response: 'w2', why: t`The empty set is one of the ${math`X`}, so the intersection must be inside it.` },
   ],
   official: { source: cite('bop', 'Solutions, Section 1.8, exercise 9'), answer: 'r', agrees: true },
+  nudge: t`Not quite. Two particular members of the family, the largest and the smallest, settle both parts.`,
+  hints: [
+    t`What kind of objects are the elements of each ${math`X`}: numbers or sets?`,
+    t`Which member of ${math`\mathcal{P}(\mathbb{N})`} is the largest, and what does it give the union?`,
+    t`Which member of ${math`\mathcal{P}(\mathbb{N})`} has no elements, and what does it force on the intersection?`,
+  ],
 });
 
 const SW515: number[][] = [2, 3, 4, 5].map((i) => [i, i + 1, i - 1, 2 * i]);
@@ -382,12 +402,19 @@ const sw515u = auto({
   solution: [
     t`${math`A_{${2}} = ${setOf(uniq(SW515[0] as number[]))}`}, ${math`A_{${3}} = ${setOf(uniq(SW515[1] as number[]))}`}, ${math`A_{${4}} = ${setOf(uniq(SW515[2] as number[]))}`}, ${math`A_{${5}} = ${setOf(uniq(SW515[3] as number[]))}`}.`,
     t`The union is everything that appears at least once: ${math`${setOf(union(SW515))}`}.`,
+    t`Write each set out; the union is every element seen at least once.`,
   ],
   reference: union(SW515).join(', '),
   verify: () => same('union', union(SW515).join(','), '1,2,3,4,5,6,8,10'),
   misconceptions: [
     { response: '4', why: t`That is the intersection. The union keeps everything that is in some ${math`A_{i}`}.` },
     { response: '1, 2, 3, 4, 5, 6', why: t`The doubles ${math`${2}i`} are in the sets too: ${8} and ${10}.` },
+  ],
+  nudge: t`Not quite. Writing out each ${math`A_{i}`} in full before combining, the doubles ${math`${2}i`} included, avoids missing elements.`,
+  hints: [
+    t`What are ${math`i`}, ${math`i + ${1}`}, ${math`i - ${1}`}, and ${math`${2}i`} when ${math`i = ${2}`}?`,
+    t`What is each ${math`A_{i}`} for ${math`i = ${3}, ${4}, ${5}`}?`,
+    t`Which numbers appear in at least one of the four sets?`,
   ],
 });
 
@@ -400,10 +427,17 @@ const sw515i = auto({
   solution: [
     t`${math`A_{${2}} = ${setOf(uniq(SW515[0] as number[]))}`} and ${math`A_{${5}} = ${setOf(uniq(SW515[3] as number[]))}`} share only ${4}.`,
     t`${4} is also in ${math`A_{${3}}`} (as ${math`${3} + ${1}`}) and in ${math`A_{${4}}`}. So the intersection is ${math`\{${4}\}`}.`,
+    t`Intersect the most different sets first, then check the rest.`,
   ],
   reference: '4',
   verify: () => same('intersection', inter(SW515).join(','), '4'),
   misconceptions: [{ response: '3, 4', why: t`${3} is not in ${math`A_{${5}} = \{${4}, ${5}, ${6}, ${10}\}`}.` }],
+  nudge: t`Not quite. Comparing the two sets furthest apart narrows the candidates fastest.`,
+  hints: [
+    t`What must a number satisfy to be in the intersection?`,
+    t`Which two of the sets are likely to share the least, and what do they have in common?`,
+    t`Is each common element of those two also in the other two sets?`,
+  ],
 });
 
 const b1811 = supervision({
@@ -413,6 +447,11 @@ const b1811 = supervision({
   prompt: t`Is ${math`\bigcap_{\alpha \in I} A_{\alpha} \subseteq \bigcup_{\alpha \in I} A_{\alpha}`} always true for any collection of sets ${math`A_{\alpha}`} with index set ${mI}? Explain, and say what goes wrong if ${mI} is allowed to be empty.`,
   writeUp: 'explanation',
   official: cite('bop', 'Solutions, Section 1.8, exercise 11'),
+  hints: [
+    t`If ${math`x`} is in the intersection, which of the sets ${math`A_{\alpha}`} must contain ${math`x`}?`,
+    t`If ${mI} is not empty, what follows from picking one ${math`\alpha \in I`}?`,
+    t`If ${mI} is empty, what is the union, and which ${math`x`} satisfy "${math`x \in A_{\alpha}`} for every ${math`\alpha \in I`}"?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)

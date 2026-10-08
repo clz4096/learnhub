@@ -275,7 +275,7 @@ const listExpr = auto({
   id: 'cs3110-ex3-list-expressions',
   source: cite('cs3110-ex3', 'Exercise "list expressions"', true),
   title: t`Three ways to build a list`,
-  prompt: t`The exercise asks for the list of the integers ${1} to ${5} built three ways: with square brackets, with ${code`::`} and ${code`[]`}, and with ${code`@`} using ${code`[${2}; ${3}; ${4}]`}. Which of these is not equal to ${code`${LE}`}?`,
+  prompt: t`The exercise asks for the list of the integers ${1} to ${5} built three ways: with square brackets, with ${code`::`} and ${code`[]`}, and with ${code`@`} using ${code`[${2}; ${3}; ${4}]`}. Choose the expression that is not equal to ${code`${LE}`}.`,
   answer: {
     kind: 'choice',
     options: [
@@ -290,6 +290,13 @@ const listExpr = auto({
     t`Square brackets are notation for conses ending in ${code`[]`}, so the first two are the same list.`,
     t`${code`@`} joins lists, so ${code`[${1}] @ [${2}; ${3}; ${4}] @ [${5}]`} is the same list again.`,
     t`${code`::`} puts one element in front of a list of elements of the same type. ${code`[${1}; ${2}; ${3}] :: [${4}; ${5}]`} would put a list in front of a list of ints: a type error, not a list at all.`,
+    t`${code`::`} adds one element; ${code`@`} joins two lists.`,
+  ],
+  nudge: t`Not quite. Check the types on each side of ${code`::`}.`,
+  hints: [
+    t`What must be on the left of ${code`::`}, and what on the right?`,
+    t`What does ${code`@`} do with two lists?`,
+    t`In which expression is the left side of ${code`::`} a whole list?`,
   ],
   reference: ['mixed'],
   // OCaml 4.11.1: the first three print - : int list = [1; 2; 3; 4; 5]; the fourth is a type error.
@@ -306,7 +313,7 @@ const takeDrop = auto({
   id: 'cs3110-ex3-take-drop',
   source: cite('cs3110-ex3', 'Exercise "take drop"', true),
   title: t`Taking more than there is`,
-  prompt: t`The exercise specifies ${code`take n lst`}: the first ${code`n`} elements of ${code`lst`}, or all of them if ${code`lst`} has fewer than ${code`n`}; and ${code`drop n lst`}: all but the first ${code`n`}, or the empty list if ${code`lst`} has fewer than ${code`n`}. What are ${code`take ${TD_N} ${TD}`} and ${code`drop ${TD_N} ${TD}`}?`,
+  prompt: t`The exercise specifies ${code`take n lst`}: the first ${code`n`} elements of ${code`lst`}, or all of them if ${code`lst`} has fewer than ${code`n`}; and ${code`drop n lst`}: all but the first ${code`n`}, or the empty list if ${code`lst`} has fewer than ${code`n`}. Give ${code`take ${TD_N} ${TD}`} and ${code`drop ${TD_N} ${TD}`}.`,
   answer: {
     kind: 'choice',
     options: [
@@ -321,6 +328,13 @@ const takeDrop = auto({
     t`One solution, matching on the list: ${codeBlock(code`let rec take n lst =`, code`  if n = ${0} then [] else match lst with`, code`    | [] -> []`, code`    | h :: t -> h :: take (n - ${1}) t`)}`,
     t`${code`take ${TD_N} ${TD}`} keeps ${10}, ${20}, ${30}, then meets ${code`[]`} with ${code`n`} still ${2}: the ${code`[] -> []`} case ends it. The result is ${code`${TD}`}, as the specification says.`,
     t`${code`drop`} discards ${3} elements and meets ${code`[]`} with ${code`n`} still ${2}, so it returns ${code`[]`}.`,
+    t`The specification decides the edge cases; follow it, not intuition.`,
+  ],
+  nudge: t`Not quite. Reread what the specification says about a list shorter than ${code`n`}.`,
+  hints: [
+    t`What does the specification say ${code`take`} returns when the list has fewer than ${code`n`} elements?`,
+    t`What does it say ${code`drop`} returns in that case?`,
+    t`How many elements does ${code`${TD}`} have, compared with ${TD_N}?`,
   ],
   reference: ['right'],
   // OCaml 4.11.1, with the definitions in the solution: take 5 [10; 20; 30] = [10; 20; 30]; drop 5 [10; 20; 30] = [].
@@ -335,8 +349,13 @@ const focs32 = supervision({
   id: 'focs-3-2',
   source: cite('focs-notes', 'Lecture 3, Exercise 3.2'),
   title: t`The last element`,
-  prompt: t`Code a function to return the last element of a non-empty list. How efficiently can this be done? Say how many calls your function makes on a list of ${math`n`} elements, and why no function can do better.`,
+  prompt: t`Code a function to return the last element of a non-empty list. How efficiently can this be done? State how many calls the function makes on a list of ${math`n`} elements, and why no function can do better.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which patterns distinguish a one-element list from a longer one?`,
+    t`On a list of ${math`n`} elements, how many recursive calls does the function make?`,
+    t`To reach the last element, which cells of the list must any function visit, given how a list is built?`,
+  ],
 });
 
 // Computer Science Tripos Part IA 2016, Paper 1, Question 2(a): a prime sieve on a list. The
@@ -347,6 +366,11 @@ const cst16 = supervision({
   title: t`A prime sieve on a list`,
   prompt: t`A prime number sieve is an algorithm for finding all prime numbers up to a given limit ${math`n`}. The algorithm maintains a list, which initially holds the integers from ${2} to ${math`n`}. The following step is then repeated: remove the head of this list, which will be a prime number, and remove all its multiples from the list. Write code for the algorithm above as an OCaml function of type ${code`int -> int list`}. Explain your code clearly, and keep it free of needless complexity.`,
   writeUp: 'explanation',
+  hints: [
+    t`How can the initial list of the integers from ${2} to ${math`n`} be built recursively?`,
+    t`Which library function, or short recursive function, removes every multiple of a given ${math`p`} from a list?`,
+    t`What does the main recursion do with the head and with the filtered tail, and when does it stop?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

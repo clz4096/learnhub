@@ -6,7 +6,7 @@
  * Database). Solution sets are checked by the
  * sign test (prep-a.ts, setWhere); regions by evaluating the product at the points.
  */
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, supervision, withUses, type AutoProblem } from '../cambridge';
 import { add, int, mul, pick, q, sample, sub, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedMath, dmath, math, t } from '../rich';
@@ -181,42 +181,60 @@ const a4q2ii = setProblem({
   critical: [q(-2), q(1), q(3)],
 });
 
-const a4q3i = setProblem({
-  id: 'a4-q3-i',
-  source: cite('step-f04', 'Q3(i) (1995 STEP I Q1)'),
-  title: t`A cubic inequality from STEP`,
-  prompt: t`Find the real values of ${math`x`} for which ${math`x^{${3}} - ${4}x^{${2}} - x + ${4} \ge ${0}`}.`,
-  right: [closed(q(-1), q(1)), closed(q(4), null)],
-  wrong: [
-    { set: [closed(null, q(-1)), closed(q(1), q(4))], why: t`That is where it is at most ${0}. For large positive ${math`x`} the cubic is positive.` },
-    { set: [open(q(-1), q(1)), open(q(4), null)], why: t`The inequality is not strict, so the roots belong.` },
+const a4q3i: AutoProblem = {
+  ...setProblem({
+    id: 'a4-q3-i',
+    source: cite('step-f04', 'Q3(i) (1995 STEP I Q1)'),
+    title: t`A cubic inequality from STEP`,
+    prompt: t`Find the real values of ${math`x`} for which ${math`x^{${3}} - ${4}x^{${2}} - x + ${4} \ge ${0}`}.`,
+    right: [closed(q(-1), q(1)), closed(q(4), null)],
+    wrong: [
+      { set: [closed(null, q(-1)), closed(q(1), q(4))], why: t`That is where it is at most ${0}. For large positive ${math`x`} the cubic is positive.` },
+      { set: [open(q(-1), q(1)), open(q(4), null)], why: t`The inequality is not strict, so the roots belong.` },
+    ],
+    solution: [
+      t`Group: ${math`x^{${2}}(x - ${4}) - (x - ${4}) = (x - ${4})(x^{${2}} - ${1}) = (x - ${4})(x - ${1})(x + ${1})`}.`,
+      t`Sign diagram from the right: positive for ${math`x > ${4}`}, negative on ${math`(${1}, ${4})`}, positive on ${math`(-${1}, ${1})`}, negative for ${math`x < -${1}`}. With the roots: ${math`-${1} \le x \le ${1}`} or ${math`x \ge ${4}`}.`,
+      t`Factorise, order the roots, and read the signs from the right.`,
+    ],
+    test: (x) => holds(evalPoly([1, -4, -1, 4], x), '>='),
+    critical: [q(-1), q(1), q(4)],
+  }),
+  nudge: t`Not quite. Factorise by grouping, then read the sign from the right-hand end; the roots themselves are included.`,
+  hints: [
+    t`Which common factor appears after grouping the first two terms and the last two?`,
+    t`What are the three roots, in order?`,
+    t`Starting from large positive ${math`x`}, where the cubic is positive, how does the sign change across each root?`,
   ],
-  solution: [
-    t`Group: ${math`x^{${2}}(x - ${4}) - (x - ${4}) = (x - ${4})(x^{${2}} - ${1}) = (x - ${4})(x - ${1})(x + ${1})`}.`,
-    t`Sign diagram from the right: positive for ${math`x > ${4}`}, negative on ${math`(${1}, ${4})`}, positive on ${math`(-${1}, ${1})`}, negative for ${math`x < -${1}`}. With the roots: ${math`-${1} \le x \le ${1}`} or ${math`x \ge ${4}`}.`,
-  ],
-  test: (x) => holds(evalPoly([1, -4, -1, 4], x), '>='),
-  critical: [q(-1), q(1), q(4)],
-});
+};
 
-const nstA5ii = setProblem({
-  id: 'nst-a5-ii',
-  source: cite('nst-workbook', 'Algebra, A5(ii)'),
-  title: t`Do not divide by ${math`y`}`,
-  prompt: t`Find the values of ${math`y`} which satisfy ${math`y^{${3}} < ${2}y^{${2}} + ${3}y`}.`,
-  v: 'y',
-  right: [open(null, q(-1)), open(q(0), q(3))],
-  wrong: [
-    { set: [open(q(-1), q(3))], why: t`Dividing by ${math`y`} assumes ${math`y > ${0}`}. Move everything to one side and factorise: ${math`y(y - ${3})(y + ${1}) < ${0}`}.` },
-    { set: [open(q(-1), q(0)), open(q(3), null)], why: t`That is where ${math`y(y - ${3})(y + ${1}) > ${0}`}.` },
+const nstA5ii: AutoProblem = {
+  ...setProblem({
+    id: 'nst-a5-ii',
+    source: cite('nst-workbook', 'Algebra, A5(ii)'),
+    title: t`Do not divide by ${math`y`}`,
+    prompt: t`Find the values of ${math`y`} which satisfy ${math`y^{${3}} < ${2}y^{${2}} + ${3}y`}.`,
+    v: 'y',
+    right: [open(null, q(-1)), open(q(0), q(3))],
+    wrong: [
+      { set: [open(q(-1), q(3))], why: t`Dividing by ${math`y`} assumes ${math`y > ${0}`}. Move everything to one side and factorise: ${math`y(y - ${3})(y + ${1}) < ${0}`}.` },
+      { set: [open(q(-1), q(0)), open(q(3), null)], why: t`That is where ${math`y(y - ${3})(y + ${1}) > ${0}`}.` },
+    ],
+    solution: [
+      t`${math`y^{${3}} - ${2}y^{${2}} - ${3}y < ${0}`}, that is ${math`y(y - ${3})(y + ${1}) < ${0}`}.`,
+      t`From the right: positive for ${math`y > ${3}`}, negative on ${math`(${0}, ${3})`}, positive on ${math`(-${1}, ${0})`}, negative for ${math`y < -${1}`}. So ${math`y < -${1}`} or ${math`${0} < y < ${3}`}.`,
+      t`Never divide an inequality by an unknown whose sign is unknown.`,
+    ],
+    test: (y) => holds(evalPoly([1, -2, -3, 0], y), '<'),
+    critical: [q(-1), q(0), q(3)],
+  }),
+  nudge: t`Not quite. Dividing by ${math`y`} assumes its sign; move everything to one side and factorise instead.`,
+  hints: [
+    t`What inequality results from moving every term to the left?`,
+    t`How does the left side factorise?`,
+    t`Across each root, how does the sign of the product change, starting from large positive ${math`y`}?`,
   ],
-  solution: [
-    t`${math`y^{${3}} - ${2}y^{${2}} - ${3}y < ${0}`}, that is ${math`y(y - ${3})(y + ${1}) < ${0}`}.`,
-    t`From the right: positive for ${math`y > ${3}`}, negative on ${math`(${0}, ${3})`}, positive on ${math`(-${1}, ${0})`}, negative for ${math`y < -${1}`}. So ${math`y < -${1}`} or ${math`${0} < y < ${3}`}.`,
-  ],
-  test: (y) => holds(evalPoly([1, -2, -3, 0], y), '<'),
-  critical: [q(-1), q(0), q(3)],
-});
+};
 
 const a4q2iii = auto({
   id: 'a4-q2-iii',
@@ -227,6 +245,7 @@ const a4q2iii = auto({
   solution: [
     t`${math`x^{${2}} - ${3}x + ${2} = (x - ${2})(x - ${1})`}, so in the same way ${math`x^{${2}} - ${3}xy + ${2}y^{${2}} = (x - ${2}y)(x - y)`}.`,
     t`A product is ${0} when a factor is: ${math`x = ${2}y`}, that is ${math`y = \frac{x}{${2}}`}, or ${math`x = y`}. The gradients are ${q(1, 2)} and ${1}.`,
+    t`A quadratic in ${math`x`} and ${math`y`} with every term of degree two factorises into lines through the origin.`,
   ],
   reference: '1/2, 1',
   verify: () => {
@@ -234,6 +253,12 @@ const a4q2iii = auto({
     return same('a point off both lines', 3 * 3 - 3 * 3 * 1 + 2 * 1, 2);
   },
   misconceptions: [{ response: '2, 1', why: t`${math`x = ${2}y`} means ${math`y = \frac{x}{${2}}`}: the gradient is ${q(1, 2)}, not ${2}.` }],
+  nudge: t`Not quite. Factorise as if ${math`y`} were ${1}, then put ${math`y`} back; each factor is one line.`,
+  hints: [
+    t`How does ${math`x^{${2}} - ${3}x + ${2}`} factorise?`,
+    t`Putting ${math`y`} back into each term to match the powers, how does ${math`x^{${2}} - ${3}xy + ${2}y^{${2}}`} factorise?`,
+    t`Writing each factor equal to zero as ${math`y = mx`}, what is ${math`m`}?`,
+  ],
 });
 
 const a4q3iiLines = auto({
@@ -245,6 +270,7 @@ const a4q3iiLines = auto({
   solution: [
     t`Part (i) gave ${math`x^{${3}} - ${4}x^{${2}} - x + ${4} = (x - ${4})(x - ${1})(x + ${1})`}. Putting ${math`y`} into each term to match the powers: ${math`x^{${3}} - ${4}x^{${2}}y - xy^{${2}} + ${4}y^{${3}} = (x - ${4}y)(x - y)(x + y)`}.`,
     t`So the lines are ${math`y = \frac{x}{${4}}`}, ${math`y = x`}, and ${math`y = -x`}: gradients ${q(1, 4)}, ${1}, ${math`-${1}`}.`,
+    t`Each linear factor of a polynomial whose terms all have the same degree is a line through the origin.`,
   ],
   reference: '1/4, 1, -1',
   verify: () => {
@@ -253,6 +279,12 @@ const a4q3iiLines = auto({
     return Math.abs(f(1, 2)) > 0 ? null : '(1, 2) should be off the lines';
   },
   misconceptions: [{ response: '4, 1, -1', why: t`${math`x = ${4}y`} is the line ${math`y = \frac{x}{${4}}`}, with gradient ${q(1, 4)}.` }],
+  nudge: t`Not quite. The factorisation from part (i), with ${math`y`} put back into each term, splits the cubic into three lines.`,
+  hints: [
+    t`How does ${math`x^{${3}} - ${4}x^{${2}} - x + ${4}`} factorise?`,
+    t`Putting ${math`y`} into each term to match the powers, what are the three factors of the two-variable cubic?`,
+    t`Writing each factor equal to zero as ${math`y = mx`}, what are the gradients?`,
+  ],
 });
 
 const step1995 = supervision({
@@ -262,6 +294,11 @@ const step1995 = supervision({
   prompt: t`(i) Find the real values of ${math`x`} for which ${math`x^{${3}} - ${4}x^{${2}} - x + ${4} \ge ${0}`}. (ii) Find the three lines in the ${math`(x, y)`} plane on which ${math`x^{${3}} - ${4}x^{${2}}y - xy^{${2}} + ${4}y^{${3}} = ${0}`}. (iii) On a sketch shade the regions of the ${math`(x, y)`} plane for which ${math`x^{${3}} - ${4}x^{${2}}y - xy^{${2}} + ${4}y^{${3}} \ge ${0}`}.`,
   writeUp: 'sketch',
   official: cite('step-f04-hints', 'Q3'),
+  hints: [
+    t`For (i), how does grouping factorise the cubic, and what is its sign on each interval?`,
+    t`For (ii), how does the factorisation of (i) carry over with ${math`y`} put into each term?`,
+    t`For (iii), in each of the six regions between the three lines, which test point shows the sign?`,
+  ],
 });
 
 const a4q2iv = supervision({
@@ -271,6 +308,11 @@ const a4q2iv = supervision({
   prompt: t`On a sketch, shade the regions of the ${math`(x, y)`} plane in which ${math`x^{${2}} - ${3}xy + ${2}y^{${2}} \le ${0}`}. (Pick a point in each region, not on the boundary lines, and test it.)`,
   writeUp: 'sketch',
   official: cite('step-f04-hints', 'Q2(iv)'),
+  hints: [
+    t`Which two lines through the origin make up ${math`x^{${2}} - ${3}xy + ${2}y^{${2}} = ${0}`}?`,
+    t`Into how many regions do they divide the plane?`,
+    t`Which test point in each region shows whether the product of the two factors is negative there?`,
+  ],
 });
 
 // STEP I 2000 Q6 (STEP Questions Database): two regions bounded by pairs of lines, and a point in both.
@@ -287,6 +329,11 @@ const db00q6 = supervision({
   title: t`Two pairs of lines, and a point inside both regions`,
   prompt: t`Show that ${dmath`x^{${2}} - y^{${2}} + x + ${3}y - ${2} = (x - y + ${2})(x + y - ${1})`} and hence, or otherwise, indicate by means of a sketch the region of the ${math`(x, y)`} plane for which ${math`x^{${2}} - y^{${2}} + x + ${3}y > ${2}`}. Sketch also the region of the ${math`(x, y)`} plane for which ${math`x^{${2}} - ${4}y^{${2}} + ${3}x - ${2}y < -${2}`}. Give the coordinates of a point for which both inequalities are satisfied or explain why no such point exists.`,
   writeUp: 'sketch',
+  hints: [
+    t`Does expanding ${math`(x - y + ${2})(x + y - ${1})`} give the stated quadratic?`,
+    t`When is a product of two factors positive, and how do the two lines where the factors vanish split the plane?`,
+    t`Does the second quadratic factorise in the same way, and which of its regions overlaps the first region?`,
+  ],
 });
 
 const db00q6point = auto({
@@ -310,6 +357,7 @@ const db00q6point = auto({
     t`The first: ${math`(x - y + ${2})(x + y - ${1}) > ${0}`}. The second factorises the same way: ${math`x^{${2}} - ${4}y^{${2}} + ${3}x - ${2}y + ${2} = (x - ${2}y + ${1})(x + ${2}y + ${2})`}, which must be negative.`,
     t`Each region is a pair of opposite wedges between two lines. The first is where both factors have the same sign, the second where its factors have opposite signs.`,
     t`Try ${math`(-${2}, ${1})`}: ${math`(-${2} - ${1} + ${2})(-${2} + ${1} - ${1}) = (-${1})(-${2}) = ${2} > ${0}`} and ${math`(-${2} - ${2} + ${1})(-${2} + ${2} + ${2}) = (-${3})(${2}) = -${6} < ${0}`}. So ${math`(-${2}, ${1})`} works, and so does any point near it.`,
+    t`Factorise into lines, then pick a point and check the signs of the factors.`,
   ],
   reference: 'x = -2, y = 1',
   verify: () => {
@@ -324,6 +372,12 @@ const db00q6point = auto({
   },
   misconceptions: [
     { response: 'x = 0, y = 0', why: t`At the origin the first expression is ${math`-${2}`}, not more than ${0}: ${math`(${2})(-${1}) < ${0}`}.` },
+  ],
+  nudge: t`Not quite. Factorise both expressions; a point must make the first product positive and the second negative.`,
+  hints: [
+    t`How do the two quadratic expressions factorise, once the constants are moved across?`,
+    t`In which wedges between its two lines does each product have the required sign?`,
+    t`Which simple integer point lies in a wedge of both kinds?`,
   ],
 });
 

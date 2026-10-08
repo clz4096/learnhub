@@ -191,9 +191,16 @@ const arthur = auto({
   title: t`Arthur's expected number of shots`,
   prompt: t`Arthur's arrows hit the target with probability ${math`a`}, each shot independent. Find the expected number of shots he takes to hit the target, in terms of ${math`a`}.`,
   answer: { kind: 'expression', expected: '1/a', variables: ['a'], domains: A_DOM },
+  hints: [
+    t`What is the probability that the first hit comes on shot ${math`n`}?`,
+    t`Which series gives the expectation, and which values of ${math`d`} and ${math`r`} make it the series ${math`S`}?`,
+    t`What does the formula for ${math`S`} give with those values, before simplifying?`,
+  ],
+  nudge: t`Not quite. Write the expectation as a series and match it to ${math`S`}.`,
   solution: [
     t`He hits first on shot ${math`n`} with probability ${math`(a')^{n - ${1}}a`}, where ${math`a' = ${1} - a`}. So the expectation is ${math`a\left(${1} + ${2}a' + ${3}(a')^{${2}} + \cdots\right)`}.`,
     t`That is ${math`S`} with ${math`d = ${1}`} and ${math`r = a'`}: ${math`a\left(\frac{${1}}{${1} - a'} + \frac{a'}{(${1} - a')^{${2}}}\right) = a\left(\frac{${1}}{a} + \frac{${1} - a}{a^{${2}}}\right) = \frac{${1}}{a}`}.`,
+    t`Match a new series to one already summed.`,
   ],
   reference: '1/a',
   verify: () => {
@@ -213,9 +220,16 @@ const beta = auto({
   title: t`Boadicea's chance of winning`,
   prompt: t`Arthur and Boadicea take alternate shots, Arthur first; the first to hit the target wins. Arthur hits with probability ${math`a`} and Boadicea with probability ${math`b`}, each shot independent. Arthur wins with probability ${math`\alpha = \frac{a}{${1} - (${1} - a)(${1} - b)}`}. Find the probability ${math`\beta`} that Boadicea wins, in terms of ${math`a`} and ${math`b`}.`,
   answer: { kind: 'expression', expected: '(1 - a)b/(1 - (1 - a)(1 - b))', variables: ['a', 'b'], domains: AB_DOM },
+  hints: [
+    t`What must happen before Boadicea's ${math`k`}th shot?`,
+    t`What is the probability that she wins with her first shot, and with her second?`,
+    t`Which geometric series do those probabilities form, and what is its common ratio?`,
+  ],
+  nudge: t`Not quite. Condition on the first round: after two misses, the contest starts afresh.`,
   solution: [
     t`Boadicea wins on her ${math`k`}th shot when Arthur misses ${math`k`} times and she misses ${math`k - ${1}`} times first: ${math`\beta = a'b + a'b'a'b + \cdots = a'b\left(${1} + a'b' + (a'b')^{${2}} + \cdots\right)`}, with ${math`a' = ${1} - a`}, ${math`b' = ${1} - b`}.`,
     t`${math`\beta = \frac{a'b}{${1} - a'b'} = \frac{(${1} - a)b}{${1} - (${1} - a)(${1} - b)}`}. Check: ${math`\alpha + \beta = \frac{a + b - ab}{${1} - a'b'} = ${1}`}, so the contest ends with probability ${1}.`,
+    t`Sum over the round of the winning hit, and check the two chances add to ${1}.`,
   ],
   reference: '(1 - a)b/(1 - (1 - a)(1 - b))',
   verify: () => {
@@ -235,9 +249,17 @@ const contestMean = auto({
   title: t`The expected length of the contest`,
   prompt: t`In the contest of alternate shots (Arthur first, hitting with probability ${math`a`}; Boadicea hitting with probability ${math`b`}), find the expected number of shots, in terms of ${math`a`} and ${math`b`}. (The question shows it equals ${math`\frac{\alpha}{a} + \frac{\beta}{b}`}.)`,
   answer: { kind: 'expression', expected: '(2 - a)/(1 - (1 - a)(1 - b))', variables: ['a', 'b'], domains: AB_DOM },
+  hints: [
+    t`After Arthur and Boadicea both miss once, how does the contest compare with the start?`,
+    t`Conditioning on the first round, what equation does the expected length ${math`E`} satisfy?`,
+    t`How does that equation rearrange once the terms in ${math`E`} are collected?`,
+  ],
+  nudge: t`Not quite. The contest stops at the first hit by either player; condition on the first round.`,
   solution: [
-    t`The contest ends on shot ${math`${2}k + ${1}`} (Arthur hits) with probability ${math`(a'b')^{k}a`} and on shot ${math`${2}k + ${2}`} (Boadicea hits) with probability ${math`(a'b')^{k}a'b`}. Each half is an arithmetico-geometric series in ${math`a'b'`}.`,
-    t`Summing with the result for ${math`S`}, or by first-step analysis, ${math`E = \frac{${1}}{${1} - a'b'} + \frac{a'}{${1} - a'b'} = \frac{${2} - a}{${1} - (${1} - a)(${1} - b)}`}. Indeed ${math`\frac{\alpha}{a} = \frac{${1}}{${1} - a'b'}`} and ${math`\frac{\beta}{b} = \frac{a'}{${1} - a'b'}`}.`,
+    t`Let ${math`a' = ${1} - a`}, ${math`b' = ${1} - b`}. In the first round the contest ends after ${1} shot (probability ${math`a`}), after ${2} shots (probability ${math`a'b`}), or uses ${2} shots and starts afresh (probability ${math`a'b'`}).`,
+    t`So ${math`E = a + ${2}a'b + a'b'(${2} + E) = ${1} + a' + a'b'E`}.`,
+    t`${math`E(${1} - a'b') = ${2} - a`}, so ${math`E = \frac{${2} - a}{${1} - (${1} - a)(${1} - b)}`}.`,
+    t`A process that restarts gives a linear equation for its mean.`,
   ],
   reference: '(2 - a)/(1 - (1 - a)(1 - b))',
   verify: () => {
@@ -259,9 +281,16 @@ const geomSecond = auto({
   title: t`The geometric distribution: ${math`E(X^{${2}})`}`,
   prompt: t`${math`X`} is the number of trials up to and including the first success, each trial a success with probability ${math`p`} independently, so ${math`P(X = r) = (${1} - p)^{r - ${1}}p`}. Differentiating ${math`${1} + q + q^{${2}} + \cdots = (${1} - q)^{-${1}}`} twice, find ${math`E(X^{${2}})`} in terms of ${math`p`}.`,
   answer: { kind: 'expression', expected: '(2 - p)/p^2', variables: ['p'], domains: P_DOM },
+  hints: [
+    t`What does differentiating ${math`${1} + q + q^{${2}} + \cdots = (${1} - q)^{-${1}}`} once give?`,
+    t`What does differentiating again give, and how do its coefficients compare with ${math`r^{${2}}`}?`,
+    t`Which combination of the two differentiated series has coefficient ${math`r^{${2}}`} on ${math`q^{r - ${1}}`}?`,
+  ],
+  nudge: t`Not quite. ${math`E(X^{${2}})`} is not ${math`E(X)^{${2}}`}; build the weights ${math`r^{${2}}`} from the two differentiated series.`,
   solution: [
     t`With ${math`q = ${1} - p`}: differentiating once, ${math`${1} + ${2}q + ${3}q^{${2}} + \cdots = (${1} - q)^{-${2}}`} (A); again, ${math`${2} + ${3} \times ${2}q + ${4} \times ${3}q^{${2}} + \cdots = ${2}(${1} - q)^{-${3}}`} (B).`,
     t`(B) minus (A) gives ${math`${1} + ${2}^{${2}}q + ${3}^{${2}}q^{${2}} + \cdots = \frac{${2}}{p^{${3}}} - \frac{${1}}{p^{${2}}}`}. Multiplying by ${math`p`}: ${math`E(X^{${2}}) = \frac{${2}}{p^{${2}}} - \frac{${1}}{p} = \frac{${2} - p}{p^{${2}}}`}. Then ${math`\mathrm{Var}(X) = \frac{${2} - p}{p^{${2}}} - \frac{${1}}{p^{${2}}} = \frac{${1} - p}{p^{${2}}}`}.`,
+    t`Differentiate the geometric series to make the weights needed, then combine.`,
   ],
   reference: '(2 - p)/p^2',
   verify: () => {
@@ -280,6 +309,11 @@ const q2proofS = supervision({
   source: cite(S3, 'Q2'),
   title: t`Prove the formula for ${math`S`}`,
   prompt: t`For ${math`|r| < ${1}`}, prove that ${math`S = \sum_{n \ge ${0}} (${1} + nd)r^{n} = \frac{${1}}{${1} - r} + \frac{rd}{(${1} - r)^{${2}}}`} by considering ${math`S - rS`}. Why is it legitimate to subtract term by term, and what goes wrong for ${math`r = ${1}`}?`,
+  hints: [
+    t`With the powers of ${math`r`} lined up, what is ${math`S - rS`} term by term?`,
+    t`Why do ${math`S`} and ${math`rS`} both converge when ${math`|r| < ${1}`}, and why does that allow subtracting term by term?`,
+    t`What is the tail after the first term, and what happens to ${math`S`} itself when ${math`r = ${1}`}?`,
+  ],
   writeUp: 'proof',
   official: cite(S3S, 'Q2'),
 });
@@ -288,6 +322,11 @@ const q2proofE = supervision({
   source: cite(S3, 'Q2'),
   title: t`The contest: ${math`\frac{\alpha}{a} + \frac{\beta}{b}`}`,
   prompt: t`Show that the expected number of shots in the contest between Arthur and Boadicea is ${math`\frac{\alpha}{a} + \frac{\beta}{b}`}, by splitting the expectation into the shots that end with Arthur's hit and those that end with Boadicea's, and using the formula for ${math`S`} twice.`,
+  hints: [
+    t`On which shots can the contest end with Arthur's hit, and with what probabilities?`,
+    t`How does the expected number of shots over those outcomes match ${math`S`} for suitable ${math`d`} and ${math`r`}?`,
+    t`After the same for Boadicea, how do the two pieces compare with ${math`\frac{\alpha}{a}`} and ${math`\frac{\beta}{b}`}?`,
+  ],
   writeUp: 'proof',
   official: cite(S3S, 'Q2'),
 });

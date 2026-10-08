@@ -163,9 +163,16 @@ const lemma94 = auto({
   title: t`Lemma ${94} with numbers`,
   prompt: t`Lemma ${94}: for a prime ${mp} and ${math`e`} with ${math`\gcd(p - ${1}, e) = ${1}`}, let ${math`d = [\mathrm{lc}_{${2}}(p - ${1}, e)]_{p - ${1}}`}; then ${math`(k^{e})^{d} \equiv k \pmod{p}`}. For ${math`p = ${PL}`} and ${math`e = ${EL}`}, find ${math`d`}.`,
   answer: { kind: 'exact', expected: String(DL) },
+  hints: [
+    t`Modulo which number must ${math`d`} be an inverse of ${math`e`}?`,
+    t`What does the extended Euclidean algorithm give for ${PL - 1} and ${EL}?`,
+    t`Reduced modulo ${PL - 1}, which coefficient is ${math`d`}?`,
+  ],
+  nudge: t`Not quite. Run the extended Euclidean algorithm on ${math`p - ${1}`} and ${math`e`}, then reduce the coefficient of ${math`e`}.`,
   solution: [
     t`${math`\mathrm{egcd}(${PL - 1}, ${EL})`}: ${math`${egcd(PL - 1, EL).s} \times ${PL - 1} + ${paren(egcd(PL - 1, EL).t)} \times ${EL} = ${1}`}, so ${math`d = [${egcd(PL - 1, EL).t}]_{${PL - 1}} = ${DL}`}.`,
     t`Check: ${math`${EL} \times ${DL} = ${EL * DL} = ${(EL * DL - 1) / (PL - 1)} \times ${PL - 1} + ${1}`}.`,
+    t`Exponents are taken modulo ${math`p - ${1}`}.`,
   ],
   reference: String(DL),
   verify: () => same('(k^5)^d = k for every k mod 23', upTo(PL).every((k) => powModSlow(powModSlow(k - 1, EL, PL), DL, PL) === k - 1), true),
@@ -183,9 +190,16 @@ const threePass = auto({
   title: t`Sending a key in three messages`,
   prompt: t`The notes' key exchange with ${math`p = ${PL}`}: A has exponents ${math`(e_{A}, d_{A}) = (${EA}, ${DA})`}, B has ${math`(e_{B}, d_{B}) = (${EB}, ${DB})`}, each pair with ${math`ed \equiv ${1} \pmod{${PL - 1}}`}. A's key is ${math`k = ${KEY}`}. A sends ${math`m_{${1}} = [k^{e_{A}}]_{p}`}, B returns ${math`m_{${2}} = [m_{${1}}^{e_{B}}]_{p}`}, A sends ${math`m_{${3}} = [m_{${2}}^{d_{A}}]_{p}`}, and B computes ${math`[m_{${3}}^{d_{B}}]_{p}`}. Give the four numbers.`,
   answer: { kind: 'table', cell: 'exact', columns: [t`step`, t`value`], rows: [[t`${math`m_{${1}}`}`, null], [t`${math`m_{${2}}`}`, null], [t`${math`m_{${3}}`}`, null], [t`B's result`, null]], expected: [String(m1), String(m2), String(m3), String(powMod(m3, DB, PL))] },
+  hints: [
+    t`What is ${math`[${KEY}^{${EA}}]_{${PL}}`}?`,
+    t`Which exponent does B apply, and which does A apply to remove its own?`,
+    t`What power of ${math`k`} does ${math`m_{${3}}`} carry, and what does B's last step leave?`,
+  ],
+  nudge: t`Not quite. Reduce modulo ${PL} after every multiplication, and remember that B still removes its own lock at the end.`,
   solution: [
     t`${math`m_{${1}} = [${KEY}^{${EA}}]_{${PL}} = ${m1}`}, ${math`m_{${2}} = [${m1}^{${EB}}]_{${PL}} = ${m2}`}, ${math`m_{${3}} = [${m2}^{${DA}}]_{${PL}} = ${m3}`}.`,
     t`${math`m_{${3}} \equiv k^{e_{A} e_{B} d_{A}} \equiv k^{e_{B}}`}, since ${math`e_{A}d_{A} \equiv ${1} \pmod{${PL - 1}}`}; so B's ${math`[m_{${3}}^{d_{B}}]_{${PL}} = ${powMod(m3, DB, PL)}`} is the key. No secret exponent ever crossed the channel.`,
+    t`Each lock is removed by its own inverse exponent, in any order.`,
   ],
   reference: [String(m1), String(m2), String(m3), String(powMod(m3, DB, PL))],
   verify: () => same('B recovers the key, by slow powers', powModSlow(powModSlow(powModSlow(powModSlow(KEY, EA, PL), EB, PL), DA, PL), DB, PL), KEY),
@@ -197,6 +211,11 @@ const lemma94proof = supervision({
   source: cite('cst-dm-notes', 'printed pages 263 and 264, Lemma 94'),
   title: t`Why decryption undoes encryption`,
   prompt: t`Prove Lemma ${94}: if ${mp} is prime, ${math`\gcd(p - ${1}, e) = ${1}`}, and ${math`d = [\mathrm{lc}_{${2}}(p - ${1}, e)]_{p - ${1}}`}, then ${math`(k^{e})^{d} \equiv k \pmod{p}`} for all integers ${math`k`}. Treat the case ${math`p \mid k`} separately, and say where Fermat's little theorem enters.`,
+  hints: [
+    t`What does ${math`de \equiv ${1} \pmod{p - ${1}}`} say as an equation with an integer?`,
+    t`If ${math`p \nmid k`}, what does Fermat's little theorem give for ${math`k^{p - ${1}}`}?`,
+    t`If ${math`p \mid k`}, why are both sides ${0} modulo ${mp}?`,
+  ],
   writeUp: 'proof',
 });
 const safety = supervision({
@@ -204,6 +223,11 @@ const safety = supervision({
   source: cite('cst-dm-notes', 'printed pages 259 to 261, the Diffie-Hellman method'),
   title: t`What an eavesdropper sees`,
   prompt: t`An eavesdropper sees ${mc}, ${mp}, ${math`\alpha = [c^{a}]_{p}`}, and ${math`\beta = [c^{b}]_{p}`}. Explain why she cannot simply compute ${math`k = [c^{ab}]_{p}`} from them, what problem she would have to solve (the discrete logarithm), and why Alice's and Bob's own work stays fast even for a prime with hundreds of digits.`,
+  hints: [
+    t`Which quantities does the eavesdropper know, and which are kept secret?`,
+    t`To get ${math`k`} from ${math`\alpha`} and ${math`\beta`}, which exponent would she need, and what problem is finding it?`,
+    t`How does repeated squaring keep the legitimate computations fast?`,
+  ],
   writeUp: 'explanation',
 });
 const rsa = supervision({
@@ -211,6 +235,11 @@ const rsa = supervision({
   source: cite('cst-dm-notes', 'printed page 266, Lemma 95'),
   title: t`The RSA aside`,
   prompt: t`Lemma ${95}: for distinct primes ${mp}, ${math`q`} and ${math`ed \equiv ${1} \pmod{(p - ${1})(q - ${1})}`}, ${math`(k^{e})^{d} \equiv k \pmod{pq}`} for all integers ${math`k`}. Prove it from Lemma ${94}'s argument applied modulo ${mp} and modulo ${math`q`}, and the fact that ${mp} and ${math`q`} are coprime.`,
+  hints: [
+    t`Why is ${math`ed \equiv ${1}`} modulo ${math`p - ${1}`}, and modulo ${math`q - ${1}`}?`,
+    t`What does Lemma ${94}'s argument give modulo ${mp}, and modulo ${math`q`}?`,
+    t`If ${mp} and ${math`q`} both divide ${math`(k^{e})^{d} - k`} and are coprime, what divides it?`,
+  ],
   writeUp: 'proof',
 });
 

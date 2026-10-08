@@ -212,11 +212,17 @@ const a6q2 = auto({
   title: t`Charlie's letters`,
   prompt: t`In how many ways can Charlie arrange the letters of his name? (The ${7} letters C, H, A, R, L, I, E are all different.)`,
   answer: { kind: 'exact', expected: String(factorial(7)) },
-  solution: [t`All ${7} letters are different, and an arrangement uses all of them: ${math`${7}! = ${factorial(7)}`}. (Ben has ${math`${3}! = ${6}`} and Elsa ${math`${4}! = ${24}`}.)`],
+  solution: [t`All ${7} letters are different, and an arrangement uses all of them: ${math`${7}! = ${factorial(7)}`}. (Ben has ${math`${3}! = ${6}`} and Elsa ${math`${4}! = ${24}`}.)`, t`The arrangements of ${math`n`} different objects number ${math`n!`}.`],
   reference: '5040',
   verify: () => same('7! by listing', countOrdered(7, 7), 5040),
   misconceptions: [{ response: '49', why: t`That is ${math`${7} \times ${7}`}. Each letter used reduces the choices: ${math`${7} \times ${6} \times \cdots \times ${1}`}.` }],
   official: { source: cite('step-f06-hints', 'Assignment 6, Q2(i)'), answer: '5040', agrees: true },
+  nudge: t`Not quite. Fill the ${7} places one at a time and count the choices left for each.`,
+  hints: [
+    t`How many letters can go in the first place?`,
+    t`Once one letter is used, how many are left for the second place, and so on?`,
+    t`What product of choices results, and what is its name?`,
+  ],
 });
 
 /** Grinstead and Snell 3.1.12: 30 Haydn symphonies, 15 modern works, 9 Beethoven symphonies. */
@@ -261,6 +267,7 @@ const gs3112 = auto({
     t`(a) Fill the three places in turn: ${REP.haydn} choices of Haydn symphony, then ${REP.modern} of modern work, then ${REP.beethoven} of Beethoven symphony. By the product rule, ${math`${REP.haydn} \times ${REP.modern} \times ${REP.beethoven} = ${FIXED}`}.`,
     t`(b) A program is now a choice of one piece from each category, ${FIXED} ways as in (a), together with an order of those three pieces, ${math`${3}! = ${factorial(3)}`} ways. Different choices or different orders give different programs, so there are ${math`${FIXED} \times ${factorial(3)} = ${PROGRAMMES[1] as number}`}.`,
     t`(c) Now any three different pieces of the ${ALL_PIECES}, in order: an ordered selection of ${3} from ${ALL_PIECES}, ${math`P(${ALL_PIECES}, ${3}) = ${ALL_PIECES} \times ${ALL_PIECES - 1} \times ${ALL_PIECES - 2} = ${PROGRAMMES[2] as number}`}.`,
+    t`Count the choices, then multiply by the number of orders when the order is free.`,
   ],
   reference: PROGRAMMES.map(String),
   verify: () => same('programs (a), (b), (c) by listing', programmesBrute().join(', '), PROGRAMMES.join(', ')),
@@ -268,6 +275,12 @@ const gs3112 = auto({
     { response: [String(FIXED), String(FIXED), String(PROGRAMMES[2])], why: t`In (b) the same three pieces can be played in ${math`${3}! = ${factorial(3)}`} orders, and each order is a different program.` },
     { response: [String(FIXED), String(PROGRAMMES[1]), String(ALL_PIECES ** 3)], why: t`${math`${ALL_PIECES}^{${3}}`} lets one piece be played twice. Once a piece is chosen it cannot be chosen again: ${ALL_PIECES}, then ${ALL_PIECES - 1}, then ${ALL_PIECES - 2} choices.` },
     { response: [String(FIXED), String(PROGRAMMES[1]), String(choose(ALL_PIECES, 3))], why: t`That counts sets of three pieces. A program has an order, so each set gives ${math`${3}! = ${factorial(3)}`} programs.` },
+  ],
+  nudge: t`Not quite. Each part changes one thing: whether the order is free, and whether the categories are fixed.`,
+  hints: [
+    t`For (a), with the order fixed, how many choices are there for each place?`,
+    t`For (b), in how many orders can three chosen pieces be played?`,
+    t`For (c), how many pieces are there in all, and how many ordered choices of three different pieces?`,
   ],
 });
 
@@ -278,6 +291,11 @@ const step95Hockey = supervision({
   title: t`Hockey players in a row`,
   prompt: t`A school has ${mn} pupils, of whom ${mr} play hockey, where ${math`n \ge r \ge ${2}`}. All ${mn} pupils are arranged in a row. (i) In how many of the orders is there a hockey player at each end of the row? (ii) In how many orders are all the hockey players standing together? (iii) By considering the gaps between the pupils who do not play hockey, find the number of orders in which no two hockey players are standing together, distinguishing between the cases when this number is zero and when it is not.`,
   writeUp: 'proof',
+  hints: [
+    t`For (i), in how many ways can the two ends be filled with hockey players, and the rest arranged?`,
+    t`For (ii), how can the block of hockey players be treated as a single object?`,
+    t`For (iii), how many gaps do the other ${math`n - r`} pupils make, ends included, and in how many ways can the ${mr} hockey players be placed one to a gap?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

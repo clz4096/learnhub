@@ -230,11 +230,18 @@ const a16cubic = auto({
   source: cite('step-f16', 'Q3(iii)'),
   title: t`A cubic solved by ${math`\cos ${3}\alpha`}`,
   prompt: t`The roots of ${math`${4}x^{${3}} - ${3}x - \cos ${3}\alpha = ${0}`} are ${math`\cos\alpha`} and ${math`\cos(\alpha \pm ${120}^\circ)`}. Use this, with ${math`y = ${2}x`}, to find the largest root of ${math`y^{${3}} - ${3}y - \sqrt{${2}} = ${0}`}, in surd form. Write square roots as sqrt.`,
+  nudge: t`Not quite. After ${math`y = ${2}x`}, match the constant term with ${math`\cos ${3}\alpha`} to find ${math`\alpha`}.`,
+  hints: [
+    t`With ${math`y = ${2}x`}, what does the equation in ${math`y`} become as an equation in ${math`x`}?`,
+    t`Which angle has cosine ${math`\frac{\sqrt{${2}}}{${2}}`}, and so which ${math`\alpha`} fits?`,
+    t`Which of the three roots is largest, and what is ${math`\cos ${15}^\circ`} in surd form?`,
+  ],
   answer: { kind: 'expression', expected: '(sqrt(6) + sqrt(2))/2', variables: [] },
   solution: [
     t`Put ${math`y = ${2}x`}: ${math`${8}x^{${3}} - ${6}x - \sqrt{${2}} = ${0}`}, that is ${math`${4}x^{${3}} - ${3}x = \frac{\sqrt{${2}}}{${2}} = \cos ${45}^\circ`}. So ${math`${3}\alpha = ${45}^\circ`} works: ${math`\alpha = ${15}^\circ`}.`,
     t`The roots are ${math`x = \cos ${15}^\circ, \cos ${135}^\circ, \cos ${255}^\circ`}, and the largest is ${math`\cos ${15}^\circ = \frac{\sqrt{${3}} + ${1}}{${2}\sqrt{${2}}}`}.`,
     t`So the largest ${math`y`} is ${math`${2}\cos ${15}^\circ = \frac{\sqrt{${3}} + ${1}}{\sqrt{${2}}} = \frac{\sqrt{${6}} + \sqrt{${2}}}{${2}}`}. The others are ${math`-\sqrt{${2}}`} and ${math`-\frac{\sqrt{${6}} - \sqrt{${2}}}{${2}}`}.`,
+    t`Match a cubic to a triple angle identity, then read off the roots.`,
   ],
   reference: '(sqrt(6) + sqrt(2))/2',
   verify: () => {
@@ -251,6 +258,11 @@ const a16q3ii = supervision({
   source: cite('step-f16', 'Q3(ii)'),
   title: t`The roots of ${math`${4}x^{${3}} - ${3}x - \cos ${3}\alpha = ${0}`}`,
   prompt: t`(${2015} STEP I Q${2}(ii)) Show that ${math`\cos\alpha`} is a root of the equation ${math`${4}x^{${3}} - ${3}x - \cos ${3}\alpha = ${0}`}, and find the other two roots in terms of ${math`\cos\alpha`} and ${math`\sin\alpha`}.`,
+  hints: [
+    t`What is ${math`\cos ${3}\alpha`} in terms of ${math`\cos\alpha`}, by the triple angle formula?`,
+    t`Which other angles have the same value of ${math`\cos ${3}\theta`} as ${math`\alpha`}?`,
+    t`How do the compound angle formulae write the cosines of those angles in terms of ${math`\cos\alpha`} and ${math`\sin\alpha`}?`,
+  ],
   writeUp: 'proof',
   official: cite('step-f16-hints', 'Q3(ii)'),
 });
@@ -261,8 +273,14 @@ const t1 = auto({
   source: cite('nst-workbook', 'T1'),
   title: t`Four values with ${math`${2}\sin^{${2}}\theta = ${1}`}`,
   prompt: t`Find the four values of ${math`\theta`} in the range ${0} to ${math`${2}\pi`} that satisfy ${math`${2}\sin^{${2}}\theta = ${1}`}. Write each as ${math`\theta = k\pi`} and give the values of ${math`k`}.`,
+  nudge: t`Not quite. A square root has two signs, and each sign gives two angles in a full turn.`,
+  hints: [
+    t`What is ${math`\sin^{${2}}\theta`}, and so ${math`\sin\theta`}?`,
+    t`Which two angles in ${math`[${0}, ${2}\pi)`} have ${math`\sin\theta = \frac{${1}}{\sqrt{${2}}}`}?`,
+    t`Which two have ${math`\sin\theta = -\frac{${1}}{\sqrt{${2}}}`}?`,
+  ],
   answer: kWitness(T1),
-  solution: [t`${math`\sin^{${2}}\theta = \frac{${1}}{${2}}`}, so ${math`\sin\theta = \pm\frac{${1}}{\sqrt{${2}}}`}.`, t`Positive: ${math`\frac{\pi}{${4}}, \frac{${3}\pi}{${4}}`}; negative: ${math`\frac{${5}\pi}{${4}}, \frac{${7}\pi}{${4}}`}.`],
+  solution: [t`${math`\sin^{${2}}\theta = \frac{${1}}{${2}}`}, so ${math`\sin\theta = \pm\frac{${1}}{\sqrt{${2}}}`}.`, t`Positive: ${math`\frac{\pi}{${4}}, \frac{${3}\pi}{${4}}`}; negative: ${math`\frac{${5}\pi}{${4}}, \frac{${7}\pi}{${4}}`}.`, t`Keep both signs of a square root, and both angles for each value.`],
   reference: ksText(T1),
   verify: () => (solveDeg((x) => 2 * Math.sin(x) ** 2 - 1).join(',') === T1.join(',') ? null : 'T1'),
   misconceptions: [{ response: '1/4, 3/4', why: t`Square roots come in pairs: ${math`\sin\theta = -\frac{${1}}{\sqrt{${2}}}`} gives two more.` }],
@@ -274,6 +292,12 @@ const t8 = auto({
   source: cite('nst-workbook', 'T8'),
   title: t`${math`\cos\theta + \cos ${3}\theta = \sin\theta + \sin ${3}\theta`}`,
   prompt: t`Find the values of ${math`\theta`} in the range ${0} to ${math`${2}\pi`} which satisfy ${math`\cos\theta + \cos ${3}\theta = \sin\theta + \sin ${3}\theta`}. Write each as ${math`\theta = k\pi`} and give the values of ${math`k`}.`,
+  nudge: t`Not quite. Factorise rather than divide, so no solutions are lost.`,
+  hints: [
+    t`How can ${math`\cos\theta + \cos ${3}\theta`} and ${math`\sin\theta + \sin ${3}\theta`} each be written as a product, using ${math`${2}\theta \pm \theta`}?`,
+    t`Which common factor do the two sides share, and what equation does each factor give?`,
+    t`For ${math`\tan ${2}\theta = ${1}`}, what range does ${math`${2}\theta`} cover when ${math`\theta`} is in ${math`[${0}, ${2}\pi)`}?`,
+  ],
   answer: {
     kind: 'witness', count: { min: 1, max: 12 }, unordered: true, example: T8.map((d) => str(q(d * 2, 360))).join(', '),
     check: (v) => (valuesKey(v) === valuesKey(T8.map((d) => q(d * 2, 360))) ? null : 'Write each side as a product, then factorise.'),
@@ -282,6 +306,7 @@ const t8 = auto({
     t`Write ${math`\cos ${3}\theta = \cos(${2}\theta + \theta)`} and ${math`\cos\theta = \cos(${2}\theta - \theta)`}: adding the compound angle formulae, ${math`\cos\theta + \cos ${3}\theta = ${2}\cos ${2}\theta\cos\theta`}. In the same way ${math`\sin\theta + \sin ${3}\theta = ${2}\sin ${2}\theta\cos\theta`}.`,
     t`So ${math`${2}\cos\theta(\cos ${2}\theta - \sin ${2}\theta) = ${0}`}: either ${math`\cos\theta = ${0}`}, giving ${math`\theta = \frac{\pi}{${2}}, \frac{${3}\pi}{${2}}`}, or ${math`\tan ${2}\theta = ${1}`}.`,
     t`${math`\tan ${2}\theta = ${1}`} with ${math`${2}\theta`} in ${math`[${0}, ${4}\pi)`}: ${math`${2}\theta = \frac{\pi}{${4}} + n\pi`}, so ${math`\theta = \frac{\pi}{${8}}, \frac{${5}\pi}{${8}}, \frac{${9}\pi}{${8}}, \frac{${13}\pi}{${8}}`}.`,
+    t`Factorise instead of dividing, and widen the range for a multiple angle.`,
   ],
   reference: T8.map((d) => str(q(d * 2, 360))).join(', '),
   verify: () => {
@@ -307,6 +332,12 @@ const t7 = auto({
   source: cite('nst-workbook', 'T7'),
   title: t`${math`\sqrt{${3}}\sin\theta + \cos\theta`} as one sine`,
   prompt: t`Write ${math`\sqrt{${3}}\sin\theta + \cos\theta`} in the form ${math`A\sin(\theta + \alpha)`}, with ${math`A > ${0}`} and ${math`${0} \le \alpha < ${2}\pi`}. Give ${math`A`}, and ${math`k`} where ${math`\alpha = k\pi`}.`,
+  nudge: t`Not quite. Expand ${math`A\sin(\theta + \alpha)`} and match coefficients.`,
+  hints: [
+    t`What is ${math`A\sin(\theta + \alpha)`} expanded by the compound angle formula?`,
+    t`Matching coefficients, what are ${math`A\cos\alpha`} and ${math`A\sin\alpha`}?`,
+    t`Squaring and adding gives ${math`A`}; which ${math`\alpha`} has the right cosine and sine?`,
+  ],
   answer: {
     kind: 'witness', count: 2, names: ['A', 'k'], example: 'A = 2, k = 1/6',
     check: (v) => (v.map(str).join(',') === '2,1/6' ? null : 'Expand A sin(theta + alpha) and match the coefficients of sin theta and cos theta.'),
@@ -314,6 +345,7 @@ const t7 = auto({
   solution: [
     t`${math`A\sin(\theta + \alpha) = A\cos\alpha\sin\theta + A\sin\alpha\cos\theta`}. Match: ${math`A\cos\alpha = \sqrt{${3}}`} and ${math`A\sin\alpha = ${1}`}.`,
     t`Square and add: ${math`A^{${2}} = ${3} + ${1} = ${4}`}, so ${math`A = ${2}`}. Then ${math`\cos\alpha = \frac{\sqrt{${3}}}{${2}}`} and ${math`\sin\alpha = \frac{${1}}{${2}}`}, so ${math`\alpha = \frac{\pi}{${6}}`}.`,
+    t`Match coefficients, then square and add for the amplitude.`,
   ],
   reference: 'A = 2, k = 1/6',
   verify: () => {
@@ -369,7 +401,8 @@ export const trigEquations: TopicContent = {
     'a16-q3-iii': { sections: ['A STEP equation'], note: t`Solving a cubic by a triple angle` },
     'nst-t8': { sections: ['Three patterns'], note: t`A trigonometric equation by sum-to-product, every solution in range` },
   }),
-  gate: ['a16-q3-ii', 'a16-q3-iii', 'nst-t8'],
+  // Not a16-q3-ii: the prompt of a16-q3-iii states its roots, so it stays practice.
+  gate: ['a16-q3-iii', 'nst-t8'],
   recall: [
     { front: t`How do you solve ${math`\sin nx = c`} on ${math`[${0}, ${2}\pi)`}?`, back: t`Solve ${math`\sin u = c`} for ${math`u = nx`} over ${math`[${0}, ${2}n\pi)`}, then divide by ${math`n`}.` },
     { front: t`Why factorise instead of dividing?`, back: t`Dividing by something that can be ${0} loses the solutions where it is ${0}; a product is ${0} exactly when a factor is.` },

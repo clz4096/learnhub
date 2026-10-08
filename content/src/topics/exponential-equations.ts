@@ -173,6 +173,13 @@ const a11q4i = auto({
     t`Factorise: ${math`${2}^{m}(${2} + ${1}) = ${3}^{n}(${9} - ${1})`}, that is ${math`${3} \times ${2}^{m} = ${8} \times ${3}^{n}`}.`,
     t`So ${math`${2}^{m - ${3}} = ${3}^{n - ${1}}`}. A power of ${2} equals a power of ${3} only when both are ${1}, by unique factorisation: ${math`m - ${3} = ${0}`} and ${math`n - ${1} = ${0}`}.`,
     t`So ${math`m = ${3}`} and ${math`n = ${1}`}: ${math`${16} + ${8} = ${24} = ${27} - ${3}`}.`,
+    t`Factorise, then compare prime powers.`,
+  ],
+  nudge: t`Not quite. Factorise each side before comparing powers.`,
+  hints: [
+    t`What common factor comes out of ${math`${2}^{m + ${1}} + ${2}^{m}`}, and out of ${math`${3}^{n + ${2}} - ${3}^{n}`}?`,
+    t`After factorising, how can the equation be rearranged so that one power of ${2} equals one power of ${3}?`,
+    t`When can a power of ${2} equal a power of ${3}, by unique factorisation?`,
   ],
   reference: 'm = 3, n = 1',
   verify: () => {
@@ -194,6 +201,13 @@ const a11q4ii = auto({
     t`${math`${15}^{x - ${1}} = \frac{${3}^{x}${5}^{x}}{${15}}`}. Multiply by ${15}: ${math`${15}(${3}^{x})^{${2}} - ${34} \times ${3}^{x}${5}^{x} + ${15}(${5}^{x})^{${2}} = ${0}`}.`,
     t`Divide by ${math`(${5}^{x})^{${2}}`}, which is positive, and put ${math`u = \left(\frac{${3}}{${5}}\right)^{x}`}: ${math`${15}u^{${2}} - ${34}u + ${15} = (${3}u - ${5})(${5}u - ${3}) = ${0}`}.`,
     t`${math`u = \frac{${5}}{${3}}`} gives ${math`x = -${1}`}, and ${math`u = \frac{${3}}{${5}}`} gives ${math`x = ${1}`}.`,
+    t`Several bases: reduce to one ratio, then solve a quadratic.`,
+  ],
+  nudge: t`Not quite. Write every term with ${math`${3}^{x}`} and ${math`${5}^{x}`}, then divide to leave one unknown.`,
+  hints: [
+    t`How can ${math`${15}^{x - ${1}}`} be written in terms of ${math`${3}^{x}`} and ${math`${5}^{x}`}?`,
+    t`After dividing through by ${math`${5}^{${2}x}`}, which single quantity does every term depend on?`,
+    t`Which quadratic does that quantity satisfy, and how does each root give ${math`x`}?`,
   ],
   reference: '1, -1',
   verify: () => {

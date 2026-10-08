@@ -307,16 +307,20 @@ const telescope = generator<TelescopeP>({
 // ---------------------------------------------------------------- Cambridge problems
 
 const A6 = 'step-f06';
+/** The denominators 2k of A6 Q1(i), k from 1 to 4, all four written out as in the source. */
+const A6_DENS = Array.from({ length: 4 }, (_, i) => 2 * (i + 1));
+const a6Tex = computedTex(`\\frac{${A6_DENS.map((d) => bracket('+', d)).join('')}}{${A6_DENS.map((d) => bracket('-', d)).join('')}}`);
 const a6Value = auto({
   id: 'a6-q1-i-value',
   source: cite(A6, 'Q1(i)'),
   title: t`A product that cancels`,
-  prompt: t`Find the value of ${telescopeTex('a6', 4)}.`,
+  prompt: t`Evaluate ${a6Tex}.`,
   answer: { kind: 'exact', expected: str(telescoped('a6', 4)) },
   solution: [
-    t`Cancelling first is far easier than multiplying (the hint in the source: with complete cancelling no multiplication is needed). Write each bracket as one fraction: the top is ${math`${q(3, 2)} \times ${q(5, 4)} \times ${q(7, 6)} \times ${q(9, 8)}`} and the bottom is ${math`${q(1, 2)} \times ${q(3, 4)} \times ${q(5, 6)} \times ${q(7, 8)}`}.`,
-    t`The denominators ${2}, ${4}, ${6}, ${8} appear on both, so they cancel, leaving ${math`\frac{${3} \times ${5} \times ${7} \times ${9}}{${1} \times ${3} \times ${5} \times ${7}}`}.`,
-    t`Now ${3}, ${5}, and ${7} cancel too, and the value is ${telescoped('a6', 4)}.`,
+    t`Each bracket as one fraction: the top is ${math`${q(3, 2)} \times ${q(5, 4)} \times ${q(7, 6)} \times ${q(9, 8)}`} and the bottom is ${math`${q(1, 2)} \times ${q(3, 4)} \times ${q(5, 6)} \times ${q(7, 8)}`}.`,
+    t`The denominators ${2}, ${4}, ${6}, ${8} appear in both, so they cancel: ${math`\frac{${3} \times ${5} \times ${7} \times ${9}}{${1} \times ${3} \times ${5} \times ${7}}`}.`,
+    t`Then ${3}, ${5}, and ${7} cancel, leaving ${telescoped('a6', 4)}.`,
+    t`Simplify first, multiply last.`,
   ],
   reference: str(product('a6', 4)),
   verify: () => same('A6 Q1(i) by multiplying out', str(product('a6', 4)), str(telescoped('a6', 4))),
@@ -324,6 +328,12 @@ const a6Value = auto({
     { response: str(q(1, 9)), why: t`That is the bottom over the top. The fractions with ${math`+`} are on top.` },
   ],
   official: { source: cite('step-f06-hints', 'Q1(i)'), answer: '9', agrees: true },
+  nudge: t`Not quite. Multiplying everything out is the slow route; something here cancels.`,
+  hints: [
+    t`What is ${math`${1} + ${q(1, 2)}`} as a single fraction? And ${math`${1} - ${q(1, 2)}`}?`,
+    t`With every bracket written as one fraction, which numbers appear both above and below the line?`,
+    t`Once the even denominators have cancelled, which odd numbers are left on both the top and the bottom?`,
+  ],
 });
 
 /**

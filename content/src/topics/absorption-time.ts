@@ -196,9 +196,17 @@ const u2 = auto({
   title: t`The frog from one and a half metres`,
   prompt: t`A frog jumps towards a large pond, each jump ${1} m with probability ${math`p`} or ${2} m with probability ${math`q = ${1} - p`}, independently. Find ${math`u_{${2}}`}, the expected number of jumps to land in the pond starting ${math`${1}\frac{${1}}{${2}}`} m from the edge, in terms of ${math`q`}.`,
   answer: { kind: 'expression', expected: '2 - q', variables: ['q'], domains: Q_DOM },
+  hints: [
+    t`What can the first jump from ${math`${1}\frac{${1}}{${2}}`} m be, and with what probabilities?`,
+    t`After each possible first jump, how far is the frog from the pond, and how many more jumps does it need?`,
+    t`Conditioning on the first jump, which weighted average of jump counts is ${math`u_{${2}}`}?`,
+  ],
+  nudge: t`Not quite. Condition on the first jump: each of the two cases is short.`,
   solution: [
-    t`A ${2} m jump lands in the pond at once (probability ${math`q`}); a ${1} m jump leaves the frog half a metre away, and the next jump lands whatever it is (probability ${math`p`}, two jumps).`,
-    t`${math`u_{${2}} = q + ${2}p = ${2} - q`}. As a first-step equation: ${math`u_{${2}} = ${1} + p u_{${1}} + q u_{${0}}`} with ${math`u_{${1}} = ${1}`} and ${math`u_{${0}} = ${0}`}: the pond absorbs the frog.`,
+    t`Condition on the first jump. A ${2} m jump (probability ${math`q`}) lands in the pond: one jump.`,
+    t`A ${1} m jump (probability ${math`p`}) leaves ${math`\frac{${1}}{${2}}`} m, and the next jump lands whatever its length: two jumps.`,
+    t`${math`u_{${2}} = q \cdot ${1} + p \cdot ${2} = q + ${2}(${1} - q) = ${2} - q`}.`,
+    t`Condition on the first jump; each case is then a short count.`,
   ],
   reference: '2 - q',
   verify: () => {
@@ -218,9 +226,17 @@ const u4 = auto({
   title: t`The frog from three and a half metres`,
   prompt: t`For the frog (jumps of ${1} m with probability ${math`p`}, ${2} m with probability ${math`q = ${1} - p`}), ${math`u_{n}`} is the expected number of jumps to reach the pond from ${math`n - \frac{${1}}{${2}}`} m. Conditioning on the first jump gives ${math`u_{n} = ${1} + pu_{n - ${1}} + qu_{n - ${2}}`}, with ${math`u_{${2}} = ${2} - q`} and ${math`u_{${3}} = ${3} - ${2}q + q^{${2}}`}. Find ${math`u_{${4}}`} as a polynomial in ${math`q`}.`,
   answer: { kind: 'expression', expected: '4 - 3q + 2q^2 - q^3', variables: ['q'], domains: Q_DOM },
+  hints: [
+    t`Which two earlier values does the recurrence need for ${math`u_{${4}}`}?`,
+    t`With ${math`p = ${1} - q`}, what is ${math`p\,u_{${3}}`} as a polynomial in ${math`q`}?`,
+    t`After adding ${1} and ${math`q\,u_{${2}}`}, which like powers of ${math`q`} combine?`,
+  ],
+  nudge: t`Not quite. Substitute the two given values, write ${math`p`} as ${math`${1} - q`}, and collect powers of ${math`q`} only at the end.`,
   solution: [
-    t`${math`u_{${4}} = ${1} + (${1} - q)(${3} - ${2}q + q^{${2}}) + q(${2} - q)`}.`,
-    t`${math`= ${1} + ${3} - ${5}q + ${3}q^{${2}} - q^{${3}} + ${2}q - q^{${2}} = ${4} - ${3}q + ${2}q^{${2}} - q^{${3}}`}.`,
+    t`${math`u_{${4}} = ${1} + p\,u_{${3}} + q\,u_{${2}} = ${1} + (${1} - q)(${3} - ${2}q + q^{${2}}) + q(${2} - q)`}.`,
+    t`${math`(${1} - q)(${3} - ${2}q + q^{${2}}) = ${3} - ${5}q + ${3}q^{${2}} - q^{${3}}`} and ${math`q(${2} - q) = ${2}q - q^{${2}}`}.`,
+    t`${math`u_{${4}} = ${4} - ${3}q + ${2}q^{${2}} - q^{${3}}`}.`,
+    t`Substitute, expand each product, then collect powers.`,
   ],
   reference: '4 - 3q + 2q^2 - q^3',
   verify: () => {
@@ -240,9 +256,17 @@ const symmetric = auto({
   title: t`The symmetric case`,
   prompt: t`A fair ${math`\pm ${1}`} walk starts at ${0} and stops at the first time ${math`T`} that ${math`|S_{n}| = ${3}`}. Find ${math`E(T)`}.`,
   answer: { kind: 'exact', expected: str(meanSteps(-3, 3, q(1, 2))[2] as Rational) },
+  hints: [
+    t`What is ${math`\mu`} for a fair walk, and what does ${math`E(S_{T}) = \mu E(T)`} then say about ${math`E(T)`}?`,
+    t`Shifted up by ${3}, where does the walk start, and where are the two absorbing barriers?`,
+    t`What is the expected duration of a fair walk from ${math`k`} on ${math`${0}, \ldots, N`}?`,
+  ],
+  nudge: t`Not quite. A fair walk wanders rather than heading straight out; treat it as gambler's ruin on a shifted line.`,
   solution: [
-    t`Here ${math`\mu = ${0}`}, so ${math`E(S_{T}) = \mu E(T)`} says nothing about ${math`E(T)`}. Shift by ${3}: fair gambler's ruin from ${3} on ${math`${0}, \ldots, ${6}`}, with ${math`m_{k} = k(${6} - k)`}.`,
-    t`${math`E(T) = ${3} \times ${3} = ${9}`}. (Equivalently, ${math`S_{n}^{${2}} - n`} has constant mean, so ${math`E(T) = E(S_{T}^{${2}}) = ${9}`}.)`,
+    t`${math`\mu = ${0}`}, so ${math`E(S_{T}) = \mu E(T)`} gives no information about ${math`E(T)`}.`,
+    t`Shift by ${3}: fair gambler's ruin from ${3} on ${math`${0}, \ldots, ${6}`}, with ${math`m_{k} = k(${6} - k)`}.`,
+    t`${math`E(T) = m_{${3}} = ${3} \times ${3} = ${9}`}. (Equivalently, ${math`S_{n}^{${2}} - n`} has constant mean, so ${math`E(T) = E(S_{T}^{${2}}) = ${9}`}.)`,
+    t`With no drift, Wald's identity is silent: shift to gambler's ruin.`,
   ],
   reference: '9',
   verify: () => same('the first-step equations', str(meanSteps(-3, 3, q(1, 2))[2] as Rational), '9'),
@@ -254,6 +278,11 @@ const wald = supervision({
   source: cite(SH3, 'Q8(c)'),
   title: t`${math`E(S_{T}) = \mu E(T)`}, with care`,
   prompt: t`Part (a) shows ${math`E(S_{N}) = \mu E(N)`} for a bounded random time ${math`N`} independent of the steps. ${math`T = \min\{n : |S_{n}| = a\}`} is neither bounded nor independent of the steps. Prove ${math`E(S_{T}) = \mu E(T)`} by applying the argument to ${math`T \wedge m = \min(T, m)`}, using that the event ${math`\{T \ge k\}`} depends only on ${math`X_{${1}}, \ldots, X_{k - ${1}}`}, and then letting ${math`m \to \infty`}. Then find ${math`\mathrm{var}(S_{T})`}.`,
+  hints: [
+    t`For the bounded time ${math`T \wedge m`}, why is the event ${math`\{T \wedge m \ge k\}`} decided by ${math`X_{${1}}, \ldots, X_{k - ${1}}`} alone?`,
+    t`Writing ${math`S_{T \wedge m} = \sum_{k = ${1}}^{m} X_{k} \mathbf{${1}}\{T \ge k\}`}, what is the expectation of each term?`,
+    t`As ${math`m \to \infty`}, which convergence theorems carry ${math`E(T \wedge m)`} and ${math`E(S_{T \wedge m})`} to their limits, given ${math`|S_{T \wedge m}| \le a`}?`,
+  ],
   writeUp: 'proof',
 });
 const schedule = supervision({
@@ -261,6 +290,11 @@ const schedule = supervision({
   source: cite('tripos-schedules', 'IA Probability, Discrete random variables: "Mean time to absorption"', true),
   title: t`Mean time to absorption`,
   prompt: t`For the walk on ${math`${0}, \ldots, N`} stepping up with probability ${math`p`} and down with ${math`q`}, absorbed at both ends, let ${math`m_{k}`} be the expected time to absorption from ${math`k`}. Explain why ${math`m_{k} = ${1} + pm_{k + ${1}} + qm_{k - ${1}}`} (which conditional expectation is used?), and solve it: show ${math`m_{k} = k(N - k)`} when ${math`p = q`}, and find ${math`m_{k}`} when ${math`p \ne q`}. Why is ${math`m_{k}`} finite?`,
+  hints: [
+    t`After the first step from ${math`k`}, where is the walk, and how many steps have been used?`,
+    t`Which conditional expectation, given the first step, turns that observation into an equation for ${math`m_{k}`}?`,
+    t`For ${math`p = q`}, which quadratic in ${math`k`} fits the equation and both boundary values; for ${math`p \ne q`}, which particular solution linear in ${math`k`} can be added to the homogeneous solution?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -429,7 +463,7 @@ export const absorptionTime: TopicContent = {
     { front: t`The first-step equation for the expected duration ${math`m_{k}`} on ${math`${0}, \ldots, N`}.`, back: t`${math`m_{k} = ${1} + p\,m_{k + ${1}} + q\,m_{k - ${1}}`} for ${math`${0} < k < N`}, with ${math`m_{${0}} = m_{N} = ${0}`}.` },
     { front: t`The expected duration of a fair walk from ${math`k`} on ${math`${0}, \ldots, N`}.`, back: t`${math`m_{k} = k(N - k)`}, the product of the distances to the barriers.` },
     { front: t`The expected duration of a walk with ${math`p \ne q`}, ${math`\rho = \frac{q}{p}`}.`, back: t`${math`m_{k} = \frac{k}{q - p} - \frac{N}{q - p} \cdot \frac{${1} - \rho^{k}}{${1} - \rho^{N}}`}.` },
-    { front: t`Wald's identity for the walk from ${0} stopped at ${math`|S_{n}| = a`}.`, back: t`${math`E(S_{T}) = \mu E(T)`}, with ${math`\mu = p - q`}; in the fair case ${math`E(T) = a^{${2}}`}.` },
+    { front: t`Wald's identity for the walk from ${0} stopped at ${math`|S_{n}| = a`}.`, back: t`${math`E(S_{T}) = \mu E(T)`}, with ${math`\mu = p - q`}.` },
   ],
   proofOrder: [
     {

@@ -198,10 +198,17 @@ const a15c = auto({
   source: cite(F15, 'Assignment 15, Q2(i)(c)'),
   title: t`A slowly settling sequence`,
   prompt: t`The sequence ${math`u_{${1}} = ${2}`}, ${math`u_{n + ${1}} = \frac{${1}}{${4}}\left(u_{n}^{${2}} + ${2}\right)`} begins ${math`${2}, ${q(3, 2)}, ${q(17, 16)}, \ldots`} and converges. Find its limit. Type a square root as sqrt(${2}).`,
+  nudge: t`Not quite. Solve the fixed point equation, then use a bound on the terms to choose the root.`,
+  hints: [
+    t`What equation must the limit ${math`l`} satisfy?`,
+    t`What are the two roots of that quadratic?`,
+    t`From ${math`u_{${2}}`} on, are the terms above or below ${2}, and which root does that rule out?`,
+  ],
   answer: { kind: 'expression', expected: '2 - sqrt(2)', variables: [] },
   solution: [
     t`The limit ${math`l`} satisfies ${math`l = \frac{l^{${2}} + ${2}}{${4}}`}, that is ${math`l^{${2}} - ${4}l + ${2} = ${0}`}, so ${math`l = ${2} \pm \sqrt{${2}}`}.`,
     t`The terms fall below ${2} after the first: ${math`u_{${2}} = ${q(3, 2)}`}, and if ${math`${0} < u_{n} < ${2}`} then ${math`u_{n + ${1}} < \frac{${4} + ${2}}{${4}} < ${2}`}. So the limit is at most ${2}, and it is ${math`${2} - \sqrt{${2}}`}.`,
+    t`A limit is a fixed point; bounds on the terms choose the root.`,
   ],
   reference: '2 - sqrt(2)',
   verify: () => {
@@ -217,10 +224,17 @@ const a15iv = auto({
   source: cite(F15, 'Assignment 15, Q2(iv)'),
   title: t`A machine for ${math`\sqrt{${2}}`}`,
   prompt: t`The convergent sequence ${math`u_{${1}} = ${1}`}, ${math`u_{n + ${1}} = \frac{${1}}{${2}}\left(\frac{${2}}{u_{n}} + u_{n}\right)`} begins ${math`${1}, ${q(3, 2)}, ${q(17, 12)}, ${q(577, 408)}, \ldots`}. By setting ${math`u_{n} = u_{n + ${1}} = l`}, find the limit.`,
+  nudge: t`Not quite. Solve ${math`l = f(l)`}, then use the sign of the terms.`,
+  hints: [
+    t`What equation does setting ${math`u_{n} = u_{n + ${1}} = l`} give?`,
+    t`After multiplying through by ${math`${2}l`}, what is ${math`l^{${2}}`}?`,
+    t`Which sign do all the terms have, and so which root is the limit?`,
+  ],
   answer: { kind: 'expression', expected: 'sqrt(2)', variables: [] },
   solution: [
     t`${math`l = \frac{${1}}{${2}}\left(\frac{${2}}{l} + l\right)`} gives ${math`${2}l = \frac{${2}}{l} + l`}, so ${math`l = \frac{${2}}{l}`} and ${math`l^{${2}} = ${2}`}.`,
     t`Every term is positive (a positive ${math`u_{n}`} gives a positive ${math`u_{n + ${1}}`}), so ${math`l \ge ${0}`} and ${math`l = \sqrt{${2}}`}. Already ${math`u_{${5}} = ${q(665857, 470832)}`} agrees with ${math`\sqrt{${2}}`} to about ${11} decimal places.`,
+    t`A limit solves the fixed point equation; the sign of the terms picks the root.`,
   ],
   reference: 'sqrt(2)',
   verify: () => {
@@ -265,6 +279,11 @@ const nstSs4 = supervision({
   source: cite('nst-workbook', 'SS4'),
   title: t`Powers of a fixed number`,
   prompt: t`The sequence ${math`u_{n}`} satisfies ${math`u_{n + ${1}} = ku_{n}`}, where ${math`k`} is a fixed number, and ${math`u_{${0}} = ${1}`}. Express ${math`u_{n}`} in terms of ${math`k`}. Describe the behaviour of ${math`u_{n}`} for large ${mn} in the different cases that arise according to the value of ${math`k`}.`,
+  hints: [
+    t`What are ${math`u_{${1}}`}, ${math`u_{${2}}`}, and ${math`u_{${3}}`}, and so what is ${math`u_{n}`}?`,
+    t`How does ${math`k^{n}`} behave when ${math`|k| < ${1}`}, when ${math`k = ${1}`}, and when ${math`k = -${1}`}?`,
+    t`What happens to the size and the sign of ${math`k^{n}`} when ${math`|k| > ${1}`}?`,
+  ],
   writeUp: 'explanation',
   official: cite('nst-workbook', 'Answers, SS4'),
 });
@@ -274,6 +293,12 @@ const nstSs4Cases = auto({
   source: cite('nst-workbook', 'SS4', true),
   title: t`Powers of a fixed number, case by case`,
   prompt: t`The sequence ${math`u_{n}`} satisfies ${math`u_{n + ${1}} = ku_{n}`}, where ${math`k`} is a fixed number, and ${math`u_{${0}} = ${1}`}. Which of these statements about ${math`u_{n}`} as ${math`n \to \infty`} are true? Choose all that are.`,
+  nudge: t`Not quite. Write ${math`u_{n}`} as a power of ${math`k`}, then sort the cases by the size of ${math`|k|`} and the sign of ${math`k`}.`,
+  hints: [
+    t`What is ${math`u_{n}`} in terms of ${math`k`} and ${mn}?`,
+    t`What does ${math`k^{n}`} do when ${math`|k| < ${1}`}, whatever the sign of ${math`k`}?`,
+    t`What does ${math`k^{n}`} do when ${math`|k| > ${1}`}, however close ${math`k`} is to ${1} or ${math`-${1}`}?`,
+  ],
   answer: {
     kind: 'choice',
     options: SS4.map((r) => ({ id: r.id, label: t`If ${math`k = ${r.k}`}, the sequence ${r.label}.` })),
@@ -284,6 +309,7 @@ const nstSs4Cases = auto({
     t`So the theorem on powers decides each case. For ${math`|k| < ${1}`}, ${math`k^{n} \to ${0}`}, whether or not the signs alternate. So with ${math`k = ${q(9, 10)}`} the sequence tends to zero, and with ${math`k = ${q(-9, 10)}`} it tends to zero too: the statement that it has no limit is false.`,
     t`For ${math`k = ${1}`} every term is ${1}, so the limit is ${1}. For ${math`k = -${1}`} the terms are ${math`${1}, -${1}, ${1}, \ldots`}, two apart, so no number is within ${1} of both and there is no limit.`,
     t`For ${math`k > ${1}`}, ${math`k^{n}`} grows without bound, however close ${math`k`} is to ${1}: with ${math`k = ${q(11, 10)}`}, already ${math`k^{${100}} > ${10}^{${4}}`}. For ${math`k < -${1}`}, ${math`|k^{n}| = |k|^{n}`} grows without bound and the signs alternate, so there is no limit. The true statements are those for ${math`k = ${q(9, 10)}`}, ${1}, ${math`-${1}`}, and ${math`-${2}`}.`,
+    t`For powers, the size of the ratio decides convergence; its sign only decides alternation.`,
   ],
   reference: SS4_TRUE,
   verify: () => {
@@ -304,7 +330,12 @@ const an1Sum = supervision({
   id: 'an1-q1a',
   source: cite('dpmms-ia-an1', 'Q1a', true),
   title: t`The limit of a sum, from the definition`,
-  prompt: t`Suppose ${math`(a_{n})`} and ${math`(b_{n})`} are two sequences of real numbers. Prove that if ${math`a_{n} \to a`} and ${math`b_{n} \to b`}, then ${math`a_{n} + b_{n} \to a + b`}. Work from the definition of a limit: given ${math`\varepsilon > ${0}`}, produce an ${mN} that works. You may use the triangle inequality, ${math`|x + y| \le |x| + |y|`} for all real ${math`x`} and ${math`y`}.`,
+  prompt: t`Suppose ${math`(a_{n})`} and ${math`(b_{n})`} are two sequences of real numbers. Prove that if ${math`a_{n} \to a`} and ${math`b_{n} \to b`}, then ${math`a_{n} + b_{n} \to a + b`}. Work from the definition of a limit: given ${math`\varepsilon > ${0}`}, produce an ${mN} that works. The triangle inequality, ${math`|x + y| \le |x| + |y|`} for all real ${math`x`} and ${math`y`}, may be used.`,
+  hints: [
+    t`Given ${math`\varepsilon > ${0}`}, how close must ${math`a_{n}`} be to ${math`a`}, and ${math`b_{n}`} to ${math`b`}, for the sum to be within ${math`\varepsilon`} of ${math`a + b`}?`,
+    t`How does the triangle inequality bound ${math`|(a_{n} + b_{n}) - (a + b)|`} by two terms?`,
+    t`Using ${math`\frac{\varepsilon}{${2}}`} for each sequence, how can the two thresholds be combined into one ${mN}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -313,7 +344,12 @@ const ns3Differences = supervision({
   id: 'ns3-q14',
   source: cite('ia-ns-sheet-3', 'Q14', true),
   title: t`Differences that tend to zero`,
-  prompt: t`Let ${math`(x_{n})`} be a sequence of real numbers. Show that if ${math`(x_{n})`} is convergent, then ${math`x_{n} - x_{n - ${1}} \to ${0}`}. If ${math`x_{n} - x_{n - ${1}} \to ${0}`}, must ${math`(x_{n})`} be convergent? Prove your answer. You may use the triangle inequality, ${math`|x + y| \le |x| + |y|`} for all real ${math`x`} and ${math`y`}.`,
+  prompt: t`Let ${math`(x_{n})`} be a sequence of real numbers. Show that if ${math`(x_{n})`} is convergent, then ${math`x_{n} - x_{n - ${1}} \to ${0}`}. If ${math`x_{n} - x_{n - ${1}} \to ${0}`}, must ${math`(x_{n})`} be convergent? Prove your answer. The triangle inequality, ${math`|x + y| \le |x| + |y|`} for all real ${math`x`} and ${math`y`}, may be used.`,
+  hints: [
+    t`If ${math`x_{n} \to x`}, how does the triangle inequality bound ${math`|x_{n} - x_{n - ${1}}|`} through ${math`x`}?`,
+    t`Given ${math`\varepsilon > ${0}`}, which ${mN} makes both ${math`|x_{n} - x|`} and ${math`|x_{n - ${1}} - x|`} small enough?`,
+    t`For the converse, can a sequence whose steps shrink to ${0} still grow without bound, and which slowly growing functions of ${mn} might show it?`,
+  ],
   writeUp: 'proof',
 });
 

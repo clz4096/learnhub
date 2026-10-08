@@ -201,6 +201,7 @@ const a21points = auto({
   },
   solution: [
     t`${math`(${0}, ${0})`}: ${math`${1} - ${1} = ${0} \le ${1}`}, in. ${math`(${3}, -${1})`}: ${math`${2} - ${0} = ${2}`}, out. ${math`(${4}, ${2})`}: ${math`${3} - ${3} = ${0}`}, in. ${math`(-${2}, -${1})`}: ${math`${3} - ${0} = ${3}`}, out.`,
+    t`To test a point against a region, substitute and compare: no sketch is needed.`,
   ],
   reference: ['a', 'c'],
   verify: () => {
@@ -208,6 +209,12 @@ const a21points = auto({
     return same('membership', [[0, 0], [3, -1], [4, 2], [-2, -1]].map(([x, y]) => f(x as number, y as number)).join(','), 'true,false,true,false');
   },
   misconceptions: [{ response: ['a'], why: t`${math`(${4}, ${2})`}: ${math`|${3}| - |${3}| = ${0}`}, which is at most ${1}, so it is in the region.` }],
+  nudge: t`Not quite. Substituting each point into ${math`|x - ${1}| - |y + ${1}|`} and comparing with ${1} settles it; take care with the signs inside the moduli.`,
+  hints: [
+    t`For each point, what are ${math`x - ${1}`} and ${math`y + ${1}`}?`,
+    t`What are their moduli, and what is the difference ${math`|x - ${1}| - |y + ${1}|`}?`,
+    t`Which of those differences are at most ${1}?`,
+  ],
 });
 
 const step1999 = supervision({
@@ -217,6 +224,11 @@ const step1999 = supervision({
   prompt: t`Sketch the following subsets of the ${math`(x, y)`} plane: (i) ${math`|x| + |y| \le ${1}`}; (ii) ${math`|x - ${1}| + |y - ${1}| \le ${1}`}; (iii) ${math`|x - ${1}| - |y + ${1}| \le ${1}`}; (iv) ${math`|x||y - ${2}| \le ${1}`}.`,
   writeUp: 'sketch',
   official: cite('step-f21-hints', 'Q3'),
+  hints: [
+    t`For (i), what shape is ${math`|x| + |y| = ${1}`} in the first quadrant, and how do the symmetries in the axes give the rest?`,
+    t`For (ii) and (iii), how is each region a translation of one centred at the origin, and what does the minus sign in (iii) change?`,
+    t`For (iv), what curve is ${math`|x||y - ${2}| = ${1}`} in one quadrant about ${math`(${0}, ${2})`}, and on which side of it does the region lie?`,
+  ],
 });
 
 const a21ivv = supervision({
@@ -226,6 +238,11 @@ const a21ivv = supervision({
   prompt: t`(iv) Sketch the graph ${math`|x| + |y| = ${1}`} in the regions given by ${math`x > ${0}, y > ${0}`} and by ${math`x > ${0}, y < ${0}`}. (v) Sketch the graph ${math`|x - ${1}| + |y - ${1}| = ${1}`} in the region where ${math`x < ${1}`} and ${math`y > ${1}`}. In this region, shade the subset of the plane in which ${math`|x - ${1}| + |y - ${1}| \le ${1}`}.`,
   writeUp: 'sketch',
   official: cite('step-f21-hints', 'Q2(iv), (v)'),
+  hints: [
+    t`With ${math`x > ${0}`} and ${math`y > ${0}`}, what are ${math`|x|`} and ${math`|y|`}, and what line is ${math`|x| + |y| = ${1}`} there?`,
+    t`With ${math`x > ${0}`} and ${math`y < ${0}`}, what line results?`,
+    t`For (v), in the region ${math`x < ${1}`}, ${math`y > ${1}`}, what are ${math`|x - ${1}|`} and ${math`|y - ${1}|`}, and on which side of the resulting line does the inequality hold?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

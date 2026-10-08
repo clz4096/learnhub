@@ -219,6 +219,7 @@ function witnessProblem(o: {
   id: string; doc: 'cst-dm-sw1' | 'tmua-logic-proof'; at: string; adapted?: boolean; title: Rich; prompt: Rich; names: readonly string[]; example: string;
   check: (vals: readonly number[]) => string | null; steps: Rich[]; verify: () => string | null; wrong: readonly { response: string; why: Rich }[];
   official?: { doc: 'cst-dm-sols-2324-1' | 'cst-dm-sols-2324-2'; at: string; answer: string };
+  hints: Rich[]; nudge: Rich;
 }): AutoProblem {
   const spec: Parameters<typeof auto>[0] = {
     id: o.id,
@@ -233,6 +234,8 @@ function witnessProblem(o: {
         return o.check(ns as number[]);
       },
     },
+    hints: o.hints,
+    nudge: o.nudge,
     solution: o.steps,
     reference: o.names.map((nm, k) => `${nm} = ${o.example.split(',')[k]?.trim() ?? ''}`).join(', '),
     verify: o.verify,
@@ -256,7 +259,14 @@ const sw111 = witnessProblem({
   steps: [
     t`A counterexample is an ${mn} larger than ${2}, not prime, with ${math`${2}n + ${13}`} prime. Try the non-primes ${math`${4}, ${6}, ${8}, \ldots`}: ${math`n = ${4}`} gives ${21}, ${math`n = ${6}`} gives ${25}, ${math`n = ${8}`} gives ${29}, which is prime.`,
     t`So ${math`n = ${8}`} disproves the statement. The official solution uses ${math`n = ${9}`}, which gives ${31}, also prime: any one counterexample will do, as long as it is checked.`,
+    t`A counterexample meets every hypothesis and breaks the conclusion; check both.`,
   ],
+  hints: [
+    t`Which values of ${mn} does the statement cover?`,
+    t`For a counterexample, what must be true of ${math`${2}n + ${13}`}?`,
+    t`Testing the covered values of ${mn} in order, which is the first that works?`,
+  ],
+  nudge: t`Not quite. A counterexample must satisfy the hypothesis, larger than ${2} and not prime, and break the conclusion.`,
   verify: () => {
     const ce = upTo(40).filter((n) => n > 2 && !isPrime(n) && isPrime(2 * n + 13));
     return same('the counterexamples below 16', ce.filter((n) => n < 16).join(), '8,9,12,14,15');
@@ -282,7 +292,14 @@ const sw125 = witnessProblem({
   steps: [
     t`Take ${math`k = m = n = ${2}`}: ${math`${2} \mid ${2}`} twice, so the "if" part holds, yet ${math`${2} \cdot ${2} = ${4}`} does not divide ${2}.`,
     t`As the official solution stresses, say why it is a counterexample, not only what it is.`,
+    t`Shared factors break the product rule for divisibility.`,
   ],
+  hints: [
+    t`What must hold of ${math`k`}, ${math`m`}, and ${mn} for the "if" part to be true?`,
+    t`When can ${math`mn`} fail to divide ${math`k`} even though ${math`m`} and ${mn} both do?`,
+    t`What happens when ${math`m`} and ${mn} share a factor?`,
+  ],
+  nudge: t`Not quite. Try ${math`m`} and ${mn} with a common factor; coprime choices always make the statement hold.`,
   verify: () => same('k = m = n = 2 is a counterexample', 2 % 2 === 0 && 2 % 4 !== 0, true),
   wrong: [
     { response: 'k = 6, m = 2, n = 3', why: t`${2} and ${3} divide ${6}, and so does ${6}: the statement holds here. Try ${math`m`} and ${mn} sharing a factor.` },
@@ -305,7 +322,14 @@ const sw129 = witnessProblem({
   steps: [
     t`Take ${math`k = ${4}`}, ${math`m = n = ${2}`}: ${math`${4} \mid ${4}`}, yet ${4} divides neither ${2} nor ${2}.`,
     t`It does hold when ${math`k`} is prime (that is Euclid's lemma, a later topic), so a counterexample must use a ${math`k`} that is not prime.`,
+    t`A composite divisor can split between the factors; a prime cannot.`,
   ],
+  hints: [
+    t`For which kind of ${math`k`} might ${math`k \mid mn`} force ${math`k \mid m`} or ${math`k \mid n`}?`,
+    t`So what kind of ${math`k`} must a counterexample use?`,
+    t`With such a ${math`k`}, how can its factors be split between ${math`m`} and ${mn}?`,
+  ],
+  nudge: t`Not quite. Split a composite ${math`k`} between ${math`m`} and ${mn}.`,
   verify: () => {
     // No prime k below 30 has a counterexample with m, n below 30; k = 4 does.
     for (const k of upTo(29).filter(isPrime)) for (const m of upTo(29)) for (const n of upTo(29)) if ((m * n) % k === 0 && m % k !== 0 && n % k !== 0) return `prime ${k}`;
@@ -338,7 +362,14 @@ const sw221 = witnessProblem({
   },
   steps: [
     t`Exponents do not work modulo ${math`m`}. The official solution takes ${math`i = ${2}`}, ${math`k = ${0}`}, ${math`l = ${3}`}, ${math`m = ${3}`}: ${math`${0} \equiv ${3} \pmod{${3}}`}, yet ${math`${2}^{${0}} = ${1}`} and ${math`${2}^{${3}} = ${8}`} leave remainders ${1} and ${2}.`,
+    t`Exponents do not reduce modulo ${math`m`}.`,
   ],
+  hints: [
+    t`What must ${math`k`} and ${math`l`} satisfy, and what must ${math`i^{k}`} and ${math`i^{l}`} fail to satisfy?`,
+    t`Which small modulus ${math`m`}, and which small exponents congruent modulo ${math`m`}, are worth trying?`,
+    t`Is ${math`i = ${1}`} any use, or is an ${math`i`} whose powers change modulo ${math`m`} needed?`,
+  ],
+  nudge: t`Not quite. Exponents do not reduce modulo ${math`m`}; try small numbers with ${math`i \ne ${1}`}.`,
   verify: () => same('2^0 and 2^3 modulo 3', [powMod(2, 0, 3), powMod(2, 3, 3), (0 - 3) % 3 === 0].join(), '1,2,true'),
   wrong: [
     { response: 'i = 1, k = 0, l = 3, m = 3', why: t`Every power of ${1} is ${1}, so the powers agree. Try ${math`i = ${2}`}.` },
@@ -348,7 +379,7 @@ const sw221 = witnessProblem({
 });
 
 /** TMUA Exercise P, question 2, parts (a) to (e): positive whole numbers x, and the statement as a predicate on x. */
-function tmuaP2(o: { part: string; title: Rich; statement: Rich; holds: (x: number) => boolean; covers?: (x: number) => boolean; example: string; steps: Rich[]; wrong: readonly { response: string; why: Rich }[] }): AutoProblem {
+function tmuaP2(o: { part: string; title: Rich; statement: Rich; holds: (x: number) => boolean; covers?: (x: number) => boolean; example: string; steps: Rich[]; wrong: readonly { response: string; why: Rich }[]; hints: Rich[]; nudge: Rich }): AutoProblem {
   return witnessProblem({
     id: `tmua-p-2-${o.part}`, doc: 'tmua-logic-proof', at: `Exercise P, question 2(${o.part})`, adapted: true,
     title: o.title,
@@ -361,6 +392,8 @@ function tmuaP2(o: { part: string; title: Rich; statement: Rich; holds: (x: numb
       return o.holds(k) ? `The statement holds for ${k}.` : null;
     },
     steps: o.steps,
+    hints: o.hints,
+    nudge: o.nudge,
     verify: () => {
       const ce = upTo(500).filter((x) => (o.covers?.(x) ?? true) && !o.holds(x));
       return ce.includes(Number(o.example)) ? null : `${o.example} is not a counterexample`;
@@ -373,35 +406,80 @@ const p2a = tmuaP2({
   part: 'a', title: t`Odd and greater than ${4}`,
   statement: t`all prime numbers are odd and greater than ${4}`,
   covers: isPrime, holds: (x) => odd(x) && x > 4, example: '2',
-  steps: [t`A counterexample to "all primes are A and B" is a prime that fails A or fails B: one failure is enough. ${2} is even; ${3} is not greater than ${4}. Either works.`],
+  steps: [
+    t`A counterexample to "all primes are A and B" is a prime that fails A or fails B: one failure is enough. ${2} is even; ${3} is not greater than ${4}. Either works.`,
+    t`To break an "and", one failure is enough.`,
+  ],
+  hints: [
+    t`Which numbers does the statement cover?`,
+    t`Must a counterexample fail one of the two conditions, or both?`,
+    t`Which primes are even, or at most ${4}?`,
+  ],
+  nudge: t`Not quite. A counterexample must be prime and fail at least one of the two conditions.`,
   wrong: [{ response: 'x = 9', why: t`${9} is not prime, so the statement is not about it.` }, { response: 'x = 5', why: t`${5} is prime, odd, and greater than ${4}: the statement holds for it.` }],
 });
 const p2b = tmuaP2({
   part: 'b', title: t`Odd or greater than ${37}`,
   statement: t`all prime numbers are odd or greater than ${37}`,
   covers: isPrime, holds: (x) => odd(x) || x > 37, example: '2',
-  steps: [t`A counterexample to "A or B" must fail both: a prime that is even and at most ${37}. The only even prime is ${2}, so ${2} is the only counterexample.`],
+  steps: [
+    t`A counterexample to "A or B" must fail both: a prime that is even and at most ${37}. The only even prime is ${2}, so ${2} is the only counterexample.`,
+    t`To break an "or", both parts must fail.`,
+  ],
+  hints: [
+    t`Which numbers does the statement cover?`,
+    t`What must a counterexample to an "or" fail?`,
+    t`Which primes are even and at most ${37}?`,
+  ],
+  nudge: t`Not quite. To break an "or", a prime must fail both conditions at once.`,
   wrong: [{ response: 'x = 3', why: t`${3} is odd, so "odd or greater than ${37}" holds for it.` }, { response: 'x = 41', why: t`${41} is odd and greater than ${37}: the statement holds.` }],
 });
 const p2c = tmuaP2({
   part: 'c', title: t`Prime if and only if odd`,
   statement: t`${mx} is prime if and only if ${mx} is odd`,
   holds: (x) => isPrime(x) === odd(x), example: '9',
-  steps: [t`An "if and only if" fails where one side holds and the other does not: a prime that is even (${2}), or an odd number that is not prime (${1}, ${9}, ${15}, ...).`],
+  steps: [
+    t`An "if and only if" fails where one side holds and the other does not: a prime that is even (${2}), or an odd number that is not prime (${1}, ${9}, ${15}, ...).`,
+    t`An "if and only if" fails where the two sides differ.`,
+  ],
+  hints: [
+    t`When does an "if and only if" fail?`,
+    t`Is there a prime that is not odd?`,
+    t`Is there an odd number that is not prime?`,
+  ],
+  nudge: t`Not quite. An "if and only if" fails where exactly one side holds.`,
   wrong: [{ response: 'x = 7', why: t`${7} is prime and odd: both sides hold.` }, { response: 'x = 4', why: t`${4} is neither prime nor odd: both sides fail, so the "if and only if" holds.` }],
 });
 const p2d = tmuaP2({
   part: 'd', title: t`Odd only if prime`,
   statement: t`${mx} is odd only if ${mx} is prime`,
   holds: (x) => !odd(x) || isPrime(x), example: '9',
-  steps: [t`"A only if B" is "if A then B": here, if ${mx} is odd then ${mx} is prime. A counterexample is odd and not prime: ${9}, or ${1}.`],
+  steps: [
+    t`"A only if B" is "if A then B": here, if ${mx} is odd then ${mx} is prime. A counterexample is odd and not prime: ${9}, or ${1}.`,
+    t`"A only if B" means "if A, then B".`,
+  ],
+  hints: [
+    t`What does "A only if B" mean, written as "if A, then B"?`,
+    t`Which values of ${mx} make "if ${mx} is odd, then ${mx} is prime" false?`,
+    t`Which odd numbers are not prime?`,
+  ],
+  nudge: t`Not quite. Rewrite "odd only if prime" as "if odd, then prime" first.`,
   wrong: [{ response: 'x = 2', why: t`${2} is even, so "if ${mx} is odd" is false and the statement holds.` }, { response: 'x = 11', why: t`${11} is odd and prime: the statement holds.` }],
 });
 const p2e = tmuaP2({
   part: 'e', title: t`Prime only if odd`,
   statement: t`${mx} is prime only if ${mx} is odd`,
   holds: (x) => !isPrime(x) || odd(x), example: '2',
-  steps: [t`"Prime only if odd" is "if prime then odd". A counterexample is a prime that is not odd, and there is exactly one: ${2}.`],
+  steps: [
+    t`"Prime only if odd" is "if prime then odd". A counterexample is a prime that is not odd, and there is exactly one: ${2}.`,
+    t`Rewrite "only if" with "if" and "then" before looking for a counterexample.`,
+  ],
+  hints: [
+    t`What does "prime only if odd" mean, written with "if" and "then"?`,
+    t`What must a counterexample be?`,
+    t`Which primes are not odd?`,
+  ],
+  nudge: t`Not quite. Rewrite it as "if prime, then odd", then look for a prime that breaks it.`,
   wrong: [{ response: 'x = 9', why: t`${9} is not prime, so the "if" part is false and the statement holds. That would be a counterexample to the converse.` }, { response: 'x = 3', why: t`${3} is prime and odd: the statement holds.` }],
 });
 
@@ -410,13 +488,23 @@ const p1 = supervision({
   source: cite('tmua-logic-proof', 'Exercise P, question 1'),
   title: t`What counts as a counterexample`,
   prompt: t`What would constitute a counterexample to a statement of the form (a) ${math`A`} and ${math`B`}; (b) ${math`A`} or ${math`B`}; (c) ${math`A`} only if ${math`B`}; (d) ${math`A`} iff ${math`B`}? For each, say which truth values of ${math`A`} and ${math`B`} a counterexample must give, and why.`,
+  hints: [
+    t`When is ${math`A`} and ${math`B`} false?`,
+    t`When is ${math`A`} or ${math`B`} false?`,
+    t`What are ${math`A`} only if ${math`B`} and ${math`A`} iff ${math`B`} as implications, and when is each false?`,
+  ],
   writeUp: 'explanation',
 });
 const p2f = supervision({
   id: 'tmua-p-2-f',
   source: cite('tmua-logic-proof', 'Exercise P, question 2(f)'),
   title: t`Prime, or divisible by something smaller`,
-  prompt: t`Find a counterexample, if one exists, to: for all positive odd integers ${mx}, ${mx} is prime or ${mx} is divisible by some integer ${math`k < x`}. Does your answer depend on whether ${math`k`} may be negative, or must be positive, or must be bigger than ${1}? Explain.`,
+  prompt: t`Find a counterexample, if one exists, to: for all positive odd integers ${mx}, ${mx} is prime or ${mx} is divisible by some integer ${math`k < x`}. Does the answer depend on whether ${math`k`} may be negative, or must be positive, or must be bigger than ${1}? Explain.`,
+  hints: [
+    t`Which positive odd integers are not prime?`,
+    t`For ${math`x = ${1}`}, is there a positive integer ${math`k < x`} that divides ${mx}?`,
+    t`If ${math`k`} may be negative, or must exceed ${1}, how does the answer for ${math`x = ${1}`} change?`,
+  ],
   writeUp: 'explanation',
 });
 
@@ -436,6 +524,11 @@ const lp12Why = supervision({
   source: cite('cst-lp-notes', 'Section 4, Exercise 12 (page 11)'),
   title: t`Which axioms hold, with reasons`,
   prompt: t`Let ${math`\approx`} be a two-place predicate symbol, written ${math`x \approx y`}. Consider the axioms ${math`(${1})\ \forall x.\ x \approx x`}, ${math`(${2})\ \forall x\, y.\ (x \approx y \Rightarrow y \approx x)`}, and ${math`(${3})\ \forall x\, y\, z.\ (x \approx y \land y \approx z \Rightarrow x \approx z)`}. Let the universe be the set of natural numbers, ${math`\mathbb{N} = \{${0}, ${1}, ${2}, \ldots\}`}. Which axioms hold if ${math`\approx`} is interpreted as: the empty relation ${math`\varnothing`}; the universal relation ${math`\{(x, y) \mid x, y \in \mathbb{N}\}`}; the equality relation ${math`\{(x, x) \mid x \in \mathbb{N}\}`}; the relation ${math`\{(x, y) \mid x, y \in \mathbb{N} \land x + y \text{ is even}\}`}; the relation ${math`\{(x, y) \mid x, y \in \mathbb{N} \land x + y = ${100}\}`}; the relation ${math`\{(x, y) \mid x, y \in \mathbb{N} \land x \le y\}`}? For every axiom that fails give a counterexample, and for every axiom that holds say why.`,
+  hints: [
+    t`For each relation, what does axiom (${1}) require of every ${mx}?`,
+    t`Which relations satisfy symmetry or transitivity vacuously, because the "if" part is never true?`,
+    t`For ${math`x + y = ${100}`} and ${math`x \le y`}, which particular numbers break the axioms that fail?`,
+  ],
   writeUp: 'proof',
 });
 

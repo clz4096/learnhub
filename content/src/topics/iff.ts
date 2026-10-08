@@ -258,15 +258,17 @@ const prop16 = workedProof({
   source: cite('cst-dm-notes', 'printed page 61, Proposition 16'),
 });
 
-function bop24(o: { n: number; text: Rich; right: Rich; ifOnly: Rich; onlyIf: Rich; official: boolean; check?: () => string | null; steps: Rich[] }): AutoProblem {
+function bop24(o: { n: number; text: Rich; right: Rich; ifOnly: Rich; onlyIf: Rich; official: boolean; check?: () => string | null; steps: Rich[]; nudge: Rich; hints: readonly Rich[] }): AutoProblem {
   const at = `Section 2.4, exercise ${o.n}`;
   const spec: Parameters<typeof auto>[0] = {
     id: `bop-2-4-${o.n}`,
     source: cite('bop', at, true),
     title: t`In the form "${mP} if and only if ${mQ}"`,
-    prompt: t`Without changing its meaning, which sentence of the form "${mP} if and only if ${mQ}" says the same as: "${o.text}"`,
+    prompt: t`Choose the sentence of the form "${mP} if and only if ${mQ}" with the same meaning as: "${o.text}"`,
     answer: { kind: 'choice', options: [{ id: 'iff', label: o.right }, { id: 'if', label: o.ifOnly }, { id: 'only-if', label: o.onlyIf }], correct: 'iff' },
     solution: o.steps,
+    nudge: o.nudge,
+    hints: o.hints,
     reference: 'iff',
     verify: o.check ?? (() => null),
     misconceptions: [
@@ -284,7 +286,16 @@ const bop24_1 = bop24({
   right: t`A matrix is invertible if and only if its determinant is not zero.`,
   ifOnly: t`A matrix is invertible if its determinant is not zero.`,
   onlyIf: t`A matrix is invertible only if its determinant is not zero.`,
-  steps: [t`"Necessary and sufficient" is both directions at once: ${IFF}. So: a matrix is invertible if and only if its determinant is not zero.`],
+  steps: [
+    t`"Sufficient" gives ${math`Q \Rightarrow P`} and "necessary" gives ${math`P \Rightarrow Q`}, with ${mP} "${math`A`} is invertible" and ${mQ} "${math`\det(A) \ne ${0}`}": together, ${IFF}.`,
+    t`Necessary and sufficient: if and only if.`,
+  ],
+  nudge: t`Not quite. Count how many implications the original sentence asserts.`,
+  hints: [
+    t`What does "${math`\det(A) \ne ${0}`} is sufficient" assert as an implication?`,
+    t`What does "${math`\det(A) \ne ${0}`} is necessary" assert as an implication?`,
+    t`How many directions does each option assert, and how many does the original?`,
+  ],
   check: () => {
     // Every 2 × 2 integer matrix with entries from -2 to 2. With det ≠ 0, the adjugate over det is a two-sided
     // inverse (checked exactly); with det = 0, some nonzero vector is sent to zero, so no inverse can exist.
@@ -308,7 +319,16 @@ const bop24_3 = bop24({
   right: t`${math`xy = ${0}`} if and only if ${math`x = ${0}`} or ${math`y = ${0}`}.`,
   ifOnly: t`${math`xy = ${0}`} if ${math`x = ${0}`} or ${math`y = ${0}`}.`,
   onlyIf: t`${math`xy = ${0}`} only if ${math`x = ${0}`} or ${math`y = ${0}`}.`,
-  steps: [t`"If ${mP} then ${mQ}, and conversely" adds ${math`Q \Rightarrow P`} to ${math`P \Rightarrow Q`}: that is ${IFF}, with ${mP} "${math`xy = ${0}`}" and ${mQ} "${math`x = ${0}`} or ${math`y = ${0}`}".`],
+  steps: [
+    t`"If ${mP} then ${mQ}, and conversely" adds ${math`Q \Rightarrow P`} to ${math`P \Rightarrow Q`}: that is ${IFF}, with ${mP} "${math`xy = ${0}`}" and ${mQ} "${math`x = ${0}`} or ${math`y = ${0}`}".`,
+    t`An implication together with its converse: if and only if.`,
+  ],
+  nudge: t`Not quite. Count how many implications the original sentence asserts.`,
+  hints: [
+    t`Which implication does "If ${math`xy = ${0}`} then ${math`x = ${0}`} or ${math`y = ${0}`}" assert?`,
+    t`What does "and conversely" add to it?`,
+    t`How many directions does each option assert?`,
+  ],
   check: () => {
     const r = [-4, -2, -1, 0, 1, 3, 5];
     const ok = r.every((x) => r.every((y) => (x * y === 0) === (x === 0 || y === 0)));
@@ -321,18 +341,35 @@ const bop24_5 = bop24({
   right: t`An occurrence becomes an adventure if and only if one recounts it.`,
   ifOnly: t`An occurrence becomes an adventure if one recounts it.`,
   onlyIf: t`An occurrence becomes an adventure only if one recounts it.`,
-  steps: [t`"Necessary and sufficient" gives both directions: an occurrence becomes an adventure if and only if one recounts it.`],
+  steps: [
+    t`"Sufficient" gives "if one recounts it, it becomes an adventure"; "necessary" gives "if it becomes an adventure, one recounts it". Together: an occurrence becomes an adventure if and only if one recounts it.`,
+    t`Necessary and sufficient: if and only if.`,
+  ],
+  nudge: t`Not quite. Count how many implications the original sentence asserts.`,
+  hints: [
+    t`What does "recounting is sufficient" assert as an implication?`,
+    t`What does "recounting is necessary" assert as an implication?`,
+    t`How many directions does each option keep?`,
+  ],
 });
 
 const sw113verdict = auto({
   id: 'sw-1-1-3-verdict',
   source: cite('cst-dm-sw1', 'Exercises 1, 1.1.3'),
   title: t`Prove or disprove: ${math`n^{${2}}`} even iff ${mn} even`,
-  prompt: t`Prove or disprove: for an integer ${mn}, ${math`n^{${2}}`} is even if and only if ${mn} is even. First decide: true or false?`,
+  prompt: t`Prove or disprove: for an integer ${mn}, ${math`n^{${2}}`} is even if and only if ${mn} is even. Decide whether the statement is true or false.`,
   answer: { kind: 'choice', options: [{ id: 'true', label: t`True for every integer` }, { id: 'false', label: t`False for some integer` }], correct: 'true' },
   solution: [
-    t`Try both directions on examples: no integer has ${math`n^{${2}}`} even and ${mn} odd, or the other way round. So try to prove it.`,
-    t`(${math`\Leftarrow`}) If ${math`n = ${2}k`} then ${math`n^{${2}} = ${2}(${2}k^{${2}})`} is even. (${math`\Rightarrow`}) If ${mn} were odd, ${math`n = ${2}k + ${1}`}, then ${math`n^{${2}} = ${2}(${2}k^{${2}} + ${2}k) + ${1}`} would be odd; so if ${math`n^{${2}}`} is even, ${mn} is even. The full proof is the supervision problem.`,
+    t`(${math`\Leftarrow`}) If ${math`n = ${2}k`}, then ${math`n^{${2}} = ${2}(${2}k^{${2}})`} is even.`,
+    t`(${math`\Rightarrow`}) By the contrapositive: if ${math`n = ${2}k + ${1}`}, then ${math`n^{${2}} = ${2}(${2}k^{${2}} + ${2}k) + ${1}`} is odd. So ${math`n^{${2}}`} even forces ${mn} even.`,
+    t`Both directions hold, so the statement is true.`,
+    t`An if and only if needs both directions checked.`,
+  ],
+  nudge: t`Not quite. Test both directions on several even and odd integers before deciding.`,
+  hints: [
+    t`If ${math`n = ${2}k`}, what is ${math`n^{${2}}`}, and is it even?`,
+    t`If ${math`n = ${2}k + ${1}`}, is ${math`n^{${2}}`} even or odd?`,
+    t`Does the second calculation give the direction from ${math`n^{${2}}`} even to ${mn} even, by the contrapositive?`,
   ],
   reference: 'true',
   verify: () => same('n from -200 to 200', upTo(401).map((x) => x - 201).every((n) => ((n * n) % 2 === 0) === (n % 2 === 0)), true),
@@ -348,6 +385,13 @@ const tmuaNecessary = auto({
   answer: { kind: 'formula', expected: 'B => A', variables: ['A', 'B'] },
   solution: [
     t`${math`A`} is necessary for ${math`B`} when ${math`B`} cannot hold without ${math`A`}: whenever ${math`B`} is true, ${math`A`} is true. That is ${math`B \Rightarrow A`}, which the TMUA notes also write ${math`A \Leftarrow B`}.`,
+    t`${math`A`} necessary for ${math`B`}: ${math`B \Rightarrow A`}.`,
+  ],
+  nudge: t`Not quite. Ask which statement cannot hold without the other.`,
+  hints: [
+    t`If ${math`A`} is necessary for ${math`B`}, can ${math`B`} be true while ${math`A`} is false?`,
+    t`So whenever ${math`B`} is true, what else must be true?`,
+    t`Which statement belongs on the left of the arrow?`,
   ],
   reference: 'B => A',
   verify: () => {
@@ -367,7 +411,16 @@ const tmuaBoth = auto({
   title: t`Necessary and sufficient, in symbols`,
   prompt: t`Write "${math`A`} is necessary and sufficient for ${math`B`}" in symbols, using ${math`A`} and ${math`B`}.`,
   answer: { kind: 'formula', expected: 'A <=> B', variables: ['A', 'B'] },
-  solution: [t`Sufficient is ${math`A \Rightarrow B`} and necessary is ${math`B \Rightarrow A`}; both together is ${math`A \Leftrightarrow B`}, "${math`A`} if and only if ${math`B`}".`],
+  solution: [
+    t`Sufficient is ${math`A \Rightarrow B`} and necessary is ${math`B \Rightarrow A`}; both together is ${math`A \Leftrightarrow B`}, "${math`A`} if and only if ${math`B`}".`,
+    t`Write each condition as its own implication, then combine.`,
+  ],
+  nudge: t`Not quite. Write "sufficient" and "necessary" as separate implications, then combine them.`,
+  hints: [
+    t`Which implication says ${math`A`} is sufficient for ${math`B`}?`,
+    t`Which implication says ${math`A`} is necessary for ${math`B`}?`,
+    t`Which single connective asserts both implications at once?`,
+  ],
   reference: 'A <=> B',
   verify: () => {
     const both = parseFormula('(A => B) & (B => A)', ['A', 'B']);
@@ -385,22 +438,37 @@ const sw122 = supervision({
   title: t`Cancelling a common factor`,
   prompt: t`Let ${math`k, m, n`} be integers with ${math`k`} positive. Show that ${math`(k \cdot m) \mid (k \cdot n) \iff m \mid n`}.`,
   writeUp: 'proof',
+  hints: [
+    t`What does ${math`(k \cdot m) \mid (k \cdot n)`} mean, written with a witness?`,
+    t`For the forward direction, why may ${math`k`} be cancelled from an equation of the form ${math`k \cdot n = j \cdot k \cdot m`}?`,
+    t`For the backward direction, how does a witness for ${math`m \mid n`} give a witness for ${math`(k \cdot m) \mid (k \cdot n)`}?`,
+  ],
   official: cite('cst-dm-sols-2324-1', '1.2.2'),
 });
 const sw127 = supervision({
   id: 'sw-1-2-7',
   source: cite('cst-dm-sw1', 'Exercises 1, 1.2.7'),
   title: t`Divisible by ${30}`,
-  prompt: t`Prove that for all integers ${mn}, ${math`${30} \mid n \iff (${2} \mid n \land ${3} \mid n \land ${5} \mid n)`}. The backward direction is the harder one: knowing ${2}, ${3}, and ${5} each divide ${mn}, find a way to combine ${math`n = ${2}a`}, ${math`n = ${3}b`}, ${math`n = ${5}c`} into a multiple of ${30}.`,
+  prompt: t`Prove that for all integers ${mn}, ${math`${30} \mid n \iff (${2} \mid n \land ${3} \mid n \land ${5} \mid n)`}.`,
   writeUp: 'proof',
+  hints: [
+    t`For the forward direction, how does a witness for ${math`${30} \mid n`} give witnesses for ${2}, ${3}, and ${5}?`,
+    t`For the backward direction, with ${math`n = ${2}a`}, ${math`n = ${3}b`}, and ${math`n = ${5}c`}, what are ${math`${15}n`}, ${math`${10}n`}, and ${math`${6}n`} as multiples of ${30}?`,
+    t`Which combination of ${15}, ${10}, and ${6} with integer coefficients equals ${1}, and what does it say about ${mn}?`,
+  ],
   official: cite('cst-dm-sols-2324-1', '1.2.7'),
 });
 const tmuaI3 = supervision({
   id: 'tmua-i-3',
   source: cite('tmua-logic-proof', 'Exercise I, questions 1 to 3'),
   title: t`Swapping the sides`,
-  prompt: t`Compare "${math`A`} only if ${math`B`}" with "${math`B`} only if ${math`A`}", and "${math`A`} iff ${math`B`}" with "${math`B`} iff ${math`A`}". Which pairs say the same thing? Explain with truth tables or diagrams, and say what the symmetry of "if and only if" means.`,
+  prompt: t`Compare "${math`A`} only if ${math`B`}" with "${math`B`} only if ${math`A`}", and "${math`A`} iff ${math`B`}" with "${math`B`} iff ${math`A`}". Which pairs say the same thing? Explain with truth tables or diagrams, and state what the symmetry of "if and only if" means.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which implication does "${math`A`} only if ${math`B`}" assert?`,
+    t`Is an implication the same statement as its converse?`,
+    t`Row by row, do the truth tables of ${math`A \Leftrightarrow B`} and ${math`B \Leftrightarrow A`} agree?`,
+  ],
 });
 
 // STEP Support Assignment 10, Q2(v): which of five "iff" statements are true.
@@ -427,7 +495,7 @@ const a10Iff = auto({
   id: 'a10-q2-v',
   source: cite('step-f10', 'Q2(v)', true),
   title: t`Five statements with "if and only if"`,
-  prompt: t`Which of the following statements are true? Choose all that are. (For each false one, be ready to say which direction fails, with an example.)`,
+  prompt: t`Which of the following statements are true? Choose all that are.`,
   answer: {
     kind: 'choice',
     options: [
@@ -440,10 +508,17 @@ const a10Iff = auto({
     correct: IFF_TRUE,
   },
   solution: [
-    t`Each statement is two implications, and a false one fails in at least one direction. (a) is true: ${2} is even and prime, and an even number ${math`n`} greater than ${2} has the factor ${2}, which lies strictly between ${1} and ${math`n`}, so it is not prime. (b) is false: "if it is ${3}, it is prime" holds, but the other direction fails at ${5}, an odd prime that is not ${3}.`,
-    t`(c) is false: "if ${math`x = ${3}`} then ${math`x^{${2}} - ${9} = ${0}`}" holds, but ${math`x = -${3}`} also makes ${math`x^{${2}} - ${9} = ${0}`}. So ${math`x = ${3}`} is sufficient, not necessary.`,
-    t`(d) is false, and the hints admit it is a little mean: the statement does not say which side is longest. With ${math`a = ${5}`}, ${math`b = ${3}`}, ${math`c = ${4}`} the triangle is right-angled, yet ${math`a^{${2}} + b^{${2}} = ${34} \neq ${16} = c^{${2}}`}. It becomes true if ${math`c`} is known to be the longest side.`,
-    t`(e) is true: in a triangle, two sides are equal exactly when the angles opposite them are equal (the isosceles triangle theorem and its converse). So "no two sides equal" and "no two angles equal" say the same thing. The true statements are (a) and (e).`,
+    t`Each statement is two implications; a false one fails in at least one direction. (a) is true: ${2} is even and prime, and an even ${math`n`} greater than ${2} has the factor ${2}, strictly between ${1} and ${math`n`}, so it is not prime. (b) is false: ${5} is an odd prime that is not ${3}.`,
+    t`(c) is false: ${math`x = -${3}`} also gives ${math`x^{${2}} - ${9} = ${0}`}. So ${math`x = ${3}`} is sufficient, not necessary.`,
+    t`(d) is false: the statement does not say ${math`c`} is the longest side. With ${math`a = ${5}`}, ${math`b = ${3}`}, ${math`c = ${4}`} the triangle is right-angled, yet ${math`a^{${2}} + b^{${2}} = ${34} \neq ${16} = c^{${2}}`}.`,
+    t`(e) is true: two sides of a triangle are equal exactly when the angles opposite them are equal (the isosceles triangle theorem and its converse). The true statements are (a) and (e).`,
+    t`An if and only if is false as soon as one direction fails.`,
+  ],
+  nudge: t`Not quite. Test each statement in both directions; one counterexample to either direction makes it false.`,
+  hints: [
+    t`Each "if and only if" is two implications: for each statement, which two?`,
+    t`For each direction, can a single example be found where one side holds and the other fails?`,
+    t`In the two triangle statements, what does each side assume about how the sides and angles are labelled?`,
   ],
   reference: IFF_TRUE,
   verify: () => {

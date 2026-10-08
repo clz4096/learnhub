@@ -148,11 +148,18 @@ const fib30 = auto({
   id: 'cs3110-ex2-fib',
   source: cite('cs3110-ex2', 'Exercise "fib"'),
   title: t`The Fibonacci function`,
-  prompt: t`Define a recursive function ${code`fib : int -> int`} with ${code`fib ${1}`} and ${code`fib ${2}`} equal to ${1}, and ${code`fib n = fib (n - ${1}) + fib (n - ${2})`} for ${math`n > ${2}`}. What is ${code`fib ${FIB_N}`}?`,
+  prompt: t`Define a recursive function ${code`fib : int -> int`} with ${code`fib ${1}`} and ${code`fib ${2}`} equal to ${1}, and ${code`fib n = fib (n - ${1}) + fib (n - ${2})`} for ${math`n > ${2}`}. Evaluate ${code`fib ${FIB_N}`}.`,
   answer: { kind: 'exact', expected: String(fibOf(FIB_N)) },
   solution: [
     t`${codeBlock(code`let rec fib n =`, code`  if n <= ${2} then ${1} else fib (n - ${1}) + fib (n - ${2})`)}`,
     t`The values run ${fibOf(1)}, ${fibOf(2)}, ${fibOf(3)}, ${fibOf(4)}, ${fibOf(5)}, ${fibOf(6)}, and so on; ${code`fib ${FIB_N}`} is ${fibOf(FIB_N)}. This naive version makes ${math`${2} \times ${fibOf(FIB_N)} - ${1}`} calls to get there, which is why the next exercise asks for a faster one.`,
+    t`Check the indexing against the first values before trusting a count.`,
+  ],
+  nudge: t`Not quite. Check the indexing: ${code`fib ${1}`} and ${code`fib ${2}`} are both ${1}.`,
+  hints: [
+    t`What are ${code`fib ${1}`} through ${code`fib ${6}`}?`,
+    t`Rather than call the slow recursion, how can the values be built up one at a time?`,
+    t`Counting carefully from ${code`fib ${1}`}, which value is the ${FIB_N}th?`,
   ],
   reference: String(fibOf(FIB_N)),
   // OCaml 4.11.1: fib 30 = 832040.
@@ -196,8 +203,13 @@ const focs21 = supervision({
   id: 'focs-2-1',
   source: cite('focs-notes', 'Lecture 2, Exercise 2.1'),
   title: t`An iterative power`,
-  prompt: t`Code an iterative (tail recursive) version of the FoCS function ${code`power`}, which computes ${math`x^{n}`} by ${math`x^{${2}n} = (x^{${2}})^{n}`} and ${math`x^{${2}n + ${1}} = x \times (x^{${2}})^{n}`}. Add an accumulator argument and say what it holds at each call: what is the invariant relating ${code`x`}, ${code`n`}, the accumulator, and the original ${math`x^{n}`}? Is the gain worth it, as FoCS asks?`,
+  prompt: t`Code an iterative (tail recursive) version of the FoCS function ${code`power`}, which computes ${math`x^{n}`} by ${math`x^{${2}n} = (x^{${2}})^{n}`} and ${math`x^{${2}n + ${1}} = x \times (x^{${2}})^{n}`}. Add an accumulator argument and state what it holds at each call: the invariant relating ${code`x`}, ${code`n`}, the accumulator, and the original ${math`x^{n}`}. Is the gain worth it, as FoCS asks?`,
   writeUp: 'explanation',
+  hints: [
+    t`If the accumulator is ${math`a`}, which product of ${math`a`} and a power of ${code`x`} should stay equal to the original ${math`x^{n}`}?`,
+    t`When ${code`n`} is odd, what must happen to the accumulator to keep that product unchanged as ${code`x`} is squared and ${code`n`} halved?`,
+    t`How deep does the recursion of the original ${code`power`} go, and does a tail call save much at that depth?`,
+  ],
 });
 
 // Computer Science Tripos Part IA 2024, Paper 1, Question 2(a): trial division by recursion.
@@ -207,6 +219,11 @@ const cst24 = supervision({
   title: t`A primality test by trial division`,
   prompt: t`A prime number is a natural number greater than ${1} that has no positive divisors other than ${1} and itself. We wish to implement a primality test in OCaml that checks if a positive input integer is prime. A simple primality test is via trial division: given a positive input number ${math`n`}, check if it is divisible by any prime number between ${2} and ${math`\sqrt{n}`}. For any divisor ${math`p \ge \sqrt{n}`}, there must be another divisor ${math`\frac{n}{p} \le \sqrt{n}`}, and a prime divisor ${math`q`} of ${math`\frac{n}{p}`}, and therefore looking for prime divisors where ${math`p \le \sqrt{n}`} is sufficient. Define a function ${code`is_prime`} which accepts a positive input integer and returns a boolean to indicate if it is prime or not. To simplify your code, you can avoid calculating square roots by checking for prime divisors where ${math`p^{${2}} \le n`}. You can assume the existence of a ${code`(mod)`} operator which returns the integer remainder of two integers. For example, ${code`${3} mod ${2}`} will return ${1}. The type definitions are: ${codeBlock(code`val (mod) : int -> int -> int`, code`val is_prime : int -> bool`)}`,
   writeUp: 'explanation',
+  hints: [
+    t`Which inputs must be handled before any trial division, such as ${1}?`,
+    t`Which recursive helper, taking a candidate divisor ${code`d`}, can test divisors in turn, and when should it stop?`,
+    t`Is it enough to try every ${code`d`} with ${math`d^{${2}} \le n`}, prime or not, and why?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

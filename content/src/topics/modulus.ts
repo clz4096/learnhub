@@ -171,11 +171,18 @@ const a21i = auto({
   solution: [
     t`${math`|${2}x - ${3}| = ${7}`}, so ${math`${2}x - ${3} = ${7}`} or ${math`${2}x - ${3} = -${7}`}.`,
     t`So ${math`x = ${5}`} or ${math`x = -${2}`}.`,
+    t`Isolate the modulus, then split into the two signs.`,
   ],
   reference: '5, -2',
   verify: () => same('check', [5, -2].map((x) => Math.abs(2 * x - 3) - 4).join(','), '3,3'),
   misconceptions: [{ response: '5, 2', why: t`${math`${2}x - ${3} = -${7}`} gives ${math`${2}x = -${4}`}, so ${math`x = -${2}`}.` }],
   official: { source: cite('step-f21-hints', 'Q2(i)'), answer: '5, -2', agrees: true },
+  nudge: t`Not quite. Isolate the modulus first; it then splits into two linear equations.`,
+  hints: [
+    t`What does the equation become once the modulus is alone on one side?`,
+    t`Which two linear equations does the isolated modulus give?`,
+    t`What does each linear equation give for ${math`x`}, and do both values satisfy the original equation?`,
+  ],
 });
 
 const a5iii = auto({
@@ -187,10 +194,17 @@ const a5iii = auto({
   solution: [
     t`${math`${1} - \frac{${1}}{${1} + x^{${2}}} = \frac{x^{${2}}}{${1} + x^{${2}}}`}, so the expression is ${math`\sqrt{\frac{x^{${2}}}{${1} + x^{${2}}}}\sqrt{${1} + x^{${2}}} = \sqrt{x^{${2}}}`}.`,
     t`${math`\sqrt{x^{${2}}}`} is the non-negative number whose square is ${math`x^{${2}}`}: that is ${math`x`} when ${math`x \ge ${0}`} and ${math`-x`} when ${math`x < ${0}`}, which is ${math`|x|`}.`,
+    t`${math`\sqrt{x^{${2}}}`} is ${math`|x|`}, not ${math`x`}.`,
   ],
   reference: 'abs(x)',
   verify: () => { for (const x of [-3, -0.5, 0, 2]) if (Math.abs(Math.sqrt(1 - 1 / (1 + x * x)) * Math.sqrt(1 + x * x) - Math.abs(x)) > 1e-12) return `x = ${x}`; return null; },
   misconceptions: [{ response: 'x', why: t`For ${math`x < ${0}`} the expression is still positive, so it cannot be ${math`x`}: ${math`\sqrt{x^{${2}}} = |x|`}.` }],
+  nudge: t`Not quite. Combine the bracket into one fraction first; then ask what the square root of a square is when ${math`x`} is negative.`,
+  hints: [
+    t`What is ${math`${1} - \frac{${1}}{${1} + x^{${2}}}`} as a single fraction?`,
+    t`After multiplying the two square roots, what is left under one root?`,
+    t`For negative ${math`x`}, is ${math`\sqrt{x^{${2}}}`} equal to ${math`x`}?`,
+  ],
 });
 
 const a21sketch = supervision({
@@ -200,6 +214,11 @@ const a21sketch = supervision({
   prompt: t`Sketch the graph ${math`y = |${2}x - ${3}|`}, marking where it meets the axes. Then sketch ${math`y = |${2}x| + |x - ${1}|`} and ${math`y = ${3}`} on one diagram, and use it to explain why ${math`|${2}x| + |x - ${1}| = ${3}`} has exactly two solutions.`,
   writeUp: 'sketch',
   official: cite('step-f21-hints', 'Q2(ii)'),
+  hints: [
+    t`Where does ${math`y = |${2}x - ${3}|`} meet the axes, and what happens to the part of ${math`y = ${2}x - ${3}`} below the ${math`x`}-axis?`,
+    t`Which linear expression does ${math`|${2}x| + |x - ${1}|`} equal for ${math`x < ${0}`}, for ${math`${0} \le x \le ${1}`}, and for ${math`x > ${1}`}?`,
+    t`Given the least value of that graph and its slopes on each side, how many times does the line ${math`y = ${3}`} cross it?`,
+  ],
 });
 
 const eqns1 = supervision({
@@ -209,6 +228,11 @@ const eqns1 = supervision({
   prompt: t`How many real roots does the equation ${math`|x - ${3}| + |x - ${1}| = c`} have? The answer may depend on the value of ${math`c`}: give reasons for your answer.`,
   writeUp: 'explanation',
   official: cite('step-s2-eqns-solutions', 'Q1(iii)'),
+  hints: [
+    t`What does ${math`|x - ${3}| + |x - ${1}|`} equal for ${math`x < ${1}`}, for ${math`${1} \le x \le ${3}`}, and for ${math`x > ${3}`}?`,
+    t`What is the least value of the left side, and on which set of ${math`x`} is it attained?`,
+    t`For ${math`c`} below, equal to, and above that least value, how many times does the line ${math`y = c`} meet the graph?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

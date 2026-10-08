@@ -184,10 +184,17 @@ const q3iiid = auto({
   source: cite(MIX, 'Q3(iii)', true),
   title: t`The men in a rope`,
   prompt: t`${6} women and ${4} men stand in a line in a random order. The men stand together inside a rope, which counts as one "person". Find the probability that all ${4} men stand together.`,
+  nudge: t`Not quite. Two kinds of order are involved: the rope among the women, and the men inside the rope.`,
+  hints: [
+    t`With the rope counted as one person, how many people are there to order?`,
+    t`In how many orders can the men stand inside the rope?`,
+    t`How many orders of all ${10} people are there in total?`,
+  ],
   answer: { kind: 'exact', expected: str(q(1, 30)) },
   solution: [
     t`The rope and the ${6} women are ${7} "people": ${math`${7}!`} orders. Inside the rope the men stand in ${math`${4}!`} orders.`,
     t`${math`\frac{${7}! \times ${4}!}{${10}!} = \frac{${4} \times ${3} \times ${2} \times ${1}}{${10} \times ${9} \times ${8}} = ${q(1, 30)}`}.`,
+    t`Rope the group, count the orders outside and inside, and divide by all orders.`,
   ],
   reference: '1/30',
   verify: exact(q(1, 30), consecutive, 'the men together'),
@@ -200,10 +207,17 @@ const q3iv = auto({
   source: cite(MIX, 'Q3(iv)'),
   title: t`All the women together`,
   prompt: t`${6} women and ${4} men stand in a line in a random order. What is the probability that all the women (but not necessarily the men) stand together?`,
+  nudge: t`Not quite. Treat the women as a single block and count the orders outside and inside it.`,
+  hints: [
+    t`With the women tied together as one block, how many units are there to arrange?`,
+    t`In how many orders can the women stand inside their block?`,
+    t`Out of how many equally likely orders of all ${10} people?`,
+  ],
   answer: { kind: 'exact', expected: str(q(1, 42)) },
   solution: [
     t`Rope the women: with the ${4} men that is ${5} "people", ${math`${5}!`} orders, and ${math`${6}!`} orders inside the rope.`,
     t`${math`\frac{${5}! \times ${6}!}{${10}!} = ${q(1, 42)}`}, less likely than the men together, since more people must bunch up.`,
+    t`Tie the group into one block; multiply the orders outside by the orders inside.`,
   ],
   reference: '1/42',
   verify: exact(q(1, 42), (men) => consecutive(womenOf(men)), 'the women together'),
@@ -216,10 +230,17 @@ const q3v = auto({
   source: cite(MIX, 'Q3(v)'),
   title: t`Men together and women together`,
   prompt: t`${6} women and ${4} men stand in a line in a random order. What is the probability that all the men stand together and all the women stand together?`,
+  nudge: t`Not quite. Count directly, with both groups tied into blocks, rather than combining other answers.`,
+  hints: [
+    t`With the men in one block and the women in another, in how many orders can the two blocks stand?`,
+    t`In how many orders can each group stand inside its block?`,
+    t`What fraction of all ${10}-person orders is that?`,
+  ],
   answer: { kind: 'exact', expected: str(q(1, 105)) },
   solution: [
     t`Two ropes: ${math`${6}!`} orders of the women inside theirs, ${math`${4}!`} of the men inside theirs, and ${2} orders of the two ropes.`,
-    t`${math`\frac{${2} \times ${6}! \times ${4}!}{${10}!} = ${q(1, 105)}`}. This is not ${math`${q(1, 30)} \times ${q(1, 42)}`}: the events are not independent, since once the men are together the women are much more likely to be.`,
+    t`${math`\frac{${2} \times ${6}! \times ${4}!}{${10}!} = ${q(1, 105)}`}.`,
+    t`Count a joint event directly from the arrangements that satisfy both conditions.`,
   ],
   reference: '1/105',
   verify: exact(q(1, 105), (men) => consecutive(men) && consecutive(womenOf(men)), 'both together'),
@@ -232,10 +253,17 @@ const q3vii = auto({
   source: cite(MIX, 'Q3(vii)'),
   title: t`A woman at each end`,
   prompt: t`${6} women and ${4} men stand in a line in a random order. Find the probability that there is a woman at each end of the line.`,
+  nudge: t`Not quite. Fill the two ends one after the other, from the people left each time.`,
+  hints: [
+    t`How many choices of woman are there for the first end?`,
+    t`After that, how many women are left for the other end, out of how many people?`,
+    t`Does the order of the middle ${8} people affect this event?`,
+  ],
   answer: { kind: 'exact', expected: str(q(1, 3)) },
   solution: [
     t`Choose the two women for the ends: ${6} for the first end, then ${5} for the other. Then arrange the ${8} people left: ${math`${8}!`} ways.`,
     t`${math`\frac{${6} \times ${5} \times ${8}!}{${10}!} = \frac{${6} \times ${5}}{${10} \times ${9}} = ${q(1, 3)}`}.`,
+    t`Fill the restricted places first; the free places cancel.`,
   ],
   reference: '1/3',
   verify: exact(q(1, 3), (men) => !men.includes(0) && !men.includes(9), 'women at both ends'),
@@ -250,10 +278,17 @@ const q4i = auto({
   source: cite(MIX, 'Q4(i)'),
   title: t`Three girls all together`,
   prompt: t`I seat ${math`n`} boys and ${3} girls in a line at random, so that each order of the ${math`n + ${3}`} children is equally likely. ${math`K`} is the largest number of girls sitting next to each other. Find ${math`P(K = ${3})`} in terms of ${math`n`}.`,
+  nudge: t`Not quite. All three girls together form one block; count the orders outside and inside it.`,
+  hints: [
+    t`What does ${math`K = ${3}`} say about where the girls sit?`,
+    t`With the girls tied into one block, how many units are there, and in how many orders can the girls sit inside it?`,
+    t`How many orders of all ${math`n + ${3}`} children are there, and how does the ratio of factorials simplify?`,
+  ],
   answer: { kind: 'expression', expected: '6/((n + 2)(n + 3))', variables: ['n'], domains: N_DOM },
   solution: [
     t`${math`K = ${3}`} means all three girls are together. Rope them: ${math`${3}!`} orders inside, and ${math`(n + ${1})!`} orders of the rope and the ${math`n`} boys.`,
     t`${math`P(K = ${3}) = \frac{${3}! \, (n + ${1})!}{(n + ${3})!} = \frac{${6}}{(n + ${2})(n + ${3})}`}.`,
+    t`Tie the group into one block, then cancel factorials.`,
   ],
   reference: '6/((n + 2)(n + 3))',
   verify: () => {
@@ -273,10 +308,17 @@ const q5i = auto({
   source: cite(MIX, 'Q5(i)'),
   title: t`A hockey player at each end`,
   prompt: t`A school has ${math`n`} pupils, of whom ${math`r`} play hockey, where ${math`n \ge r \ge ${2}`}. All ${math`n`} pupils are arranged in a row at random. What is the probability that there is a hockey player at each end of the row?`,
+  nudge: t`Not quite. Fill the two ends one after the other; each choice changes what is left.`,
+  hints: [
+    t`How many choices of hockey player are there for one end?`,
+    t`After that, how many hockey players remain for the other end?`,
+    t`In how many ways can the remaining ${math`n - ${2}`} pupils fill the middle, out of ${math`n!`} orders in all?`,
+  ],
   answer: { kind: 'expression', expected: 'r(r - 1)/(n(n - 1))', variables: ['n', 'r'], domains: NR_DOM },
   solution: [
     t`${math`r`} choices of hockey player for one end, ${math`r - ${1}`} for the other, then ${math`(n - ${2})!`} for the rest.`,
     t`${math`\frac{r(r - ${1})(n - ${2})!}{n!} = \frac{r(r - ${1})}{n(n - ${1})}`}.`,
+    t`Fill the restricted places first; the free places cancel.`,
   ],
   reference: 'r(r - 1)/(n(n - 1))',
   verify: () => {
@@ -295,10 +337,17 @@ const q5ii = auto({
   source: cite(MIX, 'Q5(ii)'),
   title: t`All the hockey players together`,
   prompt: t`With ${math`n`} pupils, ${math`r`} of them hockey players, arranged in a row at random, what is the probability that all the hockey players stand together? Use ${math`!`} for factorials.`,
+  nudge: t`Not quite. Tie the hockey players into one block and count the orders outside and inside it.`,
+  hints: [
+    t`With the ${math`r`} hockey players tied into one block, how many units are there to arrange?`,
+    t`In how many orders can the hockey players stand inside the block?`,
+    t`What fraction of the ${math`n!`} orders is that?`,
+  ],
   answer: { kind: 'expression', expected: 'r! (n - r + 1)!/n!', variables: ['n', 'r'], domains: NR_DOM },
   solution: [
     t`Rope the hockey players: ${math`r!`} orders inside the rope, and ${math`(n - r + ${1})!`} orders of the rope and the ${math`n - r`} others.`,
     t`${math`\frac{r! \, (n - r + ${1})!}{n!}`}, which is also ${math`\frac{n - r + ${1}}{\binom{n}{r}}`}: ${math`n - r + ${1}`} blocks of places out of ${math`\binom{n}{r}`} sets of places.`,
+    t`A group that must stay together is one block with its own internal orders.`,
   ],
   reference: 'r! (n - r + 1)!/n!',
   verify: () => {
@@ -317,6 +366,11 @@ const q4ii = supervision({
   source: cite(MIX, 'Q4(ii)'),
   title: t`The girls all apart`,
   prompt: t`With ${math`n`} boys and ${3} girls seated at random, show that ${math`P(K = ${1}) = \frac{n(n - ${1})}{(n + ${2})(n + ${3})}`}. Explain where the gaps come from, and check the formula for ${math`n = ${1}`}.`,
+  hints: [
+    t`With the ${math`n`} boys seated first, how many gaps are there for the girls, counting both ends?`,
+    t`In how many ways can the three girls go into different gaps, and in how many orders of the boys?`,
+    t`Dividing by all ${math`(n + ${3})!`} orders, how do the factorials cancel, and what does ${math`n = ${1}`} give?`,
+  ],
   writeUp: 'proof',
   official: cite(MIXS, 'Q4(ii)'),
 });
@@ -325,6 +379,11 @@ const q5iii = supervision({
   source: cite(MIX, 'Q5(iii)'),
   title: t`No two hockey players together`,
   prompt: t`By considering the gaps between the non-hockey-players, find the probability that no two of the ${math`r`} hockey players stand together, distinguishing between the cases when the probability is zero and when it is not. For which ${math`n`} and ${math`r`} is it zero, and why?`,
+  hints: [
+    t`With the ${math`n - r`} other pupils in a row, how many gaps are there, counting both ends?`,
+    t`In how many ways can the ${math`r`} hockey players go into different gaps, and how does that compare with all ${math`n!`} orders?`,
+    t`When are there fewer gaps than hockey players, and what does that make the probability?`,
+  ],
   writeUp: 'proof',
   official: cite(MIXS, 'Q5(iii)'),
 });
@@ -332,7 +391,12 @@ const q3why = supervision({
   id: 'mixed-q3-v-why',
   source: cite(MIX, 'Q3(v)'),
   title: t`Why the two answers do not multiply`,
-  prompt: t`The question notes that the probability that the men are together and the women are together is not the product of the two separate probabilities, ${q(1, 30)} and ${q(1, 42)}. Explain why, by finding the probability that the women are together given that the men are, and comparing it with ${q(1, 42)}.`,
+  prompt: t`The question notes that the probability that the men are together and the women are together is not the product of the two separate probabilities. Explain why, by finding the probability that the women are together given that the men are, and comparing it with the probability that the women are together.`,
+  hints: [
+    t`Given that the men stand together, how many arrangements are there, and in which of them are the women together too?`,
+    t`From those counts, what is the probability that the women are together given that the men are?`,
+    t`How does that compare with the unconditional probability that the women are together, and what does the comparison say about independence?`,
+  ],
   writeUp: 'explanation',
   official: cite(MIXS, 'Q3(v)'),
 });

@@ -223,10 +223,16 @@ const m1ba = auto({
   title: t`The product ${math`BA`}`,
   prompt: t`Calculate ${math`BA`} for ${math`A = ${texM(NA)}`} and ${math`B = ${texM(NB)}`}, and compare it with ${math`AB = ${texM(mmul(NA, NB))}`}.`,
   answer: blank2x2(mmul(NB, NA)),
-  solution: [t`Rows of ${mB}, columns of ${mA}: ${math`BA = ${texM(mmul(NB, NA))}`}. It differs from ${math`AB`}: matrix multiplication is not commutative.`],
+  solution: [t`Rows of ${mB}, columns of ${mA}: ${math`BA = ${texM(mmul(NB, NA))}`}. It differs from ${math`AB`}: matrix multiplication is not commutative.`, t`Row times column, in the order given: ${math`BA`} and ${math`AB`} usually differ.`],
   reference: flat(mmul(NB, NA)),
   verify: () => same('BA', flat(mmul(NB, NA)).join(','), '-5,-8,10,16'),
   misconceptions: [{ response: flat(mmul(NA, NB)), why: t`That is ${math`AB`}; the order matters.` }],
+  nudge: t`Not quite. Each entry of ${math`BA`} is a row of ${mB} times a column of ${mA}, in that order.`,
+  hints: [
+    t`Which matrix supplies the rows of ${math`BA`}, and which the columns?`,
+    t`What is the top-left entry, the first row of ${mB} times the first column of ${mA}?`,
+    t`How do the other three entries follow the same pattern?`,
+  ],
 });
 
 const m1sum = auto({
@@ -235,18 +241,29 @@ const m1sum = auto({
   title: t`The sum ${math`A + B`}`,
   prompt: t`Calculate ${math`A + B`} for ${math`A = ${texM(NA)}`} and ${math`B = ${texM(NB)}`}.`,
   answer: blank2x2(madd(NA, NB)),
-  solution: [t`Add entry by entry: ${math`A + B = ${texM(madd(NA, NB))}`}.`],
+  solution: [t`Add entry by entry: ${math`A + B = ${texM(madd(NA, NB))}`}.`, t`Addition is entry by entry; only multiplication mixes rows with columns.`],
   reference: flat(madd(NA, NB)),
   verify: () => same('A + B', flat(madd(NA, NB)).join(','), '-1,1,7,6'),
   misconceptions: [{ response: flat(mmul(NA, NB)), why: t`That is the product. Matrices are added entry by entry.` }],
+  nudge: t`Not quite. Matrices add entry by entry, each entry with the one in the same place.`,
+  hints: [
+    t`Do ${mA} and ${mB} have the same size, so that the sum is defined?`,
+    t`Which entry of ${mB} is added to the top-left entry of ${mA}?`,
+    t`What are the four sums, place by place?`,
+  ],
 });
 
 const m2 = supervision({
   id: 'nst-m2',
   source: cite(NST, 'Section 2, Matrices, M2'),
   title: t`Zero one way, not the other`,
-  prompt: t`Find ${math`${2} \times ${2}`} matrices ${mA} and ${mB} such that ${math`AB = ${0}`} (the zero matrix) and ${math`BA \neq ${0}`}. Explain how you found them, and why neither ${mA} nor ${mB} can be invertible.`,
+  prompt: t`Find ${math`${2} \times ${2}`} matrices ${mA} and ${mB} such that ${math`AB = ${0}`} (the zero matrix) and ${math`BA \neq ${0}`}. Explain how they were found, and why neither ${mA} nor ${mB} can be invertible.`,
   writeUp: 'explanation',
+  hints: [
+    t`If ${math`AB = ${0}`}, what must each column of ${mB} satisfy with respect to ${mA}?`,
+    t`Which simple matrices, with a single non-zero entry, could be tried for ${mA} and ${mB}?`,
+    t`If ${mA} were invertible, what would multiplying ${math`AB = ${0}`} on the left by ${math`A^{-${1}}`} give?`,
+  ],
 });
 
 const m3 = supervision({
@@ -255,6 +272,11 @@ const m3 = supervision({
   title: t`A rotation and a scaling`,
   prompt: t`A linear transformation of the plane is described by the matrix ${math`${texM(mat(1, -1, 1, 1))}`}. Show that it is the composition of a rotation and a scaling, and find the angle and the scale factor.`,
   writeUp: 'proof',
+  hints: [
+    t`What is the length of each column of the matrix, and are the two columns perpendicular?`,
+    t`Taking that length out as a factor, which matrix is left, and is it a rotation matrix?`,
+    t`Which angle ${math`\theta`} has ${math`\cos\theta`} and ${math`\sin\theta`} equal to the entries left?`,
+  ],
 });
 
 // STEP Support STEP 2 Matrices, Q3: commutators and the trace.
@@ -266,6 +288,11 @@ const s2MatTrace = supervision({
   prompt: t`Let ${mA2}, ${mB2}, ${mC2} be real ${math`${2} \times ${2}`} matrices and write ${math`[\mathbf{A}, \mathbf{B}] = \mathbf{AB} - \mathbf{BA}`}, and so on. Prove that: (i) ${math`[\mathbf{A}, \mathbf{A}] = \mathbf{O}`}, where ${math`\mathbf{O}`} is the zero matrix; (ii) ${math`[[\mathbf{A}, \mathbf{B}], \mathbf{C}] + [[\mathbf{B}, \mathbf{C}], \mathbf{A}] + [[\mathbf{C}, \mathbf{A}], \mathbf{B}] = \mathbf{O}`}. At each step you should state clearly any properties of matrices which you use. The trace of a matrix ${math`\mathbf{A} = \begin{pmatrix} a_{${1}${1}} & a_{${1}${2}} \\ a_{${2}${1}} & a_{${2}${2}} \end{pmatrix}`} is defined by ${math`\operatorname{Tr}(\mathbf{A}) = a_{${1}${1}} + a_{${2}${2}}`}. Prove that: (iv) ${math`\operatorname{Tr}(\mathbf{A} + \mathbf{B}) = \operatorname{Tr}(\mathbf{A}) + \operatorname{Tr}(\mathbf{B})`}; (v) ${math`\operatorname{Tr}(\mathbf{AB}) = \operatorname{Tr}(\mathbf{BA})`}; (vi) ${math`\operatorname{Tr}(\mathbf{I}) = ${2}`}. Deduce that there are no matrices satisfying ${math`[\mathbf{A}, \mathbf{B}] = \mathbf{I}`}.`,
   writeUp: 'proof',
   official: cite('step-s2-matrices-solutions', 'Q3 (pages 8 and 9)'),
+  hints: [
+    t`For (ii), what does each double bracket expand into, and which of the twelve products cancel?`,
+    t`For (v), what are the diagonal entries of ${math`\mathbf{AB}`} and of ${math`\mathbf{BA}`} in terms of the entries of the two matrices?`,
+    t`If ${math`[\mathbf{A}, \mathbf{B}] = \mathbf{I}`}, what is the trace of each side?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

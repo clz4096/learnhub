@@ -204,6 +204,7 @@ const q3xk = auto({
   solution: [
     t`${math`E(X_{k}) = P(X_{k} = ${1})`}. There are ${math`\frac{n!}{a! \, b!}`} rows; fixing B then A at places ${math`k - ${1}`} and ${math`k`} leaves ${math`\frac{(n - ${2})!}{(a - ${1})! \, (b - ${1})!}`}.`,
     t`The ratio is ${math`\frac{ab}{n(n - ${1})}`}, which does not depend on ${math`k`}.`,
+    t`The mean of an indicator is the probability of its event.`,
   ],
   reference: 'a b/((a + b)(a + b - 1))',
   verify: () => {
@@ -218,6 +219,12 @@ const q3xk = auto({
   },
   misconceptions: [{ response: 'a b/(a + b)^2', why: t`The second place is filled from the ${math`n - ${1}`} letters left, so the chance is ${math`\frac{b}{n} \times \frac{a}{n - ${1}}`}.` }],
   official: { source: cite(S3S, 'Q3(i)'), answer: 'a b/((a + b)(a + b - 1))', agrees: true },
+  nudge: t`Not quite. The mean of an indicator is a probability, and counting the rows with B then A at the two places gives it directly.`,
+  hints: [
+    t`For an indicator, how is ${math`E(X_{k})`} related to a probability?`,
+    t`How many different rows of ${math`a`} letters A and ${math`b`} letters B are there, and how many have B at place ${math`k - ${1}`} and A at place ${math`k`}?`,
+    t`Does the ratio of those two counts depend on ${math`k`}?`,
+  ],
 });
 
 const q3iib = auto({
@@ -229,6 +236,7 @@ const q3iib = auto({
   solution: [
     t`For ${math`${2} \le i`} and ${math`j \ge i + ${2}`}, the four places ${math`i - ${1}, i, j - ${1}, j`} are different, and ${math`X_{i}X_{j} = ${1}`} when they hold B, A, B, A: ${math`E(X_{i}X_{j}) = \frac{a(a - ${1})b(b - ${1})}{n(n - ${1})(n - ${2})(n - ${3})}`}, the same for every such pair.`,
     t`For each ${math`i`} there are ${math`n - i - ${1}`} values of ${math`j`}, and ${math`\sum_{i = ${2}}^{n - ${2}} (n - i - ${1}) = \frac{(n - ${2})(n - ${3})}{${2}}`}. So the double sum is ${math`\frac{a(a - ${1})b(b - ${1})}{${2}n(n - ${1})}`}.`,
+    t`When every term is equal, a double sum is one term times a count.`,
   ],
   reference: 'a(a - 1)b(b - 1)/(2(a + b)(a + b - 1))',
   verify: () => {
@@ -246,6 +254,12 @@ const q3iib = auto({
   },
   misconceptions: [{ response: 'a(a - 1)b(b - 1)/((a + b)(a + b - 1))', why: t`Count the pairs: ${math`\sum_{i = ${2}}^{n - ${2}} (n - i - ${1}) = \frac{(n - ${2})(n - ${3})}{${2}}`}, which brings a factor of ${math`\frac{${1}}{${2}}`}.` }],
   official: { source: cite(S3S, 'Q3(ii)(b)'), answer: 'a(a - 1)b(b - 1)/(2(a + b)(a + b - 1))', agrees: true },
+  nudge: t`Not quite. Every pair in the double sum contributes the same amount; find that amount once, then count the pairs.`,
+  hints: [
+    t`When ${math`j \ge i + ${2}`}, are the four places ${math`i - ${1}`}, ${math`i`}, ${math`j - ${1}`}, ${math`j`} all different?`,
+    t`What is the probability that those four places hold B, A, B, A in that order?`,
+    t`How many pairs ${math`(i, j)`} does the double sum contain?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: Example Sheet 2
@@ -261,6 +275,7 @@ const sheetQ9 = auto({
   solution: [
     t`${math`N = I_{${1}} + \cdots + I_{${4}}`}, where ${math`I_{i}`} indicates success at trial ${math`i`}. An indicator with ${math`P(I = ${1}) = p`} has ${math`E(I) = E(I^{${2}}) = p`}, so ${math`\mathrm{Var}(I) = p - p^{${2}} = p(${1} - p)`}.`,
     t`The trials are independent, so the variances add: ${math`\mathrm{Var}(N) = \sum_{i} p_{i}(${1} - p_{i}) = ${computedTex(PIS.map((p) => texOfRational(mul(p, sub(q(1), p)))).join(' + '))} = ${q9var}`}.`,
+    t`Split a count into indicators; for independent ones, the variances add.`,
   ],
   reference: str(q9var),
   verify: () => {
@@ -278,6 +293,12 @@ const sheetQ9 = auto({
     return same('every outcome of the trials', str(variance(d)), str(q9var));
   },
   misconceptions: [{ response: str(rsum(PIS)), why: t`That is ${math`E(N) = \sum_{i} p_{i}`}. Each trial adds ${math`p_{i}(${1} - p_{i})`} to the variance.` }],
+  nudge: t`Not quite. Writing ${math`N`} as a sum of indicators makes the variance a sum of four simple terms.`,
+  hints: [
+    t`How is ${math`N`} a sum of indicators, one for each trial?`,
+    t`What is the variance of one indicator with success probability ${math`p`}?`,
+    t`Why do the variances of independent indicators add?`,
+  ],
 });
 
 /** Expected hoops for n strands: every pairing of the 2n ends, each equally likely, with its number of loops. */
@@ -321,10 +342,17 @@ const sheetQ10 = auto({
   solution: [
     t`Look at the joins one at a time. When ${math`k`} strands (counting joined pieces as strands) remain, there are ${math`${2}k`} ends; the chosen end is joined to one of the other ${math`${2}k - ${1}`}, and exactly one of them, its own strand's other end, closes a hoop. So the ${math`k`}th-from-last join makes a hoop with probability ${math`\frac{${1}}{${2}k - ${1}}`}.`,
     t`The number of hoops is the sum of the indicators of these events, so its mean is ${math`\sum_{k = ${1}}^{${SPAGHETTI}} \frac{${1}}{${2}k - ${1}} = ${1} + \frac{${1}}{${3}} + \frac{${1}}{${5}} + \frac{${1}}{${7}} = ${hoopMean}`}.`,
+    t`An expected count is a sum of probabilities, one indicator for each chance event.`,
   ],
   reference: str(hoopMean),
   verify: () => same('every pairing of the eight ends', str(hoops(SPAGHETTI)), str(hoopMean)) ?? same('two strands', str(hoops(2)), str(q(4, 3))),
   misconceptions: [{ response: str(q(SPAGHETTI, 2 * SPAGHETTI - 1)), why: t`The chance of closing a hoop changes as strands join: ${math`\frac{${1}}{${2}k - ${1}}`} when ${math`k`} strands are left. Use one indicator for each join.` }],
+  nudge: t`Not quite. Counting hoops one join at a time, with an indicator for each join, is the clean route.`,
+  hints: [
+    t`When ${math`k`} strands remain, how many free ends are there?`,
+    t`With one end chosen, how many of the other free ends would close a hoop?`,
+    t`How does linearity of expectation turn the probabilities for the separate joins into the expected number of hoops?`,
+  ],
 });
 
 const RECORDS = 5;
@@ -341,10 +369,17 @@ const sheetQ12mean = auto({
   solution: [
     t`Let ${math`Y_{i} = ${1}`} if year ${math`i`} is a record. Among the first ${math`i`} years, each is equally likely to have the smallest rank, so ${math`P(Y_{i} = ${1}) = \frac{${1}}{i}`}.`,
     t`${math`E(N) = \sum_{i = ${1}}^{${RECORDS}} \frac{${1}}{i} = ${recordMean}`}.`,
+    t`Linearity needs no independence: add the indicator means.`,
   ],
   reference: str(recordMean),
   verify: () => same('every ranking of five years', str(average(recordCounts(RECORDS), (c) => q(c))), str(recordMean)),
   misconceptions: [{ response: str(q(RECORDS + 1, 2)), why: t`Records get rarer: year ${math`i`} is a record with probability ${math`\frac{${1}}{i}`}, not ${q(1, 2)}.` }],
+  nudge: t`Not quite. One indicator for each year, and the chance that year ${math`i`} is a record, is all that is needed.`,
+  hints: [
+    t`Which indicator marks year ${math`i`} as a record year?`,
+    t`Among the first ${math`i`} years, how likely is year ${math`i`} to have the smallest rank?`,
+    t`How does linearity of expectation combine the probabilities ${math`P(Y_{i} = ${1})`}?`,
+  ],
 });
 const sheetQ12var = auto({
   id: 'sheet2-q12-variance',
@@ -355,10 +390,17 @@ const sheetQ12var = auto({
   solution: [
     t`${math`Y_{i}`} is an indicator with ${math`P(Y_{i} = ${1}) = \frac{${1}}{i}`}, so ${math`\mathrm{Var}(Y_{i}) = \frac{${1}}{i} - \frac{${1}}{i^{${2}}}`}.`,
     t`By independence, ${math`\mathrm{Var}(N) = \sum_{i = ${1}}^{${RECORDS}} \left(\frac{${1}}{i} - \frac{${1}}{i^{${2}}}\right) = ${recordMean} - ${rsum(Array.from({ length: RECORDS }, (_, i) => q(1, (i + 1) * (i + 1))))} = ${recordVar}`}.`,
+    t`For independent indicators the variances add, each one ${math`p(${1} - p)`}.`,
   ],
   reference: str(recordVar),
   verify: () => same('every ranking of five years', str(variance(distOf(recordCounts(RECORDS)))), str(recordVar)),
   misconceptions: [{ response: str(recordMean), why: t`That is the mean. Each indicator contributes ${math`p(${1} - p)`}, not ${math`p`}.` }],
+  nudge: t`Not quite. Independence of the indicators makes the variance a sum of one term for each year.`,
+  hints: [
+    t`What is the variance of an indicator ${math`Y`} with ${math`P(Y = ${1}) = p`}?`,
+    t`What is ${math`p`} for year ${math`i`}?`,
+    t`Why may the variances of the ${math`Y_{i}`} be added here?`,
+  ],
 });
 
 const q9proof = supervision({
@@ -367,6 +409,11 @@ const q9proof = supervision({
   title: t`Independent trials with different chances`,
   prompt: t`In a sequence of ${math`n`} independent trials the probability of a success at the ${math`i`}th trial is ${math`p_{i}`}. Let ${math`N`} be the total number of successes. Find the mean and variance of ${math`N`}, and say which step needs independence.`,
   writeUp: 'proof',
+  hints: [
+    t`How is ${math`N`} a sum of indicators ${math`I_{i}`}, and what is ${math`E(I_{i})`}?`,
+    t`What is ${math`\mathrm{Var}(I_{i})`}, given that ${math`I_{i}^{${2}} = I_{i}`}?`,
+    t`Which step uses independence: the mean, or the cross terms in the variance?`,
+  ],
 });
 const q10proof = supervision({
   id: 'sheet2-q10',
@@ -374,6 +421,11 @@ const q10proof = supervision({
   title: t`Spaghetti hoops in general`,
   prompt: t`Liam's bowl contains ${math`n`} strands. He selects two ends at random and joins them, repeating until no ends are left. Show that the expected number of hoops is ${math`\sum_{k = ${1}}^{n} \frac{${1}}{${2}k - ${1}}`}, and explain why this grows like ${math`\frac{${1}}{${2}}\ln n`}.`,
   writeUp: 'proof',
+  hints: [
+    t`When ${math`k`} strands remain, how many free ends are there, and how many ends can a chosen end be joined to?`,
+    t`What is the probability that that join closes a hoop, and why is the expected number of hoops the sum of these probabilities?`,
+    t`How does ${math`\sum_{k = ${1}}^{n} \frac{${1}}{${2}k - ${1}}`} compare with ${math`\frac{${1}}{${2}}\sum_{k = ${1}}^{n} \frac{${1}}{k}`}, and how does the harmonic sum grow?`,
+  ],
 });
 const q12proof = supervision({
   id: 'sheet2-q12',
@@ -381,6 +433,11 @@ const q12proof = supervision({
   title: t`Record years are independent`,
   prompt: t`For a random permutation ${math`a_{${1}}, \ldots, a_{n}`} of ${math`${1}, \ldots, n`}, let ${math`Y_{i} = ${1}`} if ${math`a_{i} < a_{j}`} for all ${math`j < i`}. Find the distribution of ${math`Y_{i}`} and show that ${math`Y_{${1}}, \ldots, Y_{n}`} are independent. Then find the mean and variance of the number of record years.`,
   writeUp: 'proof',
+  hints: [
+    t`Among the first ${math`i`} entries, why is each position equally likely to hold the smallest?`,
+    t`For ${math`i < j`}, why does the position of the smallest of the first ${math`j`} entries say nothing about the relative order of the first ${math`i`}?`,
+    t`With the ${math`Y_{i}`} independent, how do the mean and variance of their sum follow from those of each ${math`Y_{i}`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

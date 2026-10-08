@@ -156,6 +156,11 @@ const a9q4 = supervision({
   title: t`The bridge of donkeys: base angles from SAS alone`,
   prompt: t`Triangle ${math`ABC`} has ${math`AB = BC`}. The lines ${math`BA`} and ${math`BC`} are extended by equal lengths to ${math`D`} and ${math`E`}. Using only congruence by SAS and the angle sum of a triangle: (i) show that ${math`\angle BCD = \angle BAE`}; (ii) show that ${math`\angle DCA = \angle EAC`}; (iii) deduce that ${math`\angle BAC = \angle BCA`}. This is Euclid's Proposition ${5}, the pons asinorum.`,
   writeUp: 'proof',
+  hints: [
+    t`In (i), which two triangles share the angle at ${math`B`}, and which pairs of sides about it are equal?`,
+    t`In (ii), which two triangles contain ${math`\angle DCA`} and ${math`\angle EAC`}, and which sides and angle from (i) make them congruent?`,
+    t`In (iii), how do the angles at ${math`A`} and ${math`C`} split into the angles already shown equal?`,
+  ],
   official: cite('step-f09-hints', 'Q4'),
 });
 
@@ -165,6 +170,11 @@ const a16q4 = supervision({
   title: t`Every triangle is isosceles (or is it?)`,
   prompt: t`In triangle ${math`ABC`}, the bisector of angle ${math`A`} meets the perpendicular bisector of ${math`BC`} at ${math`G`}; ${math`D`} is the midpoint of ${math`BC`}, and ${math`GE`} and ${math`GF`} are the perpendiculars from ${math`G`} to ${math`AC`} and ${math`AB`}. (i) By considering triangles ${math`AGE`} and ${math`AGF`}, show that ${math`AE = AF`}. (ii) Show that ${math`GC = GB`}. (iii) Show that ${math`EC = FB`}, and deduce that triangle ${math`ABC`} is isosceles. (iv) How do you account for this? Draw an accurate diagram and explain exactly which step fails.`,
   writeUp: 'explanation',
+  hints: [
+    t`In (i) and (ii), which congruence tests apply to triangles ${math`AGE`} and ${math`AGF`}, and to the triangles through ${math`D`}?`,
+    t`In an accurate diagram of a triangle that is not isosceles, where does ${math`G`} lie relative to the triangle?`,
+    t`With that diagram, do both ${math`E`} and ${math`F`} lie between the vertices, or does one lie on a side extended?`,
+  ],
   official: cite('step-f16-hints', 'Q4'),
 });
 
@@ -174,6 +184,11 @@ const a1q4 = supervision({
   title: t`Holditch's theorem for a circle`,
   prompt: t`A rod ${math`AB`} of length ${math`${2}a`} slides with its ends on a circle ${math`C`} with centre ${math`O`} and radius ${math`R`}, so ${math`AB`} is always a chord. The point ${math`P`}, at a fixed distance ${math`b`} from the centre of the rod, traces out a circle with centre ${math`O`} and radius ${math`r`}. Show that the area between the two circles is ${math`\pi(a^{${2}} - b^{${2}})`}. If you had known the answer was independent of ${math`R`}, how could you have found it quickly by choosing ${math`R`}?`,
   writeUp: 'proof',
+  hints: [
+    t`With ${math`M`} the midpoint of the rod, why is ${math`OM`} perpendicular to ${math`AB`}, and what is ${math`OM^{${2}}`}?`,
+    t`Since ${math`P`} lies on the line ${math`AB`} at distance ${math`b`} from ${math`M`}, what is ${math`r^{${2}} = OP^{${2}}`}?`,
+    t`What is ${math`\pi(R^{${2}} - r^{${2}})`}, and which value of ${math`R`} makes the computation immediate?`,
+  ],
   official: cite('step-f01-hints', 'Q4'),
 });
 
@@ -189,6 +204,13 @@ const a21q4 = auto({
     t`Let the radius be ${math`r`}. Tangents from a point to a circle have equal length, so the legs are ${math`x + r`} and ${math`y + r`} (the two tangents from the right-angle vertex, with the radii, make a square of side ${math`r`}), and the hypotenuse is ${math`x + y`}.`,
     t`Pythagoras: ${math`(x + r)^{${2}} + (y + r)^{${2}} = (x + y)^{${2}}`}. Expand and cancel ${math`x^{${2}} + y^{${2}}`}: ${math`${2}r(x + y) + ${2}r^{${2}} = ${2}xy`}, so ${math`r^{${2}} + r(x + y) = xy`}.`,
     t`The area is ${math`\frac{${1}}{${2}}(x + r)(y + r) = \frac{${1}}{${2}}\left(xy + r(x + y) + r^{${2}}\right) = \frac{${1}}{${2}}(xy + xy) = xy`}.`,
+    t`Equal tangents give the sides; Pythagoras eliminates the radius.`,
+  ],
+  nudge: t`Not quite. Bring in the radius ${math`r`}, write every side in terms of ${math`x`}, ${math`y`}, and ${math`r`}, then eliminate ${math`r`}.`,
+  hints: [
+    t`What do equal tangent lengths give for the two legs, in terms of ${math`x`}, ${math`y`}, and the radius ${math`r`}?`,
+    t`What does Pythagoras give, after expanding and cancelling?`,
+    t`How does that relation simplify ${math`\frac{${1}}{${2}}(x + r)(y + r)`}?`,
   ],
   reference: 'xy',
   verify: () => {
@@ -214,6 +236,11 @@ const a21q4ii = supervision({
   title: t`A point on the inscribed circle of a square`,
   prompt: t`${math`ABCD`} is a square. The arc ${math`BD`} has centre ${math`A`} and radius ${math`AB`}, and meets the circle inscribed in the square at ${math`E`}. Show that the length ${math`CE`} is half the length of the diagonal of the square.`,
   writeUp: 'proof',
+  hints: [
+    t`With ${math`A`} at the origin and side ${2}, what are the equations of the arc and of the inscribed circle?`,
+    t`Subtracting the two equations, which linear relation do the coordinates of ${math`E`} satisfy?`,
+    t`How does that relation, with the arc's equation, give ${math`CE^{${2}}`} without finding ${math`E`} exactly?`,
+  ],
   official: cite('step-f21-hints', 'Q4(ii)'),
 });
 

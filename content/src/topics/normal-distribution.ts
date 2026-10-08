@@ -205,6 +205,7 @@ const q6mean = auto({
     t`${math`E(X) = E(e^{Y}) = \int_{-\infty}^{\infty} e^{y}\,\frac{${1}}{\sigma\sqrt{${2}\pi}}e^{-(y - \mu)^{${2}}/(${2}\sigma^{${2}})}\,dy`}.`,
     t`Complete the square: ${math`y - \frac{(y - \mu)^{${2}}}{${2}\sigma^{${2}}} = \mu + \frac{\sigma^{${2}}}{${2}} - \frac{(y - \mu - \sigma^{${2}})^{${2}}}{${2}\sigma^{${2}}}`}. What is left is the ${math`N(\mu + \sigma^{${2}}, \sigma^{${2}})`} density, which integrates to ${1}.`,
     t`So ${math`E(X) = e^{\mu + \sigma^{${2}}/${2}}`}: larger than ${math`e^{\mu}`}, the median of ${mX}.`,
+    t`Completing the square turns a normal integral with an extra exponential into a known density.`,
   ],
   reference: 'e^(mu + sigma^2/2)',
   verify: () => {
@@ -218,6 +219,12 @@ const q6mean = auto({
     { response: 'e^mu', why: t`${math`e^{\mu}`} is ${math`e`} to the mean of ${math`Y`}, the median of ${mX}. ${math`E(e^{Y}) \ne e^{E(Y)}`}: completing the square adds ${math`\sigma^{${2}}/${2}`}.` },
     { response: 'e^(mu + sigma^2)', why: t`Completing the square leaves ${math`\mu + \sigma^{${2}}/${2}`} in the exponent, half of ${math`\sigma^{${2}}`}.` },
   ],
+  nudge: t`Not quite. ${math`E(e^{Y})`} is not ${math`e^{E(Y)}`}; completing the square in the integral shows the extra term.`,
+  hints: [
+    t`How is ${math`E(X) = E(e^{Y})`} written as an integral against the ${math`N(\mu, \sigma^{${2}})`} density?`,
+    t`How can the exponent ${math`y - \frac{(y - \mu)^{${2}}}{${2}\sigma^{${2}}}`} be rewritten by completing the square in ${math`y`}?`,
+    t`What is left inside the integral once the constant part of the exponent is taken outside?`,
+  ],
 });
 
 const q6var = auto({
@@ -229,6 +236,7 @@ const q6var = auto({
   solution: [
     t`${math`X^{${2}} = e^{${2}Y}`} and ${math`${2}Y \sim N(${2}\mu, ${4}\sigma^{${2}})`}, so by the mean just found, ${math`E(X^{${2}}) = e^{${2}\mu + ${2}\sigma^{${2}}}`}.`,
     t`${math`\operatorname{Var}(X) = e^{${2}\mu + ${2}\sigma^{${2}}} - \left(e^{\mu + \sigma^{${2}}/${2}}\right)^{${2}} = e^{${2}\mu + \sigma^{${2}}}\left(e^{\sigma^{${2}}} - ${1}\right)`}.`,
+    t`Reuse a result: ${math`X^{${2}}`} is again log-normal, so its mean comes for free.`,
   ],
   reference: 'e^(2mu + sigma^2)(e^(sigma^2) - 1)',
   verify: () => {
@@ -244,6 +252,12 @@ const q6var = auto({
     { response: 'e^(2mu + 2sigma^2)', why: t`That is ${math`E(X^{${2}})`}. Subtract ${math`(E X)^{${2}} = e^{${2}\mu + \sigma^{${2}}}`}.` },
     { response: 'e^(2mu)(e^(sigma^2) - 1)', why: t`${math`(E X)^{${2}} = e^{${2}\mu + \sigma^{${2}}}`}: the factor outside the bracket keeps ${math`\sigma^{${2}}`}.` },
   ],
+  nudge: t`Not quite. ${math`E(X^{${2}})`} comes from the same calculation as ${math`E(X)`}, applied to ${math`${2}Y`}.`,
+  hints: [
+    t`What is ${math`X^{${2}}`} in terms of ${math`Y`}?`,
+    t`What is the distribution of ${math`${2}Y`}, and so what is ${math`E(X^{${2}})`} by the formula for the mean?`,
+    t`What does ${math`\operatorname{Var}(X) = E(X^{${2}}) - (E X)^{${2}}`} give with the common factor taken out?`,
+  ],
 });
 
 const q6b = supervision({
@@ -252,6 +266,11 @@ const q6b = supervision({
   title: t`Why products of many factors look log-normal`,
   prompt: t`Log-normal distributions model quantities ${mX} that arise as the product of many positive random factors, ${math`X = \xi_{${1}}\xi_{${2}}\cdots\xi_{n}`}, such as particle sizes after crushing, or stock prices. Making any reasonable assumptions you wish, justify such a model.`,
   writeUp: 'explanation',
+  hints: [
+    t`What is ${math`\log X`} in terms of the ${math`\log \xi_{i}`}?`,
+    t`Under which assumptions on the ${math`\xi_{i}`} does the central limit theorem apply to that sum?`,
+    t`If ${math`\log X`} is approximately normal, what is the distribution of ${mX}?`,
+  ],
 });
 const q5why = supervision({
   id: 'ia4-q5-why',
@@ -259,6 +278,11 @@ const q5why = supervision({
   title: t`Why the sample mean is normal, and why ${math`\Phi(${2.58})`}`,
   prompt: t`In Sheet ${4} Q${5}, explain why ${math`\bar{X} \sim N(\mu, \sigma^{${2}}/n)`} for a normal sample, and why the hint gives ${math`\Phi(${2.58}) = ${0.995}`} when the probability asked for is ${0.99}.`,
   writeUp: 'explanation',
+  hints: [
+    t`What is the distribution of a sum of independent normal variables, and how does dividing by ${math`n`} change its mean and variance?`,
+    t`For a two-sided interval with probability ${0.99}, how much probability lies in each tail?`,
+    t`Which value of ${math`\Phi`} leaves that much probability in the upper tail?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

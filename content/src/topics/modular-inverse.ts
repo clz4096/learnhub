@@ -156,11 +156,18 @@ const sheet3210a = auto({
   solution: [
     t`The official solution: since ${math`\gcd(${40}, ${11}) = ${1}`}, divide by ${11} (exercise ${3}.${2}.${4}): ${math`${7}x \equiv ${1} \pmod{${40}}`}. So ${math`x`} is the inverse of ${7}.`,
     t`${math`${40} \times ${3} + ${7} \times (-${17}) = ${1}`}, so ${math`x \equiv -${17} \equiv ${23} \pmod{${40}}`}.`,
+    t`Cancel a factor coprime to the modulus, then invert.`,
   ],
   reference: '23',
   verify: () => same('every x from 0 to 39', upTo(40).map((x) => x - 1).filter((x) => (77 * x - 11) % 40 === 0).join(), '23'),
   misconceptions: [{ response: '17', why: t`The coefficient is ${math`-${17}`}, and ${math`[-${17}]_{${40}} = ${23}`}.` }],
   official: { source: cite('cst-dm-sols-2324-3', '3.2.10(a)'), answer: '23', agrees: true },
+  nudge: t`Not quite. Dividing out a factor coprime to ${40} first leaves a congruence that asks for an inverse.`,
+  hints: [
+    t`What common factor do ${77} and ${11} share, and is it coprime to ${40}?`,
+    t`After dividing it out, which simpler congruence remains?`,
+    t`How does Euclid's algorithm on ${40} and ${7} give the inverse of ${7} modulo ${40}?`,
+  ],
 });
 
 const sheet3210b = auto({
@@ -172,11 +179,18 @@ const sheet3210b = auto({
   solution: [
     t`${math`\gcd(${12}, ${54}) = ${6}`} divides ${30}, so divide through: ${math`${2}y \equiv ${5} \pmod{${9}}`}. The inverse of ${2} mod ${9} is ${5}, so ${math`y \equiv ${25} \equiv ${7} \pmod{${9}}`}.`,
     t`Modulo ${54} that is the ${6} classes ${math`${7}, ${16}, ${25}, ${34}, ${43}, ${52}`}: a congruence ${math`ax \equiv b \pmod{m}`} with ${math`\gcd(a, m) \mid b`} has ${math`\gcd(a, m)`} solutions in ${Z(mm)}.`,
+    t`With ${math`d = \gcd(a, m)`} dividing ${math`b`}, the congruence ${math`ax \equiv b \pmod{m}`} has exactly ${math`d`} solutions in ${Z(mm)}.`,
   ],
   reference: ['7', '6'],
   verify: () => { const sols = upTo(54).map((y) => y - 1).filter((y) => (12 * y - 30) % 54 === 0); return same('every y from 0 to 53', `${sols[0]},${sols.length}`, '7,6'); },
   misconceptions: [{ response: ['7', '1'], why: t`Modulo ${54} the solution ${math`y \equiv ${7} \pmod{${9}}`} is ${6} classes: ${7}, ${16}, and so on.` }],
   official: { source: cite('cst-dm-sols-2324-3', '3.2.10(b)'), answer: ['7', '6'], agrees: true },
+  nudge: t`Not quite. The gcd of ${12} and ${54} decides both whether solutions exist and how many there are in ${Z(54)}.`,
+  hints: [
+    t`What is ${math`\gcd(${12}, ${54})`}, and does it divide ${30}?`,
+    t`Dividing through by that gcd, which congruence with a smaller modulus remains, and what is its solution?`,
+    t`How many classes modulo ${54} does one class modulo the smaller modulus split into?`,
+  ],
 });
 
 const zSys = upTo(357).find((z) => mod(z - 13, 21) === 0 && mod(3 * z - 2, 17) === 0) as number;
@@ -189,11 +203,18 @@ const sheet3210c = auto({
   solution: [
     t`The first congruence: ${math`z = ${13} + ${21}k`}. The second: the inverse of ${3} mod ${17} is ${6}, so ${math`z \equiv ${12} \pmod{${17}}`}, ${math`z = ${12} + ${17}l`}.`,
     t`They meet when ${math`${21}(-k) + ${17}l = ${1}`}: ${math`${21} \times (-${4}) + ${17} \times ${5} = ${1}`}, so ${math`k = ${4}`} and ${math`z = ${13} + ${84} = ${97}`}. Every solution is ${math`${97} + ${357}i`}, as the official solution finds.`,
+    t`Write one congruence as a family, then substitute the family into the other.`,
   ],
   reference: String(zSys),
   verify: () => same('the first z from 1 to 357 meeting both', zSys, 97),
   misconceptions: [{ response: '12', why: t`${12} solves the second congruence but ${math`${12} \not\equiv ${13} \pmod{${21}}`}. Both must hold.` }],
   official: { source: cite('cst-dm-sols-2324-3', '3.2.10(c)'), answer: '97', agrees: true },
+  nudge: t`Not quite. Solve each congruence on its own first, then find the number both families share.`,
+  hints: [
+    t`What form does every ${math`z`} with ${math`${13} \equiv z \pmod{${21}}`} take?`,
+    t`What is the inverse of ${3} modulo ${17}, and so which class modulo ${17} must ${math`z`} lie in?`,
+    t`Which ${math`k`} puts ${math`${13} + ${21}k`} in that class, by Euclid's algorithm on ${21} and ${17} or by trying values?`,
+  ],
 });
 
 const base3212 = powMod(22, 12001, 175);
@@ -202,15 +223,22 @@ const sheet3212 = auto({
   id: 'sheet-3-2-12-inverse',
   source: cite('cst-dm-sw1', 'Exercises 3, 3.2.12', true),
   title: t`The inverse of ${math`[${22}^{${12001}}]_{${175}}`}`,
-  prompt: t`Exercise ${3}.${2}.${12} asks you to prove that ${math`[${22}^{${12001}}]_{${175}}`} has a multiplicative inverse in ${Z(175)}. Go further: find it.`,
+  prompt: t`Exercise ${3}.${2}.${12} asks for a proof that ${math`[${22}^{${12001}}]_{${175}}`} has a multiplicative inverse in ${Z(175)}. Go further: find it.`,
   answer: { kind: 'exact', expected: String(inv3212) },
   solution: [
     t`${math`${22} = ${2} \times ${11}`} and ${math`${175} = ${5}^{${2}} \times ${7}`} share no prime, so the power is coprime to ${175} and has an inverse. To find it, reduce the power: repeated squaring gives ${math`[${22}^{${12001}}]_{${175}} = ${base3212}`}.`,
     t`Then ${math`${175} = ${7} \times ${22} + ${21}`} and ${math`${22} = ${21} + ${1}`}, so ${math`${1} = ${22} - (${175} - ${7} \times ${22}) = ${8} \times ${22} - ${175}`}, and the inverse is ${inv3212}.`,
+    t`Shrink the number first, then invert it.`,
   ],
   reference: String(inv3212),
   verify: () => same('the power and the inverse', `${base3212},${(base3212 * inv3212) % 175}`, '22,1'),
   misconceptions: [{ response: String(inverseBySearch(22, 7)), why: t`Work modulo ${175}, not ${7}: the inverse must satisfy ${math`${22}x \equiv ${1} \pmod{${175}}`}.` }],
+  nudge: t`Not quite. Reduce the huge power modulo ${175} first; the inverse of a small number is then one run of Euclid's algorithm.`,
+  hints: [
+    t`How can ${math`[${22}^{${12001}}]_{${175}}`} be reduced, by repeated squaring or by finding a power of ${22} that is ${1} modulo ${175}?`,
+    t`What small residue does the power reduce to?`,
+    t`How does Euclid's algorithm on ${175} and that residue give its inverse?`,
+  ],
 });
 
 const sheet226 = auto({
@@ -219,11 +247,17 @@ const sheet226 = auto({
   title: t`The inverse table of ${Z(7)}`,
   prompt: t`Exercise ${2}.${2}.${6} asks for the inverse tables of ${Z(3)}, ${Z(6)}, and ${Z(7)}. Give the multiplicative inverse of each nonzero element of ${Z(7)}.`,
   answer: { kind: 'table', cell: 'exact', columns: [t`${math`k`}`, t`${math`k^{-${1}}`}`], rows: upTo(6).map((k) => [t`${k}`, null]), expected: upTo(6).map((k) => String(inverseBySearch(k, 7))) },
-  solution: [t`Read each from the ${1}s in the multiplication table: ${math`${2} \times ${4} = ${8} \equiv ${1}`}, ${math`${3} \times ${5} = ${15} \equiv ${1}`}, ${math`${6} \times ${6} = ${36} \equiv ${1}`}. Every nonzero element has one, because ${7} is prime: as the official solution puts it, ${Z(7)} is a field.`],
+  solution: [t`Read each from the ${1}s in the multiplication table: ${math`${2} \times ${4} = ${8} \equiv ${1}`}, ${math`${3} \times ${5} = ${15} \equiv ${1}`}, ${math`${6} \times ${6} = ${36} \equiv ${1}`}. Every nonzero element has one, because ${7} is prime: as the official solution puts it, ${Z(7)} is a field.`, t`Inverses come in pairs, and modulo a prime every nonzero element has one.`],
   reference: upTo(6).map((k) => String(inverseBySearch(k, 7))),
   verify: () => same('i^(p - 2) for p = 7', upTo(6).map((k) => powMod(k, 5, 7)).join(), '1,4,5,2,3,6'),
   misconceptions: [{ response: ['6', '5', '4', '3', '2', '1'], why: t`Those are the additive inverses, with ${math`k + (-k) \equiv ${0}`}. The multiplicative inverse gives ${math`k \cdot k^{-${1}} \equiv ${1}`}.` }],
   official: { source: cite('cst-dm-sols-2324-2', '2.2.6'), answer: ['1', '4', '5', '2', '3', '6'], agrees: true },
+  nudge: t`Not quite. The inverse of ${math`k`} is the element whose product with ${math`k`} is ${1} modulo ${7}, not the one whose sum with ${math`k`} is ${0}.`,
+  hints: [
+    t`For each ${math`k`}, which ${math`j`} in ${Z(7)} makes ${math`k \times j`} leave remainder ${1} on division by ${7}?`,
+    t`Which elements are their own inverses?`,
+    t`If ${math`k^{-${1}} = j`}, what is ${math`j^{-${1}}`}?`,
+  ],
 });
 
 const sheet3212proof = supervision({
@@ -233,6 +267,11 @@ const sheet3212proof = supervision({
   prompt: t`Prove that ${math`[${22}^{${12001}}]_{${175}}`} has a multiplicative inverse in ${Z(175)}. First prove the lemma: ${math`[n]_{m}`} has an inverse in ${Z(mm)} if and only if ${math`\gcd(m, n) = ${1}`}.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-3', '3.2.12'),
+  hints: [
+    t`If ${math`\gcd(m, n) = ${1}`}, how does Bézout's identity give an integer ${math`x`} with ${math`nx \equiv ${1} \pmod{m}`}?`,
+    t`Conversely, if ${math`nx \equiv ${1} \pmod{m}`}, why must every common divisor of ${mm} and ${math`n`} divide ${1}?`,
+    t`Why do ${math`${22}^{${12001}}`} and ${175} share no prime factor?`,
+  ],
 });
 const cor86 = supervision({
   id: 'notes-244-corollary-86',
@@ -240,6 +279,11 @@ const cor86 = supervision({
   title: t`${Z(math`p`)} is a field`,
   prompt: t`Corollary ${86}: for a prime ${math`p`}, every nonzero ${math`i`} in ${Z(math`p`)} has inverse ${math`[i^{p - ${2}}]_{p}`}. Prove it from Fermat's little theorem, and explain why the formula fails for a composite modulus, with an example in ${Z(8)}.`,
   writeUp: 'proof',
+  hints: [
+    t`What does Fermat's little theorem say about ${math`i^{p - ${1}}`} when ${math`p`} does not divide ${math`i`}?`,
+    t`How is ${math`i \cdot i^{p - ${2}}`} related to ${math`i^{p - ${1}}`}?`,
+    t`In ${Z(8)}, which elements have inverses, and does ${math`i^{${8} - ${2}}`} give the inverse for each of them?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

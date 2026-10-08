@@ -215,6 +215,13 @@ const q4three = auto({
   solution: [
     t`The rates are the reciprocals of the means: ${math`${1}, ${q(1, 2)}, ${q(1, 3)}`}, which add to ${q(11, 6)}.`,
     t`The minimum is ${math`\mathrm{Exp}(${q(11, 6)})`}, with mean ${q(6, 11)} of a year.`,
+    t`The minimum of independent exponential times: the rates add.`,
+  ],
+  nudge: t`Not quite. Work with rates, not means: convert each mean first.`,
+  hints: [
+    t`What is the rate of an exponential lifetime with mean ${math`m`}?`,
+    t`When does the first failure come after time ${math`t`}, and what is the probability of that?`,
+    t`Which exponential distribution does the time of the first failure have, and what is its mean?`,
   ],
   reference: '6/11',
   verify: () => near('E(min) as the integral of the joint survival function', integrateToInfinity((x) => Math.exp(-x) * Math.exp(-x / 2) * Math.exp(-x / 3), 0), 6 / 11, 1e-9),
@@ -229,8 +236,13 @@ const memorylessProof = supervision({
   id: 'schedule-memoryless',
   source: cite('tripos-schedules', 'IA Probability, Continuous random variables: "Memoryless property of exponential distribution"', true),
   title: t`The memoryless property, and its converse`,
-  prompt: t`Prove that ${math`X \sim \mathrm{Exp}(\lambda)`} has ${math`P(X > s + t \mid X > s) = P(X > t)`} for all ${math`s, t \ge ${0}`}. Conversely, suppose ${math`G(t) = P(X > t)`} is continuous, positive, and satisfies ${math`G(s + t) = G(s)\,G(t)`}. Show that ${math`G(t) = e^{-\lambda t}`} for some ${math`\lambda > ${0}`}: first for whole numbers, then rationals, then by continuity.`,
+  prompt: t`Prove that ${math`X \sim \mathrm{Exp}(\lambda)`} has ${math`P(X > s + t \mid X > s) = P(X > t)`} for all ${math`s, t \ge ${0}`}. Conversely, suppose ${math`G(t) = P(X > t)`} is continuous, positive, and satisfies ${math`G(s + t) = G(s)\,G(t)`}. Show that ${math`G(t) = e^{-\lambda t}`} for some ${math`\lambda > ${0}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`How does ${math`P(X > s + t \mid X > s)`} reduce to a ratio of survival functions?`,
+    t`From ${math`G(s + t) = G(s)\,G(t)`}, what is ${math`G(n)`} in terms of ${math`G(${1})`} for a whole number ${math`n`}, and what is ${math`G(${1}/m)`}?`,
+    t`Writing ${math`G(${1}) = e^{-\lambda}`}, how does continuity extend ${math`G(r) = e^{-\lambda r}`} from rationals ${math`r`} to every ${math`t \ge ${0}`}?`,
+  ],
 });
 
 const q4firstWhich = supervision({
@@ -239,6 +251,11 @@ const q4firstWhich = supervision({
   title: t`Which one fails first, and the time it takes`,
   prompt: t`For independent ${math`X \sim \mathrm{Exp}(\lambda)`} and ${math`Y \sim \mathrm{Exp}(\mu)`}, show that the event ${math`\{X < Y\}`} is independent of ${math`\min\{X, Y\}`}, and explain what this says about a race between two exponential clocks.`,
   writeUp: 'proof',
+  hints: [
+    t`How is ${math`P(X < Y, \min\{X, Y\} > t)`} written as a double integral of the joint density?`,
+    t`Evaluated, how does that integral factor into a part for the event and a part for ${math`t`}?`,
+    t`What are ${math`P(X < Y)`} and ${math`P(\min\{X, Y\} > t)`} on their own, and is their product the joint probability?`,
+  ],
 });
 
 // 2016 STEP I Q13(ii): n e-mails, each arriving after an independent Exp(lambda) time; the second arrival.
@@ -255,9 +272,16 @@ const step16Second = auto({
   prompt: t`An internet tester sends ${mn} e-mails simultaneously at time ${math`t = ${0}`}, where ${math`n \ge ${2}`}. Their arrival times at their destinations are independent random variables, each having probability density function ${math`\lambda e^{-\lambda t}`} for ${math`${0} \le t < \infty`}, where ${math`\lambda > ${0}`}. Find the expected time of arrival of the second e-mail to arrive at its destination, in terms of ${mn} and ${ml}. (Type ${ml} as lambda.)`,
   answer: { kind: 'expression', expected: '1/(n lambda) + 1/((n - 1) lambda)', variables: ['n', 'lambda'], domains: { n: { kind: 'integer', min: 2, max: 12 }, lambda: { kind: 'real', min: 0.1, max: 5 } } },
   solution: [
-    t`Let ${math`T_{${2}}`} be the time of the second arrival. It is later than ${math`t`} exactly when at most one e-mail has arrived by time ${math`t`}. None has arrived with probability ${math`e^{-n\lambda t}`}: the ${mn} survival chances ${math`e^{-\lambda t}`} multiply, by independence. Exactly one has arrived with probability ${math`n\left(${1} - e^{-\lambda t}\right)e^{-(n - ${1})\lambda t}`}: it can be any of the ${mn}, it has arrived with chance ${math`${1} - e^{-\lambda t}`}, and each of the other ${math`n - ${1}`} has not, with chance ${math`e^{-\lambda t}`}. So ${dmath`P(T_{${2}} > t) = e^{-n\lambda t} + n\left(${1} - e^{-\lambda t}\right)e^{-(n - ${1})\lambda t} = n e^{-(n - ${1})\lambda t} - (n - ${1})e^{-n\lambda t}.`}`,
+    t`The second arrival ${math`T_{${2}}`} is later than ${math`t`} exactly when at most one e-mail has arrived by time ${math`t`}. None: ${math`e^{-n\lambda t}`}, by independence. Exactly one: ${math`n\left(${1} - e^{-\lambda t}\right)e^{-(n - ${1})\lambda t}`}, since it can be any of the ${mn}. So ${dmath`P(T_{${2}} > t) = e^{-n\lambda t} + n\left(${1} - e^{-\lambda t}\right)e^{-(n - ${1})\lambda t} = n e^{-(n - ${1})\lambda t} - (n - ${1})e^{-n\lambda t}.`}`,
     t`Differentiate ${math`${1} - P(T_{${2}} > t)`} to get the density: ${math`f(t) = n(n - ${1})\lambda\left(e^{-(n - ${1})\lambda t} - e^{-n\lambda t}\right)`}. Each term is a multiple of an exponential density, and ${math`\int_{${0}}^{\infty} t\,\mu e^{-\mu t}\,dt = \frac{${1}}{\mu}`}, so ${dmath`E(T_{${2}}) = n(n - ${1})\lambda\left(\frac{${1}}{(n - ${1})^{${2}}\lambda^{${2}}} - \frac{${1}}{n^{${2}}\lambda^{${2}}}\right) = \frac{n}{(n - ${1})\lambda} - \frac{n - ${1}}{n\lambda} = \frac{${1}}{\lambda}\left(\frac{${1}}{n - ${1}} + \frac{${1}}{n}\right).`}`,
-    t`The memoryless property explains the answer. The first e-mail arrives after the minimum of ${mn} exponential clocks, which is ${math`\mathrm{Exp}(n\lambda)`}, mean ${math`\frac{${1}}{n\lambda}`}. At that moment the other ${math`n - ${1}`} are as good as new, so the further wait is the minimum of ${math`n - ${1}`} fresh clocks, mean ${math`\frac{${1}}{(n - ${1})\lambda}`}. The two means add.`,
+    t`Check by memorylessness: the first arrival is ${math`\mathrm{Exp}(n\lambda)`}, mean ${math`\frac{${1}}{n\lambda}`}; then the other ${math`n - ${1}`} are as good as new, and the further wait has mean ${math`\frac{${1}}{(n - ${1})\lambda}`}. The two means add.`,
+    t`After the first exponential clock rings, the others start afresh.`,
+  ],
+  nudge: t`Not quite. Split the wait at the first arrival; the e-mails still travelling start afresh.`,
+  hints: [
+    t`What is the distribution of the first arrival time, the minimum of ${mn} independent exponential times?`,
+    t`At the first arrival, what does the memoryless property say about the e-mails still travelling?`,
+    t`What is the mean of the further wait until the next arrival, and how do the two means combine?`,
   ],
   reference: '1/(lambda (n - 1)) + 1/(n lambda)',
   verify: () => {

@@ -217,6 +217,7 @@ const mildredWait = auto({
   solution: [
     t`No text in the first hour, then at least one in the second: with total rate ${math`\Lambda = \lambda_{${1}} + \lambda_{${2}}`}, the probability is ${math`e^{-\Lambda}(${1} - e^{-\Lambda})`}.`,
     t`${math`e^{-\Lambda} = e^{\ln p} = p`}, so the probability is ${math`p(${1} - p)`}.`,
+    t`Independent Poisson processes merge by adding their rates.`,
   ],
   reference: 'p(1 - p)',
   verify: () => {
@@ -228,6 +229,12 @@ const mildredWait = auto({
   },
   misconceptions: [{ response: 'p^2', why: t`The two phones' waits are not to be multiplied: the first text on either phone is the first event of the combined process, rate ${math`\lambda_{${1}} + \lambda_{${2}}`}.` }],
   official: { source: cite(S2S, 'Q5'), answer: 'p(1 - p)', agrees: true },
+  nudge: t`Not quite. Treat the two phones as one process with the combined rate; then it is "none in the first hour, at least one in the second".`,
+  hints: [
+    t`With combined rate ${math`\Lambda`}, what is the probability of no text in the first hour?`,
+    t`Given none in the first hour, what is the probability of at least one in the second?`,
+    t`Since ${math`\Lambda = -\ln p`}, what is ${math`e^{-\Lambda}`}?`,
+  ],
 });
 
 const P29 = q(2, 9);
@@ -244,6 +251,7 @@ const twoRates = auto({
   solution: [
     t`${math`${P29}y^{${2}} - y + ${1} = ${0}`}; multiply by ${9}: ${math`${2}y^{${2}} - ${9}y + ${9} = (${2}y - ${3})(y - ${3}) = ${0}`}.`,
     t`So ${math`e^{\lambda} = ${3}`} or ${math`${q(3, 2)}`}. Both exceed ${1}, so both rates, ${math`\ln ${3}`} and ${math`\ln \frac{${3}}{${2}}`}, are positive, as ${math`${4}p = ${mul(q(4), P29)} < ${1}`} promises.`,
+    t`Substitute to see the quadratic, clear fractions, then factorise.`,
   ],
   reference: '3, 3/2',
   verify: () => {
@@ -254,6 +262,12 @@ const twoRates = auto({
     return same('the product of the roots', str(mul(ROOTS29[0] as Rational, ROOTS29[1] as Rational)), str(div(q(1), P29)));
   },
   misconceptions: [{ response: '-3, -3/2', why: t`The signs are flipped: ${math`y - ${3} = ${0}`} gives ${math`y = ${3}`}.` }],
+  nudge: t`Not quite. Clear the fraction first, then factorise the quadratic in ${math`y`}.`,
+  hints: [
+    t`With ${math`p = ${P29}`}, which quadratic in ${math`y = e^{\lambda}`} results?`,
+    t`After multiplying through to clear the fraction, how does it factorise?`,
+    t`Which values of ${math`y`} make each factor zero?`,
+  ],
 });
 
 const showQuadratic = supervision({
@@ -263,6 +277,11 @@ const showQuadratic = supervision({
   prompt: t`George's texts arrive as a Poisson process with rate ${math`\lambda`} per hour. Given that the probability that he waits between ${1} and ${2} hours for his first text is ${math`p`}, show that ${math`pe^{${2}\lambda} - e^{\lambda} + ${1} = ${0}`}. Given that ${math`${4}p < ${1}`}, show that two positive values of ${math`\lambda`} satisfy this equation. (Note that ${math`\lambda > ${0}`} exactly when ${math`e^{\lambda} > ${1}`}.)`,
   writeUp: 'proof',
   official: cite(S2S, 'Q5'),
+  hints: [
+    t`What is the probability of no text in ${math`t`} hours, and so of the first text coming between ${1} and ${2} hours?`,
+    t`Setting that equal to ${math`p`} and multiplying by ${math`e^{${2}\lambda}`}, which equation results?`,
+    t`As a quadratic in ${math`y = e^{\lambda}`}, why does ${math`${4}p < ${1}`} give two real roots, and where is the vertex compared with ${math`y = ${1}`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems: STEP Foundation (batch 7)
@@ -285,6 +304,7 @@ const a1q2ii = auto({
   solution: [
     t`A repeated root means the discriminant is zero: ${math`b^{${2}} - ${4} \times ${9} \times ${4} = ${0}`}, so ${math`b^{${2}} = ${144}`}.`,
     t`So ${math`b = ${12}`} or ${math`b = ${-12}`}: both values, since ${math`(${-12})^{${2}} = ${144}`} too.`,
+    t`A repeated root needs a zero discriminant; keep both signs of the square root.`,
   ],
   reference: asList(REPEAT_B),
   verify: () => {
@@ -296,6 +316,12 @@ const a1q2ii = auto({
   },
   misconceptions: [{ response: '12', why: t`${math`b^{${2}} = ${144}`} has two solutions. The negative one, ${math`b = ${-12}`}, also gives a repeated root.` }],
   official: { source: cite('step-f01-hints', 'Q2(ii)'), answer: '12, -12', agrees: true },
+  nudge: t`Not quite. A repeated root means a zero discriminant, and an equation ${math`b^{${2}} = c`} with ${math`c > ${0}`} has two solutions.`,
+  hints: [
+    t`Which condition on the discriminant gives a repeated root?`,
+    t`What is the discriminant of ${math`${9}x^{${2}} + bx + ${4}`}?`,
+    t`How many values of ${math`b`} make it zero?`,
+  ],
 });
 
 /** x^2 - 8x + 21 = (x + a)^2 + b, and its greatest and least values on 0 <= x <= 5. */
@@ -317,6 +343,7 @@ const a2q2vi = auto({
     t`Half the coefficient of ${math`x`} is ${viA}, so ${math`x^{${2}} - ${8}x + ${21} = (x - ${4})^{${2}} - ${16} + ${21} = (x - ${4})^{${2}} + ${5}`}: ${math`a = ${viA}`}, ${math`b = ${viB}`}.`,
     t`A square is never negative, so the least value is ${viB}, at ${math`x = ${4}`}, which lies in the range.`,
     t`The square grows with the distance from ${4}. In the range, ${math`x = ${0}`} is farthest (distance ${4}, against ${1} at ${math`x = ${5}`}), so the greatest value is ${math`${16} + ${5} = ${viF(0)}`}.`,
+    t`On an interval, the least value is at the vertex when it lies inside; the greatest is at the farther end.`,
   ],
   reference: [String(viA), String(viB), String(viF(0)), String(viB)],
   verify: () => {
@@ -328,6 +355,12 @@ const a2q2vi = auto({
   },
   misconceptions: [{ response: [String(viA), String(viB), String(viF(5)), String(viB)], why: t`The greatest value is at the end of the range farther from the vertex at ${math`x = ${4}`}: that is ${math`x = ${0}`}, not ${math`x = ${5}`}.` }],
   official: { source: cite('step-f02-hints', 'Q2(vi)'), answer: ['-4', '5', '21', '5'], agrees: true },
+  nudge: t`Not quite. After completing the square, compare how far the two ends of the range are from the vertex.`,
+  hints: [
+    t`What is half the coefficient of ${math`x`}, and so what is ${math`a`}?`,
+    t`Which constant ${math`b`} is left after completing the square?`,
+    t`Is the vertex inside the range ${math`${0} \le x \le ${5}`}, and which end of the range is farther from it?`,
+  ],
 });
 
 // STEP Support Assignment 1, Q2(i): 2/(x + 3) + 1/(x + 1) = 1.
@@ -357,6 +390,7 @@ const a1q2i = auto({
     t`The fractions need ${math`x \ne -${3}`} and ${math`x \ne -${1}`}. For any other ${math`x`}, multiplying both sides by ${math`(x + ${3})(x + ${1})`}, which is not zero, gives an equation with the same solutions: ${math`${2}(x + ${1}) + (x + ${3}) = (x + ${3})(x + ${1})`}.`,
     t`Expand: ${math`${3}x + ${5} = x^{${2}} + ${4}x + ${3}`}, so ${math`x^{${2}} + x - ${2} = ${0}`}, which factorises as ${math`(x + ${2})(x - ${1}) = ${0}`}.`,
     t`So ${math`x = ${1}`} or ${math`x = -${2}`}. Neither is ${math`-${3}`} or ${math`-${1}`}, and both check in the original equation: ${math`\frac{${2}}{${4}} + \frac{${1}}{${2}} = ${1}`} and ${math`\frac{${2}}{${1}} + \frac{${1}}{-${1}} = ${1}`}.`,
+    t`Clear the denominators, solve, then check each root against the excluded values.`,
   ],
   reference: asList(FRAC_ROOTS),
   verify: () => {
@@ -373,6 +407,12 @@ const a1q2i = auto({
     { response: '-1, 2', why: t`Check the signs: ${math`x^{${2}} + x - ${2} = (x + ${2})(x - ${1})`}, which is zero at ${math`x = -${2}`} and ${math`x = ${1}`}.` },
   ],
   official: { source: cite('step-f01-hints', 'Q2(i)'), answer: '1, -2', agrees: true },
+  nudge: t`Not quite. Multiply through by both denominators, collect into a quadratic, and keep every root that does not make a denominator zero.`,
+  hints: [
+    t`Which values of ${math`x`} are excluded, and what do both sides become after multiplying by ${math`(x + ${3})(x + ${1})`}?`,
+    t`Which quadratic results after expanding and collecting terms?`,
+    t`What are its roots, and does either make a denominator zero?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

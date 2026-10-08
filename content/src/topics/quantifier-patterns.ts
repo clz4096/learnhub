@@ -184,11 +184,18 @@ const sw117 = auto({
   solution: [
     t`${math`\frac{${2}y}{y + ${1}} = x`} gives ${math`${2}y = xy + x`}, so ${math`(${2} - x)y = x`}, and with ${math`x \ne ${2}`}, ${math`y = \frac{x}{${2} - x}`}.`,
     t`Uniqueness, as in the official solution: if ${math`z`} also has ${math`\frac{${2}z}{z + ${1}} = x`}, the same steps give ${math`(${2} - x)z = x`}, so ${math`z = \frac{x}{${2} - x} = y`}.`,
+    t`To solve for a variable, collect its terms and divide by a coefficient known to be non-zero.`,
   ],
   reference: 'x/(2 - x)',
   verify: () => same('the equation holds', [-3, -1, 0, 0.5, 1, 3, 7].every((x) => Math.abs((2 * (x / (2 - x))) / (x / (2 - x) + 1) - x) < 1e-9), true),
   misconceptions: [{ response: 'x/(x - 2)', why: t`Check the sign: ${math`${2}y - xy = x`}, so ${math`(${2} - x)y = x`}.` }],
   official: { source: cite('cst-dm-sols-2324-1', '1.1.7'), answer: 'x/(2 - x)', agrees: true },
+  nudge: t`Not quite. Clear the fraction, collect the ${my} terms, and divide by their coefficient.`,
+  hints: [
+    t`After multiplying both sides by ${math`y + ${1}`}, which equation results?`,
+    t`Collecting the terms in ${my} on one side, what is the coefficient of ${my}?`,
+    t`Why may that coefficient be divided by when ${math`x \ne ${2}`}?`,
+  ],
 });
 
 const bop717 = auto({
@@ -204,11 +211,17 @@ const bop717 = auto({
       return isPrime(p) ? null : `${p} is not prime.`;
     },
   },
-  solution: [t`Check ${91} to ${99}: ${91} is ${math`${7} \times ${13}`}, ${93} is ${math`${3} \times ${31}`}, ${95} and ${99} have factors ${5} and ${9}, and the even ones are out. ${97} has no factor up to ${9}, so it is prime: "simply observe that ${97} is prime", as the solution says.`],
+  solution: [t`Check ${91} to ${99}: ${91} is ${math`${7} \times ${13}`}, ${93} is ${math`${3} \times ${31}`}, ${95} and ${99} have factors ${5} and ${9}, and the even ones are out. ${97} has no factor up to ${9}, so it is prime: "simply observe that ${97} is prime", as the solution says.`, t`To prove that something exists, exhibit one witness and check it.`],
   reference: 'p = 97',
   verify: () => same('the primes between 90 and 100', upTo(99).filter((n) => n > 90 && isPrime(n)).join(), '97'),
   misconceptions: [{ response: 'p = 91', why: t`${math`${91} = ${7} \times ${13}`}.` }],
   official: { source: cite('bop', 'Solutions, Chapter 7, exercise 17'), answer: 'p = 97', agrees: true },
+  nudge: t`Not quite. Rule out the even numbers and the multiples of ${3}, ${5}, and ${7} between ${90} and ${100}.`,
+  hints: [
+    t`Which numbers from ${91} to ${99} are even or multiples of ${5}?`,
+    t`Which of the rest are multiples of ${3} or ${7}?`,
+    t`Which number is left, and why is testing divisors up to its square root enough?`,
+  ],
 });
 
 const bop712 = auto({
@@ -225,10 +238,16 @@ const bop712 = auto({
       return !pos ? 'x must be positive.' : v.num * v.num * v.den < v.num * v.den * v.den ? null : 'Here x squared is not less than x.';
     },
   },
-  solution: [t`Any ${mx} strictly between ${0} and ${1} works: ${math`x = \frac{${1}}{${2}}`} gives ${math`x^{${2}} = \frac{${1}}{${4}} < \frac{${1}}{${2}}`}. For ${math`x \ge ${1}`}, ${math`x^{${2}} \ge x`}.`],
+  solution: [t`Any ${mx} strictly between ${0} and ${1} works: ${math`x = \frac{${1}}{${2}}`} gives ${math`x^{${2}} = \frac{${1}}{${4}} < \frac{${1}}{${2}}`}. For ${math`x \ge ${1}`}, ${math`x^{${2}} \ge x`}.`, t`An existence proof needs only one well-chosen example.`],
   reference: 'x = 1/2',
   verify: () => same('x = 1/2', (1 / 2) ** 2 < 1 / 2, true),
   misconceptions: [{ response: 'x = 2', why: t`${math`${2}^{${2}} = ${4} > ${2}`}. Try a number between ${0} and ${1}.` }],
+  nudge: t`Not quite. For ${math`x \ge ${1}`}, ${math`x^{${2}}`} is at least ${mx}; look below ${1}.`,
+  hints: [
+    t`For which positive ${mx} is ${math`x^{${2}} \ge x`}?`,
+    t`What happens to a positive number less than ${1} when it is squared?`,
+    t`Which simple fraction between ${0} and ${1} could serve?`,
+  ],
 });
 
 const bop720 = auto({
@@ -237,10 +256,16 @@ const bop720 = auto({
   title: t`${11} divides ${math`${2}^{n} - ${1}`}`,
   prompt: t`Prove: there exists ${math`n \in \mathbb{N}`} for which ${11} divides ${math`${2}^{n} - ${1}`}. Give one (Book of Proof's ${math`\mathbb{N}`} starts at ${1}).`,
   answer: existsPower.at({ m: 11 }).problem.answer,
-  solution: [t`The remainders of ${math`${2}, ${4}, ${8}, ${16}, \ldots`} on division by ${11} are ${math`${2}, ${4}, ${8}, ${5}, ${10}, ${9}, ${7}, ${3}, ${6}, ${1}`}: ${1} at ${math`n = ${ORDER(11)}`}. So ${math`${2}^{${10}} - ${1} = ${1023} = ${11} \times ${93}`}.`],
+  solution: [t`The remainders of ${math`${2}, ${4}, ${8}, ${16}, \ldots`} on division by ${11} are ${math`${2}, ${4}, ${8}, ${5}, ${10}, ${9}, ${7}, ${3}, ${6}, ${1}`}: ${1} at ${math`n = ${ORDER(11)}`}. So ${math`${2}^{${10}} - ${1} = ${1023} = ${11} \times ${93}`}.`, t`Follow powers modulo ${math`m`} by multiplying the last remainder, never the full power.`],
   reference: `n = ${ORDER(11)}`,
   verify: () => same('2^10 - 1 = 11 × 93', [ORDER(11), (2 ** 10 - 1) / 11].join(), '10,93'),
   misconceptions: [{ response: 'n = 11', why: t`${math`${2}^{${11}} - ${1} = ${2047} = ${23} \times ${89}`}: not a multiple of ${11}.` }],
+  nudge: t`Not quite. List the remainders of ${math`${2}, ${4}, ${8}, \ldots`} on division by ${11} until a remainder of ${1} appears.`,
+  hints: [
+    t`What remainders do ${math`${2}^{${1}}`}, ${math`${2}^{${2}}`}, ${math`${2}^{${3}}`} leave on division by ${11}?`,
+    t`How can each remainder be found from the one before, without computing large powers?`,
+    t`At which ${math`n`} does the remainder first equal ${1}?`,
+  ],
 });
 
 const ODD_N = 37;
@@ -261,6 +286,7 @@ const bop426 = auto({
   solution: [
     t`For an odd ${math`n = ${2}k + ${1}`}, consecutive squares work: ${math`(k + ${1})^{${2}} - k^{${2}} = ${2}k + ${1}`}.`,
     t`${math`${ODD_N} = ${2} \times ${(ODD_N - 1) / 2} + ${1}`}, so ${math`a = ${(ODD_N + 1) / 2}`}, ${math`b = ${(ODD_N - 1) / 2}`}: ${math`${((ODD_N + 1) / 2) ** 2} - ${((ODD_N - 1) / 2) ** 2} = ${ODD_N}`}. That is the witness the general proof uses, for any arbitrary odd ${mn}.`,
+    t`A general identity supplies the witness for any particular case.`,
   ],
   reference: `a = ${(ODD_N + 1) / 2}, b = ${(ODD_N - 1) / 2}`,
   verify: () => {
@@ -269,6 +295,12 @@ const bop426 = auto({
     return bad === undefined ? null : `n = ${bad}`;
   },
   misconceptions: [{ response: `a = ${ODD_N}, b = 1`, why: t`${math`${ODD_N}^{${2}} - ${1}`} is far more than ${ODD_N}. Try consecutive numbers.` }],
+  nudge: t`Not quite. Try two consecutive integers: how does ${math`(k + ${1})^{${2}} - k^{${2}}`} simplify?`,
+  hints: [
+    t`What does ${math`(k + ${1})^{${2}} - k^{${2}}`} simplify to?`,
+    t`Writing ${math`${ODD_N} = ${2}k + ${1}`}, what is ${math`k`}?`,
+    t`Which ${math`a`} and ${math`b`} does that give?`,
+  ],
 });
 
 const sw117proof = supervision({
@@ -278,6 +310,11 @@ const sw117proof = supervision({
   prompt: t`Prove: for every real number ${mx}, if ${math`x \ne ${2}`} then there is a unique real number ${my} such that ${math`\frac{${2}y}{y + ${1}} = x`}. Write the two parts separately: existence (give ${my} and check it) and uniqueness (assume ${math`z`} also works, and show ${math`z = y`}).`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.1.7'),
+  hints: [
+    t`For existence, which ${my} comes from solving for ${my}, and why must it then be checked by substituting back?`,
+    t`Why does the condition ${math`x \ne ${2}`} matter, and why is ${math`y + ${1} \ne ${0}`} for that ${my}?`,
+    t`For uniqueness, if ${math`z`} also satisfies the equation, which steps show ${math`z = y`}?`,
+  ],
 });
 const sw114proof = supervision({
   id: 'sw-1-1-4-proof',
@@ -286,6 +323,11 @@ const sw114proof = supervision({
   prompt: t`Write a full proof that for all real ${mx} and ${my} there is a real ${math`z`} with ${math`x + z = y - z`}. Then explain, as the official solution does, why an existence proof "looks backwards" when written: the witness is stated first, though it was found last.`,
   writeUp: 'explanation',
   official: cite('cst-dm-sols-2324-1', '1.1.4'),
+  hints: [
+    t`Solving ${math`x + z = y - z`} for ${math`z`}, which value works?`,
+    t`In the written proof, why is that ${math`z`} stated first and then checked?`,
+    t`Why does the order of discovery, solving for ${math`z`}, differ from the order of the proof?`,
+  ],
 });
 const bop426proof = supervision({
   id: 'bop-4-26-proof',
@@ -293,6 +335,11 @@ const bop426proof = supervision({
   title: t`Every odd integer`,
   prompt: t`Prove that every odd integer is the difference of two squares. Say which variable is arbitrary and which values are witnesses, and why the witnesses may depend on it.`,
   writeUp: 'proof',
+  hints: [
+    t`Writing an odd integer as ${math`n = ${2}k + ${1}`}, which two squares differ by ${mn}?`,
+    t`Which of ${mn}, ${math`k`}, ${math`a`}, ${math`b`} is arbitrary, and which are chosen?`,
+    t`Why may ${math`a`} and ${math`b`} depend on ${mn}, given the order "for every ${mn} there exist ${math`a`} and ${math`b`}"?`,
+  ],
 });
 
 // ---------------------------------------------------------------- Cambridge problems moved here (Rule 1, 2026-10-08)
@@ -305,6 +352,11 @@ const sw132 = supervision({
   prompt: t`Let ${math`P(x)`} be a predicate on a variable ${math`x`} and let ${math`Q`} be a statement not mentioning ${math`x`}. Show that ${dmath`\big(\exists x.\ P(x)\big) \Rightarrow Q \quad\text{if and only if}\quad \forall x.\ \big(P(x) \Rightarrow Q\big).`}`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.3.2'),
+  hints: [
+    t`For one direction, given any ${mx} with ${math`P(x)`}, how does ${math`(\exists x.\ P(x)) \Rightarrow Q`} give ${math`Q`}?`,
+    t`For the other, assuming ${math`\exists x.\ P(x)`}, how do a witness and the hypothesis ${math`\forall x.\ (P(x) \Rightarrow Q)`} give ${math`Q`}?`,
+    t`Where is it used that ${math`Q`} does not mention ${mx}?`,
+  ],
 });
 
 const sw1210 = supervision({
@@ -314,6 +366,11 @@ const sw1210 = supervision({
   prompt: t`Let ${math`P(m)`} be a statement for ${math`m`} ranging over the natural numbers, and let ${math`P^{\#}(n)`} be ${math`\forall k \in \mathbb{N}.\ ${0} \le k \le n \Rightarrow P(k)`}. (a) Show that for all natural numbers ${math`\ell`}, ${math`P^{\#}(\ell) \Rightarrow P(\ell)`}. (b) Exhibit a concrete statement ${math`P(m)`} and a natural number ${math`n`} for which ${math`P(n) \Rightarrow P^{\#}(n)`} does not hold. (c) Prove ${math`P^{\#}(${0}) \Leftrightarrow P(${0})`}, and ${math`\big(\forall m.\ P^{\#}(m)\big) \Leftrightarrow \big(\forall m.\ P(m)\big)`}.`,
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.2.10'),
+  hints: [
+    t`For (a), which ${math`k`} in the range ${math`${0} \le k \le \ell`} gives ${math`P(\ell)`}?`,
+    t`For (b), which statement ${math`P(m)`} holds for ${math`m = ${1}`} but not for ${math`m = ${0}`}?`,
+    t`For (c), how does (a) give one direction, and why does ${math`\forall m.\ P(m)`} give each ${math`P^{\#}(m)`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -209,6 +209,11 @@ const sw115proof = supervision({
   source: cite('cst-dm-sw1', 'Exercises 1, 1.1.4 and 1.1.5'),
   title: t`Reals against integers`,
   prompt: t`Prove or disprove each: (a) for all real numbers ${mx} and ${math`y`} there is a real number ${math`z`} such that ${math`x + z = y - z`}; (b) for all integers ${mx} and ${math`y`} there is an integer ${math`z`} such that ${math`x + z = y - z`}. For the false one, state its negation precisely and prove the negation.`,
+  hints: [
+    t`Solving ${math`x + z = y - z`} for ${math`z`}, what must ${math`z`} be?`,
+    t`Is that value always real, and always an integer when ${mx} and ${math`y`} are integers?`,
+    t`What is the negation of the false statement, and which pair of integers proves it?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -226,9 +231,16 @@ const b921 = auto({
     ],
     correct: 'f',
   },
+  hints: [
+    t`If ${math`p - q`} is odd, what can be said about the parities of ${math`p`} and ${math`q`}?`,
+    t`Which prime is even?`,
+    t`With ${2} as one of them, is the other prime?`,
+  ],
+  nudge: t`Not quite. Look at parity: an odd difference forces one of the primes to be even.`,
   solution: [
     t`Suppose for contradiction that ${math`p, q`} are primes with ${math`p - q = ${97}`}. As ${97} is odd, ${math`p`} and ${math`q`} have opposite parity, so one of them is the only even prime, ${2}.`,
     t`If ${math`p = ${2}`}, then ${math`q = -${95}`}, not prime. If ${math`q = ${2}`}, then ${math`p = ${99} = ${9} \times ${11}`}, not prime. Contradiction, so the statement is false.`,
+    t`Parity can rule out every case at once.`,
   ],
   reference: 'f',
   verify: () => {
@@ -256,9 +268,16 @@ const b930 = auto({
     ],
     correct: 'f',
   },
+  hints: [
+    t`What is the negation of the existence statement?`,
+    t`Which number divides both ${42} and ${7}?`,
+    t`Can a multiple of that number equal ${1}?`,
+  ],
+  nudge: t`Not quite. Small cases failing prove nothing; find a factor that every value of ${math`${42}a + ${7}b`} shares.`,
   solution: [
     t`To disprove the existence statement, prove: for all integers ${math`a, b`}, ${math`${42}a + ${7}b \neq ${1}`}.`,
     t`${math`${42}a + ${7}b = ${7}(${6}a + b)`}, a multiple of ${7}. A multiple of ${7} is ${0} or at least ${7} in size, so it is never ${1}.`,
+    t`A common factor of the coefficients must divide the right-hand side.`,
   ],
   reference: 'f',
   verify: () => {
@@ -285,7 +304,16 @@ const b920 = auto({
       return isPrime(Number(p.num)) ? null : `${p.num} is not prime.`;
     },
   },
-  solution: [t`An existence statement is proved by one example. Try small primes ${math`q`} and test ${math`q + ${1000}`}: ${math`q = ${13}`} gives ${1013}, which has no prime factor up to ${31} (and ${math`${32}^{${2}} > ${1013}`}), so it is prime.`],
+  hints: [
+    t`How is an existence statement proved?`,
+    t`Testing small primes ${math`q`}, is ${math`q + ${1000}`} prime?`,
+    t`Up to which number must prime factors be checked to show that a number near ${1000} is prime?`,
+  ],
+  nudge: t`Not quite. Check that both numbers are prime; a number like ${1003} hides a factor.`,
+  solution: [
+    t`An existence statement is proved by one example. Try small primes ${math`q`} and test ${math`q + ${1000}`}: ${math`q = ${13}`} gives ${1013}, which has no prime factor up to ${31} (and ${math`${32}^{${2}} > ${1013}`}), so it is prime.`,
+    t`One checked example proves an existence statement.`,
+  ],
   reference: 'p = 1013, q = 13',
   verify: () => same('1013 and 13 prime', isPrime(1013) && isPrime(13), true),
   misconceptions: [{ response: 'p = 1003, q = 3', why: t`${math`${1003} = ${17} \times ${59}`} is not prime.` }],
@@ -305,9 +333,16 @@ const b92 = auto({
       return isPrime(val) ? `${val} is prime.` : null;
     },
   },
+  hints: [
+    t`What values does the expression take for small ${math`n`}?`,
+    t`For which ${math`n`} does the constant term ${31} make it easy to spot a factor?`,
+    t`What is the value near ${math`n = ${30}`}, and does it factorise?`,
+  ],
+  nudge: t`Not quite. Small values are prime for a long time; look for an ${math`n`} that makes a factor appear.`,
   solution: [
     t`The values for ${math`n = ${1}, ${2}, ${3}, \ldots`} are ${29}, ${31}, ${37}, ... and stay prime for a long time, which is why the claim is tempting.`,
     t`${math`n = ${30}`} gives ${math`${1800} - ${120} + ${31} = ${1711} = ${29} \times ${59}`}, not prime. (Also ${math`n = ${31}`} gives ${math`${1829} = ${31} \times ${59}`}.)`,
+    t`Many prime values prove nothing; one composite value disproves.`,
   ],
   reference: 'n = 30',
   verify: () => same('first counterexample', Array.from({ length: 40 }, (_, i) => i + 1).find((n) => !isPrime(2 * n * n - 4 * n + 31)), 30),
@@ -329,7 +364,12 @@ const ns2q7ii = supervision({
   id: 'ns2-q7-ii',
   source: cite('ia-ns-sheet-2', 'Q7, second question'),
   title: t`No integers make twenty-one`,
-  prompt: t`Do there exist integers ${math`x`} and ${math`y`} with ${math`${3381}x + ${2646}y = ${21}`}? Prove your answer.`,
+  prompt: t`Do there exist integers ${math`x`} and ${math`y`} with ${math`${3381}x + ${2646}y = ${21}`}? Prove the answer.`,
+  hints: [
+    t`What are the prime factorisations of ${3381} and ${2646}?`,
+    t`Which common factor of the two coefficients does not divide ${21}?`,
+    t`Why must that factor divide ${math`${3381}x + ${2646}y`} for all integers ${mx} and ${math`y`}?`,
+  ],
   writeUp: 'proof',
 });
 

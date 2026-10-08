@@ -222,12 +222,19 @@ const q1adapted = auto({
   solution: [
     t`${math`e^{-${25}}`} is still negligible, so ${math`A \approx ${1}`} and ${mX} is approximately ${math`N(${25}, ${25})`}, standard deviation ${5}.`,
     t`${math`P(X = ${25}) \approx P(${24.5} < Y < ${25.5}) = P(-${0.1} < Z < ${0.1}) = ${2}\Phi(${0.1}) - ${1} \approx ${round(2 * Phi(0.1) - 1, 4)}`}. The exact value is ${r4(truncatedPmf(25, 25))}: the approximation is good to about ${1}%.`,
+    t`For one value of a discrete variable, take the normal area from half below it to half above.`,
   ],
   reference: String(round(2 * PhiSeries(0.1) - 1, 3)),
   verify: () => near('normal approximation against the exact truncated Poisson value', 2 * PhiSeries(0.1) - 1, truncatedPmf(25, 25), 0.002),
   misconceptions: [
     { response: String(round(2 * Phi(0.02) - 1, 3)), why: t`The standard deviation is ${math`\sqrt{${25}} = ${5}`}, not ${25}.` },
     { response: String(round(Phi(0.1), 3)), why: t`That is ${math`P(Y < ${25.5})`}. For one value, subtract the area below ${24.5}.` },
+  ],
+  nudge: t`Not quite. A single value of a discrete variable becomes an interval of width ${1} under the continuity correction.`,
+  hints: [
+    t`What are the mean and the standard deviation of the approximating normal distribution?`,
+    t`With the continuity correction, which interval of the normal variable stands for ${math`X = ${25}`}?`,
+    t`What are the ends of that interval in standard units, and what is the probability between them?`,
   ],
 });
 
@@ -238,6 +245,11 @@ const q1why = supervision({
   prompt: t`In Q${1} with ${math`\lambda = ${100}`}, explain why ${mX} may be treated as ${math`\mathrm{Po}(${100})`}, why that is close to ${math`N(${100}, ${100})`}, and why the continuity correction is needed to get a nonzero answer for ${math`P(X = ${100})`}.`,
   writeUp: 'explanation',
   official: cite('step-s2-stats-solutions', 'Q1'),
+  hints: [
+    t`How large is ${math`e^{-${100}}`}, and what does that say about the effect of the truncation?`,
+    t`Which theorem makes ${math`\mathrm{Po}(${100})`}, a sum of many independent Poisson variables, close to normal?`,
+    t`What is ${math`P(Y = ${100})`} for a continuous ${math`Y`}, and which interval replaces it?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -334,9 +334,18 @@ const valuesI = auto({
   id: 'cs3110-ex2-values-i',
   source: cite('cs3110-ex2', 'Exercise "values", first expression'),
   title: t`An int expression`,
-  prompt: t`What is the value of the OCaml expression ${code`${7} * (${1} + ${2} + ${3})`}? (Its type is ${code`int`}.)`,
+  prompt: t`Evaluate the OCaml expression ${code`${7} * (${1} + ${2} + ${3})`}, of type ${code`int`}.`,
   answer: { kind: 'exact', expected: String(7 * (1 + 2 + 3)) },
-  solution: [t`The brackets first: ${math`${1} + ${2} + ${3} = ${6}`}. Then ${math`${7} \times ${6} = ${42}`}.`],
+  solution: [
+    t`The brackets first: ${math`${1} + ${2} + ${3} = ${6}`}. Then ${math`${7} \times ${6} = ${42}`}.`,
+    t`Evaluate inside the brackets first.`,
+  ],
+  nudge: t`Not quite. Evaluate the bracket before multiplying.`,
+  hints: [
+    t`Which part of the expression is evaluated first?`,
+    t`What is ${code`${1} + ${2} + ${3}`}?`,
+    t`What is ${7} times that value?`,
+  ],
   reference: String(42),
   // OCaml 4.11.1 toplevel: - : int = 42.
   verify: () => same('7 * (1 + 2 + 3)', 7 * (1 + 2 + 3), 42),
@@ -347,7 +356,7 @@ const equality = auto({
   id: 'cs3110-ex2-equality',
   source: cite('cs3110-ex2', 'Exercise "equality"'),
   title: t`Structural and physical equality`,
-  prompt: t`In the toplevel, what are the results of ${code`"hi" = "hi"`} (structural equality) and ${code`"hi" == "hi"`} (physical equality)?`,
+  prompt: t`Give the results, in the toplevel, of ${code`"hi" = "hi"`} (structural equality) and ${code`"hi" == "hi"`} (physical equality).`,
   answer: {
     kind: 'choice',
     options: [
@@ -361,7 +370,13 @@ const equality = auto({
   solution: [
     t`${code`=`} compares structure: two strings are equal when they have the same characters. Both are ${code`"hi"`}, so ${code`"hi" = "hi"`} is ${code`true`}.`,
     t`${code`==`} asks whether the two sides are the same object in memory. Each string literal here makes its own string, so they are two objects with the same contents, and ${code`"hi" == "hi"`} is ${code`false`}.`,
-    t`The lesson to take: use ${code`=`} (and ${code`<>`} for not equal) to compare values. ${code`==`} is about where values live, which is rarely what you mean.`,
+    t`Compare values with ${code`=`} and ${code`<>`}; ${code`==`} asks where values live, which is rarely the question.`,
+  ],
+  nudge: t`Not quite. The two operators ask different questions: same contents, or same object in memory.`,
+  hints: [
+    t`What does ${code`=`} compare: contents or location?`,
+    t`What does ${code`==`} compare?`,
+    t`Does each string literal create its own string in memory?`,
   ],
   reference: ['tf'],
   // OCaml 4.11.1 toplevel: "hi" = "hi" gives true; "hi" == "hi" gives false.
@@ -385,12 +400,19 @@ const focs15 = auto({
   id: 'focs-1-5',
   source: cite('focs-notes', 'Lecture 1, Exercise 1.5'),
   title: t`Adding ${math`${0.1}`} ten thousand times`,
-  prompt: t`Write ${code`mul x n`}, which adds the float ${code`x`} to itself ${code`n`} times by repeated addition: ${codeBlock(code`let rec mul x n =`, code`  if n = ${0} then ${0}.${0} else x +. mul x (n - ${1})`)} The value of ${code`mul ${0.1} ${MUL_N}`} may print as ${code`${1000}.`}, which looks exact. Evaluate ${code`mul ${0.1} ${MUL_N} -. ${1000}.${0}`}. Give your answer to ${3} significant figures, in the form ${math`a\text{e}b`} for ${math`a \times ${10}^{b}`}.`,
+  prompt: t`Write ${code`mul x n`}, which adds the float ${code`x`} to itself ${code`n`} times by repeated addition: ${codeBlock(code`let rec mul x n =`, code`  if n = ${0} then ${0}.${0} else x +. mul x (n - ${1})`)} The value of ${code`mul ${0.1} ${MUL_N}`} may print as ${code`${1000}.`}, which looks exact. Evaluate ${code`mul ${0.1} ${MUL_N} -. ${1000}.${0}`}, to ${3} significant figures, in the form ${math`a\text{e}b`} for ${math`a \times ${10}^{b}`}.`,
   answer: { kind: 'numeric', expected: mulErr, relTol: 0.005, absTol: 1e-14 },
   solution: [
     t`The decimal ${math`${0.1}`} has no exact binary form, just as ${math`\frac{${1}}{${3}}`} has no exact decimal form. The float stored is very slightly more than ${math`${0.1}`}.`,
     t`Each addition rounds again. After ${MUL_N} of them the small errors add up to about ${math`${1.588} \times ${10}^{${-10}}`}: the toplevel prints ${code`${oc(mulErr.toPrecision(17))}`}.`,
     t`So exact looking output can hide an error. FoCS notes that an error of this kind, in a clock counting tenths of a second, has been blamed for the failure of a missile battery.`,
+    t`Floats round at every step; printed output is rounded again.`,
+  ],
+  nudge: t`Not quite. The printed ${code`${1000}.`} is rounded for display; the stored value is not exactly ${1000}.`,
+  hints: [
+    t`Can ${math`${0.1}`} be stored exactly as a binary float?`,
+    t`What happens to a tiny representation error over ${MUL_N} additions?`,
+    t`What does the program actually print for the difference, run as written?`,
   ],
   reference: '1.588e-10',
   // OCaml 4.11.1: mul 0.1 10000 -. 1000.0 = 1.5882051229709759e-10; the same in JavaScript doubles, which follow the same IEEE 754 rules.
@@ -405,12 +427,19 @@ const focs16 = auto({
   id: 'focs-1-6',
   source: cite('focs-notes', 'Lecture 1, Exercise 1.6'),
   title: t`The golden ratio, iterated`,
-  prompt: t`Let ${math`\gamma_{${0}} = \frac{${1} + \sqrt{${5}}}{${2}}`} and ${math`\gamma_{n + ${1}} = \frac{${1}}{\gamma_{n} - ${1}}`}. In exact arithmetic ${math`\gamma_{n} = \gamma_{${0}}`} for every ${math`n`}. Code the computation in OCaml with floats (in OCaml, ${math`\sqrt{${5}}`} is ${code`sqrt ${5}.${0}`}) and report ${math`\gamma_{${50}}`} to ${2} decimal places.`,
+  prompt: t`Let ${math`\gamma_{${0}} = \frac{${1} + \sqrt{${5}}}{${2}}`} and ${math`\gamma_{n + ${1}} = \frac{${1}}{\gamma_{n} - ${1}}`}. In exact arithmetic ${math`\gamma_{n} = \gamma_{${0}}`} for every ${math`n`}. Code the computation in OCaml with floats (in OCaml, ${math`\sqrt{${5}}`} is ${code`sqrt ${5}.${0}`}) and give the computed ${math`\gamma_{${50}}`} to ${2} decimal places.`,
   answer: { kind: 'numeric', expected: G50, relTol: 0, absTol: 0.006 },
   solution: [
     t`Exactly, ${math`\gamma_{${0}} = \varphi`} satisfies ${math`\varphi^{${2}} = \varphi + ${1}`}, so ${math`\varphi - ${1} = \frac{${1}}{\varphi}`} and ${math`\frac{${1}}{\varphi - ${1}} = \varphi`}: every term is ${math`\varphi`}.`,
     t`But the float for ${math`\varphi`} is off by a tiny ${math`\varepsilon`}. The map ${math`g \mapsto \frac{${1}}{g - ${1}}`} has slope ${math`-\frac{${1}}{(g - ${1})^{${2}}} = -\varphi^{${2}}`} at ${math`\varphi`}, about ${math`-${2.618}`}: each step multiplies the error by about ${2.618}.`,
     t`After about ${40} steps the error is of order ${1}, and the iteration settles on the map's other fixed point, ${math`\frac{${1} - \sqrt{${5}}}{${2}} \approx ${-0.618}`}, where errors shrink instead. The program gives ${math`\gamma_{${50}} \approx ${Number(G50.toFixed(4))}`}.`,
+    t`An iteration that magnifies errors drifts to a fixed point where errors shrink.`,
+  ],
+  nudge: t`Not quite. The question asks for what the float program computes, not the exact value.`,
+  hints: [
+    t`In exact arithmetic, why is every ${math`\gamma_{n}`} equal to ${math`\gamma_{${0}}`}?`,
+    t`Near ${math`\gamma_{${0}}`}, by what factor does one step of ${math`g \mapsto \frac{${1}}{g - ${1}}`} multiply a small error?`,
+    t`Which other fixed point does the map have, and is it stable?`,
   ],
   reference: G50.toFixed(2),
   // OCaml 4.11.1: gamma 50 = -0.61812184348574739; gamma 10 still prints 1.618...; JavaScript doubles agree.
@@ -422,8 +451,13 @@ const focs13 = supervision({
   id: 'focs-1-3',
   source: cite('focs-notes', 'Lecture 1, Exercise 1.3'),
   title: t`Why not if, then true, else false`,
-  prompt: t`Why would no experienced programmer write an expression of the form ${code`if b then true else false`}? What about ${code`if b then false else true`}? Give the simpler expression each is equal to, and say why the two always have the same value.`,
+  prompt: t`Why would no experienced programmer write an expression of the form ${code`if b then true else false`}? What about ${code`if b then false else true`}? Give the simpler expression each is equal to, and explain why the two always have the same value.`,
   writeUp: 'explanation',
+  hints: [
+    t`What is the value of ${code`if b then true else false`} when ${code`b`} is ${code`true`}, and when it is ${code`false`}?`,
+    t`Which simpler expression has the same value in both cases?`,
+    t`For ${code`if b then false else true`}, which boolean operator gives the same two values?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

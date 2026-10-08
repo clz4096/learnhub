@@ -273,6 +273,12 @@ const a6regions = auto({
   source: cite('step-f06', 'Q4(i), the diagram similar to a Venn diagram', true),
   title: t`The four regions of the diagram`,
   prompt: t`${smokingIntro} ${diagramText} Find the area of each region: it is the probability that a person picked at random is in it.`,
+  nudge: t`Not quite. Each region is a rectangle; its area is width times height.`,
+  hints: [
+    t`What are the width of the men's strip and the width of the women's strip?`,
+    t`Within each strip, what are the heights of the smokers' and non-smokers' parts?`,
+    t`Do the four areas add up to the whole square?`,
+  ],
   answer: {
     kind: 'table', cell: 'exact', columns: [t`region`, t`area`],
     rows: [[t`A, men who do not smoke`, null], [t`B, women who do not smoke`, null], [t`C, men who smoke`, null], [t`D, women who smoke`, null]],
@@ -283,6 +289,7 @@ const a6regions = auto({
     t`A: ${math`${MEN} \times ${sub(q(1), SMOKE_MEN)} = ${AREA.A}`}. B: ${math`${WOMEN} \times ${sub(q(1), SMOKE_WOMEN)} = ${AREA.B}`}.`,
     t`C: ${math`${MEN} \times ${SMOKE_MEN} = ${AREA.C}`}. D: ${math`${WOMEN} \times ${SMOKE_WOMEN} = ${AREA.D}`}.`,
     t`They add up to ${math`${add(add(AREA.A, AREA.B), add(AREA.C, AREA.D))}`}, the whole square. Region D answers part (a), and A and B together answer part (b): ${math`${AREA.A} + ${AREA.B} = ${add(AREA.A, AREA.B)}`}.`,
+    t`In an area diagram, a joint probability is width times height.`,
   ],
   reference: regionAreas.map(str),
   verify: () => {
@@ -302,11 +309,18 @@ const a6eWoman = auto({
   source: cite('step-f06', 'Q4(i)(e)', true),
   title: t`A woman, given a non-smoker`,
   prompt: t`${smokingIntro} Given that the person picked is a non-smoker, find the probability that she is a woman.`,
+  nudge: t`Not quite. Restrict to the non-smokers first, then find the share of them who are women.`,
+  hints: [
+    t`In a population of ${100}, how many men and how many women do not smoke?`,
+    t`How many non-smokers are there in all?`,
+    t`What fraction of the non-smokers are women?`,
+  ],
   answer: { kind: 'exact', expected: str(notSmokerWoman) },
   solution: [
     t`In a population of ${100}: ${POP.anb} men and ${POP.nnb} women do not smoke, so ${POP.anb + POP.nnb} non-smokers.`,
     t`Given a non-smoker, restrict to those ${POP.anb + POP.nnb}: ${math`\frac{${POP.nnb}}{${POP.anb + POP.nnb}} = ${notSmokerWoman}`}.`,
     t`Part (e) asks for a man instead; the two answers add up to ${1}, since a non-smoker is a man or a woman.`,
+    t`Given a condition, divide by the people who meet it.`,
   ],
   reference: str(notSmokerWoman),
   verify: () => {
@@ -325,6 +339,11 @@ const a6diagram = supervision({
   source: cite('step-f06', 'Q4(i), the two diagrams', true),
   title: t`Reading a condition from the diagram`,
   prompt: t`${smokingIntro} ${diagramText} Explain, using the regions A to D, how to read off ${math`P(\text{smoker} \mid \text{woman})`} and ${math`P(\text{woman} \mid \text{smoker})`}. Why does one of them appear directly as a length in the diagram, while the other has to be worked out from areas?`,
+  hints: [
+    t`Which regions make up the women, and which the smokers?`,
+    t`Given a woman, which part of the women's strip is region D, and how is that read as a length?`,
+    t`Given a smoker, which two regions must be compared, and why are their widths different?`,
+  ],
   writeUp: 'explanation',
   official: cite('step-f06-hints', 'Q4(i)(c), (d)'),
 });
@@ -422,9 +441,10 @@ export const twoWayTables: TopicContent = {
     'a6-q4-i-e-woman': { sections: ['Restricting a table'], note: t`Restricting to the non-smokers and reading off a share` },
     'a6-q4-i-regions': { sections: ['Venn diagrams and percentages'], note: t`The four regions of an area diagram as probabilities` },
   }),
-  // Best first: the explanation of both conditional probabilities from the diagram, then the
-  // reversed condition (a non-smoker is a woman), then the four areas.
-  gate: ['a6-q4-i-diagram', 'a6-q4-i-e-woman', 'a6-q4-i-regions'],
+  // Best first: the reversed condition (a non-smoker is a woman), then the four areas. The
+  // explanation from the diagram stays practice: the worked example a6-q4-i-c reads
+  // P(smoker | woman) off the diagram.
+  gate: ['a6-q4-i-e-woman', 'a6-q4-i-regions'],
   recall: [
     { front: t`Conditional probability from counts?`, back: t`${math`P(A \mid B)`} is the number in both over the number in ${mB}.` },
     { front: t`Conditional probability from probabilities?`, back: t`${math`P(A \mid B) = \frac{P(A \cap B)}{P(B)}`}, for ${math`P(B) > ${0}`}.` },

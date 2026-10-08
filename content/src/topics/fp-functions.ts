@@ -203,12 +203,19 @@ const rms = auto({
   id: 'cs3110-ex2-rms',
   source: cite('cs3110-ex2', 'Exercise "RMS"', true),
   title: t`Root mean square`,
-  prompt: t`Define a function ${code`rms`} that computes the root mean square of two floats, ${math`\sqrt{(x^{${2}} + y^{${2}}) / ${2}}`}. What does ${code`rms ${RMS_X}. ${RMS_Y}.`} evaluate to? Give ${3} decimal places.`,
+  prompt: t`Define a function ${code`rms`} that computes the root mean square of two floats, ${math`\sqrt{(x^{${2}} + y^{${2}}) / ${2}}`}. Evaluate ${code`rms ${RMS_X}. ${RMS_Y}.`} to ${3} decimal places.`,
   answer: { kind: 'numeric', expected: RMS, relTol: 0, absTol: 0.0006 },
   solution: [
     t`With float operators throughout: ${codeBlock(code`let rms x y = sqrt ((x *. x +. y *. y) /. ${2}.)`)}`,
     t`Then ${code`rms ${RMS_X}. ${RMS_Y}.`} is ${math`\sqrt{(${RMS_X * RMS_X} + ${RMS_Y * RMS_Y}) / ${2}} = \sqrt{${(RMS_X ** 2 + RMS_Y ** 2) / 2}} \approx ${Number(RMS.toFixed(3))}`}.`,
     t`The type is ${code`float -> float -> float`}. Writing ${code`*`} or ${code`/`} instead of the dotted operators would be a type error, because the arguments are floats.`,
+    t`Square, average, then take the square root, in that order.`,
+  ],
+  nudge: t`Not quite. Square first, then average, then take the square root.`,
+  hints: [
+    t`What are ${math`x^{${2}}`} and ${math`y^{${2}}`} for these inputs?`,
+    t`What is the mean of those two squares?`,
+    t`What is the square root of that mean, to ${3} decimal places?`,
   ],
   reference: RMS.toFixed(3),
   // OCaml 4.11.1: rms 3. 4. = 3.53553390593273775.
@@ -225,12 +232,19 @@ const average = auto({
   id: 'cs3110-ex2-average',
   source: cite('cs3110-ex2', 'Exercise "average"', true),
   title: t`An infix operator`,
-  prompt: t`The exercise defines an infix operator for the average of two floats: ${codeBlock(code`let ( +/. ) x y = (x +. y) /. ${2}.`)} so that ${code`${1}.${0} +/. ${2}.${0}`} is ${math`${1.5}`}. An operator that begins with ${code`+`} groups to the left, like ${code`+`} itself. What is ${code`${AVG[0]}.${0} +/. ${AVG[1]}.${0} +/. ${AVG[2]}.${0}`}?`,
+  prompt: t`The exercise defines an infix operator for the average of two floats: ${codeBlock(code`let ( +/. ) x y = (x +. y) /. ${2}.`)} so that ${code`${1}.${0} +/. ${2}.${0}`} is ${math`${1.5}`}. An operator that begins with ${code`+`} groups to the left, like ${code`+`} itself. Evaluate ${code`${AVG[0]}.${0} +/. ${AVG[1]}.${0} +/. ${AVG[2]}.${0}`}.`,
   answer: { kind: 'numeric', expected: avgLeft, relTol: 0, absTol: 1e-9 },
   solution: [
     t`Grouping to the left, the expression is ${code`(${AVG[0]}.${0} +/. ${AVG[1]}.${0}) +/. ${AVG[2]}.${0}`}.`,
     t`The inner average is ${math`\frac{${AVG[0]} + ${AVG[1]}}{${2}} = ${(AVG[0] + AVG[1]) / 2}`}; then ${math`\frac{${(AVG[0] + AVG[1]) / 2} + ${AVG[2]}}{${2}} = ${avgLeft}`}.`,
     t`It is not the average of all three, ${math`\frac{${AVG[0] + AVG[1] + AVG[2]}}{${3}}`}: ${code`+/.`} only ever averages two things, so the last number counts for half.`,
+    t`Group by the operator's associativity before evaluating.`,
+  ],
+  nudge: t`Not quite. Put in the brackets that left grouping implies, then evaluate from the inside.`,
+  hints: [
+    t`With left grouping, where do the brackets go?`,
+    t`What is the inner average?`,
+    t`What is the average of that result and the last number?`,
   ],
   reference: String(avgLeft),
   // OCaml 4.11.1: 1.0 +/. 2.0 +/. 4.0 = 2.75.
@@ -247,6 +261,11 @@ const focs14 = supervision({
   title: t`How OCaml knows power returns a float`,
   prompt: t`Functions ${code`npower`} and ${code`power`} both return a float. The definition of ${code`npower`} returns the float ${code`${1}.${0}`} in its base case. The definition of ${code`power`} (${code`if n = ${1} then x else if even n then power (x *. x) (n / ${2}) else x *. power (x *. x) (n / ${2})`}) does not, so how does the OCaml type checker know that ${code`power`} returns a float?`,
   writeUp: 'explanation',
+  hints: [
+    t`Which operator appears in the definition of ${code`power`}, and what types does it require of its arguments?`,
+    t`What does that force the type of ${code`x`} to be, and so the type returned in the base case?`,
+    t`How does the type of the base case fix the type of every recursive branch?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

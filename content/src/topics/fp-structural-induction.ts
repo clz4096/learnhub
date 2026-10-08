@@ -206,22 +206,37 @@ const revDist = supervision({
   id: 'cs3110-ex8-rev-dist-append',
   source: cite('cs3110-ex8', 'Exercise "rev dist append"'),
   title: t`Reverse distributes over append`,
-  prompt: t`Prove that ${code`rev (lst${1} @ lst${2}) = rev lst${2} @ rev lst${1}`} for all lists, where ${code`let rec rev = function [] -> [] | h :: t -> rev t @ [h]`}. Choose which list to induct over, and say why. You will need "append nil" as a lemma, and the associativity of ${code`@`}, proved in the lesson.`,
+  prompt: t`Prove that ${code`rev (lst${1} @ lst${2}) = rev lst${2} @ rev lst${1}`} for all lists, where ${code`let rec rev = function [] -> [] | h :: t -> rev t @ [h]`}. Choose which list to induct over, and state why. The proof needs "append nil" as a lemma, and the associativity of ${code`@`}, proved in the lesson.`,
   writeUp: 'proof',
+  hints: [
+    t`Which argument of ${code`@`} does ${code`append`} recurse on, and so which list should the induction follow?`,
+    t`In the base case ${code`lst${1} = []`}, what does each side reduce to, and where is "append nil" used?`,
+    t`In the inductive case ${code`h :: t`}, after the hypothesis, which law regroups the appends?`,
+  ],
 });
 const revInv = supervision({
   id: 'cs3110-ex8-rev-involutive',
   source: cite('cs3110-ex8', 'Exercise "rev involutive"'),
   title: t`Reversing twice`,
-  prompt: t`Prove that ${code`rev (rev lst) = lst`} for every list ${code`lst`}, by induction on ${code`lst`}, with ${code`rev`} as in the previous exercise. You will need the previous exercise as a lemma: show exactly where.`,
+  prompt: t`Prove that ${code`rev (rev lst) = lst`} for every list ${code`lst`}, by induction on ${code`lst`}, with ${code`rev`} as in the previous exercise. The previous exercise is needed as a lemma: show exactly where.`,
   writeUp: 'proof',
+  hints: [
+    t`What does ${code`rev (rev [])`} evaluate to?`,
+    t`What is ${code`rev (h :: t)`}, and so what is ${code`rev (rev (h :: t))`} as the reverse of an append?`,
+    t`After the previous exercise distributes ${code`rev`} over that append, what are ${code`rev [h]`} and the remaining piece, by the hypothesis?`,
+  ],
 });
 const reflectSize = supervision({
   id: 'cs3110-ex8-reflect-size',
   source: cite('cs3110-ex8', 'Exercise "reflect size"'),
   title: t`Reflection keeps the size`,
-  prompt: t`Prove that ${code`size (reflect t) = size t`} for every tree ${code`t`}, by induction on ${code`t`}, where ${codeBlock(code`let rec size = function Leaf -> ${0} | Node (l, v, r) -> ${1} + size l + size r`, code`let rec reflect = function Leaf -> Leaf | Node (l, v, r) -> Node (reflect r, v, reflect l)`)} State both induction hypotheses, and the law of arithmetic your last step uses.`,
+  prompt: t`Prove that ${code`size (reflect t) = size t`} for every tree ${code`t`}, by induction on ${code`t`}, where ${codeBlock(code`let rec size = function Leaf -> ${0} | Node (l, v, r) -> ${1} + size l + size r`, code`let rec reflect = function Leaf -> Leaf | Node (l, v, r) -> Node (reflect r, v, reflect l)`)} State both induction hypotheses, and the law of arithmetic the last step uses.`,
   writeUp: 'proof',
+  hints: [
+    t`What do ${code`size (reflect Leaf)`} and ${code`size Leaf`} evaluate to?`,
+    t`For ${code`Node (l, v, r)`}, what are the two induction hypotheses, one for each subtree?`,
+    t`After evaluating ${code`size (reflect (Node (l, v, r)))`} and using both hypotheses, which law of addition finishes the step?`,
+  ],
 });
 const propositions = supervision({
   id: 'cs3110-ex8-propositions',
@@ -229,6 +244,11 @@ const propositions = supervision({
   title: t`The induction principle for propositions`,
   prompt: t`In propositional logic there are atomic propositions, negation, conjunction, disjunction, and implication. Define an OCaml type to represent propositions. Then state the induction principle for that type: one case per constructor, with an induction hypothesis for each argument of the type itself.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which constructor represents an atomic proposition, and what does it carry?`,
+    t`Which constructors take one proposition, and which take two?`,
+    t`For each constructor, which hypotheses may be assumed when proving ${math`P`} of the value it builds?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

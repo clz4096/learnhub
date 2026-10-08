@@ -163,6 +163,13 @@ const fc5iii = auto({
     t`Change of base: ${math`\log_{x} ${3} = \frac{\ln ${3}}{\ln x} = \frac{${1}}{\log_{${3}} x}`}. Put ${math`u = \log_{${3}} x`}, which is not ${0} since the base ${math`x \ne ${1}`}.`,
     t`The equation is ${math`\frac{${16}}{u} = u`}, so ${math`u^{${2}} = ${16}`} and ${math`u = \pm ${4}`}.`,
     t`${math`\log_{${3}} x = ${4}`} gives ${math`x = ${3}^{${4}} = ${81}`}; ${math`\log_{${3}} x = -${4}`} gives ${math`x = ${3}^{-${4}} = ${q(1, 81)}`}. Both are positive and not ${1}, so both are solutions.`,
+    t`Change to one base, solve, then check that each root is an allowed base.`,
+  ],
+  nudge: t`Not quite. Write both logarithms in terms of ${math`\log_{${3}} x`}, and check every root found.`,
+  hints: [
+    t`How can ${math`\log_{x} ${3}`} be written in terms of ${math`\log_{${3}} x`}?`,
+    t`With ${math`u = \log_{${3}} x`}, which equation does ${math`u`} satisfy?`,
+    t`Which values of ${math`x`} give those values of ${math`u`}, and are they allowed as a base?`,
   ],
   reference: '81, 1/81',
   verify: () => {
@@ -178,6 +185,11 @@ const fc5ii = supervision({
   title: t`Change of base`,
   prompt: t`If ${math`\log_{a} b = c`}, show that ${math`c = \frac{\log_{\alpha} b}{\log_{\alpha} a}`} for any base ${math`\alpha`}.`,
   writeUp: 'proof',
+  hints: [
+    t`If ${math`\log_{a} b = c`}, which equation links ${math`a`}, ${math`b`}, and ${math`c`} without logarithms?`,
+    t`What happens when ${math`\log_{\alpha}`} is applied to both sides of that equation?`,
+    t`Which law of logarithms brings the power ${math`c`} down?`,
+  ],
 });
 
 // STEP I 2018 Q2 and STEP I 2000 Q1 (STEP Questions Database): logarithms used to compare and to
@@ -191,6 +203,11 @@ const db18q2 = supervision({
   title: t`Bounds on ${math`\ln \pi`}`,
   prompt: t`You may use the change of base rule ${math`\frac{\log_{a} c}{\log_{a} b} = \log_{b} c`}. (i) Given that ${math`\pi^{${2}} < ${10}`}, prove that ${dmath`\frac{${1}}{\log_{${2}} \pi} + \frac{${1}}{\log_{${5}} \pi} > ${2}.`} (ii) Given that ${math`\log_{${2}} \frac{\pi}{e} > \frac{${1}}{${5}}`} and that ${math`e^{${2}} < ${8}`}, prove that ${math`\ln \pi > \frac{${17}}{${15}}`}. (iii) Given that ${math`e^{${3}} > ${20}`}, ${math`\pi^{${2}} < ${10}`} and ${math`\log_{${10}} ${2} > \frac{${3}}{${10}}`}, prove that ${math`\ln \pi < \frac{${15}}{${13}}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`In (i), what are ${math`\frac{${1}}{\log_{${2}} \pi}`} and ${math`\frac{${1}}{\log_{${5}} \pi}`} as logarithms to base ${math`\pi`}, and what is their sum?`,
+    t`In (ii), how does ${math`\log_{${2}} \frac{\pi}{e} > \frac{${1}}{${5}}`} become a lower bound on ${math`\ln \pi - ${1}`} in terms of ${math`\ln ${2}`}, and which bound on ${math`\ln ${2}`} does ${math`e^{${2}} < ${8}`} give?`,
+    t`In (iii), which upper bound on ${math`\ln ${10}`} follows from ${math`e^{${3}} > ${20}`} and ${math`\log_{${10}} ${2} > \frac{${3}}{${10}}`}, and how does ${math`\pi^{${2}} < ${10}`} turn it into a bound on ${math`\ln \pi`}?`,
+  ],
   official: cite('stepdb-18-s1-er', 'Hints and Solutions, Question 2 (page 22)'),
 });
 
@@ -200,6 +217,11 @@ const db00q1 = supervision({
   title: t`The first digit of a huge power`,
   prompt: t`To nine decimal places, ${math`\log_{${10}} ${2} = ${0.301029996}`} and ${math`\log_{${10}} ${3} = ${0.477121255}`}. (i) Calculate ${math`\log_{${10}} ${5}`} and ${math`\log_{${10}} ${6}`} to three decimal places. By taking logs, or otherwise, show that ${dmath`${5} \times ${10}^{${47}} < ${3}^{${100}} < ${6} \times ${10}^{${47}}.`} Hence write down the first digit of ${math`${3}^{${100}}`}. (ii) Find the first digit of each of the following numbers: ${math`${2}^{${1000}}`}; ${math`${2}^{${10000}}`}; and ${math`${2}^{${100000}}`}.`,
   writeUp: 'explanation',
+  hints: [
+    t`How do ${math`\log_{${10}} ${5}`} and ${math`\log_{${10}} ${6}`} follow from ${math`\log_{${10}} ${2}`} and ${math`\log_{${10}} ${3}`}?`,
+    t`What is ${math`\log_{${10}} ${3}^{${100}}`}, and how does it compare with the logarithms of ${math`${5} \times ${10}^{${47}}`} and ${math`${6} \times ${10}^{${47}}`}?`,
+    t`For each power of ${2}, what is the fractional part of its logarithm, and which digit's range of logarithms contains it?`,
+  ],
 });
 
 /** The first digit of base^exp, by exact integer arithmetic. */
@@ -225,6 +247,13 @@ const db00q1digits = auto({
     t`${math`${1000}\log_{${10}} ${2} = ${301.029996}`}: ${math`f = ${0.029996} < \log_{${10}} ${2}`}, so ${math`${2}^{${1000}}`} starts with ${1}.`,
     t`${math`${10000}\log_{${10}} ${2} = ${3010.29996}`}: ${math`f = ${0.29996}`}, still below ${math`\log_{${10}} ${2} = ${0.30103}`} (the nine-place value is within ${math`${5} \times ${10}^{-${10}}`}, so ${math`f`} is known to within ${math`${5} \times ${10}^{-${6}}`}). So ${math`${2}^{${10000}}`} starts with ${1}.`,
     t`${math`${100000}\log_{${10}} ${2} = ${30102.9996}`}: ${math`f = ${0.9996} > \log_{${10}} ${9}`}, so ${math`${2}^{${100000}}`} starts with ${9}.`,
+    t`The first digit lives in the fractional part of the base ten logarithm.`,
+  ],
+  nudge: t`Not quite. Only the fractional part of each logarithm decides the first digit; compare it with the logarithms of the digits.`,
+  hints: [
+    t`If ${math`\log_{${10}} N = n + f`} with ${math`${0} \le f < ${1}`}, how does ${math`${10}^{f}`} relate to the first digit of ${math`N`}?`,
+    t`What are the base ten logarithms of the digits ${5}, ${6}, and ${9}, from ${math`\log_{${10}} ${2}`} and ${math`\log_{${10}} ${3}`}?`,
+    t`For each number, what is the fractional part of its logarithm, and between which two digits' logarithms does it fall?`,
   ],
   reference: POWERS_00.map(([b, e]) => firstDigit(BigInt(b), BigInt(e))),
   verify: () => {

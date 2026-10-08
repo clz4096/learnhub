@@ -272,13 +272,16 @@ const withGen = generator<WithP>({
 
 const BOP_SOL = (at: string) => cite('bop', `Solutions, ${at}`);
 type Rich_ = ReturnType<typeof t>;
-const card = (id: string, num: number, what: Span, expected: string, mdom: number, official: string | null, steps: Rich_[], wrong: { response: string; why: Rich_ }, formula: (m: number, n: number) => number, count: (A: number[], B: number[]) => number) => auto({
+/** A problem's nudge, three hints, and the one-line lesson that ends its solution (mastery/APP-LANGUAGE.md). */
+interface Help { nudge: Rich_; hints: readonly Rich_[]; lesson: Rich_ }
+const card = (id: string, num: number, what: Span, expected: string, mdom: number, official: string | null, steps: Rich_[], wrong: { response: string; why: Rich_ }, formula: (m: number, n: number) => number, count: (A: number[], B: number[]) => number, help?: Help) => auto({
   id,
   source: cite('bop', `Section 1.4, exercise ${num}`),
   title: t`The size of ${what}`,
   prompt: t`Suppose that ${math`|A| = m`} and ${math`|B| = n`}. Find ${what}, as a formula in ${mm} and ${mn}. (Type powers with a caret, as on a calculator.)`,
+  ...(help === undefined ? {} : { nudge: help.nudge, hints: help.hints }),
   answer: { kind: 'expression', expected, variables: ['m', 'n'], domains: { m: { kind: 'integer', min: 0, max: mdom }, n: { kind: 'integer', min: 0, max: 3 } } },
-  solution: steps,
+  solution: help === undefined ? steps : [...steps, help.lesson],
   reference: expected,
   verify: () => {
     // The formula against a count of real sets A = {1..m}, B = {1..n}.
@@ -295,7 +298,7 @@ const card = (id: string, num: number, what: Span, expected: string, mdom: numbe
 });
 
 const b1417 = card('b1-4-17', 17, math`|\{X \in \mathcal{P}(A) : |X| \le ${1}\}|`, 'm + 1', 4, 'm + 1', [
-  t`An element of ${math`\mathcal{P}(A)`} is a subset ${math`X`} of ${mA}. We want the subsets with at most one element.`,
+  t`An element of ${math`\mathcal{P}(A)`} is a subset ${math`X`} of ${mA}. The count is of the subsets with at most one element.`,
   t`Size ${0}: only ${math`\varnothing`}, one subset. Size ${1}: one subset ${math`\{a\}`} for each ${math`a \in A`}, so ${mm} of them.`,
   t`These are all different, so the total is ${math`m + ${1}`}. (Check with ${math`A = \{${1}, ${2}\}`}: ${math`\varnothing, \{${1}\}, \{${2}\}`}, three.)`,
 ], { response: 'm', why: t`The empty set has size ${0}, which is at most ${1}, so it counts too.` }, (m) => m + 1, (A) => subsetsOf(A).filter((s) => s.length <= 1).length);
@@ -303,35 +306,89 @@ const b1417 = card('b1-4-17', 17, math`|\{X \in \mathcal{P}(A) : |X| \le ${1}\}|
 const b1413 = card('b1-4-13', 13, math`|\mathcal{P}(\mathcal{P}(\mathcal{P}(A)))|`, '2^(2^(2^m))', 2, '2^(2^(2^m))', [
   t`Each power set raises ${2} to the size of the set before: ${math`|\mathcal{P}(A)| = ${2}^{m}`}, then ${math`|\mathcal{P}(\mathcal{P}(A))| = ${2}^{${2}^{m}}`}.`,
   t`Once more: ${math`|\mathcal{P}(\mathcal{P}(\mathcal{P}(A)))| = ${2}^{${2}^{${2}^{m}}}`}.`,
-], { response: '2^(3m)', why: t`Each step puts the whole previous size in the exponent: ${math`${2}^{${2}^{${2}^{m}}}`}, a tower, not ${math`${2}^{${3}m}`}.` }, (m) => 2 ** (2 ** (2 ** m)), (A) => (A.length <= 1 ? subsetsOf(subsetsOf(subsetsOf(A))).length : 2 ** subsetsOf(subsetsOf(A)).length));
+], { response: '2^(3m)', why: t`Each step puts the whole previous size in the exponent: ${math`${2}^{${2}^{${2}^{m}}}`}, a tower, not ${math`${2}^{${3}m}`}.` }, (m) => 2 ** (2 ** (2 ** m)), (A) => (A.length <= 1 ? subsetsOf(subsetsOf(subsetsOf(A))).length : 2 ** subsetsOf(subsetsOf(A)).length), {
+  nudge: t`Not quite. Each power set puts the previous size in an exponent of ${2}.`,
+  hints: [
+    t`What is ${math`|\mathcal{P}(A)|`}?`,
+    t`What is ${math`|\mathcal{P}(\mathcal{P}(A))|`}, using the previous size?`,
+    t`Applying the same rule once more, what is the size?`,
+  ],
+  lesson: t`Each power set raises two to the size of the set before.`,
+});
 
 const b1415 = card('b1-4-15', 15, math`|\mathcal{P}(A \times B)|`, '2^(m n)', 4, '2^(m n)', [
   t`${math`|A \times B| = mn`}, so ${math`|\mathcal{P}(A \times B)| = ${2}^{mn}`}.`,
-], { response: '2^(m + n)', why: t`${math`A \times B`} has ${math`mn`} elements.` }, (m, n) => 2 ** (m * n), (A, B) => subsetsOf(A.flatMap((a) => B.map((b) => [a, b]))).length);
+], { response: '2^(m + n)', why: t`${math`A \times B`} has ${math`mn`} elements.` }, (m, n) => 2 ** (m * n), (A, B) => subsetsOf(A.flatMap((a) => B.map((b) => [a, b]))).length, {
+  nudge: t`Not quite. Find the size of ${math`A \times B`} first, then of its power set.`,
+  hints: [
+    t`How many elements does ${math`A \times B`} have?`,
+    t`How many subsets does a set of that size have?`,
+    t`Is the power set taken of the product, or are two power sets multiplied?`,
+  ],
+  lesson: t`A power set has two to the size of the set elements.`,
+});
 
 const b1416 = card('b1-4-16', 16, math`|\mathcal{P}(A) \times \mathcal{P}(B)|`, '2^(m + n)', 4, null, [
   t`${math`|\mathcal{P}(A)| \cdot |\mathcal{P}(B)| = ${2}^{m} \cdot ${2}^{n} = ${2}^{m + n}`}.`,
-], { response: '2^(m n)', why: t`That is ${math`|\mathcal{P}(A \times B)|`}. The product of the two power sets has ${math`${2}^{m} \cdot ${2}^{n}`} elements.` }, (m, n) => 2 ** (m + n), (A, B) => subsetsOf(A).length * subsetsOf(B).length);
+], { response: '2^(m n)', why: t`That is ${math`|\mathcal{P}(A \times B)|`}. The product of the two power sets has ${math`${2}^{m} \cdot ${2}^{n}`} elements.` }, (m, n) => 2 ** (m + n), (A, B) => subsetsOf(A).length * subsetsOf(B).length, {
+  nudge: t`Not quite. A product multiplies the sizes of its two factors.`,
+  hints: [
+    t`What are ${math`|\mathcal{P}(A)|`} and ${math`|\mathcal{P}(B)|`}?`,
+    t`How many elements does a product ${math`X \times Y`} have, in terms of ${math`|X|`} and ${math`|Y|`}?`,
+    t`How do the two powers of ${2} combine?`,
+  ],
+  lesson: t`A product multiplies sizes, and powers of two multiply by adding exponents.`,
+});
 
 const b1418 = card('b1-4-18', 18, math`|\mathcal{P}(A \times \mathcal{P}(B))|`, '2^(m*2^n)', 3, null, [
   t`${math`|\mathcal{P}(B)| = ${2}^{n}`}, so ${math`|A \times \mathcal{P}(B)| = m${2}^{n}`}, and its power set has ${math`${2}^{m${2}^{n}}`} elements.`,
-], { response: '2^(m + 2^n)', why: t`A product multiplies sizes: ${math`|A \times \mathcal{P}(B)| = m \cdot ${2}^{n}`}.` }, (m, n) => 2 ** (m * 2 ** n), (A, B) => subsetsOf(A.flatMap((a) => subsetsOf(B).map((X) => [a, X]))).length);
+], { response: '2^(m + 2^n)', why: t`A product multiplies sizes: ${math`|A \times \mathcal{P}(B)| = m \cdot ${2}^{n}`}.` }, (m, n) => 2 ** (m * 2 ** n), (A, B) => subsetsOf(A.flatMap((a) => subsetsOf(B).map((X) => [a, X]))).length, {
+  nudge: t`Not quite. Work from the inside out: the power set of ${mB}, then the product, then the outer power set.`,
+  hints: [
+    t`What is ${math`|\mathcal{P}(B)|`}?`,
+    t`What is ${math`|A \times \mathcal{P}(B)|`}?`,
+    t`How many subsets does a set of that size have?`,
+  ],
+  lesson: t`Work from the inside out, one operation at a time.`,
+});
 
 const b1419 = card('b1-4-19', 19, math`|\mathcal{P}(\mathcal{P}(\mathcal{P}(A \times \varnothing)))|`, '4', 3, '4', [
   t`There are no pairs ${math`(a, b)`} with ${math`b \in \varnothing`}, so ${math`A \times \varnothing = \varnothing`}.`,
   t`${math`|\mathcal{P}(\varnothing)| = ${2}^{${0}} = ${1}`} (it is ${math`\{\varnothing\}`}), then ${math`${2}^{${1}} = ${2}`}, then ${math`${2}^{${2}} = ${4}`}.`,
-], { response: '1', why: t`${math`\mathcal{P}(\varnothing) = \{\varnothing\}`} has one element, not none; the next power sets have ${2} and then ${4}.` }, () => 4, (A) => subsetsOf(subsetsOf(subsetsOf(A.flatMap(() => [] as number[])))).length);
+], { response: '1', why: t`${math`\mathcal{P}(\varnothing) = \{\varnothing\}`} has one element, not none; the next power sets have ${2} and then ${4}.` }, () => 4, (A) => subsetsOf(subsetsOf(subsetsOf(A.flatMap(() => [] as number[])))).length, {
+  nudge: t`Not quite. Find ${math`A \times \varnothing`} first; the power set of the empty set is not empty.`,
+  hints: [
+    t`What is ${math`A \times \varnothing`}?`,
+    t`How many elements does ${math`\mathcal{P}(\varnothing)`} have?`,
+    t`Taking the power set twice more, what are the sizes?`,
+  ],
+  lesson: t`The empty set has exactly one subset, itself.`,
+});
 
 const b1420 = card('b1-4-20', 20, math`|\{X \subseteq \mathcal{P}(A) : |X| \le ${1}\}|`, '2^m + 1', 4, null, [
   t`Now ${math`X`} is a subset of ${math`\mathcal{P}(A)`}, which has ${math`${2}^{m}`} elements.`,
   t`The subsets of size at most ${1}: ${math`\varnothing`}, and one singleton for each of the ${math`${2}^{m}`} elements. Total ${math`${2}^{m} + ${1}`}.`,
-], { response: 'm + 1', why: t`That is exercise ${17}, about subsets of ${mA}. Here ${math`X`} is a subset of ${math`\mathcal{P}(A)`}, which has ${math`${2}^{m}`} elements.` }, (m) => 2 ** m + 1, (A) => subsetsOf(subsetsOf(A)).filter((s) => s.length <= 1).length);
+], { response: 'm + 1', why: t`That is exercise ${17}, about subsets of ${mA}. Here ${math`X`} is a subset of ${math`\mathcal{P}(A)`}, which has ${math`${2}^{m}`} elements.` }, (m) => 2 ** m + 1, (A) => subsetsOf(subsetsOf(A)).filter((s) => s.length <= 1).length, {
+  nudge: t`Not quite. Here ${math`X`} is a subset of ${math`\mathcal{P}(A)`}, not of ${mA}.`,
+  hints: [
+    t`How many elements does ${math`\mathcal{P}(A)`} have?`,
+    t`How many subsets of size ${0}, and how many of size ${1}, does a set of that size have?`,
+    t`What is the total?`,
+  ],
+  lesson: t`Read which set the subsets come from before counting.`,
+});
 
 const b1314 = auto({
   id: 'b1-3-14',
   source: cite('bop', 'Section 1.3, exercise 14'),
   title: t`Is the plane inside space?`,
   prompt: t`Decide whether ${math`\mathbb{R}^{${2}} \subseteq \mathbb{R}^{${3}}`}, and choose the reason.`,
+  nudge: t`Not quite. Check the definition of ${math`\subseteq`} on one element of ${math`\mathbb{R}^{${2}}`}.`,
+  hints: [
+    t`What does ${math`A \subseteq B`} require of every element of ${mA}?`,
+    t`What kind of object is an element of ${math`\mathbb{R}^{${2}}`}, and of ${math`\mathbb{R}^{${3}}`}?`,
+    t`Is the pair ${math`(${1}, ${2})`} an element of ${math`\mathbb{R}^{${3}}`}?`,
+  ],
   answer: {
     kind: 'choice',
     options: [
@@ -344,6 +401,7 @@ const b1314 = auto({
   solution: [
     t`${math`A \subseteq B`} means every element of ${mA} is an element of ${mB}. Elements of ${math`\mathbb{R}^{${2}}`} are ordered pairs; elements of ${math`\mathbb{R}^{${3}}`} are ordered triples.`,
     t`${math`(${1}, ${2})`} is a pair, and a pair is not a triple, so ${math`(${1}, ${2}) \notin \mathbb{R}^{${3}}`}. Hence the statement is false. Picturing the plane inside space identifies ${math`(x, y)`} with ${math`(x, y, ${0})`}, but that is a correspondence, not equality of elements.`,
+    t`Inclusion is about elements, not pictures.`,
   ],
   reference: 'f',
   verify: () => same('a pair is not a triple', [1, 2].length === [1, 2, 0].length, false),
@@ -358,6 +416,12 @@ const cstPowers = auto({
   source: cite('cst-dm-sw1', 'Exercises 5, 5.2.2'),
   title: t`Power sets and unions`,
   prompt: t`For all sets ${mA} and ${mB}, which of these statements hold? Choose all that hold for every pair of sets.`,
+  nudge: t`Not quite. Test each statement on small sets, and prove the ones that survive.`,
+  hints: [
+    t`For (a), if ${math`X \subseteq A`} and ${math`A \subseteq B`}, where is ${math`X`}?`,
+    t`For (b), can a subset of ${math`A \cup B`} take one element from ${mA} and another from ${mB}?`,
+    t`For (d) and (e), what does ${math`X \subseteq A \cap B`} say about ${math`X \subseteq A`} and ${math`X \subseteq B`}?`,
+  ],
   answer: {
     kind: 'choice',
     options: [
@@ -374,6 +438,7 @@ const cstPowers = auto({
     t`(b) False: take ${math`A = \{${1}\}`}, ${math`B = \{${2}\}`}. Then ${math`\{${1}, ${2}\} \in \mathcal{P}(A \cup B)`}, but ${math`\{${1}, ${2}\}`} is a subset of neither ${mA} nor ${mB}.`,
     t`(c) A subset of ${mA} or of ${mB} is a subset of ${math`A \cup B`}. True.`,
     t`(d) and (e): ${math`X \subseteq A \cap B`} exactly when ${math`X \subseteq A`} and ${math`X \subseteq B`}, so ${math`\mathcal{P}(A \cap B) = \mathcal{P}(A) \cap \mathcal{P}(B)`}. Both true.`,
+    t`Prove a set statement by chasing elements; refute it with the smallest counterexample.`,
   ],
   reference: ['a', 'c', 'd', 'e'],
   verify: () => {
@@ -406,6 +471,11 @@ const cstPartialOrder = supervision({
   source: cite('cst-dm-sw1', 'Exercises 5, 5.1.1'),
   title: t`Inclusion is a partial order`,
   prompt: t`Prove that ${math`\subseteq`} is a partial order: reflexive (${math`A \subseteq A`} for every set ${mA}), transitive (${math`A \subseteq B`} and ${math`B \subseteq C`} imply ${math`A \subseteq C`}), and antisymmetric (${math`A \subseteq B`} and ${math`B \subseteq A`} together are equivalent to ${math`A = B`}).`,
+  hints: [
+    t`Why is every element of ${mA} an element of ${mA}?`,
+    t`If ${math`x \in A`}, what do ${math`A \subseteq B`} and ${math`B \subseteq C`} give in turn?`,
+    t`Which definition of set equality makes the two inclusions together equivalent to ${math`A = B`}?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -422,6 +492,11 @@ const sw512b = supervision({
   source: cite('cst-dm-sw1', 'Exercises 5, 5.1.2(b)'),
   title: t`Having no elements is being empty`,
   prompt: t`Prove that for every set ${mA}, ${math`(\forall x.\ x \notin A) \iff A = \varnothing`}.`,
+  hints: [
+    t`For the forward direction, if no ${math`x`} is in ${mA}, why is ${math`A \subseteq \varnothing`}?`,
+    t`Why is ${math`\varnothing \subseteq A`} for every set ${mA}?`,
+    t`For the reverse direction, if ${math`A = \varnothing`}, what elements does ${mA} have?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-5', '5.1.2(b)'),
 });

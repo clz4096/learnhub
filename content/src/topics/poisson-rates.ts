@@ -229,6 +229,7 @@ const q5Sum = auto({
   solution: [
     t`Each rate satisfies ${math`p e^{${2}\lambda} - e^{\lambda} + ${1} = ${0}`}, and they differ, so ${math`e^{\lambda_{${1}}}`} and ${math`e^{\lambda_{${2}}}`} are the two roots of ${math`p x^{${2}} - x + ${1} = ${0}`}.`,
     t`Their product is ${math`\frac{${1}}{p}`}, so ${math`\lambda_{${1}} + \lambda_{${2}} = \ln\frac{${1}}{p} = -\ln p`}.`,
+    t`For two different roots of one quadratic, use the product of the roots, not the formula.`,
   ],
   reference: 'ln(1/p)',
   verify: () => {
@@ -240,6 +241,12 @@ const q5Sum = auto({
     { response: '1/p', why: t`${math`\frac{${1}}{p}`} is ${math`e^{\lambda_{${1}} + \lambda_{${2}}}`}. Take the logarithm.` },
   ],
   official: { source: cite('step-s2-stats-solutions', 'Q5'), answer: '-ln(p)', agrees: true },
+  nudge: t`Not quite. Both rates satisfy one quadratic in ${math`e^{\lambda}`}; a relation between its roots gives the sum without solving it.`,
+  hints: [
+    t`What is the probability that the first text comes between ${1} and ${2} hours, as an expression in the rate?`,
+    t`Setting that equal to ${math`p`}, which quadratic does ${math`x = e^{\lambda}`} satisfy?`,
+    t`Since the two rates differ, ${math`e^{\lambda_{${1}}}`} and ${math`e^{\lambda_{${2}}}`} are its two roots: what is their product?`,
+  ],
 });
 
 const KY_DOM = { k: { kind: 'real' as const, min: 0.1, max: 2 }, y: { kind: 'real' as const, min: 0.1, max: 2 } };
@@ -252,6 +259,7 @@ const q4None = auto({
   solution: [
     t`The circle has area ${math`\pi y^{${2}}`}, so the number of supermarkets in it is ${math`\text{Po}(k\pi y^{${2}})`}.`,
     t`${math`P(\text{none}) = e^{-k\pi y^{${2}}}`}.`,
+    t`For a Poisson count, the probability of none is ${math`e^{-\text{mean}}`}.`,
   ],
   reference: 'e^(-k pi y^2)',
   verify: () => {
@@ -277,6 +285,12 @@ const q4None = auto({
     { response: '1 - exp(-k*pi*y^2)', why: t`That is the probability of at least one supermarket within ${math`y`}.` },
   ],
   official: { source: cite('step-s2-stats-solutions', 'Q4'), answer: 'e^(-k pi y^2)', agrees: true },
+  nudge: t`Not quite. The mean count in a region is ${math`k`} times its area, and "none" is the zero term of the Poisson distribution.`,
+  hints: [
+    t`What is the area of a circle of radius ${math`y`}?`,
+    t`What is the Poisson mean for the number of supermarkets in that circle?`,
+    t`What is the probability of the value ${0} for a Poisson variable with that mean?`,
+  ],
 });
 
 const LR_DOM = { lambda: { kind: 'real' as const, min: 0.2, max: 3 }, r: { kind: 'integer' as const, min: 2, max: 10 } };
@@ -291,6 +305,7 @@ const q7a = auto({
     t`The first ${math`r - ${1}`} pages together have ${math`\text{Po}((r - ${1})\lambda)`} misprints. The second misprint is on page ${math`r`} when those pages have at most one and page ${math`r`} brings the total to at least two.`,
     t`None before, and at least two on page ${math`r`}: ${math`e^{-(r - ${1})\lambda}\left(${1} - e^{-\lambda} - \lambda e^{-\lambda}\right)`}.`,
     t`Exactly one before, and at least one on page ${math`r`}: ${math`(r - ${1})\lambda e^{-(r - ${1})\lambda}\left(${1} - e^{-\lambda}\right)`}. Add the two cases.`,
+    t`A sum of independent Poisson counts is Poisson; then split by cases.`,
   ],
   reference: Q7A,
   verify: () => {
@@ -306,6 +321,12 @@ const q7a = auto({
     return null;
   },
   misconceptions: [{ response: 'exp(-(r - 1)*lambda)*(1 - exp(-lambda) - lambda*exp(-lambda))', why: t`That is only the case with no misprint before page ${math`r`}. The first misprint may be on an earlier page, and then page ${math`r`} needs only one.` }],
+  nudge: t`Not quite. Split by how many misprints the first ${math`r - ${1}`} pages hold: none, or exactly one.`,
+  hints: [
+    t`What is the distribution of the total number of misprints on the first ${math`r - ${1}`} pages?`,
+    t`For the second misprint to be on page ${math`r`}, how many misprints can the first ${math`r - ${1}`} pages hold?`,
+    t`In each of those cases, how many misprints must page ${math`r`} hold, and what are the two probabilities?`,
+  ],
 });
 
 const q5George = supervision({
@@ -315,6 +336,11 @@ const q5George = supervision({
   prompt: t`The number of texts George receives is a Poisson variable with mean ${ml} per hour. Given that the probability that he waits between ${1} and ${2} hours before his first text is ${math`p`}, show that ${math`p e^{${2}\lambda} - e^{\lambda} + ${1} = ${0}`}. Given that ${math`${4}p < ${1}`}, show that there are two positive values of ${ml} that satisfy this equation.`,
   writeUp: 'proof',
   official: cite('step-s2-stats-solutions', 'Q5'),
+  hints: [
+    t`What is the probability of no text in the first ${math`t`} hours?`,
+    t`How is "the first text comes between ${1} and ${2} hours" written using no text in ${1} hour and no text in ${2} hours?`,
+    t`As a quadratic in ${math`x = e^{\lambda}`}, when does ${math`px^{${2}} - x + ${1} = ${0}`} have two roots greater than ${1}?`,
+  ],
 });
 
 const q4Rest = supervision({
@@ -324,6 +350,11 @@ const q4Rest = supervision({
   prompt: t`In Q${4}, ${mY} is the distance from a randomly chosen point to the nearest supermarket. Write down ${math`P(Y < y)`} and show that ${mY} has density ${math`${2}\pi y k e^{-\pi k y^{${2}}}`} for ${math`y \ge ${0}`}. Using ${math`\int_{${0}}^{\infty} e^{-x^{${2}}/${2}}\,dx = \tfrac{${1}}{${2}}\sqrt{${2}\pi}`}, find ${math`E(Y)`} and show that ${math`\operatorname{Var}(Y) = \frac{${4} - \pi}{${4}\pi k}`}.`,
   writeUp: 'proof',
   official: cite('step-s2-stats-solutions', 'Q4'),
+  hints: [
+    t`Why is the event ${math`Y \ge y`} the same as no supermarket within distance ${math`y`}?`,
+    t`Differentiating ${math`P(Y < y)`}, what density results?`,
+    t`Which substitution turns ${math`\int_{${0}}^{\infty} y^{${2}}e^{-\pi k y^{${2}}}\,dy`} into the given integral?`,
+  ],
 });
 
 const q6 = supervision({
@@ -332,6 +363,11 @@ const q6 = supervision({
   title: t`The sum, and one count given the sum`,
   prompt: t`Suppose that ${mX} and ${mY} are independent Poisson random variables with parameters ${ml} and ${mmu}. Find the distribution of ${math`X + Y`}. Prove that the conditional distribution of ${mX}, given that ${math`X + Y = n`}, is binomial with parameters ${math`n`} and ${math`\lambda/(\lambda + \mu)`}.`,
   writeUp: 'proof',
+  hints: [
+    t`What is ${math`P(X + Y = n)`} as a sum over ${math`k`} of ${math`P(X = k)P(Y = n - k)`}?`,
+    t`Which binomial expansion does that sum resemble?`,
+    t`What is ${math`P(X = k \mid X + Y = n)`} as a ratio, and what cancels?`,
+  ],
 });
 
 const q7b = supervision({
@@ -340,6 +376,11 @@ const q7b = supervision({
   title: t`Caught and missed misprints`,
   prompt: t`A proof-reader studies a single page, whose number of misprints is ${math`\text{Po}(\lambda)`}. She catches each misprint, independently of the others, with probability ${math`p`}. Let ${mX} be the number she catches and ${mY} the number she misses. Find the distributions of ${mX} and ${mY} and show that they are independent.`,
   writeUp: 'proof',
+  hints: [
+    t`Given ${math`n`} misprints on the page, what is the distribution of the number caught?`,
+    t`What is ${math`P(X = j, Y = k)`}, using that the page then has ${math`j + k`} misprints?`,
+    t`Does that joint probability factorise into a function of ${math`j`} times a function of ${math`k`}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

@@ -193,11 +193,18 @@ const notes75 = auto({
   id: 'notes-218-example-75',
   source: cite('cst-dm-notes', 'printed page 218, Example 75', true),
   title: t`The steps of ${math`\gcd(${13}, ${34})`}`,
-  prompt: t`Example ${75} of the notes computes ${math`\gcd(${13}, ${34})`}. With the notes' definition, how many calls of ${math`\gcd`} are made, counting the first?`,
+  prompt: t`With the notes' definition of ${math`\gcd`} (Example ${75}), find the number of calls made in computing ${math`\gcd(${13}, ${34})`}, counting the first.`,
   answer: { kind: 'exact', expected: String(calls(13, 34).length) },
   solution: [
     t`The first argument is smaller, so the first call just swaps them: ${math`\mathrm{rem}(${13}, ${34}) = ${13}`}, and ${math`\gcd(${13}, ${34}) = \gcd(${34}, ${13})`}.`,
-    t`Then ${math`${chainTex(34, 13)}`}. In all ${calls(13, 34).length} calls, as the example shows: the inputs are consecutive Fibonacci numbers, the slowest case.`,
+    t`Then ${math`${chainTex(34, 13)}`}: ${calls(13, 34).length} calls in all, the first included.`,
+    t`The first call counts, even when it only swaps the arguments.`,
+  ],
+  nudge: t`Not quite. Check the first call: the arguments arrive in the order ${13}, ${34}.`,
+  hints: [
+    t`With the smaller number first, what does the first call do?`,
+    t`What are the remainders in the calls after that?`,
+    t`Which call finds a remainder of ${0}, and how many calls is that in all?`,
   ],
   reference: String(calls(13, 34).length),
   verify: () => same('the calls listed', calls(13, 34).map(([a, b]) => `${a}:${b}`).join(' '), '13:34 34:13 13:8 8:5 5:3 3:2 2:1'),
@@ -210,11 +217,18 @@ const sheet423d = auto({
   id: 'sheet-4-2-3-d',
   source: cite('cst-dm-sw1', 'Exercises 4, 4.2.3(d)', true),
   title: t`Fibonacci numbers are the slowest inputs`,
-  prompt: t`With ${math`F_{${0}} = ${0}`}, ${math`F_{${1}} = ${1}`}, and ${math`F_{n + ${2}} = F_{n} + F_{n + ${1}}`}: how many steps does Euclid's algorithm take on ${math`\gcd(F_{${FN + 2}}, F_{${FN + 1}}) = \gcd(${fib(FN + 2)}, ${fib(FN + 1)})`}, counting each call as one step?`,
+  prompt: t`With ${math`F_{${0}} = ${0}`}, ${math`F_{${1}} = ${1}`}, and ${math`F_{n + ${2}} = F_{n} + F_{n + ${1}}`}, find the number of steps Euclid's algorithm takes on ${math`\gcd(F_{${FN + 2}}, F_{${FN + 1}}) = \gcd(${fib(FN + 2)}, ${fib(FN + 1)})`}, counting each call as one step.`,
   answer: { kind: 'exact', expected: String(calls(fib(FN + 2), fib(FN + 1)).length) },
   solution: [
-    t`Every quotient is ${1}: ${math`F_{k + ${3}} = ${1} \times F_{k + ${2}} + F_{k + ${1}}`}, so each step moves down one Fibonacci number: ${math`\gcd(F_{k + ${3}}, F_{k + ${2}}) = \gcd(F_{k + ${2}}, F_{k + ${1}})`}.`,
-    t`It ends at ${math`\gcd(F_{${3}}, F_{${2}}) = \gcd(${2}, ${1})`}, one step. By induction, ${math`\gcd(F_{n + ${2}}, F_{n + ${1}})`} takes ${mn} steps; here ${FN}.`,
+    t`The calls: ${math`${chainTex(fib(FN + 2), fib(FN + 1))}`}.`,
+    t`The last call, ${math`\gcd(${2}, ${1})`}, finds remainder ${0}. Counting from the first call: ${calls(fib(FN + 2), fib(FN + 1)).length} steps.`,
+    t`List the calls and count them, the first included.`,
+  ],
+  nudge: t`Not quite. Write out each call in turn and count them, the first included.`,
+  hints: [
+    t`What is the remainder of ${fib(FN + 2)} on division by ${fib(FN + 1)}, and what is the next call?`,
+    t`What do the numbers in successive calls have in common?`,
+    t`At which call does the algorithm stop, and how many calls come before it?`,
   ],
   reference: String(FN),
   verify: () => same('the calls counted', calls(fib(FN + 2), fib(FN + 1)).length, FN),
@@ -228,21 +242,36 @@ const sheet333 = supervision({
   title: t`Why the subtractive algorithm is right`,
   prompt: t`Informally justify the correctness of ${math`\mathrm{gcd}_{${0}}`}: if ${math`m = n`} return ${mm}, else recurse on ${math`(\min(m, n), \max(m, n) - \min(m, n))`}. Explain why every call has the same common divisors as the first (which corollary of the notes gives it), and why the recursion stops for positive integers.`,
   writeUp: 'explanation',
+  hints: [
+    t`If ${math`d`} divides ${mm} and ${mn}, does ${math`d`} divide ${math`\max(m, n) - \min(m, n)`}?`,
+    t`Conversely, if ${math`d`} divides ${math`\min(m, n)`} and ${math`\max(m, n) - \min(m, n)`}, does ${math`d`} divide ${math`\max(m, n)`}?`,
+    t`Which positive whole quantity strictly decreases at each call, and why can it not decrease forever?`,
+  ],
   official: cite('cst-dm-sols-2324-3', '3.3.3'),
 });
 const theorem79 = supervision({
   id: 'notes-224-theorem-79-bound',
   source: cite('cst-dm-notes', 'printed pages 224 to 226, Theorem 79 and the step bound'),
   title: t`The second number halves every two steps`,
-  prompt: t`For ${math`m \ge n`}, two steps of Euclid's algorithm take ${math`(m, n)`} to ${math`(r, r')`} with ${math`m = qn + r`} and ${math`n = q'r + r'`}. Prove the notes' claim ${math`r' < n / ${2}`}, from ${math`${2}r' < r + r' \le q'r + r' = n`}, and deduce that the number of steps is at most about ${math`${1} + ${2}\log_{${2}} n`}.`,
+  prompt: t`For ${math`m \ge n`}, two steps of Euclid's algorithm take ${math`(m, n)`} to ${math`(r, r')`} with ${math`m = qn + r`} and ${math`n = q'r + r'`}. Prove that ${math`r' < n / ${2}`}, and deduce that the number of steps is at most about ${math`${1} + ${2}\log_{${2}} n`}.`,
   writeUp: 'proof',
+  hints: [
+    t`Why is ${math`r' < r`}, and why is ${math`q' \ge ${1}`}?`,
+    t`Using ${math`q' \ge ${1}`}, how does ${math`r + r'`} compare with ${mn}?`,
+    t`If the second number falls below half every two steps, how many pairs of steps can there be before it reaches ${1}?`,
+  ],
 });
 const sheet423dproof = supervision({
   id: 'sheet-4-2-3-d-proof',
   source: cite('cst-dm-sw1', 'Exercises 4, 4.2.3(d)'),
   title: t`Fibonacci steps, by induction`,
-  prompt: t`Prove that ${math`\gcd(F_{n + ${2}}, F_{n + ${1}})`} terminates with output ${1} in ${mn} steps for all positive integers ${mn}. State your base case and say where the Division Theorem's uniqueness is used.`,
+  prompt: t`Prove that ${math`\gcd(F_{n + ${2}}, F_{n + ${1}})`} terminates with output ${1} in ${mn} steps for all positive integers ${mn}. State the base case and where the Division Theorem's uniqueness is used.`,
   writeUp: 'proof',
+  hints: [
+    t`What happens in the call ${math`\gcd(F_{${3}}, F_{${2}})`}, and how many steps does it take?`,
+    t`What are the quotient and remainder when ${math`F_{n + ${3}}`} is divided by ${math`F_{n + ${2}}`}?`,
+    t`Why is that quotient and remainder the only possible pair, and how does the first step then reduce to the case ${mn}?`,
+  ],
   official: cite('cst-dm-sols-2324-4', '4.2.3(d)'),
 });
 

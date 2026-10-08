@@ -290,12 +290,19 @@ const qcAvg = auto({
     code`  in`,
     code`  let (s, n) = loop (${0}, ${0}) lst`,
     code`  in float_of_int s /. float_of_int n`,
-  )} A QCheck test compares it with a simple reference implementation that is correct by inspection. What does the buggy ${code`avg ${AVG_IN}`} return?`,
+  )} A QCheck test compares it with a simple reference implementation that is correct by inspection. Evaluate the buggy ${code`avg ${AVG_IN}`}.`,
   answer: { kind: 'numeric', expected: AVG_BAD, relTol: 0, absTol: 1e-9 },
   solution: [
     t`The first two elements are equal, ${1} and ${1}, so the third case adds only ${1} to the sum and ${1} to the count: one of the pair is lost.`,
     t`Then ${code`[${4}]`} adds ${4}. So ${code`s`} is ${5} and ${code`n`} is ${2}, and the result is ${math`\frac{${5}}{${2}} = ${AVG_BAD}`}.`,
     t`The true average is ${math`\frac{${1} + ${1} + ${4}}{${3}} = ${2}`}. A property test against a reference ${code`avg`} finds such an input quickly, because random lists often contain two equal neighbours.`,
+    t`Trace the code as written, not as intended.`,
+  ],
+  nudge: t`Not quite. Trace the code as written: check which case the first two elements take.`,
+  hints: [
+    t`Which case of ${code`loop`} does the list ${code`${AVG_IN}`} match first?`,
+    t`What are ${code`s`} and ${code`n`} after that case, and after the case for the last element?`,
+    t`What is ${code`float_of_int s /. float_of_int n`} for those values?`,
   ],
   reference: String(AVG_BAD),
   // OCaml 4.11.1: avg [1; 1; 4] = 2.5.
@@ -307,15 +314,25 @@ const productTest = supervision({
   id: 'cs3110-ex3-product-test',
   source: cite('cs3110-ex3', 'Exercise "product test"'),
   title: t`Testing product`,
-  prompt: t`Write ${code`product`}, which returns the product of all the elements of an int list, the product of the empty list being ${1}. Then write a black-box test suite for it, from the specification alone: list your test cases, the class of inputs each represents (empty, one element, containing ${0}, negative elements, and so on), and the expected output of each.`,
+  prompt: t`Write ${code`product`}, which returns the product of all the elements of an int list, the product of the empty list being ${1}. Then write a black-box test suite for it, from the specification alone: list the test cases, the class of inputs each represents (empty, one element, containing ${0}, negative elements, and so on), and the expected output of each.`,
   writeUp: 'explanation',
+  hints: [
+    t`What should ${code`product`} return on the empty list, and why does that make the recursion work?`,
+    t`Which classes of input could each break a careless implementation differently?`,
+    t`For each class, which small list represents it, and what is its expected product?`,
+  ],
 });
 const polySpec = supervision({
   id: 'cs3110-ex8-poly-spec',
   source: cite('cs3110-ex8', 'Exercise "poly spec"'),
   title: t`Specifying polynomials`,
-  prompt: t`Design an interface for immutable single variable integer polynomials ${math`c_{n}x^{n} + \cdots + c_{${1}}x + c_{${0}}`}, starting from ${code`val eval : int -> t -> int`}, where ${code`eval x p`} is ${code`p`} evaluated at ${code`x`}. Add operations a client would need to create, combine, and query polynomials, and write a specification comment for each, with its Requires, Returns, and Raises clauses. For one of them, say how a devious programmer could satisfy a weaker specification and how yours prevents it.`,
+  prompt: t`Design an interface for immutable single variable integer polynomials ${math`c_{n}x^{n} + \cdots + c_{${1}}x + c_{${0}}`}, starting from ${code`val eval : int -> t -> int`}, where ${code`eval x p`} is ${code`p`} evaluated at ${code`x`}. Add operations a client would need to create, combine, and query polynomials, and write a specification comment for each, with its Requires, Returns, and Raises clauses. For one of them, state how a devious programmer could satisfy a weaker specification and how the given one prevents it.`,
   writeUp: 'explanation',
+  hints: [
+    t`Which operations does a client need to build a polynomial, combine two, and read off its coefficients or degree?`,
+    t`For each operation, what must hold of its inputs, and what exactly does it return?`,
+    t`If a specification only said "returns a polynomial", which useless implementation would satisfy it?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

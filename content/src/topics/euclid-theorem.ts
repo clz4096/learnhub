@@ -171,7 +171,15 @@ const bop1155 = auto({
   prompt: t`Suppose ${math`[a], [b] \in \mathbb{Z}_{${5}}`} and ${math`[a] \cdot [b] = [${0}]`}. Is it necessarily true that ${math`[a] = [${0}]`} or ${math`[b] = [${0}]`}?`,
   answer: { kind: 'choice', options: YESNO, correct: 'yes' },
   solution: [
-    t`In the multiplication table of ${math`\mathbb{Z}_{${5}}`}, ${math`[${0}]`} appears only in the row and column of ${math`[${0}]`}. Behind it: ${5} is prime, so ${math`${5} \mid ab`} forces ${math`${5} \mid a`} or ${math`${5} \mid b`} (Euclid's theorem).`,
+    t`${5} is prime, so ${math`${5} \mid ab`} forces ${math`${5} \mid a`} or ${math`${5} \mid b`} (Euclid's theorem).`,
+    t`So ${math`[a] \cdot [b] = [${0}]`} forces ${math`[a] = [${0}]`} or ${math`[b] = [${0}]`}: in the multiplication table, ${math`[${0}]`} appears only in the row and column of ${math`[${0}]`}.`,
+    t`Modulo a prime, a product is zero only when a factor is zero.`,
+  ],
+  nudge: t`Not quite. Write out the products of the non-zero classes in ${math`\mathbb{Z}_{${5}}`} and look for ${math`[${0}]`}.`,
+  hints: [
+    t`Which products ${math`ab`}, with ${math`a`} and ${math`b`} in ${math`\{${1}, ${2}, ${3}, ${4}\}`}, are multiples of ${5}?`,
+    t`If ${math`${5} \mid ab`}, what does Euclid's theorem say, given that ${5} is prime?`,
+    t`Can a non-zero class times a non-zero class ever give ${math`[${0}]`} in ${math`\mathbb{Z}_{${5}}`}?`,
   ],
   reference: 'yes',
   verify: () => same('every pair in Z_5', upTo(4).every((a) => upTo(4).every((b) => (a * b) % 5 !== 0)), true),
@@ -183,7 +191,7 @@ const bop1156 = auto({
   id: 'bop-11-5-6',
   source: cite('bop', 'Exercises for Section 11.5, exercise 6', true),
   title: t`Zero divisors in ${math`\mathbb{Z}_{${6}}`}`,
-  prompt: t`Book of Proof asks whether ${math`[a] \cdot [b] = [${0}]`} in ${math`\mathbb{Z}_{${6}}`} forces ${math`[a] = [${0}]`} or ${math`[b] = [${0}]`}. It does not: give ${math`a`} and ${math`b`} in ${math`\{${1}, \ldots, ${5}\}`} with ${math`[a][b] = [${0}]`}.`,
+  prompt: t`In ${math`\mathbb{Z}_{${6}}`}, find ${math`a`} and ${math`b`} in ${math`\{${1}, \ldots, ${5}\}`} with ${math`[a][b] = [${0}]`}.`,
   answer: {
     kind: 'witness', count: 2, names: ['a', 'b'], example: 'a = 2, b = 3',
     check: ([va, vb]) => {
@@ -192,7 +200,17 @@ const bop1156 = auto({
       return (a * b) % 6 === 0 ? null : `[${a}][${b}] = [${mod(a * b, 6)}], not [0].`;
     },
   },
-  solution: [t`${math`[${2}][${3}] = [${6}] = [${0}]`}; so do ${math`[${3}][${4}]`} and ${math`[${4}][${3}]`}. ${6} is not prime, so Euclid's theorem does not apply. In ${math`\mathbb{Z}_{${7}}`}, as in ${math`\mathbb{Z}_{${5}}`}, there are no such pairs.`],
+  solution: [
+    t`${math`[${2}][${3}] = [${6}] = [${0}]`}; so do ${math`[${3}][${2}]`}, ${math`[${3}][${4}]`}, and ${math`[${4}][${3}]`}.`,
+    t`${6} is not prime, so Euclid's theorem does not apply. In ${math`\mathbb{Z}_{${7}}`}, as in ${math`\mathbb{Z}_{${5}}`}, there are no such pairs.`,
+    t`Modulo a composite, two non-zero classes can multiply to zero.`,
+  ],
+  nudge: t`Not quite. Factorise ${6}, and let each factor of the product supply one of its primes.`,
+  hints: [
+    t`How does ${6} factorise into primes?`,
+    t`For ${math`ab`} to be a multiple of ${6}, which primes must divide ${math`ab`}?`,
+    t`Which numbers between ${1} and ${5} can supply each of those primes?`,
+  ],
   reference: 'a = 2, b = 3',
   verify: () => same('every pair in Z_6 and Z_7', [upTo(5).flatMap((a) => upTo(5).filter((b) => (a * b) % 6 === 0).map((b) => `${a}${b}`)).join(' '), upTo(6).some((a) => upTo(6).some((b) => (a * b) % 7 === 0))].join(), '23 32 34 43,false'),
   misconceptions: [{ response: 'a = 2, b = 2', why: t`${math`[${2}][${2}] = [${4}]`}. The factors must supply both primes of ${6}: ${2} and ${3}.` }],
@@ -204,6 +222,11 @@ const sheet316 = supervision({
   title: t`Square roots of one modulo a prime`,
   prompt: t`Prove that for all integers ${mn} and primes ${math`p`}, if ${math`n^{${2}} \equiv ${1} \pmod{p}`} then ${math`n \equiv ${1}`} or ${math`n \equiv -${1} \pmod{p}`}. Show by an example that it fails for some composite modulus.`,
   writeUp: 'proof',
+  hints: [
+    t`What does ${math`n^{${2}} \equiv ${1} \pmod{p}`} say about ${math`p`} and ${math`(n - ${1})(n + ${1})`}?`,
+    t`Since ${math`p`} is prime, what does Euclid's theorem give about ${math`p`} and the two factors?`,
+    t`For a small composite modulus, which residues square to ${1}?`,
+  ],
   official: cite('cst-dm-sols-2324-3', '3.1.6'),
 });
 const sheet322 = supervision({
@@ -212,6 +235,11 @@ const sheet322 = supervision({
   title: t`Coprime divisors multiply`,
   prompt: t`Let ${mm} and ${mn} be positive integers with ${math`\gcd(m, n) = ${1}`}. Prove that for every natural number ${mk}, ${math`m \mid k \land n \mid k \iff mn \mid k`}. Then give a counterexample when ${math`\gcd(m, n) \ne ${1}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`For the backward direction, how does ${math`mn \mid k`} give ${math`m \mid k`} and ${math`n \mid k`}?`,
+    t`For the forward direction, write ${math`k = mj`}: why does ${mn} divide ${math`mj`}, and what does ${math`\gcd(m, n) = ${1}`} then give?`,
+    t`When ${math`\gcd(m, n) \ne ${1}`}, which small ${mm}, ${mn}, ${mk} have ${math`m \mid k`} and ${math`n \mid k`} but not ${math`mn \mid k`}?`,
+  ],
   official: cite('cst-dm-sols-2324-3', '3.2.2'),
 });
 const sheet331 = supervision({
@@ -220,6 +248,11 @@ const sheet331 = supervision({
   title: t`From a square to a divisor`,
   prompt: t`Let ${math`a`} and ${math`b`} be natural numbers such that ${math`a^{${2}} \mid b(b + a)`}. Prove that ${math`a \mid b`}. Hint: for positive ${math`a, b`}, put ${math`a_{${0}} = a / \gcd(a, b)`} and ${math`b_{${0}} = b / \gcd(a, b)`}, and show ${math`a_{${0}} = ${1}`}.`,
   writeUp: 'proof',
+  hints: [
+    t`With ${math`g = \gcd(a, b)`}, ${math`a = g a_{${0}}`}, and ${math`b = g b_{${0}}`}, what is ${math`\gcd(a_{${0}}, b_{${0}})`}?`,
+    t`Dividing ${math`a^{${2}} \mid b(b + a)`} through by ${math`g^{${2}}`}, what must ${math`a_{${0}}^{${2}}`} divide?`,
+    t`Why is ${math`a_{${0}}`} coprime to both ${math`b_{${0}}`} and ${math`b_{${0}} + a_{${0}}`}, and what does that force?`,
+  ],
   official: cite('cst-dm-sols-2324-3', '3.3.1'),
 });
 const bop729 = supervision({
@@ -228,6 +261,11 @@ const bop729 = supervision({
   title: t`Euclid's theorem by Bezout`,
   prompt: t`Prove: if ${math`a \mid bc`} and ${math`\gcd(a, b) = ${1}`}, then ${math`a \mid c`}, using Proposition ${7}.${1} (${math`\gcd(a, b) = ax + by`} for some integers). Compare with the notes' proof by the linearity of gcd: which needs more machinery?`,
   writeUp: 'proof',
+  hints: [
+    t`With ${math`${1} = ax + by`}, what is ${math`c`} after multiplying through by ${math`c`}?`,
+    t`Why does ${math`a`} divide each term of ${math`acx + bcy`}?`,
+    t`Which steps of this proof rest on Proposition ${7}.${1}, and which steps of the notes' proof rest on linearity?`,
+  ],
   official: cite('bop', 'Solutions, Chapter 7, exercise 29'),
 });
 

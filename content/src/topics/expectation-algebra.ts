@@ -238,8 +238,16 @@ const q3iic = auto({
   prompt: t`With ${math`a`} As and ${math`b`} Bs in a random row, ${math`n = a + b`}, and ${math`S = X_{${1}} + \cdots + X_{n}`} (the number of runs of As), ${math`E(S) = \frac{a(b + ${1})}{n}`}. Find ${math`\mathrm{Var}(S)`} in terms of ${math`a`} and ${math`b`}.`,
   answer: { kind: 'expression', expected: 'a(a - 1)b(b + 1)/((a + b)^2 (a + b - 1))', variables: ['a', 'b'], domains: AB_DOM },
   solution: [
-    t`${math`\mathrm{Var}(S) = E(S^{${2}}) - E(S)^{${2}}`}. Expanding ${math`S^{${2}}`}: the squares ${math`X_{i}^{${2}} = X_{i}`} give ${math`E(S)`}, and the cross terms ${math`${2}\sum_{i < j} E(X_{i}X_{j})`} are ${0} for neighbours (${math`X_{i}`} and ${math`X_{i + ${1}}`} cannot both be ${1}), ${math`\frac{a(a - ${1})b}{n(n - ${1})(n - ${2})}`} for ${math`i = ${1}`}, ${math`j \ge ${3}`}, and ${math`\frac{a(a - ${1})b(b - ${1})}{n(n - ${1})(n - ${2})(n - ${3})}`} for ${math`${2} \le i`}, ${math`j \ge i + ${2}`}.`,
-    t`Counting the pairs and simplifying, as the official solution does: ${math`\mathrm{Var}(S) = \frac{a(a - ${1})b(b + ${1})}{n^{${2}}(n - ${1})}`}.`,
+    t`${math`\mathrm{Var}(S) = E(S^{${2}}) - E(S)^{${2}}`}, and ${math`X_{i}^{${2}} = X_{i}`}, so ${math`E(S^{${2}}) = E(S) + ${2}\sum_{i < j} E(X_{i}X_{j})`}. Neighbours give ${0}: ${math`X_{i}`} and ${math`X_{i + ${1}}`} cannot both be ${1}.`,
+    t`${math`i = ${1}`}, ${math`j \ge ${3}`}: ${math`n - ${2}`} pairs, each ${math`\frac{a(a - ${1})b}{n(n - ${1})(n - ${2})}`}, in all ${math`\frac{a(a - ${1})b}{n(n - ${1})}`}. ${math`${2} \le i`}, ${math`j \ge i + ${2}`}: ${math`\frac{(n - ${2})(n - ${3})}{${2}}`} pairs, each ${math`\frac{a(a - ${1})b(b - ${1})}{n(n - ${1})(n - ${2})(n - ${3})}`}, in all ${math`\frac{a(a - ${1})b(b - ${1})}{${2}n(n - ${1})}`}.`,
+    t`So ${math`E(S^{${2}}) = E(S) + \frac{a(a - ${1})b(b + ${1})}{n(n - ${1})}`}, and ${math`\mathrm{Var}(S) = \frac{a(b + ${1})}{n} + \frac{a(a - ${1})b(b + ${1})}{n(n - ${1})} - \frac{a^{${2}}(b + ${1})^{${2}}}{n^{${2}}} = \frac{a(a - ${1})b(b + ${1})}{n^{${2}}(n - ${1})}`}.`,
+    t`The variance of a sum of indicators is a count of pairs.`,
+  ],
+  nudge: t`Not quite. Expand ${math`S^{${2}}`} into pairs of indicators, and note which pairs can never both be ${1}.`,
+  hints: [
+    t`Why is ${math`X_{i}^{${2}} = X_{i}`}, and what does that give for the squared terms of ${math`E(S^{${2}})`}?`,
+    t`Which pairs ${math`X_{i}, X_{j}`} can never both be ${1}, and what is ${math`E(X_{i}X_{j})`} for the others?`,
+    t`How many pairs of each kind are there, and what does ${math`E(S^{${2}}) - E(S)^{${2}}`} simplify to?`,
   ],
   reference: 'a(a - 1)b(b + 1)/((a + b)^2 (a + b - 1))',
   verify: () => {
@@ -266,7 +274,16 @@ const notesComb = auto({
   title: t`Variance of a combination`,
   prompt: t`${math`X`} and ${math`Y`} are independent random variables with ${math`\mathrm{Var}(X) = ${2}`} and ${math`\mathrm{Var}(Y) = ${9}`}. Find ${math`\mathrm{Var}(${2}X - ${3}Y + ${1})`}.`,
   answer: { kind: 'exact', expected: String(notesVar) },
-  solution: [t`By the notes' rule for independent variables, ${math`\mathrm{Var}(aX + bY + c) = a^{${2}}\mathrm{Var}(X) + b^{${2}}\mathrm{Var}(Y)`}: ${math`${4} \times ${2} + ${9} \times ${9} = ${notesVar}`}.`],
+  solution: [
+    t`For independent variables, ${math`\mathrm{Var}(aX + bY + c) = a^{${2}}\mathrm{Var}(X) + b^{${2}}\mathrm{Var}(Y)`}: ${math`${4} \times ${2} + ${9} \times ${9} = ${notesVar}`}.`,
+    t`Square the coefficients, drop the constant, and add for independent terms.`,
+  ],
+  nudge: t`Not quite. Recall what happens to a coefficient, and to a constant, inside a variance.`,
+  hints: [
+    t`What is ${math`\mathrm{Var}(aX)`} in terms of ${math`\mathrm{Var}(X)`}?`,
+    t`What does adding a constant do to a variance?`,
+    t`For independent ${math`X`} and ${math`Y`}, how do the variances of ${math`${2}X`} and ${math`-${3}Y`} combine?`,
+  ],
   reference: String(notesVar),
   verify: () => {
     // A concrete pair with these variances, every one of the 10 equally likely outcomes listed.
@@ -288,6 +305,11 @@ const notesProof = supervision({
   title: t`Why the rules hold`,
   prompt: t`For discrete random variables, prove that ${math`E(aX + bY + c) = aE(X) + bE(Y) + c`} (with no independence assumed), that ${math`\mathrm{Var}(aX + b) = a^{${2}}\mathrm{Var}(X)`}, and that for independent ${math`X`} and ${math`Y`}, ${math`E(XY) = E(X)E(Y)`} and ${math`\mathrm{Var}(aX + bY + c) = a^{${2}}\mathrm{Var}(X) + b^{${2}}\mathrm{Var}(Y)`}. Where exactly is independence used?`,
   writeUp: 'proof',
+  hints: [
+    t`How is ${math`E(aX + bY + c)`} written as a sum over the joint distribution of ${math`X`} and ${math`Y`}?`,
+    t`What is ${math`(aX + b) - E(aX + b)`}, and what happens when it is squared?`,
+    t`Which step of ${math`E(XY) = E(X)E(Y)`} splits ${math`P(X = x, Y = y)`} into a product, and which step of the variance rule needs ${math`E(XY) = E(X)E(Y)`}?`,
+  ],
 });
 
 // 2006 STEP III Q14, first two paragraphs: the plates.
@@ -298,6 +320,11 @@ const step06Plates = supervision({
   title: t`The perimeter and area of a plate`,
   prompt: t`For any random variables ${X1} and ${X2}, state the relationship between ${math`E(aX_{${1}} + bX_{${2}})`} and ${math`E(X_{${1}})`} and ${math`E(X_{${2}})`}, where ${math`a`} and ${math`b`} are constants. If ${X1} and ${X2} are independent, state the relationship between ${math`E(X_{${1}}X_{${2}})`} and ${math`E(X_{${1}})`} and ${math`E(X_{${2}})`}. An industrial process produces rectangular plates. The length and the breadth of the plates are modelled by independent random variables ${X1} and ${X2} with non-zero means ${math`\mu_{${1}}`} and ${math`\mu_{${2}}`} and non-zero standard deviations ${math`\sigma_{${1}}`} and ${math`\sigma_{${2}}`}, respectively. Using the results in the paragraph above, and without quoting a formula for ${math`\operatorname{Var}(aX_{${1}} + bX_{${2}})`}, find the means and standard deviations of the perimeter ${math`P`} and area ${math`A`} of the plates. Show that ${math`P`} and ${math`A`} are not independent.`,
   writeUp: 'proof',
+  hints: [
+    t`What are ${math`P`} and ${math`A`} in terms of ${X1} and ${X2}?`,
+    t`How is ${math`E(X_{${1}}^{${2}})`} related to ${math`\mu_{${1}}`} and ${math`\sigma_{${1}}`}, and what is ${math`E(A^{${2}})`} for independent ${X1} and ${X2}?`,
+    t`If ${math`P`} and ${math`A`} were independent, what would ${math`E(PA)`} equal, and does it?`,
+  ],
   official: cite('stepdb-06-ha', 'STEP III, Q14 (page 33 of the PDF)'),
 });
 

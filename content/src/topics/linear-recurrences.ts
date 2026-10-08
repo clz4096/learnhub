@@ -260,6 +260,7 @@ const frog = auto({
   solution: [
     t`The auxiliary equation of ${math`u_{n} = p u_{n - ${1}} + q u_{n - ${2}}`} is ${math`\lambda^{${2}} - p\lambda - q = (\lambda - ${1})(\lambda + q) = ${0}`}, using ${math`p = ${1} - q`}: roots ${1} and ${math`-q`}. Since ${1} is a root, the constant ${1} needs the particular solution ${math`Cn`}: ${math`Cn = ${1} + pC(n - ${1}) + qC(n - ${2})`} gives ${math`C(p + ${2}q) = ${1}`}, ${math`C = \frac{${1}}{${1} + q}`}.`,
     t`Fitting ${math`u_{${1}}`}, ${math`u_{${2}}`}, ${math`u_{${3}}`} gives ${math`A = \left(\frac{q}{${1} + q}\right)^{${2}}`} and ${math`B = \frac{q}{(${1} + q)^{${2}}}`}: ${math`u_{n} = \left(\frac{q}{${1} + q}\right)^{${2}}(-q)^{n - ${1}} + \frac{q}{(${1} + q)^{${2}}} + \frac{n}{${1} + q}`}.`,
+    t`When the natural guess for a particular solution already solves the homogeneous equation, multiply it by ${math`n`}.`,
   ],
   reference: '(q/(1 + q))^2 (-q)^(n - 1) + q/(1 + q)^2 + n/(1 + q)',
   verify: () => {
@@ -273,6 +274,12 @@ const frog = auto({
   },
   misconceptions: [{ response: 'n/(1 + q)', why: t`That is only the particular solution, the large-${math`n`} approximation. The constants ${math`A`} and ${math`B`} fit the first values exactly.` }],
   official: { source: cite(S3S, 'Q1(iii)'), answer: '(q/(1 + q))^2 (-q)^(n - 1) + q/(1 + q)^2 + n/(1 + q)', agrees: true },
+  nudge: t`Not quite. Checking the formula against ${math`u_{${1}}`}, ${math`u_{${2}}`}, and ${math`u_{${3}}`} shows which constant is off.`,
+  hints: [
+    t`Using ${math`p = ${1} - q`}, what are the roots of the auxiliary equation ${math`\lambda^{${2}} - p\lambda - q = ${0}`}?`,
+    t`Since ${1} is a root, why does the constant term need a particular solution ${math`Cn`}, and what is ${math`C`}?`,
+    t`Which equations do the given values of ${math`u_{n}`} give for ${math`A`} and ${math`B`}?`,
+  ],
 });
 
 const P_DOM = { p: { kind: 'real' as const, min: 0.01, max: 0.49 } };
@@ -285,6 +292,7 @@ const slotLimit = auto({
   solution: [
     t`In ${math`u_{n} = \frac{${1} + (-${1})^{n - ${1}}\left(\frac{${1}}{${2}} - p\right)^{n}}{${3} - ${2}p}`}, the power tends to ${0} because ${math`${0} < \frac{${1}}{${2}} - p < \frac{${1}}{${2}}`}.`,
     t`So ${math`u_{n} \to \frac{${1}}{${3} - ${2}p}`}, the fixed point of the recurrence: the long-run fraction of turns won. With ${math`p = \frac{${1}}{${2}}`} it would be ${q(1, 2)}, as for a fair machine.`,
+    t`A convergent first-order recurrence tends to its fixed point.`,
   ],
   reference: '1/(3 - 2p)',
   verify: () => {
@@ -295,6 +303,12 @@ const slotLimit = auto({
     return null;
   },
   misconceptions: [{ response: '1/2', why: t`After a win the chance drops to ${math`p`}, so in the long run the machine pays out less than half the time.` }],
+  nudge: t`Not quite. The limit is a fixed point of the recurrence, so the full closed form is not needed.`,
+  hints: [
+    t`Conditioning on the result of turn ${math`n - ${1}`}, what recurrence links ${math`u_{n}`} and ${math`u_{n - ${1}}`}?`,
+    t`If ${math`u_{n}`} tends to a limit ${math`L`}, what equation must ${math`L`} satisfy?`,
+    t`Why does ${math`u_{n} - L`} shrink at each step when ${math`${0} < \frac{${1}}{${2}} - p < \frac{${1}}{${2}}`}?`,
+  ],
 });
 
 const frogExplain = supervision({
@@ -304,13 +318,23 @@ const frogExplain = supervision({
   prompt: t`From the closed form, show that for large ${math`n`}, ${math`u_{n} \approx \frac{n}{p + ${2}q}`}, and explain carefully why this result is to be expected, using the expected length of one jump.`,
   writeUp: 'explanation',
   official: cite(S3S, 'Q1(iii)'),
+  hints: [
+    t`In the closed form, which terms stay bounded as ${math`n`} grows, and which grows?`,
+    t`Using ${math`p + q = ${1}`}, how does ${math`\frac{${1}}{${1} + q}`} compare with ${math`\frac{${1}}{p + ${2}q}`}?`,
+    t`What is the expected length of one jump, and so about how many jumps cover a distance of about ${math`n`}?`,
+  ],
 });
 const slotDerive = supervision({
   id: 'sheet3-q11-derive',
   source: cite(SH3, 'Q11'),
   title: t`Derive the slot machine's equation`,
-  prompt: t`Show that, for ${math`n > ${1}`}, ${math`u_{n} + \left(\frac{${1}}{${2}} - p\right)u_{n - ${1}} = \frac{${1}}{${2}}`}, and that it also holds for ${math`n = ${1}`} if ${math`u_{${0}} = ${0}`}. Which event do you condition on?`,
+  prompt: t`Show that, for ${math`n > ${1}`}, ${math`u_{n} + \left(\frac{${1}}{${2}} - p\right)u_{n - ${1}} = \frac{${1}}{${2}}`}, and that it also holds for ${math`n = ${1}`} if ${math`u_{${0}} = ${0}`}. State which event is conditioned on.`,
   writeUp: 'proof',
+  hints: [
+    t`Which two outcomes of turn ${math`n - ${1}`} decide the chance of winning at turn ${math`n`}?`,
+    t`What is the probability of winning at turn ${math`n`} given a win at turn ${math`n - ${1}`}, and given a loss?`,
+    t`What is the chance of winning the first turn, and does it agree with the equation when ${math`u_{${0}} = ${0}`}?`,
+  ],
 });
 const theory = supervision({
   id: 'schedule-difference-equations',
@@ -318,6 +342,11 @@ const theory = supervision({
   title: t`Why the auxiliary equation works`,
   prompt: t`Suppose ${math`\lambda^{${2}} = a\lambda + b`} has distinct roots ${math`\alpha`} and ${math`\beta`}. Prove that every solution of ${math`u_{n + ${1}} = a u_{n} + b u_{n - ${1}}`} is ${math`A\alpha^{n} + B\beta^{n}`} for some constants: show these are solutions, that the constants can match any ${math`u_{${0}}`} and ${math`u_{${1}}`}, and that two values determine the rest. What changes when ${math`\alpha = \beta`}?`,
   writeUp: 'proof',
+  hints: [
+    t`Substituting ${math`u_{n} = \alpha^{n}`}, what does the recurrence reduce to?`,
+    t`Which linear equations must ${math`A`} and ${math`B`} satisfy to match ${math`u_{${0}}`} and ${math`u_{${1}}`}, and why can they be solved when ${math`\alpha \ne \beta`}?`,
+    t`When ${math`\alpha = \beta`}, which second solution besides ${math`\alpha^{n}`} satisfies the recurrence?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

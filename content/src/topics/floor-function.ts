@@ -215,6 +215,13 @@ const a3q2iv = auto({
   solution: [
     t`For ${math`${3} \le x < ${4}`}, ${math`[x] = ${3}`}. The graph is four flat steps, at heights ${0}, ${1}, ${2}, ${3}.`,
     t`Each step is a rectangle of width ${1}: the area is ${math`${0} + ${1} + ${2} + ${3} = ${6}`}.`,
+    t`Under a step graph, add the rectangles.`,
+  ],
+  nudge: t`Not quite. Sketch the steps: each is a rectangle of width ${1}.`,
+  hints: [
+    t`What is ${math`[x]`} on each interval ${math`n \le x < n + ${1}`}, for ${math`n = ${0}, ${1}, ${2}, ${3}`}?`,
+    t`What shape lies under each step, and what are its width and height?`,
+    t`What do the four areas add to?`,
   ],
   reference: '6',
   verify: () => (Math.abs(riemann(Math.floor, 4) - 6) < 1e-6 ? same('rectangles', str(areaRect(q(4))), '6') : 'the Riemann sum is not 6'),
@@ -232,6 +239,13 @@ const a3q2v = auto({
     t`On ${math`${0} \le x < ${1}`}, ${math`y = ${0}`}. On ${math`${1} \le x < ${2}`}, ${math`y = x`}: a trapezium from height ${1} to ${2}, area ${math`\frac{${1} + ${2}}{${2}} = ${q(3, 2)}`}.`,
     t`On ${math`${2} \le x < ${3}`}, ${math`y = ${2}x`}: from height ${4} to ${6}, area ${math`\frac{${4} + ${6}}{${2}} = ${5}`}.`,
     t`The total is ${math`${0} + ${q(3, 2)} + ${5} = ${q(13, 2)}`}.`,
+    t`Split at the integers, then find each piece's area.`,
+  ],
+  nudge: t`Not quite. On each unit interval, check whether the graph is flat or slanted before finding the area.`,
+  hints: [
+    t`On each interval ${math`n \le x < n + ${1}`}, which straight line is ${math`y = x[x]`}?`,
+    t`What shape lies under each piece, and what are its heights at the two ends?`,
+    t`What are the three areas, and their total?`,
   ],
   reference: '13/2',
   verify: () => (Math.abs(riemann((x) => x * Math.floor(x), 3) - 6.5) < 1e-6 ? null : 'the Riemann sum is not 13/2'),
@@ -248,6 +262,13 @@ const a3q3ii = auto({
   solution: [
     t`On ${math`r \le x < r + ${1}`}, ${math`${2}^{[x]} = ${2}^{r}`}: a rectangle of width ${1} and height ${math`${2}^{r}`}.`,
     t`So the integral is ${math`${1} + ${2} + ${2}^{${2}} + \cdots + ${2}^{a - ${1}}`}, a geometric series with ratio ${2}: its sum is ${math`\frac{${2}^{a} - ${1}}{${2} - ${1}} = ${2}^{a} - ${1}`}.`,
+    t`A step graph turns an integral into a sum.`,
+  ],
+  nudge: t`Not quite. List the step heights from ${math`x = ${0}`} up to ${math`x = a`}, then add them.`,
+  hints: [
+    t`On ${math`r \le x < r + ${1}`}, what is ${math`${2}^{[x]}`}?`,
+    t`What are the heights of the steps, from the first to the last?`,
+    t`What is the sum of that geometric series?`,
   ],
   reference: '2^a - 1',
   verify: () => {

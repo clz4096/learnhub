@@ -142,11 +142,18 @@ const totdCubes = auto({
   id: 'notes-132-totd-cubes',
   source: cite('cst-dm-notes', 'printed page 132, the Theorem of the Day sheet', true),
   title: t`Rubik's cubes, five at a time`,
-  prompt: t`The Theorem of the Day sheet: a row of ${math`a`} copies of an ${math`a \times a \times a`} cube has ${math`a^{${4}}`} little cubes. Taking them ${5} at a time, how many are left over, for ${math`a = ${3}`}, ${2}, ${4}, and ${5}?`,
+  prompt: t`A row of ${math`a`} copies of an ${math`a \times a \times a`} cube has ${math`a^{${4}}`} little cubes. Find the number left over when they are taken ${5} at a time, for ${math`a = ${3}`}, ${2}, ${4}, and ${5}.`,
   answer: { kind: 'table', cell: 'exact', columns: [t`${math`a`}`, t`left over`], rows: CUBES.map((a) => [t`${a}`, null]), expected: CUBES.map((a) => String(powMod(a, 4, 5))) },
   solution: [
     t`${math`a^{${4}} = a^{${5} - ${1}}`}, so by Fermat's little theorem it leaves ${1} whenever ${5} does not divide ${math`a`}: ${math`${81}`}, ${math`${16}`}, and ${math`${256}`} each leave ${1}.`,
     t`The ${math`${5} \times ${5} \times ${5}`} "Professor's cube" fails the hypothesis: ${math`${5}^{${4}} = ${625}`} leaves ${0}.`,
+    t`${math`a^{p - ${1}} \equiv ${1} \pmod{p}`} needs ${math`p \nmid a`}: check the hypothesis first.`,
+  ],
+  nudge: t`Not quite. Fermat's little theorem gives most of these without computing ${math`a^{${4}}`}.`,
+  hints: [
+    t`Which power appears in Fermat's little theorem for the prime ${5}?`,
+    t`For which of the four values of ${math`a`} does the theorem's hypothesis hold?`,
+    t`What is left over when ${5} divides ${math`a`}?`,
   ],
   reference: CUBES.map((a) => String(powMod(a, 4, 5))),
   verify: () => same('a^4 counted and reduced', CUBES.map((a) => (a ** 4) % 5).join(), '1,1,1,0'),
@@ -173,22 +180,37 @@ const sheet227 = supervision({
   title: t`Exponents modulo ${math`p - ${1}`}`,
   prompt: t`Let ${mi} and ${math`n`} be positive integers and ${mp} a prime. Show that if ${math`n \equiv ${1} \pmod{p - ${1}}`} then ${math`i^{n} \equiv i \pmod{p}`} for all ${mi} not a multiple of ${mp}. Does it hold for multiples of ${mp} too?`,
   writeUp: 'proof',
+  hints: [
+    t`If ${math`n \equiv ${1} \pmod{p - ${1}}`}, how can ${math`n`} be written in terms of ${math`p - ${1}`}?`,
+    t`With ${math`n = ${1} + k(p - ${1})`}, how does ${math`i^{n}`} split into ${mi} times a power of ${math`i^{p - ${1}}`}?`,
+    t`What does Fermat's little theorem make that power, and what happens when ${math`p \mid i`}?`,
+  ],
   official: cite('cst-dm-sols-2324-2', '2.2.7'),
 });
 const sheet229 = supervision({
   id: 'sheet-2-2-9',
   source: cite('cst-dm-sw1', 'Exercises 2, 2.2.9'),
   title: t`${math`n^{${7}} \equiv n \pmod{${42}}`}`,
-  prompt: t`Prove that ${math`n^{${7}} \equiv n \pmod{${42}}`} for all integers ${math`n`}. A case analysis over ${42} remainders is impractical: use Fermat's little theorem modulo ${2}, ${3}, and ${7}, and a lemma combining congruences modulo coprime numbers.`,
+  prompt: t`Prove that ${math`n^{${7}} \equiv n \pmod{${42}}`} for all integers ${math`n`}.`,
   writeUp: 'proof',
+  hints: [
+    t`How does ${42} factorise into primes?`,
+    t`For each prime factor ${mp}, how does Fermat's little theorem in the form ${math`n^{p} \equiv n \pmod{p}`} give ${math`n^{${7}} \equiv n \pmod{p}`}?`,
+    t`Which lemma combines congruences modulo coprime numbers into one modulo their product?`,
+  ],
   official: cite('cst-dm-sols-2324-2', '2.2.9'),
 });
 const sheet328 = supervision({
   id: 'sheet-3-2-8',
   source: cite('cst-dm-sw1', 'Exercises 3, 3.2.8'),
   title: t`${math`n^{${13}} \equiv n \pmod{${10}}`}`,
-  prompt: t`Prove that ${math`n^{${13}} \equiv n \pmod{${10}}`} for all integers ${math`n`}, by showing it modulo ${2} and modulo ${5} with Fermat's little theorem and combining the two.`,
+  prompt: t`Prove that ${math`n^{${13}} \equiv n \pmod{${10}}`} for all integers ${math`n`}.`,
   writeUp: 'proof',
+  hints: [
+    t`How does ${10} factorise, and why are the factors coprime?`,
+    t`Modulo each factor, how does ${math`n^{${13}}`} reduce, using ${math`n^{p} \equiv n`} for the prime ${mp}?`,
+    t`Which result turns the congruences modulo the two factors into one modulo ${10}?`,
+  ],
   official: cite('cst-dm-sols-2324-3', '3.2.8'),
 });
 const dropout = supervision({
@@ -197,6 +219,11 @@ const dropout = supervision({
   title: t`The Dropout Lemmas`,
   prompt: t`Prove the Freshman's Dream, ${math`(m + n)^{p} \equiv m^{p} + n^{p} \pmod{p}`} for a prime ${mp}, from the binomial theorem and Proposition ${29}. Deduce the Dropout Lemma ${math`(m + ${1})^{p} \equiv m^{p} + ${1}`}, and then the Many Dropout Lemma ${math`(m + i)^{p} \equiv m^{p} + i`}, as an explicit induction on ${mi}, which the notes call an "iteration". Why does ${math`m = ${0}`} give Fermat's little theorem?`,
   writeUp: 'proof',
+  hints: [
+    t`Which binomial coefficients ${math`\binom{p}{k}`} are multiples of ${mp}, by Proposition ${29}?`,
+    t`What does the Freshman's Dream give with ${math`n = ${1}`}?`,
+    t`For the induction on ${mi}, how does ${math`(m + i + ${1})^{p}`} follow from ${math`(m + i)^{p}`} and the Dropout Lemma?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson

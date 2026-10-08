@@ -267,13 +267,15 @@ const a12i = workedProof({
   source: cite('step-f12', 'Q1(i)'),
 });
 
-function bopParity(o: { n: number; title: Rich; prompt: Rich; expected: string; vars: string[]; steps: Rich[]; official: string; check: () => string | null; wrong: Misconception[] }) {
+function bopParity(o: { n: number; title: Rich; prompt: Rich; expected: string; vars: string[]; steps: Rich[]; official: string; check: () => string | null; wrong: Misconception[]; hints: Rich[]; nudge: Rich }) {
   return auto({
     id: `bop-4-${o.n}`,
     source: cite('bop', `Chapter 4, exercise ${o.n}`, true),
     title: o.title,
     prompt: o.prompt,
     answer: { kind: 'expression', expected: o.expected, variables: o.vars, domains: Object.fromEntries(o.vars.map((v) => [v, { kind: 'integer' as const, min: -20, max: 20 }])) },
+    hints: o.hints,
+    nudge: o.nudge,
     solution: o.steps,
     reference: o.expected,
     verify: o.check,
@@ -285,7 +287,16 @@ function bopParity(o: { n: number; title: Rich; prompt: Rich; expected: string; 
 const bop41 = bopParity({
   n: 1, title: t`An even number squared`, vars: ['a'], expected: '2a^2', official: '2a^2',
   prompt: t`Prove: if ${math`x`} is an even integer, then ${math`x^{${2}}`} is even. Suppose ${math`x = ${2}a`} for an integer ${math`a`}. Then ${math`x^{${2}} = ${2}b`} for which integer ${math`b`}? Give ${math`b`} in terms of ${math`a`}.`,
-  steps: [t`${math`x^{${2}} = (${2}a)^{${2}} = ${4}a^{${2}} = ${2}(${2}a^{${2}})`}, so ${math`b = ${2}a^{${2}}`}, an integer. So ${math`x^{${2}}`} is even, by the definition of even.`],
+  hints: [
+    t`What is ${math`(${2}a)^{${2}}`} expanded?`,
+    t`Which factor has to be taken out to match the form ${math`${2}b`}?`,
+    t`Is what remains after taking out that factor an integer, and why does that matter?`,
+  ],
+  nudge: t`Not quite. Square first, then write the result as ${2} times an integer.`,
+  steps: [
+    t`${math`x^{${2}} = (${2}a)^{${2}} = ${4}a^{${2}} = ${2}(${2}a^{${2}})`}, so ${math`b = ${2}a^{${2}}`}, an integer. So ${math`x^{${2}}`} is even.`,
+    t`Rewrite the result in the exact form the definition asks for.`,
+  ],
   check: () => {
     for (let a = -10; a <= 10; a++) { const e = same(`a = ${a}`, (2 * a) ** 2, 2 * (2 * a * a)); if (e !== null) return e; }
     return null;
@@ -298,7 +309,14 @@ const bop43 = bopParity({
   steps: [
     t`${math`(${2}c + ${1})^{${2}} + ${3}(${2}c + ${1}) + ${5} = ${4}c^{${2}} + ${4}c + ${1} + ${6}c + ${3} + ${5} = ${4}c^{${2}} + ${10}c + ${9}`}.`,
     t`Split off the ${1}: ${math`${4}c^{${2}} + ${10}c + ${8} + ${1} = ${2}(${2}c^{${2}} + ${5}c + ${4}) + ${1}`}. So ${math`b = ${2}c^{${2}} + ${5}c + ${4}`}, and the expression is odd.`,
+    t`Expand fully, then match the definition of odd.`,
   ],
+  hints: [
+    t`What is ${math`(${2}c + ${1})^{${2}} + ${3}(${2}c + ${1}) + ${5}`} once every bracket is expanded?`,
+    t`How can the constant term be split so that an even part and a single ${1} remain?`,
+    t`After a factor ${2} is taken out of the even part, what is left in the bracket?`,
+  ],
+  nudge: t`Not quite. Expand fully, then split the constant so that exactly one ${1} is left over.`,
   check: () => {
     for (let c = -10; c <= 10; c++) { const a = 2 * c + 1; const e = same(`c = ${c}`, a * a + 3 * a + 5, 2 * (2 * c * c + 5 * c + 4) + 1); if (e !== null) return e; }
     return same('the generator agrees', writeTwoM.at({ a: 3, b: 5, r: 1 }).reference as string, '2k^2 + 5k + 4');
@@ -308,7 +326,16 @@ const bop43 = bopParity({
 const bop45 = bopParity({
   n: 5, title: t`An even factor`, vars: ['a', 'y'], expected: 'ay', official: 'ay',
   prompt: t`Suppose ${math`x, y \in \mathbb{Z}`}. Prove: if ${math`x`} is even, then ${math`xy`} is even. With ${math`x = ${2}a`} for an integer ${math`a`}, ${math`xy = ${2}b`} for which integer ${math`b`}? Give ${math`b`} in terms of ${math`a`} and ${math`y`}.`,
-  steps: [t`${math`xy = (${2}a)y = ${2}(ay)`}, so ${math`b = ay`}, an integer because ${math`a`} and ${math`y`} are. So ${math`xy`} is even.`],
+  hints: [
+    t`What is ${math`xy`} when ${math`x = ${2}a`}?`,
+    t`How can ${math`(${2}a)y`} be regrouped as ${2} times a single product?`,
+    t`Why is that product an integer?`,
+  ],
+  nudge: t`Not quite. Regroup the product so the factor ${2} stands alone.`,
+  steps: [
+    t`${math`xy = (${2}a)y = ${2}(ay)`}, so ${math`b = ay`}, an integer because ${math`a`} and ${math`y`} are. So ${math`xy`} is even.`,
+    t`Regroup until the form in the definition appears.`,
+  ],
   check: () => {
     for (let a = -5; a <= 5; a++) for (let y = -5; y <= 5; y++) { const e = same(`a = ${a}, y = ${y}`, 2 * a * y, 2 * (a * y)); if (e !== null) return e; }
     return null;
@@ -321,6 +348,11 @@ const bop42 = supervision({
   source: cite('bop', 'Chapter 4, exercise 2'),
   title: t`An odd number cubed`,
   prompt: t`Use the method of direct proof to prove: if ${math`x`} is an odd integer, then ${math`x^{${3}}`} is odd.`,
+  hints: [
+    t`What does it mean for ${math`x`} to be odd, written with a letter?`,
+    t`What is ${math`(${2}a + ${1})^{${3}}`} expanded?`,
+    t`Which multiple of ${2} can be split off the expansion so that ${1} is left over?`,
+  ],
   writeUp: 'proof',
 });
 const bop44 = supervision({
@@ -328,6 +360,11 @@ const bop44 = supervision({
   source: cite('bop', 'Chapter 4, exercise 4'),
   title: t`Odd times odd`,
   prompt: t`Suppose ${math`x, y \in \mathbb{Z}`}. Use direct proof to prove: if ${math`x`} and ${math`y`} are odd, then ${math`xy`} is odd. Use different letters in ${math`x = ${2}a + ${1}`} and ${math`y = ${2}b + ${1}`}: why does it matter?`,
+  hints: [
+    t`What does the definition of odd give for ${math`x`}, and separately for ${math`y`}?`,
+    t`What is ${math`(${2}a + ${1})(${2}b + ${1})`} expanded?`,
+    t`How can that expansion be written as ${2} times an integer plus ${1}, and what would go wrong with the same letter for both?`,
+  ],
   writeUp: 'proof',
 });
 
@@ -353,12 +390,19 @@ const ns1q4 = auto({
   id: 'ns1-q4',
   source: cite('ia-ns-sheet-1', 'Q4'),
   title: t`Largest product for a fixed sum`,
-  prompt: t`Suppose that we have some positive integers (not necessarily distinct) whose sum is ${SUM}. How large can their product be? (You may leave powers in your answer. Type powers with a caret, as on a calculator.)`,
+  prompt: t`Suppose that we have some positive integers (not necessarily distinct) whose sum is ${SUM}. How large can their product be? (Powers may be left in the answer; type them with a caret, as on a calculator.)`,
   answer: { kind: 'expression', expected: `2^2 * 3^${THREES}`, variables: [] },
+  hints: [
+    t`If a part ${math`k \ge ${5}`} is split into ${2} and ${math`k - ${2}`}, does the product go up or down?`,
+    t`What does a part equal to ${1} contribute, and how do three ${2}s compare with two ${3}s?`,
+    t`With only ${3}s and at most two ${2}s allowed, how must ${SUM} be split?`,
+  ],
+  nudge: t`Not quite. Rather than trying sums, ask which parts can be split or merged to raise the product.`,
   solution: [
     t`A part ${math`k \ge ${5}`} can be split into ${2} and ${math`k - ${2}`}, with product ${math`${2}(k - ${2}) = ${2}k - ${4} > k`}; so a best choice has no part above ${4}, and a ${4} can be written ${math`${2} + ${2}`} with the same product.`,
     t`A part ${1} only adds to the sum: merging it into another part ${math`a`} gives ${math`a + ${1} > a`}. And three ${2}s can become two ${3}s, with ${math`${3} \times ${3} = ${9} > ${8} = ${2} \times ${2} \times ${2}`}.`,
     t`So the parts are ${3}s with at most two ${2}s. As ${math`${SUM} = ${3} \times ${THREES} + ${4}`}, the best is ${THREES} threes and two twos: ${math`${2}^{${2}} \times ${3}^{${THREES}}`}.`,
+    t`Improve any candidate by a local swap until no swap helps.`,
   ],
   reference: `2^2 * 3^${THREES}`,
   verify: () => same('the best product by dynamic programming', bestProduct(SUM), 4n * 3n ** BigInt(THREES)),

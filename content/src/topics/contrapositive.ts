@@ -191,15 +191,17 @@ const fourStatements = generator<FourP>({
 // ---------------------------------------------------------------- Cambridge problems
 
 /** A contrapositive to choose, checked as open sentences on a grid of integers: the right one agrees with the statement everywhere; the others do not. */
-function bopChoice(o: { n: number; title: Rich; stmt: Rich; options: readonly [Rich, Rich, Rich, Rich]; vars: 1 | 2; P: (a: number, b: number) => boolean; Q: (a: number, b: number) => boolean; steps: Rich[]; official: boolean }): AutoProblem {
+function bopChoice(o: { n: number; title: Rich; stmt: Rich; options: readonly [Rich, Rich, Rich, Rich]; vars: 1 | 2; P: (a: number, b: number) => boolean; Q: (a: number, b: number) => boolean; steps: Rich[]; official: boolean; hints: Rich[] }): AutoProblem {
   const at = `Chapter 5, exercise ${o.n}`;
   const spec: Parameters<typeof auto>[0] = {
     id: `bop-5-${o.n}`,
     source: cite('bop', at, true),
     title: o.title,
-    prompt: t`To prove "${o.stmt}" by contrapositive, which statement do you prove?`,
+    prompt: t`To prove "${o.stmt}" by contrapositive, which statement must be proved?`,
     answer: { kind: 'choice', options: ordered(o.options, 0), correct: 'right' },
-    solution: o.steps,
+    hints: o.hints,
+    nudge: t`Not quite. Negate both parts and swap them; the converse and the inverse each do only one of the two.`,
+    solution: [...o.steps, t`Contrapositive: negate both parts and swap them.`],
     reference: 'right',
     verify: () => {
       // The exercise is a theorem: on a grid of integers the statement and its contrapositive hold everywhere,
@@ -228,6 +230,11 @@ const bop1 = bopChoice({
   stmt: t`if ${math`n^{${2}}`} is even, then ${mn} is even`,
   options: [ifThen(t`${mn} is odd`, t`${math`n^{${2}}`} is odd`), ifThen(t`${mn} is even`, t`${math`n^{${2}}`} is even`), ifThen(t`${math`n^{${2}}`} is odd`, t`${mn} is odd`), t`${math`n^{${2}}`} is even and ${mn} is odd.`],
   P: (n) => even(n * n), Q: (n) => even(n),
+  hints: [
+    t`What are the hypothesis and the conclusion of the statement?`,
+    t`What is the negation of "${mn} is even", and of "${math`n^{${2}}`} is even"?`,
+    t`In the contrapositive, which negated part is assumed?`,
+  ],
   steps: [
     t`Not "${mn} is even" is "${mn} is odd"; not "${math`n^{${2}}`} is even" is "${math`n^{${2}}`} is odd". So prove: if ${mn} is odd, then ${math`n^{${2}}`} is odd.`,
     t`That is easy directly: ${math`n = ${2}a + ${1}`} gives ${math`n^{${2}} = ${2}(${2}a^{${2}} + ${2}a) + ${1}`}, as Book of Proof's solution does.`,
@@ -238,6 +245,11 @@ const bop9 = bopChoice({
   stmt: t`if ${3} does not divide ${math`n^{${2}}`}, then ${3} does not divide ${mn}`,
   options: [ifThen(t`${math`${3} \mid n`}`, t`${math`${3} \mid n^{${2}}`}`), ifThen(t`${math`${3} \nmid n`}`, t`${math`${3} \nmid n^{${2}}`}`), ifThen(t`${math`${3} \mid n^{${2}}`}`, t`${math`${3} \mid n`}`), t`${math`${3} \nmid n^{${2}}`} and ${math`${3} \mid n`}.`],
   P: (n) => mod(n * n, 3) !== 0, Q: (n) => mod(n, 3) !== 0,
+  hints: [
+    t`What are the hypothesis and the conclusion of the statement?`,
+    t`What does negating "${3} does not divide" give?`,
+    t`In the contrapositive, which negated part is assumed?`,
+  ],
   steps: [
     t`The contrapositive: if ${3} divides ${mn}, then ${3} divides ${math`n^{${2}}`}. Both negations remove a "not".`,
     t`Proof, as in Book of Proof's solution: ${math`n = ${3}a`} gives ${math`n^{${2}} = ${3}(${3}a^{${2}})`}.`,
@@ -248,6 +260,11 @@ const bop7 = bopChoice({
   stmt: t`if both ${math`ab`} and ${math`a + b`} are even, then both ${math`a`} and ${math`b`} are even`,
   options: [ifThen(t`${math`a`} or ${math`b`} is odd`, t`${math`ab`} or ${math`a + b`} is odd`), ifThen(t`${math`a`} and ${math`b`} are both even`, t`${math`ab`} and ${math`a + b`} are both even`), ifThen(t`${math`ab`} or ${math`a + b`} is odd`, t`${math`a`} or ${math`b`} is odd`), t`${math`ab`} and ${math`a + b`} are even, and ${math`a`} or ${math`b`} is odd.`],
   P: (a, b) => even(a * b) && even(a + b), Q: (a, b) => even(a) && even(b),
+  hints: [
+    t`What are the hypothesis and the conclusion of the statement?`,
+    t`By De Morgan's law, what is the negation of "both ${math`a`} and ${math`b`} are even"?`,
+    t`In the contrapositive, which negated part is assumed, and which is concluded?`,
+  ],
   steps: [
     t`Not "both ${math`a`} and ${math`b`} even" is "at least one of them is odd", and not "both ${math`ab`} and ${math`a + b`} even" is "one of them is odd", by De Morgan.`,
     t`So prove: if ${math`a`} or ${math`b`} is odd, then ${math`ab`} or ${math`a + b`} is odd. Book of Proof's solution does it in three cases.`,
@@ -282,9 +299,16 @@ const sw112 = auto({
   title: t`If ${math`x^{${2}} + y = ${13}`} and ${math`y \ne ${4}`}`,
   prompt: t`Prove or disprove: if ${math`x^{${2}} + y = ${13}`} and ${math`y \ne ${4}`}, then ${math`x \ne ${3}`}. First decide: true or false?`,
   answer: { kind: 'choice', options: [{ id: 'true', label: t`True` }, { id: 'false', label: t`False` }], correct: 'true' },
+  hints: [
+    t`Which part of the statement is worth taking the contrapositive of, keeping ${math`x^{${2}} + y = ${13}`} as an assumption?`,
+    t`Assuming ${math`x^{${2}} + y = ${13}`} and ${math`x = ${3}`}, what must ${math`y`} be?`,
+    t`Is there then any counterexample?`,
+  ],
+  nudge: t`Not quite. Keep ${math`x^{${2}} + y = ${13}`} as an assumption and see what ${math`x = ${3}`} forces.`,
   solution: [
     t`Prove the contrapositive of the last part, as the official solution does: assume ${math`x^{${2}} + y = ${13}`}; then if ${math`x = ${3}`}, ${math`y = ${13} - ${9} = ${4}`}.`,
     t`So with ${math`y \ne ${4}`}, ${mx} cannot be ${3}. True.`,
+    t`Take the contrapositive of only the part that helps.`,
   ],
   reference: 'true',
   verify: () => {
@@ -302,9 +326,16 @@ const sw118 = auto({
   title: t`${math`mn`} even`,
   prompt: t`Prove or disprove: for all integers ${math`m`} and ${mn}, if ${math`m \cdot n`} is even, then either ${math`m`} is even or ${mn} is even. First decide: true or false?`,
   answer: { kind: 'choice', options: [{ id: 'true', label: t`True` }, { id: 'false', label: t`False` }], correct: 'true' },
+  hints: [
+    t`What is the contrapositive, with De Morgan's law applied to the "or"?`,
+    t`If ${math`m`} and ${mn} are both odd, what is ${math`mn`}?`,
+    t`Can a counterexample exist?`,
+  ],
+  nudge: t`Not quite. Look for a counterexample: ${math`mn`} even with both factors odd.`,
   solution: [
     t`The contrapositive: if ${math`m`} and ${mn} are both odd, then ${math`mn`} is odd. That holds: ${math`(${2}a + ${1})(${2}b + ${1}) = ${2}(${2}ab + a + b) + ${1}`}.`,
     t`So the statement is true. The official solution notes this is Proposition ${8} of the notes, and that the contrapositive turns an "or" goal into an "and" assumption.`,
+    t`The contrapositive turns an "or" goal into an "and" assumption.`,
   ],
   reference: 'true',
   verify: () => {
@@ -330,9 +361,16 @@ const bop25 = auto({
       return (2 ** N25 - 1) % d === 0 ? null : `${d} does not divide ${2 ** N25 - 1}.`;
     },
   },
+  hints: [
+    t`How does ${N25} factor as ${math`ab`} with ${math`a, b > ${1}`}?`,
+    t`For such a factor ${math`b`}, what is ${math`${2}^{b} - ${1}`}?`,
+    t`Does that number divide ${math`${2}^{${N25}} - ${1}`}?`,
+  ],
+  nudge: t`Not quite. Use ${math`${2}^{b} - ${1}`} for a factor ${math`b`} of ${N25}, not ${N25} itself.`,
   solution: [
     t`${math`${N25} = ${3} \times ${5}`}, so ${math`${2}^{${3}} - ${1} = ${7}`} and ${math`${2}^{${5}} - ${1} = ${31}`} both divide ${math`${2}^{${N25}} - ${1}`}: ${math`${2 ** N25 - 1} = ${7} \times ${(2 ** N25 - 1) / 7}`}.`,
     t`The reason: with ${math`x = ${2}^{b}`}, ${math`x^{a} - ${1} = (x - ${1})(x^{a - ${1}} + \cdots + x + ${1})`}. So a composite ${mn} makes ${math`${2}^{n} - ${1}`} composite, which is the contrapositive of the exercise.`,
+    t`A factorisation of the exponent gives a factor of ${math`${2}^{n} - ${1}`}.`,
   ],
   reference: 'd = 7',
   verify: () => {
@@ -351,6 +389,11 @@ const sw112proof = supervision({
   source: cite('cst-dm-sw1', 'Exercises 1, 1.1.2'),
   title: t`A partial contrapositive`,
   prompt: t`Prove: if ${math`x^{${2}} + y = ${13}`} and ${math`y \ne ${4}`}, then ${math`x \ne ${3}`}. The contrapositive of the whole statement would turn the useful assumption ${math`x^{${2}} + y = ${13}`} into a goal. Instead assume only ${math`x^{${2}} + y = ${13}`}, and prove ${math`y \ne ${4} \Rightarrow x \ne ${3}`} by its contrapositive. Explain why this is a valid proof of the original.`,
+  hints: [
+    t`Assuming ${math`x^{${2}} + y = ${13}`}, what is the contrapositive of ${math`y \ne ${4} \Rightarrow x \ne ${3}`}?`,
+    t`If ${math`x = ${3}`}, what does ${math`x^{${2}} + y = ${13}`} force for ${math`y`}?`,
+    t`Why does proving the inner implication under that assumption prove the whole statement?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.1.2'),
 });
@@ -359,6 +402,11 @@ const sw118proof = supervision({
   source: cite('cst-dm-sw1', 'Exercises 1, 1.1.8'),
   title: t`${math`mn`} even means one factor is even`,
   prompt: t`Prove that for all integers ${math`m`} and ${mn}, if ${math`m \cdot n`} is even, then either ${math`m`} is even or ${mn} is even. Use the contrapositive, and say what De Morgan's law does to the "or".`,
+  hints: [
+    t`What is the contrapositive, and what does De Morgan's law do to the "or"?`,
+    t`With ${math`m = ${2}a + ${1}`} and ${math`n = ${2}b + ${1}`}, what is ${math`mn`}?`,
+    t`How is that product written as ${2} times an integer plus ${1}?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.1.8'),
 });
@@ -367,6 +415,11 @@ const corollary41 = supervision({
   source: cite('cst-dm-notes', 'printed page 147, Corollary 41'),
   title: t`Square roots of irrationals`,
   prompt: t`Corollary ${41} of the CST notes: for every positive irrational number ${mx}, the real number ${math`\sqrt{x}`} is irrational. Prove it by contrapositive: state the contrapositive first, then prove it.`,
+  hints: [
+    t`What are the hypothesis and the conclusion, and what is the contrapositive?`,
+    t`If ${math`\sqrt{x}`} is rational, say ${math`\frac{p}{q}`}, what is ${mx}?`,
+    t`Why is that rational, and where is the positivity of ${mx} used?`,
+  ],
   writeUp: 'proof',
 });
 const tmuaK3 = supervision({
@@ -374,6 +427,11 @@ const tmuaK3 = supervision({
   source: cite('tmua-logic-proof', 'Exercise K, questions 1 and 3'),
   title: t`The converse of the contrapositive`,
   prompt: t`What is the converse of the contrapositive of "if ${math`A`} then ${math`B`}"? Is it logically equivalent to "if ${math`A`} then ${math`B`}"? Then take two conditionals from earlier lessons ("if", "only if", "if and only if") and say what their contrapositives state, and why each is equivalent to the original.`,
+  hints: [
+    t`What is the contrapositive of "if ${math`A`} then ${math`B`}"?`,
+    t`What is the converse of that, and how does it compare with the converse of the original?`,
+    t`Is a converse equivalent to the original statement, and which row of a truth table settles it?`,
+  ],
   writeUp: 'explanation',
 });
 
@@ -385,6 +443,11 @@ const sw113 = supervision({
   source: cite('cst-dm-sw1', 'Exercises 1, 1.1.3'),
   title: t`${math`n^{${2}}`} is even if and only if ${math`n`} is even`,
   prompt: t`Prove: for an integer ${math`n`}, ${math`n^{${2}}`} is even if and only if ${math`n`} is even. Write the two directions separately, each starting with what it assumes.`,
+  hints: [
+    t`Which two implications make up "if and only if"?`,
+    t`For ${mn} even implies ${math`n^{${2}}`} even, what does ${math`n = ${2}a`} give?`,
+    t`For the other direction, why is the contrapositive easier, and what does ${math`n = ${2}a + ${1}`} give?`,
+  ],
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-1', '1.1.3'),
 });
