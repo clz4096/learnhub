@@ -525,14 +525,15 @@ export const algebraicManipulation: TopicContent = {
   cambridge: withUses([a7Three, a7Quart, a12FracA, a12FracB, tmuaQ, a7Show, a7ShowCubic, a7ShowGeneral], {
     'a7-q3-show': { sections: ['Expressions and identities'], note: t`Substituting into an identity for a polynomial of any degree`, needs: ['alg.polynomials'] },
     'a7-q3': { sections: ['Expressions and identities', 'Factorising'], note: t`Finding the integer roots of a quartic from its coefficients`, needs: ['alg.polynomials'] },
-    'a7-q2-iv': { sections: ['Expressions and identities', 'Factorising'], note: t`Substituting chosen values into an identity` },
-    'a7-q2-i-ii': { sections: ['Expressions and identities', 'Factorising'], note: t`Comparing coefficients and substituting into an identity` },
+    'a7-q2-iv': { sections: ['Expressions and identities', 'Factorising'], note: t`Substituting chosen values into an identity`, needs: ['proof.direct'] },
+    'a7-q2-i-ii': { sections: ['Expressions and identities', 'Factorising'], note: t`Comparing coefficients and substituting into an identity`, needs: ['proof.direct'] },
     'a7-q2-v': { sections: ['Expressions and identities', 'Factorising'], note: t`Using an identity to pin down three integer roots` },
     'a12-q2-i-b': { sections: ['Algebraic fractions'], note: t`Multiplying and adding algebraic fractions and cancelling common factors` },
   }),
   // A7 Q2 and A12 Q2 need only this lesson. A7 Q3 (a polynomial of any degree, then a quartic) needs
-  // alg.polynomials, so it is practice here; alg.roots-coefficients gates on it.
-  gate: ['a7-q2-iv', 'a7-q2-i-ii', 'a7-q2-v', 'a12-q2-i-b'],
+  // alg.polynomials, so it is practice here; alg.roots-coefficients gates on it. A7 Q2(i), (ii), and (iv)
+  // are written proofs, which proof.direct teaches later in the book, so they are practice (2026-10-08).
+  gate: ['a7-q2-v', 'a12-q2-i-b'],
   recall: [
     { front: t`What is the difference between an identity and an equation?`, back: t`An identity ${math`A \equiv B`} holds for every value of the letters; an equation ${math`A = B`} holds only for some, which you solve for.` },
     { front: t`Expand ${math`(a + b)(c + d)`}.`, back: t`${math`ac + ad + bc + bd`}: every term of one bracket times every term of the other.` },

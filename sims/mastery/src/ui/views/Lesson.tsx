@@ -20,17 +20,17 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import {
-  answerText, citationText, formalNumbers, grade, hasContent, lessonSections, plain, readAnswer, type Block, type CambridgeProblem, type MasteryRule, type QuickCheck,
-  type SupervisionProblem, type TopicContent, type WorkedExample, type Why,
+  answerText, citationText, FIRST_PROOF_TOPIC, formalNumbers, grade, hasContent, isProofWriteUp, lessonSections, plain, readAnswer, type Block, type CambridgeProblem,
+  type MasteryRule, type QuickCheck, type SupervisionProblem, type TopicContent, type WorkedExample, type Why,
 } from '@learnhub/content';
 import { placeOf } from '@learnhub/content/book';
 import { GATE_PASS_MARK } from '@learnhub/mastery';
 import { journeyOf } from '@/model/book';
 import { lessonOutline, outlineIndex, type OutlineEntry } from '@/model/lessonOutline';
 import { LEVEL_NAMES, sourceLinks, titleOf, topicOf } from '@/model/courses';
-import { drillItemId, masteryOf, recordCambridgeAnswer, recordDrill, waitingCopies } from '@/model/learner';
+import { drillItemId, masteryOf, proofLessonReached, recommendedNext, recordCambridgeAnswer, recordDrill, waitingCopies } from '@/model/learner';
 import { commit, now, progress } from '@/model/store';
-import { problemKey } from '@/model/supervision';
+import { PROOF_CHECKLIST, problemKey } from '@/model/supervision';
 import { CopyForSupervision, PasteResult } from '@/ui/Supervision';
 import { learnerSynced } from '@/model/learnerChange';
 import { clearPlace, loadPlace, loadWriteUp, placeEntry, savePlace, saveWriteUp, type LessonPlace, type LessonStage } from '@/model/lessonState';
@@ -428,10 +428,38 @@ function TopicLink({ id }: { id: string }) {
 const commas = (items: readonly ComponentChildren[]): ComponentChildren[] => items.flatMap((x, i) => (i === 0 ? [x] : [', ', x]));
 
 /**
+ * What any proof needs, for a problem whose answer is a proof (proof gate audit, 2026-10-08):
+ * the four points of `PROOF_CHECKLIST`, which the supervisor marks against too, and where proof
+ * writing is taught: a link once the learner has reached that lesson, else that it comes later.
+ */
+function ProofNeeds({ topicId }: { topicId: string }) {
+  const reached = proofLessonReached(progress.value, topicId);
+  return (
+    <>
+      <ol class="proof-needs">{PROOF_CHECKLIST.map((x) => <li key={x}>{x}</li>)}</ol>
+      {topicId !== FIRST_PROOF_TOPIC && (reached
+        ? <span class="small">How to write one: <TopicLink id={FIRST_PROOF_TOPIC} />.</span>
+        : <span class="small muted">Writing proofs is taught in {titleOf(FIRST_PROOF_TOPIC)}, which comes later in the course.</span>)}
+    </>
+  );
+}
+
+/**
+ * "Recommended next": earlier topics a supervisor named as the gap behind a mark below the pass
+ * mark on this topic's problems, while they are not mastered (`recommendedNext`).
+ */
+function RecommendedNext({ topicId }: { topicId: string }) {
+  const doc = progress.value;
+  const next = doc === null ? [] : recommendedNext(doc, topicId);
+  if (next.length === 0) return null;
+  return <p class="recommended-next" role="note">Recommended next: {commas(next.map((id) => <TopicLink key={id} id={id} />))}</p>;
+}
+
+/**
  * What a Cambridge problem asks of the learner, above it: the skill it tests, the sections
- * of this lesson it draws on, and the lessons it builds on (the topic's prerequisites in the
- * graph). `onSection` opens a section of the lesson; without it (a problem on its own page)
- * the sections are named, not linked.
+ * of this lesson it draws on, the lessons it builds on (the topic's prerequisites in the
+ * graph), and for a proof, what a proof needs. `onSection` opens a section of the lesson;
+ * without it (a problem on its own page) the sections are named, not linked.
  */
 export function ProblemUsesView({ c, p, onSection }: { c: TopicContent; p: CambridgeProblem; onSection?: (section: number) => void }) {
   const u = p.uses;
@@ -452,6 +480,7 @@ export function ProblemUsesView({ c, p, onSection }: { c: TopicContent; p: Cambr
       <dt>Builds on</dt>
       <dd>{prereqs.length === 0 ? 'Nothing before this lesson' : commas(prereqs.map((id) => <TopicLink key={id} id={id} />))}</dd>
       {u?.needs !== undefined && u.needs.length > 0 && <><dt>Also needs</dt><dd>{commas(u.needs.map((id) => <TopicLink key={id} id={id} />))}</dd></>}
+      {isProofWriteUp(p) && <><dt>A proof needs</dt><dd><ProofNeeds topicId={c.topicId} /></dd></>}
     </dl>
   );
 }
@@ -621,6 +650,7 @@ export function LessonRunner(props: LessonProps) {
         </dl>
       )}
       <p class="lesson-meta">about {c?.minutes ?? t.estMinutes} min</p>
+      <RecommendedNext topicId={topicId} />
       {pos !== undefined && <Outline pos={pos} />}
     </header>
   );

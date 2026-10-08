@@ -403,13 +403,13 @@ export const indices: TopicContent = {
   terms: ['power', 'base', 'index', 'zero-index', 'negative-index', 'fractional-index'],
   cambridge: withUses([sw123verdict, sw123witness, a12Q1iii, ns2q12ii, nstA1], {
     'nst-a1': { sections: ['Powers and the three laws', 'Zero and negative indices', 'Fractional indices'], note: t`Writing every root and power as a power of x, then combining them with all three laws` },
-    'ns2-q12-ii': { sections: ['Powers and the three laws', 'A power minus one'], note: t`Writing a power as a power of a power, then factorising a power minus one` },
+    'ns2-q12-ii': { sections: ['Powers and the three laws', 'A power minus one'], note: t`Writing a power as a power of a power, then factorising a power minus one`, needs: ['proof.direct'] },
     'a12-q1-iii': { sections: ['Powers and the three laws'], note: t`Factorising and arguing about consecutive integers`, needs: ['pre.algebraic-argument'] },
   }),
-  // The IA question: the power of a power law, then the section on a power minus one, find the factor. Assignment 12
-  // Q1(iii) needs parity arguments, taught later, so it is practice; the true or false verdict is dropped, since a guess
-  // passes it half the time.
-  gate: ['ns2-q12-ii', 'nst-a1'],
+  // The NST simplification gates. The IA question (show 2^91 - 1 is not prime) is a written proof, which proof.direct
+  // teaches later in the book, so it is practice (2026-10-08). Assignment 12 Q1(iii) needs parity arguments, taught
+  // later, so it is practice; the true or false verdict is dropped, since a guess passes it half the time.
+  gate: ['nst-a1'],
   recall: [
     { front: t`The three laws of indices.`, back: t`${math`x^{m}x^{n} = x^{m + n}`}, ${math`(x^{m})^{n} = x^{mn}`}, ${math`x^{m}/x^{n} = x^{m - n}`}.` },
     { front: t`What are ${math`x^{${0}}`} and ${math`x^{-n}`}, for ${math`x \ne ${0}`}?`, back: t`${math`x^{${0}} = ${1}`} and ${math`x^{-n} = ${1}/x^{n}`}: the only values that keep the laws true.` },

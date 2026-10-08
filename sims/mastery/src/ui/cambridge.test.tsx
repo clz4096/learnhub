@@ -234,6 +234,34 @@ describe('what a Cambridge problem draws on', () => {
     expect(within(practice).getByRole('link', { name: 'Integration by parts' })).toBeTruthy();
   });
 
+  it('a proof shows what a proof needs, and before the first proof lesson says that lesson comes later', async () => {
+    await open('pre.fractions');
+    const proof = uses('step00-q1-unit');
+    expect(within(proof).getByText('A proof needs')).toBeTruthy();
+    const points = [...proof.querySelectorAll('ol.proof-needs li')].map((li) => li.textContent);
+    expect(points).toEqual([
+      'State the general claim you are proving.',
+      'Argue with letters, not examples: an example checks one case, a proof covers every case.',
+      'Check every condition the question sets, such as distinct, whole number, or positive.',
+      'End by stating what you have proved.',
+    ]);
+    expect(proof.textContent).toMatch(/Writing proofs is taught in Direct proof, which comes later in the course\./);
+    expect(within(proof).getByRole('link', { name: 'Direct proof' })).toBeTruthy();
+    // Moved off the gate by the 2026-10-08 audit: further practice now.
+    expect(document.querySelector('[data-problem="step00-q1-unit"] .citation')?.textContent).not.toMatch(/gate problem/);
+    expect(within(uses('a6-q1-i-value')).queryByText('A proof needs')).toBeNull();
+  });
+
+  it('after the first proof lesson in the book, a proof links to it', async () => {
+    await open('proof.contradiction');
+    const card = [...document.querySelectorAll('[data-problem]')].find((el) => el.querySelector('ol.proof-needs') !== null) as HTMLElement;
+    expect(card).toBeDefined();
+    const block = within(card).getByLabelText('What this problem uses');
+    expect(block.textContent).toMatch(/How to write one: Direct proof\./);
+    const needs = [...block.querySelectorAll('dd')].find((dd) => dd.querySelector('ol.proof-needs') !== null) as HTMLElement;
+    expect(within(needs).getByRole('link', { name: 'Direct proof' }).getAttribute('href')).toMatch(/^#\/learn\/proof\.direct/);
+  });
+
   it('on its own page a problem names the sections without jumping', async () => {
     render(<ProblemView topicId="pre.fractions" problemId="a6-q1-i-value" />);
     const block = await screen.findByLabelText('What this problem uses');

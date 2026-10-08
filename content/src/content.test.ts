@@ -16,7 +16,7 @@ import { answerText, grade, readAnswer, sameAnswer, type Instance } from './prob
 import { computedMath, dmath, exprTex, ident, markedTerms, math, plain, setOf, t, texToPlain, type Rich, type Span } from './rich';
 import { TOPIC_CONTENT } from './topics';
 import { GATE_DOCS, formalNumbers, gateCandidates, lessonSections, proofOrderAnswer, proofOrderSpec, quickCheck, type Block, type TopicContent } from './topic';
-import { CITED_DOCS, citationText, withUses, type Citation } from './cambridge';
+import { CITED_DOCS, FIRST_PROOF_TOPIC, citationText, isProofWriteUp, withUses, type Citation } from './cambridge';
 import { contentFor } from './all';
 import { CONTENT_IDS, TOPIC_LOADERS, catalogProblem, gateOf, hasContent, loadTopicContent } from './index';
 import { BOOK_ORDER } from './book/book';
@@ -659,6 +659,45 @@ describe('what each Cambridge problem draws on', () => {
       }
     }
     expect(misfits).toEqual(GATE_NEEDS_LATER);
+  });
+
+  /**
+   * Topics before FIRST_PROOF_TOPIC whose gate is still a written proof. geom.euclidean-proof
+   * teaches proof in geometry itself and has no Cambridge-standard problem that is not a proof,
+   * so it keeps its proofs until Albert decides (move it after CS-0 Proof, or gate it without one).
+   * Explicit, so a new early proof gate fails here and a fixed one is taken off the list.
+   */
+  const EARLY_PROOF_GATES: ReadonlySet<string> = new Set(['geom.euclidean-proof']);
+
+  it('no gate asks for a written proof before the first proof lesson, unless the topic builds on it', () => {
+    const first = BOOK_ORDER.indexOf(FIRST_PROOF_TOPIC);
+    expect(first).toBeGreaterThan(0);
+    expect(byId.has(FIRST_PROOF_TOPIC)).toBe(true);
+    const early = new Set<string>();
+    for (const c of TOPIC_CONTENT) {
+      const at = BOOK_ORDER.indexOf(c.topicId);
+      if (at < 0 || at >= first || closure(c.topicId).has(FIRST_PROOF_TOPIC)) continue;
+      for (const id of c.gate) {
+        const p = c.cambridge.find((q) => q.id === id);
+        if (p !== undefined && isProofWriteUp(p)) early.add(c.topicId);
+      }
+    }
+    expect(early).toEqual(EARLY_PROOF_GATES);
+  });
+
+  it('a proof moved off an early gate says it needs the first proof lesson', () => {
+    const first = BOOK_ORDER.indexOf(FIRST_PROOF_TOPIC);
+    // The proofs the 2026-10-08 audit moved: each says so, so the learner sees it leans on a later lesson.
+    const moved = ['pre.fractions/step00-q1-unit', 'pre.remainders/ns2-q13', 'sets.indexed/sw-5-3-1', 'logic.quantifiers/sw-1-3-2'];
+    for (const key of moved) {
+      const [topicId, id] = key.split('/') as [string, string];
+      const c = contentFor(topicId) as TopicContent;
+      const p = c.cambridge.find((q) => q.id === id);
+      expect(p !== undefined && isProofWriteUp(p), key).toBe(true);
+      expect(c.gate, key).not.toContain(id);
+      expect(p?.uses?.needs, key).toContain(FIRST_PROOF_TOPIC);
+      expect(BOOK_ORDER.indexOf(topicId)).toBeLessThan(first);
+    }
   });
 
   it('withUses attaches each entry to its problem and rejects an unknown id', () => {

@@ -321,11 +321,13 @@ export const floorFunction: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['floor-function', 'step-function'],
   cambridge: withUses([a3q2iv, a3q2v, a3q3ii, step2004], {
-    'a3-q3': { sections: ['The definition', 'The staircase and its area'], note: t`Areas under step graphs as sums, including a geometric sum` },
+    'a3-q3': { sections: ['The definition', 'The staircase and its area'], note: t`Areas under step graphs as sums, including a geometric sum`, needs: ['proof.direct'] },
     'a3-q3-ii': { sections: ['The staircase and its area'], note: t`The area under a step graph as a geometric sum` },
     'a3-q2-v': { sections: ['The definition', 'The staircase and its area'], note: t`Sketching a product with the floor function and adding the areas piece by piece` },
   }),
-  gate: ['a3-q3', 'a3-q3-ii', 'a3-q2-v'],
+  // 2004 STEP I Q2 in full is a written proof, which proof.direct teaches later in the book, so it is practice
+  // (2026-10-08); its auto-checked part (ii) gates.
+  gate: ['a3-q3-ii', 'a3-q2-v'],
   recall: [
     { front: t`Define ${math`[x]`}.`, back: t`The greatest integer at most ${math`x`}: the integer ${math`n`} with ${math`n \le x < n + ${1}`}.` },
     { front: t`${math`[x + k]`} for an integer ${math`k`}?`, back: t`${math`[x] + k`}.` },

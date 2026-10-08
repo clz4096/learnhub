@@ -389,14 +389,15 @@ export const linearQuadraticInequalities: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inequality', 'critical-value'],
   cambridge: withUses([specQ1, db06q3, specQ1y, a4q2i, a22q3i, nstA5, step2005], {
-    'a1-q3': { sections: ['Quadratic inequalities', 'When a quadratic has no real roots'], note: t`Clearing fractions to reach a quadratic and using the discriminant` },
+    'a1-q3': { sections: ['Quadratic inequalities', 'When a quadratic has no real roots'], note: t`Clearing fractions to reach a quadratic and using the discriminant`, needs: ['proof.direct'] },
     'step06-q3': { sections: ['Quadratic inequalities'], note: t`Conditions for distinct real roots, stated as necessary and sufficient`, needs: ['logic.iff'] },
-    'stepspec-q1-i': { sections: ['Quadratic inequalities', 'When a quadratic has no real roots'], note: t`Treating an equation as a quadratic in one letter and using the discriminant` },
+    'stepspec-q1-i': { sections: ['Quadratic inequalities', 'When a quadratic has no real roots'], note: t`Treating an equation as a quadratic in one letter and using the discriminant`, needs: ['proof.direct'] },
     'stepspec-q1-i-y': { sections: ['Quadratic inequalities', 'When a quadratic has no real roots'], note: t`The discriminant condition for a real solution` },
   }),
-  // Best first: Assignment 1 Q3 (2005 STEP I Q3), the STEP I Specimen Q1(i), then its auto-checked restriction on
-  // y. STEP I 2006 Q3 is framed by necessary and sufficient conditions, taught later, so it is practice.
-  gate: ['a1-q3', 'stepspec-q1-i', 'stepspec-q1-i-y'],
+  // The auto-checked restriction on y from the STEP I Specimen Q1(i) gates. Assignment 1 Q3 (2005 STEP I Q3) and
+  // the Specimen Q1(i) in full are written proofs, which proof.direct teaches later in the book, so they are practice
+  // (2026-10-08). STEP I 2006 Q3 is framed by necessary and sufficient conditions, taught later, so it is practice.
+  gate: ['stepspec-q1-i-y'],
   recall: [
     { front: t`When does multiplying an inequality reverse it?`, back: t`When the multiplier is negative. If you do not know its sign, do not multiply by it.` },
     { front: t`For ${math`a > ${0}`} and roots ${math`\alpha < \beta`}, where is ${math`a(x - \alpha)(x - \beta) < ${0}`}?`, back: t`Strictly between the roots: ${math`\alpha < x < \beta`}.` },

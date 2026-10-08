@@ -196,12 +196,13 @@ const powDigits = (BigInt(2) ** BigInt(POW)).toString();
 const MISSING = [...'0123456789'].filter((d) => !powDigits.includes(d));
 const ns2q13Digit = auto({
   id: 'ns2-q13-missing',
-  source: cite('ia-ns-sheet-2', 'Q13, second part'),
+  // Adapted: the prompt states the digit sum rule (the first part, a written proof), so the gate asks only for remainders.
+  source: cite('ia-ns-sheet-2', 'Q13, second part', true),
   title: t`The missing digit`,
-  prompt: t`The number ${math`${2}^{${POW}}`} has nine distinct digits. Which digit is missing? (Use remainders on division by ${9}, not a calculator.)`,
+  prompt: t`You may use this fact: a whole number and the sum of its digits leave the same remainder on division by ${9}. The number ${math`${2}^{${POW}}`} has nine distinct digits. Which digit is missing? (Use remainders on division by ${9}, not a calculator.)`,
   answer: { kind: 'exact', expected: MISSING[0] as string },
   solution: [
-    t`A number and its digit sum leave the same remainder on division by ${9} (the problem Nines and digit sums). The digits ${0} to ${9} add to ${45}, a multiple of ${9}; leaving out the digit ${math`d`} gives the sum ${math`${45} - d`}.`,
+    t`A number and its digit sum leave the same remainder on division by ${9}, as the question allows (the problem Nines and digit sums proves the multiple-of-${9} case). The digits ${0} to ${9} add to ${45}, a multiple of ${9}; leaving out the digit ${math`d`} gives the sum ${math`${45} - d`}.`,
     t`${math`${2}^{${3}} = ${8}`} leaves remainder ${8}, one less than ${9}. So ${math`${2}^{${6}} = ${8} \times ${8}`} leaves remainder ${1}, and so does every power ${math`${2}^{${6}k}`}. Then ${math`${2}^{${POW}} = ${2}^{${24}} \times ${2}^{${5}}`} leaves the remainder of ${math`${2}^{${5}} = ${32}`}, which is ${32 % 9}.`,
     t`So ${math`${45} - d`} leaves remainder ${32 % 9}: ${math`${45} - d = ${40}`}, since ${math`d`} is between ${0} and ${9}. The missing digit is ${Number(MISSING[0])}. (Indeed ${math`${2}^{${POW}} = ${2 ** POW}`}.)`,
   ],
@@ -278,13 +279,15 @@ export const remainders: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quotient', 'remainder'],
   cambridge: withUses([bananasShow, ns2q13, ns2q13Digit, ns2q12i], {
-    'ns2-q13': { sections: ['Remainders of combinations'], note: t`Comparing a number and its digit sum by their remainders on division by nine` },
-    'a3-q4-i': { sections: ['Division with remainder'], note: t`Writing each division with remainder as an equation and chaining them` },
-    'ns2-q12-i': { sections: ['Remainders of combinations'], note: t`Finding the remainders of large powers to show a sum has a factor` },
+    'ns2-q13': { sections: ['Remainders of combinations'], note: t`Comparing a number and its digit sum by their remainders on division by nine`, needs: ['proof.direct'] },
+    'a3-q4-i': { sections: ['Division with remainder'], note: t`Writing each division with remainder as an equation and chaining them`, needs: ['proof.direct'] },
+    'ns2-q12-i': { sections: ['Remainders of combinations'], note: t`Finding the remainders of large powers to show a sum has a factor`, needs: ['proof.direct'] },
+    'ns2-q13-missing': { sections: ['Remainders of combinations'], note: t`Finding the remainder of a large power on division by nine, then the digit that remainder forces` },
   }),
-  // The digit sum rule first (a remainder argument in general), then the bananas and the sum of
-  // powers; the missing digit is the rule applied, a value a calculator also gives.
-  gate: ['ns2-q13', 'a3-q4-i', 'ns2-q12-i'],
+  // The digit sum rule, the bananas, and the sum of powers are written proofs, which proof.direct teaches later
+  // in the book, so they are practice (2026-10-08). The missing digit gates: the rule is given in its prompt,
+  // so it asks for the remainder of a power, a combination this lesson teaches.
+  gate: ['ns2-q13-missing'],
   recall: [
     { front: t`State division with remainder.`, back: t`For integers ${math`n`} and ${math`d \ge ${1}`} there are unique ${math`q, r`} with ${math`n = dq + r`} and ${math`${0} \le r < d`}.` },
     { front: t`The remainder of ${math`-${7}`} on division by ${3}?`, back: t`${2}, since ${math`-${7} = ${3} \times (-${3}) + ${2}`}.` },

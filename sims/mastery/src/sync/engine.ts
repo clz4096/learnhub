@@ -97,7 +97,7 @@ export interface SyncDeps {
   getLocal: () => Progress | null;
   /** Saves a merged document locally without reporting it as a change of the learner's. */
   apply: (p: Progress) => Promise<void>;
-  /** The app's load-time fix-ups (`finishOpenPlacement`, `withoutSelfReport`). Must be idempotent. */
+  /** The app's load-time fix-ups (`finishOpenPlacement`, `withoutSelfReport`, `withoutStaleLapses`). Must be idempotent. */
   normalize: (p: Progress) => Progress;
   knownTopicIds: readonly string[];
   /** The page the sign-in link returns to. */

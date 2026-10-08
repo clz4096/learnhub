@@ -430,11 +430,12 @@ export const nestedQuantifiers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['dependent-witness'],
   cambridge: withUses([tmuaN, bop27_9, bop27_10, bop29_7, bop29_5, s1s2, bop29_13, lp12, lp12Why], {
-    'lp-ex-12-why': { sections: ['Who chooses first', 'From words to symbols'], note: t`Checking reflexive, symmetric, and transitive axioms, with a counterexample for each failure` },
+    'lp-ex-12-why': { sections: ['Who chooses first', 'From words to symbols'], note: t`Checking reflexive, symmetric, and transitive axioms, with a counterexample for each failure`, needs: ['proof.direct'] },
     'lp-ex-12': { sections: ['Who chooses first', 'From words to symbols'], note: t`Checking which axioms hold for each relation` },
   }),
-  // Logic and Proof Exercise 12: nested quantifiers in the axioms, checked on six interpretations.
-  gate: ['lp-ex-12-why', 'lp-ex-12'],
+  // Logic and Proof Exercise 12: nested quantifiers in the axioms, checked on six interpretations. Its written
+  // justification is a proof, which proof.direct teaches later in the book, so it is practice (2026-10-08).
+  gate: ['lp-ex-12'],
   recall: [
     { front: t`What may the witness depend on in ${math`\forall x\ \exists y.\ P(x, y)`}?`, back: t`On ${mx}: ${my} is chosen after ${mx}.` },
     { front: t`Which implies which: ${math`\exists y\ \forall x`} or ${math`\forall x\ \exists y`}?`, back: t`${math`\exists y\ \forall x.\ P \implies \forall x\ \exists y.\ P`}; not conversely.` },

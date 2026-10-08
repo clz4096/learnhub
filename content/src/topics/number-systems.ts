@@ -481,14 +481,15 @@ export const numberSystems: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['natural-number', 'integer', 'rational-number', 'closed', 'additive-inverse'],
   cambridge: withUses([notes174z, notes174q, notes167, sw116, sw325, step08Irrational], {
-    'step08-q1': { sections: ['Three number systems', 'Closure'], note: t`Using closure of the rationals to rule out cases, and one example to break a false claim` },
+    'step08-q1': { sections: ['Three number systems', 'Closure'], note: t`Using closure of the rationals to rule out cases, and one example to break a false claim`, needs: ['proof.direct'] },
     'sw-3-2-5': { sections: ['Three number systems'], note: t`Uniqueness of lowest terms, which needs the greatest common divisor`, needs: ['num.gcd', 'num.euclid-theorem'] },
-    'sw-1-1-6': { sections: ['Three number systems', 'Closure'], note: t`Proving the rationals closed under addition from the definition` },
+    'sw-1-1-6': { sections: ['Three number systems', 'Closure'], note: t`Proving the rationals closed under addition from the definition`, needs: ['proof.direct'] },
+    'notes-167-cancel': { sections: ['Three number systems', 'Inverses'], note: t`Finding the case a cancellation law must exclude` },
   }),
-  // The CST proof of 1.1.6. Exercise 3.2.5 needs the gcd, taught later, so it is practice. The three-way choices
-  // from the notes are guessable, and the cancellation witness is a single step. 2008 STEP I Q1 uses closure
-  // under all four operations.
-  gate: ['sw-1-1-6', 'step08-q1'],
+  // The CST proof of 1.1.6 and 2008 STEP I Q1 need proof writing, which proof.direct teaches later in the book,
+  // so they are practice (2026-10-08). That leaves the cancellation witness, a single step but not a guess; the
+  // three-way choices from the notes are guessable. Exercise 3.2.5 needs the gcd, taught later, so it is practice.
+  gate: ['notes-167-cancel'],
   recall: [
     { front: t`Define a rational number.`, back: t`A real number equal to ${math`\frac{m}{n}`} for some integers ${math`m, n`} with ${math`n \ne ${0}`}.` },
     { front: t`What does "closed under an operation" mean?`, back: t`Combining any two members of the set always gives a member.` },

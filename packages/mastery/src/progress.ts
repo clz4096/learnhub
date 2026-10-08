@@ -160,6 +160,13 @@ export interface SupervisionResult {
   /** Problem keys to redo, at most `SUPERVISION_MAX_REDOS`. */
   redo: string[];
   summary: string;
+  /**
+   * The earlier topic (a graph id, `TOPIC_ID_RE`) whose missing skill caused a mark below
+   * `SUPERVISION_PASS_MARK`, from the result's GAP line: proof writing, for example. Kept only
+   * when that topic was not mastered when the result was imported; the result then does not
+   * count as a lapse on its own topic, and the redo of its problem waits for that topic.
+   */
+  gap?: string;
 }
 
 /** One copy of a problem for supervision, and the result once it is pasted back. */
@@ -338,7 +345,7 @@ export function exportProgress(p: Readonly<Progress>): string {
 
 // Same shape as the graph's topic ids. Also rules out "__proto__" as a memory key, which
 // would otherwise set the record's prototype when copied.
-const TOPIC_ID_RE = /^[a-z][a-z0-9]*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)+$/;
+export const TOPIC_ID_RE = /^[a-z][a-z0-9]*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)+$/;
 // Course ids are kebab case, like `ia-probability`; this also rules out "__proto__".
 const COURSE_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -459,7 +466,7 @@ function checkResult(c: Checker, x: unknown, path: string): SupervisionResult | 
   if (x === null) return null;
   if (!c.need(isObj(x), path, 'an object or null', x)) return null;
   const o = x as Obj;
-  c.extraKeys(o, ['mark', 'weakPoints', 'redo', 'summary'], path);
+  c.extraKeys(o, ['mark', 'weakPoints', 'redo', 'summary', 'gap'], path);
   const weak = Array.isArray(o.weakPoints) ? (o.weakPoints as unknown[]) : null;
   const redo = Array.isArray(o.redo) ? (o.redo as unknown[]) : null;
   const ok = [
@@ -469,9 +476,12 @@ function checkResult(c: Checker, x: unknown, path: string): SupervisionResult | 
     c.need(redo !== null && redo.length <= SUPERVISION_MAX_REDOS, `${path}.redo`, `an array of at most ${SUPERVISION_MAX_REDOS} problem ids`, o.redo)
       && (redo as unknown[]).map((r, i) => checkProblemKey(c, r, `${path}.redo[${i}]`)).every(Boolean),
     c.need(oneLine(o.summary, MAX_SUMMARY), `${path}.summary`, `one line of at most ${MAX_SUMMARY} characters`, o.summary),
+    o.gap === undefined || c.need(typeof o.gap === 'string' && TOPIC_ID_RE.test(o.gap) && o.gap.length <= 200, `${path}.gap`, 'a topic id like "proof.direct"', o.gap),
   ].every(Boolean);
   if (!ok) return null;
-  return { mark: o.mark as number, weakPoints: [...(weak as string[])], redo: [...(redo as string[])], summary: o.summary as string };
+  const result: SupervisionResult = { mark: o.mark as number, weakPoints: [...(weak as string[])], redo: [...(redo as string[])], summary: o.summary as string };
+  if (o.gap !== undefined) result.gap = o.gap as string;
+  return result;
 }
 
 const ITEM_KEYS = ['id', 'seed', 'ms', 'hints', 'attempt'] as const;

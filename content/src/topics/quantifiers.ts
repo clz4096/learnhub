@@ -428,13 +428,15 @@ export const quantifiers: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quantifier', 'witness', 'counterexample'],
   cambridge: withUses([tmuaM, bop271, prop21k, prop22, prop18, sw132, sw1210], {
-    'sw-1-3-2': { sections: ['For all and there exists', 'Using quantified statements'], note: t`Moving a "there exists" across an arrow, both directions` },
+    'sw-1-3-2': { sections: ['For all and there exists', 'Using quantified statements'], note: t`Moving a "there exists" across an arrow, both directions`, needs: ['proof.direct'] },
     'notes-72-prop18': { sections: ['A first proof of each', 'Using quantified statements'], note: t`Proving and using a "for all" about congruences`, needs: ['num.divisibility'] },
-    'sw-1-2-10': { sections: ['For all and there exists', 'A first proof of each', 'Two traps'], note: t`Proving and refuting statements about every number up to a bound` },
+    'sw-1-2-10': { sections: ['For all and there exists', 'A first proof of each', 'Two traps'], note: t`Proving and refuting statements about every number up to a bound`, needs: ['proof.direct'] },
+    'notes-93-prop21': { sections: ['For all and there exists', 'A first proof of each'], note: t`Giving a witness for one case of a "for all, there exists" statement` },
   }),
-  // The supervision proofs. Proposition 18 needs divisibility and congruences, taught later, so it is practice.
-  // The Proposition 21 and 22 witnesses are lookups, so they do not gate.
-  gate: ['sw-1-3-2', 'sw-1-2-10'],
+  // The supervision proofs need proof writing, which proof.direct teaches later in the book, so they are practice
+  // (2026-10-08). Proposition 21's witness for k = 13 gates: it asks for a pair, and the misconception catches the
+  // near miss. Proposition 22's is a lookup. Proposition 18 needs divisibility and congruences, taught later.
+  gate: ['notes-93-prop21'],
   recall: [
     { front: t`When is ${math`\forall x \in S.\ P(x)`} true?`, back: t`When ${math`P(a)`} is true for every ${math`a \in S`}.` },
     { front: t`When is ${math`\exists x \in S.\ P(x)`} true?`, back: t`When ${math`P(a)`} is true for at least one ${math`a \in S`}.` },

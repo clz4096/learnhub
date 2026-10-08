@@ -15,7 +15,7 @@ import type { Progress, SessionTask } from '@learnhub/mastery';
 import type { Fillable } from './day';
 import { titleOf } from './courses';
 import { catalogTitle } from './supervision';
-import { completeLesson, completeQuiz, completeReview, ensureSession, localDay, planMore, topicOfKey } from './learner';
+import { completeLesson, completeQuiz, completeReview, ensureSession, localDay, planMore, redoWaitsFor, topicOfKey } from './learner';
 import { MIXED_MINUTES, mixedReady } from './mixedReview';
 import type { Route } from './route';
 
@@ -114,7 +114,8 @@ export function dayItems(p: Progress, now: number, budget = 0, mixedDone = false
   const dayStart = new Date(`${today}T00:00`).getTime();
   const dayEnd = new Date(`${localDay(dayStart + 36 * 3600 * 1000)}T00:00`).getTime();
   for (const d of p.redos) {
-    const open = d.doneAt === null && d.due < dayEnd;
+    // A redo waiting for a prerequisite topic (`redoWaitsFor`) is not today's work.
+    const open = d.doneAt === null && d.due < dayEnd && redoWaitsFor(p, d) === undefined;
     const doneToday = d.doneAt !== null && d.doneAt >= dayStart;
     if (!open && !doneToday) continue;
     const topicId = topicOfKey(d.problem);

@@ -23,7 +23,7 @@
  * themselves is out of scope.
  */
 import {
-  answerText, catalogProblem, citationText, MARK, plain,
+  answerText, catalogProblem, citationText, FIRST_PROOF_TOPIC, isProofWriteUp, MARK, plain,
   type AnswerSpec, type CambridgeProblem, type Rich, type TopicContent,
 } from '@learnhub/content';
 import {
@@ -32,7 +32,7 @@ import {
   type Progress, type SupervisionResult,
 } from '@learnhub/mastery';
 import { contentStore } from './content';
-import { titleOf } from './courses';
+import { titleOf, topicOf } from './courses';
 import { RUBRIC_FIELD, formatRubric, parseRubric, rubricLines, rubricTemplate, rubricTotal, type RubricMarks } from './rubric';
 
 export const PACKET_HEADER = 'LEARNHUB SUPERVISION v1';
@@ -169,6 +169,18 @@ export interface PacketInput {
   checked?: CheckedAnswer;
 }
 
+/**
+ * What any proof needs (proof gate audit, 2026-10-08): the four points a learner new to
+ * proof misses, shown above every problem whose answer is a proof and printed in its
+ * supervision block, so the learner writes to them and the supervisor marks against them.
+ */
+export const PROOF_CHECKLIST: readonly string[] = [
+  'State the general claim you are proving.',
+  'Argue with letters, not examples: an example checks one case, a proof covers every case.',
+  'Check every condition the question sets, such as distinct, whole number, or positive.',
+  'End by stating what you have proved.',
+];
+
 /** The supervision instructions, adapted from the Meridian supervisor prompt. Shared with `.claude/commands/supervise.md`. */
 export const SUPERVISOR_RULES: readonly string[] = [
   'You are my Cambridge supervisor for this one problem. (A supervision is a small weekly class, often one to one, where a tutor goes through your written work with you.)',
@@ -177,8 +189,26 @@ export const SUPERVISOR_RULES: readonly string[] = [
   'Where I am stuck or a step is missing, give the smallest hint that unblocks me, then let me continue.',
   'Use plain English. If you use a Cambridge or UK term (for example Tripos, example sheet, first-class), define it in a few words the first time.',
   `When I say I am done, or after about 30 minutes, mark my final work out of ${SUPERVISION_MARK_MAX} as a Cambridge examiner marks a written answer: credit correct reasoning and clear writing, not only the final line. Say in one sentence why that mark. A mark below ${SUPERVISION_PASS_MARK} means the topic comes back for review sooner.`,
-  'Then print the result block below inside a code block, filled in, and nothing after it. Keep every field on one line. Copy PROBLEM and NONCE exactly. For REDO use only ids from the redo list, up to 3, separated by commas, or the word none.',
+  `If the mark is below ${SUPERVISION_PASS_MARK} and the main shortfall is an earlier skill rather than this topic (for example, the algebra is right but the proof writing is not), put that skill's topic id from the gap list on the GAP line. The app then does not count the mark against this topic, holds back the redo of this problem until that topic is mastered, and recommends it next. When this topic's own work is weak, or the mark is ${SUPERVISION_PASS_MARK} or more, write GAP: none.`,
+  'Then print the result block below inside a code block, filled in, and nothing after it. Keep every field on one line. Copy PROBLEM and NONCE exactly. For REDO use only ids from the redo list, up to 3, separated by commas, or the word none. For GAP use only an id from the gap list, or the word none.',
 ];
+
+/** The instructions a proof adds: mark against what a proof needs. */
+export const PROOF_RULE = 'This answer is a proof. Mark it against what a proof needs, below: each point missing costs marks under rigor, completeness, or clarity, however right the algebra.';
+
+/**
+ * The topics a GAP may name for a problem, in order: the first proof lesson for a proof (unless
+ * the problem is in it), the topic's prerequisites in the graph, then the later topics the
+ * problem says it needs (`ProblemUses.needs`). Never the topic itself.
+ */
+export function gapCandidates(topicId: string, problem: CambridgeProblem): string[] {
+  const out = [
+    ...(isProofWriteUp(problem) ? [FIRST_PROOF_TOPIC] : []),
+    ...(topicOf(topicId)?.prereqs ?? []),
+    ...(problem.uses?.needs ?? []),
+  ];
+  return [...new Set(out)].filter((id) => id !== topicId);
+}
 
 /**
  * The result block the supervisor must print, with the fields to fill in shown in angle
@@ -196,6 +226,7 @@ export function resultTemplate(key: string, nonce: string, rubric = false): stri
     'WEAK 2: <my second weakest point, one line>',
     'WEAK 3: <my third weakest point, one line>',
     `REDO: <up to ${SUPERVISION_MAX_REDOS} problem ids from the redo list, separated by commas, or none>`,
+    `GAP: <one topic id from the gap list when the mark is below ${SUPERVISION_PASS_MARK} because of an earlier skill, or none>`,
     'SUMMARY: <one or two sentences on the work as a whole>',
     `${RESULT_END} ${nonce}`,
   ].join('\n');
@@ -235,7 +266,9 @@ export function buildPacket(input: PacketInput): string {
 
   const recent = recentAttempts(input.progress, topicId);
   const writeUpWanted = problem.mode === 'supervision';
+  const proof = isProofWriteUp(problem);
   const redoList = topic.cambridge.map((c) => `${problemKey(topicId, c.id)}: ${plain(c.title)}`);
+  const gapList = gapCandidates(topicId, problem).map((id) => `${id}: ${titleOf(id)}`);
 
   return [
     ...head,
@@ -252,9 +285,13 @@ export function buildPacket(input: PacketInput): string {
     '--- REDO LIST (problems you may set me to redo) ---',
     ...redoList,
     '',
-    '--- INSTRUCTIONS FOR THE SUPERVISOR ---',
-    ...SUPERVISOR_RULES.map((r, i) => `${i + 1}. ${r}`),
+    '--- GAP LIST (earlier topics you may name on the GAP line) ---',
+    ...(gapList.length === 0 ? ['None: write GAP: none.'] : gapList),
     '',
+    '--- INSTRUCTIONS FOR THE SUPERVISOR ---',
+    ...[...SUPERVISOR_RULES, ...(proof ? [PROOF_RULE] : [])].map((r, i) => `${i + 1}. ${r}`),
+    '',
+    ...(proof ? ['--- A PROOF NEEDS ---', ...PROOF_CHECKLIST.map((x, i) => `${i + 1}. ${x}`), ''] : []),
     ...(writeUpWanted ? ['--- MARKING RUBRIC ---', ...rubricLines(), ''] : []),
     '--- RESULT FORMAT ---',
     resultTemplate(input.key, input.nonce, writeUpWanted),
@@ -285,15 +322,16 @@ export function formatResult(r: ParsedResult): string {
     ...(r.rubric === undefined ? [] : [`${RUBRIC_FIELD}: ${formatRubric(r.rubric)}`]),
     ...r.result.weakPoints.map((w, i) => `WEAK ${i + 1}: ${w}`),
     `REDO: ${r.result.redo.length === 0 ? 'none' : r.result.redo.join(', ')}`,
+    `GAP: ${r.result.gap ?? 'none'}`,
     `SUMMARY: ${r.result.summary}`,
     `${RESULT_END} ${r.nonce}`,
   ].join('\n');
 }
 
-const FIELDS = ['PROBLEM', 'NONCE', 'MARK', 'RUBRIC', 'WEAK 1', 'WEAK 2', 'WEAK 3', 'REDO', 'SUMMARY'] as const;
+const FIELDS = ['PROBLEM', 'NONCE', 'MARK', 'RUBRIC', 'WEAK 1', 'WEAK 2', 'WEAK 3', 'REDO', 'GAP', 'SUMMARY'] as const;
 type Field = (typeof FIELDS)[number];
-/** RUBRIC is printed for a written answer only, and a block copied before the rubric has none. */
-const OPTIONAL: ReadonlySet<Field> = new Set(['RUBRIC']);
+/** RUBRIC is printed for a written answer only, and a block copied before the rubric, or before GAP, has neither. */
+const OPTIONAL: ReadonlySet<Field> = new Set(['RUBRIC', 'GAP']);
 /** Fields a terminal may wrap onto several lines; the others are short and must be on one. */
 const WRAPPABLE: ReadonlySet<Field> = new Set(['RUBRIC', 'WEAK 1', 'WEAK 2', 'WEAK 3', 'REDO', 'SUMMARY']);
 const FIELD_LINE = /^([A-Z][A-Z0-9 ]*?)\s*:\s?(.*)$/;
@@ -393,11 +431,22 @@ export function parseResult(text: string): ParseResult {
     }
   }
 
+  // GAP: an earlier topic, by its graph id, behind a mark below the pass mark; none, or absent from an older block.
+  const gapText = (values.get('GAP') ?? 'none').trim();
+  let gap: string | undefined;
+  if (!/^none\.?$/i.test(gapText)) {
+    if (gapText === '' || /^<.*>$/.test(gapText)) return fail('GAP is empty. It should be a topic id from the gap list, or say none.');
+    if (topicOf(gapText) === undefined) return fail(`GAP names "${gapText.slice(0, 60)}", which is not a topic in this app. Use an id from the gap list in the copied block, or none.`);
+    if (gapText === problem.slice(0, problem.indexOf('/'))) return fail('GAP names the problem\'s own topic. GAP is for an earlier skill; for a shortfall in this topic, write GAP: none.');
+    if (mark >= SUPERVISION_PASS_MARK) return fail(`GAP is only for a mark below ${SUPERVISION_PASS_MARK}. With ${mark}/${SUPERVISION_MARK_MAX}, write GAP: none.`);
+    gap = gapText;
+  }
+
   const summary = get('SUMMARY');
   if (summary === '' || /^<.*>$/.test(summary)) return fail('SUMMARY is empty.');
   if (summary.length > MAX_SUMMARY) return fail(`SUMMARY is longer than ${MAX_SUMMARY} characters. Ask Claude to shorten it and print the block again.`);
 
-  const value: ParsedResult = { problem, nonce, result: { mark, weakPoints, redo, summary } };
+  const value: ParsedResult = { problem, nonce, result: gap === undefined ? { mark, weakPoints, redo, summary } : { mark, weakPoints, redo, summary, gap } };
   if (rubric !== undefined) value.rubric = rubric;
   return { ok: true, value };
 }

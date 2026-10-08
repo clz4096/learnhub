@@ -521,12 +521,14 @@ export const subsetsTopic: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['subset', 'power-set'],
   cambridge: withUses([cstPowers, cstPowersProof, cstPartialOrder, b1314, b1413, b1415, b1416, b1418, b1419, b1420, sw523, sw512b], {
-    'sw-5-2-2-proof': { sections: ['In it, or inside it?', 'All the subsets at once', 'Where it breaks'], note: t`Proving or disproving inclusions between power sets` },
-    'sw-5-2-3': { sections: ['In it, or inside it?'], note: t`Proving four statements about inclusion equivalent` },
+    'sw-5-2-2-proof': { sections: ['In it, or inside it?', 'All the subsets at once', 'Where it breaks'], note: t`Proving or disproving inclusions between power sets`, needs: ['proof.direct'] },
+    'sw-5-2-3': { sections: ['In it, or inside it?'], note: t`Proving four statements about inclusion equivalent`, needs: ['proof.direct'] },
+    'sw-5-2-2': { sections: ['In it, or inside it?', 'All the subsets at once'], note: t`Deciding which inclusions between power sets hold for every pair of sets` },
   }),
-  // The CST proofs: power sets, then the four equivalent forms of inclusion. The empty set exercise is
-  // two short vacuous arguments, practice rather than a gate.
-  gate: ['sw-5-2-2-proof', 'sw-5-2-3'],
+  // The verdicts on 5.2.2's five power-set inclusions gate. The CST proofs (power sets, the four equivalent forms
+  // of inclusion) need proof writing, which proof.direct teaches later in the book, so they are practice
+  // (2026-10-08). The empty set exercise is two short vacuous arguments, practice rather than a gate.
+  gate: ['sw-5-2-2'],
   recall: [
     { front: t`Define ${math`A \subseteq B`}.`, back: t`Every element of ${mA} is an element of ${mB}: ${math`\forall x\,(x \in A \implies x \in B)`}.` },
     { front: t`Define the power set ${math`\mathcal{P}(A)`}, and give its size when ${math`|A| = n`}.`, back: t`${math`\mathcal{P}(A) = \{X : X \subseteq A\}`}; it has ${math`${2}^{n}`} elements.` },

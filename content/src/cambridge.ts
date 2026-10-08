@@ -280,6 +280,19 @@ export interface SupervisionProblem extends CambridgeBase {
 
 export type CambridgeProblem = AutoProblem | SupervisionProblem;
 
+/**
+ * The topic that first teaches writing a proof: what a proof is, a general claim argued with
+ * letters, every condition checked, and the conclusion stated. It opens Book of Proof 4 to 7
+ * in CS-0 Proof (book.ts). A problem whose answer is a written proof is not a gate of a topic
+ * the book places before it, unless that topic builds on it (proof gate audit, 2026-10-08).
+ */
+export const FIRST_PROOF_TOPIC = 'proof.direct';
+
+/** Whether the learner's answer to a problem is a written proof (`ANSWER WANTED: a proof` in the supervision block). */
+export function isProofWriteUp(p: CambridgeProblem): boolean {
+  return p.mode === 'supervision' && p.writeUp === 'proof';
+}
+
 export interface AutoSpec {
   id: string;
   source: Citation;

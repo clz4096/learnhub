@@ -12,12 +12,12 @@
  * gets a memory state, is reviewed, and unlocks what builds on it); it is mastered once its
  * Cambridge gate is met as well (`masteryOf`, the engine's gate.ts).
  */
-import { gateOf, hasContent as written } from '@learnhub/content';
+import { FIRST_PROOF_TOPIC, gateOf, hasContent as written } from '@learnhub/content';
 import {
   DAY_MS, SUPERVISION_PASS_MARK, classify, dueTopics, frontier, gateStatus, newProgress, nextAttempt, placedMemory, placementGraph,
-  placementResult, planSession, recordGym, recordLesson, recordLessonFailure, recordReview, topoOrder, withChoices,
-  type GateStatus, type GymCandidate, type HistoryEntry, type ItemData, type MemoryMap, type PlacementGraph, type Progress, type Redo,
-  type SessionPlan, type SessionRecord, type SessionTask, type SupervisionAttempt, type Topic,
+  placementResult, planSession, recordGym, recordLesson, recordLessonFailure, recordReview, replayMemory, sameMemoryState, topoOrder, withChoices,
+  type GateStatus, type GymCandidate, type HistoryEntry, type ItemData, type MemoryMap, type MemoryState, type PlacementGraph, type Progress, type Redo,
+  type SessionPlan, type SessionRecord, type SessionTask, type SupervisionAttempt, type SupervisionResult, type Topic,
 } from '@learnhub/mastery';
 import { BOOK_ORDER } from '@learnhub/content/book';
 import { bookFrontier } from './book';
@@ -343,16 +343,48 @@ export function recordSupervisionCopy(
 }
 
 /**
+ * Whether a supervision result leaves its topic's schedule alone instead of counting as a
+ * missed review (decisions of 2026-10-08). Only a mark below the pass mark can be left out,
+ * and it is when
+ * - it names a prerequisite gap (`SupervisionResult.gap`): the shortfall was an earlier skill,
+ *   such as writing a proof, not this topic; or
+ * - its problem is not one of the topic's gate problems (`gateOf`): further practice may lean
+ *   on later lessons (proof writing, for the proofs the 2026-10-08 audit moved off early
+ *   gates), so missing it is not evidence that this topic slipped. A pass still counts.
+ * The same rule decides at import (`importSupervisionResult`) and when the schedule is rebuilt
+ * from the history (`withoutStaleLapses`), so the two always agree.
+ */
+export function lapseExcluded(problem: string, r: Readonly<SupervisionResult>): boolean {
+  if (r.mark >= SUPERVISION_PASS_MARK) return false;
+  if (r.gap !== undefined) return true;
+  return !gateOf(topicOfKey(problem)).includes(problem.slice(problem.indexOf('/') + 1));
+}
+
+/**
+ * The prerequisite gap a result keeps: its GAP topic when the mark is below the pass mark and
+ * that topic is not mastered now (nor the problem's own topic); otherwise none, and the result
+ * counts as usual.
+ */
+export function effectiveGap(p: Progress, problem: string, r: Readonly<SupervisionResult>): string | undefined {
+  const g = r.gap;
+  if (g === undefined || r.mark >= SUPERVISION_PASS_MARK || g === topicOfKey(problem) || isMastered(p, g)) return undefined;
+  return g;
+}
+
+/**
  * Imports a supervision result that `checkResultFor` accepted. The rules:
- * - The attempt keeps the result and the time it was imported.
+ * - The attempt keeps the result and the time it was imported. A GAP is kept only when it
+ *   applies now (`effectiveGap`).
  * - The mark is a review of the problem's topic: 14 (`SUPERVISION_PASS_MARK`) or more of 20
  *   passes, below fails (`recordReview`, so a miss also brings its strongest prerequisites
- *   due for a check). A topic not learned yet has no review schedule, so its memory is not
+ *   due for a check), unless the miss is left out (`lapseExcluded`): then the schedule is
+ *   unchanged. A topic not learned yet has no review schedule, so its memory is not
  *   changed; the result is still kept and logged.
  * - Open redos of this problem set before the copy was made are closed: this attempt was
  *   the redo.
  * - Each problem in REDO becomes a redo due `REDO_DUE_DAYS` from now, unless it already
- *   has an open redo, which keeps its earlier due time.
+ *   has an open redo, which keeps its earlier due time. A redo of this problem waits for a
+ *   kept GAP topic to be mastered (`redoWaitsFor`).
  * Returns the document unchanged when the attempt is missing or already has a result.
  */
 export function importSupervisionResult(p: Progress, r: ParsedResult, now: number): Progress {
@@ -361,8 +393,12 @@ export function importSupervisionResult(p: Progress, r: ParsedResult, now: numbe
   if (attempt === undefined) return p;
   const topicId = topicOfKey(r.problem);
   const passed = r.result.mark >= SUPERVISION_PASS_MARK;
-  const supervision = p.supervision.map((a, i) => (i === at ? { ...a, result: r.result, importedAt: now } : a));
-  const memory = p.memory[topicId] === undefined ? p.memory : recordReview(p.memory, ALL_TOPICS, topicId, passed, now).memory;
+  const gap = effectiveGap(p, r.problem, r.result);
+  const { gap: _asked, ...rest } = r.result;
+  const result: SupervisionResult = gap === undefined ? rest : { ...rest, gap };
+  const supervision = p.supervision.map((a, i) => (i === at ? { ...a, result, importedAt: now } : a));
+  const counts = !lapseExcluded(r.problem, result);
+  const memory = p.memory[topicId] === undefined || !counts ? p.memory : recordReview(p.memory, ALL_TOPICS, topicId, passed, now).memory;
 
   const redos: Redo[] = p.redos.map((d) => (d.doneAt === null && d.problem === r.problem && d.setAt <= attempt.copiedAt ? { ...d, doneAt: now } : d));
   for (const key of r.result.redo) {
@@ -387,9 +423,52 @@ export function completeRedoByCheck(p: Progress, key: string, now: number): Prog
   return touch({ ...p, redos: p.redos.map((d) => (d.problem === key && d.doneAt === null && d.setAt <= now ? { ...d, doneAt: now } : d)) }, now);
 }
 
-/** Open redos, the soonest due first. */
+/**
+ * The topic a redo waits for: the GAP its result kept, while that topic is not mastered, for a
+ * redo of the supervised problem itself (redoing it before the missing skill is learned would
+ * fail the same way). Undefined when the redo is ready.
+ */
+export function redoWaitsFor(p: Progress, d: Redo): string | undefined {
+  const a = redoSource(p, d);
+  const g = a?.result?.gap;
+  if (a === undefined || g === undefined || a.problem !== d.problem || isMastered(p, g)) return undefined;
+  return g;
+}
+
+/** Open redos that are not waiting for a prerequisite (`redoWaitsFor`), the soonest due first. */
 export function openRedos(p: Progress): Redo[] {
-  return p.redos.filter((d) => d.doneAt === null).sort((a, b) => a.due - b.due || (a.problem < b.problem ? -1 : 1));
+  return p.redos.filter((d) => d.doneAt === null && redoWaitsFor(p, d) === undefined).sort((a, b) => a.due - b.due || (a.problem < b.problem ? -1 : 1));
+}
+
+/**
+ * Whether the learner has reached the first proof lesson (`FIRST_PROOF_TOPIC`), so a proof
+ * problem can link to it: it is learned, or `topicId` comes after it in the book.
+ */
+export function proofLessonReached(p: Progress | null, topicId: string): boolean {
+  if (p !== null && p.memory[FIRST_PROOF_TOPIC] !== undefined) return true;
+  const at = BOOK_ORDER.indexOf(topicId);
+  return at >= 0 && at > BOOK_ORDER.indexOf(FIRST_PROOF_TOPIC);
+}
+
+/** Open redos waiting for a prerequisite topic to be mastered, the soonest due first. */
+export function waitingRedos(p: Progress): Redo[] {
+  return p.redos.filter((d) => d.doneAt === null && redoWaitsFor(p, d) !== undefined).sort((a, b) => a.due - b.due || (a.problem < b.problem ? -1 : 1));
+}
+
+/**
+ * "Recommended next": the prerequisite topics that supervision results named as the gap
+ * (`SupervisionResult.gap`) and that are not mastered yet, in book order, then id. With
+ * `topicId`, only the gaps found on that topic's problems.
+ */
+export function recommendedNext(p: Progress, topicId?: string): string[] {
+  const order = new Map(BOOK_ORDER.map((id, i) => [id, i] as const));
+  const gaps = new Set<string>();
+  for (const a of p.supervision) {
+    const g = a.result?.gap;
+    if (g === undefined || (topicId !== undefined && topicOfKey(a.problem) !== topicId) || isMastered(p, g)) continue;
+    gaps.add(g);
+  }
+  return [...gaps].sort((x, y) => (order.get(x) ?? Infinity) - (order.get(y) ?? Infinity) || (x < y ? -1 : x > y ? 1 : 0));
 }
 
 /** The latest unanswered copy of each problem, newest first: results the learner may still paste. */
@@ -552,4 +631,60 @@ export function withoutSelfReport(p: Progress): { progress: Progress; dropped: s
     },
     dropped,
   };
+}
+
+// ---------------------------------------------------------------- migration: lapses that no longer count
+
+/**
+ * Migration notes, proof gate audit (2026-10-08). The audit moved written proofs off the gates
+ * of topics before the first proof lesson, and since then a supervision result below the pass
+ * mark on a problem that is not a gate, or that names a prerequisite gap, does not count as a
+ * missed review (`lapseExcluded`). A result imported before this build did count: a 12 of 20
+ * on the fractions unit-fraction proof halved the fractions interval and brought the review
+ * back sooner. This takes such lapses back out.
+ *
+ * The schedule is stored, not derived, but every change to it is logged in the history, so it
+ * is rebuilt (`replayMemory`) twice: from every entry, and without the supervision entries the
+ * rule now leaves out (matched to their attempts by topic and import time). Only topics whose
+ * two replays differ are touched: the result's topic, and the prerequisites its miss brought
+ * due for a check. For each:
+ * - stored equals the replay without: already fixed, nothing to do;
+ * - stored equals the replay with every entry: the replay is exact for this topic, so the
+ *   replay without is the schedule as if the result had never counted, and it replaces it;
+ * - otherwise (a placed topic, a graph weight changed since, entries merged in another order):
+ *   the replay is not exact, so the stored state is only lengthened, field by field, towards
+ *   the replay without (the later due date, the longer interval, the more repetitions, the
+ *   fewer lapses), never shortened.
+ * Each case is a fixed point, so applying it again changes nothing: it is idempotent, runs on
+ * every document loaded, imported, or synced, and needs no version bump. History, results,
+ * and redos are kept as they are.
+ */
+export function withoutStaleLapses(p: Progress): Progress {
+  const left = new Set<number>();
+  p.history.forEach((h, i) => {
+    if (h.kind !== 'supervision' || h.correct) return;
+    const a = p.supervision.find((x) => x.importedAt === h.at && x.result !== null && topicOfKey(x.problem) === h.topicId
+      && x.result.mark < SUPERVISION_PASS_MARK);
+    if (a !== undefined && a.result !== null && lapseExcluded(a.problem, a.result)) left.add(i);
+  });
+  if (left.size === 0) return p;
+  const all = replayMemory(p.history, ALL_TOPICS);
+  const without = replayMemory(p.history, ALL_TOPICS, (_h, i) => left.has(i));
+  let memory: Record<string, MemoryState> | null = null;
+  for (const [id, target] of Object.entries(without)) {
+    const full = all[id];
+    const stored = p.memory[id];
+    if (stored === undefined || full === undefined || sameMemoryState(full, target) || sameMemoryState(stored, target)) continue;
+    const next: MemoryState = sameMemoryState(stored, full) ? target : {
+      ...stored,
+      reps: Math.max(stored.reps, target.reps),
+      intervalDays: Math.max(stored.intervalDays, target.intervalDays),
+      due: Math.max(stored.due, target.due),
+      lapses: Math.min(stored.lapses, target.lapses),
+    };
+    if (sameMemoryState(next, stored)) continue;
+    memory ??= { ...p.memory };
+    memory[id] = next;
+  }
+  return memory === null ? p : { ...p, memory };
 }

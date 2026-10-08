@@ -9,6 +9,7 @@ export * from './progress';
 export * from './merge';
 export * from './gate';
 export * from './gym';
+export * from './replay';
 export * from './mixed';
 export * from './idb';
 export * from './grade';

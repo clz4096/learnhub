@@ -388,12 +388,13 @@ export const sequences: TopicContent = {
   terms: ['sequence', 'term', 'term-to-term', 'position-to-term', 'arithmetic-sequence', 'common-difference', 'triangular-number'],
   cambridge: withUses([sw131b, sw131c, sw131d, ns1Q2], {
     'sw-1-3-1-c': { sections: ['Triangular numbers'], note: t`An if and only if proof about triangular numbers and odd squares`, needs: ['pre.algebraic-argument', 'logic.iff'] },
-    'sw-1-3-1-d': { sections: ['Triangular numbers'], note: t`Adding two triangular-number formulas and recognising a square` },
+    'sw-1-3-1-d': { sections: ['Triangular numbers'], note: t`Adding two triangular-number formulas and recognising a square`, needs: ['proof.direct'] },
     'ns1-q2': { sections: ['Sequences and their rules', 'Arithmetic sequences', 'Triangular numbers'], note: t`Finding the nth term when the differences grow, then choosing n to make a factor appear` },
   }),
-  // Consecutive triangular numbers add to a square. 1.3.1(c) is an if and only if proof by parity, taught later,
-  // so it is practice. The formula for the kth triangular number is recall, so it does not gate.
-  gate: ['sw-1-3-1-d', 'ns1-q2'],
+  // The IA nth term gates. 1.3.1(d), consecutive triangular numbers add to a square, is a written proof, which
+  // proof.direct teaches later in the book, so it is practice (2026-10-08). 1.3.1(c) is an if and only if proof by
+  // parity, taught later, so it is practice. The formula for the kth triangular number is recall, so it does not gate.
+  gate: ['ns1-q2'],
   recall: [
     { front: t`Term-to-term rule versus position-to-term rule?`, back: t`Term-to-term gives ${math`u_{n + ${1}}`} from ${math`u_{n}`}; position-to-term gives ${math`u_{n}`} from ${mn}.` },
     { front: t`When is a sequence arithmetic?`, back: t`When ${math`u_{n + ${1}} - u_{n} = d`}, the same ${md}, for every ${mn}.` },

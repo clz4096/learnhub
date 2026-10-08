@@ -4,7 +4,7 @@
  * URL, and the Progress page says only that sync is not set up.
  */
 import { signal } from '@preact/signals';
-import { finishOpenPlacement, withoutSelfReport } from '@/model/learner';
+import { finishOpenPlacement, withoutSelfReport, withoutStaleLapses } from '@/model/learner';
 import { onLearnerChange } from '@/model/learnerChange';
 import { go } from '@/model/route';
 import { KNOWN_IDS, applySynced, keyValueStorage, loadState, now, onLocalChange, progress } from '@/model/store';
@@ -75,7 +75,7 @@ export async function startSync(loaded: Promise<void>, fragment: FragmentResult 
     timers: { set: (f, ms) => setTimeout(f, ms), clear: (h) => clearTimeout(h as ReturnType<typeof setTimeout>) },
     getLocal: () => progress.value,
     apply: applySynced,
-    normalize: (p) => withoutSelfReport(finishOpenPlacement(p, now())).progress,
+    normalize: (p) => withoutStaleLapses(withoutSelfReport(finishOpenPlacement(p, now())).progress),
     knownTopicIds: KNOWN_IDS,
     redirectTo: typeof location === 'undefined' ? '' : pageUrl(),
     onStatus: (s) => { syncStatus.value = s; },

@@ -8,10 +8,11 @@
  * here.
  */
 import { useRef, useState } from 'preact/hooks';
-import { DAY_MS, SUPERVISION_MARK_MAX, SUPERVISION_PASS_MARK, type Progress } from '@learnhub/mastery';
+import { DAY_MS, SUPERVISION_MARK_MAX, SUPERVISION_PASS_MARK, type Progress, type SupervisionResult } from '@learnhub/mastery';
 import { titleOf } from '@/model/courses';
 import {
-  importSupervisionResult, localDay, openRedos, recordSupervisionCopy, redoSource, topicOfKey, waitingCopies,
+  effectiveGap, importSupervisionResult, lapseExcluded, localDay, openRedos, recordSupervisionCopy, redoSource, redoWaitsFor, topicOfKey,
+  waitingCopies, waitingRedos,
 } from '@/model/learner';
 import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
@@ -115,16 +116,24 @@ export function CopyForSupervision({ problemKey, writeUp, checked, describedBy }
   );
 }
 
-/** What an imported result did, in plain words. */
-export function importSummary(before: Readonly<Progress>, key: string, mark: number, redo: readonly string[]): string {
+/** What an imported result did, in plain words: the same rules as `importSupervisionResult`. */
+export function importSummary(before: Readonly<Progress>, key: string, result: Readonly<SupervisionResult>): string {
   const topicId = topicOfKey(key);
+  const { mark, redo } = result;
   const learned = before.memory[topicId] !== undefined;
   const passed = mark >= SUPERVISION_PASS_MARK;
+  const gap = effectiveGap(before, key, result);
+  const kept: SupervisionResult = { ...result };
+  if (gap === undefined) delete kept.gap;
   const parts = [`Imported: ${mark}/${SUPERVISION_MARK_MAX} for ${problemTitle(key)}.`];
-  if (!learned) parts.push(`${titleOf(topicId)} is not learned yet, so its reviews are unchanged.`);
+  if (gap !== undefined) parts.push(`The supervisor found the gap in an earlier skill, ${titleOf(gap)}, so it does not count against ${titleOf(topicId)}. Recommended next: ${titleOf(gap)}.`);
+  else if (!learned) parts.push(`${titleOf(topicId)} is not learned yet, so its reviews are unchanged.`);
   else if (passed) parts.push(`That is ${SUPERVISION_PASS_MARK} or more, so it counts as a passed review of ${titleOf(topicId)}.`);
+  else if (lapseExcluded(key, kept)) parts.push(`It is further practice, not a gate problem, so it does not count against ${titleOf(topicId)}.`);
   else parts.push(`That is below ${SUPERVISION_PASS_MARK}, so it counts as a missed review of ${titleOf(topicId)}, and it comes back sooner.`);
-  if (redo.length > 0) parts.push(`To redo, from tomorrow on Today: ${redo.map(problemTitle).join(', ')}.`);
+  const ready = redo.filter((k) => gap === undefined || k !== key);
+  if (ready.length > 0) parts.push(`To redo, from tomorrow on Today: ${ready.map(problemTitle).join(', ')}.`);
+  if (gap !== undefined && redo.includes(key)) parts.push(`Its redo waits until ${titleOf(gap)} is mastered.`);
   return parts.join(' ');
 }
 
@@ -152,7 +161,7 @@ export function PasteResult({ expected, id }: { expected?: string; id: string })
     setError(null);
     setText('');
     setOpen(false);
-    setDone(`${importSummary(p, r.problem, r.result.mark, r.result.redo)}${r.rubric === undefined ? '' : ` ${rubricSummary(r.rubric)}`}`);
+    setDone(`${importSummary(p, r.problem, r.result)}${r.rubric === undefined ? '' : ` ${rubricSummary(r.rubric)}`}`);
     void commit(importSupervisionResult(p, r, now()));
   };
   return (
@@ -200,11 +209,12 @@ export const problemRoute = (key: string): { view: 'problem'; topicId: string; p
 /** Today's supervision part: redos set by supervisors, copies waiting for a result, and Paste result. */
 export function SupervisionToday({ p }: { p: Progress }) {
   const redos = openRedos(p);
+  const held = waitingRedos(p);
   const waiting = waitingCopies(p);
   // Once Paste result has been offered it stays, so its message survives the import that empties the waiting list.
   const offered = useRef(false);
   if (waiting.length > 0) offered.current = true;
-  if (redos.length === 0 && !offered.current) return null;
+  if (redos.length === 0 && held.length === 0 && !offered.current) return null;
   const t = now();
   return (
     <section class="supervision-today" aria-labelledby="sup-today-title">
@@ -235,6 +245,15 @@ export function SupervisionToday({ p }: { p: Progress }) {
             );
           })}
         </ol>
+      )}
+      {held.length > 0 && (
+        <ul class="small muted sup-held">
+          {held.map((d) => (
+            <li key={`${d.problem}-${d.from}`} data-held={d.problem}>
+              Redo of {problemTitle(d.problem)} waits until you master {titleOf(redoWaitsFor(p, d) as string)}.
+            </li>
+          ))}
+        </ul>
       )}
       {offered.current && (
         <div class="sup-waiting">

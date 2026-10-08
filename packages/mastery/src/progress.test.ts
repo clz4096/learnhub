@@ -110,6 +110,14 @@ describe('export and import', () => {
     expect(r).toEqual({ ok: true, value: p, warnings: [] });
   });
 
+  it('round-trips a result that names a prerequisite gap', () => {
+    const p = sample();
+    const r0 = p.supervision[0]?.result;
+    if (r0 === null || r0 === undefined) throw new Error('the sample has a result');
+    r0.gap = 'proof.direct';
+    expect(importProgress(exportProgress(p))).toEqual({ ok: true, value: p, warnings: [] });
+  });
+
   it('accepts an already parsed object', () => {
     expect(importProgress(JSON.parse(exportProgress(sample()))).ok).toBe(true);
   });
@@ -196,6 +204,8 @@ describe('malformed input never throws and says what is wrong', () => {
     ['weak point over two lines', mutate((d) => { d.supervision[0].result.weakPoints[1] = 'a\nb'; }), /weakPoints\[1\]: expected one line/],
     ['four redos', mutate((d) => { d.supervision[0].result.redo = ['a.b/c', 'a.b/d', 'a.b/e', 'a.b/f']; }), /\.result\.redo: expected an array of at most 3/],
     ['empty summary', mutate((d) => { d.supervision[0].result.summary = ' '; }), /\.result\.summary/],
+    ['gap that is not a topic id', mutate((d) => { d.supervision[0].result.gap = 'Writing proofs'; }), /\.result\.gap: expected a topic id/],
+    ['gap that is a problem key', mutate((d) => { d.supervision[0].result.gap = 'proof.direct/q1'; }), /\.result\.gap: expected a topic id/],
     ['result without import time', mutate((d) => { d.supervision[0].importedAt = null; }), /\$\.supervision\[0\]\.importedAt: expected a time in ms/],
     ['import time without result', mutate((d) => { d.supervision[1].importedAt = 5; }), /\$\.supervision\[1\]\.importedAt: expected null/],
     ['write-up too long', mutate((d) => { d.supervision[1].writeUp = 'x'.repeat(20_001); }), /writeUp: expected text of at most 20000/],

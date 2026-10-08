@@ -137,6 +137,11 @@ dl.objective dd { margin: 0; font: 15px/1.5 var(--serif); color: var(--text); }
 /* What a Cambridge problem draws on: the header's label column, wide enough for "From this lesson", in a smaller face. */
 dl.prob-uses { grid-template-columns: 140px minmax(0, 1fr); margin: 4px 0 10px; }
 dl.prob-uses dd { font-size: 14px; }
+/* What a proof needs (proof gate audit, 2026-10-08): four short points, then where proof writing is taught. */
+dl.prob-uses ol.proof-needs { margin: 0 0 4px; padding-left: 20px; }
+dl.prob-uses ol.proof-needs li { margin: 0; }
+.recommended-next { margin: 6px 0; font-size: 14px; }
+a.ds-recommended { color: var(--ink2); text-decoration: none; }
 .lesson-meta { font: 12px var(--mono); color: var(--mute); margin: 0; }
 .lesson-head { padding-bottom: var(--space-4); border-bottom: 1px solid var(--border); }
 .takeaway { border-top: 1px solid var(--border); padding-top: var(--space-3); margin: var(--space-4) 0 var(--space-3); font-weight: 600; }

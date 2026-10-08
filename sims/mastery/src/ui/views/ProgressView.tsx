@@ -6,7 +6,7 @@
 import { useState } from 'preact/hooks';
 import { MAX_COURSE_WEIGHT, withChoices, type Progress } from '@learnhub/mastery';
 import { ALL_COURSES, closureOf, courseOf, shortName } from '@/model/courses';
-import { MAX_MINUTES, MIN_MINUTES, courseStats, finishOpenPlacement, localDay, withoutSelfReport } from '@/model/learner';
+import { MAX_MINUTES, MIN_MINUTES, courseStats, finishOpenPlacement, localDay, withoutSelfReport, withoutStaleLapses } from '@/model/learner';
 import { go } from '@/model/route';
 import { KNOWN_IDS, commit, erase, now, progress, selfReportWarning } from '@/model/store';
 import { setTheme, theme, type Theme } from '@/model/theme';
@@ -144,7 +144,7 @@ export function ImportFile({ onDone }: { onDone?: () => void }) {
     }
     // A file exported by an earlier build is migrated like a stored document.
     const m = withoutSelfReport(finishOpenPlacement(r.progress, now()));
-    setPending({ doc: m.progress, warnings: m.dropped.length > 0 ? [...r.warnings, selfReportWarning(m.dropped)] : r.warnings, learner: r.learner });
+    setPending({ doc: withoutStaleLapses(m.progress), warnings: m.dropped.length > 0 ? [...r.warnings, selfReportWarning(m.dropped)] : r.warnings, learner: r.learner });
   };
 
   const replace = (): void => {

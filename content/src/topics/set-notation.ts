@@ -607,14 +607,15 @@ export const setNotation: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['set', 'element', 'universal-set', 'union', 'intersection', 'set-difference', 'complement', 'empty-set', 'venn-diagram'],
   cambridge: withUses([bop15a, bop15c, bop15g, bop15i, bop16a, bop16g, bop16b2f, bop17_5, bop17_8, bop17_3, bop17_10, ns1q6, sw516, ns1q13, sw513], {
-    'ns1-q6': { sections: ['The four operations', 'Proving two sets are equal'], note: t`Proving an identity between sets by following an element` },
-    'sw-5-1-6': { sections: ['The four operations', 'Proving two sets are equal'], note: t`Proving complement identities and De Morgan's laws for sets` },
-    'ns1-q13': { sections: ['The four operations', 'Three sets need brackets', 'Proving two sets are equal'], note: t`Expressing the symmetric difference, and proving it associative with a membership table` },
+    'ns1-q6': { sections: ['The four operations', 'Proving two sets are equal'], note: t`Proving an identity between sets by following an element`, needs: ['proof.direct'] },
+    'sw-5-1-6': { sections: ['The four operations', 'Proving two sets are equal'], note: t`Proving complement identities and De Morgan's laws for sets`, needs: ['proof.direct'] },
+    'ns1-q13': { sections: ['The four operations', 'Three sets need brackets', 'Proving two sets are equal'], note: t`Expressing the symmetric difference, and proving it associative with a membership table`, needs: ['proof.direct'] },
+    'sw-5-1-3': { sections: ['Sets and the universal set', 'The four operations'], note: t`Reading two sets from their properties, then deciding membership, an intersection, and a union` },
   }),
-  // Proofs of set identities, element by element: the IA sheet's difference of a union first, then
-  // the CST complement laws and the symmetric difference. The reals and naturals question is
-  // practice in reading set notation.
-  gate: ['ns1-q6', 'sw-5-1-6', 'ns1-q13'],
+  // The proofs of set identities (the IA sheet's difference of a union, the CST complement laws, the symmetric
+  // difference) need proof writing, which proof.direct teaches later in the book, so they are practice
+  // (2026-10-08). The reals and naturals question gates: five verdicts, and a guess passes one time in 32.
+  gate: ['sw-5-1-3'],
   recall: [
     { front: t`Define ${math`A \cup B`}, ${math`A \cap B`}, ${math`A - B`} and ${math`\overline{A}`}.`, back: t`In ${A} or ${B}; in both; in ${A} but not ${B}; in ${U} but not ${A}.` },
     { front: t`State the counting rule for a union of two sets.`, back: t`${math`\lvert A \cup B \rvert = \lvert A \rvert + \lvert B \rvert - \lvert A \cap B \rvert`}.` },

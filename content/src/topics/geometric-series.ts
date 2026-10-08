@@ -306,12 +306,13 @@ export const geometricSeries: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['geometric-series', 'common-ratio'],
   cambridge: withUses([sw421b, bop105, sw421aProof, sw421bProof], {
-    'sw-4-2-1-b-proof': { sections: ['A factorisation in disguise'], note: t`Reading the series formula backwards as a factorisation` },
-    'sw-4-2-1-a-proof': { sections: ['The formula', 'A factorisation in disguise'], note: t`Proving the series identity by multiplying and cancelling` },
+    'sw-4-2-1-b-proof': { sections: ['A factorisation in disguise'], note: t`Reading the series formula backwards as a factorisation`, needs: ['proof.direct'] },
+    'sw-4-2-1-a-proof': { sections: ['The formula', 'A factorisation in disguise'], note: t`Proving the series identity by multiplying and cancelling`, needs: ['proof.direct'] },
+    'sw-4-2-1-b': { sections: ['A factorisation in disguise'], note: t`Splitting the exponent and reading the series formula backwards as a factorisation` },
   }),
-  // The two proofs of 4.2.1, (b) first since it needs (a) and care with k equal to 1.
-  // The numerical divisor of 2 to the 15 minus 1 is one application, left out.
-  gate: ['sw-4-2-1-b-proof', 'sw-4-2-1-a-proof'],
+  // The two proofs of 4.2.1 need proof writing, which proof.direct teaches later in the book, so they are
+  // practice (2026-10-08). The divisor of 2 to the 15 minus 1, the factorisation applied, gates.
+  gate: ['sw-4-2-1-b'],
   recall: [
     { front: t`Sum of a finite geometric series, ${math`r \neq ${1}`}?`, back: t`${math`a + ar + \cdots + ar^{n - ${1}} = \frac{a(${1} - r^{n})}{${1} - r}`}.` },
     { front: t`The idea of the proof?`, back: t`Multiply the sum by ${mr} and subtract: all but the end terms cancel.` },

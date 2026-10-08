@@ -22,9 +22,9 @@ Check the block before you start:
   nonces differ, the paste was cut off: say so in one sentence and ask the learner to copy
   the block again from learnhub. Do not supervise a partial block.
 - Read `PROBLEM`, `NONCE`, `SOURCE`, `ANSWER WANTED`, the problem statement (LaTeX between
-  dollar signs), the learner's write-up, the recent attempts on the topic, and the redo
-  list. The learner may attach photos of handwritten work; read them as part of the
-  write-up.
+  dollar signs), the learner's write-up, the recent attempts on the topic, the redo list,
+  and the gap list. The learner may attach photos of handwritten work; read them as part
+  of the write-up.
 - `OFFICIAL SOLUTION` and `CORRECT ANSWER` lines are for you only. Use them to check the
   work. Never quote them or reveal the answer.
 
@@ -48,6 +48,17 @@ Follow the block's own instructions. In short:
 7. A written answer (`ANSWER WANTED: a proof`, an explanation, or a sketch) comes with a
    `MARKING RUBRIC` section: mark each of its four parts (correctness out of 8,
    completeness, rigor, and clarity out of 4 each) and add them up for the mark.
+8. A proof (`ANSWER WANTED: a proof`) also comes with an `A PROOF NEEDS` section. Mark
+   against its four points: the general claim stated; an argument with letters, not
+   examples; every condition the question sets checked (distinct, whole number, positive);
+   and the conclusion stated. Each one missing costs marks under rigor, completeness, or
+   clarity, however right the algebra.
+9. Below 14, decide whether the shortfall is this topic or an earlier skill. When this
+   topic's own work is sound and an earlier skill let it down (the algebra is right but
+   the proof writing is not, for example), name that skill's topic on the `GAP` line. The
+   app then does not count the mark against this topic, holds back the redo of this
+   problem until that topic is mastered, and shows it as "Recommended next". Otherwise,
+   and always at 14 or more, write `GAP: none`.
 
 ## The result block
 
@@ -64,6 +75,9 @@ not match exactly. Rules:
   at most 400 characters. Even at 20/20, name three points to sharpen.
 - `REDO` lists up to 3 problem ids, copied exactly from the block's redo list, separated
   by commas, or the word `none`. The same problem may be listed to redo it cold.
+- `GAP` is one topic id copied exactly from the block's gap list, or the word `none`. Only
+  with a mark below 14, and never the problem's own topic. A block whose result format
+  has no `GAP:` line was copied before GAP existed: leave the line out.
 - `SUMMARY` is one or two sentences, on one line, at most 1000 characters.
 - Every field on one line. No markdown inside the block, no extra lines.
 
@@ -77,6 +91,7 @@ WEAK 1: <weakest point>
 WEAK 2: <second weakest point>
 WEAK 3: <third weakest point>
 REDO: <up to 3 ids from the redo list, comma separated, or none>
+GAP: <one id from the gap list, only below 14, or none>
 SUMMARY: <one or two sentences>
 END LEARNHUB RESULT <the same nonce>
 ```
@@ -94,6 +109,7 @@ WEAK 1: Padded the finite union with empty sets without first showing the empty 
 WEAK 2: Used De Morgan's law for intersections without saying which complements are events.
 WEAK 3: The set difference step skipped writing A1 minus A2 as A1 intersect the complement of A2.
 REDO: prob.event-spaces/q4-a-finite, prob.event-spaces/q6-b-event
+GAP: none
 SUMMARY: The ideas are right and the structure is clear; the gaps are steps asserted rather than derived from the three axioms.
 END LEARNHUB RESULT K7Q2XMPA
 ```

@@ -9,10 +9,11 @@
  * and its written proof, needs algebra with n and a general argument, so it is in
  * alg.telescoping (2026-10-06).
  *
- * The second gate is the first paragraph of 2000 STEP II Q1: guess 1/N = 1/a + 1/b from two
- * examples and prove it, so that every unit fraction is a sum of two different ones. It needs
- * only adding fractions over a common denominator, with letters for the numbers. The rest of
- * the question factorises N^2 and needs primes, so it is not set.
+ * The first paragraph of 2000 STEP II Q1 is practice: guess 1/N = 1/a + 1/b from two examples
+ * and prove it, so that every unit fraction is a sum of two different ones. Its algebra is only
+ * adding fractions with letters, but its answer is a written proof, which proof.direct teaches
+ * later in the book, so it no longer gates (proof gate audit, 2026-10-08). The rest of the
+ * question factorises N^2 and needs primes, so it is not set.
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { add, div, gcd, int, mul, pick, q, str, sub, type Rational } from '../math';
@@ -529,9 +530,9 @@ export const fractions: TopicContent = {
   generators: [addFractions, multiplyDivide, simplify, ratioShare, telescope],
   cambridge: withUses([a6Value, unitPair], {
     'a6-q1-i-value': { sections: ['Multiplying and dividing', 'Cancelling across a long product'], note: t`Writing each bracket as one fraction, then cancelling across the whole product before multiplying` },
-    'step00-q1-unit': { sections: ['Adding and subtracting'], note: t`Spotting a pattern in two examples, then proving it for every whole number by adding fractions with letters` },
+    'step00-q1-unit': { sections: ['Adding and subtracting'], note: t`Spotting a pattern in two examples, then proving it for every whole number by adding fractions with letters`, needs: ['proof.direct'] },
   }),
-  gate: ['a6-q1-i-value', 'step00-q1-unit'],
+  gate: ['a6-q1-i-value'],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['fraction', 'numerator', 'denominator', 'lowest-terms', 'common-denominator', 'reciprocal', 'ratio'],
   recall: [

@@ -710,12 +710,12 @@ export const implication: TopicContent = {
   terms: ['implication', 'converse', 'modus-ponens'],
   cambridge: withUses([bop25_1, bop25_7, bop25_10, bop25_11, bop23_3, bop23_5, bop23_7, bop23_11, tmuaE4, tmua29, prop10, thm11, a4Cards, tmuaE1, tmuaJ], {
     'notes-50-prop10': { sections: ['Proving and using an implication'], note: t`Proving an implication about rational numbers`, needs: ['num.number-systems'] },
-    'notes-54-thm11': { sections: ['Proving and using an implication'], note: t`Proving an implication by chaining modus ponens` },
+    'notes-54-thm11': { sections: ['Proving and using an implication'], note: t`Proving an implication by chaining modus ponens`, needs: ['proof.direct'] },
     'a4-q4-i': { sections: ['A promise', 'Many ways to say it'], note: t`Finding the only cases in which an implication can be false` },
   }),
-  // Theorem 11 needs modus ponens named twice; the cards test when an implication is false. Proposition 10 needs
-  // rational numbers, taught later, so it is practice.
-  gate: ['notes-54-thm11', 'a4-q4-i'],
+  // The cards test when an implication is false. Theorem 11 is a written proof, which proof.direct teaches later
+  // in the book, so it is practice (2026-10-08). Proposition 10 needs rational numbers, taught later, so it is practice.
+  gate: ['a4-q4-i'],
   recall: [
     { front: t`When is ${IMP} false?`, back: t`Only when ${mP} is true and ${mQ} is false. In the other three cases it is true.` },
     { front: t`What is the converse of ${IMP}?`, back: t`${math`Q \Rightarrow P`}. It is a different statement: one can be true and the other false.` },

@@ -19,7 +19,10 @@ const pick = <T>(rng: Rng, xs: readonly T[]): T => xs[randInt(rng, 0, xs.length 
 const time = (rng: Rng): number => T0 + randInt(rng, 0, 12) * 60_000;
 
 function result(rng: Rng): SupervisionResult {
-  return { mark: randInt(rng, 0, 20), weakPoints: ['a', 'b', pick(rng, ['c', 'd'])], redo: rng() < 0.5 ? [pick(rng, PROBLEMS)] : [], summary: pick(rng, ['Good.', 'Close.']) };
+  const r: SupervisionResult = { mark: randInt(rng, 0, 20), weakPoints: ['a', 'b', pick(rng, ['c', 'd'])], redo: rng() < 0.5 ? [pick(rng, PROBLEMS)] : [], summary: pick(rng, ['Good.', 'Close.']) };
+  // A mark below the pass mark may name a prerequisite gap, so the properties cover results with one.
+  if (r.mark < 14 && rng() < 0.4) r.gap = pick(rng, ['proof.direct', 'pre.indices']);
+  return r;
 }
 
 const TASKS: SessionTask[] = [

@@ -513,11 +513,15 @@ export const indexedSets: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['indexed-family', 'index-set'],
   cambridge: withUses([sw515u, sw515i, sw526, b181b, b185, b189, b1811, sw527, sw531], {
-    'sw-5-2-6': { sections: ['Many sets at once'], note: t`Unions and intersections of a family, proved both ways` },
-    'sw-5-2-7': { sections: ['Many sets at once'], note: t`Writing a union of a family as an intersection of supersets` },
-    'sw-5-3-1': { sections: ['Many sets at once'], note: t`Unions of two families, and the matching statement for intersections` },
+    'sw-5-2-6': { sections: ['Many sets at once'], note: t`Unions and intersections of a family, proved both ways`, needs: ['proof.direct'] },
+    'sw-5-2-7': { sections: ['Many sets at once'], note: t`Writing a union of a family as an intersection of supersets`, needs: ['proof.direct'] },
+    'sw-5-3-1': { sections: ['Many sets at once'], note: t`Unions of two families, and the matching statement for intersections`, needs: ['proof.direct'] },
+    'sw-5-1-5-inter': { sections: ['Many sets at once'], note: t`Listing each set of a family, then what every one of them shares` },
+    'sw-5-1-5-union': { sections: ['Many sets at once'], note: t`Listing each set of a family, then everything in at least one of them` },
   }),
-  gate: ['sw-5-2-6', 'sw-5-2-7', 'sw-5-3-1'],
+  // The CST proofs (5.2.6, 5.2.7, 5.3.1) need proof writing, which proof.direct teaches later in the book, so
+  // they are practice (2026-10-08); the intersection and union of the 5.1.5 family gate.
+  gate: ['sw-5-1-5-inter', 'sw-5-1-5-union'],
   recall: [
     { front: t`Define ${math`\bigcup_{\alpha \in I} A_{\alpha}`} and ${math`\bigcap_{\alpha \in I} A_{\alpha}`}.`, back: t`The ${mx} in ${math`A_{\alpha}`} for some ${math`\alpha \in I`}; the ${mx} in ${math`A_{\alpha}`} for every ${math`\alpha \in I`}.` },
     { front: t`What is ${math`\bigcap_{n \in \mathbb{N}} (${0}, \tfrac{${1}}{n})`}, and why?`, back: t`${math`\varnothing`}: a positive ${mx} is not in ${math`(${0}, \tfrac{${1}}{n})`} once ${math`n > \tfrac{${1}}{x}`}.` },

@@ -21,7 +21,7 @@ import { CORE, addDays, fmtLong, planDate, sunsetMinutes, type Slot } from '@/mo
 import { loadDays, type DayLog } from '@/model/dayLog';
 import { learnerSynced } from '@/model/learnerChange';
 import { withDayTasks, type DayItem } from '@/model/dayQueue';
-import { ensureSession, localDay, planMore, replanToday, sessionTime } from '@/model/learner';
+import { ensureSession, localDay, planMore, recommendedNext, replanToday, sessionTime } from '@/model/learner';
 import { go, hrefOf, type Route } from '@/model/route';
 import { LEARNER_NAME, clockText, greeting, nyClock } from '@/model/shell';
 import { commit, now, progress } from '@/model/store';
@@ -185,6 +185,24 @@ function StandupLine({ date, nowMin }: { date: string; nowMin: number }) {
   );
 }
 
+/**
+ * "Recommended next" when a supervisor named an earlier topic as the gap behind a mark below
+ * the pass mark, while it is not mastered (`recommendedNext`): a link to the first, in book order.
+ */
+function RecommendedLine({ p }: { p: Progress }) {
+  const next = recommendedNext(p);
+  const id = next[0];
+  if (id === undefined) return null;
+  const to: Route = placeOf(id) !== undefined ? { view: 'learn', topicId: id, from: 'book' } : { view: 'learn', topicId: id };
+  return (
+    <Go to={to} cls="ds-sceneline ds-recommended">
+      <span class="ds-dot" aria-hidden="true" />
+      <span>Recommended next: <b>{titleOf(id)}</b>{next.length > 1 ? `, then ${next.slice(1).map(titleOf).join(', ')}` : ''}</span>
+      <span class="ds-go" aria-hidden="true">open ›</span>
+    </Go>
+  );
+}
+
 function Header({ p, v, log }: { p: Progress; v: DayView; log: DayLog }) {
   const t = now();
   const date = new Date(`${v.date}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
@@ -244,6 +262,7 @@ function Header({ p, v, log }: { p: Progress; v: DayView; log: DayLog }) {
         {unlock !== null && <p class="ds-note ds-unlock">{unlock}</p>}
         <RestLine date={v.date} nowMin={v.nowMin} />
         <StandupLine date={v.date} nowMin={v.nowMin} />
+        <RecommendedLine p={p} />
         {ready !== undefined && (
           <button type="button" class="ds-sceneline" onClick={() => { playing.value = { id: ready.id, auto: false }; }}>
             <span class="ds-dot" aria-hidden="true" />

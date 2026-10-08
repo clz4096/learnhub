@@ -359,13 +359,13 @@ export const straightLines: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['gradient', 'perpendicular-gradients', 'distance-formula'],
   cambridge: withUses([a19q2i, a19q2iii, a19q2iv, a2q2iii, step04Lines], {
-    'step04-q6': { sections: ['Gradient and the equation of a line', 'Parallel and perpendicular'], note: t`Equations of lines through points given in letters, where they meet, and the rule for perpendicular gradients` },
+    'step04-q6': { sections: ['Gradient and the equation of a line', 'Parallel and perpendicular'], note: t`Equations of lines through points given in letters, where they meet, and the rule for perpendicular gradients`, needs: ['proof.direct'] },
     'a2-q2-iii': { sections: ['Gradient and the equation of a line'], note: t`The greatest value of a line on an interval, written with a modulus`, needs: ['fn.modulus'] },
     'a19-q2-iii': { sections: ['Gradient and the equation of a line'], note: t`When two equations describe the same line` },
   }),
-  // Assignment 19 Q2(iii), then 2004 STEP I Q6 on the whole lesson. Assignment 2 Q2(iii) needs a modulus in its
-  // answer, taught later, so it is practice.
-  gate: ['a19-q2-iii', 'step04-q6'],
+  // Assignment 19 Q2(iii). 2004 STEP I Q6 is a written proof, which proof.direct teaches later in the book, so it
+  // is practice (2026-10-08). Assignment 2 Q2(iii) needs a modulus in its answer, taught later, so it is practice.
+  gate: ['a19-q2-iii'],
   recall: [
     { front: t`The line through ${math`(x_{${1}}, y_{${1}})`} with gradient ${math`m`}?`, back: t`${math`y - y_{${1}} = m(x - x_{${1}})`}.` },
     { front: t`When are two lines perpendicular?`, back: t`When their gradients multiply to ${math`-${1}`} (or one is vertical and the other horizontal).` },

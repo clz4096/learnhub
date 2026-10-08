@@ -559,14 +559,14 @@ export const iff: TopicContent = {
   cambridge: withUses([bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, sw113, sw122, sw127, a10Iff, tmuaI3], {
     'sw-1-2-7': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
     'sw-1-2-2': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
-    'sw-1-1-3': { sections: ['Proving both directions'], note: t`Proving each direction separately, from what it assumes` },
+    'sw-1-1-3': { sections: ['Proving both directions'], note: t`Proving each direction separately, from what it assumes`, needs: ['proof.direct'] },
     'a10-q2-v': { sections: ['Two arrows at once', 'Necessary and sufficient'], note: t`Testing both directions of each statement, and breaking a false one with a single example` },
   }),
-  // The two-way proof of 1.1.3. It leans on parity arguments from pre.algebraic-argument, earlier in the book,
-  // and says so. 1.2.7 and 1.2.2 need divisibility, taught later, so they are practice. The true-or-false
+  // The two-way proof of 1.1.3 needs proof writing, which proof.direct teaches later in the book, so it is
+  // practice (2026-10-08). 1.2.7 and 1.2.2 need divisibility, taught later, so they are practice. The true-or-false
   // version of 1.1.3 is left out: a two-option guess does not test the topic. Assignment 10 Q2(v) has five
   // statements to judge, so a guess passes it one time in 32.
-  gate: ['sw-1-1-3', 'a10-q2-v'],
+  gate: ['a10-q2-v'],
   recall: [
     { front: t`What does ${IFF} mean?`, back: t`${math`(P \Rightarrow Q) \land (Q \Rightarrow P)`}: true exactly when ${mP} and ${mQ} have the same truth value.` },
     { front: t`${math`A`} is sufficient for ${math`B`}: which arrow?`, back: t`${math`A \Rightarrow B`}. ${math`A`} on its own guarantees ${math`B`}.` },

@@ -297,13 +297,15 @@ export const arithmeticSeries: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arithmetic-series'],
   cambridge: withUses([e25, e81, f, eProof, fProof], {
-    'sw-1-3-1-f-proof': { sections: ['Triangular numbers'], note: t`Naming a witness and checking it with the triangular-number formula` },
-    'sw-1-3-1-e': { sections: ['Triangular numbers'], note: t`Turning each map into a triangular number by algebra` },
+    'sw-1-3-1-f-proof': { sections: ['Triangular numbers'], note: t`Naming a witness and checking it with the triangular-number formula`, needs: ['proof.direct'] },
+    'sw-1-3-1-e': { sections: ['Triangular numbers'], note: t`Turning each map into a triangular number by algebra`, needs: ['proof.direct'] },
     'sw-1-3-1-f': { sections: ['Triangular numbers'], note: t`Finding the witness in terms of the two letters` },
     'sw-1-3-1-e-81': { sections: ['Triangular numbers'], note: t`Matching a triangular-number formula to find the new index` },
     'sw-1-3-1-e-25': { sections: ['Triangular numbers'], note: t`Matching a triangular-number formula to find the new index` },
   }),
-  gate: ['sw-1-3-1-f-proof', 'sw-1-3-1-e', 'sw-1-3-1-f', 'sw-1-3-1-e-81', 'sw-1-3-1-e-25'],
+  // The two written proofs of 1.3.1(e) and (f) need proof writing, which proof.direct teaches later in the
+  // book, so they are practice (2026-10-08); their auto-checked parts gate.
+  gate: ['sw-1-3-1-f', 'sw-1-3-1-e-81', 'sw-1-3-1-e-25'],
   recall: [
     { front: t`The ${mn}th term of an arithmetic sequence with first term ${ma} and difference ${md}.`, back: t`${math`a_{n} = a + (n - ${1})d`}.` },
     { front: t`The sum of the first ${mn} terms of an arithmetic sequence.`, back: t`${math`S_{n} = \frac{n(a + l)}{${2}} = \frac{n}{${2}}\big(${2}a + (n - ${1})d\big)`}, where ${math`l`} is the last term.` },

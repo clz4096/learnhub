@@ -549,13 +549,14 @@ export const negatingQuantifiers: TopicContent = {
   terms: ['negation-of-quantifier'],
   cambridge: withUses([bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12, ns1q5, lp16], {
     'ns1-q5': { sections: ['The two laws', 'Several quantifiers', 'Negating the inside'], note: t`Negating a statement with four quantifiers and an implication` },
-    'lp-ex-16': { sections: ['The two laws', 'Negating the inside'], note: t`Rewriting a negated "for all" by named equivalences` },
+    'lp-ex-16': { sections: ['The two laws', 'Negating the inside'], note: t`Rewriting a negated "for all" by named equivalences`, needs: ['proof.direct'] },
   }),
-  // The IA sheet's two negations first (four quantifiers, and an implication in words), then the
-  // Logic and Proof equivalences. The CST proof 1.1.5 does not gate: the practice problems on the
+  // The IA sheet's two negations (four quantifiers, and an implication in words). The Logic and Proof
+  // equivalences are a written proof, which proof.direct teaches later in the book, so they are practice
+  // (2026-10-08). The CST proof 1.1.5 does not gate: the practice problems on the
   // same exercise give its negation and its witness. The Book of Proof items are not Cambridge
   // standard.
-  gate: ['ns1-q5', 'lp-ex-16'],
+  gate: ['ns1-q5'],
   recall: [
     { front: t`Negate ${math`\forall x.\ P(x)`}.`, back: t`${math`\exists x.\ \lnot P(x)`}: at least one ${mx} fails.` },
     { front: t`Negate ${math`\exists x.\ P(x)`}.`, back: t`${math`\forall x.\ \lnot P(x)`}: every ${mx} fails.` },

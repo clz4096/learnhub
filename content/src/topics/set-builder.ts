@@ -392,12 +392,13 @@ export const setBuilder: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['set-builder', 'membership'],
   cambridge: withUses([sheet311, interval, zeroDivisors, equalProof], {
-    'notes-205-equality': { sections: ['Set-builder notation', 'When are two sets equal?'], note: t`Proving two sets equal by showing each is inside the other` },
+    'notes-205-equality': { sections: ['Set-builder notation', 'When are two sets equal?'], note: t`Proving two sets equal by showing each is inside the other`, needs: ['proof.direct'] },
     'sw-3-1-1': { sections: ['Set-builder notation'], note: t`Listing a set given by a property` },
   }),
-  // Best first: the set equality proved in both directions, then the common divisors of 666
-  // and 330. Listing [-2..3] and the divisors of 0 are too slight to gate.
-  gate: ['notes-205-equality', 'sw-3-1-1'],
+  // The common divisors of 666 and 330. The set equality proved in both directions is a written proof, which
+  // proof.direct teaches later in the book, so it is practice (2026-10-08). Listing [-2..3] and the divisors of 0
+  // are too slight to gate.
+  gate: ['sw-3-1-1'],
   recall: [
     { front: t`When is ${math`a \in \{x \in A \mid P(x)\}`}?`, back: t`Exactly when ${math`a \in A`} and ${math`P(a)`} is true.` },
     { front: t`When are two sets equal?`, back: t`When they have the same elements: ${math`x \in A \iff x \in B`} for every ${mx}.` },

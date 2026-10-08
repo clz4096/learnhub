@@ -131,6 +131,32 @@ describe('Paste result', () => {
     expect(route.value).toEqual({ view: 'problem', topicId: 'prob.event-spaces', problemId: 'q6-b-event' });
   });
 
+  it('a GAP result: not a lapse, the redo waits, and Recommended next shows on the topic page and on Today', async () => {
+    const p = progress.value;
+    if (p === null) throw new Error('no progress');
+    const memory = { 'prob.event-spaces': { reps: 2, intervalDays: 9, due: T0 + 5 * DAY_MS, lastReviewed: T0 - 4 * DAY_MS, lapses: 0, implicitCredit: 0 } };
+    await commit({ ...p, memory });
+    const nonce = await copyProof();
+    paste(item('q4-a-finite'), block(nonce, 12).replace('GAP: none', 'GAP: proof.direct').replace(`REDO: ${OTHER}`, `REDO: ${PROOF}`));
+    const status = await within(item('q4-a-finite')).findByText(/^Imported: 12\/20/);
+    expect(status.textContent).toMatch(/earlier skill, Direct proof, so it does not count against Events and sigma-algebras/);
+    expect(status.textContent).toMatch(/Its redo waits until Direct proof is mastered\./);
+    await flush();
+    expect(progress.value?.memory).toEqual(memory);
+    expect(progress.value?.supervision[0]?.result?.gap).toBe('proof.direct');
+    cleanup();
+    render(<LessonRunner topicId="prob.event-spaces" salt="test" onEnd={() => undefined} onSkip={() => undefined} />);
+    const rec = await screen.findByRole('note');
+    expect(rec.textContent).toBe('Recommended next: Direct proof');
+    expect(within(rec).getByRole('link', { name: 'Direct proof' }).getAttribute('href')).toMatch(/^#\/learn\/proof\.direct/);
+    cleanup();
+    render(<Today />);
+    const line = await screen.findByRole('link', { name: /Recommended next: Direct proof/ });
+    expect(line.getAttribute('href')).toMatch(/^#\/learn\/proof\.direct/);
+    expect((await screen.findByText(/waits until you master Direct proof/)).textContent).toMatch(/Redo of Finite unions and intersections/);
+    expect(document.querySelector('[data-redo]')).toBeNull();
+  });
+
   it('a missed review: a mark below 14 on a learned topic brings it back sooner', async () => {
     const p = progress.value;
     if (p === null) throw new Error('no progress');
