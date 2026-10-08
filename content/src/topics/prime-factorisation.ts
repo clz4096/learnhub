@@ -6,10 +6,11 @@
  */
 import type { Rational } from '@learnhub/mastery';
 import { auto, cite, same, supervision, withUses } from '../cambridge';
-import { int, pick, sample, upTo } from '../math';
+import { int, pick, q, sample, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, listOf, math, t, type Rich } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
+import { namedAnswer } from '../prep-a';
 
 const PRIMES = [2, 3, 5, 7, 11, 13] as const;
 
@@ -369,6 +370,52 @@ const a12explain = supervision({
   ],
 });
 
+const F10 = 'step-f10' as const;
+const F10H = 'step-f10-hints' as const;
+// Rule 1 (2026-10-08): set here from pre.primes-and-factors, the earliest topic that teaches everything it needs.
+const a10q3iii = auto({
+  id: 'a10-q3-iii',
+  source: cite(F10, 'Q3(iii)'),
+  title: t`Working backwards from ${math`f`}`,
+  prompt: t`For a positive integer ${math`N`}, ${math`f(N) = N\left(${1} - \frac{${1}}{p_{${1}}}\right)\left(${1} - \frac{${1}}{p_{${2}}}\right)\cdots\left(${1} - \frac{${1}}{p_{k}}\right)`}, where ${math`p_{${1}}, \ldots, p_{k}`} are the only primes that are factors of ${math`N`}. Find a positive integer ${math`m`} and a prime ${math`p`} such that ${math`f(p^{m}) = ${146410}`}.`,
+  answer: namedAnswer(['p', 'm'], [q(11), q(5)], 'Simplify f of a prime power first, then factorise the number.'),
+  solution: [
+    t`The only prime factor of ${math`p^{m}`} is ${math`p`}, so ${math`f(p^{m}) = p^{m}\left(${1} - \frac{${1}}{p}\right) = p^{m - ${1}}(p - ${1})`}.`,
+    t`Factorise: ${math`${146410} = ${10} \times ${14641} = ${10} \times ${11}^{${4}}`}, since ${math`${11}^{${2}} = ${121}`} and ${math`${121}^{${2}} = ${14641}`}.`,
+    t`So ${math`p^{m - ${1}}(p - ${1}) = ${11}^{${4}} \times ${10}`} with ${math`p = ${11}`} and ${math`m - ${1} = ${4}`}: ${math`p = ${11}`}, ${math`m = ${5}`}.`,
+    t`Simplify the general form, then match it against the factorisation.`,
+  ],
+  reference: 'p = 11, m = 5',
+  verify: () => {
+    const found: string[] = [];
+    for (const p of [2, 3, 5, 7, 11, 13, 17, 19, 23]) for (let m = 1; m <= 20; m++) if (p ** (m - 1) * (p - 1) === 146410) found.push(`${p},${m}`);
+    return same('prime powers with f = 146410', found.join(';'), '11,5');
+  },
+  misconceptions: [{ response: 'p = 11, m = 4', why: t`${math`f(p^{m}) = p^{m - ${1}}(p - ${1})`}: the power of ${11} is ${math`m - ${1} = ${4}`}, so ${math`m = ${5}`}.` }],
+  official: { source: cite(F10H, 'Q3(iii)'), answer: 'p = 11, m = 5', agrees: true },
+  nudge: t`Not quite. Simplify ${math`f(p^{m})`} first, then factorise ${146410} and match the two parts.`,
+  hints: [
+    t`What is ${math`f(p^{m})`} in a simpler form?`,
+    t`What is the prime factorisation of ${146410}?`,
+    t`Which prime ${math`p`} makes ${math`p^{m - ${1}}(p - ${1})`} match it, and what is ${math`m`}?`,
+  ],
+});
+
+// Rule 1 (2026-10-08): set here from pre.primes-and-factors, the earliest topic that teaches everything it needs.
+const a10q3ib = supervision({
+  id: 'a10-q3-i-b',
+  source: cite(F10, 'Q3(i)(b), (ii)'),
+  title: t`${math`f(N)`} is always an integer`,
+  prompt: t`For a positive integer ${math`N`}, ${math`f(N) = N\left(${1} - \frac{${1}}{p_{${1}}}\right)\left(${1} - \frac{${1}}{p_{${2}}}\right)\cdots\left(${1} - \frac{${1}}{p_{k}}\right)`}, where ${math`p_{${1}}, \ldots, p_{k}`} are the only primes that are factors of ${math`N`}. (i) Show that ${math`f(N)`} is an integer for all ${math`N`}. (ii) Prove, or disprove by means of a counterexample, each of the following: (a) ${math`f(m)f(n) = f(mn)`}; (b) ${math`f(p)f(q) = f(pq)`} if ${math`p`} and ${math`q`} are distinct prime numbers; (c) ${math`f(p)f(q) = f(pq)`} only if ${math`p`} and ${math`q`} are distinct prime numbers.`,
+  writeUp: 'proof',
+  official: cite(F10H, 'Q3'),
+  hints: [
+    t`For (i), writing ${math`f(N)`} as ${math`\frac{N}{p_{${1}} \cdots p_{k}}(p_{${1}} - ${1}) \cdots (p_{k} - ${1})`}, why is ${math`\frac{N}{p_{${1}} \cdots p_{k}}`} an integer?`,
+    t`For (ii)(a), what happens when ${math`m`} and ${math`n`} share a prime factor?`,
+    t`For (ii)(c), which small values of ${math`p`} and ${math`q`}, not two distinct primes, might still satisfy ${math`f(p)f(q) = f(pq)`}?`,
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const L = 360;
@@ -429,14 +476,18 @@ export const primeFactorisation: TopicContent = {
   generators: [factorise, exponent, divisors, tripleCount],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['prime-number', 'prime-factorisation', 'index-form'],
-  cambridge: withUses([a12sets, a12imam, a12rabbi, a12explain], {
+  cambridge: withUses([a12sets, a12imam, a12rabbi, a12explain, a10q3iii, a10q3ib], {
+    'a10-q3-i-b': { sections: ['Primes and factorisations'], note: t`Proving a product formula is a whole number and testing three claims`, needs: ['proof.counterexample'] },
+    'a10-q3-iii': { sections: ['Primes and factorisations'], note: t`Working backwards from the formula to a prime power` },
     'a12-q4-explain': { sections: ['Primes and factorisations', 'Listing systematically'], note: t`Listing every factorisation into three ages and reasoning from what each speaker knows` },
     'a12-q4-rabbi': { sections: ['Primes and factorisations', 'Listing systematically'], note: t`Using the factorisations and the clues to pin down an age` },
     'a12-q4-imam': { sections: ['Primes and factorisations', 'Listing systematically'], note: t`Finding the sum that two factorisations share` },
     'a12-q4-sets': { sections: ['Primes and factorisations', 'Listing systematically'], note: t`Counting the ways to split a prime factorisation into three factors` },
   }),
-  // The written reasoning first, then the puzzle's answers, which need every earlier step, then the count.
-  gate: ['a12-q4-explain', 'a12-q4-rabbi', 'a12-q4-imam', 'a12-q4-sets'],
+  // The written reasoning first, then the puzzle's answers, which need every earlier step, then the count. Then
+  // Assignment 10 Q3(iii), set here by Rule 1 (2026-10-08): a prime power read off a factorisation. Its parts (i)(b)
+  // and (ii) also need counterexamples, from proof.counterexample, so they are practice.
+  gate: ['a12-q4-explain', 'a12-q4-rabbi', 'a12-q4-imam', 'a12-q4-sets', 'a10-q3-iii'],
   recall: [
     { front: t`Define a prime number.`, back: t`An integer greater than ${1} whose only positive divisors are ${1} and itself.` },
     { front: t`Why does every integer above ${1} have a prime factorisation?`, back: t`A smallest exception would not be prime, so it splits into two smaller factors, each a product of primes: a contradiction.` },

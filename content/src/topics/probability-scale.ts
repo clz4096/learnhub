@@ -9,7 +9,7 @@
  * parts (v) to (vii) need conditional probability, taught later.
  */
 import { auto, cite, same, withUses } from '../cambridge';
-import { int, pick, q, str, sub, toFloat, upTo } from '../math';
+import { factorial, int, pick, q, str, sub, toFloat, upTo } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, ident, listOf, math, setOf, t, type Rich } from '../rich';
 import { checkFrom, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
@@ -402,6 +402,46 @@ const step94Colleges = auto({
   ],
 });
 
+/** Every way of sending five people to five floors, as lists of floors 0 .. 4. */
+const FLOORS = 5;
+const allFloors = (): number[][] => {
+  let out: number[][] = [[]];
+  for (let i = 0; i < FLOORS; i++) out = out.flatMap((a) => Array.from({ length: FLOORS }, (_, f) => [...a, f]));
+  return out;
+};
+const ELEVATOR = q(factorial(FLOORS), FLOORS ** FLOORS);
+// Rule 1 (2026-10-08): set here from comb.factorial, the earliest topic that teaches everything it needs.
+const gs317 = auto({
+  id: 'gs-3-1-7',
+  source: cite('gs-ch3', 'Section 3.1, Exercise 7 (page 89)'),
+  title: t`Five people in a lift`,
+  prompt: t`Five people get on an elevator that stops at five floors. Assuming that each has an equal probability of going to any one floor, find the probability that they all get off at different floors. Give a fraction in lowest terms.`,
+  answer: { kind: 'exact', expected: str(ELEVATOR) },
+  solution: [
+    t`Outcomes: lists of floors, one for each person in order. Each person has ${FLOORS} choices, so there are ${math`${FLOORS}^{${FLOORS}} = ${FLOORS ** FLOORS}`} equally likely lists.`,
+    t`All different: the first person has ${FLOORS} choices, the next ${FLOORS - 1}, and so on, ${math`${FLOORS}! = ${factorial(FLOORS)}`} lists.`,
+    t`Probability: ${math`\frac{${factorial(FLOORS)}}{${FLOORS ** FLOORS}} = ${ELEVATOR}`}.`,
+    t`Equally likely outcomes: count the good ones and divide by all of them.`,
+  ],
+  nudge: t`Not quite. Count whole lists of floors, one floor for each person, rather than following one person.`,
+  hints: [
+    t`How many equally likely lists of floors are there, one floor for each person?`,
+    t`In how many of those lists is every floor different?`,
+    t`How do the two counts give the probability, and does the fraction cancel?`,
+  ],
+  reference: str(ELEVATOR),
+  verify: () => {
+    const lists = allFloors();
+    const apart = lists.filter((a) => new Set(a).size === FLOORS).length;
+    return same('5 people on 5 floors, all different', str(q(apart, lists.length)), str(ELEVATOR));
+  },
+  misconceptions: [
+    { response: str(q(1, factorial(FLOORS))), why: t`That is one over the number of orders of the floors. Divide the number of good lists, ${math`${FLOORS}!`}, by the number of all lists, ${math`${FLOORS}^{${FLOORS}}`}, since each person may choose any floor.` },
+    { response: str(q(1, FLOORS)), why: t`That is the chance for one person to choose one given floor. Count whole lists: ${math`${FLOORS}!`} good ones out of ${math`${FLOORS}^{${FLOORS}}`}.` },
+  ],
+  official: { source: cite('gs-answers-odd', 'Section 3.1, Exercise 7'), answer: `${factorial(FLOORS)}/${FLOORS ** FLOORS}`, agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const L = { red: 3, blue: 5 };
@@ -496,7 +536,8 @@ export const probabilityScale: TopicContent = {
   generators: [bag, die, complement, letters],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['probability', 'event', 'equally-likely', 'complement-event'],
-  cambridge: withUses([step94Colleges, a12Mint, a12Goggles, gs3110], {
+  cambridge: withUses([step94Colleges, a12Mint, a12Goggles, gs3110, gs317], {
+    'gs-3-1-7': { sections: ['The definition'], note: t`A probability as a count of orderings over all outcomes`, needs: ['comb.factorial'] },
     'step94-q12': { sections: ['Two colours, but not a fair coin', 'The definition'], note: t`Choosing the equally likely outcomes, then using symmetry so that no college is special` },
     'gs-3-1-10': { sections: ['The definition'], note: t`Equally likely positions: the last card is like the first` },
   }),

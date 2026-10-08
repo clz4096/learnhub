@@ -510,6 +510,20 @@ const ns1q5 = supervision({
   ],
 });
 
+// Rule 1 (2026-10-08): set here from logic.equivalences, the earliest topic that teaches everything it needs.
+const lemma43 = supervision({
+  id: 'cst-lemma-43-equivalences',
+  source: cite('cst-dm-notes', 'printed page 151, the footnote to the proof of Lemma 43'),
+  title: t`Which equivalences?`,
+  prompt: t`In the proof of Lemma ${43} (a positive rational is a fraction in lowest terms), the CST notes negate ${math`\exists m, n.\ x = m/n \land \lnot \exists p.\ (p \mid m \land p \mid n)`} to get ${math`\forall m, n.\ x = m/n \Rightarrow \exists p.\ (p \mid m \land p \mid n)`}, and say this uses three of the equivalences on printed page ${134} together with ${math`(P \Rightarrow Q) \Leftrightarrow (\lnot P \lor Q)`}. Which three? Show the negation step by step, naming the equivalence used at each step.`,
+  writeUp: 'explanation',
+  hints: [
+    t`How does a negation pass through ${math`\exists`}, and through ${math`\forall`}?`,
+    t`What is the negation of an "and" of two statements?`,
+    t`Which "or" becomes an implication by ${math`(P \Rightarrow Q) \Leftrightarrow (\lnot P \lor Q)`}?`,
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const mP = math`P(x)`;
@@ -586,15 +600,17 @@ export const negatingQuantifiers: TopicContent = {
   generators: [negateSymbols, whichTrue, negateWords],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['negation-of-quantifier'],
-  cambridge: withUses([bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12, ns1q5], {
+  cambridge: withUses([bop7, bop11, tmuaN1, sw115neg, sw115, sw115proof, bop5, bop12, ns1q5, lemma43], {
+    'cst-lemma-43-equivalences': { sections: ['The two laws', 'Negating the inside'], note: t`Negating a quantified statement step by step` },
     'ns1-q5': { sections: ['The two laws', 'Several quantifiers', 'Negating the inside'], note: t`Negating a statement with four quantifiers and an implication` },
   }),
   // The IA sheet's two negations (four quantifiers, and an implication in words). The Logic and Proof
   // equivalences are a written proof, so they are set in proof.direct, the first topic that teaches writing one
   // (Rule 1, 2026-10-08). The CST proof 1.1.5 does not gate: the practice problems on the
   // same exercise give its negation and its witness. The Book of Proof items are not Cambridge
-  // standard.
-  gate: ['ns1-q5'],
+  // standard. The CST notes' Lemma 43 negation, set here from logic.equivalences by Rule 1 (2026-10-08), gates:
+  // it names each law used.
+  gate: ['ns1-q5', 'cst-lemma-43-equivalences'],
   recall: [
     { front: t`Negate ${math`\forall x.\ P(x)`}.`, back: t`${math`\exists x.\ \lnot P(x)`}: at least one ${mx} fails.` },
     { front: t`Negate ${math`\exists x.\ P(x)`}.`, back: t`${math`\forall x.\ \lnot P(x)`}: every ${mx} fails.` },

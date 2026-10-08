@@ -6,11 +6,13 @@
  * like to show that E(X) = lambda") and STEP 2 Statistics Q1 (2003 S2 Q13, the Poisson
  * distribution without its zero), whose hints and solutions give A, the mean, and 0.04.
  */
+import { mulberry32 } from '@learnhub/mastery';
 import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { fact, farApart, poissonCdf, poissonPmf, poissonPmfRec, sig } from '../partv-d';
 import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t, type Rich } from '../rich';
+import { near, simpson } from '../partv-b';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mX, mk, ml] = [math`X`, math`k`, math`\lambda`];
@@ -327,6 +329,61 @@ const notesMean = supervision({
   ],
 });
 
+// STEP 2 Q4: no supermarket within y has probability e^(-k π y^2).
+/** P(no point of a Poisson process of rate k within y of the centre of a square of side 2L), by simulation. */
+function noneWithin(k: number, y: number, trials: number): number {
+  const rng = mulberry32(2012);
+  const L = 1;
+  const mean = k * 4 * L * L;
+  let none = 0;
+  for (let i = 0; i < trials; i++) {
+    // Knuth's Poisson sampler, then uniform points.
+    let n = 0;
+    let p = rng();
+    while (p > Math.exp(-mean)) { n++; p *= rng(); }
+    let hit = false;
+    for (let j = 0; j < n; j++) {
+      const [u, v] = [(2 * rng() - 1) * L, (2 * rng() - 1) * L];
+      if (u * u + v * v < y * y) hit = true;
+    }
+    if (!hit) none++;
+  }
+  return none / trials;
+}
+const mY = math`Y`;
+// Rule 1 (2026-10-08): set here from rv.cdf-method, the earliest topic that teaches everything it needs.
+const q4cdf = auto({
+  id: 's2-q4-cdf',
+  source: cite(S2, 'Q4'),
+  title: t`The distribution function of the distance to a supermarket`,
+  prompt: t`The number of supermarkets in any region is Poisson with mean ${math`k`} times the area of the region. ${mY} is the distance from a randomly chosen point to the nearest supermarket. Find ${math`P(Y < y)`} for ${math`y > ${0}`}.`,
+  answer: { kind: 'expression', expected: '1 - e^(-k pi y^2)', variables: ['k', 'y'], domains: { k: { kind: 'real', min: 0.1, max: 3 }, y: { kind: 'real', min: 0.1, max: 2 } } },
+  hints: [
+    t`What does ${math`Y \ge y`} say about supermarkets in the disc of radius ${math`y`} around the point?`,
+    t`What is the probability that a Poisson count with mean ${math`k\pi y^{${2}}`} is ${0}?`,
+    t`How is ${math`P(Y < y)`} related to ${math`P(Y \ge y)`}?`,
+  ],
+  nudge: t`Not quite. Work with the complement: ${math`Y \ge y`} means an empty disc.`,
+  solution: [
+    t`${math`Y \ge y`} means no supermarket within the circle of radius ${math`y`}, whose area is ${math`\pi y^{${2}}`}. The number there is Poisson with mean ${math`k\pi y^{${2}}`}, so ${math`P(Y \ge y) = e^{-k\pi y^{${2}}}`}.`,
+    t`So ${math`P(Y < y) = ${1} - e^{-k\pi y^{${2}}}`}, and differentiating gives the density ${math`${2}\pi k y\,e^{-\pi k y^{${2}}}`}.`,
+    t`When the complement is a simple event, find it first.`,
+  ],
+  reference: '1 - e^(-k pi y^2)',
+  verify: () => {
+    const sim = noneWithin(1, 0.5, 20000);
+    const exact = Math.exp(-Math.PI * 0.25);
+    const se = Math.sqrt((exact * (1 - exact)) / 20000);
+    return near('P(no supermarket within 0.5) by simulating the process, k = 1', sim, exact, 4.5 * se)
+      ?? near('the density integrates to the distribution function, k = 2, y = 0.7', simpson((u) => 2 * Math.PI * 2 * u * Math.exp(-Math.PI * 2 * u * u), 0, 0.7), 1 - Math.exp(-2 * Math.PI * 0.49), 1e-10);
+  },
+  misconceptions: [
+    { response: 'e^(-k pi y^2)', why: t`${math`e^{-k\pi y^{${2}}}`} is the chance of no supermarket within ${math`y`}, that is ${math`P(Y \ge y)`}. Take its complement.` },
+    { response: '1 - e^(-k y)', why: t`The region is a disc of area ${math`\pi y^{${2}}`}, so the Poisson mean is ${math`k\pi y^{${2}}`}, not ${math`ky`}.` },
+  ],
+  official: { source: cite('step-s2-stats-solutions', 'Q4'), answer: '1 - e^(-k pi y^2)', agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const L25 = 2.5;
@@ -384,7 +441,8 @@ export const poissonDistribution: TopicContent = {
   generators: [pmf, tail, ratio],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['poisson-distribution'],
-  cambridge: withUses([q1Mu, q1Var, q1Show, q1Normal, notesMean], {
+  cambridge: withUses([q1Mu, q1Var, q1Show, q1Normal, notesMean, q4cdf], {
+    's2-q4-cdf': { sections: ['The distribution'], note: t`A distribution function from a Poisson count of points`, needs: ['rv.cdf-method'] },
     's2-q1-show': { sections: ['The distribution', 'Mean and variance'], note: t`A truncated Poisson distribution: its constant, mean, and variance` },
     's2-q1-variance': { sections: ['Mean and variance'], note: t`A truncated Poisson variance` },
     's2-q1-mean': { sections: ['Mean and variance'], note: t`A truncated Poisson mean` },

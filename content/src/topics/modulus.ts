@@ -235,6 +235,72 @@ const eqns1 = supervision({
   ],
 });
 
+const F02 = 'step-f02' as const;
+const F02H = 'step-f02-hints' as const;
+// Rule 1 (2026-10-08): set here from geom.straight-lines, the earliest topic that teaches everything it needs.
+const a2q2iii = auto({
+  id: 'a2-q2-iii',
+  source: cite('step-f02', 'Q2(iii)'),
+  title: t`The greatest value of a line on an interval`,
+  prompt: t`Sketch ${math`y = mx + ${1}`} for ${math`-${2} \le x \le ${2}`} in the cases ${math`m > ${0}`}, ${math`m = ${0}`}, and ${math`m < ${0}`}. Find a single expression for the greatest value of ${math`mx + ${1}`} on this range, valid for every ${math`m`}. (Type ${math`|m|`} as abs(m).)`,
+  nudge: t`Not quite. A line is greatest at an end of the interval; which end depends on the sign of ${math`m`}.`,
+  hints: [
+    t`Where on ${math`-${2} \le x \le ${2}`} is a rising line greatest, and where is a falling line greatest?`,
+    t`What are the greatest values in the cases ${math`m > ${0}`}, ${math`m = ${0}`}, and ${math`m < ${0}`}?`,
+    t`Which single expression with ${math`|m|`} matches all three cases?`,
+  ],
+  answer: { kind: 'expression', expected: '1 + 2abs(m)', variables: ['m'] },
+  solution: [
+    t`A line is greatest at one end of an interval. If ${math`m > ${0}`} it rises, so the greatest value is at ${math`x = ${2}`}: ${math`${2}m + ${1}`}.`,
+    t`If ${math`m < ${0}`} it falls, so the greatest is at ${math`x = -${2}`}: ${math`-${2}m + ${1}`}. If ${math`m = ${0}`} it is ${1} everywhere.`,
+    t`All three are ${math`${1} + ${2}|m|`}, since ${math`|m| = m`} for ${math`m \ge ${0}`} and ${math`|m| = -m`} for ${math`m < ${0}`}. (The least value is ${math`${1} - ${2}|m|`}.)`,
+    t`Split by sign, then combine the cases with a modulus.`,
+  ],
+  reference: '1 + 2abs(m)',
+  verify: () => {
+    for (const m of [-3, -0.5, 0, 0.7, 4]) {
+      let best = -Infinity;
+      for (let i = 0; i <= 400; i++) best = Math.max(best, m * (-2 + i / 100) + 1);
+      if (Math.abs(best - (1 + 2 * Math.abs(m))) > 1e-9) return `m = ${m}: greatest ${best}`;
+    }
+    return null;
+  },
+  misconceptions: [{ response: '1 + 2m', why: t`For ${math`m < ${0}`} the line falls, so its greatest value is at ${math`x = -${2}`}, which is ${math`${1} - ${2}m`}. Combine the cases with ${math`|m|`}.` }],
+  official: { source: cite('step-f02-hints', 'Q2(iii)'), answer: '2abs(m) + 1', agrees: true },
+});
+
+// Rule 1 (2026-10-08): set here from fn.quadratic-graphs, the earliest topic that teaches everything it needs.
+const a2q2vii = auto({
+  id: 'a2-q2-vii',
+  source: cite(F02, 'Q2(vii)'),
+  title: t`A parameter moves the vertex`,
+  prompt: t`Sketch ${math`y = x^{${2}} + ${2}kx`} for ${math`-${2} \le x \le ${2}`}, where ${math`-${2} < k < ${2}`}. Find the greatest value of ${math`x^{${2}} + ${2}kx`} on this range, as one expression in ${math`k`}. (Type ${math`|k|`} as abs(k).)`,
+  answer: { kind: 'expression', expected: '4 + 4abs(k)', variables: ['k'], domains: { k: { kind: 'real', min: -1.99, max: 1.99 } } },
+  solution: [
+    t`${math`x^{${2}} + ${2}kx = (x + k)^{${2}} - k^{${2}}`}: the vertex is at ${math`x = -k`}, inside the range since ${math`-${2} < k < ${2}`}, so the least value is ${math`-k^{${2}}`}.`,
+    t`The greatest is at the end farther from ${math`-k`}. The ends give ${math`${4} - ${4}k`} at ${math`x = -${2}`} and ${math`${4} + ${4}k`} at ${math`x = ${2}`}.`,
+    t`The larger of ${math`${4} + ${4}k`} and ${math`${4} - ${4}k`} is ${math`${4} + ${4}|k|`}. (For ${math`k > ${2}`} the vertex is outside: the greatest is ${math`${4} + ${4}k`} and the least ${math`${4} - ${4}k`}.)`,
+    t`When the answer depends on a sign, ${math`|k|`} often writes both cases at once.`,
+  ],
+  reference: '4 + 4abs(k)',
+  verify: () => {
+    for (const k of [-1.5, -0.25, 0, 0.6, 1.9]) {
+      let best = -Infinity;
+      for (let i = 0; i <= 4000; i++) { const x = -2 + i / 1000; best = Math.max(best, x * x + 2 * k * x); }
+      if (Math.abs(best - (4 + 4 * Math.abs(k))) > 1e-9) return `k = ${k}: ${best}`;
+    }
+    return null;
+  },
+  misconceptions: [{ response: '4 + 4k', why: t`For ${math`k < ${0}`} the far end is ${math`x = -${2}`}, giving ${math`${4} - ${4}k`}. Combine both cases with ${math`|k|`}.` }],
+  official: { source: cite(F02H, 'Q2(vii)'), answer: '4 + 4abs(k)', agrees: true },
+  nudge: t`Not quite. The greatest value is at the end farther from the vertex, and which end that is depends on the sign of ${math`k`}.`,
+  hints: [
+    t`Completing the square, where is the vertex, and is it inside the range?`,
+    t`What are the values at ${math`x = -${2}`} and ${math`x = ${2}`}?`,
+    t`Which of those is larger when ${math`k > ${0}`}, and when ${math`k < ${0}`}, and how can ${math`|k|`} combine the two?`,
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const modulus: TopicContent = {
@@ -292,11 +358,15 @@ export const modulus: TopicContent = {
   generators: [absEquation, absInequality, twoModuli],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['modulus'],
-  cambridge: withUses([a21i, a5iii, a21sketch, eqns1], {
+  cambridge: withUses([a21i, a5iii, a21sketch, eqns1, a2q2iii, a2q2vii], {
+    'a2-q2-vii': { sections: ['The modulus'], note: t`The greatest value as the vertex moves, written with a modulus`, needs: ['fn.quadratic-graphs'] },
+    'a2-q2-iii': { sections: ['The modulus'], note: t`The greatest value of a line on an interval, written with a modulus` },
     'a5-q2-iii': { sections: ['The modulus'], note: t`A square root of a square is a modulus` },
     's2eqns-q1-iii': { sections: ['Several moduli: critical values', 'Sketching'], note: t`Counting the roots of a sum of moduli` },
   }),
-  gate: ['a5-q2-iii', 's2eqns-q1-iii'],
+  // Assignment 2 Q2(iii) and (vii) are set here by Rule 1 (2026-10-08): both write a greatest value with a modulus.
+  // Q2(iii), a line, gates; Q2(vii) also needs completing the square, from fn.quadratic-graphs, so it is practice.
+  gate: ['a5-q2-iii', 's2eqns-q1-iii', 'a2-q2-iii'],
   recall: [
     { front: t`Define ${math`|x|`}.`, back: t`${math`x`} if ${math`x \ge ${0}`}, ${math`-x`} if ${math`x < ${0}`}.` },
     { front: t`How do you solve an equation with several moduli?`, back: t`Split at the critical values, solve in each region, and keep only solutions in their own region.` },

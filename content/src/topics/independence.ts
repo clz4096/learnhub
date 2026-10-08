@@ -345,6 +345,21 @@ const gs418 = auto({
   ],
 });
 
+const S2 = 'ia-prob-sheet-2' as const;
+// Rule 1 (2026-10-08): set here from rv.indicators, the earliest topic that teaches everything it needs.
+const q12proof = supervision({
+  id: 'sheet2-q12',
+  source: cite(S2, 'Q12'),
+  title: t`Record years are independent`,
+  prompt: t`For a random permutation ${math`a_{${1}}, \ldots, a_{n}`} of ${math`${1}, \ldots, n`}, let ${math`Y_{i} = ${1}`} if ${math`a_{i} < a_{j}`} for all ${math`j < i`}. Find the distribution of ${math`Y_{i}`} and show that ${math`Y_{${1}}, \ldots, Y_{n}`} are independent. Then find the mean and variance of the number of record years.`,
+  writeUp: 'proof',
+  hints: [
+    t`Among the first ${math`i`} entries, why is each position equally likely to hold the smallest?`,
+    t`For ${math`i < j`}, why does the position of the smallest of the first ${math`j`} entries say nothing about the relative order of the first ${math`i`}?`,
+    t`With the ${math`Y_{i}`} independent, how do the mean and variance of their sum follow from those of each ${math`Y_{i}`}?`,
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
@@ -418,7 +433,8 @@ export const independence: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['mutual-independence', 'pairwise-independence'],
   claims,
-  cambridge: withUses([q11proof, bernstein, gs4150, gs4133, gs418], {
+  cambridge: withUses([q11proof, bernstein, gs4150, gs4133, gs418, q12proof], {
+    'sheet2-q12': { sections: ['The definitions'], note: t`Indicators for record years, and their independence`, needs: ['rv.indicators'] },
     'ia-q11-by-independence': { sections: ['The definitions'], note: t`Splitting by the last coin with independent events` },
     'gs-4-1-50': { sections: ['The definitions'], note: t`Independent events need many outcomes` },
     'gs-4-1-33': { sections: ['The definitions', 'Complements stay independent'], note: t`Independence through all eight products` },

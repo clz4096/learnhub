@@ -269,6 +269,36 @@ const bop729 = supervision({
   official: cite('bop', 'Solutions, Chapter 7, exercise 29'),
 });
 
+// Rule 1 (2026-10-08): set here from num.number-systems, the earliest topic that teaches everything it needs.
+const sw325 = supervision({
+  id: 'sw-3-2-5',
+  source: cite('cst-dm-sw1', 'Exercises 3, 3.2.5'),
+  title: t`Lowest terms are unique`,
+  prompt: t`Prove that for all positive integers ${math`m, n, p, q`} with ${math`\gcd(m, n) = \gcd(p, q) = ${1}`}, if ${math`q \cdot m = p \cdot n`} then ${math`m = p`} and ${math`n = q`}. That is: a positive rational has only one way of being written in lowest terms.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-3', '3.2.5'),
+  hints: [
+    t`From ${math`q \cdot m = p \cdot n`}, why does ${math`m`} divide ${math`p \cdot n`}, and what does ${math`\gcd(m, n) = ${1}`} then give?`,
+    t`By the same argument with the roles swapped, why does ${math`p`} divide ${math`m`}?`,
+    t`With ${math`m`} dividing ${math`p`} and ${math`p`} dividing ${math`m`}, both positive, what follows, and then what is ${math`n`}?`,
+  ],
+});
+
+// Rule 1 (2026-10-08): set here from num.congruence, the earliest topic that teaches everything it needs.
+const sheet324proof = supervision({
+  id: 'sheet-3-2-4',
+  source: cite('cst-dm-sw1', 'Exercises 3, 3.2.4'),
+  title: t`Cancelling in a congruence`,
+  prompt: t`Prove that for all positive integers ${math`m, n`} and integers ${math`i, j`}: ${math`n i \equiv n j \pmod{m} \iff i \equiv j \pmod{m / \gcd(m, n)}`}. Euclid's theorem may be used: if ${math`k \mid ab`} and ${math`\gcd(k, a) = ${1}`} then ${math`k \mid b`}.`,
+  hints: [
+    t`With ${math`g = \gcd(m, n)`}, ${math`m = gm'`}, and ${math`n = gn'`}, what is ${math`\gcd(m', n')`}?`,
+    t`If ${math`m \mid n(i - j)`}, what does dividing by ${math`g`} give, and which theorem then applies?`,
+    t`For the converse, if ${math`m' \mid i - j`}, why does ${math`m \mid n(i - j)`}?`,
+  ],
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-3', '3.2.4'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const [ms, mt, mp] = [math`s`, math`t`, math`p`];
@@ -344,13 +374,17 @@ export const euclidTheorem: TopicContent = {
   generators: [cancelCoprime, squareRootsOfOne, zeroDivisors],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['coprime', 'euclids-lemma'],
-  cambridge: withUses([bop1155, bop1156, sheet316, sheet322, sheet331, bop729], {
+  cambridge: withUses([bop1155, bop1156, sheet316, sheet322, sheet331, bop729, sw325, sheet324proof], {
+    'sheet-3-2-4': { sections: ['When can you cancel?'], note: t`Cancelling a factor in a congruence through the gcd`, needs: ['logic.iff'] },
+    'sw-3-2-5': { sections: ['What it unlocks'], note: t`Uniqueness of lowest terms, from Euclid's theorem` },
     'sheet-3-3-1': { sections: ['When can you cancel?'], note: t`Cancelling by the gcd to reach a coprime pair` },
     'sheet-3-1-6': { sections: ['Primes'], note: t`Square roots of one modulo a prime` },
     'sheet-3-2-2': { sections: ['When can you cancel?', 'What it unlocks'], note: t`Coprime divisors multiply, with a counterexample otherwise` },
   }),
-  // 3.3.1 first: it needs the theorem used with a reduction to the coprime case, not just quoted.
-  gate: ['sheet-3-3-1', 'sheet-3-1-6', 'sheet-3-2-2'],
+  // 3.3.1 first: it needs the theorem used with a reduction to the coprime case, not just quoted. Exercise 3.2.5,
+  // lowest terms are unique, is set here by Rule 1 (2026-10-08) and gates; 3.2.4, cancelling in a congruence, is
+  // an if and only if proof, so it is practice.
+  gate: ['sheet-3-3-1', 'sheet-3-1-6', 'sheet-3-2-2', 'sw-3-2-5'],
   recall: [
     { front: t`State Euclid's theorem.`, back: t`If ${math`k \mid mn`} and ${math`\gcd(k, m) = ${1}`}, then ${math`k \mid n`}.` },
     { front: t`State Euclid's lemma for a prime ${mp}.`, back: t`If ${math`p \mid mn`}, then ${math`p \mid m`} or ${math`p \mid n`}.` },

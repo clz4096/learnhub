@@ -368,32 +368,6 @@ const sw128 = supervision({
     t`Which integers ${math`a`} and ${math`b`} satisfy ${math`ab = ${1}`}?`,
   ],
 });
-const sw231 = supervision({
-  id: 'sw-2-3-1',
-  source: cite('cst-dm-sw1', 'Exercises 2, 2.3.1'),
-  title: t`Differences of two squares`,
-  prompt: t`Prove that for all integers ${mn}, there exist natural numbers ${math`i`} and ${math`j`} such that ${math`n = i^{${2}} - j^{${2}}`} if and only if ${math`n \equiv ${0}`}, ${math`n \equiv ${1}`}, or ${math`n \equiv ${3} \pmod{${4}}`}. Both directions go by cases: for one, use the remainders of ${math`i^{${2}}`} and ${math`j^{${2}}`}; for the other, odd ${mn} and multiples of ${4}.`,
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-2', '2.3.1'),
-  hints: [
-    t`For one direction, which remainders can ${math`i^{${2}}`} and ${math`j^{${2}}`} leave modulo ${4}, and so which can ${math`i^{${2}} - j^{${2}}`} leave?`,
-    t`For odd ${math`n = ${2}k + ${1}`}, which two consecutive squares differ by ${mn}?`,
-    t`For ${math`n = ${4}k`}, which ${math`i`} and ${math`j`} with ${math`i - j = ${2}`} give ${math`i^{${2}} - j^{${2}} = n`}, and how do negative values of ${mn} fit?`,
-  ],
-});
-const sw327 = supervision({
-  id: 'sw-3-2-7',
-  source: cite('cst-dm-sw1', 'Exercises 3, 3.2.7'),
-  title: t`${24} divides ${math`p^{${2}} - ${1}`}`,
-  prompt: t`Let ${mn} be an integer. (a) Prove that if ${mn} is not divisible by ${3}, then ${math`n^{${2}} \equiv ${1} \pmod{${3}}`}. (b) Show that if ${mn} is odd, then ${math`n^{${2}} \equiv ${1} \pmod{${8}}`}. (c) Conclude that if ${math`p`} is a prime greater than ${3}, then ${math`p^{${2}} - ${1}`} is divisible by ${24}.`,
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-3', '3.2.7'),
-  hints: [
-    t`For (a), if ${3} does not divide ${mn}, what are the two possible remainders, and what is ${math`n^{${2}}`} modulo ${3} in each case?`,
-    t`For (b), with ${math`n = ${2}k + ${1}`}, why is ${math`n^{${2}} - ${1} = ${4}k(k + ${1})`} a multiple of ${8}?`,
-    t`For (c), why does a prime greater than ${3} meet both conditions, and why do ${3} and ${8} together give ${24}?`,
-  ],
-});
 const bop16 = supervision({
   id: 'bop-4-16',
   source: cite('bop', 'Chapter 4, exercise 16'),
@@ -429,6 +403,37 @@ const ns1q1 = supervision({
     t`What is ${math`n^{${2}}`} modulo ${3} in each case?`,
     t`Which of those cases give a multiple of ${3}?`,
   ],
+});
+
+const SW = 'cst-dm-sw1';
+// Rule 1 (2026-10-08): set here from pre.indices, the earliest topic that teaches everything it needs.
+const a12Q1iii = supervision({
+  id: 'a12-q1-iii',
+  source: cite('step-f12', 'Q1(iii)'),
+  title: t`${math`n^{${5}} - n^{${3}}`} and ${24}`,
+  prompt: t`Show that ${math`n^{${5}} - n^{${3}}`} is divisible by ${24} for every positive integer ${math`n`}. Start by taking out the largest possible power of ${math`n`}.`,
+  writeUp: 'proof',
+  official: cite('step-f12-hints', 'Q1(iii)'),
+  hints: [
+    t`After taking out ${math`n^{${3}}`}, what is the remaining factor, and how does it factorise further?`,
+    t`Since ${math`${24} = ${3} \times ${8}`}, why is a product of three consecutive integers divisible by ${3}?`,
+    t`For the factor ${8}: when ${math`n`} is even, what divides ${math`n^{${3}}`}, and when ${math`n`} is odd, what can be said of ${math`n - ${1}`} and ${math`n + ${1}`}?`,
+  ],
+});
+
+// Rule 1 (2026-10-08): set here from pre.sequences, the earliest topic that teaches everything it needs.
+const sw131c = supervision({
+  id: 'sw-1-3-1-c',
+  source: cite(SW, 'Exercises 1, 1.3.1(c)'),
+  title: t`Triangular and square`,
+  prompt: t`A natural number is square if it is ${math`k^{${2}}`} for some natural number ${math`k`}. Show that ${math`n`} is triangular if and only if ${math`${8}n + ${1}`} is a square. (Plutarch, about ${100} BC.)`,
+  hints: [
+    t`If ${math`n = \frac{k(k + ${1})}{${2}}`}, what is ${math`${8}n + ${1}`} in terms of ${math`k`}?`,
+    t`Which perfect square equals ${math`${4}k^{${2}} + ${4}k + ${1}`}?`,
+    t`For the converse, if ${math`${8}n + ${1} = m^{${2}}`}, why must ${math`m`} be odd, and what does writing ${math`m = ${2}k + ${1}`} give for ${math`n`}?`,
+  ],
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-1', '1.3.1(c)'),
 });
 
 // ---------------------------------------------------------------- lesson
@@ -507,16 +512,16 @@ export const proofCases: TopicContent = {
   generators: [residues, parityCases, digitSums],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exhaustive-cases', 'without-loss-of-generality'],
-  cambridge: withUses([a6ii, lemma26, odd8, bop14, bop15, bop44, sw223, sw128, sw231, sw327, bop16, ns1q1], {
+  cambridge: withUses([a6ii, lemma26, odd8, bop14, bop15, bop44, sw223, sw128, bop16, ns1q1, a12Q1iii, sw131c], {
+    'sw-1-3-1-c': { sections: ['Proof by cases'], note: t`An if and only if proof about triangular numbers and odd squares`, needs: ['pre.sequences', 'logic.iff'] },
+    'a12-q1-iii': { sections: ['Proof by cases'], note: t`Factorising, then cases on parity for the factor eight`, needs: ['pre.indices'] },
     'ns1-q1': { sections: ['Proof by cases', 'Squares and remainders'], note: t`Writing a number by its remainder on division by three and squaring each case` },
-    'sw-2-3-1': { sections: ['Proof by cases', 'Squares and remainders'], note: t`Both directions by cases on remainders, written as congruences`, needs: ['num.congruence'] },
-    'sw-3-2-7': { sections: ['Squares and remainders'], note: t`Squares modulo three and eight, then combining for primes`, needs: ['num.congruence'] },
     'a6-q3-ii': { sections: ['Show there are no more'], note: t`Counting by the shortfall from all nines, case by case` },
     'sw-1-2-8': { sections: ['Proof by cases'], note: t`Splitting off the zero case in a divisibility proof` },
     'sw-2-2-3': { sections: ['Proof by cases', 'Squares and remainders'], note: t`Odd and even cases for the remainder of a square` },
   }),
-  // The STEP count, then the proofs by cases. Exercises 2.3.1 and 3.2.7 are written with congruences, taught later,
-  // so they are practice. The auto-checked remainders (0 or 1; 1 for odd squares mod 8) can be guessed, so they do
+  // The STEP count, then the proofs by cases. Exercises 2.3.1 and 3.2.7 are written with congruences, so they
+  // are set in num.congruence (Rule 1, 2026-10-08). The auto-checked remainders (0 or 1; 1 for odd squares mod 8) can be guessed, so they do
   // not gate. IA Numbers and Sets Q1 (moved here from Algebraic argument, 2026-10-08) is the same move as
   // Squares and remainders, on division by three.
   gate: ['a6-q3-ii', 'sw-1-2-8', 'sw-2-2-3', 'ns1-q1'],

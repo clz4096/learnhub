@@ -413,6 +413,51 @@ const a12q1iv = supervision({
   official: cite('step-f12-hints', 'Q1(iv)'),
 });
 
+// Rule 1 (2026-10-08): set here from logic.iff, the earliest topic that teaches everything it needs.
+const sw122 = supervision({
+  id: 'sw-1-2-2',
+  source: cite('cst-dm-sw1', 'Exercises 1, 1.2.2'),
+  title: t`Cancelling a common factor`,
+  prompt: t`Let ${math`k, m, n`} be integers with ${math`k`} positive. Show that ${math`(k \cdot m) \mid (k \cdot n) \iff m \mid n`}.`,
+  writeUp: 'proof',
+  hints: [
+    t`What does ${math`(k \cdot m) \mid (k \cdot n)`} mean, written with a witness?`,
+    t`For the forward direction, why may ${math`k`} be cancelled from an equation of the form ${math`k \cdot n = j \cdot k \cdot m`}?`,
+    t`For the backward direction, how does a witness for ${math`m \mid n`} give a witness for ${math`(k \cdot m) \mid (k \cdot n)`}?`,
+  ],
+  official: cite('cst-dm-sols-2324-1', '1.2.2'),
+});
+
+// Rule 1 (2026-10-08): set here from logic.iff, the earliest topic that teaches everything it needs.
+const sw127 = supervision({
+  id: 'sw-1-2-7',
+  source: cite('cst-dm-sw1', 'Exercises 1, 1.2.7'),
+  title: t`Divisible by ${30}`,
+  prompt: t`Prove that for all integers ${mn}, ${math`${30} \mid n \iff (${2} \mid n \land ${3} \mid n \land ${5} \mid n)`}.`,
+  writeUp: 'proof',
+  hints: [
+    t`For the forward direction, how does a witness for ${math`${30} \mid n`} give witnesses for ${2}, ${3}, and ${5}?`,
+    t`For the backward direction, with ${math`n = ${2}a`}, ${math`n = ${3}b`}, and ${math`n = ${5}c`}, what are ${math`${15}n`}, ${math`${10}n`}, and ${math`${6}n`} as multiples of ${30}?`,
+    t`Which combination of ${15}, ${10}, and ${6} with integer coefficients equals ${1}, and what does it say about ${mn}?`,
+  ],
+  official: cite('cst-dm-sols-2324-1', '1.2.7'),
+});
+
+// Rule 1 (2026-10-08): set here from logic.quantifiers, the earliest topic that teaches everything it needs.
+const prop18 = supervision({
+  id: 'notes-72-prop18',
+  source: cite('cst-dm-notes', 'printed page 72, Proposition 18'),
+  title: t`A congruence for every ${mn}`,
+  prompt: t`Fix a positive integer ${math`m`}. Prove: for integers ${math`a`} and ${math`b`}, ${math`a \equiv b \pmod{m}`} if, and only if, for all positive integers ${mn}, ${math`n \cdot a \equiv n \cdot b \pmod{n \cdot m}`}. (${math`a \equiv b \pmod{m}`} means ${math`m \mid (a - b)`}.) State where ${mn} is taken to be arbitrary, and where the "for all" assumption is used by choosing a value.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-notes', 'printed page 73, the notes\' proof'),
+  hints: [
+    t`For one direction, if ${math`m`} divides ${math`a - b`}, why does ${math`nm`} divide ${math`n(a - b)`} for every positive ${mn}?`,
+    t`For the other, which single value of ${mn} turns the assumption into ${math`a \equiv b \pmod{m}`}?`,
+    t`Which direction introduces an arbitrary ${mn}, and which chooses one?`,
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const [ma, mb] = [math`a`, math`b`];
@@ -489,7 +534,10 @@ export const divisibility: TopicContent = {
   generators: [quotientWitness, largestDivisor, zeroAndSigns],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['divides'],
-  cambridge: withUses([sheet121a, sheet121b, bop619, bop420, sheet124, sheet126, bop411, a12q1iv], {
+  cambridge: withUses([sheet121a, sheet121b, bop619, bop420, sheet124, sheet126, bop411, a12q1iv, sw122, sw127, prop18], {
+    'notes-72-prop18': { sections: ['Proofs find the witness'], note: t`Proving and using a "for all" about congruences`, needs: ['logic.iff'] },
+    'sw-1-2-7': { sections: ['Proofs find the witness'], note: t`Both directions of a divisibility equivalence`, needs: ['logic.iff'] },
+    'sw-1-2-2': { sections: ['Proofs find the witness'], note: t`Both directions of a divisibility equivalence`, needs: ['logic.iff'] },
     'a12-q1-iv': { sections: ['Whole families at once'], note: t`A divisibility claim for every power, and a counterexample to a tempting argument` },
     'sheet-1-2-6': { sections: ['Proofs find the witness'], note: t`Proving divisibility facts from the definition, then combining them` },
     'sheet-1-2-4': { sections: ['Proofs find the witness'], note: t`Naming the witness in a transitivity proof` },

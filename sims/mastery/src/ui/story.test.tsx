@@ -9,12 +9,13 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import { IDBFactory } from 'fake-indexeddb';
 import { placedMemory, type IdbFactoryLike } from '@learnhub/mastery';
+import { gateOf } from '@learnhub/content';
 import { chapterById } from '@learnhub/content/book';
 import * as adm from '@learnhub/content/admissions';
 import { finishSitting, newCampaign, newInterview, recordMarks, startSitting, type Campaign, type Sitting } from '@/model/campaign';
 import { campaign, saveCampaign } from '@/model/campaignStore';
 import { closureTopics } from '@/model/courses';
-import { DEFAULT_COURSES, ensureSession, startLearner } from '@/model/learner';
+import { DEFAULT_COURSES, ensureSession, recordCambridgeAnswer, startLearner } from '@/model/learner';
 import { go, parseRoute, route } from '@/model/route';
 import { commit, flush, init, setClock } from '@/model/store';
 import { reloadStandup } from '@/model/standupStore';
@@ -56,9 +57,11 @@ const click = (name: string | RegExp): void => { fireEvent.click(screen.getByRol
 const endCard = (): Record<string, string> =>
   Object.fromEntries([...document.querySelectorAll('.sp-end li')].map((li) => [li.children[0]?.textContent ?? '', li.children[1]?.textContent ?? '']));
 
-async function withCourse(memory: string[] = []): Promise<void> {
-  const p = ensureSession(startLearner(T0, DEFAULT_COURSES, 60), T0);
-  await commit({ ...p, memory: placedMemory(memory, T0) });
+/** A learner with `mastered` learned and each one's first gate problem solved: the story counts mastered topics. */
+async function withCourse(mastered: string[] = []): Promise<void> {
+  let p = ensureSession(startLearner(T0, DEFAULT_COURSES, 60), T0);
+  for (const id of mastered) p = recordCambridgeAnswer(p, `${id}/${gateOf(id)[0] as string}`, true, { hints: 0 }, T0);
+  await commit({ ...p, memory: placedMemory(mastered, T0) });
 }
 
 function prologueSeen(): void {

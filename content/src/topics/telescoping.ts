@@ -291,69 +291,6 @@ const a24sq = auto({
   official: { source: cite('step-f24-hints', 'Assignment 24, Q2(iii)'), answer: 'sqrt(n)', agrees: true },
 });
 
-/** I_n by the midpoint rule; the integrand is bounded, with limit (pi/2)(2n + 1) at 0. */
-function integralI(n: number): number {
-  const N = 20000;
-  const h = Math.PI / N;
-  let s = 0;
-  for (let i = 0; i < N; i++) {
-    const x = (i + 0.5) * h;
-    s += (Math.PI / 2 - x) * Math.sin(n * x + x / 2) / Math.sin(x / 2);
-  }
-  return s * h;
-}
-
-const a24q3 = auto({
-  id: 'a24-q3',
-  source: cite(F24, 'Assignment 24, Q3'),
-  title: t`A recurrence for an integral`,
-  prompt: t`(${1998} STEP II, Question ${4}.) For a positive integer ${mn} let ${math`I_{n} = \int_{${0}}^{\pi} \left(\tfrac{${1}}{${2}}\pi - x\right) \sin\left(nx + \tfrac{${1}}{${2}}x\right) \operatorname{cosec}\left(\tfrac{${1}}{${2}}x\right) dx`}. Evaluate ${math`I_{n} - I_{n - ${1}}`} as a formula in ${mn}. (Type ${math`\pi`} as pi if needed.)`,
-  nudge: t`Not quite. Combine the two sines into a product so that the cosecant cancels.`,
-  hints: [
-    t`Which identity writes a difference of two sines as a product?`,
-    t`After the cosecant cancels, which integral of ${math`(\pi - ${2}x)\cos(nx)`} remains?`,
-    t`Integrating ${math`x\cos(nx)`} by parts, what are the values at ${math`\pi`} and ${0}, with ${math`\cos(n\pi) = (-${1})^{n}`}?`,
-  ],
-  answer: { kind: 'expression', expected: '2*(1 - (-1)^n)/n^2', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 20 } } },
-  solution: [
-    t`${math`\sin\left(nx + \tfrac{${1}}{${2}}x\right) - \sin\left(nx - \tfrac{${1}}{${2}}x\right) = ${2}\cos(nx)\sin\left(\tfrac{${1}}{${2}}x\right)`}, and the ${math`\sin\left(\tfrac{${1}}{${2}}x\right)`} cancels the cosecant: ${math`I_{n} - I_{n - ${1}} = \int_{${0}}^{\pi} (\pi - ${2}x)\cos(nx)\,dx`}.`,
-    t`${math`\int_{${0}}^{\pi} \pi\cos(nx)\,dx = ${0}`}, and by parts ${math`\int_{${0}}^{\pi} x\cos(nx)\,dx = \left[\frac{x\sin(nx)}{n} + \frac{\cos(nx)}{n^{${2}}}\right]_{${0}}^{\pi} = \frac{(-${1})^{n} - ${1}}{n^{${2}}}`}.`,
-    t`So ${math`I_{n} - I_{n - ${1}} = -${2} \cdot \frac{(-${1})^{n} - ${1}}{n^{${2}}} = \frac{${2}(${1} - (-${1})^{n})}{n^{${2}}}`}: ${0} for even ${mn}, ${math`\frac{${4}}{n^{${2}}}`} for odd ${mn}. With ${math`I_{${0}} = \int_{${0}}^{\pi} \left(\tfrac{${1}}{${2}}\pi - x\right)dx = ${0}`}, the differences telescope: ${math`I_{n} = \sum_{k = ${1}}^{n} \frac{${2}(${1} - (-${1})^{k})}{k^{${2}}}`}.`,
-    t`Take differences to cancel an awkward factor, then integrate what is left.`,
-  ],
-  reference: '2(1 - (-1)^n)/n^2',
-  verify: () => {
-    let prev = integralI(0);
-    if (Math.abs(prev) > 1e-6) return `I_0 = ${prev}`;
-    for (let n = 1; n <= 5; n++) {
-      const cur = integralI(n);
-      const want = (2 * (1 - (-1) ** n)) / (n * n);
-      if (Math.abs(cur - prev - want) > 1e-5) return `n = ${n}: ${cur - prev} against ${want}`;
-      prev = cur;
-    }
-    return null;
-  },
-  misconceptions: [
-    { response: '4/n^2', why: t`That is right for odd ${mn} only. For even ${mn}, ${math`\cos(n\pi) = ${1}`} and the difference is ${0}: write ${math`\cos(n\pi) = (-${1})^{n}`}.` },
-    { response: '2*((-1)^n - 1)/n^2', why: t`The sign: ${math`-${2}\int_{${0}}^{\pi} x\cos(nx)\,dx`}, and that integral is ${math`\frac{(-${1})^{n} - ${1}}{n^{${2}}}`}, which is negative or zero.` },
-  ],
-  official: { source: cite('step-f24-hints', 'Assignment 24, Q3'), answer: '2(1 - (-1)^n)/n^2', agrees: true },
-});
-
-const a24q3sup = supervision({
-  id: 'a24-q3-proof',
-  source: cite(F24, 'Assignment 24, Q3'),
-  title: t`Hence evaluate ${math`I_{n}`}`,
-  prompt: t`(${1998} STEP II, Question ${4}.) For a positive integer ${mn} let ${math`I_{n} = \int_{${0}}^{\pi} \left(\tfrac{${1}}{${2}}\pi - x\right) \sin\left(nx + \tfrac{${1}}{${2}}x\right) \operatorname{cosec}\left(\tfrac{${1}}{${2}}x\right) dx`}. Evaluate ${math`I_{n} - I_{n - ${1}}`}, and hence evaluate ${math`I_{n}`}, leaving your answer in the form of a sum. Show the telescoping step explicitly, including the value of ${math`I_{${0}}`}.`,
-  hints: [
-    t`Which identity writes the difference of the two sines as a product, and what then cancels?`,
-    t`What is ${math`\int_{${0}}^{\pi} (\pi - ${2}x)\cos(nx)\,dx`} for even and for odd ${mn}?`,
-    t`What is ${math`I_{${0}}`}, and how do the differences add up to ${math`I_{n}`}?`,
-  ],
-  writeUp: 'proof',
-  official: cite('step-f24-hints', 'Assignment 24, Q3'),
-});
-
 // ---------------------------------------------------------------- lesson
 
 const EXS = [1, 2, 3, 4].map((n) => sumQ(1, n, (r) => q(1, (3 * r - 2) * (3 * r + 1))));
@@ -406,17 +343,15 @@ export const telescoping: TopicContent = {
   generators: [pairGen, gapGen, prodGen, sqGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['method-of-differences', 'product-notation'],
-  cambridge: withUses([a6Show, a6General, a24q3, a24q3sup, a17n, a15prod, a24sq], {
+  cambridge: withUses([a6Show, a6General, a17n, a15prod, a24sq], {
     'a6-q1-i-show': { sections: ['Telescoping products'], note: t`Explaining exactly which factors of a long product cancel` },
     'a6-q1-i-general': { sections: ['Telescoping products'], note: t`Cancelling across a product of any length` },
-    'a24-q3-proof': { sections: ['Everything cancels but the ends'], note: t`A recurrence for an integral, then a telescoping sum`, needs: ['trig.compound-angles', 'calc.integration-by-parts'] },
-    'a24-q3': { sections: ['Everything cancels but the ends'], note: t`A recurrence for an integral`, needs: ['trig.compound-angles', 'calc.integration-by-parts'] },
     'a15-q1-iii-b': { sections: ['Telescoping products'], note: t`A product where each numerator cancels the next denominator` },
     'a17-q2-iii-a': { sections: ['Everything cancels but the ends'], note: t`Writing each term as a difference and summing` },
     'a24-q2-iii': { sections: ['Everything cancels but the ends'], note: t`A sum of differences of square roots` },
   }),
   // Assignment 6 Q1(i), second part, from pre.fractions: the written argument first, then the general value; then
-  // Assignments 15, 17, and 24. Assignment 24 Q3 integrates by parts, taught later, so it is practice.
+  // Assignments 15, 17, and 24. Assignment 24 Q3 integrates by parts, so it is left to calc.integration-by-parts and calc.standard-integrals.
   gate: ['a6-q1-i-show', 'a6-q1-i-general', 'a15-q1-iii-b', 'a17-q2-iii-a', 'a24-q2-iii'],
   recall: [
     { front: t`What is ${math`\sum_{r = ${1}}^{n} (f(r) - f(r - ${1}))`}?`, back: t`${math`f(n) - f(${0})`}: everything else cancels.` },

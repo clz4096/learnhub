@@ -13,6 +13,7 @@ import { generator, type Misconception } from '../problem';
 import { computedTex, dmath, math, t } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 import { far } from '../partv-a';
+import { close } from '../prep-c';
 import type { Rational } from '@learnhub/mastery';
 
 const mth = math`\theta`;
@@ -336,6 +337,151 @@ const fc4 = supervision({
   ],
 });
 
+// STEP I 2007 Q2 and STEP I 2010 Q3 (STEP Questions Database): tan(A + B) with arctangents,
+// and the factor formulae on an ellipse.
+const DB07 = 'stepdb-07-s1' as const;
+const DB10 = 'stepdb-10-s1' as const;
+const TAN = '8 + 5 sqrt(3)';
+// STEP I 2005 Q4 and STEP I 2011 Q3's identity (STEP Questions Database): triple angles.
+// 2011 Q3(i) needs differentiation and (ii) reciprocal functions, later topics.
+const DB05 = 'stepdb-05-s1' as const;
+const DB11 = 'stepdb-11-s1' as const;
+// Rule 1 (2026-10-08): set here from trig.compound-angles, the earliest topic that teaches everything it needs.
+const db07q2 = supervision({
+  id: 'step07-q2',
+  source: cite(DB07, 'Q2'),
+  title: t`Arctangents that add to ${math`\frac{\pi}{${4}}`}`,
+  prompt: t`(i) Given that ${math`A = \arctan\frac{${1}}{${2}}`} and that ${math`B = \arctan\frac{${1}}{${3}}`} (where ${math`A`} and ${math`B`} are acute) show, by considering ${math`\tan(A + B)`}, that ${math`A + B = \frac{${1}}{${4}}\pi`}. The non-zero integers ${math`p`} and ${math`q`} satisfy ${dmath`\arctan\frac{${1}}{p} + \arctan\frac{${1}}{q} = \frac{\pi}{${4}}.`} Show that ${math`(p - ${1})(q - ${1}) = ${2}`} and hence determine ${math`p`} and ${math`q`}. (ii) Let ${math`r`}, ${math`s`} and ${math`t`} be positive integers such that the highest common factor of ${math`s`} and ${math`t`} is ${1}. Show that, if ${dmath`\arctan\frac{${1}}{r} + \arctan\frac{s}{s + t} = \frac{\pi}{${4}},`} then there are only two possible values for ${math`t`}, and give ${math`r`} in terms of ${math`s`} in each case.`,
+  hints: [
+    t`What is ${math`\tan(A + B)`} in terms of ${math`\tan A`} and ${math`\tan B`}, and what is its value here?`,
+    t`With ${math`\tan A = \frac{${1}}{p}`} and ${math`\tan B = \frac{${1}}{q}`}, what equation does ${math`\tan(A + B) = ${1}`} give, and how does it factorise?`,
+    t`For (ii), what equation does the same method give, and how does the highest common factor condition restrict ${math`t`}?`,
+  ],
+  writeUp: 'proof',
+});
+
+// Rule 1 (2026-10-08): set here from trig.compound-angles, the earliest topic that teaches everything it needs.
+const db10q3 = supervision({
+  id: 'step10-q3',
+  source: cite(DB10, 'Q3'),
+  title: t`Parallel chords of an ellipse`,
+  prompt: t`Show that ${math`\sin(x + y) - \sin(x - y) = ${2}\cos x\sin y`} and deduce that ${dmath`\sin A - \sin B = ${2}\cos\tfrac{${1}}{${2}}(A + B)\sin\tfrac{${1}}{${2}}(A - B).`} Show also that ${dmath`\cos A - \cos B = -${2}\sin\tfrac{${1}}{${2}}(A + B)\sin\tfrac{${1}}{${2}}(A - B).`} The points ${math`P`}, ${math`Q`}, ${math`R`} and ${math`S`} have coordinates ${math`(a\cos p, b\sin p)`}, ${math`(a\cos q, b\sin q)`}, ${math`(a\cos r, b\sin r)`} and ${math`(a\cos s, b\sin s)`} respectively, where ${math`${0} \le p < q < r < s < ${2}\pi`}, and ${math`a`} and ${math`b`} are positive. Given that neither of the lines ${math`PQ`} and ${math`SR`} is vertical, show that these lines are parallel if and only if ${dmath`r + s - p - q = ${2}\pi.`}`,
+  hints: [
+    t`Which compound angle formulae expand ${math`\sin(x + y)`} and ${math`\sin(x - y)`}?`,
+    t`Which values of ${math`x`} and ${math`y`} turn ${math`\sin(x + y) - \sin(x - y)`} into ${math`\sin A - \sin B`}?`,
+    t`What is the gradient of ${math`PQ`}, simplified with the factor formulae, and when are two such gradients equal on the given range?`,
+  ],
+  writeUp: 'proof',
+});
+
+// Rule 1 (2026-10-08): set here from trig.compound-angles, the earliest topic that teaches everything it needs.
+const db07q2pq = auto({
+  id: 'step07-q2-pq',
+  source: cite(DB07, 'Q2(i)'),
+  title: t`Which integers ${math`p`} and ${math`q`}`,
+  prompt: t`The non-zero integers ${math`p`} and ${math`q`} satisfy ${math`\arctan\frac{${1}}{p} + \arctan\frac{${1}}{q} = \frac{\pi}{${4}}`}. Determine ${math`p`} and ${math`q`}.`,
+  answer: {
+    kind: 'witness',
+    count: 2,
+    unordered: true,
+    example: '2, 3',
+    check: ([p, q2]) => {
+      if (p === undefined || q2 === undefined) return 'Give two values.';
+      if (p.den !== 1n || q2.den !== 1n || p.num === 0n || q2.num === 0n) return 'p and q are non-zero integers.';
+      const sum = Math.atan(1 / Number(p.num)) + Math.atan(1 / Number(q2.num));
+      return Math.abs(sum - Math.PI / 4) < 1e-12 ? null : `With these, the sum of the arctangents is ${sum.toFixed(4)}, not a quarter of pi.`;
+    },
+  },
+  hints: [
+    t`What is ${math`\tan\left(\arctan\frac{${1}}{p} + \arctan\frac{${1}}{q}\right)`} in terms of ${math`p`} and ${math`q`}?`,
+    t`Setting it equal to ${1}, how does the equation rearrange into a product equal to a constant?`,
+    t`Which integer factor pairs are possible, and which of them give non-zero ${math`p`} and ${math`q`}?`,
+  ],
+  nudge: t`Not quite. Take the tangent of both sides and factorise; then discard any solution with a zero.`,
+  solution: [
+    t`Let ${math`A = \arctan\frac{${1}}{p}`} and ${math`B = \arctan\frac{${1}}{q}`}. Then ${math`\tan(A + B) = \frac{\frac{${1}}{p} + \frac{${1}}{q}}{${1} - \frac{${1}}{pq}} = \frac{p + q}{pq - ${1}}`}, and this must be ${math`\tan\frac{\pi}{${4}} = ${1}`}.`,
+    t`So ${math`p + q = pq - ${1}`}, that is ${math`pq - p - q + ${1} = ${2}`}, that is ${math`(p - ${1})(q - ${1}) = ${2}`}.`,
+    t`Integer factor pairs of ${2}: ${math`(${1}, ${2})`}, ${math`(${2}, ${1})`}, ${math`(-${1}, -${2})`}, ${math`(-${2}, -${1})`}, giving ${math`(p, q) = (${2}, ${3})`}, ${math`(${3}, ${2})`}, ${math`(${0}, -${1})`}, ${math`(-${1}, ${0})`}. The last two have a zero, so ${math`\{p, q\} = \{${2}, ${3}\}`}.`,
+    t`Check: ${math`A + B`} lies strictly between ${0} and ${math`\pi`} for positive ${math`p, q`}, and ${math`\tan(A + B) = ${1}`} there only at ${math`\frac{\pi}{${4}}`}. That is part (i)'s ${math`\arctan\frac{${1}}{${2}} + \arctan\frac{${1}}{${3}} = \frac{\pi}{${4}}`}.`,
+    t`Make the equation a product equal to a constant, then list the factor pairs.`,
+  ],
+  reference: '2, 3',
+  verify: () => {
+    // Search every pair of non-zero integers up to 200 in size: only (2, 3) and (3, 2) work.
+    const found: string[] = [];
+    for (let p = -200; p <= 200; p++) for (let q2 = p; q2 <= 200; q2++) {
+      if (p === 0 || q2 === 0) continue;
+      if (Math.abs(Math.atan(1 / p) + Math.atan(1 / q2) - Math.PI / 4) < 1e-12) found.push(`${p},${q2}`);
+    }
+    return found.join(' ') === '2,3' ? null : `found ${found.join(' ')}`;
+  },
+  misconceptions: [
+    { response: '0, -1', why: t`${math`(p - ${1})(q - ${1}) = ${2}`} has that solution, but ${math`\frac{${1}}{p}`} needs ${math`p \ne ${0}`}. The question asks for non-zero integers.` },
+  ],
+});
+
+// Rule 1 (2026-10-08): set here from trig.double-angle, the earliest topic that teaches everything it needs.
+const db05q4 = supervision({
+  id: 'step05-q4',
+  source: cite(DB05, 'Q4'),
+  title: t`Triple angles from a ${math`${3}`}, ${math`${4}`}, ${math`${5}`} triangle, and ${math`\tan ${3}\theta`}`,
+  prompt: t`(i) Given that ${math`\cos\theta = \frac{${3}}{${5}}`} and that ${math`\frac{${3}\pi}{${2}} \le \theta \le ${2}\pi`}, show that ${math`\sin ${2}\theta = -\frac{${24}}{${25}}`}, and evaluate ${math`\cos ${3}\theta`}. (ii) Prove the identity ${dmath`\tan ${3}\theta \equiv \frac{${3}\tan\theta - \tan^{${3}}\theta}{${1} - ${3}\tan^{${2}}\theta}.`} Hence evaluate ${math`\tan\theta`}, given that ${math`\tan ${3}\theta = \frac{${11}}{${2}}`} and that ${math`\frac{\pi}{${4}} \le \theta \le \frac{\pi}{${2}}`}.`,
+  hints: [
+    t`In the given range, what is the sign of ${math`\sin\theta`}, and its value?`,
+    t`Which formulae give ${math`\sin ${2}\theta`} and ${math`\cos ${3}\theta`}?`,
+    t`For (ii), writing ${math`\tan ${3}\theta = \tan(${2}\theta + \theta)`}, which cubic in ${math`\tan\theta`} results, and which root fits the range?`,
+  ],
+  writeUp: 'proof',
+});
+
+// Rule 1 (2026-10-08): set here from trig.double-angle, the earliest topic that teaches everything it needs.
+const db11q3 = supervision({
+  id: 'step11-q3',
+  source: cite(DB11, 'Q3, identity (*)'),
+  title: t`A product of three sines`,
+  prompt: t`Prove the identity ${dmath`${4}\sin\theta\sin\left(\tfrac{${1}}{${3}}\pi - \theta\right)\sin\left(\tfrac{${1}}{${3}}\pi + \theta\right) = \sin ${3}\theta.`}`,
+  hints: [
+    t`Which product-to-sum formula simplifies ${math`\sin\left(\tfrac{${1}}{${3}}\pi - \theta\right)\sin\left(\tfrac{${1}}{${3}}\pi + \theta\right)`}?`,
+    t`What are ${math`\cos ${2}\theta`} and ${math`\cos\tfrac{${2}}{${3}}\pi`} in the result?`,
+    t`Multiplying by ${math`${4}\sin\theta`}, how does the expression compare with ${math`${3}\sin\theta - ${4}\sin^{${3}}\theta`}?`,
+  ],
+  writeUp: 'proof',
+});
+
+// Rule 1 (2026-10-08): set here from trig.double-angle, the earliest topic that teaches everything it needs.
+const db05q4tan = auto({
+  id: 'step05-q4-tan',
+  source: cite(DB05, 'Q4(ii)'),
+  title: t`${math`\tan\theta`} from ${math`\tan ${3}\theta = \frac{${11}}{${2}}`}`,
+  prompt: t`Given ${math`\tan ${3}\theta = \frac{${3}\tan\theta - \tan^{${3}}\theta}{${1} - ${3}\tan^{${2}}\theta}`}, evaluate ${math`\tan\theta`}, given that ${math`\tan ${3}\theta = \frac{${11}}{${2}}`} and that ${math`\frac{\pi}{${4}} \le \theta \le \frac{\pi}{${2}}`}. Give it exactly.`,
+  answer: { kind: 'expression', expected: TAN, variables: [] },
+  hints: [
+    t`With ${math`t = \tan\theta`}, which cubic does the given value produce?`,
+    t`Which simple rational root does the cubic have, and what quadratic remains?`,
+    t`In the given range, how large must ${math`\tan\theta`} be, and which root qualifies?`,
+  ],
+  nudge: t`Not quite. Find all three roots of the cubic, then use the range of ${math`\theta`} to choose.`,
+  solution: [
+    t`Let ${math`t = \tan\theta`}. Then ${math`${2}(${3}t - t^{${3}}) = ${11}(${1} - ${3}t^{${2}})`}, that is ${math`${2}t^{${3}} - ${33}t^{${2}} - ${6}t + ${11} = ${0}`}.`,
+    t`${math`t = \frac{${1}}{${2}}`} is a root: ${math`\frac{${2}}{${8}} - \frac{${33}}{${4}} - ${3} + ${11} = ${0}`}. Dividing out, ${math`(${2}t - ${1})(t^{${2}} - ${16}t - ${11}) = ${0}`}, so ${math`t = \frac{${1}}{${2}}`} or ${math`t = ${8} \pm \sqrt{${75}} = ${8} \pm ${5}\sqrt{${3}}`}.`,
+    t`For ${math`\frac{\pi}{${4}} \le \theta \le \frac{\pi}{${2}}`}, ${math`\tan\theta \ge ${1}`}: only ${math`t = ${8} + ${5}\sqrt{${3}}`} qualifies (${math`${8} - ${5}\sqrt{${3}}`} is negative).`,
+    t`Solve fully, then let the range choose the root.`,
+  ],
+  reference: TAN,
+  verify: () => {
+    const v = 8 + 5 * Math.sqrt(3);
+    const th = Math.atan(v);
+    if (!(th >= Math.PI / 4 && th <= Math.PI / 2)) return 'theta out of range';
+    // The other roots of the cubic fall outside the range.
+    if (Math.atan(0.5) >= Math.PI / 4 || 8 - 5 * Math.sqrt(3) >= 1) return 'another root in range';
+    return close('tan 3 theta', Math.tan(3 * th), 5.5, 1e-9);
+  },
+  misconceptions: [
+    { response: '1/2', why: t`${math`\tan\theta = \frac{${1}}{${2}}`} gives ${math`\theta < \frac{\pi}{${4}}`}, outside the range: ${math`\tan\theta \ge ${1}`} there.` },
+    { response: '8 - 5 sqrt(3)', why: t`${math`${8} - ${5}\sqrt{${3}}`} is negative, but ${math`\tan\theta \ge ${1}`} for ${math`\frac{\pi}{${4}} \le \theta \le \frac{\pi}{${2}}`}.` },
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const radiansAndGraphs: TopicContent = {
@@ -384,12 +530,20 @@ export const radiansAndGraphs: TopicContent = {
   generators: [convert, anyAngle, allSolutions, sector],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['radian', 'unit-circle', 'period'],
-  cambridge: withUses([a22zero, g2perim, g2area, fc4], {
+  cambridge: withUses([a22zero, g2perim, g2area, fc4, db07q2, db10q3, db07q2pq, db05q4, db11q3, db05q4tan], {
+    'step05-q4-tan': { sections: ['Every angle with a given sine'], note: t`Solving for a tangent from the triple angle formula, choosing the root by the range` },
+    'step11-q3': { sections: ['Sine and cosine for every angle'], note: t`A triple angle identity with angles in radians` },
+    'step05-q4': { sections: ['Sine and cosine for every angle'], note: t`Double and triple angles with the quadrant in radians` },
+    'step07-q2-pq': { sections: ['Sine and cosine for every angle'], note: t`Integer solutions of an arctangent equation` },
+    'step10-q3': { sections: ['Every angle with a given sine'], note: t`Sum-to-product formulas and parallel chords of an ellipse` },
+    'step07-q2': { sections: ['Sine and cosine for every angle'], note: t`Adding arctangents with the tangent formula`, needs: ['pre.hcf-lcm'] },
     'nst-fc4': { sections: ['Sine and cosine for every angle'], note: t`Sketching two trigonometric graphs and relating them` },
     'a22-q3-iv': { sections: ['Every angle with a given sine'], note: t`Every angle with sine zero, then a square root` },
   }),
-  // The STEP Support problem first (batch 9), then the NST Workbook's sketch.
-  gate: ['a22-q3-iv', 'nst-fc4'],
+  // The STEP Support problem first (batch 9), then the NST Workbook's sketch, then STEP I 2010 Q3, set here by
+  // Rule 1 (2026-10-08): its parallel chords come down to which angles have a given sine. The other STEP questions
+  // set here are practice: 2005 Q4's auto-checked tangent is the answer to its own last part.
+  gate: ['a22-q3-iv', 'nst-fc4', 'step10-q3'],
   recall: [
     { front: t`Define a radian.`, back: t`The angle at the centre of a circle whose arc equals the radius; ${math`\pi`} radians is ${math`${180}^\circ`}.` },
     { front: t`State the arc length and sector area for an angle ${mth} in radians.`, back: t`Arc ${math`r\theta`}; area ${math`\frac{${1}}{${2}}r^{${2}}\theta`}.` },

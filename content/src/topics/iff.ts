@@ -432,32 +432,6 @@ const tmuaBoth = auto({
   official: { source: cite('tmua-logic-proof', 'page 54, the summary table'), answer: 'A <=> B', agrees: true },
 });
 
-const sw122 = supervision({
-  id: 'sw-1-2-2',
-  source: cite('cst-dm-sw1', 'Exercises 1, 1.2.2'),
-  title: t`Cancelling a common factor`,
-  prompt: t`Let ${math`k, m, n`} be integers with ${math`k`} positive. Show that ${math`(k \cdot m) \mid (k \cdot n) \iff m \mid n`}.`,
-  writeUp: 'proof',
-  hints: [
-    t`What does ${math`(k \cdot m) \mid (k \cdot n)`} mean, written with a witness?`,
-    t`For the forward direction, why may ${math`k`} be cancelled from an equation of the form ${math`k \cdot n = j \cdot k \cdot m`}?`,
-    t`For the backward direction, how does a witness for ${math`m \mid n`} give a witness for ${math`(k \cdot m) \mid (k \cdot n)`}?`,
-  ],
-  official: cite('cst-dm-sols-2324-1', '1.2.2'),
-});
-const sw127 = supervision({
-  id: 'sw-1-2-7',
-  source: cite('cst-dm-sw1', 'Exercises 1, 1.2.7'),
-  title: t`Divisible by ${30}`,
-  prompt: t`Prove that for all integers ${mn}, ${math`${30} \mid n \iff (${2} \mid n \land ${3} \mid n \land ${5} \mid n)`}.`,
-  writeUp: 'proof',
-  hints: [
-    t`For the forward direction, how does a witness for ${math`${30} \mid n`} give witnesses for ${2}, ${3}, and ${5}?`,
-    t`For the backward direction, with ${math`n = ${2}a`}, ${math`n = ${3}b`}, and ${math`n = ${5}c`}, what are ${math`${15}n`}, ${math`${10}n`}, and ${math`${6}n`} as multiples of ${30}?`,
-    t`Which combination of ${15}, ${10}, and ${6} with integer coefficients equals ${1}, and what does it say about ${mn}?`,
-  ],
-  official: cite('cst-dm-sols-2324-1', '1.2.7'),
-});
 const tmuaI3 = supervision({
   id: 'tmua-i-3',
   source: cite('tmua-logic-proof', 'Exercise I, questions 1 to 3'),
@@ -624,13 +598,11 @@ export const iff: TopicContent = {
   generators: [necSuff, iffTable, iffWitness],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['biconditional', 'sufficient-condition', 'necessary-condition'],
-  cambridge: withUses([bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, sw122, sw127, a10Iff, tmuaI3], {
-    'sw-1-2-7': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
-    'sw-1-2-2': { sections: ['Proving both directions'], note: t`Both directions of a divisibility equivalence`, needs: ['num.divisibility'] },
+  cambridge: withUses([bop24_1, bop24_3, bop24_5, sw113verdict, tmuaNecessary, tmuaBoth, a10Iff, tmuaI3], {
     'a10-q2-v': { sections: ['Two arrows at once', 'Necessary and sufficient'], note: t`Testing both directions of each statement, and breaking a false one with a single example` },
   }),
   // The two-way proof of 1.1.3 is set in proof.contrapositive, where its harder direction is taught (Rule 1,
-  // 2026-10-08). 1.2.7 and 1.2.2 need divisibility, taught later, so they are practice. The true-or-false
+  // 2026-10-08). 1.2.7 and 1.2.2 need divisibility, so they are set in num.divisibility. The true-or-false
   // version of 1.1.3 is left out: a two-option guess does not test the topic. Assignment 10 Q2(v) has five
   // statements to judge, so a guess passes it one time in 32.
   gate: ['a10-q2-v'],

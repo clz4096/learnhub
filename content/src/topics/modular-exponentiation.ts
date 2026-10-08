@@ -8,9 +8,9 @@
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
 import { int, pick, upTo } from '../math';
-import { mod, powMod, powModSlow } from '../numbers';
+import { inverseBySearch, mod, powMod, powModSlow } from '../numbers';
 import { generator, type Misconception } from '../problem';
-import { computedTex, dmath, listOf, math, t } from '../rich';
+import { computedTex, dmath, listOf, math, t, type Span } from '../rich';
 import { checkFrom, worked, workedCambridge, type TopicContent } from '../topic';
 
 const [mk, mm] = [math`k`, math`m`];
@@ -226,6 +226,32 @@ const costWhy = supervision({
   ],
 });
 
+const base3212 = powMod(22, 12001, 175);
+const inv3212 = inverseBySearch(base3212, 175) as number;
+const Z = (m: number | Span): Span => math`\mathbb{Z}_{${m}}`;
+// Rule 1 (2026-10-08): set here from num.modular-inverse, the earliest topic that teaches everything it needs.
+const sheet3212 = auto({
+  id: 'sheet-3-2-12-inverse',
+  source: cite('cst-dm-sw1', 'Exercises 3, 3.2.12', true),
+  title: t`The inverse of ${math`[${22}^{${12001}}]_{${175}}`}`,
+  prompt: t`Exercise ${3}.${2}.${12} asks for a proof that ${math`[${22}^{${12001}}]_{${175}}`} has a multiplicative inverse in ${Z(175)}. Go further: find it.`,
+  answer: { kind: 'exact', expected: String(inv3212) },
+  solution: [
+    t`${math`${22} = ${2} \times ${11}`} and ${math`${175} = ${5}^{${2}} \times ${7}`} share no prime, so the power is coprime to ${175} and has an inverse. To find it, reduce the power: repeated squaring gives ${math`[${22}^{${12001}}]_{${175}} = ${base3212}`}.`,
+    t`Then ${math`${175} = ${7} \times ${22} + ${21}`} and ${math`${22} = ${21} + ${1}`}, so ${math`${1} = ${22} - (${175} - ${7} \times ${22}) = ${8} \times ${22} - ${175}`}, and the inverse is ${inv3212}.`,
+    t`Shrink the number first, then invert it.`,
+  ],
+  reference: String(inv3212),
+  verify: () => same('the power and the inverse', `${base3212},${(base3212 * inv3212) % 175}`, '22,1'),
+  misconceptions: [{ response: String(inverseBySearch(22, 7)), why: t`Work modulo ${175}, not ${7}: the inverse must satisfy ${math`${22}x \equiv ${1} \pmod{${175}}`}.` }],
+  nudge: t`Not quite. Reduce the huge power modulo ${175} first; the inverse of a small number is then one run of Euclid's algorithm.`,
+  hints: [
+    t`How can ${math`[${22}^{${12001}}]_{${175}}`} be reduced, by repeated squaring or by finding a power of ${22} that is ${1} modulo ${175}?`,
+    t`What small residue does the power reduce to?`,
+    t`How does Euclid's algorithm on ${175} and that residue give its inverse?`,
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const S13 = squares(3, 13, 7);
@@ -283,7 +309,8 @@ export const modularExponentiation: TopicContent = {
   generators: [squareAndMultiply, multiplicationCount, squareChain],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['repeated-squaring'],
-  cambridge: withUses([totd341, btw341, sheet225why, costWhy], {
+  cambridge: withUses([totd341, btw341, sheet225why, costWhy, sheet3212], {
+    'sheet-3-2-12-inverse': { sections: ['Squaring instead of counting'], note: t`Reducing a huge power before inverting it`, needs: ['num.modular-inverse'] },
     'sheet-2-2-5-flt': { sections: ['Squaring instead of counting'], note: t`A power modulo a composite by known congruences, and why Fermat is not contradicted` },
     'squaring-cost': { sections: ['Why it is fast'], note: t`Why repeated squaring needs few multiplications` },
     'notes-131-btw-witness': { sections: ['Squaring instead of counting'], note: t`A witness that a number is composite` },

@@ -429,10 +429,11 @@ export const rightTriangle: TopicContent = {
     's2misc-q2-iii': { sections: ['Shape, not size'], note: t`The radius of the inscribed sphere from right triangles` },
     'step02-q6-angle': { sections: ['Shape, not size'], note: t`The tangent of a tilt angle from a right triangle` },
   }),
-  // The gate is right triangles inside solids, best first: 2002 I Q6 (a pyramid tipped onto a
-  // face), then the auto-checked parts. The 2010 II Q6 write-up stays practice: the prompt of its
-  // part (iii) states the answer to its part (i). Assignment 5 Q1(i) is the lesson's own proof.
-  gate: ['step02-q6', 's2misc-q2-iii', 'step02-q6-angle'],
+  // The gate is right triangles inside solids: the auto-checked parts. The 2002 I Q6 write-up (a pyramid
+  // tipped onto a face) is practice: its last part asks for the same tangent as the auto-checked tilt, whose
+  // solution would give it away. The 2010 II Q6 write-up stays practice: the prompt of its part (iii) states
+  // the answer to its part (i). Assignment 5 Q1(i) is the lesson's own proof.
+  gate: ['s2misc-q2-iii', 'step02-q6-angle'],
   recall: [
     { front: t`Define ${math`\sin \theta`}, ${math`\cos \theta`}, ${math`\tan \theta`} for an acute angle of a right triangle.`, back: t`Opposite over hypotenuse, adjacent over hypotenuse, and opposite over adjacent.` },
     { front: t`State the Pythagorean identity and its proof in one line.`, back: t`${math`\cos^{${2}} \theta + \sin^{${2}} \theta = ${1}`}: divide ${math`a^{${2}} + b^{${2}} = c^{${2}}`} by ${math`c^{${2}}`}.` },

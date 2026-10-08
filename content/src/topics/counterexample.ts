@@ -532,6 +532,21 @@ const lp12Why = supervision({
   writeUp: 'proof',
 });
 
+const DB06 = 'stepdb-06-s1' as const;
+// Rule 1 (2026-10-08): set here from ineq.linear-quadratic, the earliest topic that teaches everything it needs.
+const db06q3 = supervision({
+  id: 'step06-q3',
+  source: cite(DB06, 'Q3(i), (ii)'),
+  title: t`Sufficient, necessary, and both`,
+  prompt: t`In this question ${math`b`} and ${math`c`} are real numbers. (i) By considering the graph ${math`y = x^{${2}} + bx + c`} show that ${math`c < ${0}`} is a sufficient condition for the equation ${math`x^{${2}} + bx + c = ${0}`} to have distinct real roots. Determine whether ${math`c < ${0}`} is a necessary condition for the equation to have distinct real roots. (ii) Determine necessary and sufficient conditions for the equation ${math`x^{${2}} + bx + c = ${0}`} to have distinct positive real roots.`,
+  writeUp: 'proof',
+  hints: [
+    t`If ${math`c < ${0}`}, what is the value of ${math`x^{${2}} + bx + c`} at ${math`x = ${0}`}, and what does that force on the graph of an upward parabola?`,
+    t`Is there an example with ${math`c > ${0}`} and two distinct real roots?`,
+    t`For distinct positive roots, what must hold for the discriminant, for the sum of the roots ${math`-b`}, and for their product ${math`c`}?`,
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EULER = CLAIMS[0] as Claim;
@@ -577,7 +592,8 @@ export const counterexample: TopicContent = {
   generators: [conditional, smallestFail, anyFail],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['disproof'],
-  cambridge: withUses([sw111, sw125, sw129, sw221, p2a, p2b, p2c, p2d, p2e, p1, p2f, lp12Why], {
+  cambridge: withUses([sw111, sw125, sw129, sw221, p2a, p2b, p2c, p2d, p2e, p1, p2f, lp12Why, db06q3], {
+    'step06-q3': { sections: ['What a counterexample is'], note: t`Conditions for distinct real roots, stated as necessary and sufficient`, needs: ['ineq.linear-quadratic', 'logic.iff'] },
     'lp-ex-12-why': { sections: ['What a counterexample is', 'Writing it up'], note: t`Checking reflexive, symmetric, and transitive axioms, with a counterexample for each failure`, needs: ['logic.nested-quantifiers'] },
     'sw-2-2-1': { sections: ['What a counterexample is'], note: t`Finding numbers that break a claim about powers` },
     'sw-1-1-1': { sections: ['What a counterexample is'], note: t`Finding a counterexample among non-primes` },

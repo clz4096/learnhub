@@ -390,6 +390,21 @@ const smokers = supervision({
   official: cite('step-f06-hints', 'Q4(i)'),
 });
 
+const mn = math`n`;
+// Rule 1 (2026-10-08): set here from alg.proof-by-induction, the earliest topic that teaches everything it needs.
+const polyaProof = supervision({
+  id: 'ia-q10-proof',
+  source: cite('ia-prob-sheet-1', 'Q10'),
+  title: t`The Polya urn, proved`,
+  prompt: t`For the Polya urn (one white and one black ball to start; draw a ball at random and return it with one more of the same colour), prove by induction on ${mn} that when there are ${mn} balls, each number of white balls from ${1} to ${math`n - ${1}`} has probability ${math`\frac{${1}}{n - ${1}}`}. Do you think the proportion of white balls might tend to a limit?`,
+  writeUp: 'proof',
+  hints: [
+    t`With ${math`n + ${1}`} balls and ${math`i`} white, what could the urn have held one step earlier?`,
+    t`In each case, what is the probability of drawing the colour that leads to ${math`i`} white balls?`,
+    t`Using the hypothesis for ${mn} balls, what do the two cases add up to?`,
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EX = { r: 3, b: 2 };
@@ -464,7 +479,8 @@ export const treeDiagrams: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['tree-diagram', 'without-replacement'],
   claims,
-  cambridge: withUses([a12iiib, a12iva, a12ivc, a12methods, smokers], {
+  cambridge: withUses([a12iiib, a12iva, a12ivc, a12methods, smokers, polyaProof], {
+    'ia-q10-proof': { sections: ['Multiplying along a path', 'Adding across paths'], note: t`Induction on the number of balls, with conditional probabilities`, needs: ['alg.proof-by-induction'] },
     'a12-q2-ii-methods': { sections: ['Multiplying along a path', 'Adding across paths'], note: t`One problem by a tree and by counting pairs`, needs: ['comb.combinations'] },
     'a6-q4-i-tree': { sections: ['Multiplying along a path', 'Adding across paths'], note: t`Drawing and labelling a two-stage tree and adding paths` },
     'a12-q2-iii-b': { sections: ['When the second draw remembers the first', 'Multiplying along a path'], note: t`Multiplying along a path without replacement` },

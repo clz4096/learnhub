@@ -595,19 +595,6 @@ const prop8: Parameters<typeof workedProof>[0] = {
   source: cite('cst-dm-notes', 'printed pages 47 and 48, Proposition 8'),
 };
 
-const prop10 = supervision({
-  id: 'notes-50-prop10',
-  source: cite('cst-dm-notes', 'printed page 50, Proposition 10'),
-  title: t`If ${math`\sqrt{x}`} is rational, so is ${math`x`}`,
-  prompt: t`Let ${math`x`} be a positive real number. Prove that if ${math`\sqrt{x}`} is rational, then so is ${math`x`}. State the assumption and the conclusion.`,
-  writeUp: 'proof',
-  hints: [
-    t`What does it mean for ${math`\sqrt{x}`} to be rational, written with integers?`,
-    t`How is ${math`x`} related to ${math`\sqrt{x}`}, and what does that give for ${math`x`} in terms of those integers?`,
-    t`Why is the result a ratio of integers with a non-zero denominator?`,
-  ],
-  official: cite('cst-dm-notes', 'printed page 51, the notes\' proof'),
-});
 const tmuaE1 = supervision({
   id: 'tmua-e-1-2',
   source: cite('tmua-logic-proof', 'Exercise E, questions 1 and 2', true),
@@ -791,13 +778,12 @@ export const implication: TopicContent = {
   generators: [fillColumn, findValues, rewrite],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['implication', 'converse', 'modus-ponens'],
-  cambridge: withUses([bop25_1, bop25_7, bop25_10, bop25_11, bop23_3, bop23_5, bop23_7, bop23_11, tmuaE4, tmua29, prop10, a4Cards, tmuaE1, tmuaJ], {
-    'notes-50-prop10': { sections: ['Proving and using an implication'], note: t`Proving an implication about rational numbers`, needs: ['num.number-systems'] },
+  cambridge: withUses([bop25_1, bop25_7, bop25_10, bop25_11, bop23_3, bop23_5, bop23_7, bop23_11, tmuaE4, tmua29, a4Cards, tmuaE1, tmuaJ], {
     'a4-q4-i': { sections: ['A promise', 'Many ways to say it'], note: t`Finding the only cases in which an implication can be false` },
   }),
   // The cards test when an implication is false. Theorem 11 is a written proof, so it is set in proof.direct, the
-  // first topic that teaches writing one (Rule 1, 2026-10-08). Proposition 10 needs rational numbers, taught later,
-  // so it is practice.
+  // first topic that teaches writing one (Rule 1, 2026-10-08). Proposition 10 needs rational numbers and proof
+  // writing, so it is set in proof.direct.
   gate: ['a4-q4-i'],
   recall: [
     { front: t`When is ${IMP} false?`, back: t`Only when ${mP} is true and ${mQ} is false. In the other three cases it is true.` },

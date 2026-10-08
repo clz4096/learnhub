@@ -272,6 +272,21 @@ const proveCor32 = supervision({
   writeUp: 'proof',
 });
 
+// Rule 1 (2026-10-08): set here from alg.sigma-notation, the earliest topic that teaches everything it needs.
+const sw432d = supervision({
+  id: 'sw-4-3-2-d',
+  source: cite('cst-dm-sw1', 'Exercises 4, 4.3.2(d)'),
+  title: t`Every power sum is a polynomial`,
+  prompt: t`Show that, for every ${math`k \in \mathbb{N}`}, there exists a polynomial ${math`p_k(x)`} such that, for all ${math`n \in \mathbb{N}`}, ${math`p_k(n) = \sum_{i = ${0}}^{n} i^{k} = ${0}^{k} + ${1}^{k} + \cdots + n^{k}`}. Hint: generalise the identity ${math`(n + ${1})^{${2}} = \sum_{i = ${0}}^{n} (i + ${1})^{${2}} - \sum_{i = ${0}}^{n} i^{${2}}`}.`,
+  hints: [
+    t`Generalising the identity to ${math`(n + ${1})^{k + ${1}}`}, what does expanding each ${math`(i + ${1})^{k + ${1}}`} give?`,
+    t`Which power sum appears with a non-zero coefficient, and which lower power sums appear with it?`,
+    t`How does strong induction on ${math`k`} turn that equation into a polynomial for ${math`\sum_{i = ${0}}^{n} i^{k}`}?`,
+  ],
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-4', '4.3.2(d)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EXN = 4;
@@ -328,7 +343,8 @@ export const binomialTheorem: TopicContent = {
   generators: [coefficient, expand, coefficientSum],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binomial-theorem', 'binomial-expansion'],
-  cambridge: withUses([dream5, rowAndSum, cor32, proveCor31, proveCor32], {
+  cambridge: withUses([dream5, rowAndSum, cor32, proveCor31, proveCor32, sw432d], {
+    'sw-4-3-2-d': { sections: ['One coefficient at a time'], note: t`Telescoping power sums, then induction on the power`, needs: ['alg.sigma-notation', 'proof.strong-induction'] },
     'cst-cor-32-proof': { sections: ["Primes and the Freshman's Dream"], note: t`Which terms of the expansion survive modulo a prime`, needs: ['num.congruence'] },
     'cst-cor-31-proof': { sections: ['Identities by substitution'], note: t`Substituting into the binomial theorem` },
     'cst-cor-33-p5': { sections: ["Primes and the Freshman's Dream"], note: t`Expanding a fifth power and seeing every inner coefficient divisible by five` },

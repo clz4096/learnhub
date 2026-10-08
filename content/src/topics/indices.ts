@@ -251,20 +251,6 @@ const sw123witness = auto({
   ],
 });
 
-const a12Q1iii = supervision({
-  id: 'a12-q1-iii',
-  source: cite('step-f12', 'Q1(iii)'),
-  title: t`${math`n^{${5}} - n^{${3}}`} and ${24}`,
-  prompt: t`Show that ${math`n^{${5}} - n^{${3}}`} is divisible by ${24} for every positive integer ${math`n`}. Start by taking out the largest possible power of ${math`n`}.`,
-  writeUp: 'proof',
-  official: cite('step-f12-hints', 'Q1(iii)'),
-  hints: [
-    t`After taking out ${math`n^{${3}}`}, what is the remaining factor, and how does it factorise further?`,
-    t`Since ${math`${24} = ${3} \times ${8}`}, why is a product of three consecutive integers divisible by ${3}?`,
-    t`For the factor ${8}: when ${math`n`} is even, what divides ${math`n^{${3}}`}, and when ${math`n`} is odd, what can be said of ${math`n - ${1}`} and ${math`n + ${1}`}?`,
-  ],
-});
-
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
 
 /*
@@ -419,13 +405,12 @@ export const indices: TopicContent = {
   generators: [combine, powerOfPower, evaluate, newBase],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['power', 'base', 'index', 'zero-index', 'negative-index', 'fractional-index'],
-  cambridge: withUses([sw123verdict, sw123witness, a12Q1iii, nstA1], {
+  cambridge: withUses([sw123verdict, sw123witness, nstA1], {
     'nst-a1': { sections: ['Powers and the three laws', 'Zero and negative indices', 'Fractional indices'], note: t`Writing every root and power as a power of x, then combining them with all three laws` },
-    'a12-q1-iii': { sections: ['Powers and the three laws'], note: t`Factorising and arguing about consecutive integers`, needs: ['pre.algebraic-argument'] },
   }),
   // The NST simplification gates. The IA question (show 2^91 - 1 is not prime) is a written proof, so it is set in
-  // proof.direct, the first topic that teaches writing one (Rule 1, 2026-10-08). Assignment 12 Q1(iii) needs parity arguments, taught
-  // later, so it is practice; the true or false verdict is dropped, since a guess passes it half the time.
+  // proof.direct, the first topic that teaches writing one (Rule 1, 2026-10-08). Assignment 12 Q1(iii) needs cases on parity, so it is
+  // set in proof.cases; the true or false verdict is dropped, since a guess passes it half the time.
   gate: ['nst-a1'],
   recall: [
     { front: t`The three laws of indices.`, back: t`${math`x^{m}x^{n} = x^{m + n}`}, ${math`(x^{m})^{n} = x^{mn}`}, ${math`x^{m}/x^{n} = x^{m - n}`}.` },

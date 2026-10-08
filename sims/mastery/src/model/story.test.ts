@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { placedMemory, type Progress } from '@learnhub/mastery';
+import { gateOf } from '@learnhub/content';
+import { DAY_MS, RETEST_DAYS, placedMemory, type Progress } from '@learnhub/mastery';
 import { BOOK, chapterById } from '@learnhub/content/book';
-import { DEFAULT_COURSES, startLearner } from './learner';
+import { DEFAULT_COURSES, isMastered, masteryOf, recordCambridgeAnswer, retestOf, startLearner } from './learner';
 import { newCampaign, type Campaign } from './campaign';
 import {
   NO_NUMBERS, REP_LEVELS, REP_TABLE, advance, autoPlay, calmView, choose, completeScene, emptyStory, enqueue, expand, firedFx,
@@ -304,14 +305,19 @@ describe('playing by itself', () => {
 describe('the facts, from real data', () => {
   const block1 = chapterById(STEP_BLOCK_1)!;
   const block1Topics = block1.sections.flatMap((s) => s.steps.map((x) => x.topicId));
-  const learner = (ids: readonly string[]): Progress => ({ ...startLearner(T0, DEFAULT_COURSES, 60), memory: placedMemory(ids, T0) });
+  /** `learnedIds` learned (drills passed); of them, `gatedIds` also met their gate a day before T0. */
+  const learner = (learnedIds: readonly string[], gatedIds: readonly string[] = learnedIds): Progress => {
+    let p: Progress = { ...startLearner(T0 - DAY_MS, DEFAULT_COURSES, 60), memory: placedMemory(learnedIds, T0 - DAY_MS) };
+    for (const id of gatedIds) p = recordCambridgeAnswer(p, `${id}/${gateOf(id)[0] as string}`, true, { hints: 0 }, T0 - DAY_MS);
+    return p;
+  };
 
   it('a new learner has nothing', () => {
     const f = storyFacts(null, null, {}, T0);
     expect(f).toMatchObject({ sectionsMastered: 0, papersSat: 0, supervisionsPassed: 0, daysStudied: 0, weekHours: 0, chaptersComplete: [], letters: [] });
   });
 
-  it('completes STEP Foundation, Block 1 when every step is learned, and counts its sections', () => {
+  it('completes STEP Foundation, Block 1 when every step is mastered, and counts its sections', () => {
     const partial = storyFacts(learner(block1Topics.slice(1)), null, {}, T0);
     expect(partial.chaptersComplete).not.toContain(STEP_BLOCK_1);
     const done = storyFacts(learner(block1Topics), null, {}, T0);
@@ -320,6 +326,44 @@ describe('the facts, from real data', () => {
     expect(triggered(FIRST_LIGHT.trigger, done)).toBe(true);
     expect(done.termShare[STAGE_A]).toBeGreaterThan(0);
     expect(done.termShare[STAGE_A]).toBeLessThan(0.5);
+  });
+
+  // HOW-A-TOPIC-WORKS.md, "Reviews and the rest": the story counts mastered topics, not learned ones.
+  it('counts a section only when every step is mastered: learned is not enough, and needs review does not count', () => {
+    const sections = block1.sections.filter((s) => s.steps.length > 0).length;
+    const one = block1Topics[0] as string;
+    const learnedOnly = storyFacts(learner(block1Topics, block1Topics.slice(1)), null, {}, T0);
+    expect(isMastered(learner(block1Topics, block1Topics.slice(1)), one)).toBe(false);
+    expect(learnedOnly.chaptersComplete).not.toContain(STEP_BLOCK_1);
+    expect(learnedOnly.sectionsMastered).toBe(sections - 1);
+    expect(triggered(FIRST_LIGHT.trigger, learnedOnly)).toBe(false);
+    expect(repOf(learnedOnly)).toBe(repOf(storyFacts(learner(block1Topics), null, {}, T0)) - 50);
+    expect(storyFacts(learner(block1Topics, []), null, {}, T0)).toMatchObject({ sectionsMastered: 0, chaptersComplete: [] });
+
+    // Mastered, then a cold retest missed: needs review, so its section stops counting.
+    const retested = block1Topics.find((id) => gateOf(id).length >= 2) as string;
+    expect(retested).toBeDefined();
+    const day7 = T0 - DAY_MS + RETEST_DAYS[0] * DAY_MS + 60_000;
+    let p = learner(block1Topics);
+    const due = retestOf(p, retested).next;
+    expect(due?.step).toBe(1);
+    p = recordCambridgeAnswer(p, due?.problems[0] as string, false, { hints: 1 }, day7);
+    expect(masteryOf(p, retested).stage).toBe('needs-review');
+    const reviewed = storyFacts(p, null, {}, day7 + 60_000);
+    expect(reviewed.sectionsMastered).toBe(sections - 1);
+    expect(reviewed.chaptersComplete).not.toContain(STEP_BLOCK_1);
+  });
+
+  it('a save made when the count read learned topics still loads, its numbers and REP as they were', () => {
+    const n = { ...NO_NUMBERS, sectionsMastered: 12, daysStudied: 3 };
+    const raw = JSON.stringify({
+      seen: { [PROLOGUE.id]: { first: T0, last: T0, plays: 1, n } },
+      choices: {}, rep: repOf(n), queued: [{ id: FIRST_LIGHT.id, at: T0, n }],
+    });
+    const st = parseStory(raw, SCENES);
+    expect(st.seen[PROLOGUE.id]?.n).toEqual(n);
+    expect(st.queued).toEqual([{ id: FIRST_LIGHT.id, at: T0, n }]);
+    expect(st.rep).toBe(630);
   });
 
   it('counts days studied, passed supervisions, ticked hours, papers, and letters', () => {

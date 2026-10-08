@@ -5,7 +5,7 @@
  * and TMUA Exercise Q (squaring both sides can add a false root).
  */
 import type { Rational } from '@learnhub/mastery';
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, sample, str, sub } from '../math';
 import { factor, poly, signed, times } from '../poly';
 import { generator, type Misconception } from '../problem';
@@ -262,7 +262,6 @@ const cubic = generator<CubicP>({
 
 const A7 = 'step-f07';
 const a7Cubic = [1, -4, -4, 16];
-const a7Quartic = [1, 22, 172, 552, 576];
 
 const a12Factor = auto({
   id: 'a12-q1-ii',
@@ -327,32 +326,6 @@ const a7Three = auto({
   },
   misconceptions: [{ response: '4, 2, -2', why: t`Those are the roots, but the question fixes the order ${math`\alpha \le \beta \le \gamma`}: smallest first.` }],
   official: { source: cite('step-f07-hints', 'Q2(v)'), answer: '-2, 2, 4', agrees: true },
-});
-
-const a7Quart = auto({
-  id: 'a7-q3',
-  source: cite(A7, 'Q3, final part (2002 STEP I Q5)'),
-  title: t`The roots of a quartic`,
-  prompt: t`Find the roots of the equation ${math`${cm(poly(a7Quartic))} = ${0}`}, given that they are all integers. List all four, repeating a repeated root.`,
-  answer: { kind: 'witness', count: 4, unordered: true, example: '-2, -6, -6, -8', check: (v) => rootsOf(a7Quartic, v) },
-  hints: [
-    t`With the roots written as ${math`-k_{${1}}, \ldots, -k_{${4}}`}, what do ${math`x = ${0}`}, ${math`x = ${1}`}, and ${math`x = -${1}`} give?`,
-    t`Which of the three products has the fewest prime factors, and what does it allow for each ${math`k_i - ${1}`}?`,
-    t`Which values of ${math`k_i`} fit all three products, and what does that make the roots?`,
-  ],
-  nudge: t`Not quite. Work from the product with the fewest factors, and watch the signs: ${math`x + k`} vanishes at ${math`x = -k`}.`,
-  solution: [
-    t`Let the roots be ${math`-k_{${1}}, -k_{${2}}, -k_{${3}}, -k_{${4}}`}. Substituting ${math`x = ${0}`}, ${math`x = ${1}`}, and ${math`x = -${1}`} gives ${math`k_{${1}}k_{${2}}k_{${3}}k_{${4}} = ${576}`}, ${math`\prod (k_i + ${1}) = ${1 + 22 + 172 + 552 + 576}`}, and ${math`\prod (k_i - ${1}) = ${1 - 22 + 172 - 552 + 576}`}.`,
-    t`Start from ${math`${175} = ${5} \times ${5} \times ${7}`}, the product with the fewest factors: it limits each ${math`k_i - ${1}`} to a divisor of ${175}. The other two products then leave ${math`k_i`} equal to ${listOf([2, 6, 6, 8])}.`,
-    t`The roots are the negatives: ${listOf([-2, -6, -6, -8])}. As the hints stress, not ${listOf([2, 6, 6, 8])}. Check: ${cm(`(${factor(2)})(${factor(6)})^${2}(${factor(8)})`)} expands to the quartic.`,
-    t`Substitute small values, start from the most restrictive product, and mind the signs.`,
-  ],
-  reference: '-8, -6, -6, -2',
-  verify: () => same('A7 Q3 by expanding', fromRoots([-2, -6, -6, -8]).join(), a7Quartic.join()),
-  misconceptions: [
-    { response: '2, 6, 6, 8', why: t`Those are the ${math`k_i`} values. The roots are ${math`-k_i`}, because the factors are ${math`(x + k_i)`}.` },
-  ],
-  official: { source: cite('step-f07-hints', 'Q3'), answer: '-2, -6, -6, -8', agrees: true },
 });
 
 const a12FracA = auto({
@@ -445,20 +418,6 @@ const tmuaQ = auto({
   misconceptions: [{ response: '-1/2', why: t`That root came from squaring. Put it back in the original equation: ${math`\sqrt{${7}x + ${4}}`} is not even defined there.` }],
 });
 
-const a7ShowGeneral = supervision({
-  id: 'a7-q3-show',
-  source: cite(A7, 'Q3, first part (2002 STEP I Q5)'),
-  title: t`The general polynomial`,
-  prompt: t`Let ${math`f(x) = x^n + a_{${1}}x^{n - ${1}} + \cdots + a_n`}, and suppose ${math`f(x) = (x + k_{${1}})(x + k_{${2}}) \cdots (x + k_n)`}. By considering ${math`f(${0})`}, show that ${math`k_{${1}}k_{${2}} \cdots k_n = a_n`}. Show also that ${math`(k_{${1}} + ${1})(k_{${2}} + ${1}) \cdots (k_n + ${1}) = ${1} + a_{${1}} + a_{${2}} + \cdots + a_n`}, and give the corresponding result for ${math`(k_{${1}} - ${1})(k_{${2}} - ${1}) \cdots (k_n - ${1})`}.`,
-  hints: [
-    t`What is ${math`f(${0})`} from each of the two forms of ${math`f`}?`,
-    t`What is ${math`f(${1})`} from each form?`,
-    t`Which value of ${math`x`} produces the factors ${math`k_i - ${1}`}, and what sign does each factor then carry?`,
-  ],
-  writeUp: 'proof',
-  official: cite('step-f07-hints', 'Q3'),
-});
-
 // ---------------------------------------------------------------- lesson
 
 const ex = { a: 2, b: 3, c: 1, d: -4 };
@@ -547,15 +506,13 @@ export const algebraicManipulation: TopicContent = {
   generators: [expand, factorise, cancel, collect, vieta, cubic],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expression', 'coefficient', 'like-terms', 'identity', 'expand', 'factorise'],
-  cambridge: withUses([a7Three, a7Quart, a12FracA, a12FracB, tmuaQ, a7ShowGeneral], {
-    'a7-q3-show': { sections: ['Expressions and identities'], note: t`Substituting into an identity for a polynomial of any degree`, needs: ['alg.polynomials'] },
-    'a7-q3': { sections: ['Expressions and identities', 'Factorising'], note: t`Finding the integer roots of a quartic from its coefficients`, needs: ['alg.polynomials'] },
+  cambridge: withUses([a7Three, a12FracA, a12FracB, tmuaQ], {
     'a7-q2-v': { sections: ['Expressions and identities', 'Factorising'], note: t`Using an identity to pin down three integer roots` },
     'a12-q2-i-b': { sections: ['Algebraic fractions'], note: t`Multiplying and adding algebraic fractions and cancelling common factors` },
   }),
-  // A7 Q2 and A12 Q2 need only this lesson. A7 Q3 (a polynomial of any degree, then a quartic) needs
-  // alg.polynomials, so it is practice here; alg.roots-coefficients gates on it. A7 Q2(i), (ii), and (iv)
-  // are written proofs, so they are set in proof.direct, the first topic that teaches writing one (Rule 1, 2026-10-08).
+  // A7 Q2 and A12 Q2 need only this lesson. A7 Q2(i), (ii), and (iv) are written proofs, so they are set in
+  // proof.direct, the first topic that teaches writing one (Rule 1, 2026-10-08). A7 Q3 needs polynomials: its
+  // quartic is set in alg.polynomials, and its general part is the copy alg.roots-coefficients gates on.
   gate: ['a7-q2-v', 'a12-q2-i-b'],
   recall: [
     { front: t`What is the difference between an identity and an equation?`, back: t`An identity ${math`A \equiv B`} holds for every value of the letters; an equation ${math`A = B`} holds only for some, which you solve for.` },

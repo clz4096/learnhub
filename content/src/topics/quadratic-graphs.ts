@@ -256,37 +256,6 @@ const a2q2v = auto({
   ],
 });
 
-const a2q2vii = auto({
-  id: 'a2-q2-vii',
-  source: cite(F02, 'Q2(vii)'),
-  title: t`A parameter moves the vertex`,
-  prompt: t`Sketch ${math`y = x^{${2}} + ${2}kx`} for ${math`-${2} \le x \le ${2}`}, where ${math`-${2} < k < ${2}`}. Find the greatest value of ${math`x^{${2}} + ${2}kx`} on this range, as one expression in ${math`k`}. (Type ${math`|k|`} as abs(k).)`,
-  answer: { kind: 'expression', expected: '4 + 4abs(k)', variables: ['k'], domains: { k: { kind: 'real', min: -1.99, max: 1.99 } } },
-  solution: [
-    t`${math`x^{${2}} + ${2}kx = (x + k)^{${2}} - k^{${2}}`}: the vertex is at ${math`x = -k`}, inside the range since ${math`-${2} < k < ${2}`}, so the least value is ${math`-k^{${2}}`}.`,
-    t`The greatest is at the end farther from ${math`-k`}. The ends give ${math`${4} - ${4}k`} at ${math`x = -${2}`} and ${math`${4} + ${4}k`} at ${math`x = ${2}`}.`,
-    t`The larger of ${math`${4} + ${4}k`} and ${math`${4} - ${4}k`} is ${math`${4} + ${4}|k|`}. (For ${math`k > ${2}`} the vertex is outside: the greatest is ${math`${4} + ${4}k`} and the least ${math`${4} - ${4}k`}.)`,
-    t`When the answer depends on a sign, ${math`|k|`} often writes both cases at once.`,
-  ],
-  reference: '4 + 4abs(k)',
-  verify: () => {
-    for (const k of [-1.5, -0.25, 0, 0.6, 1.9]) {
-      let best = -Infinity;
-      for (let i = 0; i <= 4000; i++) { const x = -2 + i / 1000; best = Math.max(best, x * x + 2 * k * x); }
-      if (Math.abs(best - (4 + 4 * Math.abs(k))) > 1e-9) return `k = ${k}: ${best}`;
-    }
-    return null;
-  },
-  misconceptions: [{ response: '4 + 4k', why: t`For ${math`k < ${0}`} the far end is ${math`x = -${2}`}, giving ${math`${4} - ${4}k`}. Combine both cases with ${math`|k|`}.` }],
-  official: { source: cite(F02H, 'Q2(vii)'), answer: '4 + 4abs(k)', agrees: true },
-  nudge: t`Not quite. The greatest value is at the end farther from the vertex, and which end that is depends on the sign of ${math`k`}.`,
-  hints: [
-    t`Completing the square, where is the vertex, and is it inside the range?`,
-    t`What are the values at ${math`x = -${2}`} and ${math`x = ${2}`}?`,
-    t`Which of those is larger when ${math`k > ${0}`}, and when ${math`k < ${0}`}, and how can ${math`|k|`} combine the two?`,
-  ],
-});
-
 const nstA4 = auto({
   id: 'nst-a4',
   source: cite('nst-workbook', 'Algebra, A4'),
@@ -382,12 +351,11 @@ export const quadraticGraphs: TopicContent = {
   generators: [completeSquare, vertex, onInterval],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['completing-the-square', 'vertex'],
-  cambridge: withUses([a2q2iv, a2q2v, a2q2vii, nstA4, step1999], {
+  cambridge: withUses([a2q2iv, a2q2v, nstA4, step1999], {
     'a2-q3': { sections: ['Completing the square', 'Extremes on an interval'], note: t`Greatest and least values on an interval, case by case` },
-    'a2-q2-vii': { sections: ['Completing the square', 'Extremes on an interval'], note: t`The greatest value as the vertex moves, written with a modulus`, needs: ['fn.modulus'] },
     'nst-a4': { sections: ['Completing the square', 'Extremes on an interval'], note: t`Minimum values by completing the square, on the whole line and on an interval` },
   }),
-  // Assignment 2 Q3 and NST A4. Assignment 2 Q2(vii) needs a modulus in its answer, taught later, so it is practice.
+  // Assignment 2 Q3 and NST A4. Assignment 2 Q2(vii) needs a modulus in its answer, so it is set in fn.modulus (Rule 1, 2026-10-08).
   gate: ['a2-q3', 'nst-a4'],
   recall: [
     { front: t`Complete the square: ${math`ax^{${2}} + bx + c = \ ?`}`, back: t`${math`a\left(x + \frac{b}{${2}a}\right)^{${2}} + c - \frac{b^{${2}}}{${4}a}`}.` },

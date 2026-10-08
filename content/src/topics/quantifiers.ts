@@ -348,20 +348,6 @@ const prop22 = auto({
   ],
 });
 
-const prop18 = supervision({
-  id: 'notes-72-prop18',
-  source: cite('cst-dm-notes', 'printed page 72, Proposition 18'),
-  title: t`A congruence for every ${mn}`,
-  prompt: t`Fix a positive integer ${math`m`}. Prove: for integers ${math`a`} and ${math`b`}, ${math`a \equiv b \pmod{m}`} if, and only if, for all positive integers ${mn}, ${math`n \cdot a \equiv n \cdot b \pmod{n \cdot m}`}. (${math`a \equiv b \pmod{m}`} means ${math`m \mid (a - b)`}.) State where ${mn} is taken to be arbitrary, and where the "for all" assumption is used by choosing a value.`,
-  writeUp: 'proof',
-  official: cite('cst-dm-notes', 'printed page 73, the notes\' proof'),
-  hints: [
-    t`For one direction, if ${math`m`} divides ${math`a - b`}, why does ${math`nm`} divide ${math`n(a - b)`} for every positive ${mn}?`,
-    t`For the other, which single value of ${mn} turns the assumption into ${math`a \equiv b \pmod{m}`}?`,
-    t`Which direction introduces an arbitrary ${mn}, and which chooses one?`,
-  ],
-});
-
 // ---------------------------------------------------------------- lesson
 
 const TF_OPTIONS = [{ id: 't', label: t`True` }, { id: 'f', label: t`False` }];
@@ -442,13 +428,12 @@ export const quantifiers: TopicContent = {
   generators: [forallExists, witness, counterexample],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quantifier', 'witness', 'counterexample'],
-  cambridge: withUses([tmuaM, bop271, prop21k, prop22, prop18], {
-    'notes-72-prop18': { sections: ['A first proof of each', 'Using quantified statements'], note: t`Proving and using a "for all" about congruences`, needs: ['num.divisibility'] },
+  cambridge: withUses([tmuaM, bop271, prop21k, prop22], {
     'notes-93-prop21': { sections: ['For all and there exists', 'A first proof of each'], note: t`Giving a witness for one case of a "for all, there exists" statement` },
   }),
   // The supervision proofs (1.2.10 and 1.3.2) are set in proof.quantifier-patterns, where proving quantified
   // statements is taught (Rule 1, 2026-10-08). Proposition 21's witness for k = 13 gates: it asks for a pair, and the misconception catches the
-  // near miss. Proposition 22's is a lookup. Proposition 18 needs divisibility and congruences, taught later.
+  // near miss. Proposition 22's is a lookup. Proposition 18 needs divisibility, so it is set in num.divisibility.
   gate: ['notes-93-prop21'],
   recall: [
     { front: t`When is ${math`\forall x \in S.\ P(x)`} true?`, back: t`When ${math`P(a)`} is true for every ${math`a \in S`}.` },

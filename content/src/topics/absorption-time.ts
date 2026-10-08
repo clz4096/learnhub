@@ -116,50 +116,40 @@ const biasedDuration = generator<BiasP>({
 // ---------------------------------------------------------------- from 0 to ±a
 
 interface TwoP { a: number; p: Rational }
-const ALL: readonly Rational[] = [q(1, 2), q(1, 2), q(1, 3), q(2, 3), q(1, 4), q(3, 4), q(2, 5), q(3, 5)];
-const twoMis = ({ a, p }: TwoP): string[] => (isHalf(p) ? [String(a), String(2 * a), String(2 * a * a)] : [String(a * a), str(div(q(a), sub(q(1), mul(q(2), p)).num < 0n ? sub(mul(q(2), p), q(1)) : sub(q(1), mul(q(2), p)))), String(a)]);
+/** Biased walks only: the fair walk stopped at ±a is a gate problem (sheet3-q8c-symmetric), so practice never states its value. */
+const ALL: readonly Rational[] = [q(1, 3), q(2, 3), q(1, 4), q(3, 4), q(2, 5), q(3, 5)];
+const twoMis = ({ a, p }: TwoP): string[] => [String(a * a), str(div(q(a), sub(q(1), mul(q(2), p)).num < 0n ? sub(mul(q(2), p), q(1)) : sub(q(1), mul(q(2), p)))), String(a)];
 
 const twoSided = generator<TwoP>({
   id: 'stopped-at-a',
-  skill: 'Find E(T) for a walk from 0 stopped at ±a: a^2 when fair, and E(S_T)/E(X) otherwise.',
+  skill: 'Find E(T) for a biased walk from 0 stopped at ±a, as E(S_T)/E(X).',
   params: (rng) => {
     for (;;) {
       const p: TwoP = { a: int(rng, 1, 4), p: pick(rng, ALL) };
       if (distinctFrom(str(twoSidedTime(p.a, p.p)), twoMis(p)) >= 2) return p;
     }
   },
-  sane: ({ a }) => (a >= 1 ? null : 'out of range'),
+  sane: ({ a, p }) => (a >= 1 && !isHalf(p) ? null : 'out of range'),
   problem: ({ a, p }) => {
     const qq = sub(q(1), p);
     const h = div(rpow(p, a), add(rpow(p, a), rpow(qq, a)));
     return {
       prompt: t`A walk starts at ${0} and steps up with probability ${p} or down otherwise. It stops at the first time ${math`T`} that ${math`|S_{n}| = ${a}`}. Find ${math`E(T)`}.`,
       answer: { kind: 'exact', expected: str(twoSidedTime(a, p)) },
-      solution: isHalf(p)
-        ? [
-            t`Shift by ${a}: gambler's ruin from ${a} on ${math`${0}, \ldots, ${2 * a}`}, fair, so ${math`m_{${a}} = ${a}(${2 * a} - ${a}) = ${a * a}`}.`,
-            t`So ${math`E(T) = ${a * a}`}, the square of the distance, as for any fair walk started midway.`,
-          ]
-        : [
-            t`The walk stops at ${a} with probability ${math`h = \frac{p^{${a}}}{p^{${a}} + q^{${a}}} = ${h}`}, so ${math`E(S_{T}) = ${a}(${2}h - ${1}) = ${mul(q(a), sub(mul(q(2), h), q(1)))}`}.`,
-            t`One step has mean ${math`\mu = p - q = ${sub(p, qq)}`}, and ${math`E(S_{T}) = \mu E(T)`} (Example Sheet ${3} Q${8}(c)), so ${math`E(T) = \frac{${mul(q(a), sub(mul(q(2), h), q(1)))}}{${sub(p, qq)}} = ${twoSidedTime(a, p)}`}.`,
-          ],
+      solution: [
+        t`The walk stops at ${a} with probability ${math`h = \frac{p^{${a}}}{p^{${a}} + q^{${a}}} = ${h}`}, so ${math`E(S_{T}) = ${a}(${2}h - ${1}) = ${mul(q(a), sub(mul(q(2), h), q(1)))}`}.`,
+        t`One step has mean ${math`\mu = p - q = ${sub(p, qq)}`}, and ${math`E(S_{T}) = \mu E(T)`} (Example Sheet ${3} Q${8}(c)), so ${math`E(T) = \frac{${mul(q(a), sub(mul(q(2), h), q(1)))}}{${sub(p, qq)}} = ${twoSidedTime(a, p)}`}.`,
+      ],
     };
   },
   solve: ({ a, p }) => str(meanSteps(-a, a, p)[a - 1] as Rational),
   misconceptions: (tp): Misconception[] => {
     const [x, y, z] = twoMis(tp);
-    return isHalf(tp.p)
-      ? [
-          { response: x as string, why: t`The walk does not go straight out: a fair walk takes about the square of the distance, ${math`a^{${2}}`} steps.` },
-          { response: y as string, why: t`The duration grows like the square of the distance, ${math`a^{${2}}`}, not linearly.` },
-          { response: z as string, why: t`Shifted, the walk starts midway between barriers ${math`${2}a`} apart: ${math`k(N - k) = a \times a`}.` },
-        ]
-      : [
-          { response: x as string, why: t`${math`a^{${2}}`} is for a fair walk. With drift, use ${math`E(T) = \frac{E(S_{T})}{\mu}`}.` },
-          { response: y as string, why: t`That assumes the walk always exits at the end it drifts towards. It can exit at the other end: ${math`E(S_{T}) = a(${2}h - ${1})`}, not ${math`a`}.` },
-          { response: z as string, why: t`At least ${tp.a} steps are needed, and usually more: the walk can step back.` },
-        ];
+    return [
+      { response: x as string, why: t`That ignores the drift. With drift, find ${math`E(S_{T})`} from the chance of leaving at the top, then ${math`E(T) = \frac{E(S_{T})}{\mu}`}.` },
+      { response: y as string, why: t`That assumes the walk always exits at the end it drifts towards. It can exit at the other end: ${math`E(S_{T}) = a(${2}h - ${1})`}, not ${math`a`}.` },
+      { response: z as string, why: t`At least ${tp.a} steps are needed, and usually more: the walk can step back.` },
+    ];
   },
 });
 
@@ -174,7 +164,7 @@ const q8time = auto({
   answer: { kind: 'expression', expected: 'a(p^a - (1 - p)^a)/((2p - 1)(p^a + (1 - p)^a))', variables: ['a', 'p'], domains: AP_DOM },
   solution: [
     t`By gambler's ruin shifted by ${math`a`}, ${math`P(S_{T} = a) = h = \frac{p^{a}}{p^{a} + q^{a}}`}, so ${math`E(S_{T}) = a(${2}h - ${1}) = \frac{a(p^{a} - q^{a})}{p^{a} + q^{a}}`}.`,
-    t`Divide by ${math`\mu = ${2}p - ${1}`}: ${math`E(T) = \frac{a(p^{a} - q^{a})}{(${2}p - ${1})(p^{a} + q^{a})}`}. As ${math`p \to \frac{${1}}{${2}}`} this tends to ${math`a^{${2}}`}, the fair value.`,
+    t`Divide by ${math`\mu = ${2}p - ${1}`}, which is not zero since ${math`p \ne \frac{${1}}{${2}}`}: ${math`E(T) = \frac{a(p^{a} - q^{a})}{(${2}p - ${1})(p^{a} + q^{a})}`}.`,
   ],
   reference: 'a(p^a - (1 - p)^a)/((2p - 1)(p^a + (1 - p)^a))',
   verify: () => {
@@ -270,7 +260,7 @@ const symmetric = auto({
   ],
   reference: '9',
   verify: () => same('the first-step equations', str(meanSteps(-3, 3, q(1, 2))[2] as Rational), '9'),
-  misconceptions: [{ response: '3', why: t`The walk does not head straight out. A fair walk needs about the square of the distance: ${9} steps on average.` }],
+  misconceptions: [{ response: '3', why: t`The walk does not head straight out: a fair walk wanders back and forth, so it needs far more steps than the distance.` }],
 });
 
 const wald = supervision({
@@ -391,7 +381,7 @@ export const absorptionTime: TopicContent = {
         },
       ],
     },
-    { kind: 'p', text: t`Read the answer: the product of the distances to the two barriers. Starting in the middle of a board of length ${math`N`}, the game lasts about ${math`\frac{N^{${2}}}{${4}}`} steps, the square of the distance, not the distance itself. That square is the signature of a fair random walk.` },
+    { kind: 'p', text: t`Read the answer: the product of the distances to the two barriers, which grows much faster than the distance to the nearer one. That growth is the signature of a fair random walk.` },
     checkFrom(fairDuration, { k: 2, N: 7 }, t`The distances to the barriers are ${2} and ${7 - 2}, and the duration is their product, ${2 * (7 - 2)}.`),
     { kind: 'section', title: t`Solving it: a biased walk` },
     { kind: 'narrative', text: t`Now let ${math`p \ne q`}. The same plan works, but the homogeneous solutions change, and so does the particular solution we must try.` },
@@ -432,7 +422,7 @@ export const absorptionTime: TopicContent = {
     },
     { kind: 'p', text: t`A small case to trust it by. On ${math`${0}, ${1}, ${2}, ${3}`} with ${math`p = ${q(1, 3)}`}: ${math`\rho = ${2}`} and ${math`q - p = ${q(1, 3)}`}, so ${math`m_{${1}} = ${3} - ${9} \cdot \frac{${1} - ${2}}{${1} - ${8}} = ${duration(1, 3, q(1, 3))}`}. Directly, ${math`m_{${1}} = ${1} + \frac{${1}}{${3}}m_{${2}}`} and ${math`m_{${2}} = ${1} + \frac{${2}}{${3}}m_{${1}}`}; substituting gives ${math`\frac{${7}}{${9}}m_{${1}} = \frac{${4}}{${3}}`}, the same ${math`${duration(1, 3, q(1, 3))}`}.` },
     { kind: 'section', title: t`A walk stopped at plus or minus a` },
-    { kind: 'narrative', text: t`Example Sheet ${3} Q${8}(c) starts the walk at ${0} and stops it at the first time ${math`T`} with ${math`|S_{n}| = a`}. Shift everything up by ${math`a`}: this is a walk from ${math`a`} on ${math`${0}, \ldots, ${2}a`}. So in the fair case ${math`E(T) = a(${2}a - a) = a^{${2}}`}, again the square of the distance.` },
+    { kind: 'narrative', text: t`Example Sheet ${3} Q${8}(c) starts the walk at ${0} and stops it at the first time ${math`T`} with ${math`|S_{n}| = a`}. Shift everything up by ${math`a`}: this is a walk from ${math`a`} on ${math`${0}, \ldots, ${2}a`}, so the durations found above apply to it. A biased walk also has a second route to ${math`E(T)`}, through the mean position at the moment it stops.` },
     {
       kind: 'theorem',
       name: t`Wald's identity, for this walk`,

@@ -5,14 +5,15 @@
  */
 import { describe, expect, it } from 'vitest';
 import * as adm from '@learnhub/content/admissions';
-import { placedMemory, type Progress } from '@learnhub/mastery';
+import { gateOf } from '@learnhub/content';
+import { DAY_MS, placedMemory, type Progress } from '@learnhub/mastery';
 import { BOOK, chapterById } from '@learnhub/content/book';
 import {
   finishSitting, newCampaign, newInterview, recordMarks, startSitting,
   type Campaign, type InterviewShape, type Sitting,
 } from './campaign';
 import { closureTopics } from './courses';
-import { DEFAULT_COURSES, startLearner } from './learner';
+import { DEFAULT_COURSES, recordCambridgeAnswer, startLearner } from './learner';
 import {
   NO_NUMBERS, NO_RELATIONSHIPS, autoPlay, completeScene, emptyStory, enqueue, expand, isChoice, newlyDue, numbersOf, offerOutcome, parseStory,
   relationshipsOf, strandOf, titleOf, triggerText, triggered,
@@ -167,8 +168,12 @@ describe('triggers, from fixture data', () => {
     const [yearId, term] = STAGE_A.split('/') as [string, string];
     const stage = BOOK.find((y) => y.id === yearId)!.terms.find((t) => t.name === term)!;
     const ids = stage.chapters.flatMap((c) => c.sections.flatMap((s) => s.steps.map((x) => x.topicId)));
-    const learner = (k: number): Progress => ({ ...startLearner(T0, DEFAULT_COURSES, 60), memory: placedMemory(ids.slice(0, k), T0) });
-    // Learn the stage's steps in book order until half of them are learned.
+    // Every gate problem solved a day before; a step counts once its topic is also learned, so
+    // learning in book order masters the steps in book order (the story counts mastered topics).
+    let gated: Progress = startLearner(T0 - DAY_MS, DEFAULT_COURSES, 60);
+    for (const id of new Set(ids)) gated = recordCambridgeAnswer(gated, `${id}/${gateOf(id)[0] as string}`, true, { hints: 0 }, T0 - DAY_MS);
+    const learner = (k: number): Progress => ({ ...gated, memory: placedMemory(ids.slice(0, k), T0 - DAY_MS) });
+    // Master the stage's steps in book order until half of them are mastered.
     let k = 0;
     while (k < ids.length && (storyFacts(learner(k), null, {}, T0).termShare[STAGE_A] ?? 0) < 0.5) k++;
     expect(k).toBeGreaterThan(0);

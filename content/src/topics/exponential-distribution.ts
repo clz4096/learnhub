@@ -245,19 +245,6 @@ const memorylessProof = supervision({
   ],
 });
 
-const q4firstWhich = supervision({
-  id: 'ia4-q4-which',
-  source: cite(SH4, 'Q4', true),
-  title: t`Which one fails first, and the time it takes`,
-  prompt: t`For independent ${math`X \sim \mathrm{Exp}(\lambda)`} and ${math`Y \sim \mathrm{Exp}(\mu)`}, show that the event ${math`\{X < Y\}`} is independent of ${math`\min\{X, Y\}`}, and explain what this says about a race between two exponential clocks.`,
-  writeUp: 'proof',
-  hints: [
-    t`How is ${math`P(X < Y, \min\{X, Y\} > t)`} written as a double integral of the joint density?`,
-    t`Evaluated, how does that integral factor into a part for the event and a part for ${math`t`}?`,
-    t`What are ${math`P(X < Y)`} and ${math`P(\min\{X, Y\} > t)`} on their own, and is their product the joint probability?`,
-  ],
-});
-
 // 2016 STEP I Q13(ii): n e-mails, each arriving after an independent Exp(lambda) time; the second arrival.
 /** E(second arrival) by integrating t times its density n(n - 1)F(t)(1 - F(t))^(n - 2)f(t), F the Exp(lambda) cdf. */
 const secondArrivalMean = (n: number, lambda: number): number => integrateToInfinity((x) => {
@@ -374,13 +361,12 @@ export const exponentialDistribution: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['exponential-distribution', 'memoryless-property'],
   claims,
-  cambridge: withUses([q4three, memorylessProof, q4firstWhich, step16Second], {
+  cambridge: withUses([q4three, memorylessProof, step16Second], {
     'step16-q13-ii': { sections: ['The memoryless property', 'Racing clocks'], note: t`The expected time of the second of several independent exponential arrivals` },
-    'ia4-q4-which': { sections: ['Racing clocks'], note: t`The winner of a race is independent of the time it takes`, needs: ['rv.joint-densities'] },
     'ia4-q4-three': { sections: ['Racing clocks'], note: t`The first of three exponential clocks` },
   }),
   // The three bulbs, and the second of n e-mails. Sheet 4 Q4's independence of the winner and the time needs a joint
-  // density, taught next, so it is practice.
+  // density, so it is set in rv.joint-densities (Rule 1, 2026-10-08).
   gate: ['ia4-q4-three', 'step16-q13-ii'],
   recall: [
     { front: t`Density and survival function of ${math`\mathrm{Exp}(\lambda)`}?`, back: t`${math`\lambda e^{-\lambda x}`} and ${math`P(X > x) = e^{-\lambda x}`}, for ${math`x \ge ${0}`}.` },

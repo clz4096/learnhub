@@ -211,19 +211,6 @@ const sheet211 = supervision({
   writeUp: 'proof',
   official: cite('cst-dm-sols-2324-2', '2.1.1'),
 });
-const sheet324proof = supervision({
-  id: 'sheet-3-2-4',
-  source: cite('cst-dm-sw1', 'Exercises 3, 3.2.4'),
-  title: t`Cancelling in a congruence`,
-  prompt: t`Prove that for all positive integers ${math`m, n`} and integers ${math`i, j`}: ${math`n i \equiv n j \pmod{m} \iff i \equiv j \pmod{m / \gcd(m, n)}`}. Euclid's theorem may be used: if ${math`k \mid ab`} and ${math`\gcd(k, a) = ${1}`} then ${math`k \mid b`}.`,
-  hints: [
-    t`With ${math`g = \gcd(m, n)`}, ${math`m = gm'`}, and ${math`n = gn'`}, what is ${math`\gcd(m', n')`}?`,
-    t`If ${math`m \mid n(i - j)`}, what does dividing by ${math`g`} give, and which theorem then applies?`,
-    t`For the converse, if ${math`m' \mid i - j`}, why does ${math`m \mid n(i - j)`}?`,
-  ],
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-3', '3.2.4'),
-});
 const bop521 = supervision({
   id: 'bop-5-21',
   source: cite('bop', 'Chapter 5, exercise 21'),
@@ -265,6 +252,37 @@ const step04Classes = supervision({
   ],
   writeUp: 'proof',
   official: cite('stepdb-04-ha', 'STEP I, Q5 (page 6 of the STEP I hints)'),
+});
+
+const mn = math`n`;
+// Rule 1 (2026-10-08): set here from proof.cases, the earliest topic that teaches everything it needs.
+const sw231 = supervision({
+  id: 'sw-2-3-1',
+  source: cite('cst-dm-sw1', 'Exercises 2, 2.3.1'),
+  title: t`Differences of two squares`,
+  prompt: t`Prove that for all integers ${mn}, there exist natural numbers ${math`i`} and ${math`j`} such that ${math`n = i^{${2}} - j^{${2}}`} if and only if ${math`n \equiv ${0}`}, ${math`n \equiv ${1}`}, or ${math`n \equiv ${3} \pmod{${4}}`}. Both directions go by cases: for one, use the remainders of ${math`i^{${2}}`} and ${math`j^{${2}}`}; for the other, odd ${mn} and multiples of ${4}.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-2', '2.3.1'),
+  hints: [
+    t`For one direction, which remainders can ${math`i^{${2}}`} and ${math`j^{${2}}`} leave modulo ${4}, and so which can ${math`i^{${2}} - j^{${2}}`} leave?`,
+    t`For odd ${math`n = ${2}k + ${1}`}, which two consecutive squares differ by ${mn}?`,
+    t`For ${math`n = ${4}k`}, which ${math`i`} and ${math`j`} with ${math`i - j = ${2}`} give ${math`i^{${2}} - j^{${2}} = n`}, and how do negative values of ${mn} fit?`,
+  ],
+});
+
+// Rule 1 (2026-10-08): set here from proof.cases, the earliest topic that teaches everything it needs.
+const sw327 = supervision({
+  id: 'sw-3-2-7',
+  source: cite('cst-dm-sw1', 'Exercises 3, 3.2.7'),
+  title: t`${24} divides ${math`p^{${2}} - ${1}`}`,
+  prompt: t`Let ${mn} be an integer. (a) Prove that if ${mn} is not divisible by ${3}, then ${math`n^{${2}} \equiv ${1} \pmod{${3}}`}. (b) Show that if ${mn} is odd, then ${math`n^{${2}} \equiv ${1} \pmod{${8}}`}. (c) Conclude that if ${math`p`} is a prime greater than ${3}, then ${math`p^{${2}} - ${1}`} is divisible by ${24}.`,
+  writeUp: 'proof',
+  official: cite('cst-dm-sols-2324-3', '3.2.7'),
+  hints: [
+    t`For (a), if ${3} does not divide ${mn}, what are the two possible remainders, and what is ${math`n^{${2}}`} modulo ${3} in each case?`,
+    t`For (b), with ${math`n = ${2}k + ${1}`}, why is ${math`n^{${2}} - ${1} = ${4}k(k + ${1})`} a multiple of ${8}?`,
+    t`For (c), why does a prime greater than ${3} meet both conditions, and why do ${3} and ${8} together give ${24}?`,
+  ],
 });
 
 // ---------------------------------------------------------------- lesson
@@ -320,12 +338,13 @@ export const congruence: TopicContent = {
   generators: [whichCongruent, witnessK, cancelFactor],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['congruent-mod'],
-  cambridge: withUses([bop51, sheet324, sheet211, sheet324proof, bop521, bop532, step04Classes], {
+  cambridge: withUses([bop51, sheet324, sheet211, bop521, bop532, step04Classes, sw231, sw327], {
+    'sw-3-2-7': { sections: ['Same remainder', 'Like equality, almost'], note: t`Squares modulo three and eight, then combining for primes`, needs: ['proof.cases'] },
+    'sw-2-3-1': { sections: ['Same remainder'], note: t`Both directions by cases on remainders, written as congruences`, needs: ['proof.cases', 'logic.iff'] },
     'step04-q5': { sections: ['The definition', 'Same remainder'], note: t`Working with the five classes of remainders modulo five: where sums and squares land` },
     'sheet-2-1-1': { sections: ['The definition', 'Like equality, almost'], note: t`Congruence is reflexive, symmetric, and transitive` },
-    'sheet-3-2-4': { sections: ['The definition'], note: t`Cancelling a factor in a congruence through the gcd`, needs: ['num.gcd', 'num.euclid-theorem'] },
   }),
-  // Exercise 3.2.4 needs the gcd and Euclid's theorem, taught later, so it is practice. The STEP question works
+  // Exercise 3.2.4 needs the gcd and Euclid's theorem, so it is set in num.euclid-theorem. The STEP question works
   // with remainders written out as progressions, so it needs only the definition and the remainder theorem.
   gate: ['sheet-2-1-1', 'step04-q5'],
   recall: [

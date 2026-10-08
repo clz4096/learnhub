@@ -448,16 +448,18 @@ const sw411 = supervision({
     t`How do the angles of the ${mk}-gon and the triangle add up to those of the larger polygon?`,
   ],
 });
-const polyaProof = supervision({
-  id: 'ia-q10-proof',
-  source: cite('ia-prob-sheet-1', 'Q10'),
-  title: t`The Polya urn, proved`,
-  prompt: t`For the Polya urn (one white and one black ball to start; draw a ball at random and return it with one more of the same colour), prove by induction on ${mn} that when there are ${mn} balls, each number of white balls from ${1} to ${math`n - ${1}`} has probability ${math`\frac{${1}}{n - ${1}}`}. Do you think the proportion of white balls might tend to a limit?`,
+
+// Rule 1 (2026-10-08): set here from proof.infinitely-many-primes, the earliest topic that teaches everything it needs.
+const ns2q6 = supervision({
+  id: 'ns2-q6',
+  source: cite('ia-ns-sheet-2', 'Q6'),
+  title: t`Distinct prime factors of a tower`,
+  prompt: t`Prove that ${math`${2}^{${2}^{n}} - ${1}`} has at least ${math`n`} distinct prime factors.`,
   writeUp: 'proof',
   hints: [
-    t`With ${math`n + ${1}`} balls and ${math`i`} white, what could the urn have held one step earlier?`,
-    t`In each case, what is the probability of drawing the colour that leads to ${math`i`} white balls?`,
-    t`Using the hypothesis for ${mn} balls, what do the two cases add up to?`,
+    t`How does ${math`${2}^{${2}^{n}} - ${1}`} factorise as a difference of two squares?`,
+    t`Applying that factorisation repeatedly, which factors of the form ${math`${2}^{${2}^{k}} + ${1}`} appear?`,
+    t`Why do two different numbers of the form ${math`${2}^{${2}^{k}} + ${1}`} have no common factor greater than ${1}?`,
   ],
 });
 
@@ -561,14 +563,14 @@ export const proofByInduction: TopicContent = {
   generators: [sumStep, basis, recurrence],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['induction', 'base-case', 'induction-hypothesis'],
-  cambridge: withUses([fibII, fibIII, bop9, tromino, polygon, polyaQ, bop13, sw412, sw422, sw411, polyaProof], {
+  cambridge: withUses([fibII, fibIII, bop9, tromino, polygon, polyaQ, bop13, sw412, sw422, sw411, ns2q6], {
+    'ns2-q6': { sections: ['The principle', 'A first proof'], note: t`Factorising a tower of powers and showing the factors share no prime`, needs: ['proof.infinitely-many-primes'] },
     'sw-4-1-2': { sections: ['The principle', 'A first proof'], note: t`An induction whose hypothesis must cover every missing square` },
     'sw-4-2-2': { sections: ['The principle', 'Both halves are needed'], note: t`An induction for an inequality, using the condition on x in the step` },
-    'ia-q10-proof': { sections: ['The principle', 'A first proof'], note: t`Induction on the number of balls, with conditional probabilities`, needs: ['pre.tree-diagrams'] },
     'sw-4-1-1': { sections: ['The principle', 'Starting later'], note: t`An induction from a later base case that cuts the polygon` },
   }),
-  // The full induction proofs: tiling, Bernoulli, polygons. The Polya urn proof needs conditional probability,
-  // taught later, so it is practice. The Polya answer and the Fibonacci conjectures can be found from small
+  // The full induction proofs: tiling, Bernoulli, polygons. The Polya urn proof is set in pre.tree-diagrams,
+  // where its probabilities are taught (Rule 1, 2026-10-08). The Polya answer and the Fibonacci conjectures can be found from small
   // cases without induction, and the tile count and the polygon's 180 degrees are arithmetic, so they do not gate.
   gate: ['sw-4-1-2', 'sw-4-2-2', 'sw-4-1-1'],
   recall: [

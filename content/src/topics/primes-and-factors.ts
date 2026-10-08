@@ -7,7 +7,7 @@
  * Sheet 1, Q3: four primes between two consecutive multiples of 10, which happens again from
  * 100 to 110, found by ruling out small factors and testing up to the square root.
  */
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { pick, q, sample, toFloat, type Rational } from '../math';
 import { generator, type ChoiceOption, type Misconception } from '../problem';
 import { computedTex, listOf, math, t } from '../rich';
@@ -170,48 +170,6 @@ const a10q3ia = auto({
   ],
 });
 
-const a10q3iii = auto({
-  id: 'a10-q3-iii',
-  source: cite(F10, 'Q3(iii)'),
-  title: t`Working backwards from ${math`f`}`,
-  prompt: t`With ${math`f`} as in the previous problem, find a positive integer ${math`m`} and a prime ${math`p`} such that ${math`f(p^{m}) = ${146410}`}.`,
-  answer: namedAnswer(['p', 'm'], [q(11), q(5)], 'Simplify f of a prime power first, then factorise the number.'),
-  solution: [
-    t`The only prime factor of ${math`p^{m}`} is ${math`p`}, so ${math`f(p^{m}) = p^{m}\left(${1} - \frac{${1}}{p}\right) = p^{m - ${1}}(p - ${1})`}.`,
-    t`Factorise: ${math`${146410} = ${10} \times ${14641} = ${10} \times ${11}^{${4}}`}, since ${math`${11}^{${2}} = ${121}`} and ${math`${121}^{${2}} = ${14641}`}.`,
-    t`So ${math`p^{m - ${1}}(p - ${1}) = ${11}^{${4}} \times ${10}`} with ${math`p = ${11}`} and ${math`m - ${1} = ${4}`}: ${math`p = ${11}`}, ${math`m = ${5}`}.`,
-    t`Simplify the general form, then match it against the factorisation.`,
-  ],
-  reference: 'p = 11, m = 5',
-  verify: () => {
-    const found: string[] = [];
-    for (const p of [2, 3, 5, 7, 11, 13, 17, 19, 23]) for (let m = 1; m <= 20; m++) if (p ** (m - 1) * (p - 1) === 146410) found.push(`${p},${m}`);
-    return same('prime powers with f = 146410', found.join(';'), '11,5');
-  },
-  misconceptions: [{ response: 'p = 11, m = 4', why: t`${math`f(p^{m}) = p^{m - ${1}}(p - ${1})`}: the power of ${11} is ${math`m - ${1} = ${4}`}, so ${math`m = ${5}`}.` }],
-  official: { source: cite(F10H, 'Q3(iii)'), answer: 'p = 11, m = 5', agrees: true },
-  nudge: t`Not quite. Simplify ${math`f(p^{m})`} first, then factorise ${146410} and match the two parts.`,
-  hints: [
-    t`What is ${math`f(p^{m})`} in a simpler form?`,
-    t`What is the prime factorisation of ${146410}?`,
-    t`Which prime ${math`p`} makes ${math`p^{m - ${1}}(p - ${1})`} match it, and what is ${math`m`}?`,
-  ],
-});
-
-const a10q3ib = supervision({
-  id: 'a10-q3-i-b',
-  source: cite(F10, 'Q3(i)(b), (ii)'),
-  title: t`${math`f(N)`} is always an integer`,
-  prompt: t`With ${math`f`} as above: (i) show that ${math`f(N)`} is an integer for all ${math`N`}. (ii) Prove, or disprove by means of a counterexample, each of the following: (a) ${math`f(m)f(n) = f(mn)`}; (b) ${math`f(p)f(q) = f(pq)`} if ${math`p`} and ${math`q`} are distinct prime numbers; (c) ${math`f(p)f(q) = f(pq)`} only if ${math`p`} and ${math`q`} are distinct prime numbers.`,
-  writeUp: 'proof',
-  official: cite(F10H, 'Q3'),
-  hints: [
-    t`For (i), writing ${math`f(N)`} as ${math`\frac{N}{p_{${1}} \cdots p_{k}}(p_{${1}} - ${1}) \cdots (p_{k} - ${1})`}, why is ${math`\frac{N}{p_{${1}} \cdots p_{k}}`} an integer?`,
-    t`For (ii)(a), what happens when ${math`m`} and ${math`n`} share a prime factor?`,
-    t`For (ii)(c), which small values of ${math`p`} and ${math`q`}, not two distinct primes, might still satisfy ${math`f(p)f(q) = f(pq)`}?`,
-  ],
-});
-
 // IA Numbers and Sets Example Sheet 1, Q3: four primes between consecutive multiples of 10.
 const DECADE = 10;
 /** The primes strictly between m and m + 10. */
@@ -305,14 +263,12 @@ export const primesAndFactors: TopicContent = {
   generators: [countFactors, whichPrime, smallestPrimeFactor],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['factor', 'multiple', 'composite-number'],
-  cambridge: withUses([a10q3ia, a10q3iii, a10q3ib, ns1Q3], {
+  cambridge: withUses([a10q3ia, ns1Q3], {
     'ns1-q3': { sections: ['Factors, multiples, primes', 'When to stop testing'], note: t`Ruling out candidates with small factors, then testing the rest up to the square root` },
-    'a10-q3-i-b': { sections: ['Factors, multiples, primes'], note: t`Proving a product formula is a whole number and testing three claims`, needs: ['pre.prime-factorisation', 'proof.counterexample'] },
-    'a10-q3-iii': { sections: ['Factors, multiples, primes'], note: t`Working backwards from the formula to a prime power`, needs: ['pre.prime-factorisation'] },
     'a10-q3-i-a': { sections: ['Factors, multiples, primes'], note: t`Listing the prime factors of a number and evaluating the formula` },
   }),
   // Assignment 10 Q3(i)(a), and the four primes of Numbers and Sets Q3. The other Assignment 10 parts need prime
-  // factorisation and counterexamples, taught later, so they are practice.
+  // factorisation, so they are set in pre.prime-factorisation (Rule 1, 2026-10-08).
   gate: ['a10-q3-i-a', 'ns1-q3'],
   recall: [
     { front: t`Define a prime number.`, back: t`An integer ${math`p \ge ${2}`} whose only positive factors are ${1} and ${math`p`}.` },

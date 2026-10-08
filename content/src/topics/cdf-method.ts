@@ -7,7 +7,6 @@
  * a circle whose radius is exponential). Answers are compared with the STEP 2 and STEP 3
  * solutions; Sheet 4 has none, and its answer is checked by numerical integration.
  */
-import { mulberry32 } from '@learnhub/mastery';
 import { auto, cite, supervision, withUses } from '../cambridge';
 import { int, mul, pick, q, str, sub, toFloat, type Rational } from '../math';
 import { integrateToInfinity, near, powQ, rootTex, simpson } from '../partv-b';
@@ -227,59 +226,6 @@ const q3 = auto({
   ],
 });
 
-// STEP 2 Q4: no supermarket within y has probability e^(-k π y^2).
-/** P(no point of a Poisson process of rate k within y of the centre of a square of side 2L), by simulation. */
-function noneWithin(k: number, y: number, trials: number): number {
-  const rng = mulberry32(2012);
-  const L = 1;
-  const mean = k * 4 * L * L;
-  let none = 0;
-  for (let i = 0; i < trials; i++) {
-    // Knuth's Poisson sampler, then uniform points.
-    let n = 0;
-    let p = rng();
-    while (p > Math.exp(-mean)) { n++; p *= rng(); }
-    let hit = false;
-    for (let j = 0; j < n; j++) {
-      const [u, v] = [(2 * rng() - 1) * L, (2 * rng() - 1) * L];
-      if (u * u + v * v < y * y) hit = true;
-    }
-    if (!hit) none++;
-  }
-  return none / trials;
-}
-const q4cdf = auto({
-  id: 's2-q4-cdf',
-  source: cite(S2, 'Q4'),
-  title: t`The distribution function of the distance to a supermarket`,
-  prompt: t`The number of supermarkets in any region is Poisson with mean ${math`k`} times the area of the region. ${mY} is the distance from a randomly chosen point to the nearest supermarket. Find ${math`P(Y < y)`} for ${math`y > ${0}`}.`,
-  answer: { kind: 'expression', expected: '1 - e^(-k pi y^2)', variables: ['k', 'y'], domains: { k: { kind: 'real', min: 0.1, max: 3 }, y: { kind: 'real', min: 0.1, max: 2 } } },
-  hints: [
-    t`What does ${math`Y \ge y`} say about supermarkets in the disc of radius ${math`y`} around the point?`,
-    t`What is the probability that a Poisson count with mean ${math`k\pi y^{${2}}`} is ${0}?`,
-    t`How is ${math`P(Y < y)`} related to ${math`P(Y \ge y)`}?`,
-  ],
-  nudge: t`Not quite. Work with the complement: ${math`Y \ge y`} means an empty disc.`,
-  solution: [
-    t`${math`Y \ge y`} means no supermarket within the circle of radius ${math`y`}, whose area is ${math`\pi y^{${2}}`}. The number there is Poisson with mean ${math`k\pi y^{${2}}`}, so ${math`P(Y \ge y) = e^{-k\pi y^{${2}}}`}.`,
-    t`So ${math`P(Y < y) = ${1} - e^{-k\pi y^{${2}}}`}, and differentiating gives the density ${math`${2}\pi k y\,e^{-\pi k y^{${2}}}`}.`,
-    t`When the complement is a simple event, find it first.`,
-  ],
-  reference: '1 - e^(-k pi y^2)',
-  verify: () => {
-    const sim = noneWithin(1, 0.5, 20000);
-    const exact = Math.exp(-Math.PI * 0.25);
-    const se = Math.sqrt((exact * (1 - exact)) / 20000);
-    return near('P(no supermarket within 0.5) by simulating the process, k = 1', sim, exact, 4.5 * se)
-      ?? near('the density integrates to the distribution function, k = 2, y = 0.7', simpson((u) => 2 * Math.PI * 2 * u * Math.exp(-Math.PI * 2 * u * u), 0, 0.7), 1 - Math.exp(-2 * Math.PI * 0.49), 1e-10);
-  },
-  misconceptions: [
-    { response: 'e^(-k pi y^2)', why: t`${math`e^{-k\pi y^{${2}}}`} is the chance of no supermarket within ${math`y`}, that is ${math`P(Y \ge y)`}. Take its complement.` },
-    { response: '1 - e^(-k y)', why: t`The region is a disc of area ${math`\pi y^{${2}}`}, so the Poisson mean is ${math`k\pi y^{${2}}`}, not ${math`ky`}.` },
-  ],
-  official: { source: cite('step-s2-stats-solutions', 'Q4'), answer: '1 - e^(-k pi y^2)', agrees: true },
-});
-
 // STEP 3 Q4: T = s/V.
 const fact = (n: number): number => (n <= 1 ? 1 : n * fact(n - 1));
 const Cof = (a: number): number => fact(2 * a + 1) / (fact(a) * fact(a));
@@ -419,13 +365,13 @@ export const cdfMethod: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['cdf-method'],
   claims,
-  cambridge: withUses([q4cdf, q4t, q4tProof, squareRule], {
+  cambridge: withUses([q4t, q4tProof, squareRule], {
     's3-notes-square': { sections: ['Two roots'], note: t`The density of a square, from two roots` },
     's3-q4-tail': { sections: ['When the complement is easier', 'Monotone transformations'], note: t`A distribution function through a decreasing transformation` },
     's3-q4-density-t': { sections: ['Monotone transformations'], note: t`The density of a reciprocal by differentiating its distribution function` },
-    's2-q4-cdf': { sections: ['The method'], note: t`A distribution function from a Poisson count of points`, needs: ['prob.poisson-distribution'] },
   }),
-  // STEP 2 Statistics Q4's distribution function needs the Poisson distribution, taught later, so it is practice.
+  // STEP 2 Statistics Q4's distribution function needs the Poisson distribution, so it is set in
+  // prob.poisson-distribution (Rule 1, 2026-10-08).
   gate: ['s3-notes-square', 's3-q4-tail', 's3-q4-density-t'],
   recall: [
     { front: t`The distribution function method for ${math`Y = g(X)`}.`, back: t`Write ${math`F_{Y}(y) = P(g(X) \le y)`}, solve for ${mX}, use ${math`F_{X}`}, then differentiate.` },

@@ -7,7 +7,7 @@
  * and Snell, Section 3.1, Exercise 6, and Exercises 7 and 14(a) are practice (batch 7).
  */
 import { auto, cite, same, supervision, withUses } from '../cambridge';
-import { factorial, int, pick, q, str } from '../math';
+import { factorial, int, pick, q } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computed, computedMath as cm, dmath, ident, math, t } from '../rich';
 import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
@@ -235,44 +235,6 @@ const gs316 = supervision({
 });
 
 /** Every way of sending five people to five floors, as lists of floors 0 .. 4. */
-const FLOORS = 5;
-const allFloors = (): number[][] => {
-  let out: number[][] = [[]];
-  for (let i = 0; i < FLOORS; i++) out = out.flatMap((a) => Array.from({ length: FLOORS }, (_, f) => [...a, f]));
-  return out;
-};
-const ELEVATOR = q(factorial(FLOORS), FLOORS ** FLOORS);
-
-const gs317 = auto({
-  id: 'gs-3-1-7',
-  source: cite('gs-ch3', 'Section 3.1, Exercise 7 (page 89)'),
-  title: t`Five people in a lift`,
-  prompt: t`Five people get on an elevator that stops at five floors. Assuming that each has an equal probability of going to any one floor, find the probability that they all get off at different floors. Give a fraction in lowest terms.`,
-  answer: { kind: 'exact', expected: str(ELEVATOR) },
-  solution: [
-    t`Outcomes: lists of floors, one for each person in order. Each person has ${FLOORS} choices, so there are ${math`${FLOORS}^{${FLOORS}} = ${FLOORS ** FLOORS}`} equally likely lists.`,
-    t`All different: the first person has ${FLOORS} choices, the next ${FLOORS - 1}, and so on, ${math`${FLOORS}! = ${factorial(FLOORS)}`} lists.`,
-    t`Probability: ${math`\frac{${factorial(FLOORS)}}{${FLOORS ** FLOORS}} = ${ELEVATOR}`}.`,
-    t`Equally likely outcomes: count the good ones and divide by all of them.`,
-  ],
-  nudge: t`Not quite. Count whole lists of floors, one floor for each person, rather than following one person.`,
-  hints: [
-    t`How many equally likely lists of floors are there, one floor for each person?`,
-    t`In how many of those lists is every floor different?`,
-    t`How do the two counts give the probability, and does the fraction cancel?`,
-  ],
-  reference: str(ELEVATOR),
-  verify: () => {
-    const lists = allFloors();
-    const apart = lists.filter((a) => new Set(a).size === FLOORS).length;
-    return same('5 people on 5 floors, all different', str(q(apart, lists.length)), str(ELEVATOR));
-  },
-  misconceptions: [
-    { response: str(q(1, factorial(FLOORS))), why: t`That is one over the number of orders of the floors. Divide the number of good lists, ${math`${FLOORS}!`}, by the number of all lists, ${math`${FLOORS}^{${FLOORS}}`}, since each person may choose any floor.` },
-    { response: str(q(1, FLOORS)), why: t`That is the chance for one person to choose one given floor. Count whole lists: ${math`${FLOORS}!`} good ones out of ${math`${FLOORS}^{${FLOORS}}`}.` },
-  ],
-  official: { source: cite('gs-answers-odd', 'Section 3.1, Exercise 7'), answer: `${factorial(FLOORS)}/${FLOORS ** FLOORS}`, agrees: true },
-});
 
 const gs3114a = auto({
   id: 'gs-3-1-14-a',
@@ -408,13 +370,12 @@ export const factorialTopic: TopicContent = {
   generators: [arrange, ratio, fixed, names],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['arrangement', 'factorial'],
-  cambridge: withUses([step08Couples, extent6, extent8, gs316, gs317, gs3114a], {
+  cambridge: withUses([step08Couples, extent6, extent8, gs316, gs3114a], {
     'step08-q13-i': { sections: ['Putting things in order', 'Why n! counts orderings'], note: t`Counting seatings with a condition in stages, then multiplying` },
     'gs-3-1-6': { sections: ['Why n! counts orderings'], note: t`Counting arrangements in a circle by fixing one seat` },
-    'gs-3-1-7': { sections: ['Why n! counts orderings'], note: t`A probability as a count of orderings over all outcomes`, needs: ['pre.probability-scale'] },
   }),
   // The STEP couples come first; the round table needs an argument, not a formula. The lift asks for a probability,
-  // taught later, so it is practice. The lock and the two extents are each one factorial, so they are practice, not gates.
+  // so it is set in pre.probability-scale (Rule 1, 2026-10-08). The lock and the two extents are each one factorial, so they are practice, not gates.
   gate: ['step08-q13-i', 'gs-3-1-6'],
   recall: [
     { front: t`Define ${math`n!`}.`, back: t`${ident('0!', '1')}, and ${math`n! = n \times (n - ${1})!`} for ${math`n \ge ${1}`}.` },

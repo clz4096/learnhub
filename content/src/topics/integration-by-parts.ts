@@ -330,14 +330,15 @@ export const integrationByParts: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['integration-by-parts'],
   cambridge: withUses([xExpQ, lnQ, step1998, step1998full, nstI2], {
-    'a24-q3': { sections: ['Choosing the parts'], note: t`A recurrence for an integral by parts, with trigonometric integrals`, needs: ['calc.standard-integrals'] },
+    'a24-q3': { sections: ['Choosing the parts'], note: t`A recurrence for an integral by parts, with trigonometric integrals`, needs: ['trig.compound-angles', 'alg.telescoping'] },
     'a24-q3-i3': { sections: ['Choosing the parts'], note: t`Summing a given recurrence` },
     'a24-q1-ii-a': { sections: ['Undoing the product rule'], note: t`Integrating a polynomial times an exponential by parts` },
     'a24-q1-ii-c': { sections: ['Choosing the parts'], note: t`Integrating the logarithm as one times itself` },
     'nst-i2-i': { sections: ['Undoing the product rule'], note: t`A definite integral by parts` },
   }),
-  // Assignment 24 Q1(ii) and NST I2(i) are integrals by parts. Assignment 24 Q3 also integrates trigonometric
-  // functions, taught later, and its auto-checked part only sums a given recurrence, so both are practice.
+  // Assignment 24 Q1(ii) and NST I2(i) are integrals by parts. Assignment 24 Q3 also needs a difference of sines
+  // (compound angles) and a telescoping sum, earlier lessons this one does not build on, and its auto-checked
+  // part only sums a given recurrence, so both are practice.
   gate: ['a24-q1-ii-a', 'a24-q1-ii-c', 'nst-i2-i'],
   recall: [
     { front: t`State integration by parts.`, back: t`${math`\int_{a}^{b} uv'\,dx = \left[uv\right]_{a}^{b} - \int_{a}^{b} u'v\,dx`}.` },

@@ -383,10 +383,10 @@ const q10c = supervision({
   id: 'ia-s3-q10-c',
   source: cite(SH3, 'Q10'),
   title: t`Same mean, different variance`,
-  prompt: t`Each mature individual has offspring with generating function ${math`F`}, and each immature individual matures with probability ${math`p`}, independently. Find the generating functions in (a) (the number of immature individuals in the next generation, from ${math`k`} immature) and (b) (the number of mature individuals in the next generation, from ${math`k`} mature). Show that the two distributions have the same mean, but not necessarily the same variance.`,
+  prompt: t`Each mature individual has offspring with generating function ${math`F`}, and each immature individual matures with probability ${math`p`}, independently. Starting from ${math`k`} immature individuals, the number of immature individuals in the next generation has generating function ${math`A(t) = (${1} - p + pF(t))^{k}`}; starting from ${math`k`} mature individuals, the number of mature individuals in the next generation has generating function ${math`B(t) = F(${1} - p + pt)^{k}`}. Explain where each comes from, then show that the two distributions have the same mean, but not necessarily the same variance.`,
   hints: [
-    t`What are the two generating functions, written with ${math`F`} and with ${math`${1} - p + pt`}?`,
-    t`Differentiating each at ${math`t = ${1}`} by the chain rule, what are the two means?`,
+    t`In each case, which random count comes first, and so which generating function goes inside the other?`,
+    t`Differentiating ${math`A`} and ${math`B`} at ${math`t = ${1}`} by the chain rule, what are the two means?`,
     t`For the variances, which simple ${math`F`}, such as every mature individual having exactly two offspring, gives a quick test?`,
   ],
   writeUp: 'proof',
@@ -460,7 +460,7 @@ export const randomSums: TopicContent = {
         { label: t`Recognise it`, text: t`That is the pgf of ${math`\text{Po}(${henMean})`}, and a pgf determines the distribution. So the number of chicks is Poisson with mean ${henMean}.`, plain: t`Check with the theorem: ${math`E(N)\operatorname{Var}(X) + \operatorname{Var}(N)E(X)^{${2}} = ${HEN.lambda} \times ${mul(HEN.p, sub(ONE, HEN.p))} + ${HEN.lambda} \times ${mul(HEN.p, HEN.p)} = ${henVar}`}, the variance of ${math`\text{Po}(${henMean})`}.` },
       ],
     },
-    { kind: 'p', text: t`In general a Poisson count of mean ${math`\lambda`}, each kept with probability ${math`p`}, is Poisson with mean ${math`\lambda p`}. This is thinning. Sheet ${3}, question ${10}, composes in both orders: immature animals that mature and then breed give ${math`(${1} - p + pF(t))^{k}`}, while mature parents whose offspring then mature give ${math`F(${1} - p + pt)^{k}`}.` },
+    { kind: 'p', text: t`In general a Poisson count of mean ${math`\lambda`}, each kept with probability ${math`p`}, is Poisson with mean ${math`\lambda p`}. This is thinning. Sheet ${3}, question ${10}, uses the formula twice, in the two orders: animals that must mature before they breed, and parents whose offspring must then mature. In each, the whole question is which random count comes first.` },
     { kind: 'pitfall', claim: t`The pgf of a random sum is ${math`G_{X}(G_{N}(t))`}, or ${math`G_{N}(t)G_{X}(t)`}.`, counterexample: t`With ${math`N = ${2}`} always, the sum is ${math`X_{${1}} + X_{${2}}`}, whose pgf is ${math`G_{X}(t)^{${2}} = G_{N}(G_{X}(t))`}. ${math`G_{X}(G_{N}(t)) = G_{X}(t^{${2}})`} is the pgf of ${math`${2}X`}, and ${math`G_{N}(t)G_{X}(t)`} is that of ${math`N + X`}.` },
     { kind: 'takeaway', text: t`Condition on the number of terms: ${math`G_{S_{N}} = G_{N} \circ G_{X}`}, so the mean is ${math`E(N)E(X)`} and the variance adds the spread of the terms to the spread of their number.` },
   ],
@@ -475,13 +475,14 @@ export const randomSums: TopicContent = {
   claims,
   cambridge: withUses([q10a, q10b, q8a, q10c], {
     'ia-s3-q8-a': { sections: ['Mean and variance'], note: t`The mean and variance of a random sum` },
-    'ia-s3-q10-c': { sections: ['The random sum formula', 'The hen, and thinning'], note: t`Generating functions for thinned offspring` },
+    'ia-s3-q10-c': { sections: ['The random sum formula', 'Mean and variance'], note: t`Means and variances of two compositions of generating functions` },
     'ia-s3-q10-a': { sections: ['The hen, and thinning'], note: t`The generating function of a thinned count` },
     'ia-s3-q10-b': { sections: ['The random sum formula'], note: t`The generating function of a random sum of offspring` },
   }),
-  // Best first: the two compositions written up, then each composition auto-checked. The mean
-  // and variance proof stays practice: the worked example ia-s3-q8-b works its part (b).
-  gate: ['ia-s3-q10-c', 'ia-s3-q10-a', 'ia-s3-q10-b'],
+  // Q10's comparison of the two compositions gates; its prompt states both generating functions, since the
+  // auto-checked parts (a) and (b) work them for a concrete F and so are practice. The mean and variance
+  // proof stays practice: the worked example ia-s3-q8-b works its part (b).
+  gate: ['ia-s3-q10-c'],
   recall: [
     { front: t`State the random sum formula.`, back: t`${math`G_{S_{N}}(t) = G_{N}(G_{X}(t))`}, for ${mN} independent of the i.i.d. ${math`X_{i}`}.` },
     { front: t`Mean of a random sum?`, back: t`${math`E(S_{N}) = E(N)E(X)`}.` },

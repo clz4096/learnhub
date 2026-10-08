@@ -290,6 +290,21 @@ const db12q5 = supervision({
   writeUp: 'sketch',
 });
 
+// Rule 1 (2026-10-08): set here from calc.stationary-points, the earliest topic that teaches everything it needs.
+const sketchQ = supervision({
+  id: 'a7-q1-i',
+  source: cite(F07, 'Assignment 7, Q1(i)'),
+  title: t`Sketch x plus and minus its reciprocal`,
+  prompt: t`Sketch, on different axes, the graphs of ${math`y = x + \frac{${1}}{x}`} and ${math`y = x - \frac{${1}}{x}`} (for ${math`x \ne ${0}`}), paying particular attention to the turning points, if any; the behaviour as ${math`x \to \infty`} and ${math`x \to -\infty`}; the behaviour when ${math`x`} is close to ${0}; and the intercepts with the axes, if any.`,
+  hints: [
+    t`What is ${math`\frac{dy}{dx}`} for each curve, and where, if anywhere, is it ${0}?`,
+    t`What does each curve approach as ${math`x \to \pm\infty`}, and what happens as ${math`x \to ${0}`} from each side?`,
+    t`Where does each curve meet the axes, if at all?`,
+  ],
+  writeUp: 'sketch',
+  official: cite(F07H, 'Assignment 7 hints, Q1(i)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const rationalFunctions: TopicContent = {
@@ -342,7 +357,8 @@ export const rationalFunctions: TopicContent = {
   generators: [vertical, horizontal, oblique],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['rational-function', 'asymptote'],
-  cambridge: withUses([turnsQ, horizQ, sumQ, crossQ, sketchAll, db12q5], {
+  cambridge: withUses([turnsQ, horizQ, sumQ, crossQ, sketchAll, db12q5, sketchQ], {
+    'a7-q1-i': { sections: ['Putting a sketch together'], note: t`Sketching with turning points, asymptotes, and behaviour near zero` },
     'a18-q1': { sections: ['What happens far out', 'Putting a sketch together'], note: t`Sketching four rational curves with asymptotes and turning points` },
     'step12-q5-i': { sections: ['A curve with a gap', 'Putting a sketch together'], note: t`Sketching a reciprocal quadratic shifted by a parameter` },
   }),

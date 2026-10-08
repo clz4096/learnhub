@@ -491,18 +491,6 @@ const tmuaK5 = supervision({
     t`Which pair of integers, one odd and one even, makes the careless version fail?`,
   ],
 });
-const lemma43 = supervision({
-  id: 'cst-lemma-43-equivalences',
-  source: cite('cst-dm-notes', 'printed page 151, the footnote to the proof of Lemma 43'),
-  title: t`Which equivalences?`,
-  prompt: t`In the proof of Lemma ${43} (a positive rational is a fraction in lowest terms), the CST notes negate ${math`\exists m, n.\ x = m/n \land \lnot \exists p.\ (p \mid m \land p \mid n)`} to get ${math`\forall m, n.\ x = m/n \Rightarrow \exists p.\ (p \mid m \land p \mid n)`}, and say this uses three of the equivalences on printed page ${134} together with ${math`(P \Rightarrow Q) \Leftrightarrow (\lnot P \lor Q)`}. Which three? Show the negation step by step, naming the equivalence used at each step.`,
-  writeUp: 'explanation',
-  hints: [
-    t`How does a negation pass through ${math`\exists`}, and through ${math`\forall`}?`,
-    t`What is the negation of an "and" of two statements?`,
-    t`Which "or" becomes an implication by ${math`(P \Rightarrow Q) \Leftrightarrow (\lnot P \lor Q)`}?`,
-  ],
-});
 
 // ---------------------------------------------------------------- Cambridge problems: gates (batch 7)
 
@@ -697,13 +685,12 @@ export const equivalences: TopicContent = {
   generators: [whichImplies, deMorganWords, whereDiffer],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['logically-equivalent', 'de-morgans-laws', 'contrapositive'],
-  cambridge: withUses([bop3, bop5, bop7, bop10, bop11, bop12, tmuaF1, tmuaK2, tmuaK4, tmuaF3, tmuaK5, lemma43, lp1, lp4, lp4Verdicts], {
+  cambridge: withUses([bop3, bop5, bop7, bop10, bop11, bop12, tmuaF1, tmuaK2, tmuaK4, tmuaF3, tmuaK5, lp1, lp4, lp4Verdicts], {
     'lp-ex-4': { sections: ["De Morgan's laws", 'Implication as an "or"'], note: t`Rewriting formulas into normal forms with the laws, and judging validity` },
-    'cst-lemma-43-equivalences': { sections: ["De Morgan's laws", 'Implication as an "or"'], note: t`Negating a quantified statement step by step`, needs: ['logic.negating-quantifiers'] },
     'lp-ex-4-verdicts': { sections: ["De Morgan's laws"], note: t`Deciding validity and satisfiability` },
   }),
   // Logic and Proof Exercise 4 first: normal forms by the laws of the lesson, and a verdict for each. The Lemma 43
-  // question negates quantifiers, taught in logic.negating-quantifiers, so it is practice. Exercise 1 is one
+  // question negates quantifiers, so it is set in logic.negating-quantifiers (Rule 1, 2026-10-08). Exercise 1 is one
   // formula of one letter: practice.
   gate: ['lp-ex-4', 'lp-ex-4-verdicts'],
   recall: [

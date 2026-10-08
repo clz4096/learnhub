@@ -260,18 +260,6 @@ const q6var = auto({
   ],
 });
 
-const q6b = supervision({
-  id: 'ia4-q6-b',
-  source: cite(SH4, 'Q6(b)'),
-  title: t`Why products of many factors look log-normal`,
-  prompt: t`Log-normal distributions model quantities ${mX} that arise as the product of many positive random factors, ${math`X = \xi_{${1}}\xi_{${2}}\cdots\xi_{n}`}, such as particle sizes after crushing, or stock prices. Making any reasonable assumptions you wish, justify such a model.`,
-  writeUp: 'explanation',
-  hints: [
-    t`What is ${math`\log X`} in terms of the ${math`\log \xi_{i}`}?`,
-    t`Under which assumptions on the ${math`\xi_{i}`} does the central limit theorem apply to that sum?`,
-    t`If ${math`\log X`} is approximately normal, what is the distribution of ${mX}?`,
-  ],
-});
 const q5why = supervision({
   id: 'ia4-q5-why',
   source: cite(SH4, 'Q5', true),
@@ -349,14 +337,13 @@ export const normalDistribution: TopicContent = {
   generators: [standardise, quantile, sampleSize],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['normal-distribution', 'standard-normal'],
-  cambridge: withUses([q6mean, q6var, q6b, q5why], {
+  cambridge: withUses([q6mean, q6var, q5why], {
     'ia4-q6-a-mean': { sections: ['The normal density'], note: t`An expectation by completing the square in the exponent` },
     'ia4-q6-a-variance': { sections: ['The normal density'], note: t`A variance by completing the square in the exponent` },
     'ia4-q5-why': { sections: ['Sample means', 'Standardising'], note: t`Why a sample mean is normal, and reading the table` },
-    'ia4-q6-b': { sections: ['Sample means'], note: t`Why products of many factors look log-normal`, needs: ['lim.clt'] },
   }),
   // Sheet 4 Q6(a) first: the log-normal mean needs completing the square, which the lesson does not do for you.
-  // Q6(b) needs the central limit theorem, taught later (it gates lim.clt), so it is practice here.
+  // Q6(b) needs the central limit theorem, so it is left to lim.clt, which gates on it.
   gate: ['ia4-q6-a-mean', 'ia4-q6-a-variance', 'ia4-q5-why'],
   recall: [
     { front: t`The density of ${math`N(\mu, \sigma^{${2}})`}.`, back: t`${math`\frac{${1}}{\sigma\sqrt{${2}\pi}}e^{-(x - \mu)^{${2}}/(${2}\sigma^{${2}})}`}.` },

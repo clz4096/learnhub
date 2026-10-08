@@ -3,7 +3,7 @@
  * the paper registry, and the day planner's log. Pure: callers pass every input, including
  * the time and the registry (it loads on demand, so it may not be there yet).
  */
-import { isStudyEntry, type Progress } from '@learnhub/mastery';
+import { isMastered, isStudyEntry, type Progress } from '@learnhub/mastery';
 import { currentProblemKey, gateOf } from '@learnhub/content';
 import { BOOK } from '@learnhub/content/book';
 import {
@@ -109,7 +109,18 @@ export function storyRatings(p: Progress, c: Campaign | null, adm: Admissions | 
 export function storyFacts(
   p: Progress | null, c: Campaign | null, log: DayLog, now: number, adm: Admissions | null = null, attempts: readonly LadderAttempt[] = [],
 ): StoryFacts {
-  const learned = (id: string): boolean => p !== null && p.memory[id] !== undefined;
+  // The story counts mastered topics (HOW-A-TOPIC-WORKS.md, "Reviews and the rest"): the gate met
+  // and no cold retest missed since, not merely learned. A topic can sit in more than one step.
+  const masteredMemo = new Map<string, boolean>();
+  const mastered = (id: string): boolean => {
+    if (p === null) return false;
+    let m = masteredMemo.get(id);
+    if (m === undefined) {
+      m = isMastered(p, id, gateOf(id), currentProblemKey);
+      masteredMemo.set(id, m);
+    }
+    return m;
+  };
   let sectionsMastered = 0;
   const chaptersComplete: string[] = [];
   const termShare: Record<string, number> = {};
@@ -121,7 +132,7 @@ export function storyFacts(
         let chSteps = 0;
         let chDone = 0;
         for (const sec of ch.sections) {
-          const n = sec.steps.filter((s) => learned(s.topicId)).length;
+          const n = sec.steps.filter((s) => mastered(s.topicId)).length;
           if (sec.steps.length > 0 && n === sec.steps.length) sectionsMastered++;
           chSteps += sec.steps.length;
           chDone += n;

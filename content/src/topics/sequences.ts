@@ -264,20 +264,6 @@ const a6Seq = auto({
   official: { source: cite('step-f06-hints', 'Q1(i)'), answer: '2n + 1', agrees: true },
 });
 
-const sw131c = supervision({
-  id: 'sw-1-3-1-c',
-  source: cite(SW, 'Exercises 1, 1.3.1(c)'),
-  title: t`Triangular and square`,
-  prompt: t`A natural number is square if it is ${math`k^{${2}}`} for some natural number ${math`k`}. Show that ${math`n`} is triangular if and only if ${math`${8}n + ${1}`} is a square. (Plutarch, about ${100} BC.)`,
-  hints: [
-    t`If ${math`n = \frac{k(k + ${1})}{${2}}`}, what is ${math`${8}n + ${1}`} in terms of ${math`k`}?`,
-    t`Which perfect square equals ${math`${4}k^{${2}} + ${4}k + ${1}`}?`,
-    t`For the converse, if ${math`${8}n + ${1} = m^{${2}}`}, why must ${math`m`} be odd, and what does writing ${math`m = ${2}k + ${1}`} give for ${math`n`}?`,
-  ],
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-1', '1.3.1(c)'),
-});
-
 // IA Numbers and Sets Example Sheet 1, Q2: 41, 43, 47, 53, 61, ..., each gap 2 more than the last.
 const EULER_START = 41;
 /** The nth term: the first term plus the gaps 2, 4, ..., 2(n - 1). */
@@ -397,13 +383,12 @@ export const sequences: TopicContent = {
   generators: [nthTerm, recursive, whichTerm, whichTriangular],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sequence', 'term', 'term-to-term', 'position-to-term', 'arithmetic-sequence', 'common-difference', 'triangular-number'],
-  cambridge: withUses([sw131b, sw131c, ns1Q2], {
-    'sw-1-3-1-c': { sections: ['Triangular numbers'], note: t`An if and only if proof about triangular numbers and odd squares`, needs: ['pre.algebraic-argument', 'logic.iff'] },
+  cambridge: withUses([sw131b, ns1Q2], {
     'ns1-q2': { sections: ['Sequences and their rules', 'Arithmetic sequences', 'Triangular numbers'], note: t`Finding the nth term when the differences grow, then choosing n to make a factor appear` },
   }),
   // The IA nth term gates. 1.3.1(d), consecutive triangular numbers add to a square, is a written proof, so it is
-  // set in proof.direct, the first topic that teaches writing one (Rule 1, 2026-10-08). 1.3.1(c) is an if and only if proof by
-  // parity, taught later, so it is practice. The formula for the kth triangular number is recall, so it does not gate.
+  // set in proof.direct, the first topic that teaches writing one (Rule 1, 2026-10-08). 1.3.1(c), an if and only if proof by
+  // parity, is set in proof.cases (Rule 1, 2026-10-08). The formula for the kth triangular number is recall, so it does not gate.
   gate: ['ns1-q2'],
   recall: [
     { front: t`Term-to-term rule versus position-to-term rule?`, back: t`Term-to-term gives ${math`u_{n + ${1}}`} from ${math`u_{n}`}; position-to-term gives ${math`u_{n}`} from ${mn}.` },

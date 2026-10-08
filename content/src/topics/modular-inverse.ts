@@ -217,30 +217,6 @@ const sheet3210c = auto({
   ],
 });
 
-const base3212 = powMod(22, 12001, 175);
-const inv3212 = inverseBySearch(base3212, 175) as number;
-const sheet3212 = auto({
-  id: 'sheet-3-2-12-inverse',
-  source: cite('cst-dm-sw1', 'Exercises 3, 3.2.12', true),
-  title: t`The inverse of ${math`[${22}^{${12001}}]_{${175}}`}`,
-  prompt: t`Exercise ${3}.${2}.${12} asks for a proof that ${math`[${22}^{${12001}}]_{${175}}`} has a multiplicative inverse in ${Z(175)}. Go further: find it.`,
-  answer: { kind: 'exact', expected: String(inv3212) },
-  solution: [
-    t`${math`${22} = ${2} \times ${11}`} and ${math`${175} = ${5}^{${2}} \times ${7}`} share no prime, so the power is coprime to ${175} and has an inverse. To find it, reduce the power: repeated squaring gives ${math`[${22}^{${12001}}]_{${175}} = ${base3212}`}.`,
-    t`Then ${math`${175} = ${7} \times ${22} + ${21}`} and ${math`${22} = ${21} + ${1}`}, so ${math`${1} = ${22} - (${175} - ${7} \times ${22}) = ${8} \times ${22} - ${175}`}, and the inverse is ${inv3212}.`,
-    t`Shrink the number first, then invert it.`,
-  ],
-  reference: String(inv3212),
-  verify: () => same('the power and the inverse', `${base3212},${(base3212 * inv3212) % 175}`, '22,1'),
-  misconceptions: [{ response: String(inverseBySearch(22, 7)), why: t`Work modulo ${175}, not ${7}: the inverse must satisfy ${math`${22}x \equiv ${1} \pmod{${175}}`}.` }],
-  nudge: t`Not quite. Reduce the huge power modulo ${175} first; the inverse of a small number is then one run of Euclid's algorithm.`,
-  hints: [
-    t`How can ${math`[${22}^{${12001}}]_{${175}}`} be reduced, by repeated squaring or by finding a power of ${22} that is ${1} modulo ${175}?`,
-    t`What small residue does the power reduce to?`,
-    t`How does Euclid's algorithm on ${175} and that residue give its inverse?`,
-  ],
-});
-
 const sheet226 = auto({
   id: 'sheet-2-2-6-z7-inverses',
   source: cite('cst-dm-sw1', 'Exercises 2, 2.2.6', true),
@@ -351,15 +327,14 @@ export const modularInverse: TopicContent = {
   generators: [inverseMod, solveCongruence, countUnits],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['modular-inverse', 'field'],
-  cambridge: withUses([sheet3210a, sheet3210b, sheet3210c, sheet3212, sheet226, sheet3212proof, cor86], {
+  cambridge: withUses([sheet3210a, sheet3210b, sheet3210c, sheet226, sheet3212proof, cor86], {
     'sheet-3-2-12': { sections: ['When an inverse exists'], note: t`An inverse exists exactly when coprime` },
     'sheet-3-2-10-c': { sections: ['Solving linear congruences'], note: t`A system of two congruences` },
     'sheet-3-2-10-b': { sections: ['Solving linear congruences'], note: t`A linear congruence with a common factor` },
-    'sheet-3-2-12-inverse': { sections: ['Computing an inverse'], note: t`Reducing a huge power before inverting it`, needs: ['num.modular-exponentiation'] },
   }),
   // The CST proof and the multi-step congruences. Dropped: the one-step 3.2.10(a), the inverse table (drill),
   // Corollary 86, which needs Fermat's little theorem from a later lesson, and the inverse of the huge power,
-  // which needs repeated squaring, also later.
+  // which needs repeated squaring, so it is set in num.modular-exponentiation.
   gate: ['sheet-3-2-12', 'sheet-3-2-10-c', 'sheet-3-2-10-b'],
   recall: [
     { front: t`When does ${mn} have an inverse modulo ${mm}?`, back: t`Exactly when ${math`\gcd(m, n) = ${1}`}.` },

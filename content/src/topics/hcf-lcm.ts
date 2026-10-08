@@ -287,6 +287,21 @@ const sw312 = auto({
   official: { source: cite('cst-dm-sols-2324-3', '3.1.2'), answer: String(BIG_HCF), agrees: true },
 });
 
+const ma = math`a`;
+// Rule 1 (2026-10-08): set here from proof.direct, the earliest topic that teaches everything it needs.
+const ns2q15 = supervision({
+  id: 'ns2-q15',
+  source: cite('ia-ns-sheet-2', 'Q15, first part'),
+  title: t`Products in a block of consecutive numbers`,
+  prompt: t`Let ${math`a < b`} be distinct natural numbers. Prove that every block of ${math`b`} consecutive natural numbers contains two distinct numbers whose product is a multiple of ${math`ab`}.`,
+  hints: [
+    t`Among ${math`b`} consecutive numbers, why is one a multiple of ${math`b`}?`,
+    t`If the block holds a different multiple of ${ma}, what follows?`,
+    t`Otherwise, with ${math`g`} the highest common factor of ${ma} and ${math`b`}, why does the block hold another multiple of ${math`g`}?`,
+  ],
+  writeUp: 'proof',
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const hcfLcm: TopicContent = {
@@ -332,7 +347,8 @@ export const hcfLcm: TopicContent = {
   generators: [hcf, lcm, product],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['hcf', 'lcm'],
-  cambridge: withUses([a10lcm, ns2q8, ns2q8Witness, sw312], {
+  cambridge: withUses([a10lcm, ns2q8, ns2q8Witness, sw312, ns2q15], {
+    'ns2-q15': { sections: ['Definitions'], note: t`Finding multiples inside a block of consecutive numbers`, needs: ['proof.direct'] },
     'sw-3-1-2': { sections: ['Definitions', 'From prime factorisations'], note: t`Spotting a common factor in the digits, then taking the HCF prime by prime` },
     'ns2-q8': { sections: ['Definitions', 'From prime factorisations'], note: t`Testing claims about highest common factors, proving or giving a counterexample`, needs: ['proof.counterexample'] },
   }),

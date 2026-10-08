@@ -12,7 +12,7 @@ import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { dmath, join, listOf, math, t, type Rich } from '../rich';
 import { quickCheck, worked, workedCambridge, type TopicContent } from '../topic';
-import { average, frogMean, mean, positions, rsum, threePointGame, throwsOf, type Dist } from '../partv-a';
+import { average, mean, positions, rsum, threePointGame, throwsOf, type Dist } from '../partv-a';
 
 const [mX] = [math`X`];
 const MIX = 'step-mixed-stats1' as const;
@@ -338,36 +338,6 @@ const q4iii = auto({
   official: { source: cite(MIXS, 'Q4(iii)'), answer: '(n + 9)/(n + 3)', agrees: true },
 });
 
-const Q_DOM = { q: { kind: 'real' as const, min: 0.05, max: 0.95 } };
-const s3u3 = auto({
-  id: 's3-q1-ii-u3',
-  source: cite('step-s3-stats', 'Q1(ii)'),
-  title: t`The frog from two and a half metres`,
-  prompt: t`A frog jumps towards a large pond, each jump ${1} m with probability ${math`p`} or ${2} m with probability ${math`q`}, independently, where ${math`p + q = ${1}`}. Let ${math`u_{n}`} be the expected number of jumps, starting ${math`n - \frac{${1}}{${2}}`} m from the edge, to land in the pond for the first time. Find ${math`u_{${3}}`} in terms of ${math`q`}.`,
-  answer: { kind: 'expression', expected: '3 - 2q + q^2', variables: ['q'], domains: Q_DOM },
-  solution: [
-    t`From ${math`${2}\frac{${1}}{${2}}`} m the frog needs two or three jumps. Two jumps when the first is ${2} m (probability ${math`q`}), or ${1} m then ${2} m (probability ${math`pq`}): ${math`P(\text{two}) = q + pq`}. Three jumps when the first two are ${1} m: probability ${math`p^{${2}}`}. They add to ${1}.`,
-    t`${math`u_{${3}} = ${2}(q + pq) + ${3}p^{${2}}`}, and with ${math`p = ${1} - q`} this is ${math`${2}q + ${2}q - ${2}q^{${2}} + ${3} - ${6}q + ${3}q^{${2}} = ${3} - ${2}q + q^{${2}}`}.`,
-    t`List the ways to finish, weight each by its probability, then eliminate ${math`p`}.`,
-  ],
-  nudge: t`Not quite. List the jump sequences that first reach the pond from ${math`${2}\frac{${1}}{${2}}`} m, with their probabilities.`,
-  hints: [
-    t`From ${math`${2}\frac{${1}}{${2}}`} m, what are the fewest and the most jumps the frog can need?`,
-    t`Which sequences of jumps reach the pond for the first time after exactly two jumps?`,
-    t`With those probabilities, what is the expected number of jumps, written in terms of ${math`q`} alone?`,
-  ],
-  reference: '3 - 2q + q^2',
-  verify: () => {
-    for (const qq of [q(1, 3), q(1, 2), q(3, 4), q(1, 10)]) {
-      const e = same(`q = ${str(qq)}, every jump sequence`, str(frogMean(3, qq)), str(add(sub(q(3), mul(q(2), qq)), mul(qq, qq))));
-      if (e !== null) return e;
-    }
-    return null;
-  },
-  misconceptions: [{ response: '2q + 3(1 - q)', why: t`From ${math`${2}\frac{${1}}{${2}}`} m, a single ${2} m jump is not enough: it leaves the frog half a metre away. Two jumps can also be ${1} m then ${2} m.` }],
-  official: { source: cite('step-s3-stats-solutions', 'Q1(ii)'), answer: '3 - 2q + q^2', agrees: true },
-});
-
 const s2q3iii = supervision({
   id: 's2-q3-iii-p-zero',
   source: cite('step-s2-stats', 'Q3(iii)'),
@@ -459,17 +429,16 @@ export const expectation: TopicContent = {
   generators: [fromTable, findK, expectedGain],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['expectation', 'fair-game'],
-  cambridge: withUses([q1b, a19, s2q3ii, q4iii, s3u3, s2q3iii, poissonMean], {
+  cambridge: withUses([q1b, a19, s2q3ii, q4iii, s2q3iii, poissonMean], {
     'mixed-q4-iii': { sections: ['The long-run average'], note: t`An expectation from a distribution given in parts` },
     's2-notes-poisson-mean': { sections: ['A formula for a whole family'], note: t`The mean of the Poisson distribution from the exponential series` },
-    's3-q1-ii-u3': { sections: ['The long-run average'], note: t`An expected number of jumps by conditioning on the first jump`, needs: ['prob.first-step'] },
     's2-q3-ii-fair-stake': { sections: ['Fair stakes'], note: t`A stake that makes the expected gain zero` },
     's2-q3-iii-p-zero': { sections: ['Fair stakes'], note: t`Why no stake changes a game decided in advance` },
     'a19-q4-ii-gain': { sections: ['Fair stakes'], note: t`An expected gain and the decision it supports` },
   }),
   // STEP questions, best first: the longest run of girls needs a distribution built before the mean; then the
   // Poisson mean, the fair stake, the degenerate match, and the three-dice bet. The frog conditions on the first
-  // jump (prob.first-step, taught later), so it is practice. Mixed Q1(i)(b) is one probability, left out.
+  // jump, so it is set in prob.first-step (Rule 1, 2026-10-08). Mixed Q1(i)(b) is one probability, left out.
   gate: ['mixed-q4-iii', 's2-notes-poisson-mean', 's2-q3-ii-fair-stake', 's2-q3-iii-p-zero', 'a19-q4-ii-gain'],
   recall: [
     { front: t`Define ${math`E(X)`} for a discrete random variable.`, back: t`${math`\sum_{x} x \, P(X = x)`}, over every value ${mx}.` },

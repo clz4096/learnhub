@@ -19,7 +19,6 @@ const F09H = 'step-f09-hints' as const;
 const F13 = 'step-f13' as const;
 const F13H = 'step-f13-hints' as const;
 const F22 = 'step-f22' as const;
-const F22H = 'step-f22-hints' as const;
 const setKey = (xs: readonly Rational[]): string => xs.map(str).sort().join(',');
 
 // ---------------------------------------------------------------- cubics with integer turning points
@@ -318,20 +317,6 @@ const step2015 = auto({
   misconceptions: [{ response: '1', why: t`To the left of the maximum the curve rises from just above ${0} to ${math`\frac{${9}}{e}`}, which is more than ${1}, so it crosses ${math`y = ${1}`} there too.` }],
 });
 
-const step2015full = supervision({
-  id: 'a22-q4',
-  source: cite(F22, 'Assignment 22, Q4'),
-  title: t`STEP: a cubic times an exponential`,
-  prompt: t`(i) Sketch the curve ${math`y = e^{x}(${2}x^{${2}} - ${5}x + ${2})`}. Hence determine how many real values of ${math`x`} satisfy the equation ${math`e^{x}(${2}x^{${2}} - ${5}x + ${2}) = k`} in the different cases that arise according to the value of ${math`k`}. You may assume that ${math`x^{n}e^{x} \to ${0}`} as ${math`x \to -\infty`} for any integer ${math`n`}. (ii) Sketch the curve ${math`y = e^{x^{${2}}}(${2}x^{${4}} - ${5}x^{${2}} + ${2})`}.`,
-  hints: [
-    t`What are ${math`\frac{dy}{dx}`} and the stationary points, and where does the curve cross the axis?`,
-    t`Using the turning values and the behaviour as ${math`x \to \pm\infty`}, how many solutions are there for each range of ${math`k`}?`,
-    t`For (ii), how does putting ${math`x^{${2}}`} in place of ${math`x`} change the curve, and what symmetry does it have?`,
-  ],
-  writeUp: 'sketch',
-  official: cite(F22H, 'Assignment 22 hints, Q4'),
-});
-
 const step2012full = supervision({
   id: 'a13-q3',
   source: cite(F13, 'Assignment 13, Q3'),
@@ -415,12 +400,11 @@ export const curveSketching: TopicContent = {
   generators: [countRoots, twoRootK, quartic],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['intermediate-value-theorem', 'end-behaviour'],
-  cambridge: withUses([whichThree, sketchFRoots, step2012, step2015, step2015full, step2012full, step1993], {
-    'a22-q4': { sections: ['A sketching checklist'], note: t`Sketching a polynomial times an exponential and counting solutions`, needs: ['calc.differentiation-rules'] },
+  cambridge: withUses([whichThree, sketchFRoots, step2012, step2015, step2012full, step1993], {
     'a9-q3': { sections: ['Counting without solving', 'A sketching checklist'], note: t`When a cubic has three real roots, from its turning points` },
     'a13-q3': { sections: ['Counting without solving', 'A sketching checklist'], note: t`Counting the roots of a quartic as a constant changes` },
   }),
-  // Assignment 22 Q4 differentiates a product with an exponential (the product rule, taught later), so it is practice.
+  // Assignment 22 Q4 differentiates a product with an exponential, so it is set in calc.differentiation-rules.
   gate: ['a9-q3', 'a13-q3'],
   recall: [
     { front: t`State the intermediate value theorem.`, back: t`If ${math`f`} is continuous on ${math`[a, b]`} and ${math`k`} is strictly between ${math`f(a)`} and ${math`f(b)`}, then ${math`f(c) = k`} for some ${math`c`} in ${math`(a, b)`}.` },

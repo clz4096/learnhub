@@ -13,7 +13,7 @@ import { add, div, int, mul, pick, q, str, sub, toFloat, type Rational } from '.
 import { generator, type Misconception } from '../problem';
 import { computed, join, math, t, type Rich } from '../rich';
 import { quickCheck, worked, workedCambridge, type ProbabilityClaim, type TopicContent } from '../topic';
-import { far, solveLinear, threePointGame } from '../partv-a';
+import { far, frogMean, solveLinear, threePointGame } from '../partv-a';
 
 const MIX = 'step-mixed-stats1' as const;
 const MIXS = 'step-mixed-stats1-hints' as const;
@@ -473,6 +473,37 @@ const evenSuccesses = supervision({
   ],
 });
 
+const Q_DOM = { q: { kind: 'real' as const, min: 0.05, max: 0.95 } };
+// Rule 1 (2026-10-08): set here from rv.expectation, the earliest topic that teaches everything it needs.
+const s3u3 = auto({
+  id: 's3-q1-ii-u3',
+  source: cite('step-s3-stats', 'Q1(ii)'),
+  title: t`The frog from two and a half metres`,
+  prompt: t`A frog jumps towards a large pond, each jump ${1} m with probability ${math`p`} or ${2} m with probability ${math`q`}, independently, where ${math`p + q = ${1}`}. Let ${math`u_{n}`} be the expected number of jumps, starting ${math`n - \frac{${1}}{${2}}`} m from the edge, to land in the pond for the first time. Find ${math`u_{${3}}`} in terms of ${math`q`}.`,
+  answer: { kind: 'expression', expected: '3 - 2q + q^2', variables: ['q'], domains: Q_DOM },
+  solution: [
+    t`From ${math`${2}\frac{${1}}{${2}}`} m the frog needs two or three jumps. Two jumps when the first is ${2} m (probability ${math`q`}), or ${1} m then ${2} m (probability ${math`pq`}): ${math`P(\text{two}) = q + pq`}. Three jumps when the first two are ${1} m: probability ${math`p^{${2}}`}. They add to ${1}.`,
+    t`${math`u_{${3}} = ${2}(q + pq) + ${3}p^{${2}}`}, and with ${math`p = ${1} - q`} this is ${math`${2}q + ${2}q - ${2}q^{${2}} + ${3} - ${6}q + ${3}q^{${2}} = ${3} - ${2}q + q^{${2}}`}.`,
+    t`List the ways to finish, weight each by its probability, then eliminate ${math`p`}.`,
+  ],
+  nudge: t`Not quite. List the jump sequences that first reach the pond from ${math`${2}\frac{${1}}{${2}}`} m, with their probabilities.`,
+  hints: [
+    t`From ${math`${2}\frac{${1}}{${2}}`} m, what are the fewest and the most jumps the frog can need?`,
+    t`Which sequences of jumps reach the pond for the first time after exactly two jumps?`,
+    t`With those probabilities, what is the expected number of jumps, written in terms of ${math`q`} alone?`,
+  ],
+  reference: '3 - 2q + q^2',
+  verify: () => {
+    for (const qq of [q(1, 3), q(1, 2), q(3, 4), q(1, 10)]) {
+      const e = same(`q = ${str(qq)}, every jump sequence`, str(frogMean(3, qq)), str(add(sub(q(3), mul(q(2), qq)), mul(qq, qq))));
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [{ response: '2q + 3(1 - q)', why: t`From ${math`${2}\frac{${1}}{${2}}`} m, a single ${2} m jump is not enough: it leaves the frog half a metre away. Two jumps can also be ${1} m then ${2} m.` }],
+  official: { source: cite('step-s3-stats-solutions', 'Q1(ii)'), answer: '3 - 2q + q^2', agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 const claims: ProbabilityClaim[] = [
@@ -547,7 +578,8 @@ export const firstStep: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['first-step-analysis'],
   claims,
-  cambridge: withUses([q12i, q12ii, q13i, q13ii, s2q3i, darts, s2q3proof, evenSuccesses], {
+  cambridge: withUses([q12i, q12ii, q13i, q13ii, s2q3i, darts, s2q3proof, evenSuccesses, s3u3], {
+    's3-q1-ii-u3': { sections: ['An equation instead of a sum'], note: t`An expected number of jumps by conditioning on the first jump`, needs: ['rv.expectation'] },
     'sheet2-q3': { sections: ['An equation instead of a sum'], note: t`A recurrence by conditioning on the first trial, and a second proof by the binomial theorem` },
     's2-q3-i-w': { sections: ['An equation instead of a sum', 'When the experiment remembers'], note: t`Conditioning on the first game of a match` },
     'mixed-q13-ii': { sections: ['When the experiment remembers'], note: t`Winning probabilities in a sequence game by first steps` },

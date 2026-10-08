@@ -280,6 +280,20 @@ const triangle = supervision({
   ],
 });
 
+// Rule 1 (2026-10-08): set here from prob.exponential-distribution, the earliest topic that teaches everything it needs.
+const q4firstWhich = supervision({
+  id: 'ia4-q4-which',
+  source: cite(SH4, 'Q4', true),
+  title: t`Which one fails first, and the time it takes`,
+  prompt: t`For independent ${math`X \sim \mathrm{Exp}(\lambda)`} and ${math`Y \sim \mathrm{Exp}(\mu)`}, show that the event ${math`\{X < Y\}`} is independent of ${math`\min\{X, Y\}`}, and explain what this says about a race between two exponential clocks.`,
+  writeUp: 'proof',
+  hints: [
+    t`How is ${math`P(X < Y, \min\{X, Y\} > t)`} written as a double integral of the joint density?`,
+    t`Evaluated, how does that integral factor into a part for the event and a part for ${math`t`}?`,
+    t`What are ${math`P(X < Y)`} and ${math`P(\min\{X, Y\} > t)`} on their own, and is their product the joint probability?`,
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 const HALF = q(1, 2);
@@ -348,7 +362,8 @@ export const jointDensities: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['joint-density', 'marginal-density'],
   claims,
-  cambridge: withUses([q4race, q1general, triangle], {
+  cambridge: withUses([q4race, q1general, triangle, q4firstWhich], {
+    'ia4-q4-which': { sections: ['Independence'], note: t`The winner of a race is independent of the time it takes`, needs: ['prob.exponential-distribution'] },
     'ia4-q1-general': { sections: ['Probabilities as double integrals'], note: t`Meeting probability as an area in a square` },
     'ia4-q4-race': { sections: ['Probabilities as double integrals', 'Independence'], note: t`The probability one exponential exceeds another` },
   }),

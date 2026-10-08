@@ -386,19 +386,6 @@ const bop10_3 = bopSum({
   wrong: [{ response: 'n^4/4', why: t`That is only the leading term. Check ${math`n = ${1}`}: the sum is ${1}.` }],
 });
 
-const sw432d = supervision({
-  id: 'sw-4-3-2-d',
-  source: cite('cst-dm-sw1', 'Exercises 4, 4.3.2(d)'),
-  title: t`Every power sum is a polynomial`,
-  prompt: t`Show that, for every ${math`k \in \mathbb{N}`}, there exists a polynomial ${math`p_k(x)`} such that, for all ${math`n \in \mathbb{N}`}, ${math`p_k(n) = \sum_{i = ${0}}^{n} i^{k} = ${0}^{k} + ${1}^{k} + \cdots + n^{k}`}. Hint: generalise the identity ${math`(n + ${1})^{${2}} = \sum_{i = ${0}}^{n} (i + ${1})^{${2}} - \sum_{i = ${0}}^{n} i^{${2}}`}.`,
-  hints: [
-    t`Generalising the identity to ${math`(n + ${1})^{k + ${1}}`}, what does expanding each ${math`(i + ${1})^{k + ${1}}`} give?`,
-    t`Which power sum appears with a non-zero coefficient, and which lower power sums appear with it?`,
-    t`How does strong induction on ${math`k`} turn that equation into a polynomial for ${math`\sum_{i = ${0}}^{n} i^{k}`}?`,
-  ],
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-4', '4.3.2(d)'),
-});
 const bop10_20 = supervision({
   id: 'bop-10-20',
   source: cite('bop', 'Chapter 10, exercise 20', true),
@@ -611,16 +598,15 @@ export const sigmaNotation: TopicContent = {
   generators: [evaluate, closedForm, shift, pattern],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['sigma-notation', 'index-variable', 'telescoping'],
-  cambridge: withUses([db95q3, db95q3auto, db05q7i, db05q7ii, bop10_1, bop10_4, bop10_6, bop10_7, bop10_15, bop10_3, sw432d, bop10_20], {
+  cambridge: withUses([db95q3, db95q3auto, db05q7i, db05q7ii, bop10_1, bop10_4, bop10_6, bop10_7, bop10_15, bop10_3, bop10_20], {
     'step95-q3-iii': { sections: ['Sigma notation', 'Rules for manipulating sums'], note: t`Splitting an alternating sum into all terms minus twice the even ones` },
-    'sw-4-3-2-d': { sections: ['Telescoping'], note: t`Telescoping power sums, then induction on the power`, needs: ['proof.strong-induction', 'comb.binomial-theorem'] },
     'step95-q3-iii-sum': { sections: ['Sigma notation', 'Rules for manipulating sums'], note: t`Splitting an alternating sum and simplifying to a product` },
     'step05-q7-ii': { sections: ['Telescoping'], note: t`Factorising each term and cancelling across a product` },
   }),
   // Best first: STEP I 1995 Q3(iii) (an alternating sum of cubes; parts (i) and (ii), the telescoping sum and the sum
   // of cubes, are in the lesson and its practice), then the auto-checked 1995 Q3(iii) and STEP I 2005 Q7(ii), which cancels
   // across a product as pre.fractions teaches. The CST exercise on sums of kth powers needs induction on k and the binomial
-  // theorem, taught later, so it is practice.
+  // theorem, so it is set in comb.binomial-theorem (Rule 1, 2026-10-08).
   gate: ['step95-q3-iii', 'step95-q3-iii-sum', 'step05-q7-ii'],
   recall: [
     { front: t`How many terms has ${math`\sum_{i = m}^{n} a_{i}`}?`, back: t`${math`n - m + ${1}`}.` },

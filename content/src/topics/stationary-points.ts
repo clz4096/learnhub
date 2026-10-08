@@ -316,20 +316,6 @@ const nstD1iii = auto({
   official: { source: cite(NST, 'Answers to Section 1, D1(iii)'), answer: ['neither'], agrees: true },
 });
 
-const sketchQ = supervision({
-  id: 'a7-q1-i',
-  source: cite(F07, 'Assignment 7, Q1(i)'),
-  title: t`Sketch x plus and minus its reciprocal`,
-  prompt: t`Sketch, on different axes, the graphs of ${math`y = x + \frac{${1}}{x}`} and ${math`y = x - \frac{${1}}{x}`} (for ${math`x \ne ${0}`}), paying particular attention to the turning points, if any; the behaviour as ${math`x \to \infty`} and ${math`x \to -\infty`}; the behaviour when ${math`x`} is close to ${0}; and the intercepts with the axes, if any.`,
-  hints: [
-    t`What is ${math`\frac{dy}{dx}`} for each curve, and where, if anywhere, is it ${0}?`,
-    t`What does each curve approach as ${math`x \to \pm\infty`}, and what happens as ${math`x \to ${0}`} from each side?`,
-    t`Where does each curve meet the axes, if at all?`,
-  ],
-  writeUp: 'sketch',
-  official: cite(F07H, 'Assignment 7 hints, Q1(i)'),
-});
-
 // STEP I 2015 Q7 and STEP I 1996 Q1 (STEP Questions Database), and STEP Support STEP 2
 // Equations and Inequalities Q4(i) (2010 STEP II Q7(i)).
 const DB15 = 'stepdb-15-s1' as const;
@@ -475,6 +461,22 @@ const eqns4 = supervision({
   official: cite(EQNSS, 'Q4(i)'),
 });
 
+const cubicTex = cm(poly(CUBIC));
+// Rule 1 (2026-10-08): set here from calc.derivatives, the earliest topic that teaches everything it needs.
+const sketch = supervision({
+  id: 'a9-q2-ii',
+  source: cite(F09, 'Assignment 9, Q2(ii)'),
+  title: t`Sketch the cubic and count its roots`,
+  prompt: t`Consider the graph of ${math`y = ${cubicTex}`}. Find the ${math`x`} coordinates of the turning points; by considering the shape of the graph, state which is the maximum and which the minimum; find where the graph meets the ${math`y`} axis; find the ${math`y`} coordinates of the turning points and sketch the graph. How many real roots does ${math`${cubicTex} = ${0}`} have? Do not find the roots.`,
+  hints: [
+    t`What is ${math`\frac{dy}{dx}`}, and where is it ${0}?`,
+    t`Which turning point is the maximum, and what are the heights of both?`,
+    t`Where does the curve meet the ${math`y`} axis, and how many times does it cross the ${math`x`} axis?`,
+  ],
+  writeUp: 'sketch',
+  official: cite(F09H, 'Assignment 9 hints, Q2(ii)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EX: CubicP = { s: 1, p: -2, q: 2, d: 1 };
@@ -533,17 +535,18 @@ export const stationaryPoints: TopicContent = {
   generators: [maxPoint, minValue, classify],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['stationary-point', 'local-maximum'],
-  cambridge: withUses([db15q7, db96q1, eqns4, db15q7values, db96q1sphere, minusTurns, whichMax, nstD1, nstD1iii, sketchQ], {
+  cambridge: withUses([db15q7, db96q1, eqns4, db15q7values, db96q1sphere, minusTurns, whichMax, nstD1, nstD1iii, sketch], {
+    'a9-q2-ii': { sections: ['Maximum, minimum, or neither?'], note: t`Turning points and the shape of a cubic` },
     'step15-q7': { sections: ['Where the curve is level', 'Maximum, minimum, or neither?'], note: t`The greatest value on an interval as a parameter moves the turning points` },
     'step96-q1': { sections: ['Where the curve is level', 'Maximum, minimum, or neither?'], note: t`Minimising surface area for a fixed volume` },
     's2eqns-q4-i': { sections: ['Where the curve is level', 'Maximum, minimum, or neither?'], note: t`Using the heights of the turning points to count crossings` },
-    'a7-q1-i': { sections: ['Where the curve is level'], note: t`Sketching with turning points, asymptotes, and behaviour near zero`, needs: ['fn.rational-functions'] },
     'step15-q7-values': { sections: ['Where the curve is level', 'Maximum, minimum, or neither?'], note: t`The greatest value on an interval for given parameters` },
     'step96-q1-sphere': { sections: ['Where the curve is level'], note: t`The best tin, then the sphere round it` },
   }),
   // Best first: STEP I 2015 Q7 (a maximum on an interval in three regimes), STEP I 1996 Q1 (the biscuit tin),
   // 2010 STEP II Q7(i), then the auto-checked parts of 2015 Q7 and 1996 Q1. Assignment 7 Q1(i) needs asymptotes,
-  // taught in fn.rational-functions next, so it is practice.
+  // so it is set in fn.rational-functions. Assignment 9 Q2(ii), set here from calc.derivatives, is practice: its
+  // auto-checked part (b), which turning point is the maximum, is practice here too.
   gate: ['step15-q7', 'step96-q1', 's2eqns-q4-i', 'step15-q7-values', 'step96-q1-sphere'],
   recall: [
     { front: t`What is a stationary point?`, back: t`A point where ${math`f'(a) = ${0}`}: the tangent is horizontal.` },

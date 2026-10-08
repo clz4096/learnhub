@@ -419,20 +419,6 @@ const notes167 = auto({
   ],
 });
 
-const sw325 = supervision({
-  id: 'sw-3-2-5',
-  source: cite('cst-dm-sw1', 'Exercises 3, 3.2.5'),
-  title: t`Lowest terms are unique`,
-  prompt: t`Prove that for all positive integers ${math`m, n, p, q`} with ${math`\gcd(m, n) = \gcd(p, q) = ${1}`}, if ${math`q \cdot m = p \cdot n`} then ${math`m = p`} and ${math`n = q`}. That is: a positive rational has only one way of being written in lowest terms. (This uses the gcd, taught later; come back to it then.)`,
-  writeUp: 'proof',
-  official: cite('cst-dm-sols-2324-3', '3.2.5'),
-  hints: [
-    t`From ${math`q \cdot m = p \cdot n`}, why does ${math`m`} divide ${math`p \cdot n`}, and what does ${math`\gcd(m, n) = ${1}`} then give?`,
-    t`By the same argument with the roles swapped, why does ${math`p`} divide ${math`m`}?`,
-    t`With ${math`m`} dividing ${math`p`} and ${math`p`} dividing ${math`m`}, both positive, what follows, and then what is ${math`n`}?`,
-  ],
-});
-
 // ---------------------------------------------------------------- lesson
 
 export const numberSystems: TopicContent = {
@@ -489,13 +475,12 @@ export const numberSystems: TopicContent = {
   generators: [closure, which, smallest, inverse],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['natural-number', 'integer', 'rational-number', 'closed', 'additive-inverse'],
-  cambridge: withUses([notes174z, notes174q, notes167, sw325], {
-    'sw-3-2-5': { sections: ['Three number systems'], note: t`Uniqueness of lowest terms, which needs the greatest common divisor`, needs: ['num.gcd', 'num.euclid-theorem'] },
+  cambridge: withUses([notes174z, notes174q, notes167], {
     'notes-167-cancel': { sections: ['Three number systems', 'Inverses'], note: t`Finding the case a cancellation law must exclude` },
   }),
   // The CST proof of 1.1.6 is set in proof.direct and 2008 STEP I Q1 in proof.contradiction, where the proof
   // writing they need has been taught (Rule 1, 2026-10-08). That leaves the cancellation witness, a single step but not a guess; the
-  // three-way choices from the notes are guessable. Exercise 3.2.5 needs the gcd, taught later, so it is practice.
+  // three-way choices from the notes are guessable. Exercise 3.2.5 needs the gcd, so it is set in num.euclid-theorem.
   gate: ['notes-167-cancel'],
   recall: [
     { front: t`Define a rational number.`, back: t`A real number equal to ${math`\frac{m}{n}`} for some integers ${math`m, n`} with ${math`n \ne ${0}`}.` },

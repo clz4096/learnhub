@@ -51,7 +51,7 @@ export function relationWord(v: number): string {
 
 /** The real numbers a scene can read, and that REP is computed from. */
 export interface StoryNumbers {
-  /** Book sections with at least one step, every step learned. */
+  /** Book sections with at least one step, every step's topic mastered (gate met, not needing review). */
   sectionsMastered: number;
   /** Timed campaign papers finished with their marks entered. */
   papersSat: number;
@@ -127,9 +127,9 @@ export const NO_NUMBERS: Readonly<StoryNumbers> = {
 
 /** Everything a trigger can read. */
 export interface StoryFacts extends StoryNumbers {
-  /** Ids of book chapters with at least one step, every step learned. */
+  /** Ids of book chapters with at least one step, every step's topic mastered. */
   chaptersComplete: readonly string[];
-  /** `<year id>/<term name>` to the share of the term's steps learned, 0 to 1. */
+  /** `<year id>/<term name>` to the share of the term's steps whose topic is mastered, 0 to 1. */
   termShare: Readonly<Record<string, number>>;
   /** Campaign acts complete in order, or null when unknown (no campaign, or the paper registry not loaded). */
   actsComplete: number | null;

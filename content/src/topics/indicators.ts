@@ -427,17 +427,40 @@ const q10proof = supervision({
     t`How does ${math`\sum_{k = ${1}}^{n} \frac{${1}}{${2}k - ${1}}`} compare with ${math`\frac{${1}}{${2}}\sum_{k = ${1}}^{n} \frac{${1}}{k}`}, and how does the harmonic sum grow?`,
   ],
 });
-const q12proof = supervision({
-  id: 'sheet2-q12',
-  source: cite(S2, 'Q12'),
-  title: t`Record years are independent`,
-  prompt: t`For a random permutation ${math`a_{${1}}, \ldots, a_{n}`} of ${math`${1}, \ldots, n`}, let ${math`Y_{i} = ${1}`} if ${math`a_{i} < a_{j}`} for all ${math`j < i`}. Find the distribution of ${math`Y_{i}`} and show that ${math`Y_{${1}}, \ldots, Y_{n}`} are independent. Then find the mean and variance of the number of record years.`,
-  writeUp: 'proof',
-  hints: [
-    t`Among the first ${math`i`} entries, why is each position equally likely to hold the smallest?`,
-    t`For ${math`i < j`}, why does the position of the smallest of the first ${math`j`} entries say nothing about the relative order of the first ${math`i`}?`,
-    t`With the ${math`Y_{i}`} independent, how do the mean and variance of their sum follow from those of each ${math`Y_{i}`}?`,
+
+const sOf = (as: readonly number[], n: number): number => Array.from({ length: n }, (_, i) => xk(as, i + 1)).reduce((x, y) => x + y, 0);
+// Rule 1 (2026-10-08): set here from rv.expectation-algebra, the earliest topic that teaches everything it needs.
+const q3iic = auto({
+  id: 's3-q3-ii-c',
+  source: cite(S3, 'Q3(ii)(c)', true),
+  title: t`The variance of the number of runs of As`,
+  prompt: t`With ${math`a`} As and ${math`b`} Bs in a random row, ${math`n = a + b`}, and ${math`S = X_{${1}} + \cdots + X_{n}`} (the number of runs of As), ${math`E(S) = \frac{a(b + ${1})}{n}`}. Find ${math`\mathrm{Var}(S)`} in terms of ${math`a`} and ${math`b`}.`,
+  answer: { kind: 'expression', expected: 'a(a - 1)b(b + 1)/((a + b)^2 (a + b - 1))', variables: ['a', 'b'], domains: AB_DOM },
+  solution: [
+    t`${math`\mathrm{Var}(S) = E(S^{${2}}) - E(S)^{${2}}`}, and ${math`X_{i}^{${2}} = X_{i}`}, so ${math`E(S^{${2}}) = E(S) + ${2}\sum_{i < j} E(X_{i}X_{j})`}. Neighbours give ${0}: ${math`X_{i}`} and ${math`X_{i + ${1}}`} cannot both be ${1}.`,
+    t`${math`i = ${1}`}, ${math`j \ge ${3}`}: ${math`n - ${2}`} pairs, each ${math`\frac{a(a - ${1})b}{n(n - ${1})(n - ${2})}`}, in all ${math`\frac{a(a - ${1})b}{n(n - ${1})}`}. ${math`${2} \le i`}, ${math`j \ge i + ${2}`}: ${math`\frac{(n - ${2})(n - ${3})}{${2}}`} pairs, each ${math`\frac{a(a - ${1})b(b - ${1})}{n(n - ${1})(n - ${2})(n - ${3})}`}, in all ${math`\frac{a(a - ${1})b(b - ${1})}{${2}n(n - ${1})}`}.`,
+    t`So ${math`E(S^{${2}}) = E(S) + \frac{a(a - ${1})b(b + ${1})}{n(n - ${1})}`}, and ${math`\mathrm{Var}(S) = \frac{a(b + ${1})}{n} + \frac{a(a - ${1})b(b + ${1})}{n(n - ${1})} - \frac{a^{${2}}(b + ${1})^{${2}}}{n^{${2}}} = \frac{a(a - ${1})b(b + ${1})}{n^{${2}}(n - ${1})}`}.`,
+    t`The variance of a sum of indicators is a count of pairs.`,
   ],
+  nudge: t`Not quite. Expand ${math`S^{${2}}`} into pairs of indicators, and note which pairs can never both be ${1}.`,
+  hints: [
+    t`Why is ${math`X_{i}^{${2}} = X_{i}`}, and what does that give for the squared terms of ${math`E(S^{${2}})`}?`,
+    t`Which pairs ${math`X_{i}, X_{j}`} can never both be ${1}, and what is ${math`E(X_{i}X_{j})`} for the others?`,
+    t`How many pairs of each kind are there, and what does ${math`E(S^{${2}}) - E(S)^{${2}}`} simplify to?`,
+  ],
+  reference: 'a(a - 1)b(b + 1)/((a + b)^2 (a + b - 1))',
+  verify: () => {
+    for (let a = 2; a <= 5; a++) for (let b = 2; b <= 5; b++) {
+      const n = a + b;
+      const values = rows(a, b).map((as) => sOf(as, n));
+      const d: Dist = [...new Set(values)].map((v) => [q(v), q(values.filter((x) => x === v).length, values.length)] as const);
+      const e = same(`a = ${a}, b = ${b}, every row`, str(variance(d)), str(q(a * (a - 1) * b * (b + 1), n * n * (n - 1))));
+      if (e !== null) return e;
+    }
+    return null;
+  },
+  misconceptions: [{ response: 'a(b + 1)/(a + b)', why: t`That is ${math`E(S)`}. The variance needs ${math`E(S^{${2}}) - E(S)^{${2}}`}.` }],
+  official: { source: cite(S3S, 'Q3(ii)(c)'), answer: 'a(a - 1)b(b + 1)/((a + b)^2 (a + b - 1))', agrees: true },
 });
 
 // ---------------------------------------------------------------- lesson
@@ -517,8 +540,8 @@ export const indicators: TopicContent = {
   generators: [neighbours, faces, matchingPairs],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['indicator-variable', 'record'],
-  cambridge: withUses([q3xk, q3iib, sheetQ9, sheetQ10, sheetQ12mean, sheetQ12var, q9proof, q10proof, q12proof], {
-    'sheet2-q12': { sections: ['Indicators', 'The mean, by linearity'], note: t`Indicators for record years, and their independence`, needs: ['prob.independence'] },
+  cambridge: withUses([q3xk, q3iib, sheetQ9, sheetQ10, sheetQ12mean, sheetQ12var, q9proof, q10proof, q3iic], {
+    's3-q3-ii-c': { sections: ['The variance, from pairs'], note: t`The variance of a count of runs, from pairs of indicators` },
     'sheet2-q10': { sections: ['Indicators', 'The mean, by linearity'], note: t`An expected count by indicators` },
     's3-q3-ii-b': { sections: ['The variance, from pairs'], note: t`Expectations of products of indicators` },
     'sheet2-q9': { sections: ['The mean, by linearity', 'The variance, from pairs'], note: t`The mean and variance of a count of successes` },
@@ -526,8 +549,11 @@ export const indicators: TopicContent = {
     'sheet2-q10-hoops': { sections: ['Indicators', 'The mean, by linearity'], note: t`An expected count by indicators` },
   }),
   // Multi-step problems first, the proofs before the computed answers; the plug-in numbers of Q9 and Q12 are
-  // drill, and dropped. Q12's independence of the record indicators is taught later, so it is practice.
-  gate: ['sheet2-q10', 's3-q3-ii-b', 'sheet2-q9', 's3-q3-i-xk', 'sheet2-q10-hoops'],
+  // drill, and dropped. Q12's independence of the record indicators needs independent events, so it is set in
+  // prob.independence. STEP 3 Statistics Q3(ii)(c), the variance of the number of runs, is set here from
+  // rv.expectation-algebra (Rule 1, 2026-10-08) and gates; its solution works part (b), the double sum, so (b)
+  // is practice.
+  gate: ['s3-q3-ii-c', 'sheet2-q10', 'sheet2-q9', 's3-q3-i-xk', 'sheet2-q10-hoops'],
   recall: [
     { front: t`The mean of an indicator.`, back: t`${math`E(I_{A}) = P(A)`}.` },
     { front: t`The mean of a count ${math`N = \sum I_{A_{i}}`}.`, back: t`${math`E(N) = \sum P(A_{i})`}, with or without independence.` },

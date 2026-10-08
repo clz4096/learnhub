@@ -5,12 +5,12 @@
  * Assignment 18 Q2(i) and Q3 (2014 STEP I Q3), and the NST Maths Workbook A6. Roots are
  * found by trying every divisor of the constant term, and checked by exact evaluation.
  */
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { int, pick, q, str, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
-import { computedMath, math, t } from '../rich';
+import { computedMath, listOf, math, t } from '../rich';
 import { checkFrom, workedCambridge, worked, type TopicContent } from '../topic';
-import { poly } from '../poly';
+import { factor, poly } from '../poly';
 import { asList, distinctFrom, evalPoly, fromRoots, integerRoots, named, namedAnswer, setAnswer, setKey, withExaminer } from '../prep-a';
 
 const fac = (r: number): string => (r === 0 ? 'x' : `(x ${r < 0 ? '+' : '-'} ${Math.abs(r)})`);
@@ -298,18 +298,44 @@ const nstA6 = auto({
   ],
 });
 
-const step2014 = supervision({
-  id: 'a18-q3',
-  source: cite('step-f18', 'Q3 (2014 STEP I Q3)'),
-  title: t`Two integrals and a cubic`,
-  prompt: t`The numbers ${math`a`} and ${math`b`}, where ${math`b > a \ge ${0}`}, are such that ${math`\int_{a}^{b} x^{${2}}\,dx = \left(\int_{a}^{b} x\,dx\right)^{${2}}`}. (i) In the case ${math`a = ${0}`} and ${math`b > ${0}`}, find the value of ${math`b`}. (ii) In the case ${math`a = ${1}`}, show that ${math`b`} satisfies ${math`${3}b^{${3}} - b^{${2}} - ${7}b - ${7} = ${0}`}. Show further, with the help of a sketch, that there is only one real value of ${math`b`} that satisfies this equation and that it lies between ${2} and ${3}. (iii) Show that ${math`${3}p^{${2}} + q^{${2}} = ${3}p^{${2}}q`}, where ${math`p = b + a`} and ${math`q = b - a`}, and express ${math`p^{${2}}`} in terms of ${math`q`}. Deduce that ${math`${1} < b - a \le ${q(4, 3)}`}.`,
-  writeUp: 'proof',
-  official: cite('step-f18-hints', 'Q3'),
+const A7 = 'step-f07';
+const a7Quartic = [1, 22, 172, 552, 576];
+/** Null when the values are exactly the roots of the monic polynomial, with multiplicity, else why not. */
+function rootsOf(coeffs: readonly number[], vs: readonly Rational[], ascending = false): string | null {
+  const r = ints(vs);
+  if (r === null) return 'The roots here are whole numbers.';
+  if (r.length !== coeffs.length - 1) return `A polynomial of degree ${coeffs.length - 1} has ${coeffs.length - 1} roots, counted with repeats.`;
+  if (ascending && r.some((x, i) => i > 0 && x < (r[i - 1] as number))) return 'List them in increasing order.';
+  const got = fromRoots(r);
+  if (got.join() !== coeffs.join()) return `Those roots give ${poly(got)}, not ${poly(coeffs)}.`;
+  return null;
+}
+const ints = (vs: readonly Rational[]): number[] | null => (vs.every((v) => v.den === 1n) ? vs.map((v) => Number(v.num)) : null);
+// Rule 1 (2026-10-08): set here from pre.algebraic-manipulation, the earliest topic that teaches everything it needs.
+const a7Quart = auto({
+  id: 'a7-q3',
+  source: cite(A7, 'Q3, final part (2002 STEP I Q5)'),
+  title: t`The roots of a quartic`,
+  prompt: t`Find the roots of the equation ${math`${computedMath(poly(a7Quartic))} = ${0}`}, given that they are all integers. List all four, repeating a repeated root.`,
+  answer: { kind: 'witness', count: 4, unordered: true, example: '-2, -6, -6, -8', check: (v) => rootsOf(a7Quartic, v) },
   hints: [
-    t`For (i), what are the two integrals when ${math`a = ${0}`}, and which ${math`b > ${0}`} makes them agree?`,
-    t`For (ii), after evaluating both integrals with ${math`a = ${1}`}, what do clearing fractions and dividing by ${math`b - ${1}`} give?`,
-    t`For (iii), how are ${math`b^{${3}} - a^{${3}}`} and ${math`(b^{${2}} - a^{${2}})^{${2}}`} written using ${math`p`} and ${math`q`}, and why does ${math`p \ge q`} bound ${math`q`}?`,
+    t`With the roots written as ${math`-k_{${1}}, \ldots, -k_{${4}}`}, what do ${math`x = ${0}`}, ${math`x = ${1}`}, and ${math`x = -${1}`} give?`,
+    t`Which of the three products has the fewest prime factors, and what does it allow for each ${math`k_i - ${1}`}?`,
+    t`Which values of ${math`k_i`} fit all three products, and what does that make the roots?`,
   ],
+  nudge: t`Not quite. Work from the product with the fewest factors, and watch the signs: ${math`x + k`} vanishes at ${math`x = -k`}.`,
+  solution: [
+    t`Let the roots be ${math`-k_{${1}}, -k_{${2}}, -k_{${3}}, -k_{${4}}`}. Substituting ${math`x = ${0}`}, ${math`x = ${1}`}, and ${math`x = -${1}`} gives ${math`k_{${1}}k_{${2}}k_{${3}}k_{${4}} = ${576}`}, ${math`\prod (k_i + ${1}) = ${1 + 22 + 172 + 552 + 576}`}, and ${math`\prod (k_i - ${1}) = ${1 - 22 + 172 - 552 + 576}`}.`,
+    t`Start from ${math`${175} = ${5} \times ${5} \times ${7}`}, the product with the fewest factors: it limits each ${math`k_i - ${1}`} to a divisor of ${175}. The other two products then leave ${math`k_i`} equal to ${listOf([2, 6, 6, 8])}.`,
+    t`The roots are the negatives: ${listOf([-2, -6, -6, -8])}. As the hints stress, not ${listOf([2, 6, 6, 8])}. Check: ${computedMath(`(${factor(2)})(${factor(6)})^${2}(${factor(8)})`)} expands to the quartic.`,
+    t`Substitute small values, start from the most restrictive product, and mind the signs.`,
+  ],
+  reference: '-8, -6, -6, -2',
+  verify: () => same('A7 Q3 by expanding', fromRoots([-2, -6, -6, -8]).join(), a7Quartic.join()),
+  misconceptions: [
+    { response: '2, 6, 6, 8', why: t`Those are the ${math`k_i`} values. The roots are ${math`-k_i`}, because the factors are ${math`(x + k_i)`}.` },
+  ],
+  official: { source: cite('step-f07-hints', 'Q3'), answer: '-2, -6, -6, -8', agrees: true },
 });
 
 // ---------------------------------------------------------------- lesson
@@ -368,12 +394,12 @@ export const polynomials: TopicContent = {
   generators: [cubic, remainder, divideOut],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['polynomial', 'factor-theorem', 'remainder-theorem'],
-  cambridge: withUses([a15, a16iii, a16iv, a18i, nstA6, step2014], {
-    'a18-q3': { sections: ['The remainder and factor theorems'], note: t`A cubic from two integrals, and bounds from a sketch`, needs: ['calc.definite-integrals', 'calc.curve-sketching'] },
+  cambridge: withUses([a15, a16iii, a16iv, a18i, nstA6, a7Quart], {
+    'a7-q3': { sections: ['Finding a root, then the rest'], note: t`Finding the integer roots of a quartic from its coefficients` },
     'a15-q1-ii': { sections: ['The remainder and factor theorems', 'Finding a root, then the rest'], note: t`Checking a root, then factorising a quartic` },
     'a16-q2-iv': { sections: ['Finding a root, then the rest'], note: t`Solving a cubic, then rescaling its roots by a substitution` },
   }),
-  // Assignment 15 Q1(ii) and Assignment 16 Q2(iv). Assignment 18 Q3 needs integrals and a sketch, taught later, so it is practice.
+  // Assignment 15 Q1(ii) and Assignment 16 Q2(iv). Assignment 18 Q3 needs integrals and a sketch, so it is left to calc.definite-integrals, which gates on it.
   gate: ['a15-q1-ii', 'a16-q2-iv'],
   recall: [
     { front: t`State the factor theorem.`, back: t`${math`x - c`} is a factor of ${math`p(x)`} if and only if ${math`p(c) = ${0}`}.` },

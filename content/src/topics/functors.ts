@@ -226,18 +226,6 @@ const printFunctor = supervision({
     t`If the argument module were sealed with ${ml`ToString`}, could a client pass an ${ml`int`} to ${ml`PrintInt.print`}?`,
   ],
 });
-const functorBst = supervision({
-  id: 'cs3110-9-functorized-bst',
-  source: cite('cs3110-ex9', 'Exercise: functorized BST'),
-  title: t`A functorized binary search tree`,
-  prompt: t`Implement a ${ml`BstSet`} abstraction as a functor parameterised on a structure that supplies the client's comparison, much like the standard library's ${ml`Set.Make`}, so that clients can, for example, ignore case in strings. Give the signatures of the parameter and the result.`,
-  writeUp: 'explanation',
-  hints: [
-    t`Which type and which comparison function must the parameter supply?`,
-    t`How do insertion and membership in the tree use that comparison instead of the built in one?`,
-    t`What should the result signature expose, and what should it keep abstract?`,
-  ],
-});
 
 // CS3110 Chapter 5, Exercise: sets. A case-insensitive set of strings from Set.Make.
 const caseSets = supervision({
@@ -308,12 +296,11 @@ export const functors: TopicContent = {
   generators: [mapOps, bindingsOrder, dateOrder],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['functor', 'total-order'],
-  cambridge: withUses([charOrdered, printFunctor, functorBst, caseSets], {
+  cambridge: withUses([charOrdered, printFunctor, caseSets], {
     'cs3110-5-sets': { sections: ['Maps from an ordered type'], note: t`Choosing the comparison passed to a functor, and what that comparison decides` },
     'cs3110-5-print': { sections: ['Functions from modules to modules'], note: t`Writing and applying a functor` },
-    'cs3110-9-functorized-bst': { sections: ['Maps from an ordered type'], note: t`A binary search tree set as a functor`, needs: ['fp.binary-search-trees'] },
   }),
-  // The functorized BST needs binary search trees, taught later, so it is practice.
+  // The functorized BST needs binary search trees, so it is set in fp.binary-search-trees (Rule 1, 2026-10-08).
   gate: ['cs3110-5-print', 'cs3110-5-sets'],
   recall: [
     { front: t`What is a functor?`, back: t`A parameterised module, ${ml`module F (M : S) = struct ... end`}: a function from modules matching ${ml`S`} to modules.` },

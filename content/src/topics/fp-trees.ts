@@ -357,18 +357,6 @@ const focs62 = supervision({
     t`What type does the function have, given that the labels are integers?`,
   ],
 });
-const focs76 = supervision({
-  id: 'focs-7-6',
-  source: cite('focs-notes', 'Lecture 7, Exercise 7.6'),
-  title: t`Traversals with append are quadratic`,
-  prompt: t`Show that the functions ${code`preorder`}, ${code`inorder`}, and ${code`postorder`}, written with ${code`@`}, all require ${math`O(n^{${2}})`} time in the worst case, where ${math`n`} is the size of the tree. Find a family of trees on which the cost really is quadratic, and count the conses.`,
-  writeUp: 'proof',
-  hints: [
-    t`What does ${code`xs @ ys`} cost, in terms of the lengths of ${code`xs`} and ${code`ys`}?`,
-    t`For a tree whose every left subtree holds all but one of the nodes, how long are the lists appended at each level?`,
-    t`Summing those lengths over the levels, which formula for the total, and so which bound, results?`,
-  ],
-});
 
 // Computer Science Tripos Part IA 2013, Paper 1, Question 1 (b) and (c), in OCaml.
 const cst2013Trees = supervision({
@@ -461,13 +449,12 @@ export const fpTrees: TopicContent = {
   generators: [measure, traversal, bound],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binary-tree', 'tree-traversal'],
-  cambridge: withUses([ftreeInorder, depthEx, shapeEx, focs62, focs76, cst2013Trees], {
+  cambridge: withUses([ftreeInorder, depthEx, shapeEx, focs62, cst2013Trees], {
     'cst-2013-p1-q1-bc': { sections: ['A type that contains itself', 'Three ways to list the labels'], note: t`Building all the trees with a given root, then every tree with a given inorder list` },
-    'focs-7-6': { sections: ['Three ways to list the labels'], note: t`The quadratic cost of traversals with append`, needs: ['fp.complexity'] },
     'cs3110-ex3-shape': { sections: ['A type that contains itself', 'Measuring a tree'], note: t`Comparing the shapes of two trees with one match` },
   }),
-  // The Tripos question first, then CS3110's shapes. Exercise 7.6 needs O-notation, taught later; it gates
-  // fp.binary-search-trees instead.
+  // The Tripos question first, then CS3110's shapes. Exercise 7.6 needs O-notation, so it is left to
+  // fp.binary-search-trees, which gates on it.
   gate: ['cst-2013-p1-q1-bc', 'cs3110-ex3-shape'],
   recall: [
     { front: t`State the relation between ${code`leaves`} and ${code`count`}.`, back: t`${math`\mathrm{leaves}(t) = \mathrm{count}(t) + ${1}`} for every tree, by induction on the tree.` },

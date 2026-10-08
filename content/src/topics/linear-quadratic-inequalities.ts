@@ -8,7 +8,7 @@
  * factor argument in the worked solution, and by a sign test at and between the critical
  * values (prep-a.ts, setWhere).
  */
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { add, int, mul, pick, q, sub, type Rational } from '../math';
 import { generator } from '../problem';
 import { computedMath, math, t, type Rich } from '../rich';
@@ -293,7 +293,6 @@ const nstA5 = setProblem({
 // STEP I Specimen Paper Q1(i) and STEP I 2006 Q3(i), (ii) (STEP Questions Database): the
 // discriminant as an inequality. 2006 Q3(iii) is about cubics, a later topic.
 const SPEC = 'stepdb-spec-s1' as const;
-const DB06 = 'stepdb-06-s1' as const;
 
 const specQ1y = setProblem({
   id: 'stepspec-q1-i-y',
@@ -322,19 +321,6 @@ const specQ1y = setProblem({
     t`Written as a quadratic in ${math`x`}, what are its three coefficients?`,
     t`What condition on the discriminant gives a real ${math`x`}, and is it strict?`,
     t`How does that discriminant factorise as a quadratic in ${math`y`}, and on which side of its roots is it non-negative?`,
-  ],
-});
-
-const db06q3 = supervision({
-  id: 'step06-q3',
-  source: cite(DB06, 'Q3(i), (ii)'),
-  title: t`Sufficient, necessary, and both`,
-  prompt: t`In this question ${math`b`} and ${math`c`} are real numbers. (i) By considering the graph ${math`y = x^{${2}} + bx + c`} show that ${math`c < ${0}`} is a sufficient condition for the equation ${math`x^{${2}} + bx + c = ${0}`} to have distinct real roots. Determine whether ${math`c < ${0}`} is a necessary condition for the equation to have distinct real roots. (ii) Determine necessary and sufficient conditions for the equation ${math`x^{${2}} + bx + c = ${0}`} to have distinct positive real roots.`,
-  writeUp: 'proof',
-  hints: [
-    t`If ${math`c < ${0}`}, what is the value of ${math`x^{${2}} + bx + c`} at ${math`x = ${0}`}, and what does that force on the graph of an upward parabola?`,
-    t`Is there an example with ${math`c > ${0}`} and two distinct real roots?`,
-    t`For distinct positive roots, what must hold for the discriminant, for the sum of the roots ${math`-b`}, and for their product ${math`c`}?`,
   ],
 });
 
@@ -407,13 +393,12 @@ export const linearQuadraticInequalities: TopicContent = {
   generators: [linear, quadratic, noRealRoots],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['inequality', 'critical-value'],
-  cambridge: withUses([db06q3, specQ1y, a4q2i, a22q3i, nstA5], {
-    'step06-q3': { sections: ['Quadratic inequalities'], note: t`Conditions for distinct real roots, stated as necessary and sufficient`, needs: ['logic.iff'] },
+  cambridge: withUses([specQ1y, a4q2i, a22q3i, nstA5], {
     'stepspec-q1-i-y': { sections: ['Quadratic inequalities', 'When a quadratic has no real roots'], note: t`The discriminant condition for a real solution` },
   }),
   // The auto-checked restriction on y from the STEP I Specimen Q1(i) gates. Assignment 1 Q3 (2005 STEP I Q3) and
   // the Specimen Q1(i) in full are written proofs, so they are set in proof.direct, the first topic that teaches
-  // writing one (Rule 1, 2026-10-08). STEP I 2006 Q3 is framed by necessary and sufficient conditions, taught later, so it is practice.
+  // writing one (Rule 1, 2026-10-08). STEP I 2006 Q3 is framed by necessary and sufficient conditions and needs a counterexample, so it is set in proof.counterexample.
   gate: ['stepspec-q1-i-y'],
   recall: [
     { front: t`When does multiplying an inequality reverse it?`, back: t`When the multiplier is negative. If you do not know its sign, do not multiply by it.` },

@@ -202,7 +202,6 @@ const dice = generator<DiceP>({
 const rows = (a: number, b: number): number[][] => positions(a + b, a);
 /** X_k for a row given by the places of its As: X_1 = first is A; X_k = (k-1)th is B and kth is A. */
 const xk = (as: readonly number[], k: number): number => (k === 1 ? (as.includes(0) ? 1 : 0) : !as.includes(k - 2) && as.includes(k - 1) ? 1 : 0);
-const sOf = (as: readonly number[], n: number): number => Array.from({ length: n }, (_, i) => xk(as, i + 1)).reduce((x, y) => x + y, 0);
 const AB_DOM = { a: { kind: 'integer' as const, min: 2, max: 9 }, b: { kind: 'integer' as const, min: 2, max: 9 } };
 
 const q3iia = auto({
@@ -229,39 +228,6 @@ const q3iia = auto({
   },
   misconceptions: [{ response: 'a^2 b/((a + b)^2 (a + b - 1))', why: t`That is ${math`E(X_{${1}})E(X_{j})`}, which assumes independence. Count the rows with A first and BA at places ${math`j - ${1}`}, ${math`j`}.` }],
   official: { source: cite(S3S, 'Q3(ii)(a)'), answer: 'a(a - 1)b/((a + b)(a + b - 1)(a + b - 2))', agrees: true },
-});
-
-const q3iic = auto({
-  id: 's3-q3-ii-c',
-  source: cite(S3, 'Q3(ii)(c)', true),
-  title: t`The variance of the number of runs of As`,
-  prompt: t`With ${math`a`} As and ${math`b`} Bs in a random row, ${math`n = a + b`}, and ${math`S = X_{${1}} + \cdots + X_{n}`} (the number of runs of As), ${math`E(S) = \frac{a(b + ${1})}{n}`}. Find ${math`\mathrm{Var}(S)`} in terms of ${math`a`} and ${math`b`}.`,
-  answer: { kind: 'expression', expected: 'a(a - 1)b(b + 1)/((a + b)^2 (a + b - 1))', variables: ['a', 'b'], domains: AB_DOM },
-  solution: [
-    t`${math`\mathrm{Var}(S) = E(S^{${2}}) - E(S)^{${2}}`}, and ${math`X_{i}^{${2}} = X_{i}`}, so ${math`E(S^{${2}}) = E(S) + ${2}\sum_{i < j} E(X_{i}X_{j})`}. Neighbours give ${0}: ${math`X_{i}`} and ${math`X_{i + ${1}}`} cannot both be ${1}.`,
-    t`${math`i = ${1}`}, ${math`j \ge ${3}`}: ${math`n - ${2}`} pairs, each ${math`\frac{a(a - ${1})b}{n(n - ${1})(n - ${2})}`}, in all ${math`\frac{a(a - ${1})b}{n(n - ${1})}`}. ${math`${2} \le i`}, ${math`j \ge i + ${2}`}: ${math`\frac{(n - ${2})(n - ${3})}{${2}}`} pairs, each ${math`\frac{a(a - ${1})b(b - ${1})}{n(n - ${1})(n - ${2})(n - ${3})}`}, in all ${math`\frac{a(a - ${1})b(b - ${1})}{${2}n(n - ${1})}`}.`,
-    t`So ${math`E(S^{${2}}) = E(S) + \frac{a(a - ${1})b(b + ${1})}{n(n - ${1})}`}, and ${math`\mathrm{Var}(S) = \frac{a(b + ${1})}{n} + \frac{a(a - ${1})b(b + ${1})}{n(n - ${1})} - \frac{a^{${2}}(b + ${1})^{${2}}}{n^{${2}}} = \frac{a(a - ${1})b(b + ${1})}{n^{${2}}(n - ${1})}`}.`,
-    t`The variance of a sum of indicators is a count of pairs.`,
-  ],
-  nudge: t`Not quite. Expand ${math`S^{${2}}`} into pairs of indicators, and note which pairs can never both be ${1}.`,
-  hints: [
-    t`Why is ${math`X_{i}^{${2}} = X_{i}`}, and what does that give for the squared terms of ${math`E(S^{${2}})`}?`,
-    t`Which pairs ${math`X_{i}, X_{j}`} can never both be ${1}, and what is ${math`E(X_{i}X_{j})`} for the others?`,
-    t`How many pairs of each kind are there, and what does ${math`E(S^{${2}}) - E(S)^{${2}}`} simplify to?`,
-  ],
-  reference: 'a(a - 1)b(b + 1)/((a + b)^2 (a + b - 1))',
-  verify: () => {
-    for (let a = 2; a <= 5; a++) for (let b = 2; b <= 5; b++) {
-      const n = a + b;
-      const values = rows(a, b).map((as) => sOf(as, n));
-      const d: Dist = [...new Set(values)].map((v) => [q(v), q(values.filter((x) => x === v).length, values.length)] as const);
-      const e = same(`a = ${a}, b = ${b}, every row`, str(variance(d)), str(q(a * (a - 1) * b * (b + 1), n * n * (n - 1))));
-      if (e !== null) return e;
-    }
-    return null;
-  },
-  misconceptions: [{ response: 'a(b + 1)/(a + b)', why: t`That is ${math`E(S)`}. The variance needs ${math`E(S^{${2}}) - E(S)^{${2}}`}.` }],
-  official: { source: cite(S3S, 'Q3(ii)(c)'), answer: 'a(a - 1)b(b + 1)/((a + b)^2 (a + b - 1))', agrees: true },
 });
 
 // The notes' rule with numbers: X uniform on 1 to 5 (variance 2) and Y equally likely 0 or 6 (variance 9), independent.
@@ -398,13 +364,12 @@ export const expectationAlgebra: TopicContent = {
   generators: [linear, combination, dice],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['linearity-of-expectation', 'variance-of-sum'],
-  cambridge: withUses([q3iic, notesComb, notesProof, step06Plates], {
+  cambridge: withUses([notesComb, notesProof, step06Plates], {
     'step06-q14': { sections: ['Means of combinations', 'Variance of a linear function', 'Independent variables'], note: t`Means and spreads of a sum and of a product of two independent measurements, from the rules for expectation` },
-    's3-q3-ii-c': { sections: ['Independent variables'], note: t`The variance of a count of runs, from pairs of indicators`, needs: ['rv.indicators'] },
     's3-notes-proofs': { sections: ['Means of combinations', 'Variance of a linear function', 'Independent variables'], note: t`Proving the rules for means and variances, and where independence is used` },
   }),
-  // The proofs from the topic notes. STEP 3 Statistics Q3(ii)(c) needs indicator variables, taught next, so it is
-  // practice; the notes' numerical combination is one application of the rule, left out. The STEP plates apply the
+  // The proofs from the topic notes. STEP 3 Statistics Q3(ii)(c) needs indicator variables, so it is set in
+  // rv.indicators; the notes' numerical combination is one application of the rule, left out. The STEP plates apply the
   // rules to a product as well as a sum.
   gate: ['s3-notes-proofs', 'step06-q14'],
   recall: [

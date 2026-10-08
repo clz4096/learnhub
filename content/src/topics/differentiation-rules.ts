@@ -449,6 +449,21 @@ const damtpQ3ii = auto({
   ],
 });
 
+// Rule 1 (2026-10-08): set here from calc.curve-sketching, the earliest topic that teaches everything it needs.
+const step2015full = supervision({
+  id: 'a22-q4',
+  source: cite(F22, 'Assignment 22, Q4'),
+  title: t`STEP: a cubic times an exponential`,
+  prompt: t`(i) Sketch the curve ${math`y = e^{x}(${2}x^{${2}} - ${5}x + ${2})`}. Hence determine how many real values of ${math`x`} satisfy the equation ${math`e^{x}(${2}x^{${2}} - ${5}x + ${2}) = k`} in the different cases that arise according to the value of ${math`k`}. You may assume that ${math`x^{n}e^{x} \to ${0}`} as ${math`x \to -\infty`} for any integer ${math`n`}. (ii) Sketch the curve ${math`y = e^{x^{${2}}}(${2}x^{${4}} - ${5}x^{${2}} + ${2})`}.`,
+  hints: [
+    t`What are ${math`\frac{dy}{dx}`} and the stationary points, and where does the curve cross the axis?`,
+    t`Using the turning values and the behaviour as ${math`x \to \pm\infty`}, how many solutions are there for each range of ${math`k`}?`,
+    t`For (ii), how does putting ${math`x^{${2}}`} in place of ${math`x`} change the curve, and what symmetry does it have?`,
+  ],
+  writeUp: 'sketch',
+  official: cite(F22H, 'Assignment 22 hints, Q4'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const differentiationRules: TopicContent = {
@@ -500,7 +515,8 @@ export const differentiationRules: TopicContent = {
   generators: [product, chain, quotient],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['product-rule-calculus', 'chain-rule'],
-  cambridge: withUses([calc1, calc1zeros, db94q2iv, db94q2v, damtpQ3ii, xex, lnSquare, dwdp, turnP, productProof, chainProof, tanProof], {
+  cambridge: withUses([calc1, calc1zeros, db94q2iv, db94q2v, damtpQ3ii, xex, lnSquare, dwdp, turnP, productProof, chainProof, tanProof, step2015full], {
+    'a22-q4': { sections: ['Products', 'Functions of functions'], note: t`Sketching a polynomial times an exponential and counting solutions`, needs: ['calc.curve-sketching'] },
     's2calc-q1': { sections: ['Products', 'Functions of functions'], note: t`Where the derivative of a polynomial times a Gaussian vanishes` },
     'step94-q2-iv': { sections: ['Functions of functions'], note: t`Differentiating a tower of powers` },
     'damtp-de1-q3-ii': { sections: ['Functions of functions', 'Products'], note: t`A third derivative by the chain and product rules` },

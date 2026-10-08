@@ -292,18 +292,6 @@ const ns2q5 = supervision({
  * 4. 2^(2^n) + 1 > 1 has a prime factor, which does not divide the first factor; with the n primes of
  *    the first factor that makes at least n + 1 distinct primes (6).
  */
-const ns2q6 = supervision({
-  id: 'ns2-q6',
-  source: cite('ia-ns-sheet-2', 'Q6'),
-  title: t`Distinct prime factors of a tower`,
-  prompt: t`Prove that ${math`${2}^{${2}^{n}} - ${1}`} has at least ${math`n`} distinct prime factors.`,
-  writeUp: 'proof',
-  hints: [
-    t`How does ${math`${2}^{${2}^{n}} - ${1}`} factorise as a difference of two squares?`,
-    t`Applying that factorisation repeatedly, which factors of the form ${math`${2}^{${2}^{k}} + ${1}`} appear?`,
-    t`Why do two different numbers of the form ${math`${2}^{${2}^{k}} + ${1}`} have no common factor greater than ${1}?`,
-  ],
-});
 
 // ---------------------------------------------------------------- lesson
 
@@ -369,13 +357,13 @@ export const infinitelyManyPrimes: TopicContent = {
   generators: [newPrime, remainder, euclidNumbers],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['euclids-theorem'],
-  cambridge: withUses([firstComposite, notPrime, bopVersion, ns2q5, ns2q6], {
+  cambridge: withUses([firstComposite, notPrime, bopVersion, ns2q5], {
     'ns2-q5': { sections: ['Every number has a prime factor', "Euclid's theorem"], note: t`Adapting Euclid's argument to primes of one form` },
-    'ns2-q6': { sections: ['Every number has a prime factor'], note: t`Factorising a tower of powers and showing the factors share no prime`, needs: ['alg.proof-by-induction'] },
     'cst-totd-remarks': { sections: ["Euclid's theorem", 'What the proof does not say'], note: t`Saying exactly what the argument proves, and rewriting it correctly` },
   }),
   // The IA sheet's primes of the form 4n - 1, then the CST sheet's remark, which asks for the proof rewritten
-  // correctly. The tower with many prime factors needs induction, taught later, so it is practice. The first
+  // correctly. The tower with many prime factors needs induction, so it is set in
+  // alg.proof-by-induction. The first
   // composite is a factoring exercise, and Book of Proof is not Cambridge standard.
   gate: ['ns2-q5', 'cst-totd-remarks'],
   recall: [

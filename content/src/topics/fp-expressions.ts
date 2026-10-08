@@ -420,32 +420,6 @@ const focs15 = auto({
   misconceptions: [{ response: '0', why: t`The printed ${code`${1000}.`} is rounded for display. The stored value is a little more than ${1000}.` }],
 });
 
-const PHI = (1 + Math.sqrt(5)) / 2;
-const gammaAt = (n: number): number => { let g = PHI; for (let i = 0; i < n; i++) g = 1 / (g - 1); return g; };
-const G50 = gammaAt(50);
-const focs16 = auto({
-  id: 'focs-1-6',
-  source: cite('focs-notes', 'Lecture 1, Exercise 1.6'),
-  title: t`The golden ratio, iterated`,
-  prompt: t`Let ${math`\gamma_{${0}} = \frac{${1} + \sqrt{${5}}}{${2}}`} and ${math`\gamma_{n + ${1}} = \frac{${1}}{\gamma_{n} - ${1}}`}. In exact arithmetic ${math`\gamma_{n} = \gamma_{${0}}`} for every ${math`n`}. Code the computation in OCaml with floats (in OCaml, ${math`\sqrt{${5}}`} is ${code`sqrt ${5}.${0}`}) and give the computed ${math`\gamma_{${50}}`} to ${2} decimal places.`,
-  answer: { kind: 'numeric', expected: G50, relTol: 0, absTol: 0.006 },
-  solution: [
-    t`Exactly, ${math`\gamma_{${0}} = \varphi`} satisfies ${math`\varphi^{${2}} = \varphi + ${1}`}, so ${math`\varphi - ${1} = \frac{${1}}{\varphi}`} and ${math`\frac{${1}}{\varphi - ${1}} = \varphi`}: every term is ${math`\varphi`}.`,
-    t`But the float for ${math`\varphi`} is off by a tiny ${math`\varepsilon`}. The map ${math`g \mapsto \frac{${1}}{g - ${1}}`} has slope ${math`-\frac{${1}}{(g - ${1})^{${2}}} = -\varphi^{${2}}`} at ${math`\varphi`}, about ${math`-${2.618}`}: each step multiplies the error by about ${2.618}.`,
-    t`After about ${40} steps the error is of order ${1}, and the iteration settles on the map's other fixed point, ${math`\frac{${1} - \sqrt{${5}}}{${2}} \approx ${-0.618}`}, where errors shrink instead. The program gives ${math`\gamma_{${50}} \approx ${Number(G50.toFixed(4))}`}.`,
-    t`An iteration that magnifies errors drifts to a fixed point where errors shrink.`,
-  ],
-  nudge: t`Not quite. The question asks for what the float program computes, not the exact value.`,
-  hints: [
-    t`In exact arithmetic, why is every ${math`\gamma_{n}`} equal to ${math`\gamma_{${0}}`}?`,
-    t`Near ${math`\gamma_{${0}}`}, by what factor does one step of ${math`g \mapsto \frac{${1}}{g - ${1}}`} multiply a small error?`,
-    t`Which other fixed point does the map have, and is it stable?`,
-  ],
-  reference: G50.toFixed(2),
-  // OCaml 4.11.1: gamma 50 = -0.61812184348574739; gamma 10 still prints 1.618...; JavaScript doubles agree.
-  verify: () => same('gamma 50', G50.toFixed(4), '-0.6181'),
-  misconceptions: [{ response: PHI.toFixed(2), why: t`That is the exact answer, but the question asks what the float program gives. The rounding error is multiplied by about ${2.6} at each step.` }],
-});
 
 const focs13 = supervision({
   id: 'focs-1-3',
@@ -550,11 +524,10 @@ export const fpExpressions: TopicContent = {
   generators: [intArith, typeOfExpr, ifValue],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['ocaml-expression', 'ocaml-value', 'ocaml-type', 'structural-equality'],
-  cambridge: withUses([valuesI, equality, focs15, focs16, focs13], {
-    'focs-1-6': { sections: ['A calculator that knows types'], note: t`Iterating a float computation and watching rounding grow`, needs: ['fp.recursion'] },
+  cambridge: withUses([valuesI, equality, focs15, focs13], {
     'focs-1-3': { sections: ['Decisions: the if expression'], note: t`Simplifying an if expression on booleans` },
   }),
-  // Exercise 1.6 iterates fifty times, which needs recursion, taught later, so it is practice.
+  // Exercise 1.6 iterates fifty times, which needs recursion, so it is set in fp.recursion (Rule 1, 2026-10-08).
   gate: ['focs-1-3'],
   recall: [
     { front: t`What does ${code`a / b`} give on two ints?`, back: t`The exact quotient truncated towards zero; ${code`a mod b`} is the remainder ${math`a - b \times (a / b)`}, with the sign of ${math`a`}.` },

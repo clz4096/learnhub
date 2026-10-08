@@ -25,7 +25,7 @@ const T0 = new Date(2026, 9, 1, 9, 0).getTime();
 /** Albert's 12 of 20 was on this key; the problem has since moved to proof.direct (`MOVED_PROBLEMS`), where it is a gate. */
 const UNIT = 'pre.fractions/step00-q1-unit';
 /** A proof set as further practice (not a gate) in a topic before the first proof lesson. */
-const PRACTICE = 'pre.indices/a12-q1-iii';
+const PRACTICE = 'num.linear-diophantine/a3-q4';
 const VALUE = 'pre.fractions/a6-q1-i-value';
 const GATE_PROOF = 'prob.event-spaces/q4-a-finite';
 const NONCE = 'K7Q2XMPA';
@@ -63,7 +63,7 @@ describe('what a supervision result counts against', () => {
     const p = learned();
     expect(effectiveGap(p, PRACTICE, res({ gap: FIRST_PROOF_TOPIC }))).toBe(FIRST_PROOF_TOPIC);
     expect(effectiveGap(p, PRACTICE, res({ mark: 15, gap: FIRST_PROOF_TOPIC }))).toBeUndefined();
-    expect(effectiveGap(p, PRACTICE, res({ gap: 'pre.indices' }))).toBeUndefined();
+    expect(effectiveGap(p, PRACTICE, res({ gap: 'num.linear-diophantine' }))).toBeUndefined();
     // The problem's own topic is its current one: proof.direct, for the old fractions key.
     expect(effectiveGap(p, UNIT, res({ gap: FIRST_PROOF_TOPIC }))).toBeUndefined();
     expect(effectiveGap(p, UNIT, res({ gap: 'pre.fractions' }))).toBe('pre.fractions');
@@ -129,11 +129,11 @@ describe('importing a result with a GAP', () => {
   });
 
   it('says what it did in plain words', () => {
-    const p = completeLesson(learned(), 'pre.indices', true, T0, null, 20);
+    const p = completeLesson(learned(), 'num.linear-diophantine', true, T0, null, 20);
     const withGap = importSummary(p, PRACTICE, res({ gap: FIRST_PROOF_TOPIC, redo: [PRACTICE] }));
-    expect(withGap).toMatch(/earlier skill, Direct proof, so it does not count against Laws of indices\. Recommended next: Direct proof\./);
+    expect(withGap).toMatch(/earlier skill, Direct proof, so it does not count against Integer solutions of linear equations\. Recommended next: Direct proof\./);
     expect(withGap).toMatch(/Its redo waits until Direct proof is mastered\./);
-    expect(importSummary(p, PRACTICE, res())).toMatch(/further practice, not a gate problem, so it does not count against Laws of indices/);
+    expect(importSummary(p, PRACTICE, res())).toMatch(/further practice, not a gate problem, so it does not count against Integer solutions of linear equations/);
     expect(withGap).not.toMatch(/[–—]/);
   });
 });
@@ -167,13 +167,13 @@ describe('the GAP line', () => {
 
   it('rejects an unknown topic, the problem\'s own topic, a GAP with a pass, and the template, plainly', () => {
     expect(err(block('Writing proofs'))).toMatch(/GAP names "Writing proofs", which is not a topic in this app/);
-    expect(err(block('pre.indices'))).toMatch(/GAP names the problem's own topic/);
+    expect(err(block('num.linear-diophantine'))).toMatch(/GAP names the problem's own topic/);
     // The own topic of an old key is the topic the problem moved to.
     expect(err(block(FIRST_PROOF_TOPIC, 12, UNIT))).toMatch(/GAP names the problem's own topic/);
     expect(ok(block('pre.fractions', 12, UNIT)).result.gap).toBe('pre.fractions');
     expect(err(block(FIRST_PROOF_TOPIC, 15))).toMatch(/GAP is only for a mark below 14\. With 15\/20, write GAP: none/);
     expect(err(block('<one topic id>'))).toMatch(/GAP is empty/);
-    for (const e of [err(block('x.y')), err(block('pre.indices'))]) expect(e).not.toMatch(/[–—]/);
+    for (const e of [err(block('x.y')), err(block('num.linear-diophantine'))]) expect(e).not.toMatch(/[–—]/);
   });
 });
 

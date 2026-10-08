@@ -277,6 +277,56 @@ const ijQ = supervision({
   official: cite(F24H, 'Assignment 24 hints, Q2(v), (vi)'),
 });
 
+/** I_n by the midpoint rule; the integrand is bounded, with limit (pi/2)(2n + 1) at 0. */
+function integralI(n: number): number {
+  const N = 20000;
+  const h = Math.PI / N;
+  let s = 0;
+  for (let i = 0; i < N; i++) {
+    const x = (i + 0.5) * h;
+    s += (Math.PI / 2 - x) * Math.sin(n * x + x / 2) / Math.sin(x / 2);
+  }
+  return s * h;
+}
+const mn = math`n`;
+// Rule 1 (2026-10-08): set here from alg.telescoping, the earliest topic that teaches everything it needs.
+const a24q3 = auto({
+  id: 'a24-q3',
+  source: cite(F24, 'Assignment 24, Q3'),
+  title: t`A recurrence for an integral`,
+  prompt: t`(${1998} STEP II, Question ${4}.) For a positive integer ${mn} let ${math`I_{n} = \int_{${0}}^{\pi} \left(\tfrac{${1}}{${2}}\pi - x\right) \sin\left(nx + \tfrac{${1}}{${2}}x\right) \operatorname{cosec}\left(\tfrac{${1}}{${2}}x\right) dx`}. Evaluate ${math`I_{n} - I_{n - ${1}}`} as a formula in ${mn}. (Type ${math`\pi`} as pi if needed.)`,
+  nudge: t`Not quite. Combine the two sines into a product so that the cosecant cancels.`,
+  hints: [
+    t`Which identity writes a difference of two sines as a product?`,
+    t`After the cosecant cancels, which integral of ${math`(\pi - ${2}x)\cos(nx)`} remains?`,
+    t`Integrating ${math`x\cos(nx)`} by parts, what are the values at ${math`\pi`} and ${0}, with ${math`\cos(n\pi) = (-${1})^{n}`}?`,
+  ],
+  answer: { kind: 'expression', expected: '2*(1 - (-1)^n)/n^2', variables: ['n'], domains: { n: { kind: 'integer', min: 1, max: 20 } } },
+  solution: [
+    t`${math`\sin\left(nx + \tfrac{${1}}{${2}}x\right) - \sin\left(nx - \tfrac{${1}}{${2}}x\right) = ${2}\cos(nx)\sin\left(\tfrac{${1}}{${2}}x\right)`}, and the ${math`\sin\left(\tfrac{${1}}{${2}}x\right)`} cancels the cosecant: ${math`I_{n} - I_{n - ${1}} = \int_{${0}}^{\pi} (\pi - ${2}x)\cos(nx)\,dx`}.`,
+    t`${math`\int_{${0}}^{\pi} \pi\cos(nx)\,dx = ${0}`}, and by parts ${math`\int_{${0}}^{\pi} x\cos(nx)\,dx = \left[\frac{x\sin(nx)}{n} + \frac{\cos(nx)}{n^{${2}}}\right]_{${0}}^{\pi} = \frac{(-${1})^{n} - ${1}}{n^{${2}}}`}.`,
+    t`So ${math`I_{n} - I_{n - ${1}} = -${2} \cdot \frac{(-${1})^{n} - ${1}}{n^{${2}}} = \frac{${2}(${1} - (-${1})^{n})}{n^{${2}}}`}: ${0} for even ${mn}, ${math`\frac{${4}}{n^{${2}}}`} for odd ${mn}. With ${math`I_{${0}} = \int_{${0}}^{\pi} \left(\tfrac{${1}}{${2}}\pi - x\right)dx = ${0}`}, the differences telescope: ${math`I_{n} = \sum_{k = ${1}}^{n} \frac{${2}(${1} - (-${1})^{k})}{k^{${2}}}`}.`,
+    t`Take differences to cancel an awkward factor, then integrate what is left.`,
+  ],
+  reference: '2(1 - (-1)^n)/n^2',
+  verify: () => {
+    let prev = integralI(0);
+    if (Math.abs(prev) > 1e-6) return `I_0 = ${prev}`;
+    for (let n = 1; n <= 5; n++) {
+      const cur = integralI(n);
+      const want = (2 * (1 - (-1) ** n)) / (n * n);
+      if (Math.abs(cur - prev - want) > 1e-5) return `n = ${n}: ${cur - prev} against ${want}`;
+      prev = cur;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: '4/n^2', why: t`That is right for odd ${mn} only. For even ${mn}, ${math`\cos(n\pi) = ${1}`} and the difference is ${0}: write ${math`\cos(n\pi) = (-${1})^{n}`}.` },
+    { response: '2*((-1)^n - 1)/n^2', why: t`The sign: ${math`-${2}\int_{${0}}^{\pi} x\cos(nx)\,dx`}, and that integral is ${math`\frac{(-${1})^{n} - ${1}}{n^{${2}}}`}, which is negative or zero.` },
+  ],
+  official: { source: cite('step-f24-hints', 'Assignment 24, Q3'), answer: '2(1 - (-1)^n)/n^2', agrees: true },
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const standardIntegrals: TopicContent = {
@@ -317,7 +367,8 @@ export const standardIntegrals: TopicContent = {
   generators: [trigDefinite, logIntegral, recip],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['log-integral'],
-  cambridge: withUses([e4t, sin2t, xcos, lnln, stQ, ijQ], {
+  cambridge: withUses([e4t, sin2t, xcos, lnln, stQ, ijQ, a24q3], {
+    'a24-q3': { sections: ['Reading derivatives backwards'], note: t`A recurrence for an integral`, needs: ['calc.integration-by-parts'] },
     'a25-q4-ii-c': { sections: ['The logarithm pattern'], note: t`Two integrals at once by their sum and difference` },
     'a24-q1-i-c': { sections: ['Reading derivatives backwards'], note: t`An integral recognised as a derivative` },
   }),

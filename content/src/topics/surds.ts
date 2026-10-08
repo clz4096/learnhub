@@ -243,36 +243,6 @@ const threeTerms = auto({
   official: { source: cite(F01H, 'Q1(iii)'), answer: 'a = 9, b = -2, c = -4, d = 2', agrees: true },
 });
 
-const hidden = auto({
-  id: 'a1-q1-iv',
-  source: cite(F01, 'Q1(iv)'),
-  title: t`A hidden quadratic with surd roots`,
-  prompt: t`Expand ${math`(${1} + \sqrt{${2}})^{${2}}`}. Then find the largest real ${math`x`} with ${math`x^{${2}} + \frac{${4}}{x^{${2}}} = ${12}`}, as a surd. (Type a square root as sqrt.)`,
-  nudge: t`Not quite. Clear the fraction to get a quadratic in ${math`x^{${2}}`}, then compare its roots with the expansion.`,
-  hints: [
-    t`What is ${math`(${1} + \sqrt{${2}})^{${2}}`}?`,
-    t`Multiplying by ${math`x^{${2}}`}, what quadratic in ${math`x^{${2}}`} results, and what are its roots?`,
-    t`Which of those roots is twice the expansion, and what is its positive square root?`,
-  ],
-  answer: { kind: 'expression', expected: '2 + sqrt(2)', variables: [] },
-  solution: [
-    t`${math`(${1} + \sqrt{${2}})^{${2}} = ${1} + ${2}\sqrt{${2}} + ${2} = ${3} + ${2}\sqrt{${2}}`}.`,
-    t`Multiply by ${math`x^{${2}}`} (not ${0}): ${math`x^{${4}} - ${12}x^{${2}} + ${4} = ${0}`}, a quadratic in ${math`x^{${2}}`}, so ${math`x^{${2}} = \frac{${12} \pm \sqrt{${144} - ${16}}}{${2}} = ${6} \pm ${4}\sqrt{${2}}`}.`,
-    t`${math`${6} + ${4}\sqrt{${2}} = ${2}(${3} + ${2}\sqrt{${2}}) = ${2}(${1} + \sqrt{${2}})^{${2}}`}, so its square roots are ${math`\pm\sqrt{${2}}(${1} + \sqrt{${2}}) = \pm(${2} + \sqrt{${2}})`}. In the same way ${math`${6} - ${4}\sqrt{${2}}`} gives ${math`\pm(${2} - \sqrt{${2}})`}.`,
-    t`The four solutions are ${math`\pm(${2} + \sqrt{${2}})`} and ${math`\pm(${2} - \sqrt{${2}})`}; the largest is ${math`${2} + \sqrt{${2}}`}.`,
-    t`Treat an equation in even powers only as a quadratic in the square.`,
-  ],
-  reference: '2 + sqrt(2)',
-  verify: () => {
-    const roots = [2 + R2, 2 - R2, -2 + R2, -2 - R2];
-    const bad = roots.find((r) => !close(r * r + 4 / (r * r), 12));
-    if (bad !== undefined) return `${bad} is not a solution`;
-    return same('the largest root', Math.max(...roots) === 2 + R2, true);
-  },
-  misconceptions: [{ response: '2 - sqrt(2)', why: t`That is a solution, but not the largest: ${math`${2} + \sqrt{${2}}`} is bigger, and it solves the equation too.` }],
-  official: { source: cite(F01H, 'Q1(iv)'), answer: '2 + sqrt(2)', agrees: true },
-});
-
 const conjugates = auto({
   id: 'a14-q2-i',
   source: cite('step-f14', 'Q2(i)'),
@@ -294,35 +264,6 @@ const conjugates = auto({
   verify: () => (close(1 / (3 + R5) + 1 / (3 - R5), 1.5) ? null : 'the sum is not 3/2'),
   misconceptions: [{ response: '3/7', why: t`The denominator is ${math`${9} - ${5}`}, not ${math`${9} + ${5}`}: the surd terms cancel when the brackets are multiplied.` }],
   official: { source: cite('step-f14-hints', 'Q2(i)'), answer: '3/2', agrees: true },
-});
-
-const geometric = auto({
-  id: 'a14-q2-ii',
-  source: cite('step-f14', 'Q2(ii)'),
-  title: t`A geometric series with a surd ratio`,
-  prompt: t`Explain why ${math`\frac{${1} + \sqrt{${3}}}{${3}} < ${1}`}, and find the sum of the infinite geometric series ${math`${1} + \frac{${1} + \sqrt{${3}}}{${3}} + \left(\frac{${1} + \sqrt{${3}}}{${3}}\right)^{${2}} + \cdots`} in the form ${math`a + b\sqrt{${3}}`}. Give ${math`a`} and ${math`b`}.`,
-  nudge: t`Not quite. Use the sum to infinity, then rationalise the denominator.`,
-  hints: [
-    t`Why is ${math`\sqrt{${3}}`} less than ${2}, and so the ratio less than ${1}?`,
-    t`What is ${math`\frac{${1}}{${1} - r}`} with ${math`r = \frac{${1} + \sqrt{${3}}}{${3}}`}?`,
-    t`Which conjugate rationalises the denominator ${math`${2} - \sqrt{${3}}`}?`,
-  ],
-  answer: namedAnswer(SQ_NAMES, [q(6), q(3)], 'Use the sum to infinity, then rationalise the denominator.'),
-  solution: [
-    t`${math`\sqrt{${3}} < ${2}`} because ${math`${3} < ${4}`}, so the ratio ${math`r = \frac{${1} + \sqrt{${3}}}{${3}} < \frac{${1} + ${2}}{${3}} = ${1}`}; it is also positive, so the series converges.`,
-    t`The sum is ${math`\frac{${1}}{${1} - r} = \frac{${1}}{\frac{${3} - ${1} - \sqrt{${3}}}{${3}}} = \frac{${3}}{${2} - \sqrt{${3}}}`}.`,
-    t`Rationalise: multiply the top and bottom by ${math`${2} + \sqrt{${3}}`}; the bottom becomes ${math`${4} - ${3} = ${1}`}, so the sum is ${math`${3}(${2} + \sqrt{${3}}) = ${6} + ${3}\sqrt{${3}}`}.`,
-    t`Sum to infinity first, then rationalise.`,
-  ],
-  reference: 'a = 6, b = 3',
-  verify: () => {
-    const r = (1 + R3) / 3;
-    let s = 0;
-    for (let k = 0; k < 400; k++) s += r ** k;
-    return Math.abs(s - (6 + 3 * R3)) < 1e-9 ? null : `partial sums reach ${s}`;
-  },
-  misconceptions: [{ response: 'a = 6, b = -3', why: t`Multiplying by the conjugate ${math`${2} + \sqrt{${3}}`} gives a plus sign on top. Check: ${math`${6} - ${3}\sqrt{${3}}`} is less than ${1}, but the series starts ${math`${1} + r + \cdots`} with ${math`r > ${0}`}.` }],
-  official: { source: cite('step-f14-hints', 'Q2(ii)'), answer: 'a = 6, b = 3', agrees: true },
 });
 
 const local1858 = auto({
@@ -444,14 +385,12 @@ export const surds: TopicContent = {
   generators: [simplifySum, squareSurd, rationalise],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['surd', 'conjugate', 'rationalise-denominator'],
-  cambridge: withUses([simplest, threeTerms, hidden, conjugates, geometric, local1858], {
-    'a14-q2-ii': { sections: ['Rationalising a denominator'], note: t`Summing an infinite geometric series with a surd ratio`, needs: ['alg.geometric-sum-to-infinity'] },
-    'a1-q1-iv': { sections: ['Multiplying out'], note: t`Solving a quadratic in disguise with surd roots`, needs: ['pre.quadratic-equations'] },
+  cambridge: withUses([simplest, threeTerms, conjugates, local1858], {
     'a1-q1-iii': { sections: ['Multiplying out'], note: t`Squaring a sum of three surd terms and collecting like surds` },
   }),
   // Assignment 1 Q1(iii). Assignment 2 Q1(iii) is a written proof, so it is set in proof.direct, the
-  // first topic that teaches writing one (Rule 1, 2026-10-08). Assignment 14 Q2(ii) and Assignment 1 Q1(iv) need the sum to infinity and quadratic
-  // equations, taught later, so they are practice.
+  // first topic that teaches writing one (Rule 1, 2026-10-08). Assignment 1 Q1(iv) needs quadratic equations, so it is set in
+  // pre.quadratic-equations; Assignment 14 Q2(ii) needs the sum to infinity, which alg.geometric-sum-to-infinity works.
   gate: ['a1-q1-iii'],
   recall: [
     { front: t`State the rule for the square root of a product.`, back: t`For ${math`a, b \ge ${0}`}: ${math`\sqrt{ab} = \sqrt{a}\sqrt{b}`}. There is no such rule for a sum.` },

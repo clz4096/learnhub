@@ -263,20 +263,6 @@ const rootCount = auto({
   official: { source: cite(F09H, 'Assignment 9 hints, Q2(ii)(e)'), answer: '3', agrees: true },
 });
 
-const sketch = supervision({
-  id: 'a9-q2-ii',
-  source: cite(F09, 'Assignment 9, Q2(ii)'),
-  title: t`Sketch the cubic and count its roots`,
-  prompt: t`Consider the graph of ${math`y = ${cubicTex}`}. Find the ${math`x`} coordinates of the turning points; by considering the shape of the graph, state which is the maximum and which the minimum; find where the graph meets the ${math`y`} axis; find the ${math`y`} coordinates of the turning points and sketch the graph. How many real roots does ${math`${cubicTex} = ${0}`} have? Do not find the roots.`,
-  hints: [
-    t`What is ${math`\frac{dy}{dx}`}, and where is it ${0}?`,
-    t`Which turning point is the maximum, and what are the heights of both?`,
-    t`Where does the curve meet the ${math`y`} axis, and how many times does it cross the ${math`x`} axis?`,
-  ],
-  writeUp: 'sketch',
-  official: cite(F09H, 'Assignment 9 hints, Q2(ii)'),
-});
-
 // STEP II 2013 Q1 (STEP Questions Database): lines meeting y = ln x, and pi^e against e^pi.
 const DB13 = 'stepdb-13-s2' as const;
 
@@ -399,13 +385,12 @@ export const derivatives: TopicContent = {
   generators: [powerRule, expLn, gradientAt],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['derivative', 'differentiable'],
-  cambridge: withUses([db13q1, db13q1m, solveQuad, turningY, rootCount, sketch], {
+  cambridge: withUses([db13q1, db13q1m, solveQuad, turningY, rootCount], {
     'step13-q1': { sections: ['The rules', 'Rewrite, then differentiate'], note: t`A tangent to the logarithm curve, then comparing powers by a sketch` },
-    'a9-q2-ii': { sections: ['The rules'], note: t`Turning points and the shape of a cubic`, needs: ['calc.stationary-points'] },
     'step13-q1-i': { sections: ['The rules'], note: t`The tangent from the origin to the logarithm curve` },
   }),
-  // STEP II 2013 Q1 first, then its auto-checked part (i). Assignment 9 Q2(ii) needs turning points, taught in
-  // calc.stationary-points next, so it is practice.
+  // STEP II 2013 Q1 first, then its auto-checked part (i). Assignment 9 Q2(ii) needs turning points, so it is set
+  // in calc.stationary-points (Rule 1, 2026-10-08).
   gate: ['step13-q1', 'step13-q1-i'],
   recall: [
     { front: t`Define the derivative ${math`f'(a)`}.`, back: t`${math`f'(a) = \lim_{h \to ${0}} \frac{f(a + h) - f(a)}{h}`}, when the limit exists.` },

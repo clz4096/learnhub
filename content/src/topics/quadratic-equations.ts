@@ -9,7 +9,7 @@
  * and Q3 are set in ineq.linear-quadratic. Batch 9 adds Assignment 1 Q2(i) as a second gate:
  * an equation with two fractions that clearing denominators turns into a quadratic.
  */
-import { auto, cite, same, supervision, withUses } from '../cambridge';
+import { auto, cite, same, withUses } from '../cambridge';
 import { add, div, int, mul, pick, q, str, sub, type Rational } from '../math';
 import { generator, type Misconception } from '../problem';
 import { computedMath, computedTex, dmath, frac, math, t } from '../rich';
@@ -208,35 +208,6 @@ const mildredSum = auto({
   official: { source: cite(S2S, 'Q5'), answer: '-ln(p)', agrees: true },
 });
 
-const mildredWait = auto({
-  id: 's2-q5-first-text',
-  source: cite(S2, 'Q5'),
-  title: t`Mildred's first text`,
-  prompt: t`Texts on Mildred's two phones arrive as independent Poisson processes with rates ${math`\lambda_{${1}}`} and ${math`\lambda_{${2}}`}, where ${math`\lambda_{${1}} + \lambda_{${2}} = -\ln p`}. The texts on the two phones together arrive as a Poisson process with rate ${math`\lambda_{${1}} + \lambda_{${2}}`}. Find, in terms of ${math`p`}, the probability that she waits between ${1} and ${2} hours for her first text.`,
-  answer: { kind: 'expression', expected: 'p(1 - p)', variables: ['p'], domains: P_DOM },
-  solution: [
-    t`No text in the first hour, then at least one in the second: with total rate ${math`\Lambda = \lambda_{${1}} + \lambda_{${2}}`}, the probability is ${math`e^{-\Lambda}(${1} - e^{-\Lambda})`}.`,
-    t`${math`e^{-\Lambda} = e^{\ln p} = p`}, so the probability is ${math`p(${1} - p)`}.`,
-    t`Independent Poisson processes merge by adding their rates.`,
-  ],
-  reference: 'p(1 - p)',
-  verify: () => {
-    for (const p of [0.05, 0.1, 0.2]) {
-      const [l1, l2] = rates(p);
-      if (far(waits(l1 + l2), p * (1 - p))) return `p = ${p}: the combined rate gives ${waits(l1 + l2)}`;
-    }
-    return null;
-  },
-  misconceptions: [{ response: 'p^2', why: t`The two phones' waits are not to be multiplied: the first text on either phone is the first event of the combined process, rate ${math`\lambda_{${1}} + \lambda_{${2}}`}.` }],
-  official: { source: cite(S2S, 'Q5'), answer: 'p(1 - p)', agrees: true },
-  nudge: t`Not quite. Treat the two phones as one process with the combined rate; then it is "none in the first hour, at least one in the second".`,
-  hints: [
-    t`With combined rate ${math`\Lambda`}, what is the probability of no text in the first hour?`,
-    t`Given none in the first hour, what is the probability of at least one in the second?`,
-    t`Since ${math`\Lambda = -\ln p`}, what is ${math`e^{-\Lambda}`}?`,
-  ],
-});
-
 const P29 = q(2, 9);
 const ROOTS29 = [q(3), q(3, 2)];
 const twoRates = auto({
@@ -267,20 +238,6 @@ const twoRates = auto({
     t`With ${math`p = ${P29}`}, which quadratic in ${math`y = e^{\lambda}`} results?`,
     t`After multiplying through to clear the fraction, how does it factorise?`,
     t`Which values of ${math`y`} make each factor zero?`,
-  ],
-});
-
-const showQuadratic = supervision({
-  id: 's2-q5-show',
-  source: cite(S2, 'Q5'),
-  title: t`The quadratic, and two positive rates`,
-  prompt: t`George's texts arrive as a Poisson process with rate ${math`\lambda`} per hour. Given that the probability that he waits between ${1} and ${2} hours for his first text is ${math`p`}, show that ${math`pe^{${2}\lambda} - e^{\lambda} + ${1} = ${0}`}. Given that ${math`${4}p < ${1}`}, show that two positive values of ${math`\lambda`} satisfy this equation. (Note that ${math`\lambda > ${0}`} exactly when ${math`e^{\lambda} > ${1}`}.)`,
-  writeUp: 'proof',
-  official: cite(S2S, 'Q5'),
-  hints: [
-    t`What is the probability of no text in ${math`t`} hours, and so of the first text coming between ${1} and ${2} hours?`,
-    t`Setting that equal to ${math`p`} and multiplying by ${math`e^{${2}\lambda}`}, which equation results?`,
-    t`As a quadratic in ${math`y = e^{\lambda}`}, why does ${math`${4}p < ${1}`} give two real roots, and where is the vertex compared with ${math`y = ${1}`}?`,
   ],
 });
 
@@ -321,45 +278,6 @@ const a1q2ii = auto({
     t`Which condition on the discriminant gives a repeated root?`,
     t`What is the discriminant of ${math`${9}x^{${2}} + bx + ${4}`}?`,
     t`How many values of ${math`b`} make it zero?`,
-  ],
-});
-
-/** x^2 - 8x + 21 = (x + a)^2 + b, and its greatest and least values on 0 <= x <= 5. */
-const VI = { p: -8, c: 21, lo: 0, hi: 5 };
-const viA = VI.p / 2;
-const viB = VI.c - viA * viA;
-const viF = (x: number): number => x * x + VI.p * x + VI.c;
-const a2q2vi = auto({
-  id: 'a2-q2-vi',
-  source: cite('step-f02', 'Q2(vi)', true),
-  title: t`Completing the square on an interval`,
-  prompt: t`Write the expression ${math`x^{${2}} - ${8}x + ${21}`} in the form ${math`(x + a)^{${2}} + b`}. Hence find the greatest and least values of ${math`x^{${2}} - ${8}x + ${21}`} in the range ${math`${0} \le x \le ${5}`}. (A sketch of the curve helps.)`,
-  answer: {
-    kind: 'table', columns: [t`quantity`, t`value`], cell: 'exact',
-    rows: [[[math`a`], null], [[math`b`], null], [t`the greatest value`, null], [t`the least value`, null]],
-    expected: [String(viA), String(viB), String(Math.max(viF(VI.lo), viF(VI.hi))), String(viB)],
-  },
-  solution: [
-    t`Half the coefficient of ${math`x`} is ${viA}, so ${math`x^{${2}} - ${8}x + ${21} = (x - ${4})^{${2}} - ${16} + ${21} = (x - ${4})^{${2}} + ${5}`}: ${math`a = ${viA}`}, ${math`b = ${viB}`}.`,
-    t`A square is never negative, so the least value is ${viB}, at ${math`x = ${4}`}, which lies in the range.`,
-    t`The square grows with the distance from ${4}. In the range, ${math`x = ${0}`} is farthest (distance ${4}, against ${1} at ${math`x = ${5}`}), so the greatest value is ${math`${16} + ${5} = ${viF(0)}`}.`,
-    t`On an interval, the least value is at the vertex when it lies inside; the greatest is at the farther end.`,
-  ],
-  reference: [String(viA), String(viB), String(viF(0)), String(viB)],
-  verify: () => {
-    const e = same('(x + a)^2 + b expanded', `${2 * viA} ${viA * viA + viB}`, `${VI.p} ${VI.c}`);
-    if (e !== null) return e;
-    const xs = Array.from({ length: 501 }, (_, i) => VI.lo + (i * (VI.hi - VI.lo)) / 500);
-    const ys = xs.map(viF);
-    return same('greatest and least on a fine grid', `${Math.max(...ys)} ${Math.min(...ys)}`, `${viF(0)} ${viB}`);
-  },
-  misconceptions: [{ response: [String(viA), String(viB), String(viF(5)), String(viB)], why: t`The greatest value is at the end of the range farther from the vertex at ${math`x = ${4}`}: that is ${math`x = ${0}`}, not ${math`x = ${5}`}.` }],
-  official: { source: cite('step-f02-hints', 'Q2(vi)'), answer: ['-4', '5', '21', '5'], agrees: true },
-  nudge: t`Not quite. After completing the square, compare how far the two ends of the range are from the vertex.`,
-  hints: [
-    t`What is half the coefficient of ${math`x`}, and so what is ${math`a`}?`,
-    t`Which constant ${math`b`} is left after completing the square?`,
-    t`Is the vertex inside the range ${math`${0} \le x \le ${5}`}, and which end of the range is farther from it?`,
   ],
 });
 
@@ -413,6 +331,41 @@ const a1q2i = auto({
     t`Which quadratic results after expanding and collecting terms?`,
     t`What are its roots, and does either make a denominator zero?`,
   ],
+});
+
+const R2 = Math.sqrt(2);
+const close = (a: number, b: number): boolean => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
+const F01 = 'step-f01' as const;
+const F01H = 'step-f01-hints' as const;
+// Rule 1 (2026-10-08): set here from alg.surds, the earliest topic that teaches everything it needs.
+const hidden = auto({
+  id: 'a1-q1-iv',
+  source: cite(F01, 'Q1(iv)'),
+  title: t`A hidden quadratic with surd roots`,
+  prompt: t`Expand ${math`(${1} + \sqrt{${2}})^{${2}}`}. Then find the largest real ${math`x`} with ${math`x^{${2}} + \frac{${4}}{x^{${2}}} = ${12}`}, as a surd. (Type a square root as sqrt.)`,
+  nudge: t`Not quite. Clear the fraction to get a quadratic in ${math`x^{${2}}`}, then compare its roots with the expansion.`,
+  hints: [
+    t`What is ${math`(${1} + \sqrt{${2}})^{${2}}`}?`,
+    t`Multiplying by ${math`x^{${2}}`}, what quadratic in ${math`x^{${2}}`} results, and what are its roots?`,
+    t`Which of those roots is twice the expansion, and what is its positive square root?`,
+  ],
+  answer: { kind: 'expression', expected: '2 + sqrt(2)', variables: [] },
+  solution: [
+    t`${math`(${1} + \sqrt{${2}})^{${2}} = ${1} + ${2}\sqrt{${2}} + ${2} = ${3} + ${2}\sqrt{${2}}`}.`,
+    t`Multiply by ${math`x^{${2}}`} (not ${0}): ${math`x^{${4}} - ${12}x^{${2}} + ${4} = ${0}`}, a quadratic in ${math`x^{${2}}`}, so ${math`x^{${2}} = \frac{${12} \pm \sqrt{${144} - ${16}}}{${2}} = ${6} \pm ${4}\sqrt{${2}}`}.`,
+    t`${math`${6} + ${4}\sqrt{${2}} = ${2}(${3} + ${2}\sqrt{${2}}) = ${2}(${1} + \sqrt{${2}})^{${2}}`}, so its square roots are ${math`\pm\sqrt{${2}}(${1} + \sqrt{${2}}) = \pm(${2} + \sqrt{${2}})`}. In the same way ${math`${6} - ${4}\sqrt{${2}}`} gives ${math`\pm(${2} - \sqrt{${2}})`}.`,
+    t`The four solutions are ${math`\pm(${2} + \sqrt{${2}})`} and ${math`\pm(${2} - \sqrt{${2}})`}; the largest is ${math`${2} + \sqrt{${2}}`}.`,
+    t`Treat an equation in even powers only as a quadratic in the square.`,
+  ],
+  reference: '2 + sqrt(2)',
+  verify: () => {
+    const roots = [2 + R2, 2 - R2, -2 + R2, -2 - R2];
+    const bad = roots.find((r) => !close(r * r + 4 / (r * r), 12));
+    if (bad !== undefined) return `${bad} is not a solution`;
+    return same('the largest root', Math.max(...roots) === 2 + R2, true);
+  },
+  misconceptions: [{ response: '2 - sqrt(2)', why: t`That is a solution, but not the largest: ${math`${2} + \sqrt{${2}}`} is bigger, and it solves the equation too.` }],
+  official: { source: cite(F01H, 'Q1(iv)'), answer: '2 + sqrt(2)', agrees: true },
 });
 
 // ---------------------------------------------------------------- lesson
@@ -502,14 +455,15 @@ export const quadraticEquations: TopicContent = {
   generators: [solveQuadratic, repeatedRoot, hiddenQuadratic],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['quadratic-formula', 'discriminant'],
-  cambridge: withUses([mildredWait, twoRates, showQuadratic, a1q2ii, a2q2vi, a1q2i], {
+  cambridge: withUses([twoRates, a1q2ii, a1q2i, hidden], {
+    'a1-q1-iv': { sections: ['Quadratics in disguise'], note: t`Solving a quadratic in disguise with surd roots`, needs: ['alg.surds'] },
     'a1-q2-i': { sections: ['Factorising', 'Quadratics in disguise'], note: t`Clearing the fractions to reach a quadratic, then checking no root makes a denominator zero` },
     's2-q5-two-values': { sections: ['Quadratics in disguise', 'Factorising'], note: t`Spotting a quadratic in a new letter and solving it` },
-    'a2-q2-vi': { sections: ['The formula, derived'], note: t`Completing the square, then the greatest and least values on an interval`, needs: ['fn.quadratic-graphs'] },
   }),
-  // The two values of the exponential test the quadratic. The write-up (s2-q5-show) and Mildred's first text
-  // both need Poisson processes, not yet met here, so neither gates. Assignment 2 Q2(vi) asks for greatest and
-  // least values on an interval, taught in fn.quadratic-graphs, so it is practice. The repeated root is one step.
+  // The two values of the exponential test the quadratic. The write-up of STEP 2 Statistics Q5 and Mildred's first
+  // text need Poisson processes, so they are left to prob.poisson-rates, which sets the first and works the
+  // second (Rule 1, 2026-10-08). Assignment 2 Q2(vi) asks for greatest and
+  // least values on an interval, so it is left to fn.quadratic-graphs, which works it. The repeated root is one step.
   // Assignment 1 Q2(i) hides a quadratic behind two fractions.
   gate: ['s2-q5-two-values', 'a1-q2-i'],
   recall: [

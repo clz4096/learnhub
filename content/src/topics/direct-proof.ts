@@ -509,18 +509,6 @@ const scratch = supervision({
  *    y, other than x (5).
  * 5. Then xy is a multiple of (ab/g) g = ab (4).
  */
-const ns2q15 = supervision({
-  id: 'ns2-q15',
-  source: cite('ia-ns-sheet-2', 'Q15, first part'),
-  title: t`Products in a block of consecutive numbers`,
-  prompt: t`Let ${math`a < b`} be distinct natural numbers. Prove that every block of ${math`b`} consecutive natural numbers contains two distinct numbers whose product is a multiple of ${math`ab`}.`,
-  hints: [
-    t`Among ${math`b`} consecutive numbers, why is one a multiple of ${math`b`}?`,
-    t`If the block holds a different multiple of ${ma}, what follows?`,
-    t`Otherwise, with ${math`g`} the highest common factor of ${ma} and ${math`b`}, why does the block hold another multiple of ${math`g`}?`,
-  ],
-  writeUp: 'proof',
-});
 
 // ---------------------------------------------------------------- Cambridge problems moved here (Rule 1, 2026-10-08)
 
@@ -919,6 +907,21 @@ const step2004 = supervision({
   official: cite('step-f03-hints', 'Q3'),
 });
 
+// Rule 1 (2026-10-08): set here from logic.implication, the earliest topic that teaches everything it needs.
+const prop10 = supervision({
+  id: 'notes-50-prop10',
+  source: cite('cst-dm-notes', 'printed page 50, Proposition 10'),
+  title: t`If ${math`\sqrt{x}`} is rational, so is ${math`x`}`,
+  prompt: t`Let ${math`x`} be a positive real number. Prove that if ${math`\sqrt{x}`} is rational, then so is ${math`x`}. State the assumption and the conclusion.`,
+  writeUp: 'proof',
+  hints: [
+    t`What does it mean for ${math`\sqrt{x}`} to be rational, written with integers?`,
+    t`How is ${math`x`} related to ${math`\sqrt{x}`}, and what does that give for ${math`x`} in terms of those integers?`,
+    t`Why is the result a ratio of integers with a non-zero denominator?`,
+  ],
+  official: cite('cst-dm-notes', 'printed page 51, the notes\' proof'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const [mn, mk, mm] = [math`n`, math`k`, math`m`];
@@ -1010,12 +1013,13 @@ export const directProof: TopicContent = {
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['direct-proof', 'scratch-work', 'lemma'],
   cambridge: withUses([
-    bop47, bop419, bop46, bop410, tmuaR3, tmua72, bop49, bop413, bop424, scratch, ns2q15,
+    bop47, bop419, bop46, bop410, tmuaR3, tmua72, bop49, bop413, bop424, scratch, 
     // Moved here (2026-10-08): first those that need only this lesson and what it builds on, then those that also lean on an earlier lesson outside it.
     unitPair, ns2q12i, a12ii, a7Show, bananasShow, ns1q4Proof, sw131d, a7ShowCubic, thm11,
     ns2q13, a7Unique, a7Bound, a7Bound3, ns2q12ii, sw116, eProof, fProof, sw421aProof, sw421bProof, lp16, largeX, step2005, specQ1, step04Lines, step2004,
+    prop10,
   ], {
-    'ns2-q15': { sections: ['The method'], note: t`Finding multiples inside a block of consecutive numbers`, needs: ['pre.hcf-lcm'] },
+    'notes-50-prop10': { sections: ['The method'], note: t`Proving an implication about rational numbers`, needs: ['num.number-systems'] },
     'notes-35-scratch': { sections: ['What a proof is', 'The method'], note: t`Turning scratch work into a proof in sentences` },
     'step00-q1-unit': { sections: ['What a proof is', 'The method'], note: t`Spotting a pattern in two examples, then proving it for every unit fraction by adding fractions with letters` },
     'ns2-q12-i': { sections: ['The method'], note: t`Finding the remainders of large powers to show a sum has a factor` },
@@ -1043,13 +1047,13 @@ export const directProof: TopicContent = {
     'step04-q6': { sections: ['The method'], note: t`Equations of lines through points given in letters, where they meet, and the rule for perpendicular gradients`, needs: ['geom.straight-lines'] },
     'a3-q3': { sections: ['The method'], note: t`Areas under step graphs as sums, including a geometric sum`, needs: ['fn.floor-function'] },
   }),
-  // The IA block question first: a direct proof with a case the first idea misses. Then the CST
-  // notes' scratch work turned into a written proof. The Book of Proof exercises are good practice but easier.
+  // The CST notes' scratch work turned into a written proof. The IA block question needs HCF and LCM, so it is
+  // set in pre.hcf-lcm (Rule 1, 2026-10-08). The Book of Proof exercises are good practice but easier.
   // Then four proofs moved here from earlier topics (2026-10-08) that ask only for this lesson and what it
   // builds on: the unit fractions guessed in scratch work, the factor of a sum of powers, n^3 - n and 6, and
   // the roots of a quadratic, where dividing by alpha - beta needs it to be non-zero. The other moved
   // proofs are practice: shorter, a step from an exercise, or leaning on an earlier lesson outside this one.
-  gate: ['ns2-q15', 'notes-35-scratch', 'step00-q1-unit', 'ns2-q12-i', 'a12-q1-ii-six', 'a7-q2-i-ii'],
+  gate: ['notes-35-scratch', 'step00-q1-unit', 'ns2-q12-i', 'a12-q1-ii-six', 'a7-q2-i-ii'],
   recall: [
     { front: t`What is a direct proof of "if ${math`P`} then ${math`Q`}"?`, back: t`Assume ${math`P`}, unpack the definitions, deduce step by step, and arrive at ${math`Q`}.` },
     { front: t`Define ${math`d \mid n`}.`, back: t`${math`n = d \cdot k`} for some integer ${mk}.` },

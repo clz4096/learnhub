@@ -19,7 +19,7 @@ import { GATE_DOCS, formalNumbers, gateCandidates, lessonSections, proofOrderAns
 import { CITED_DOCS, FIRST_PROOF_TOPIC, MAX_HINTS, citationText, isProofWriteUp, personalWords, withUses, type CambridgeProblem, type Citation } from './cambridge';
 import { contentFor } from './all';
 import { CONTENT_IDS, TOPIC_LOADERS, catalogProblem, gateOf, hasContent, loadTopicContent } from './index';
-import { BOOK_ORDER } from './book/book';
+import { BOOK_ORDER, isFlagged } from './book/book';
 import { MOVED_PROBLEMS } from './topics/moved';
 import { MOVED_PROBLEMS as CATALOG_MOVED, currentProblemKey } from './catalog.generated';
 
@@ -663,11 +663,10 @@ describe('what each Cambridge problem draws on', () => {
   /**
    * Topics whose gate still needs a topic later in the book. The three of the gatefit audit
    * (2026-10-06) are fixed: comb.permutations and an.sequence-limits have new gates, and
-   * geom.circles teaches touching and the double angle itself. Explicit, so a new misfit fails
-   * here and a fixed one is taken off the list. proof.direct (2026-10-07): ns2-q15 step 3 uses
-   * HCF and LCM, which the book places later (STEP Foundation Assignment 10), so it is a label.
+   * geom.circles teaches touching and the double angle itself. proof.direct's ns2-q15, which uses
+   * HCF and LCM, is set in pre.hcf-lcm (Rule 1, 2026-10-08). Explicit, so a new misfit fails here.
    */
-  const GATE_NEEDS_LATER: ReadonlySet<string> = new Set(['proof.direct']);
+  const GATE_NEEDS_LATER: ReadonlySet<string> = new Set();
 
   it('every gate problem says what it draws on, from at least one section of its lesson', () => {
     for (const c of TOPIC_CONTENT) {
@@ -747,22 +746,70 @@ describe('what each Cambridge problem draws on', () => {
     expect(waiting).toEqual([]);
   });
 
-  it('a moved problem is a written proof in a proof topic, later in the book, whose needs are earlier lessons', () => {
+  /**
+   * Rule 1 (mastery/HOW-A-TOPIC-WORKS.md): every Cambridge problem sits in the earliest topic where
+   * everything it needs has been taught. So nothing a problem leans on comes later in the book than its
+   * topic: not a topic it needs, nor any prerequisite of its topic or of those needs. The one exception is
+   * a prerequisite gap the book records with its reason (`PREREQ_FLAGS`, such as IA Probability's double
+   * integrals before IA Vector Calculus teaches them), which is not followed.
+   */
+  it('no Cambridge problem needs a topic later in the book than its own (Rule 1)', () => {
+    const late: string[] = [];
+    for (const c of TOPIC_CONTENT) {
+      const at = BOOK_ORDER.indexOf(c.topicId);
+      expect(at, `${c.topicId} is not in the book`).toBeGreaterThanOrEqual(0);
+      for (const p of c.cambridge) {
+        const needs = p.uses?.needs ?? [];
+        const seen = new Set<string>();
+        const todo = [c.topicId, ...needs];
+        for (let x = todo.pop(); x !== undefined; x = todo.pop()) {
+          if (seen.has(x)) continue;
+          seen.add(x);
+          for (const pre of byId.get(x)?.prereqs ?? []) if (!isFlagged(x, pre)) todo.push(pre);
+        }
+        seen.delete(c.topicId);
+        for (const n of seen) {
+          const nAt = BOOK_ORDER.indexOf(n);
+          if (nAt < 0 || nAt > at) late.push(`${c.topicId}/${p.id} needs ${n}${needs.includes(n) ? '' : ' (a prerequisite)'}`);
+        }
+      }
+    }
+    expect(late).toEqual([]);
+  });
+
+  /**
+   * Copies of an exercise already set where Rule 1 puts it (topics/moved.ts): each old key to the id of the
+   * problem it now reads as. That problem was not moved, so it keeps its own gate and needs.
+   */
+  const MERGED_COPIES: Readonly<Record<string, string>> = {
+    'pre.algebraic-manipulation/a7-q3-show': 'a7-q3-show',
+    'alg.polynomials/a18-q3': 'a18-q3',
+    'fp.trees/focs-7-6': 'focs-7-6',
+    'prob.normal-distribution/ia4-q6-b': 'ia-s4-q6-b',
+    'pre.mutually-exclusive/a12-q3-ii': 'a12-q3-ii-show',
+    'alg.telescoping/a24-q3-proof': 'a24-q3',
+    'pre.quadratic-equations/s2-q5-show': 's2-q5-george',
+  };
+
+  it('a moved problem is later in the book than where it was, every topic it needs is earlier, and a gate needs none', () => {
     const first = BOOK_ORDER.indexOf(FIRST_PROOF_TOPIC);
-    expect(Object.keys(MOVED_PROBLEMS).length).toBeGreaterThan(40);
+    expect(Object.keys(MOVED_PROBLEMS).length).toBeGreaterThan(90);
     for (const [from, to] of Object.entries(MOVED_PROBLEMS)) {
-      const [fromTopic] = from.split('/') as [string, string];
+      const [fromTopic, fromId] = from.split('/') as [string, string];
       const [toTopic, id] = to.split('/') as [string, string];
       const c = contentFor(toTopic) as TopicContent;
       const p = c.cambridge.find((q) => q.id === id);
-      expect(p !== undefined && isProofWriteUp(p), to).toBe(true);
-      expect(BOOK_ORDER.indexOf(fromTopic), from).toBeLessThan(first);
-      expect(BOOK_ORDER.indexOf(toTopic), to).toBeGreaterThanOrEqual(first);
-      expect(toTopic === FIRST_PROOF_TOPIC || closure(toTopic).has(FIRST_PROOF_TOPIC), `${to} does not build on ${FIRST_PROOF_TOPIC}`).toBe(true);
+      expect(p, to).toBeDefined();
+      expect(BOOK_ORDER.indexOf(fromTopic), from).toBeGreaterThanOrEqual(0);
+      expect(BOOK_ORDER.indexOf(toTopic), to).toBeGreaterThan(BOOK_ORDER.indexOf(fromTopic));
+      // A written proof is set no earlier than the first proof lesson, unless its new topic builds on it.
+      if (p !== undefined && isProofWriteUp(p) && !closure(toTopic).has(FIRST_PROOF_TOPIC)) expect(BOOK_ORDER.indexOf(toTopic), to).toBeGreaterThanOrEqual(first);
       // Every topic it needs outside its new topic's prerequisites comes before it in the book, so it has been taught.
       for (const n of p?.uses?.needs ?? []) expect(BOOK_ORDER.indexOf(n), `${to} needs ${n}`).toBeLessThan(BOOK_ORDER.indexOf(toTopic));
       // A gate asks only for its own lesson and what it builds on.
-      if (c.gate.includes(id)) expect(p?.uses?.needs ?? [], `${to} gates but needs more`).toEqual([]);
+      if (c.gate.includes(id) && !Object.hasOwn(MERGED_COPIES, from)) expect(p?.uses?.needs ?? [], `${to} gates but needs more`).toEqual([]);
+      // The id is kept, except for a copy merged into the problem it copies.
+      expect(id, from).toBe(MERGED_COPIES[from] ?? fromId);
     }
   });
 
@@ -891,7 +938,8 @@ describe('loading on demand', () => {
       expect(catalogProblem(fromTopic, fromId), `${from} is still set`).toBeUndefined();
       expect(catalogProblem(toTopic, toId), `${to} is not a problem`).toBeDefined();
       expect(Object.hasOwn(MOVED_PROBLEMS, to), `${to} moved again`).toBe(false);
-      expect(toId, from).toBe(fromId);
+      // Ids are kept, except where a copy now reads as the problem it copies (checked above, with the list).
+      if (toId !== fromId) expect(['ia-s4-q6-b', 'a12-q3-ii-show', 'a24-q3', 's2-q5-george'], from).toContain(toId);
     }
   });
 

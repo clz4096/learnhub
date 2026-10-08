@@ -126,7 +126,6 @@
         "proof.direct/bop-4-13: Two cases from a factorisation",
         "proof.direct/bop-4-24: Long runs of composite numbers",
         "proof.direct/notes-35-scratch: From scratch work to a proof",
-        "proof.direct/ns2-q15: Products in a block of consecutive numbers",
         "proof.direct/step00-q1-unit: A unit fraction as two unit fractions",
         "proof.direct/ns2-q12-i: A sum of powers that is not prime",
         "proof.direct/a12-q1-ii-six: n^3 - n and 6",
@@ -151,7 +150,8 @@
         "proof.direct/a1-q3: Two fractions equal to one",
         "proof.direct/stepspec-q1-i: Where a conic can be",
         "proof.direct/step04-q6: Lines through a triangle, in letters",
-        "proof.direct/a3-q3: Integrals of the floor function"
+        "proof.direct/a3-q3: Integrals of the floor function",
+        "proof.direct/notes-50-prop10: If √(x) is rational, so is x"
       ],
       "gapList": [
         "logic.implication: Implication",
@@ -180,7 +180,6 @@
         "proof.direct/bop-4-13: Two cases from a factorisation",
         "proof.direct/bop-4-24: Long runs of composite numbers",
         "proof.direct/notes-35-scratch: From scratch work to a proof",
-        "proof.direct/ns2-q15: Products in a block of consecutive numbers",
         "proof.direct/step00-q1-unit: A unit fraction as two unit fractions",
         "proof.direct/ns2-q12-i: A sum of powers that is not prime",
         "proof.direct/a12-q1-ii-six: n^3 - n and 6",
@@ -205,7 +204,8 @@
         "proof.direct/a1-q3: Two fractions equal to one",
         "proof.direct/stepspec-q1-i: Where a conic can be",
         "proof.direct/step04-q6: Lines through a triangle, in letters",
-        "proof.direct/a3-q3: Integrals of the floor function"
+        "proof.direct/a3-q3: Integrals of the floor function",
+        "proof.direct/notes-50-prop10: If √(x) is rational, so is x"
       ],
       "gapList": [
         "logic.implication: Implication",

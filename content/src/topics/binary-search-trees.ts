@@ -237,6 +237,20 @@ const isBst = supervision({
   writeUp: 'explanation',
 });
 
+// Rule 1 (2026-10-08): set here from fp.functors, the earliest topic that teaches everything it needs.
+const functorBst = supervision({
+  id: 'cs3110-9-functorized-bst',
+  source: cite('cs3110-ex9', 'Exercise: functorized BST'),
+  title: t`A functorized binary search tree`,
+  prompt: t`Implement a ${ml`BstSet`} abstraction as a functor parameterised on a structure that supplies the client's comparison, much like the standard library's ${ml`Set.Make`}, so that clients can, for example, ignore case in strings. Give the signatures of the parameter and the result.`,
+  writeUp: 'explanation',
+  hints: [
+    t`Which type and which comparison function must the parameter supply?`,
+    t`How do insertion and membership in the tree use that comparison instead of the built in one?`,
+    t`What should the result signature expose, and what should it keep abstract?`,
+  ],
+});
+
 // ---------------------------------------------------------------- lesson
 
 export const binarySearchTrees: TopicContent = {
@@ -291,7 +305,8 @@ export const binarySearchTrees: TopicContent = {
   generators: [heightGen, lookupGen, traversalGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['binary-search-tree', 'tree-height'],
-  cambridge: withUses([focs71b, focs74, focs76, focs77, isBst], {
+  cambridge: withUses([focs71b, focs74, focs76, focs77, isBst, functorBst], {
+    'cs3110-9-functorized-bst': { sections: ['Halving the search'], note: t`A binary search tree set as a functor`, needs: ['fp.functors'] },
     'focs-7-6': { sections: ['Height decides the cost', 'Reading the tree back'], note: t`The quadratic cost of traversals with append` },
     'focs-7-4': { sections: ['Halving the search', 'Reading the tree back'], note: t`Deleting from a binary search tree in every case` },
   }),

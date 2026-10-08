@@ -274,20 +274,6 @@ const a12q3i = auto({
   ],
 });
 
-const a12q3ii = supervision({
-  id: 'a12-q3-ii',
-  source: cite('step-f12', 'Assignment 12, Q3(ii)'),
-  title: t`Two ${math`\pounds ${2}`} coins`,
-  prompt: t`In the raffle queue above, show by considering the first three people in the queue that the probability that I am able to sell one ticket to each person in the case ${math`n = ${2}`} and ${math`m \ge ${2}`} is ${math`\frac{m - ${1}}{m + ${1}}`}. State which cases are added, and why they are mutually exclusive and cover every successful queue.`,
-  writeUp: 'proof',
-  official: cite('step-f12-hints', 'Assignment 12, Q3(ii)'),
-  hints: [
-    t`If the first person has a ${math`\pounds ${2}`} coin, can a ticket be sold?`,
-    t`If the first two people both have ${math`\pounds ${1}`} coins, why does every order of the rest succeed?`,
-    t`If the first has ${math`\pounds ${1}`} and the second ${math`\pounds ${2}`}, what must the third have, and why does every order after that succeed?`,
-  ],
-});
-
 // 2016 STEP I Q12: Alice and Bob toss coins.
 const step16Coins = supervision({
   id: 'step16-q12',
@@ -350,12 +336,11 @@ export const mutuallyExclusive: TopicContent = {
   generators: [spinGen, missGen, notGen, orGen],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['mutually-exclusive', 'exhaustive-events'],
-  cambridge: withUses([a12q3i, a12q3ii, a12q2, step16Coins], {
+  cambridge: withUses([a12q3i, a12q2, step16Coins], {
     'step16-q12': { sections: ['Either, never both', 'Splitting into cases'], note: t`Splitting into exclusive cases, and using that exhaustive cases add up to one` },
-    'a12-q3-ii': { sections: ['Splitting into cases'], note: t`Adding the probabilities of disjoint successful queues`, needs: ['pre.tree-diagrams'] },
     'a12-q3-i': { sections: ['Splitting into cases'], note: t`The probability the queue never runs out of change, by its one bad case` },
   }),
-  // Assignment 12 Q3(i). Part (ii) multiplies probabilities along the queue (pre.tree-diagrams, later), so it is practice.
+  // Assignment 12 Q3(i). Part (ii) multiplies probabilities along the queue, so it is left to prob.counting-probability, which gates on it.
   gate: ['a12-q3-i', 'step16-q12'],
   recall: [
     { front: t`When is ${math`P(A \text{ or } B) = P(A) + P(B)`}?`, back: t`When ${mA} and ${mB} are mutually exclusive: they cannot both happen.` },

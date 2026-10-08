@@ -269,15 +269,17 @@ describe('what a Cambridge problem draws on', () => {
     // Fractions come through sigma notation since the gatefit prerequisites (2026-10-06), so only the direct prerequisite is linked.
     expect(within(gate).queryByRole('link', { name: 'Fractions and ratios' })).toBeNull();
     expect(within(gate).queryByText('Also needs')).toBeNull();
+    cleanup();
+    await open('calc.standard-integrals');
     const practice = uses('a24-q3');
     expect(within(practice).getByText('Also needs')).toBeTruthy();
     expect(within(practice).getByRole('link', { name: 'Integration by parts' })).toBeTruthy();
   });
 
   it('a proof shows what a proof needs, and before the first proof lesson says that lesson comes later', async () => {
-    // Laws of indices sets a proof as further practice, before the book reaches Direct proof.
-    await open('pre.indices');
-    const proof = uses('a12-q1-iii');
+    // Integer solutions of linear equations sets a proof as further practice, before the book reaches Direct proof.
+    await open('num.linear-diophantine');
+    const proof = uses('a3-q4');
     expect(within(proof).getByText('A proof needs')).toBeTruthy();
     const points = [...proof.querySelectorAll('ol.proof-needs li')].map((li) => li.textContent);
     expect(points).toEqual([
@@ -288,8 +290,7 @@ describe('what a Cambridge problem draws on', () => {
     ]);
     expect(proof.textContent).toMatch(/Writing proofs is taught in Direct proof, which comes later in the course\./);
     expect(within(proof).queryByRole('link', { name: 'Direct proof' })).toBeNull();
-    expect(document.querySelector('[data-problem="a12-q1-iii"] .citation')?.textContent).not.toMatch(/gate problem/);
-    expect(within(uses('nst-a1')).queryByText('A proof needs')).toBeNull();
+    expect(document.querySelector('[data-problem="a3-q4"] .citation')?.textContent).not.toMatch(/gate problem/);
   });
 
   it('after the first proof lesson in the book, a proof links to it', async () => {

@@ -276,37 +276,6 @@ const a19q2iv = auto({
   official: { source: cite(F19H, 'Q2(iv)'), answer: '(5 + y)/(2x + 5)', agrees: true },
 });
 
-const a2q2iii = auto({
-  id: 'a2-q2-iii',
-  source: cite('step-f02', 'Q2(iii)'),
-  title: t`The greatest value of a line on an interval`,
-  prompt: t`Sketch ${math`y = mx + ${1}`} for ${math`-${2} \le x \le ${2}`} in the cases ${math`m > ${0}`}, ${math`m = ${0}`}, and ${math`m < ${0}`}. Find a single expression for the greatest value of ${math`mx + ${1}`} on this range, valid for every ${math`m`}. (Type ${math`|m|`} as abs(m).)`,
-  nudge: t`Not quite. A line is greatest at an end of the interval; which end depends on the sign of ${math`m`}.`,
-  hints: [
-    t`Where on ${math`-${2} \le x \le ${2}`} is a rising line greatest, and where is a falling line greatest?`,
-    t`What are the greatest values in the cases ${math`m > ${0}`}, ${math`m = ${0}`}, and ${math`m < ${0}`}?`,
-    t`Which single expression with ${math`|m|`} matches all three cases?`,
-  ],
-  answer: { kind: 'expression', expected: '1 + 2abs(m)', variables: ['m'] },
-  solution: [
-    t`A line is greatest at one end of an interval. If ${math`m > ${0}`} it rises, so the greatest value is at ${math`x = ${2}`}: ${math`${2}m + ${1}`}.`,
-    t`If ${math`m < ${0}`} it falls, so the greatest is at ${math`x = -${2}`}: ${math`-${2}m + ${1}`}. If ${math`m = ${0}`} it is ${1} everywhere.`,
-    t`All three are ${math`${1} + ${2}|m|`}, since ${math`|m| = m`} for ${math`m \ge ${0}`} and ${math`|m| = -m`} for ${math`m < ${0}`}. (The least value is ${math`${1} - ${2}|m|`}.)`,
-    t`Split by sign, then combine the cases with a modulus.`,
-  ],
-  reference: '1 + 2abs(m)',
-  verify: () => {
-    for (const m of [-3, -0.5, 0, 0.7, 4]) {
-      let best = -Infinity;
-      for (let i = 0; i <= 400; i++) best = Math.max(best, m * (-2 + i / 100) + 1);
-      if (Math.abs(best - (1 + 2 * Math.abs(m))) > 1e-9) return `m = ${m}: greatest ${best}`;
-    }
-    return null;
-  },
-  misconceptions: [{ response: '1 + 2m', why: t`For ${math`m < ${0}`} the line falls, so its greatest value is at ${math`x = -${2}`}, which is ${math`${1} - ${2}m`}. Combine the cases with ${math`|m|`}.` }],
-  official: { source: cite('step-f02-hints', 'Q2(iii)'), answer: '2abs(m) + 1', agrees: true },
-});
-
 // ---------------------------------------------------------------- lesson
 
 const PT_EX: PtP = { x1: 3, y1: -1, mn: 2, md: 1 };
@@ -375,12 +344,11 @@ export const straightLines: TopicContent = {
   generators: [throughPoint, perpendicular, equidistant],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['gradient', 'perpendicular-gradients', 'distance-formula'],
-  cambridge: withUses([a19q2i, a19q2iii, a19q2iv, a2q2iii], {
-    'a2-q2-iii': { sections: ['Gradient and the equation of a line'], note: t`The greatest value of a line on an interval, written with a modulus`, needs: ['fn.modulus'] },
+  cambridge: withUses([a19q2i, a19q2iii, a19q2iv], {
     'a19-q2-iii': { sections: ['Gradient and the equation of a line'], note: t`When two equations describe the same line` },
   }),
   // Assignment 19 Q2(iii). 2004 STEP I Q6 is a written proof, so it is set in proof.direct, the first topic
-  // that teaches writing one (Rule 1, 2026-10-08). Assignment 2 Q2(iii) needs a modulus in its answer, taught later, so it is practice.
+  // that teaches writing one (Rule 1, 2026-10-08). Assignment 2 Q2(iii) needs a modulus in its answer, so it is set in fn.modulus.
   gate: ['a19-q2-iii'],
   recall: [
     { front: t`The line through ${math`(x_{${1}}, y_{${1}})`} with gradient ${math`m`}?`, back: t`${math`y - y_{${1}} = m(x - x_{${1}})`}.` },

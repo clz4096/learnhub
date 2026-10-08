@@ -269,6 +269,59 @@ const a23q3i = supervision({
   official: cite('step-f23-hints', 'Q3(i)'),
 });
 
+const POS = { x: { kind: 'real' as const, min: 0.5, max: 6 }, y: { kind: 'real' as const, min: 0.5, max: 6 } };
+// Rule 1 (2026-10-08): set here from geom.euclidean-proof, the earliest topic that teaches everything it needs.
+const a21q4 = auto({
+  id: 'a21-q4',
+  source: cite('step-f21', 'Q4(i)'),
+  title: t`A right triangle from its two tangent lengths`,
+  prompt: t`A circle touches all three sides of a right-angled triangle. The hypotenuse is split by its point of contact into lengths ${math`x`} and ${math`y`}. Find the area of the triangle in terms of ${math`x`} and ${math`y`}.`,
+  answer: { kind: 'expression', expected: 'x*y', variables: ['x', 'y'], domains: POS },
+  solution: [
+    t`Let the radius be ${math`r`}. Tangents from a point to a circle have equal length, so the legs are ${math`x + r`} and ${math`y + r`} (the two tangents from the right-angle vertex, with the radii, make a square of side ${math`r`}), and the hypotenuse is ${math`x + y`}.`,
+    t`Pythagoras: ${math`(x + r)^{${2}} + (y + r)^{${2}} = (x + y)^{${2}}`}. Expand and cancel ${math`x^{${2}} + y^{${2}}`}: ${math`${2}r(x + y) + ${2}r^{${2}} = ${2}xy`}, so ${math`r^{${2}} + r(x + y) = xy`}.`,
+    t`The area is ${math`\frac{${1}}{${2}}(x + r)(y + r) = \frac{${1}}{${2}}\left(xy + r(x + y) + r^{${2}}\right) = \frac{${1}}{${2}}(xy + xy) = xy`}.`,
+    t`Equal tangents give the sides; Pythagoras eliminates the radius.`,
+  ],
+  nudge: t`Not quite. Bring in the radius ${math`r`}, write every side in terms of ${math`x`}, ${math`y`}, and ${math`r`}, then eliminate ${math`r`}.`,
+  hints: [
+    t`What do equal tangent lengths give for the two legs, in terms of ${math`x`}, ${math`y`}, and the radius ${math`r`}?`,
+    t`What does Pythagoras give, after expanding and cancelling?`,
+    t`How does that relation simplify ${math`\frac{${1}}{${2}}(x + r)(y + r)`}?`,
+  ],
+  reference: 'xy',
+  verify: () => {
+    // Solve r^2 + (x + y) r - xy = 0 for the positive root and compute the area directly.
+    for (const [x, y] of [[2, 3], [1, 5], [4, 4], [0.7, 2.9]] as const) {
+      const r = (-(x + y) + Math.sqrt((x + y) ** 2 + 4 * x * y)) / 2;
+      const legs = [x + r, y + r] as const;
+      if (far(legs[0] ** 2 + legs[1] ** 2, (x + y) ** 2)) return `x = ${x}, y = ${y}: not a right triangle`;
+      if (far((legs[0] * legs[1]) / 2, x * y)) return `x = ${x}, y = ${y}: area ${(legs[0] * legs[1]) / 2}`;
+    }
+    return null;
+  },
+  misconceptions: [
+    { response: 'x*y/2', why: t`Half the product of the legs is the area, but the legs are ${math`x + r`} and ${math`y + r`}, not ${math`x`} and ${math`y`}. Work it through: the halves cancel.` },
+    { response: '(x + y)^2/2', why: t`${math`x + y`} is the hypotenuse, not a leg. Use the tangent lengths to write the legs, then Pythagoras to remove ${math`r`}.` },
+  ],
+  official: { source: cite('step-f21-hints', 'Q4(i)'), answer: 'xy', agrees: true },
+});
+
+// Rule 1 (2026-10-08): set here from geom.euclidean-proof, the earliest topic that teaches everything it needs.
+const a21q4ii = supervision({
+  id: 'a21-q4-ii',
+  source: cite('step-f21', 'Q4(ii)'),
+  title: t`A point on the inscribed circle of a square`,
+  prompt: t`${math`ABCD`} is a square. The arc ${math`BD`} has centre ${math`A`} and radius ${math`AB`}, and meets the circle inscribed in the square at ${math`E`}. Show that the length ${math`CE`} is half the length of the diagonal of the square.`,
+  writeUp: 'proof',
+  hints: [
+    t`With ${math`A`} at the origin and side ${2}, what are the equations of the arc and of the inscribed circle?`,
+    t`Subtracting the two equations, which linear relation do the coordinates of ${math`E`} satisfy?`,
+    t`How does that relation, with the arc's equation, give ${math`CE^{${2}}`} without finding ${math`E`} exactly?`,
+  ],
+  official: cite('step-f21-hints', 'Q4(ii)'),
+});
+
 // ---------------------------------------------------------------- lesson
 
 const EX = { a: 3, b: -1, r: 4 };
@@ -395,7 +448,9 @@ export const circles: TopicContent = {
   generators: [centreRadius, diameterCircle, pointPosition],
   mastery: { correctInARow: 3, maxProblems: 10 },
   terms: ['circle-equation'],
-  cambridge: withUses([a23incircle, a23q3i], {
+  cambridge: withUses([a23incircle, a23q3i, a21q4, a21q4ii], {
+    'a21-q4-ii': { sections: ['When a line touches a circle'], note: t`Lengths in a square with an arc and an inscribed circle`, needs: ['geom.euclidean-proof'] },
+    'a21-q4': { sections: ['When a line touches a circle'], note: t`Equal tangent lengths and Pythagoras for an inscribed circle`, needs: ['geom.euclidean-proof'] },
     'a23-q3-i': { sections: ['A circle as an equation', 'When a line touches a circle', 'Twice an angle'], note: t`A circle touching two lines, with a double angle` },
     'a23-q3-ii': { sections: ['A circle as an equation', 'Completing the square', 'When a line touches a circle'], note: t`Finding the circle that touches three lines` },
   }),
