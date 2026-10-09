@@ -40,7 +40,8 @@ Like the Cambridge end-of-year exams, timed papers mix topics. The timed ladder 
 ## Rule 7: the proof marker is checked
 - Before it is trusted, the AI marker is tested on write-ups of known quality: official model solutions (must score high) and copies with one deliberate flaw (must score low).
 - Where an official STEP mark scheme exists, the marker is given it and marks against it.
-- Later, a person marks about 15 of the written proofs and the two sets of marks are compared. The marker's instructions are adjusted until they agree.
+- The human reference is the official STEP examiner reports, which record how real examiners awarded marks and the common mistakes candidates made. For questions with a report, write-ups are built that make the mistakes the examiners describe, and the marker must take off marks the way the examiners did.
+- The marker's instructions are adjusted until both checks pass. If a person becomes available later, their marks on about 15 written proofs are compared the same way.
 
 ## Rule 8: the readiness bar learns from results
 - The first timed question unlocks at a share of an exam's topics mastered (60 percent to start).
@@ -56,6 +57,6 @@ Like the Cambridge end-of-year exams, timed papers mix topics. The timed ladder 
 1. About 42 written-proof problems move from early topics into the proof topics that teach everything they need. (in progress)
 2. Single-answer Cambridge problems give hints on a miss, not the solution. (in progress)
 3. Cold retests at about 7 and 30 days (Rule 6). (new, draft 3)
-4. Marker checks (Rule 7). (new, draft 3)
+4. Marker checks (Rule 7), with the examiner reports as the human reference (amended 2026-10-08).
 5. Readiness bar learns from results (Rule 8). (new, draft 3)
 Everything else already works this way.
