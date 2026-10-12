@@ -80,6 +80,9 @@ export interface Instance {
   trial?: (rng: Rng) => boolean;
 }
 
+/** A generator's place in a topic's practice set, easiest first. */
+export type GeneratorLevel = 'easy' | 'standard' | 'harder';
+
 export interface GeneratorSpec<P> {
   /** Unique within the topic. */
   id: string;
@@ -87,6 +90,8 @@ export interface GeneratorSpec<P> {
   skill: string;
   /** Answered in about a minute on a phone, so gym mode may use it as a quick drill. */
   quick?: boolean;
+  /** Where it sits in the practice set: easy, standard, or harder (HOW-A-TOPIC-WORKS.md Rule 2). Unset reads as standard. */
+  level?: GeneratorLevel;
   params(rng: Rng): P;
   sane(p: P): string | null;
   problem(p: P): Problem;
@@ -102,6 +107,8 @@ export interface Generator<P = unknown> {
   skill: string;
   /** See `GeneratorSpec.quick`. */
   quick?: boolean;
+  /** See `GeneratorSpec.level`. */
+  level?: GeneratorLevel;
   /** The problem for a seed. Deterministic. */
   instance(seed: number): Instance;
   /** The problem for given parameters, for worked examples. */
@@ -124,6 +131,7 @@ export function generator<P>(g: GeneratorSpec<P>): Generator<P> {
   };
   const out: Generator<P> = { id: g.id, skill: g.skill, at, instance: (seed) => ({ ...at(g.params(mulberry32(seed))), seed }) };
   if (g.quick === true) out.quick = true;
+  if (g.level !== undefined) out.level = g.level;
   return out;
 }
 

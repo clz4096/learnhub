@@ -1,6 +1,6 @@
 # How a topic works
 
-Dated 2026-10-08. Status: approved by Albert 2026-10-08 (draft 3). The rules a topic follows from lesson to mastery; the app's wording is in [APP-LANGUAGE.md](APP-LANGUAGE.md).
+Dated 2026-10-08. Status: approved by Albert 2026-10-08 (draft 3); draft 4 (Rule 2 practice sets, Rule 9 struggle signal) approved 2026-10-12. The rules a topic follows from lesson to mastery; the app's wording is in [APP-LANGUAGE.md](APP-LANGUAGE.md).
 
 ## The words
 - **Topic:** one idea, like Fractions or Direct proof. The book is a list of topics in order.
@@ -17,6 +17,9 @@ Every Cambridge problem sits in the earliest topic where all the skills it needs
 ## Rule 2: the order you meet things in
 1. Read the lesson.
 2. Pass the practice. The topic is **learned**; the next topics open.
+   - The practice set is about 10 to 12 problems, easy to standard to harder, with every skill in the lesson appearing at least twice.
+   - Passing: at least 8 of 10 right, and every skill answered right at least once.
+   - **More practice** is always available, before or after passing. It counts toward nothing, so extra practice never hurts.
 3. Try a Cambridge problem. Above it the app says what it tests and what it builds on.
 4. Solve one on your own and the topic is **mastered**.
 
@@ -48,6 +51,12 @@ Like the Cambridge end-of-year exams, timed papers mix topics. The timed ladder 
 - Before each timed paper the app records its predicted score; after marking it records the real one.
 - The bar adjusts from those results, and the gap between predicted and real scores is shown.
 
+## Rule 9: struggle is a signal
+- The app records how often the first answer is right, per topic and per skill.
+- If a skill stays weak (for example, under 60 percent right on the first try across the practice set), the app shows "This skill needs another look" with a link back to that lesson section.
+- The topic is also added to a **lessons to revisit** list. A lesson that keeps producing struggle is a candidate for rewriting.
+- With one learner, the signal mixes "the lesson is unclear" with "this is hard for me"; it is still the best signal available.
+
 ## Reviews and the rest
 - Learned and mastered topics come back at growing intervals.
 - Gym mode and mixed review earn REP but never master a topic.
@@ -59,4 +68,5 @@ Like the Cambridge end-of-year exams, timed papers mix topics. The timed ladder 
 3. Cold retests at about 7 and 30 days (Rule 6). (new, draft 3)
 4. Marker checks (Rule 7), with the examiner reports as the human reference (amended 2026-10-08).
 5. Readiness bar learns from results (Rule 8). (new, draft 3)
+6. Fuller practice sets and the new pass rule (Rule 2), and struggle tracking (Rule 9). (approved, draft 4)
 Everything else already works this way.
