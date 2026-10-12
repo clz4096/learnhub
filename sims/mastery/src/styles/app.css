@@ -198,6 +198,14 @@ th { background: var(--surface-2); }
 .streak { display: flex; align-items: center; gap: 6px; margin: 0 0 var(--space-2); flex-wrap: wrap; }
 .dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--good); background: transparent; display: inline-block; }
 .dot.on { background: var(--good); }
+.dot.miss { border-color: var(--warning); background: var(--warning-bg); }
+.lesson-more { margin: 0; }
+.weak-skills { margin: var(--space-2) 0; }
+.weak-skill { border-left: 3px solid var(--warning); padding: var(--space-1) var(--space-3); margin: 0 0 var(--space-2); background: var(--warning-bg); border-radius: var(--radius-md); }
+.weak-skill p { margin: 0; }
+.revisit-list > li { padding: var(--space-3) 0; border-bottom: 1px solid var(--line); }
+.revisit-topic { font-size: 1.05rem; margin: 0 0 var(--space-1); }
+.revisit-sort { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
 
 /* problems */
 .problem { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); margin: 0 0 var(--space-3); }

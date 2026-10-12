@@ -232,7 +232,7 @@ export function TaskView({ index }: { index: number }) {
 }
 
 /** A lesson opened from the map or the book, outside today's plan. Back returns where it was opened. */
-export function LearnView({ topicId, fromBook = false }: { topicId: string; fromBook?: boolean }) {
+export function LearnView({ topicId, fromBook = false, section }: { topicId: string; fromBook?: boolean; section?: number }) {
   const p = progress.value;
   const t = topicOf(topicId);
   const [done, setDone] = useState<boolean | null>(null);
@@ -261,6 +261,7 @@ export function LearnView({ topicId, fromBook = false }: { topicId: string; from
       onEnd={(e) => { clearLearnSalt(topicId); void commit(completeLesson(progress.value ?? p, topicId, e.passed, now(), null, t.estMinutes)).then(() => setDone(e.passed)); }}
       onSkip={() => go(backTo)}
       back={{ to: backTo, label: backLabel }}
+      section={section}
     />
   );
 }

@@ -39,7 +39,9 @@ import { PROOF_CHECKLIST, problemKey } from '@/model/supervision';
 import { CopyForSupervision, PasteResult } from '@/ui/Supervision';
 import { learnerSynced } from '@/model/learnerChange';
 import { clearPlace, loadPlace, loadWriteUp, placeEntry, savePlace, saveWriteUp, type LessonPlace, type LessonStage } from '@/model/lessonState';
-import { answer, freshPractice, instanceAt, outcomeOf, type PracticeState } from '@/model/practice';
+import { answer, freshPractice, outcomeOf, practiceInstance, practiceSet, tallyOf, type PracticeItem, type PracticeState } from '@/model/practice';
+import { AppLink } from '@/ui/campaignShared';
+import { WeakSkills } from '@/ui/WeakSkills';
 import { ProblemCard, REVEAL_WARNING, type CambridgeHelp, type CardOutcome, type Consequence } from '@/ui/ProblemCard';
 import type { Route } from '@/model/route';
 import { BackLink } from '@/ui/BackLink';
@@ -254,35 +256,55 @@ export function Example({ e, n }: { e: WorkedExample; n: number }) {
   );
 }
 
-function Dots({ s, need }: { s: PracticeState; need: number }) {
+/** One dot per problem of the set: right on the first try, missed, or still to come. No streak. */
+function Dots({ s, size }: { s: PracticeState; size: number }) {
+  const right = s.results.filter(Boolean).length;
   return (
-    <p class="streak" aria-label={`${s.streak} of ${need} right in a row`}>
-      {Array.from({ length: need }, (_, i) => <span key={i} class={`dot${i < s.streak ? ' on' : ''}`} aria-hidden="true" />)}
-      <span class="small muted"> {s.streak} of {need} right in a row</span>
+    <p class="streak" aria-label={`${right} of ${s.attempts} right on the first try, ${size - s.attempts} to go`}>
+      {Array.from({ length: size }, (_, i) => {
+        const r = s.results[i];
+        return <span key={i} class={`dot${r === true ? ' on' : r === false ? ' miss' : ''}`} aria-hidden="true" />;
+      })}
     </p>
   );
 }
 
-/** What one practice answer does to the run, in the words the result block shows. */
-export function practiceConsequence(s: PracticeState, rule: MasteryRule, o: CardOutcome): Consequence {
-  const next = answer(s, o === 'correct', rule);
-  const need = rule.correctInARow;
+const problems = (n: number): string => `${n} problem${n === 1 ? '' : 's'}`;
+
+/**
+ * What one practice answer does to the run, in the words the result block shows (Rule 2):
+ * the first answer is what counts, and the run passes with the mark reached and every skill
+ * right at least once.
+ */
+export function practiceConsequence(s: PracticeState, set: readonly PracticeItem[], rule: MasteryRule, o: CardOutcome): Consequence {
+  const next = answer(s, o === 'correct', set, rule);
+  const t = tallyOf(next.state, set, rule);
+  const left = set.length - next.state.attempts;
+  if (next.outcome === 'passed') {
+    return { effect: `${t.right} of ${t.size} right on the first try, every skill at least once: the topic is learned.`, next: 'Finish the lesson' };
+  }
   if (o === 'correct') {
-    return next.outcome === 'mastered'
-      ? { effect: `That makes ${need} right in a row: the topic is learned.`, next: 'Finish the lesson' }
-      : { effect: `Right in a row: ${next.state.streak} of ${need}.` };
+    return { effect: `Right on the first try: ${t.right} so far. ${t.mark} of ${t.size} passes.` };
   }
   const miss = o === 'gave-up' ? 'Showing the solution counts as a miss' : 'This counts as a miss';
   if (next.outcome === 'not-yet') {
-    return { effect: `${miss}, and ${need} right in a row can no longer be reached in this run, so practice ends here.`, next: 'See the result' };
+    const why = t.right + left < t.mark
+      ? `${t.mark} of ${t.size} right can no longer be reached`
+      : 'one skill has no right answer and no problem left in this set';
+    return { effect: `${miss}, and ${why}, so practice ends here.`, next: 'See the result' };
   }
-  const left = rule.maxProblems - next.state.attempts;
-  return { effect: `${miss}: right in a row goes back to 0. ${left} problem${left === 1 ? '' : 's'} left in this run.` };
+  return { effect: `${miss}: the first answer is what counts. ${problems(left)} left; ${t.mark} of ${t.size} right passes.` };
 }
 
-function Practice({ c, salt, initial, onChange, onEnd }: {
+/** The way to more practice: always there, before and after passing (Rule 2). */
+function MoreLink({ topicId }: { topicId: string }) {
+  return <AppLink to={{ view: 'more', topicId }} class="more-link">More practice</AppLink>;
+}
+
+function Practice({ c, salt, set, initial, onChange, onEnd }: {
   c: TopicContent;
   salt: string;
+  set: readonly PracticeItem[];
   initial: PracticeState;
   onChange: (s: PracticeState) => void;
   onEnd: (passed: boolean) => void;
@@ -290,23 +312,25 @@ function Practice({ c, salt, initial, onChange, onEnd }: {
   const [s, setS] = useState<PracticeState>(initial);
   // A run restored after it ended shows its result again, so the result is never lost.
   const [ended, setEnded] = useState<boolean | null>(() => {
-    const o = outcomeOf(initial, c.mastery);
-    return o === 'continue' ? null : o === 'mastered';
+    const o = outcomeOf(initial, set, c.mastery);
+    return o === 'continue' ? null : o === 'passed';
   });
   // A broken problem is replaced by a fresh one in the same slot; nothing is counted.
   const [fresh, setFresh] = useState({ k: -1, n: 0 });
   const k = s.attempts;
   const n = fresh.k === k ? fresh.n : 0;
-  const inst = n === 0 ? instanceAt(c, salt, k) : instanceAt(c, `${salt}.fresh${n}`, k);
+  const t = tallyOf(s, set, c.mastery);
   if (ended !== null) {
     return ended
       ? (
         <div class="feedback good end">
           <h3>Practice passed.</h3>
           <p>
-            {c.mastery.correctInARow} right in a row: the topic is learned. It comes back as a short review to make it stick. One step
-            is left to master it: a Cambridge problem.
+            {t.right > 0 ? `${t.right} of ${t.size} right on the first try, every skill at least once: ` : ''}the topic is learned. It comes back as
+            a short review to make it stick. One step is left to master it: a Cambridge problem.
           </p>
+          <p class="small muted">More practice stays open, and counts toward nothing. <MoreLink topicId={c.topicId} /></p>
+          <WeakSkills c={c} />
           <button type="button" class="btn btn-primary" onClick={() => onEnd(true)}>Next: the Cambridge problem</button>
         </div>
       )
@@ -314,24 +338,40 @@ function Practice({ c, salt, initial, onChange, onEnd }: {
         <div class="feedback bad end">
           <h3>Not yet, and that is normal</h3>
           <p>
-            Some topics take more than one go. It stays ready to learn and comes back in another session. Before then, a short
-            check of the topics it builds on may appear, in case one of them needs a refresh.
+            {t.right} of {t.size} right on the first try; {t.mark} and every skill passes. Some topics take more than one go. It stays
+            ready to learn and comes back in another session with a new set. Before then, a short check of the topics it builds on may
+            appear, in case one of them needs a refresh.
           </p>
+          {t.skillsLeft.length > 0 && (
+            <div class="small">
+              <p>No right answer yet in this set:</p>
+              <ul>{t.skillsLeft.map((x) => <li key={x}>{x}</li>)}</ul>
+            </div>
+          )}
+          <p class="small muted">More practice is open any time, and counts toward nothing. <MoreLink topicId={c.topicId} /></p>
+          <WeakSkills c={c} />
           <button type="button" class="btn btn-primary" onClick={() => onEnd(false)}>Continue</button>
         </div>
       );
   }
+  const item = set[k];
+  if (item === undefined) return null;
+  const inst = practiceInstance(c, item, k, n);
   return (
     <div class="practice">
-      <Dots s={s} need={c.mastery.correctInARow} />
-      <p class="small muted">Problem {k + 1}. Get {c.mastery.correctInARow} right in a row to learn the topic.</p>
+      <Dots s={s} size={set.length} />
+      <p class="small muted">
+        Problem {k + 1} of {set.length}, easy first. {t.mark} of {set.length} right on the first try, with every skill right at least
+        once, learns the topic.
+      </p>
       {/* Said once, before the first problem, so it does not push every later problem down. */}
       {k === 0 && (
         <p class="small muted">
-          Leaving and coming back is fine, even after closing the app: the place and the right-in-a-row count are kept, and
-          sync, when on, carries them to the other devices.
+          Leaving and coming back is fine, even after closing the app: the place and the answers so far are kept, and sync, when on,
+          carries them to the other devices. More practice, which counts toward nothing, is always open. <MoreLink topicId={c.topicId} />
         </p>
       )}
+      <WeakSkills c={c} />
       <ProblemCard
         key={`${k}-${n}`}
         index={k}
@@ -339,7 +379,7 @@ function Practice({ c, salt, initial, onChange, onEnd }: {
         oneMoreTry
         topicId={c.topicId}
         instance={inst}
-        consequence={(o) => practiceConsequence(s, c.mastery, o)}
+        consequence={(o) => practiceConsequence(s, set, c.mastery, o)}
         onDone={(r) => {
           if (r.outcome === 'problem-error') {
             setFresh({ k, n: n + 1 });
@@ -349,10 +389,10 @@ function Practice({ c, salt, initial, onChange, onEnd }: {
           if (cur !== null) {
             void commit(recordDrill(cur, c.topicId, r.correct, { id: drillItemId(c.topicId, inst.generatorId), seed: inst.seed, ms: r.ms, hints: 0 }, now()));
           }
-          const next = answer(s, r.correct, c.mastery);
+          const next = answer(s, r.correct, set, c.mastery);
           setS(next.state);
           onChange(next.state);
-          if (next.outcome !== 'continue') setEnded(next.outcome === 'mastered');
+          if (next.outcome !== 'continue') setEnded(next.outcome === 'passed');
         }}
       />
     </div>
@@ -744,6 +784,8 @@ interface LessonProps {
   onSkip: () => void;
   /** Where Back goes, shown above the lesson. Leaving keeps the lesson's place. */
   back?: { to: Route; label: string };
+  /** Open at this lesson section (`lessonSections`), not where the lesson was left: a link from "This skill needs another look". */
+  section?: number;
 }
 
 /** Where the learner is in the outline, for the header and the top bar. */
@@ -809,6 +851,7 @@ export function LessonRunner(props: LessonProps) {
         </dl>
       )}
       <p class="lesson-meta">about {c?.minutes ?? t.estMinutes} min</p>
+      {c !== null && <p class="lesson-more small"><MoreLink topicId={topicId} /></p>}
       <RecommendedNext topicId={topicId} />
       {pos !== undefined && <Outline pos={pos} />}
     </header>
@@ -842,13 +885,17 @@ export function LessonRunner(props: LessonProps) {
   return <LessonBody {...props} c={state.content} head={(pos) => head(state.content, pos)} title={t.title} />;
 }
 
-function LessonBody({ salt, onEnd, c, head, title }: LessonProps & { c: TopicContent; head: (pos: Position) => ComponentChildren; title: string }) {
+function LessonBody({ salt, onEnd, c, head, title, section: openAt }: LessonProps & { c: TopicContent; head: (pos: Position) => ComponentChildren; title: string }) {
   const placeKey = `${salt}.${c.topicId}`;
   const topRef = useRef<HTMLDivElement>(null);
   const [saved] = useState(() => loadPlace(placeKey));
   const outline = lessonOutline(c);
   const sections = lessonSections(c.lesson);
-  const [at, setAt] = useState(() => outlineIndex(outline, saved?.stage ?? 'learn', saved?.section ?? 0));
+  const [at, setAt] = useState(() => (openAt !== undefined && openAt < sections.length
+    ? outlineIndex(outline, 'learn', openAt)
+    : outlineIndex(outline, saved?.stage ?? 'learn', saved?.section ?? 0)));
+  // The set is fixed by the content and the salt, so a run resumed anywhere meets the same problems.
+  const [set] = useState(() => practiceSet(c, salt));
   const [furthest, setFurthest] = useState(() => Math.max(saved?.furthest ?? 0, at));
   const [practice, setPractice] = useState<PracticeState>(saved?.practice ?? freshPractice());
   // Remounts the practice run when a place from another device replaces it.
@@ -898,7 +945,7 @@ function LessonBody({ salt, onEnd, c, head, title }: LessonProps & { c: TopicCon
   };
 
   // The practice run passed: the lesson waits at its Cambridge stage until finished.
-  const passed = outcomeOf(practice, c.mastery) === 'mastered';
+  const passed = outcomeOf(practice, set, c.mastery) === 'passed';
   const doc = progress.value;
   const gateMet = doc !== null && masteryOf(doc, c.topicId).evidence !== null;
   // Practice is done when passed and the Cambridge problem when its gate is met; a section, once moved past.
@@ -972,6 +1019,7 @@ function LessonBody({ salt, onEnd, c, head, title }: LessonProps & { c: TopicCon
           key={run}
           c={c}
           salt={salt}
+          set={set}
           initial={practice}
           onChange={(ps) => { setPractice(ps); save(at, ps, furthest); }}
           onEnd={(ok) => {

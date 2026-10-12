@@ -9,6 +9,7 @@ describe('routes', () => {
     { view: 'glossary', termId: null }, { view: 'glossary', termId: 'union' },
     { view: 'book' }, { view: 'chapter', chapterId: 'ia-discrete-mathematics' }, { view: 'learn', topicId: 'proof.direct', from: 'book' },
     { view: 'gym' }, { view: 'papers' },
+    { view: 'learn', topicId: 'pre.fractions', section: 2 }, { view: 'more', topicId: 'pre.fractions' }, { view: 'revisit' },
   ];
   for (const r of all) it(`round-trips ${hrefOf(r)}`, () => expect(parseRoute(hrefOf(r))).toEqual(r));
   it('falls back to Today on anything unknown or malformed', () => {
@@ -21,5 +22,7 @@ describe('routes', () => {
     expect(parseRoute('#/book/<script>')).toEqual({ view: 'book' });
     expect(parseRoute('#/problem/prob.event-spaces')).toEqual({ view: 'today' });
     expect(parseRoute('#/problem/prob.event-spaces/<b>')).toEqual({ view: 'today' });
+    expect(parseRoute('#/learn/pre.fractions/section/x')).toEqual({ view: 'learn', topicId: 'pre.fractions' });
+    expect(parseRoute('#/more')).toEqual({ view: 'map', topicId: null });
   });
 });

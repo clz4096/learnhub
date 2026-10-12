@@ -39,11 +39,12 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'lessons',
     title: 'Lessons and practice',
     paragraphs: [
-      'A lesson has three parts: Learn, Worked examples, and Practice. Practice gives you fresh problems until you get several right in a row, which is the topic\'s mastery rule. Then the topic counts as learned.',
+      'A lesson has three parts: Learn, Worked examples, and Practice. Practice is a set of about 10 to 12 problems, easy first, with every skill of the lesson at least twice. Get 8 of 10 right on the first try, with every skill right at least once, and the topic counts as learned.',
+      'More practice is always open, before and after passing: problems without end, counting toward nothing. If a skill\'s first answers are often wrong, the app says it needs another look and links to its section; You lists these lessons under Lessons to revisit.',
       'Type numbers as a whole number, a fraction such as 3/8 or 3÷8, or an exact decimal. Type expressions with ^ for powers, such as x^2 + 3x; a multiplication sign is optional, and √ and π work too.',
       'The line under the answer box shows how your answer was read, written as mathematics. The keys below it add symbols at the cursor, such as the fraction bar, powers, and roots. Enter checks the answer. If the answer cannot be read yet, nothing is graded: finish it and press Enter again. If it is read in a form the question does not ask for, such as a calculation where a single number is asked, you can edit it or check it anyway.',
       'A wrong answer is part of learning. The result shows your answer beside the correct one, names the likely slip when it can, gives the full worked solution, and says what the miss does to your progress. "Show me how" shows the solution too, and counts as a miss. If a lesson does not stick today, it comes back in another session.',
-      'You can leave a lesson and come back, even after closing the app: your place and your right-in-a-row count are kept, and sync, if you use it, carries them to your other devices.',
+      'You can leave a lesson and come back, even after closing the app: your place and your answers so far are kept, and sync, if you use it, carries them to your other devices.',
     ],
   },
   {

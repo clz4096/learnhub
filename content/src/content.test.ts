@@ -15,7 +15,7 @@ import { q, toFloat } from './math';
 import { answerText, grade, readAnswer, sameAnswer, type Instance } from './problem';
 import { computedMath, dmath, exprTex, ident, markedTerms, math, plain, setOf, t, texToPlain, type Rich, type Span } from './rich';
 import { TOPIC_CONTENT } from './topics';
-import { GATE_DOCS, formalNumbers, gateCandidates, lessonSections, proofOrderAnswer, proofOrderSpec, quickCheck, type Block, type TopicContent } from './topic';
+import { GATE_DOCS, MAX_PRACTICE_SET, MIN_PRACTICE_SET, formalNumbers, gateCandidates, lessonSections, proofOrderAnswer, proofOrderSpec, practiceRule, quickCheck, type Block, type TopicContent } from './topic';
 import { CITED_DOCS, FIRST_PROOF_TOPIC, MAX_HINTS, citationText, isProofWriteUp, personalWords, withUses, type CambridgeProblem, type Citation } from './cambridge';
 import { contentFor } from './all';
 import { CONTENT_IDS, TOPIC_LOADERS, catalogProblem, gateOf, hasContent, loadTopicContent } from './index';
@@ -372,8 +372,13 @@ describe('content topics', () => {
         expect(c.examples.length).toBeGreaterThanOrEqual(2);
         expect(c.generators.length).toBeGreaterThanOrEqual(3);
         expect(new Set(c.generators.map((g) => g.id)).size).toBe(c.generators.length);
-        expect(c.mastery.correctInARow).toBeGreaterThanOrEqual(2);
-        expect(c.mastery.maxProblems).toBeGreaterThan(c.mastery.correctInARow);
+        // Rule 2: a set of about 10 to 12, passed at a share of it; the old streak fields, where still written, are sane.
+        const rule = practiceRule(c.mastery);
+        expect(rule.passShare).toBeGreaterThan(0);
+        expect(rule.passShare).toBeLessThanOrEqual(1);
+        expect(rule.setSize).toBeGreaterThanOrEqual(MIN_PRACTICE_SET);
+        expect(rule.setSize).toBeLessThanOrEqual(MAX_PRACTICE_SET);
+        if (c.mastery.correctInARow !== undefined) expect(c.mastery.correctInARow).toBeGreaterThanOrEqual(2);
         expect(c.terms.length).toBeGreaterThan(0);
         for (const id of c.terms) expect(glossaryEntry(id)?.topic, id).toBe(c.topicId);
       });

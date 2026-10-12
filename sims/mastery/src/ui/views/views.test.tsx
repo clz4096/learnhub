@@ -308,16 +308,23 @@ describe('map labels', () => {
 
 describe('what one answer does to progress, as the result says it', () => {
   const rule = { correctInARow: 3, maxProblems: 10 };
+  // Ten problems, five skills, each twice: A B C D E A B C D E.
+  const set = Array.from({ length: 10 }, (_, i) => ({ generatorId: `g${i % 5}`, skill: 'ABCDE'[i % 5] as string, level: 'standard' as const, seed: i }));
+  const run = (results: boolean[]) => ({ attempts: results.length, streak: 0, results, rule: 2 as const });
 
-  it('practice: a miss resets the count and says how many problems are left', () => {
-    expect(practiceConsequence(freshPractice(), rule, 'wrong')).toEqual({ effect: 'This counts as a miss: right in a row goes back to 0. 9 problems left in this run.' });
-    expect(practiceConsequence(freshPractice(), rule, 'gave-up').effect).toMatch(/^Showing the solution counts as a miss: right in a row goes back to 0/);
-    expect(practiceConsequence({ attempts: 2, streak: 2, results: [true, true] }, rule, 'correct')).toEqual({ effect: 'That makes 3 right in a row: the topic is learned.', next: 'Finish the lesson' });
-    expect(practiceConsequence({ attempts: 1, streak: 1, results: [true] }, rule, 'correct')).toEqual({ effect: 'Right in a row: 2 of 3.' });
-    // Seven answered, none right: one more miss leaves 2 problems, too few for three in a row.
-    const late = { attempts: 7, streak: 0, results: Array<boolean>(7).fill(false) };
-    expect(practiceConsequence(late, rule, 'wrong')).toMatchObject({ next: 'See the result' });
-    expect(practiceConsequence(late, rule, 'wrong').effect).toMatch(/practice ends here/);
+  it('practice: a miss says the first answer counts, how many are left, and what passes; no streak', () => {
+    expect(practiceConsequence(freshPractice(), set, rule, 'wrong')).toEqual({ effect: 'This counts as a miss: the first answer is what counts. 9 problems left; 8 of 10 right passes.' });
+    expect(practiceConsequence(freshPractice(), set, rule, 'gave-up').effect).toMatch(/^Showing the solution counts as a miss: the first answer is what counts/);
+    expect(practiceConsequence(run([true]), set, rule, 'correct')).toEqual({ effect: 'Right on the first try: 2 so far. 8 of 10 passes.' });
+    // Nine answered with one miss: the tenth right makes 9 of 10 with every skill.
+    expect(practiceConsequence(run([true, true, true, true, true, false, true, true, true]), set, rule, 'correct'))
+      .toEqual({ effect: '9 of 10 right on the first try, every skill at least once: the topic is learned.', next: 'Finish the lesson' });
+    // Two misses so far; a third leaves 8 of 10 out of reach.
+    const late = run([false, true, false]);
+    expect(practiceConsequence(late, set, rule, 'wrong')).toMatchObject({ next: 'See the result' });
+    expect(practiceConsequence(late, set, rule, 'wrong').effect).toMatch(/8 of 10 right can no longer be reached, so practice ends here/);
+    // Skill A missed at its first place; missing its second ends the run though the count could still pass.
+    expect(practiceConsequence(run([false, true, true, true, true]), set, rule, 'wrong').effect).toMatch(/one skill has no right answer and no problem left/);
   });
 
   it('review: says when a miss fails the review, including a right answer after a miss', () => {

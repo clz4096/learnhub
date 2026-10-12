@@ -28,10 +28,10 @@ export const TABS: readonly Tab[] = [
 export function tabOf(r: Route): TabId {
   switch (r.view) {
     case 'today': case 'start': case 'task': case 'problem': case 'gym': case 'mixed': case 'standup': return 'today';
-    case 'learn': case 'book': case 'chapter': case 'map': return 'course';
+    case 'learn': case 'more': case 'book': case 'chapter': case 'map': return 'course';
     case 'campaign': case 'papers': case 'paper': case 'ladder': case 'report': case 'letters': return 'admission';
     case 'story': return 'story';
-    case 'progress': case 'glossary': return 'you';
+    case 'progress': case 'glossary': case 'revisit': return 'you';
   }
 }
 
@@ -47,7 +47,7 @@ export type FocusKind = 'lesson' | 'gym' | 'paper' | 'mixed';
  */
 export function focusOf(r: Route, timedPaperId: string | null, timedLadder: string | null = null): FocusKind | null {
   switch (r.view) {
-    case 'task': case 'learn': case 'problem': return 'lesson';
+    case 'task': case 'learn': case 'more': case 'problem': return 'lesson';
     case 'mixed': return 'mixed';
     case 'gym': return 'gym';
     case 'paper': return r.paperId === timedPaperId ? 'paper' : null;
@@ -66,6 +66,7 @@ export function naturalParent(r: Route, chapterOf: (topicId: string) => string |
       const ch = r.from === 'book' ? chapterOf(r.topicId) : undefined;
       return ch !== undefined ? { view: 'chapter', chapterId: ch } : { view: 'map', topicId: r.topicId };
     }
+    case 'more': return { view: 'map', topicId: r.topicId };
     case 'paper': return { view: 'campaign' };
     case 'ladder': return { view: 'papers' };
     default: return { view: 'today' };

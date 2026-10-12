@@ -220,7 +220,7 @@ describe('a learner with a course', () => {
     expect(screen.getByText(/even after closing the app/)).toBeTruthy();
     click(/^Show me how/);
     click('Next problem');
-    expect(screen.getByText(/^Problem 2\./)).toBeTruthy();
+    expect(screen.getByText(/^Problem 2 of /)).toBeTruthy();
     // The note is said once, before the first problem.
     expect(screen.queryByText(/even after closing the app/)).toBeNull();
 
@@ -228,13 +228,13 @@ describe('a learner with a course', () => {
     expect(location.hash).toBe('#/');
     expect(loadPlace(`lesson-${progress.value?.session?.startedAt ?? 0}-0.pre.fractions`)).toMatchObject({ stage: 'practice', practice: { attempts: 1 } });
     click('Start');
-    expect(screen.getByText(/^Problem 2\./)).toBeTruthy();
+    expect(screen.getByText(/^Problem 2 of /)).toBeTruthy();
 
     // A reload in the same tab resumes too.
     cleanup();
     await init(idb);
     render(<App />);
-    expect(screen.getByText(/^Problem 2\./)).toBeTruthy();
+    expect(screen.getByText(/^Problem 2 of /)).toBeTruthy();
   });
 
   it('a lesson opened from the map goes back to the map, and resumes where it was', async () => {

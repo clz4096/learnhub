@@ -5,7 +5,10 @@
  *   #/            Today (or Start for a new learner)
  *   #/start       choose the course and minutes (a new learner only)
  *   #/task/3      task 3 of today's session
- *   #/learn/<id>  a lesson opened from the map, outside today's plan; #/learn/<id>/book from the book
+ *   #/learn/<id>  a lesson opened from the map, outside today's plan; #/learn/<id>/book from the book;
+ *                 #/learn/<id>/section/<n> opened at one section of the lesson ("This skill needs another look")
+ *   #/more/<id>   more practice on a topic: unlimited, counting toward nothing
+ *   #/revisit     lessons to revisit: topics with a skill whose first answers are often wrong (under You)
  *   #/problem/<topic id>/<problem id>  one Cambridge problem, opened from a redo on Today
  *   #/book        the Course tab: the degree as a book, its contents; #/book/<chapter id> one chapter
  *   #/map         the prerequisite map; #/map/<id> with a topic open
@@ -34,7 +37,10 @@ export type Route =
   | { view: 'start' }
   | { view: 'task'; index: number }
   /** `from: 'book'`: opened from a chapter page, so Back returns there. */
-  | { view: 'learn'; topicId: string; from?: 'book' }
+  /** `section`: open at this lesson section (`lessonSections`), not where the lesson was left. */
+  | { view: 'learn'; topicId: string; from?: 'book'; section?: number }
+  | { view: 'more'; topicId: string }
+  | { view: 'revisit' }
   | { view: 'book' }
   | { view: 'chapter'; chapterId: string }
   | { view: 'problem'; topicId: string; problemId: string }
@@ -61,7 +67,7 @@ const examOfSlug = (slug: string | undefined): Exam | undefined =>
 
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, '').split('/').filter((x) => x !== '').map(decodeURIComponent);
-  const [head, arg, arg2] = parts;
+  const [head, arg, arg2, arg3] = parts;
   const id = arg !== undefined && ID.test(arg) ? arg : null;
   switch (head) {
     case 'start': return { view: 'start' };
@@ -71,7 +77,10 @@ export function parseRoute(hash: string): Route {
     }
     case 'learn':
       if (id === null) return { view: 'map', topicId: null };
+      if (arg2 === 'section' && arg3 !== undefined && /^\d{1,3}$/.test(arg3)) return { view: 'learn', topicId: id, section: Number(arg3) };
       return arg2 === 'book' ? { view: 'learn', topicId: id, from: 'book' } : { view: 'learn', topicId: id };
+    case 'more': return id === null ? { view: 'map', topicId: null } : { view: 'more', topicId: id };
+    case 'revisit': return { view: 'revisit' };
     case 'book': return id === null ? { view: 'book' } : { view: 'chapter', chapterId: id };
     case 'problem': return id !== null && arg2 !== undefined && ID.test(arg2) ? { view: 'problem', topicId: id, problemId: arg2 } : { view: 'today' };
     case 'map': return { view: 'map', topicId: id };
@@ -99,7 +108,11 @@ export function hrefOf(r: Route): string {
     case 'today': return '#/';
     case 'start': return '#/start';
     case 'task': return `#/task/${r.index}`;
-    case 'learn': return `#/learn/${encodeURIComponent(r.topicId)}${r.from === 'book' ? '/book' : ''}`;
+    case 'learn':
+      if (r.section !== undefined) return `#/learn/${encodeURIComponent(r.topicId)}/section/${r.section}`;
+      return `#/learn/${encodeURIComponent(r.topicId)}${r.from === 'book' ? '/book' : ''}`;
+    case 'more': return `#/more/${encodeURIComponent(r.topicId)}`;
+    case 'revisit': return '#/revisit';
     case 'book': return '#/book';
     case 'chapter': return `#/book/${encodeURIComponent(r.chapterId)}`;
     case 'problem': return `#/problem/${encodeURIComponent(r.topicId)}/${encodeURIComponent(r.problemId)}`;

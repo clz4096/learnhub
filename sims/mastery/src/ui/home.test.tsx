@@ -73,7 +73,10 @@ const ROUTES: Route[] = [
   { view: 'book' },
   { view: 'chapter', chapterId: 'ia-discrete-mathematics' },
   { view: 'learn', topicId: 'proof.direct', from: 'book' },
+  { view: 'learn', topicId: 'pre.fractions', section: 1 },
+  { view: 'more', topicId: 'pre.fractions' },
   { view: 'progress' },
+  { view: 'revisit' },
   { view: 'glossary', termId: null },
   { view: 'glossary', termId: 'union' },
 ];
@@ -172,7 +175,7 @@ describe('Home and the browser history', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next: practice' }));
     fireEvent.click(screen.getByRole('button', { name: /^Show me how/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Next problem' }));
-    expect(screen.getByText(/^Problem 2\./)).toBeTruthy();
+    expect(screen.getByText(/^Problem 2 of /)).toBeTruthy();
 
     // The lesson is a focus screen: its bar's back button returns to Today, where it was opened from.
     fireEvent.click(document.querySelector('.ds-fbar-back') as HTMLElement);
@@ -183,7 +186,7 @@ describe('Home and the browser history', () => {
 
     await back();
     expect(location.hash).toBe('#/task/0');
-    expect(screen.getByText(/^Problem 2\./)).toBeTruthy();
+    expect(screen.getByText(/^Problem 2 of /)).toBeTruthy();
   });
 
   it('Home on the home page adds no history entry', async () => {

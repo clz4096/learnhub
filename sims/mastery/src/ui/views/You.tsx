@@ -94,6 +94,7 @@ export function YouView() {
         <ul class="ds-list plain">
           <RowLink to={{ view: 'glossary', termId: null }} label="Glossary" right={`${GLOSSARY.length} terms`} />
           <RowLink to={{ view: 'map', topicId: null }} label="Prerequisite map" right="every topic" />
+          <RowLink to={{ view: 'revisit' }} label="Lessons to revisit" right="skills that need another look" />
           <li>
             <button type="button" class="ds-li help-button" onClick={() => { helpOpen.value = true; }}>
               <span class="ds-x">Help</span><span class="ds-r">how each part works</span>

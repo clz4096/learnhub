@@ -26,7 +26,7 @@ export type LessonStage = 'learn' | 'examples' | 'practice' | 'cambridge';
 
 export interface LessonPlace {
   stage: LessonStage;
-  /** A passed run (its outcome is `mastered`) means the lesson waits at its Cambridge stage. */
+  /** A passed run (its outcome is `passed`) means the lesson waits at its Cambridge stage. */
   practice: PracticeState;
   /** At the `learn` stage, which of the lesson's sections (`lessonSections`). */
   section?: number;
@@ -91,6 +91,7 @@ export function parsePlace(x: unknown): LessonPlace | null {
   if (!isObj(x) || typeof x.stage !== 'string' || !STAGES.includes(x.stage) || !isPractice(x.practice)) return null;
   const pr = x.practice;
   const place: LessonPlace = { stage: x.stage as LessonStage, practice: { attempts: pr.attempts, streak: pr.streak, results: [...pr.results] } };
+  if (pr.rule === 2) place.practice.rule = 2;
   if (small(x.section)) place.section = x.section;
   if (small(x.furthest)) place.furthest = x.furthest;
   return place;

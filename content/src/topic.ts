@@ -120,15 +120,39 @@ export interface WorkedExample {
 }
 
 /**
- * A topic's practice is passed after `correctInARow` right answers in a row. After
- * `maxProblems` without that, the lesson ends as not passed for today: the topic stays on
- * the frontier, and the engine checks the prerequisites it leans on hardest. Passing the
- * practice makes the topic learned; it is mastered once its gate is met as well
- * (`TopicContent.gate`).
+ * A topic's practice rule (mastery/HOW-A-TOPIC-WORKS.md, Rule 2). The practice set is about
+ * 10 to 12 problems, easy to standard to harder, with every skill of the topic's generators
+ * at least twice. It is passed with `passShare` of the set right on the first try (8 of 10)
+ * and every skill right at least once. Passing makes the topic learned; it is mastered once
+ * its gate is met as well (`TopicContent.gate`).
+ *
+ * `correctInARow` and `maxProblems` are the rule before draft 4 (a streak within a limit).
+ * They are still read: `maxProblems` is the set size the topic asks for (kept within 10 to
+ * 12), and `correctInARow` decides whether a practice run saved under the old rule had
+ * passed. Neither is a streak any more.
  */
 export interface MasteryRule {
-  correctInARow: number;
-  maxProblems: number;
+  /** Share of the set right on the first try needed to pass, in (0, 1]. 0.8 when absent. */
+  passShare?: number;
+  /** Problems in the set before the every-skill-twice rule adds any. 10 when absent. */
+  setSize?: number;
+  /** Before draft 4: right answers in a row to pass. Read only for runs saved under that rule. */
+  correctInARow?: number;
+  /** Before draft 4: the most problems in a run. Read as `setSize` when that is absent. */
+  maxProblems?: number;
+}
+
+/** The practice set's size before the every-skill-twice rule: about 10 to 12 (Rule 2). */
+export const MIN_PRACTICE_SET = 10;
+export const MAX_PRACTICE_SET = 12;
+/** 8 of 10 (Rule 2). */
+export const PASS_SHARE = 0.8;
+
+/** A topic's rule with every field resolved: the new fields, else the old `maxProblems`, else the defaults. */
+export function practiceRule(m: Readonly<MasteryRule>): { passShare: number; setSize: number } {
+  const share = m.passShare !== undefined && m.passShare > 0 && m.passShare <= 1 ? m.passShare : PASS_SHARE;
+  const size = m.setSize ?? m.maxProblems ?? MIN_PRACTICE_SET;
+  return { passShare: share, setSize: Math.min(MAX_PRACTICE_SET, Math.max(MIN_PRACTICE_SET, Math.round(size))) };
 }
 
 /** A probability the lesson states, checked exactly and by Monte Carlo in the content checks. */
@@ -302,4 +326,4 @@ export function workedProof(e: { title: Rich; prompt: Rich; steps: readonly Rich
   return { ...e };
 }
 
-export const DEFAULT_MASTERY: Readonly<MasteryRule> = { correctInARow: 3, maxProblems: 10 };
+export const DEFAULT_MASTERY: Readonly<MasteryRule> = { passShare: 0.8, setSize: 10 };

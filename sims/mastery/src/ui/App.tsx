@@ -55,6 +55,8 @@ import { LettersView } from '@/ui/views/Letters';
 import { StoryView } from '@/ui/views/Story';
 import { StandupView } from '@/ui/views/Standup';
 import { GymView } from '@/ui/views/Gym';
+import { MorePracticeView } from '@/ui/views/MorePractice';
+import { RevisitView } from '@/ui/views/Revisit';
 import { StoryPlayer } from '@/ui/story/Player';
 import { useStoryDirector } from '@/ui/story/director';
 import { playing } from '@/model/storyStore';
@@ -98,7 +100,9 @@ function View({ r }: { r: Route }) {
     // A learner with a course has no start step: App moves the URL on to Today.
     case 'start': return <Today />;
     case 'task': return <TaskView index={r.index} />;
-    case 'learn': return <LearnView key={r.topicId} topicId={r.topicId} fromBook={r.from === 'book'} />;
+    case 'learn': return <LearnView key={`${r.topicId}/${r.section ?? ''}`} topicId={r.topicId} fromBook={r.from === 'book'} section={r.section} />;
+    case 'more': return <MorePracticeView key={r.topicId} topicId={r.topicId} />;
+    case 'revisit': return progress.value === null ? <Today /> : <RevisitView p={progress.value} />;
     case 'book': return <BookView />;
     case 'chapter': return <ChapterView key={r.chapterId} chapterId={r.chapterId} />;
     case 'problem': return <ProblemView key={`${r.topicId}/${r.problemId}`} topicId={r.topicId} problemId={r.problemId} />;
