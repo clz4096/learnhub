@@ -12,13 +12,15 @@ import { currentProblemKey } from '@learnhub/content';
 import { DAY_MS, SUPERVISION_MARK_MAX, SUPERVISION_PASS_MARK, type Progress, type SupervisionResult } from '@learnhub/mastery';
 import { titleOf } from '@/model/courses';
 import {
-  effectiveGap, importSupervisionResult, lapseExcluded, localDay, openRedos, recordSupervisionCopy, redoSource, redoWaitsFor, topicOfKey,
+  effectiveGap, importSupervisionResult, isMastered, lapseExcluded, localDay, openRedos, recordSupervisionCopy, redoSource, redoWaitsFor, topicOfKey,
   waitingCopies, waitingRedos,
 } from '@/model/learner';
 import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
 import { buildPacket, catalogTitle, checkResultFor, newNonce, parseResult, withoutMarkerOnly, type CheckedAnswer } from '@/model/supervision';
 import { rubricSummary } from '@/model/rubric';
+import { redoKey } from '@/model/dayQueue';
+import { MasteredMark } from '@/ui/shell/Icons';
 
 /** A problem's title as plain text, or its key when it is no longer in the app. */
 export function problemTitle(key: string): string {
@@ -146,6 +148,8 @@ export function PasteResult({ expected, id }: { expected?: string; id: string })
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  /** The topic this import made mastered (it was not before): the end of its loop, shown as such. */
+  const [mastered, setMastered] = useState<string | null>(null);
   const boxId = `${id}-paste`;
   const submit = (): void => {
     const p = progress.value;
@@ -165,12 +169,15 @@ export function PasteResult({ expected, id }: { expected?: string; id: string })
     setText('');
     setOpen(false);
     setDone(`${importSummary(p, r.problem, r.result)}${r.rubric === undefined ? '' : ` ${rubricSummary(r.rubric)}`}`);
-    void commit(importSupervisionResult(p, r, now()));
+    const next = importSupervisionResult(p, r, now());
+    const topicId = topicOfKey(currentProblemKey(r.problem));
+    setMastered(!isMastered(p, topicId) && isMastered(next, topicId) ? topicId : null);
+    void commit(next);
   };
   return (
     <div class="sup-paste">
       {!open && (
-        <button type="button" class="btn" onClick={() => { setOpen(true); setDone(null); }}>Paste result</button>
+        <button type="button" class="btn" onClick={() => { setOpen(true); setDone(null); setMastered(null); }}>Paste result</button>
       )}
       {open && (
         <form class="sup-paste-form" onSubmit={(e) => { e.preventDefault(); submit(); }}>
@@ -191,7 +198,17 @@ export function PasteResult({ expected, id }: { expected?: string; id: string })
           </div>
         </form>
       )}
-      {done !== null && <p class="small sup-done" role="status">{done}</p>}
+      {done !== null && mastered === null && <p class="small sup-done" role="status">{done}</p>}
+      {done !== null && mastered !== null && (
+        <div class="mastered" role="status">
+          <MasteredMark />
+          <div>
+            <p class="mastered-k">Mastered</p>
+            <p class="mastered-t">{titleOf(mastered)}</p>
+          </div>
+          <p class="small sup-done">{done}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -210,9 +227,13 @@ export function problemRoute(asked: string): { view: 'problem'; topicId: string;
   return { view: 'problem', topicId: topicOfKey(key), problemId: key.slice(key.indexOf('/') + 1) };
 }
 
-/** Today's supervision part: redos set by supervisors or by a missed Cambridge problem, copies waiting for a result, and Paste result. */
-export function SupervisionToday({ p }: { p: Progress }) {
-  const redos = openRedos(p);
+/**
+ * Today's supervision part: redos set by supervisors or by a missed Cambridge problem, copies
+ * waiting for a result, and Paste result. `skip` names redos the day's plan already lists
+ * (by `redoKey`), so each shows once on Today.
+ */
+export function SupervisionToday({ p, skip }: { p: Progress; skip?: (key: string) => boolean }) {
+  const redos = openRedos(p).filter((d) => skip === undefined || !skip(redoKey(d)));
   const held = waitingRedos(p);
   const waiting = waitingCopies(p);
   // Once Paste result has been offered it stays, so its message survives the import that empties the waiting list.

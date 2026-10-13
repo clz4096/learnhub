@@ -61,19 +61,20 @@ afterEach(() => {
 });
 
 describe('the standup screen', () => {
-  it('shows every classmate\'s update in order, with a portrait, and Albert\'s slot last', () => {
+  it('shows Albert\'s slot first, then every classmate\'s update in order, with a portrait', () => {
     render(<StandupView />);
     expect(screen.getByRole('heading', { name: 'Standup' })).toBeTruthy();
     expect(document.body.textContent).toContain('10:00 am · 15 minutes');
     expect(document.querySelector('.su-status')?.textContent).toBe('Starts at 10:00 am.');
     const rows = [...document.querySelectorAll('.su-row')];
     expect(rows).toHaveLength(7);
-    for (const r of rows.slice(0, 6)) {
+    expect(rows[0]?.id).toBe('su-self');
+    expect(rows[0]?.textContent).toContain('Albert');
+    for (const r of rows.slice(1)) {
       expect(r.querySelector('svg.mono-art')).not.toBeNull();
       expect(r.textContent).toMatch(/Yesterday: .*Today: .*Blocked on: /);
     }
-    expect(new Set(rows.slice(0, 6).map((r) => r.querySelector('b')?.textContent))).toEqual(new Set(CLASSMATES.map((c) => c.name)));
-    expect(rows[6]?.textContent).toContain('Albert');
+    expect(new Set(rows.slice(1).map((r) => r.querySelector('b')?.textContent))).toEqual(new Set(CLASSMATES.map((c) => c.name)));
     expect(document.body.textContent).not.toMatch(/[–—]/);
   });
 
@@ -169,7 +170,7 @@ describe('the standup screen', () => {
     render(<StandupView />);
     fireEvent.click(screen.getByRole('button', { name: 'Play the standup' }));
     expect(log.spoken).toHaveLength(6);
-    const names = [...document.querySelectorAll('.su-row b')].slice(0, 6).map((b) => b.textContent?.split(' ')[0]);
+    const names = [...document.querySelectorAll('.su-row:not(.su-self) .su-who b')].map((b) => b.textContent?.split(' ')[0]);
     expect(log.spoken.map((u) => u.text.split('.')[0])).toEqual(names);
     expect(new Set(log.spoken.map((u) => u.pitch)).size).toBeGreaterThan(1);
     // The first speaker is highlighted when speech starts.
@@ -179,6 +180,25 @@ describe('the standup screen', () => {
     expect(log.cancelled).toBeGreaterThanOrEqual(2);
     await waitFor(() => expect(document.querySelector('.su-row.on')).toBeNull());
     expect(screen.getByRole('button', { name: 'Play the standup' })).toBeTruthy();
+  });
+
+  it('folds the classmates on a phone and opens them when the reading starts', () => {
+    const log = fakeSpeech();
+    const mm = vi.fn((q: string) => ({ matches: !q.includes('min-width'), media: q, addEventListener: () => {}, removeEventListener: () => {} }));
+    vi.stubGlobal('matchMedia', mm);
+    try {
+      render(<StandupView />);
+      const fold = document.querySelector('.su-list')?.closest('details') as HTMLDetailsElement;
+      expect(fold.open).toBe(false);
+      expect(screen.getByRole('heading', { name: 'Classmates\' updates' })).toBeTruthy();
+      // Albert's own update stays out of the fold.
+      expect(document.getElementById('su-self')?.closest('details')).toBeNull();
+      fireEvent.click(screen.getByRole('button', { name: 'Play the standup' }));
+      expect(log.spoken).toHaveLength(6);
+      expect(fold.open).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('never reads aloud while muted', () => {
@@ -225,10 +245,10 @@ describe('the standup around the app', () => {
     await screen.findByRole('heading', { name: 'Standup' });
   });
 
-  it('You sets the time and turns it off; the planner follows', async () => {
+  it('Settings sets the time and turns it off; the planner follows', async () => {
     await withLearner();
-    history.replaceState(null, '', '#/progress');
-    route.value = parseRoute('#/progress');
+    history.replaceState(null, '', '#/settings');
+    route.value = parseRoute('#/settings');
     render(<App />);
     const sel = await screen.findByLabelText('Standup time') as HTMLSelectElement;
     expect(sel.value).toBe('600');
@@ -249,6 +269,6 @@ describe('the standup around the app', () => {
     const card = await waitFor(() => document.querySelector('.story-cohort') as HTMLElement);
     expect(card.querySelectorAll('.co-list li')).toHaveLength(7);
     expect(card.querySelector('li.me')?.textContent).toContain('Albert (you)');
-    expect(card.querySelector('.ds-sect-h span')?.textContent).toBe('7th of 7');
+    expect(card.querySelector('.ds-fold-s')?.textContent).toBe('7th of 7');
   });
 });

@@ -15,7 +15,7 @@ describe('the tabs', () => {
       [{ view: 'today' }, 'today'], [{ view: 'task', index: 0 }, 'today'], [{ view: 'gym' }, 'today'],
       [{ view: 'book' }, 'course'], [{ view: 'chapter', chapterId: 'x' }, 'course'], [{ view: 'learn', topicId: 'x' }, 'course'], [{ view: 'map', topicId: null }, 'course'],
       [{ view: 'campaign' }, 'admission'], [{ view: 'papers' }, 'admission'], [{ view: 'paper', paperId: 'x' }, 'admission'], [{ view: 'report' }, 'admission'], [{ view: 'letters' }, 'admission'],
-      [{ view: 'story' }, 'story'], [{ view: 'progress' }, 'you'], [{ view: 'glossary', termId: null }, 'you'],
+      [{ view: 'story' }, 'story'], [{ view: 'progress' }, 'you'], [{ view: 'settings' }, 'you'], [{ view: 'glossary', termId: null }, 'you'],
     ];
     for (const [r, tab] of cases) expect(tabOf(r)).toBe(tab);
   });

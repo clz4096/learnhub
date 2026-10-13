@@ -11,7 +11,7 @@ import { LAST_EMAIL_KEY, detectStandalone, standaloneApp, startSync, stopSync, s
 import { ANON_KEY, FakeSupabase, URL_BASE } from '@/sync/fakeSupabase';
 import { readAuthFragment } from '@/sync/supabase';
 import { STANDALONE_NOTE, SYNC_OFF_TEXT } from '@/ui/Sync';
-import { ProgressView } from '@/ui/views/ProgressView';
+import { SettingsView } from '@/ui/views/Settings';
 import { Start } from '@/ui/views/Start';
 
 const T0 = new Date(2026, 9, 5, 9, 0).getTime();
@@ -37,7 +37,7 @@ afterEach(() => {
 describe('sync switched off (no config)', () => {
   it('the Progress page says only that sync is not set up', async () => {
     await commit(startLearner(T0, DEFAULT_COURSES, 60));
-    render(<ProgressView />);
+    render(<SettingsView />);
     const notes = [...document.querySelectorAll('[data-sync]')];
     expect(notes.map((n) => n.textContent)).toEqual([SYNC_OFF_TEXT]);
     expect(SYNC_OFF_TEXT).toBe('Sync between devices: not set up');
@@ -66,7 +66,7 @@ describe('sync switched off (no config)', () => {
   it('a config file with a secret key keeps sync off and says why', async () => {
     syncSetup.value = parseSyncConfig({ url: URL_BASE, anonKey: 'sb_secret_x' });
     await commit(startLearner(T0, DEFAULT_COURSES, 60));
-    render(<ProgressView />);
+    render(<SettingsView />);
     expect(document.querySelector('[data-sync="off"]')?.textContent).toMatch(/not set up \(sync-config\.json: anonKey is a secret key/);
   });
 });
@@ -77,7 +77,7 @@ describe('sync switched on', () => {
     const server = new FakeSupabase(() => T0);
     await commit(startLearner(T0, DEFAULT_COURSES, 60));
     await startSync(Promise.resolve(), null, { fetch: server.fetch as typeof fetch });
-    render(<ProgressView />);
+    render(<SettingsView />);
     expect(document.querySelector('[data-sync="off"]')).toBeNull();
     fireEvent.input(screen.getByLabelText('Email'), { target: { value: EMAIL } });
     fireEvent.click(screen.getByRole('button', { name: 'Email me a sign-in link' }));
@@ -91,12 +91,12 @@ describe('sync switched on', () => {
     history.replaceState(null, '', `/${server.magicLinkFragment(EMAIL)}`);
     const fragment = takeAuthFragment();
     expect(fragment?.kind).toBe('session');
-    expect(location.hash).toBe('#/progress');
-    expect(route.value).toEqual({ view: 'progress' });
+    expect(location.hash).toBe('#/settings');
+    expect(route.value).toEqual({ view: 'settings' });
 
     await commit(startLearner(T0, DEFAULT_COURSES, 60));
     await startSync(Promise.resolve(), fragment, { fetch: server.fetch as typeof fetch });
-    render(<ProgressView />);
+    render(<SettingsView />);
     await waitFor(() => expect(document.querySelector('[data-sync-user]')?.textContent).toBe(`Signed in as ${EMAIL}.`));
     expect(document.querySelector('[data-sync-last]')?.textContent).toMatch(/^Last synced: /);
     expect(document.body.textContent).toMatch(/also erases the progress on the other devices/);
@@ -146,7 +146,7 @@ describe('sign in with the emailed code', () => {
   it('in a browser: the link comes first, with the code offered beside it', async () => {
     const server = new FakeSupabase(() => T0);
     await signedOutWith(server);
-    render(<ProgressView />);
+    render(<SettingsView />);
     expect(document.querySelector('[data-sync-standalone]')).toBeNull();
     expect(codeBox()).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Or enter the code from the email' }));
@@ -156,7 +156,7 @@ describe('sign in with the emailed code', () => {
   it('in a browser: after the email is sent, the code box opens and signs in', async () => {
     const server = new FakeSupabase(() => T0);
     await signedOutWith(server);
-    render(<ProgressView />);
+    render(<SettingsView />);
     fireEvent.input(screen.getByLabelText('Email'), { target: { value: EMAIL } });
     fireEvent.click(screen.getByRole('button', { name: 'Email me a sign-in link' }));
     await waitFor(() => expect(document.querySelector('[data-sync-sent]')?.textContent).toBe(
@@ -170,7 +170,7 @@ describe('sign in with the emailed code', () => {
   it('a wrong code shows a plain message and keeps the form', async () => {
     const server = new FakeSupabase(() => T0);
     await signedOutWith(server);
-    render(<ProgressView />);
+    render(<SettingsView />);
     fireEvent.input(screen.getByLabelText('Email'), { target: { value: EMAIL } });
     fireEvent.click(screen.getByRole('button', { name: 'Email me a sign-in link' }));
     await waitFor(() => expect(codeBox()).toBeTruthy());
@@ -245,7 +245,7 @@ describe('sign in with a password', () => {
   it('signed in: sets a password, clears the fields, and keeps it nowhere', async () => {
     const server = new FakeSupabase(() => T0);
     await signedInWithLink(server);
-    render(<ProgressView />);
+    render(<SettingsView />);
     await waitFor(() => expect(document.querySelector('[data-sync-user]')).toBeTruthy());
     expect(screen.getByText('Set a password for this account')).toBeTruthy();
     const box = screen.getByLabelText('New password (at least 8 characters)') as HTMLInputElement;
@@ -279,7 +279,7 @@ describe('sign in with a password', () => {
     let serverNow = T0;
     const server = new FakeSupabase(() => serverNow);
     await signedInWithLink(server);
-    render(<ProgressView />);
+    render(<SettingsView />);
     await waitFor(() => expect(document.querySelector('[data-sync-user]')).toBeTruthy());
     server.minPasswordLength = 20;
     setNewPassword(PW, PW);
@@ -298,7 +298,7 @@ describe('sign in with a password', () => {
   it('signed out, Home Screen app: password first, then the emailed code; signs in and remembers only the email', async () => {
     const server = new FakeSupabase(() => T0);
     await signedInWithLink(server);
-    render(<ProgressView />);
+    render(<SettingsView />);
     await waitFor(() => expect(document.querySelector('[data-sync-user]')).toBeTruthy());
     setNewPassword(PW, PW);
     await waitFor(() => expect(server.passwordOf(EMAIL)).toBe(PW));
@@ -350,7 +350,7 @@ describe('sign in with a password', () => {
     syncSetup.value = ON;
     await commit(startLearner(T0, DEFAULT_COURSES, 60));
     await startSync(Promise.resolve(), null, { fetch: server.fetch as typeof fetch });
-    render(<ProgressView />);
+    render(<SettingsView />);
     expect((screen.getByLabelText('Email') as HTMLInputElement).value).toBe(EMAIL);
     expect(passwordBox()).toBeNull();
     const link = screen.getByRole('button', { name: 'Email me a sign-in link' });
@@ -377,7 +377,7 @@ describe('sign in with a password', () => {
     syncSetup.value = ON;
     await commit(startLearner(T0, DEFAULT_COURSES, 60));
     await startSync(Promise.resolve(), null, { fetch: server.fetch as typeof fetch });
-    render(<ProgressView />);
+    render(<SettingsView />);
     fireEvent.input(screen.getByLabelText('Email'), { target: { value: EMAIL } });
     fireEvent.input(passwordBox() as HTMLInputElement, { target: { value: PW } });
     server.failures.push(429);

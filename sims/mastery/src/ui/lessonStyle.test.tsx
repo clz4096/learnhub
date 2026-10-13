@@ -185,7 +185,8 @@ describe('the lesson header, its sections, and numbering', () => {
     expect(head.querySelector('dl.objective dd')?.textContent).toBe('Prove a statement by showing its opposite is impossible.');
     expect(head.querySelector('.lesson-meta')?.textContent).toBe('about 20 min');
     expect(outline()).toEqual(OUTLINE);
-    expect(head.querySelector('li.cur .here')?.textContent).toBe('you are here');
+    // The outline is the stepper in the lesson's bar, no longer inside the header.
+    expect(document.querySelector('ol.outline li.cur .here')?.textContent).toBe('you are here');
     // One segment per section and no numbers in the bar or the outline.
     expect(segs()).toEqual(['cur', null, null, null, null]);
     expect(document.querySelector('.segs')?.textContent).toBe('');

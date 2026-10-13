@@ -222,14 +222,21 @@ export function markerOnly(problem: CambridgeProblem): string[] {
   return out;
 }
 
+/** A head line for the supervisor only (`officialLines`): the official solution, mark scheme, or correct answer. */
+const SUPERVISOR_ONLY_LINE = /^(OFFICIAL SOLUTION|OFFICIAL MARK SCHEME|CORRECT ANSWER) \(for the supervisor only\b/;
+
 /**
- * The block as the app may show it to the learner ("Show the copied text"): the marker-only
- * section replaced by one line, as it is never shown in the app. The copied text keeps it.
+ * The block as the app may show it to the learner ("Show the copied text"): the head lines
+ * for the supervisor only dropped, and the marker-only section replaced by one line, as
+ * neither is ever shown in the app. The copied text keeps both.
  */
 export function withoutMarkerOnly(block: string): string {
-  const lines = block.split('\n');
+  const all = block.split('\n');
+  // Only the head (up to the first blank line) holds these; a write-up that happens to start a line the same way stays.
+  const headEnd = all.indexOf('') < 0 ? all.length : all.indexOf('');
+  const lines = all.filter((l, i) => i >= headEnd || !SUPERVISOR_ONLY_LINE.test(l));
   const at = lines.indexOf(MARKER_ONLY);
-  if (at < 0) return block;
+  if (at < 0) return lines.join('\n');
   const end = lines.indexOf('', at);
   return [...lines.slice(0, at), '--- FOR THE MARKER ONLY: in the copied text, not shown here ---', ...lines.slice(end < 0 ? lines.length : end)].join('\n');
 }

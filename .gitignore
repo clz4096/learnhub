@@ -9,3 +9,7 @@ sims/*/bench/results
 mastery/design-pass-2/
 /sources/
 scripts/calibration/packets
+
+# Design pass media (screenshots, videos): local only
+design/shots/
+design/flows/

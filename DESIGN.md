@@ -2,6 +2,8 @@
 
 Dated 2026-10-03. Status: approved by the owner on 2026-10-03. MVP steps 1 to 4 done (step 4 on 2026-10-04).
 
+The mastery app's visual design system (tokens, type, components, motion) is in [design/DESIGN.md](design/DESIGN.md).
+
 ## Problem
 
 Each learning tool (the cache simulator first, more later) is a separate app that runs only on this Mac through a development server. There is no single place to find the tools, open one with a button, see progress, or reach them from a phone outside the home network.

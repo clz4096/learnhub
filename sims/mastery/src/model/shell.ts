@@ -31,7 +31,7 @@ export function tabOf(r: Route): TabId {
     case 'learn': case 'more': case 'book': case 'chapter': case 'map': return 'course';
     case 'campaign': case 'papers': case 'paper': case 'ladder': case 'report': case 'letters': return 'admission';
     case 'story': return 'story';
-    case 'progress': case 'glossary': case 'revisit': return 'you';
+    case 'progress': case 'settings': case 'glossary': case 'revisit': return 'you';
   }
 }
 

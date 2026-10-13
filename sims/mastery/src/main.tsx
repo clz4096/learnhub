@@ -6,20 +6,8 @@ import { startTracking } from '@/sync/local';
 import { App } from '@/ui/App';
 // KaTeX's styles and fonts, bundled from the npm package: no CDN.
 import 'katex/dist/katex.min.css';
-// STIX Two Text, bundled from @fontsource: no CDN. Latin, Latin Extended, and Greek only;
-// each subset downloads when a page first uses one of its characters.
-import '@fontsource/stix-two-text/latin-400.css';
-import '@fontsource/stix-two-text/latin-ext-400.css';
-import '@fontsource/stix-two-text/greek-400.css';
-import '@fontsource/stix-two-text/latin-400-italic.css';
-import '@fontsource/stix-two-text/latin-500.css';
-import '@fontsource/stix-two-text/latin-600.css';
-// The interface and the numbers (mastery/design-v4.html): IBM Plex Sans and IBM Plex Mono, bundled the same way.
-import '@fontsource/ibm-plex-sans/latin-400.css';
-import '@fontsource/ibm-plex-sans/latin-500.css';
-import '@fontsource/ibm-plex-sans/latin-600.css';
-import '@fontsource/ibm-plex-mono/latin-400.css';
-import '@fontsource/ibm-plex-mono/latin-500.css';
+// The reading, maths, and interface faces: Libertinus Serif, Math, and Sans, self-hosted (styles/fonts.css).
+import '@/styles/fonts.css';
 // The arms, the seal, and the documents (Letters): Cormorant Garamond for the seal's legend
 // and the arms' scroll, Frank Ruhl Libre for the arms' Hebrew, Spectral and Spectral SC for
 // the certificate, and the two signature hands. Downloaded only when a page uses them.

@@ -4,10 +4,12 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/preact';
 import { IDBFactory } from 'fake-indexeddb';
 import type { IdbFactoryLike } from '@learnhub/mastery';
 import { ancestors, placedMemory, type Progress } from '@learnhub/mastery';
-import { DEFAULT_COURSES, localDay, startLearner } from '@/model/learner';
+import { DEFAULT_COURSES, localDay, sessionTime, startLearner } from '@/model/learner';
 import { route } from '@/model/route';
 import { HUB_KEY, commit, flush, init, loadWarnings, progress, setClock } from '@/model/store';
-import { ProgressView, confirms } from '@/ui/views/ProgressView';
+import { confirms } from '@/ui/views/ProgressView';
+import { SettingsView } from '@/ui/views/Settings';
+import { YouView } from '@/ui/views/You';
 import { Today } from '@/ui/views/Today';
 import { Start } from '@/ui/views/Start';
 import { LearnView, TaskView, quizConsequence, reviewConsequence } from '@/ui/views/Task';
@@ -61,20 +63,26 @@ describe('Start', () => {
 });
 
 describe('Today', () => {
-  it('plans the day with reasons, minutes left, and minutes per course', async () => {
+  it('plans the day with reasons, minutes left, and minutes per course, each task listed once', async () => {
     await startedLearner();
     render(<Today />);
-    expect(await screen.findByText('Fractions and ratios', { selector: '.task-title' })).toBeTruthy();
-    // The first three steps of the book: 15, 15, and 20 minutes; the next (15) does not fit the 10 left.
-    expect(screen.getAllByText('New topic: it has no prerequisites.')).toHaveLength(3);
-    expect(screen.getByText('minutes left').previousSibling?.textContent).toBe('50');
-    expect(screen.getByText('lesson minutes for Probability').previousSibling?.textContent).toBe('30');
+    expect(await screen.findByText('Fractions and ratios', { selector: '.d-tl .d-item-title' })).toBeTruthy();
     await flush();
-    expect(progress.value?.session?.tasks).toHaveLength(3);
+    const s = progress.value?.session ?? null;
+    expect(s?.tasks).toHaveLength(3);
+    // The first three steps of the book: 15, 15, and 20 minutes; the next (15) does not fit the 10 left.
+    for (const t of s?.tasks ?? []) expect(t.reason).toBe('New topic: it has no prerequisites.');
+    const time = sessionTime(s);
+    expect(time.left).toBe(50);
+    expect(time.byCourse['ia-probability']?.planned).toBe(30);
+    // Each session task is linked once, in the day's timeline (the Now card only points at the one to start).
+    for (let i = 0; i < 3; i++) expect([...document.querySelectorAll(`.ds-today a[href="#/task/${i}"]`)].filter((a) => a.closest('.ds-now') === null)).toHaveLength(1);
+    // The Now card says why its item is planned.
+    expect(document.querySelector('.ds-now .ds-now-why')?.textContent).toMatch(/\S/);
   });
 });
 
-describe('Progress', () => {
+describe('Settings', () => {
   it('Start over needs the exact phrase', () => {
     expect(confirms('start over')).toBe(true);
     expect(confirms('  Start Over ')).toBe(true);
@@ -84,7 +92,7 @@ describe('Progress', () => {
   it('keeps erase disabled until the phrase is typed, then erases and clears the hub key', async () => {
     await startedLearner();
     expect(localStorage.getItem(HUB_KEY)).not.toBeNull();
-    render(<ProgressView />);
+    render(<SettingsView />);
     const button = screen.getByRole('button', { name: 'Erase my progress' }) as HTMLButtonElement;
     const input = screen.getByLabelText(/to confirm/);
     fireEvent.input(input, { target: { value: 'start' } });
@@ -100,7 +108,7 @@ describe('Progress', () => {
 
   it('settings change daily minutes and course weights', async () => {
     await startedLearner();
-    render(<ProgressView />);
+    render(<SettingsView />);
     fireEvent.input(screen.getByLabelText('Minutes a day'), { target: { value: '45' } });
     const weights = document.querySelectorAll('input.weight');
     fireEvent.input(weights[1] as HTMLInputElement, { target: { value: '2' } });
@@ -198,9 +206,9 @@ describe('no view offers self-report', () => {
     expectNoSelfReport();
   });
 
-  it('today, the map, and progress', async () => {
+  it('today, the map, You, and Settings', async () => {
     await startedLearner();
-    for (const view of [<Today />, <MapView topicId={NO_CONTENT} />, <MapView topicId={null} />, <ProgressView />]) {
+    for (const view of [<Today />, <MapView topicId={NO_CONTENT} />, <MapView topicId={null} />, <YouView />, <SettingsView />]) {
       render(view);
       expectNoSelfReport();
       cleanup();

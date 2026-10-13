@@ -1,0 +1,60 @@
+a dark   5.68 pass (needs 4.5) #a5a39b on #1f2d27  map node st-mastered faded  "Fractions and" mastery@1280 12px
+a dark   5.91 pass (needs 4.5) #a5a39b on #2e2618  map node st-due faded  "Sets and Venn" mastery@1280 12px
+a dark   6.15 pass (needs 4.5) #a5a39b on #232425  map node st-locked faded  "The exponential" mastery@1280 12px
+a dark   6.97 pass (needs 4.5) #a5a39b on #18191a  span  "University of Cambridge" mastery@1280 14.4px
+a dark  11.74 pass (needs 4.5) #e6e4de on #2e2618  map node st-due  "Tree diagrams" mastery@1280 12px
+a dark  13.85 pass (needs 4.5) #e6e4de on #18191a  b  "Computational Mathematics" mastery@1280 16px
+a dark  13.85 pass (needs 4.5) #18191a on #e6e4de  .primary  "Next: Testing for independence" lesson@1280 19px
+a light  5.59 pass (needs 4.5) #5d5d58 on #ecece8  map node st-locked faded  "The exponential" mastery@1280 12px
+a light  5.64 pass (needs 4.5) #5d5d58 on #e6efea  map node st-mastered faded  "Fractions and" mastery@1280 12px
+a light  5.64 pass (needs 4.5) #5d5d58 on #f6ecd6  map node st-due faded  "Sets and Venn" mastery@1280 12px
+a light  6.62 pass (needs 4.5) #5d5d58 on #ffffff  span  "University of Cambridge" mastery@1280 14.4px
+a light 14.38 pass (needs 4.5) #1d1d1b on #f6ecd6  map node st-due  "Tree diagrams" mastery@1280 12px
+a light 16.88 pass (needs 4.5) #1d1d1b on #ffffff  b  "Computational Mathematics" mastery@1280 16px
+a light 16.88 pass (needs 4.5) #ffffff on #1d1d1b  .primary  "Next: Testing for independence" lesson@1280 19px
+b dark   5.77 pass (needs 4.5) #a7a293 on #1e2b24  map node st-mastered faded  "Fractions and" mastery@1280 12.4px
+b dark   5.89 pass (needs 4.5) #a7a293 on #2c2617  map node st-due faded  "Sets and Venn" mastery@1280 12.4px
+b dark   6.68 pass (needs 4.5) #a7a293 on #1d1c18  map band label  "Before A level" mastery@1280 14.3px
+b dark   7.22 pass (needs 4.5) #a7a293 on #151412  span  "University of Cambridge" mastery@1280 15.5px
+b dark   9.61 pass (needs 4.5) #95c6ad on #151412  span  "Why is the share" lesson@1280 15.5px
+b dark  12.16 pass (needs 4.5) #ebe7db on #2c2617  map node st-due  "Tree diagrams" mastery@1280 12.4px
+b dark  14.89 pass (needs 4.5) #ebe7db on #151412  b  "Computational Mathematics" mastery@1280 16.7px
+b dark  14.89 pass (needs 4.5) #151412 on #ebe7db  .primary  "Next: Testing for independence" lesson@1280 18px
+b light  5.64 pass (needs 4.5) #5f5b52 on #e3ede4  map node st-mastered faded  "Fractions and" mastery@1280 12.4px
+b light  5.79 pass (needs 4.5) #5f5b52 on #f6edd2  map node st-due faded  "Sets and Venn" mastery@1280 12.4px
+b light  6.02 pass (needs 4.5) #5f5b52 on #f4f2e6  map band label  "Before A level" mastery@1280 14.3px
+b light  6.31 pass (needs 4.5) #2e6a57 on #fffff8  span  "Why is the share" lesson@1280 15.5px
+b light  6.74 pass (needs 4.5) #5f5b52 on #fffff8  span  "University of Cambridge" mastery@1280 15.5px
+b light 14.38 pass (needs 4.5) #1f1d1a on #f6edd2  map node st-due  "Tree diagrams" mastery@1280 12.4px
+b light 16.74 pass (needs 4.5) #1f1d1a on #fffff8  b  "Computational Mathematics" mastery@1280 16.7px
+b light 16.74 pass (needs 4.5) #fffff8 on #1f1d1a  .primary  "Next: Testing for independence" lesson@1280 18px
+c dark   5.55 pass (needs 4.5) #9aa3ad on #322a17  map node st-due faded  "Sets and Venn" mastery@1280 11.6px
+c dark   5.58 pass (needs 4.5) #9aa3ad on #1d2e27  map node st-mastered faded  "Fractions and" mastery@1280 11.6px
+c dark   5.66 pass (needs 4.5) #9aa3ad on #252a30  .n  "2" mastery@1280 14.4px
+c dark   6.48 pass (needs 4.5) #9aa3ad on #1b1f24  map band label  "Before A level" mastery@1280 11.3px
+c dark   7.03 pass (needs 4.5) #f0915f on #1b1f24  .mord  "A" lesson@1280 20px
+c dark   7.22 pass (needs 4.5) #9aa3ad on #121417  span  "University of Cambridge" mastery@1280 15.6px
+c dark    7.6 pass (needs 4.5) #82b3ee on #1b1f24  .mord  "B" lesson@1280 20px
+c dark   7.84 pass (needs 4.5) #f0915f on #121417  .mord  "A" mastery@1280 21px
+c dark   8.46 pass (needs 4.5) #82b3ee on #121417  .mord  "B" mastery@1280 21px
+c dark   8.76 pass (needs 4.5) #7fc0a3 on #121417  .lk  "Tree diagrams" mastery@1280 17.2px
+c dark  11.54 pass (needs 4.5) #e5e8eb on #322a17  map node st-due  "Tree diagrams" mastery@1280 11.6px
+c dark  11.75 pass (needs 4.5) #e5e8eb on #252a30  span  "Show all connections" mastery@1280 14.4px
+c dark  13.46 pass (needs 4.5) #e5e8eb on #1b1f24  span  "Course" mastery@1280 15.6px
+c dark     15 pass (needs 4.5) #e5e8eb on #121417  b  "Computational Mathematics" mastery@1280 17.5px
+c dark     15 pass (needs 4.5) #121417 on #e5e8eb  button  "Graph" mastery@1280 14.4px
+c light  5.22 pass (needs 4.5) #b23c12 on #eff1f2  .mord  "A" lesson@1280 20px
+c light  5.42 pass (needs 4.5) #555d66 on #dcebe3  map node st-mastered faded  "Fractions and" mastery@1280 11.6px
+c light  5.42 pass (needs 4.5) #555d66 on #e4e8ea  .n  "2" mastery@1280 14.4px
+c light  5.64 pass (needs 4.5) #555d66 on #f7ebcf  map node st-due faded  "Sets and Venn" mastery@1280 11.6px
+c light  5.77 pass (needs 4.5) #b23c12 on #fcfcfb  .mord  "A" mastery@1280 21px
+c light   5.9 pass (needs 4.5) #555d66 on #eff1f2  map band label  "Before A level" mastery@1280 11.3px
+c light  6.01 pass (needs 4.5) #1f5c9e on #eff1f2  .mord  "B" lesson@1280 20px
+c light  6.22 pass (needs 4.5) #2a6a55 on #fcfcfb  .lk  "Tree diagrams" mastery@1280 17.2px
+c light  6.51 pass (needs 4.5) #555d66 on #fcfcfb  span  "University of Cambridge" mastery@1280 15.6px
+c light  6.64 pass (needs 4.5) #1f5c9e on #fcfcfb  .mord  "B" mastery@1280 21px
+c light 13.44 pass (needs 4.5) #1b1f23 on #e4e8ea  span  "Show all connections" mastery@1280 14.4px
+c light    14 pass (needs 4.5) #1b1f23 on #f7ebcf  map node st-due  "Tree diagrams" mastery@1280 11.6px
+c light 14.63 pass (needs 4.5) #1b1f23 on #eff1f2  span  "Course" mastery@1280 15.6px
+c light 16.15 pass (needs 4.5) #1b1f23 on #fcfcfb  b  "Computational Mathematics" mastery@1280 17.5px
+c light 16.15 pass (needs 4.5) #fcfcfb on #1b1f23  button  "Graph" mastery@1280 14.4px

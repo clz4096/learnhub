@@ -284,19 +284,22 @@ describe('blind mixed review', () => {
 });
 
 describe('Today and the palette for the ladder', () => {
-  it('Up next says what unlocks the first rung for a new learner', async () => {
+  it('Today says what unlocks the first rung for a new learner, in one quiet line under the Now card', async () => {
     render(<App />);
     await flush();
-    const row = await waitFor(() => {
-      const el = document.querySelector('.d-ladder a.d-qlink');
+    const line = await waitFor(() => {
+      const el = document.querySelector('.ds-today .ds-unlock');
       expect(el).not.toBeNull();
-      return el as HTMLAnchorElement;
+      return el as HTMLElement;
     });
-    expect(row.textContent).toContain('First timed STEP question unlocks after 60 more topics mastered');
-    expect(row.textContent).toContain('until then: lessons, practice, and review');
+    expect(line.textContent).toContain('First timed STEP question unlocks after 60 more topics mastered');
+    expect(line.previousElementSibling?.classList.contains('ds-now')).toBe(true);
+    // Said once: the locked rung is not a row in the day.
+    expect(document.querySelector('.d-ladder')).toBeNull();
+    expect(document.querySelectorAll('.ds-unlock')).toHaveLength(1);
   });
 
-  it('Up next offers the ladder\'s open rung, and the palette climbs it', async () => {
+  it('Today offers the ladder\'s open rung under the timeline, and the palette climbs it', async () => {
     await readyStep();
     render(<App />);
     await flush();

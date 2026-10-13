@@ -22,7 +22,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'There are five tabs: Today, Course, Admission, Story, and You. On a phone they sit at the bottom of the screen; on a computer they run down the left, and the keys 1 to 5 switch between them.',
       'Press Command K (Ctrl K on Windows), or the search button, to search lessons, glossary terms, and past papers, or to jump to an action. G starts the gym and T a timed paper.',
       'A lesson, the gym, and a timed paper open in focus mode: the tabs hide, and Escape or the back button at the top returns to where you came from. Your place in a lesson is kept, and the browser\'s Back button works too.',
-      'The glossary, the map, Help, and the theme are on the You tab.',
+      'The glossary and the map are on the You tab; Help, the theme, and every other setting are on Settings, reached from You or the search.',
     ],
   },
   {
@@ -79,8 +79,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'progress',
     title: 'Progress, settings, and backups',
     paragraphs: [
-      'Progress, on the You tab, shows each course and how much is learned. Settings change your daily minutes and how new lessons are split between courses.',
-      'Your progress lives in this browser only. Export a progress file to keep a copy or to move to another device, then Import it there. Start over is at the bottom of the You tab and needs a typed confirmation.',
+      'Progress, on the You tab, shows each course and how much is learned. Settings, a row on You, change your daily minutes and how new lessons are split between courses.',
+      'Your progress lives in this browser only. Export a progress file to keep a copy or to move to another device, then Import it there. Export, Import, and Start over are on Settings; Start over is at the bottom and needs a typed confirmation.',
     ],
   },
 ];

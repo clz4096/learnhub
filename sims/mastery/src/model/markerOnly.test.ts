@@ -83,9 +83,29 @@ describe('marker-only material in the supervision block', () => {
     expect(shown).not.toContain('Official STEP mark scheme: ');
     expect(shown).toContain('--- FOR THE MARKER ONLY: in the copied text, not shown here ---');
     expect(shown.split('\n').filter((l) => !l.startsWith('--- FOR THE MARKER ONLY'))).toEqual(
-      text.split('\n').filter((l, i, all) => { const at = all.indexOf(MARKER_ONLY); const end = all.indexOf('', at); return i < at || i >= end; }),
+      text.split('\n').filter((l, i, all) => { const at = all.indexOf(MARKER_ONLY); const end = all.indexOf('', at); return (i < at || i >= end) && !l.startsWith('OFFICIAL MARK SCHEME (for the supervisor only'); }),
     );
     expect(withoutMarkerOnly(packet(PLAIN!.key))).toBe(packet(PLAIN!.key));
+  });
+
+  it('the shown text drops the head lines for the supervisor only, and nothing else', () => {
+    for (const x of [WITH_SCHEME!, WITH_SOLUTION!]) {
+      const text = packet(x.key);
+      const shown = withoutMarkerOnly(text);
+      expect(shown).not.toMatch(/\(for the supervisor only/);
+      expect(shown).not.toMatch(/^OFFICIAL (SOLUTION|MARK SCHEME)/m);
+      // Every other line is kept, in order.
+      const kept = shown.split('\n').filter((l) => !l.startsWith('--- FOR THE MARKER ONLY'));
+      const expected = text.split('\n').filter((l, i, all) => {
+        const at = all.indexOf(MARKER_ONLY);
+        const inMarker = at >= 0 && i >= at && i < all.indexOf('', at);
+        return !inMarker && !/^OFFICIAL (SOLUTION|MARK SCHEME) \(for the supervisor only/.test(l);
+      });
+      expect(kept).toEqual(expected);
+    }
+    // A write-up line that reads like one is the learner's, and stays.
+    const own = buildPacket({ key: PLAIN!.key, nonce: NONCE, writeUp: 'OFFICIAL SOLUTION (for the supervisor only): mine', copiedAt: T0, progress: startLearner(T0, DEFAULT_COURSES, 60) });
+    expect(withoutMarkerOnly(own)).toContain('OFFICIAL SOLUTION (for the supervisor only): mine');
   });
 });
 

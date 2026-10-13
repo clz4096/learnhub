@@ -17,27 +17,27 @@ a.ds-standupline { color: var(--ink2); text-decoration: none; }
 .su-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 18px 0 8px; }
 .su-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
 .su-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--line); }
-.su-row.on { background: var(--cam-soft); }
+.su-row.on { background: var(--green-soft); }
 .su-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
-.su-who b { font: 400 18px/1.25 var(--serif); }
-.su-bg { font-size: 12.5px; color: var(--mute); }
-.su-line { margin: 4px 0 0; font: 15.5px/1.5 var(--serif); color: var(--fg); }
+.su-who b { font: 400 20px/1.25 var(--serif); }
+.su-bg { font: 14.5px/1.4 var(--sans); color: var(--mute); }
+.su-line { margin: var(--g1) 0 0; font: 17.5px/1.5 var(--serif); color: var(--fg); }
 .su-line.quiet { color: var(--mute); }
-.su-self { border-bottom: 0; }
-.su-cal { margin: 8px 0 0; font-size: 13.5px; line-height: 1.5; }
+.su-list > .su-row:last-child { border-bottom: 0; }
+.su-cal { margin: var(--g2) 0 0; font: 15px/1.5 var(--sans); }
 .su-cal-row { display: block; }
 .su-cal-row .su-cal { margin: 0; }
 .su-cal-h { margin: 0; }
-.su-cal-opt > summary { cursor: pointer; min-height: 32px; padding: 6px 0 0; color: var(--cam); }
+.su-cal-opt > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--green); }
 .su-cal-opt[open] > summary { color: var(--fg); }
 .su-cal-opt p, .su-cal-opt ol { margin: 6px 0 0; color: var(--ink2); }
 .su-cal-opt ol { padding-left: 1.4em; }
 .su-cal-copy { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 6px 0 4px; }
 .su-cal-url {
-  flex: 1 1 260px; min-width: 0; font: 12px var(--mono); color: var(--fg); background: var(--bg);
-  border: 1px solid var(--line); border-radius: 4px; padding: 7px 8px;
+  flex: 1 1 260px; min-width: 0; font: 13.5px var(--code); color: var(--fg); background: var(--plate);
+  border: 1px solid var(--rule-strong); border-radius: 8px; padding: 0 var(--g3); min-height: 44px;
 }
-.su-cal-copy .ds-btn { min-height: 36px; padding: 6px 14px; font-size: 13px; }
+
 
 /* Today and the planner: a rest day (Shabbat, yom tov) */
 .ds-restline { color: var(--ink2); }
@@ -47,10 +47,10 @@ a.ds-standupline { color: var(--ink2); text-decoration: none; }
 .story-pair { display: grid; gap: 0 32px; }
 @media (min-width: 900px) { .story-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .co-list > li { grid-template-columns: 1.5em 28px minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 6px 0; }
-.co-list .co-n { font: 12px var(--mono); color: var(--mute); }
-.co-list .co-name { font-size: 14.5px; }
-.co-list li.me .co-name { color: var(--cam); font-weight: 500; }
-.co-list .co-v { font-family: var(--mono); }
+.co-list .co-n { font: 14px var(--sans); color: var(--mute); font-variant-numeric: tabular-nums; }
+.co-list .co-name { font-size: 16px; }
+.co-list li.me .co-name { color: var(--green); font-weight: 700; }
+.co-list .co-v { font-variant-numeric: tabular-nums; }
 
 /* Admission: the programme terms */
 .c-terms li.cur span:first-child { color: var(--cam); }
@@ -59,3 +59,6 @@ a.ds-standupline { color: var(--ink2); text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   .su-row { transition: none; }
 }
+.su-jump { margin-left: auto; }
+.su-self { scroll-margin-top: var(--g4); }
+.su-self:focus { outline: none; }

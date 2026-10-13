@@ -4,7 +4,8 @@
  * hairline scale with that year's boundary ticks and an accent marker, and among that
  * year's real candidates; A level papers on their grade boundaries; TMUA as raw marks with
  * the context scale; the interviews; then the offer, condition by condition, and the odds
- * as plain ruled lists.
+ * as plain ruled lists. On a phone the page opens on its summary (entry, route, college);
+ * each section below folds to its heading (ui/Fold.tsx) and opens from 900 px.
  */
 import { useState } from 'preact/hooks';
 import type { Progress } from '@learnhub/mastery';
@@ -18,6 +19,7 @@ import { loadDays } from '@/model/dayLog';
 import { now } from '@/model/store';
 import { AppLink, WithAdmissions, entryLine, shortStamp } from '@/ui/campaignShared';
 import { AdmissionTabs } from '@/ui/views/Campaign';
+import { Fold } from '@/ui/Fold';
 
 /** TMUA context, October 2024 sitting (UAT-UK TMUA technical report 2024-25), and the unverified offer-holder average. */
 export const TMUA_CONTEXT = { median: 4.5, p90: 7.0, offerHolders: 6.6 } as const;
@@ -66,15 +68,14 @@ function ReportBody({ adm, c, p }: { adm: Admissions; c: Campaign; p: Progress }
       </ul>
 
       {c.route === 'maths' && steps.length === 0 && (
-        <section class="sec" aria-labelledby="step-none"><div class="sec-h"><h2 id="step-none">STEP</h2></div><p class="c-tiny">No STEP paper marked yet.</p></section>
+        <Fold id="step-none" title="STEP"><p class="c-tiny">No STEP paper marked yet.</p></Fold>
       )}
       {[...steps].reverse().map((r) => <StepSection key={r.sitting.id} r={r} />)}
       <ALevelSection adm={adm} c={c} />
       <TmuaSection adm={adm} c={c} />
       <InterviewsSection c={c} />
 
-      <section class="sec" aria-labelledby="against-offer">
-        <div class="sec-h"><h2 id="against-offer">Against the offer</h2></div>
+      <Fold id="against-offer" title="Against the offer">
         <ul class="ruled c-cond">
           {offerConditions(adm, c).map((x) => (
             <li key={x.label}>
@@ -89,15 +90,14 @@ function ReportBody({ adm, c, p }: { adm: Admissions; c: Campaign; p: Progress }
           and STEP 3; Computer Science: A*A*A, often with A* in Mathematics or Further Mathematics. A level grades here are per paper, on that paper's
           component boundaries; a real A level grade comes from all its papers together. The latest sitting of each paper counts.
         </p>
-      </section>
+      </Fold>
 
-      <section class="sec" aria-labelledby="odds">
-        <div class="sec-h"><h2 id="odds">The odds, 2025 cycle</h2></div>
+      <Fold id="odds" title="The odds, 2025 cycle">
         <ul class="ruled">
           {ODDS.map((o) => <li key={o.what}><span>{o.what}</span><span class="r">{o.rate}</span></li>)}
         </ul>
         <p class="note">Cambridge undergraduate admissions statistics, 2025 cycle: offers as a share of applications. For context only.</p>
-      </section>
+      </Fold>
     </section>
   );
 }
@@ -110,8 +110,7 @@ function StepSection({ r }: { r: StepRow }) {
   const share = Math.round(100 * r.atOrBelow);
   const id = `step-${r.sitting.id}`;
   return (
-    <section class="sec" aria-labelledby={id}>
-      <div class="sec-h"><h2 id={id}>{r.paper} · {r.year} paper</h2><span>sat {shortStamp(r.sitting.startedAt)}</span></div>
+    <Fold id={id} title={`${r.paper} · ${r.year} paper`} aside={`sat ${shortStamp(r.sitting.startedAt)}`}>
       <div class="figure"><span class="c-num">{r.mark} / 120</span> · <span class={r.grade === '1' || r.grade === 'S' ? 'cam' : ''}>Grade {r.grade}</span></div>
       <div class="scale" role="img" aria-label={`${r.mark} out of 120 on the ${r.year} ${r.paper} grade boundaries: S ${b.S}, 1 ${b['1']}, 2 ${b['2']}, 3 ${b['3']}`}>
         <span class="end lo" style={{ left: '0%' }}><span>0</span></span>
@@ -127,15 +126,14 @@ function StepSection({ r }: { r: StepRow }) {
         Boundaries and grade shares: OCR, "Explanation of results for STEP {r.year}". Candidates at each mark: read from that document's
         distribution chart; the total is reconstructed, not printed. Best six answers count, 20 marks each.
       </p>
-    </section>
+    </Fold>
   );
 }
 
 function ALevelSection({ adm, c }: { adm: Admissions; c: Campaign }) {
   const rows = aLevelRows(adm, c);
   return (
-    <section class="sec" aria-labelledby="a-level-papers">
-      <div class="sec-h"><h2 id="a-level-papers">A level papers</h2></div>
+    <Fold id="a-level-papers" title="A level papers">
       {rows.length === 0 ? <p class="c-tiny">No A level paper marked yet.</p> : (
         <div class="c-scroll">
           <table class="rec">
@@ -154,7 +152,7 @@ function ALevelSection({ adm, c }: { adm: Admissions; c: Campaign }) {
         </div>
       )}
       <p class="note">Grade boundaries: Pearson Edexcel notional component boundaries (Mathematics, Further Mathematics) and OCR component boundaries (Computer Science), for that paper's June series.</p>
-    </section>
+    </Fold>
   );
 }
 
@@ -163,8 +161,7 @@ function TmuaSection({ adm, c }: { adm: Admissions; c: Campaign }) {
   // The scale runs from 1.0 to 9.0.
   const at = (v: number): string => pctOf(v - 1, 8);
   return (
-    <section class="sec" aria-labelledby="tmua">
-      <div class="sec-h"><h2 id="tmua">TMUA</h2></div>
+    <Fold id="tmua" title="TMUA">
       {rows.length === 0 ? <p class="c-tiny">No TMUA paper checked yet.</p> : (
         <ul class="ruled c-list">
           {rows.map((r) => (
@@ -190,15 +187,14 @@ function TmuaSection({ adm, c }: { adm: Admissions; c: Campaign }) {
         Answer keys: UAT-UK, TMUA preparation materials (esat-tmua.ac.uk). Median and 90th percentile: October 2024 sitting, UAT-UK TMUA technical report
         2024-25. *Unverified: Computer Science offer holders averaged 6.6, applicants 4.55 to 4.6, lowest offer 3.8 (FOI-2026-413 as quoted by third-party sites).
       </p>
-    </section>
+    </Fold>
   );
 }
 
 function InterviewsSection({ c }: { c: Campaign }) {
   const heard = c.interviews.filter((i) => i.mark !== null);
   return (
-    <section class="sec" aria-labelledby="interviews">
-      <div class="sec-h"><h2 id="interviews">Interviews</h2></div>
+    <Fold id="interviews" title="Interviews">
       {heard.length === 0 ? <p class="c-tiny">No mock interview marked yet.</p> : (
         <ul class="ruled c-list">
           {heard.map((i) => (
@@ -211,6 +207,6 @@ function InterviewsSection({ c }: { c: Campaign }) {
         </ul>
       )}
       <p class="note">The supervision mark scale: {INTERVIEW_PASS}/{INTERVIEW_MAX} is a pass.</p>
-    </section>
+    </Fold>
   );
 }

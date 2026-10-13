@@ -4,7 +4,7 @@
  * and carried by Export and Import. Runs in the DOM project for localStorage.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { exportProgress } from '@learnhub/mastery';
+import { exportProgress, withChoices } from '@learnhub/mastery';
 import { newCampaign } from '@/model/campaign';
 import { CAMPAIGN_KEY, campaign, discardFromCampaign, reloadCampaign, saveCampaign } from '@/model/campaignStore';
 import { DAY_KEY, loadDays, saveDay } from '@/model/dayLog';
@@ -142,6 +142,23 @@ describe('the progress file', () => {
       expect(r.warnings).toEqual([]);
       expect(r.progress).toEqual(p);
       expect(r.learner).toEqual(env);
+    }
+  });
+
+  it('carries the day\'s anchors in the settings and on a planned day, and reads them back', () => {
+    startTracking();
+    const anchors = { gymStart: 1020, dinner: 1170, bed: 1380 };
+    const q = withChoices(p, { dayAnchors: anchors }, T0 + MIN);
+    saveDay(loadDays(), '2026-10-06', { wake: '08:00', ticks: [], anchors, replans: [{ at: 600, ticks: [], anchors: { ...anchors, bed: 1500 } }] });
+    const env = collectLearner();
+    const r = readBackup(backupText(q, env), KNOWN_IDS);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.warnings).toEqual([]);
+      expect(r.progress.settings.dayAnchors).toEqual({ ...anchors, changedAt: T0 + MIN });
+      expect(r.progress).toEqual(q);
+      expect(r.learner === null ? null : learnerValues(r.learner).day['2026-10-06'])
+        .toEqual({ wake: '08:00', ticks: [], anchors, replans: [{ at: 600, ticks: [], anchors: { ...anchors, bed: 1500 } }] });
     }
   });
 

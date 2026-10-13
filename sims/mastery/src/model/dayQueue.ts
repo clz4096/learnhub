@@ -17,7 +17,7 @@ import { cambridgeEntries, solutionShown, type Progress, type SessionTask } from
 import type { Fillable } from './day';
 import { titleOf } from './courses';
 import { catalogTitle } from './supervision';
-import { completeLesson, completeQuiz, completeReview, ensureSession, localDay, planMore, redoWaitsFor, retestOf, topicOfKey } from './learner';
+import { completeLesson, completeQuiz, completeReview, ensureSession, localDay, planMore, redoSource, redoWaitsFor, retestOf, topicOfKey } from './learner';
 import { MIXED_MINUTES, mixedReady } from './mixedReview';
 import type { Route } from './route';
 
@@ -35,7 +35,14 @@ export interface DayItem extends Fillable {
   done: boolean;
   /** In the forecast, not yet in the session: opening it adds the forecast to the session first. */
   forecast: boolean;
+  /** A session task's reason for being planned, as `SessionTask.reason`. */
+  reason?: string;
+  /** A redo's weak points from the supervision that set it. */
+  notes?: readonly string[];
 }
+
+/** The queue key of a supervision redo; Today's supervision part uses it to skip redos already in the plan. */
+export const redoKey = (d: { problem: string; from: string }): string => `redo-${d.problem}-${d.from}`;
 
 /** `p` with every open session task passed, as the next round's starting point. */
 function passAll(p: Progress, now: number): Progress {
@@ -112,7 +119,7 @@ export function dayItems(p: Progress, now: number, budget = 0, mixedDone = false
   const items: DayItem[] = tasks.map((t, i) => ({
     key: `task-${i}`, kind: t.kind, minutes: t.minutes,
     title: t.kind === 'quiz' ? `Quiz: ${t.topicIds.map(titleOf).join(', ')}` : titleOf(t.topicIds[0] as string),
-    to: { view: 'task', index: i }, done: t.done, forecast: i >= own.length,
+    to: { view: 'task', index: i }, done: t.done, forecast: i >= own.length, reason: t.reason,
   }));
   if (mixedReady(p)) items.push({ key: 'mixed', kind: 'mixed', minutes: MIXED_MINUTES, title: MIXED_TITLE, to: { view: 'mixed' }, done: mixedDone, forecast: false });
   const dayStart = new Date(`${today}T00:00`).getTime();
@@ -125,12 +132,14 @@ export function dayItems(p: Progress, now: number, budget = 0, mixedDone = false
     // A redo stored under the key of a problem that has since moved opens it where it is now.
     const key = currentProblemKey(d.problem);
     const topicId = topicOfKey(key);
+    const weak = redoSource(p, d)?.result?.weakPoints ?? [];
     items.push({
-      key: `redo-${d.problem}-${d.from}`, kind: 'redo', minutes: REDO_MINUTES,
+      key: redoKey(d), kind: 'redo', minutes: REDO_MINUTES,
       // A redo with no supervision attempt behind it is a missed problem coming back (`recordCambridgeAnswer`).
       title: `${p.supervision.some((a) => a.nonce === d.from) ? 'Redo' : 'Try again'}: ${catalogTitle(key) ?? key}`,
       to: { view: 'problem', topicId, problemId: key.slice(key.indexOf('/') + 1) },
       done: d.doneAt !== null, forecast: false,
+      ...(weak.length > 0 ? { notes: weak } : {}),
     });
   }
   items.push(...retestItems(p, dayStart, dayEnd));

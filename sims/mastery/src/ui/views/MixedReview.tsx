@@ -22,6 +22,7 @@ import { go } from '@/model/route';
 import { commit, now, progress } from '@/model/store';
 import { ProblemCard } from '@/ui/ProblemCard';
 import { buzz } from '@/ui/shell/state';
+import '@/styles/screens/mixed.css';
 
 /** The day's sitting to show: today's stored one, else a fresh plan (keeping whether today's was done). */
 function sittingFor(contents: readonly TopicContent[], fresh: boolean): MixedSitting | null {

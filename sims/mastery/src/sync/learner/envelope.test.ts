@@ -86,19 +86,21 @@ function campaignStep(rng: Rng, c: Campaign | null, at: number): { c: Campaign |
   return { c: x };
 }
 
+const ANCHORS = { gymStart: 900, dinner: 1140, bed: 1440 };
+
 function dayStep(rng: Rng, log: DayLog, at: number): DayLog {
   const d = pick(rng, DATES);
   const e = log[d];
   const out: DayLog = plain(log);
   if (e === undefined || rng() < 0.2) {
     const wake = pick(rng, WAKES);
-    out[d] = e !== undefined && e.wake === wake ? e : { wake, ticks: [] };
+    out[d] = e !== undefined && e.wake === wake ? e : { wake, ticks: [], ...(rng() < 0.3 ? { anchors: { ...ANCHORS } } : {}) };
   } else if (rng() < 0.8) {
     const t = pick(rng, [480, 540, 600, 660]);
     const ticks = e.ticks.includes(t) ? e.ticks.filter((x) => x !== t) : [...e.ticks, t].sort((a, b) => a - b);
     out[d] = { ...e, ticks };
   } else {
-    out[d] = { ...e, replans: [...(e.replans ?? []), { at: pick(rng, [600, 720]), ticks: [...e.ticks] }] };
+    out[d] = { ...e, replans: [...(e.replans ?? []), { at: pick(rng, [600, 720]), ticks: [...e.ticks], ...(rng() < 0.3 ? { anchors: { ...ANCHORS } } : {}) }] };
   }
   void at;
   return out;
@@ -338,6 +340,23 @@ describe('the rules', () => {
     // Back to 07:00 on the same device: the old ticks do not return.
     const back = dev((v) => { v.day[d] = { wake: '07:00', ticks: [] }; }, T0 + 5 * MIN, moved);
     expect(learnerValues(mergeLearner(back, both)).day[d]).toEqual({ wake: '07:00', ticks: [] });
+  });
+
+  it('a day keeps the anchors it was planned with, and a replan its own; defaults are not stored', () => {
+    const d = '2026-10-06';
+    const planned = dev((v) => { v.day = { [d]: { wake: '07:00', ticks: [], anchors: { ...ANCHORS } } }; }, T0);
+    expect(learnerValues(planned).day[d]).toEqual({ wake: '07:00', ticks: [], anchors: ANCHORS });
+    const replanned = dev((v) => { v.day[d]!.replans = [{ at: 600, ticks: [], anchors: { ...ANCHORS, bed: 1500 } }, { at: 720, ticks: [] }]; }, T0 + MIN, planned);
+    const back = parseLearner(JSON.parse(JSON.stringify(mergeLearner(replanned, planned))));
+    expect(back.ok && learnerValues(back.value).day[d]).toEqual({
+      wake: '07:00', ticks: [], anchors: ANCHORS, replans: [{ at: 600, ticks: [], anchors: { ...ANCHORS, bed: 1500 } }, { at: 720, ticks: [] }],
+    });
+    // The same wake time planned again with other anchors is a new plan of the day: it wins over the older one.
+    const again = dev((v) => { v.day[d] = { wake: '07:00', ticks: [] }; }, T0 + 2 * MIN, planned);
+    expect(learnerValues(mergeLearner(planned, again)).day[d]).toEqual({ wake: '07:00', ticks: [] });
+    // Anchors that do not make a day read as the defaults.
+    const bad = dev((v) => { v.day = { [d]: { wake: '07:00', ticks: [], anchors: { gymStart: 900, dinner: 900, bed: 1440 } } }; }, T0);
+    expect(learnerValues(bad).day[d]).toEqual({ wake: '07:00', ticks: [] });
   });
 
   it('story: seen scenes and choices from both devices; the later choice at one point wins; relationships follow', () => {

@@ -1,6 +1,6 @@
 /**
- * Sync between devices on the Progress page (and, when sync is set up, on Start, so a
- * second device can sign in before choosing a course). With sync off, the Progress page
+ * Sync between devices on Settings (and, when sync is set up, on Start, so a
+ * second device can sign in before choosing a course). With sync off, Settings
  * shows one line saying it is not set up, and Start shows nothing.
  */
 import { useState } from 'preact/hooks';

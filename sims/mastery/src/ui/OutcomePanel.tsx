@@ -5,7 +5,8 @@
  * campaign's sittings and the timed ladder's attempts, both kept in this browser.
  *
  * Self-contained, so it can be mounted anywhere (the You tab); it loads the paper registry
- * on demand like the campaign screens.
+ * on demand like the campaign screens. Its two parts fold to their headings (Fold):
+ * the predictions open, Predicted and real closed on a phone.
  */
 import { useEffect } from 'preact/hooks';
 import { paperName, type Admissions, type Campaign } from '@/model/campaign';
@@ -15,6 +16,8 @@ import { ladder, loadLadder } from '@/model/ladderStore';
 import { predictions, type Evidence, type Placed, type Prediction } from '@/model/outcome';
 import { BAR_START, forecastResults, learnBar, meanGap, type ForecastResult } from '@/model/readinessBar';
 import { WithAdmissions, shortStamp } from '@/ui/campaignShared';
+import { Fold } from '@/ui/Fold';
+import '@/styles/screens/you.css';
 
 export function OutcomePanel() {
   return <WithAdmissions>{(adm) => <OutcomeBody adm={adm} c={campaign.value} />}</WithAdmissions>;
@@ -24,17 +27,18 @@ function OutcomeBody({ adm, c }: { adm: Admissions; c: Campaign | null }) {
   useEffect(() => loadLadder(adm), [adm]);
   const list = predictions(adm, c, ladder.value);
   return (
-    <section class="outcome" aria-labelledby="outcome-title">
-      <h2 id="outcome-title">Predicted results</h2>
-      <p class="small muted">
-        From timed full and half papers only, set against the real grade boundaries. The range is where your level most likely is
-        (80 percent), from how much your papers vary; it narrows as more papers agree.
-      </p>
-      {list.length === 0
-        ? <p class="small">No timed papers yet. Sit a full or half paper against the clock and its prediction appears here.</p>
-        : list.map((p) => <PredictionCard key={p.key} p={p} />)}
+    <div class="outcome">
+      <Fold id="outcome-title" title="Predicted results" aside={list.length === 0 ? 'none yet' : `${list.length} ${list.length === 1 ? 'prediction' : 'predictions'}`} first>
+        <p class="small muted">
+          From timed full and half papers only, set against the real grade boundaries. The range is where your level most likely is
+          (80 percent), from how much your papers vary; it narrows as more papers agree.
+        </p>
+        {list.length === 0
+          ? <p class="small">No timed papers yet. Sit a full or half paper against the clock and its prediction appears here.</p>
+          : list.map((p) => <PredictionCard key={p.key} p={p} />)}
+      </Fold>
       <ForecastGaps adm={adm} c={c} attempts={ladder.value} />
-    </section>
+    </div>
   );
 }
 
@@ -53,8 +57,7 @@ export function gapText(gap: number): string {
 function ForecastGaps({ adm, c, attempts }: { adm: Admissions; c: Campaign | null; attempts: readonly LadderAttempt[] }) {
   const byExam = EXAMS.map((exam) => ({ exam, results: forecastResults(adm, c, attempts, exam) })).filter((x) => x.results.length > 0);
   return (
-    <section class="outcome-gaps" aria-labelledby="gaps-title">
-      <h2 id="gaps-title">Predicted and real</h2>
+    <Fold id="gaps-title" title="Predicted and real" aside={byExam.length === 0 ? 'none yet' : byExam.map((x) => x.exam).join(', ')}>
       <p class="small muted">
         Before each timed sitting the app records its prediction; after marking, the real result sits beside it. The readiness bar,
         the share of an exam's topics mastered before its first timed question, starts at {pct(BAR_START)} and moves with these results.
@@ -62,7 +65,7 @@ function ForecastGaps({ adm, c, attempts }: { adm: Admissions; c: Campaign | nul
       {byExam.length === 0
         ? <p class="small">No timed sitting with a prediction yet.</p>
         : byExam.map(({ exam, results }) => <ExamGaps key={exam} exam={exam} results={results} />)}
-    </section>
+    </Fold>
   );
 }
 

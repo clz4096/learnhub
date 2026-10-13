@@ -10,7 +10,9 @@
  *
  * Ported from the Cambridge Entry prototype's plan(); one change: a break is never left
  * at the end of a free stretch with nothing after it. Added since: fixed blocks (timed
- * papers) placed first, and replanning the rest of the day from a given time.
+ * papers) placed first, replanning the rest of the day from a given time, and anchors the
+ * learner chooses (`DayAnchors`: the gym's first start, dinner, bed), the constants below
+ * by default.
  */
 import { restOf } from './holidays';
 import type { Route } from './route';
@@ -33,6 +35,51 @@ export const CORE = 360;
 export const OPTIONAL = 120;
 /** Wake times before this (5:00 am) count as the night before. */
 export const DAY_ROLLOVER = 300;
+/** Minutes after the first gym start that the later starts are tried (2:15 and 2:30 pm by default). */
+const GYM_LATER: readonly number[] = [15, 30];
+
+/** The anchors a learner may move, in plan minutes. The lengths around them stay fixed. */
+export interface DayAnchors {
+  /** The gym's first start; it is also tried 15 and 30 minutes later. */
+  gymStart: number;
+  dinner: number;
+  /** After midnight runs past 1440. */
+  bed: number;
+}
+
+export const DEFAULT_ANCHORS: Readonly<DayAnchors> = { gymStart: GYM_STARTS[0] as number, dinner: DINNER, bed: BED };
+
+/** The gym's starts for `a`, tried in order. */
+export const gymStarts = (a: Readonly<DayAnchors>): number[] => [a.gymStart, ...GYM_LATER.map((d) => a.gymStart + d)];
+
+/** When the gym ends at its latest start. */
+const gymLatestEnd = (a: Readonly<DayAnchors>): number => a.gymStart + (GYM_LATER[GYM_LATER.length - 1] ?? 0) + GYM;
+
+export const sameAnchors = (a: Readonly<DayAnchors>, b: Readonly<DayAnchors>): boolean =>
+  a.gymStart === b.gymStart && a.dinner === b.dinner && a.bed === b.bed;
+
+/**
+ * What is wrong with `a` as a day, in a short sentence, or null if it makes one: the gym
+ * from 5:00 am, dinner after the gym's latest end, dinner and the wind down before bed, and
+ * bed before 5:00 am the next morning (the plan's day ends there).
+ */
+export function anchorsProblem(a: Readonly<DayAnchors>): string | null {
+  const whole = [a.gymStart, a.dinner, a.bed].every((x) => Number.isInteger(x) && x >= 0);
+  if (!whole) return 'Choose a time for each.';
+  if (a.gymStart < DAY_ROLLOVER) return `The gym must start at ${fmtLong(DAY_ROLLOVER)} or later.`;
+  if (a.dinner < gymLatestEnd(a)) return `Dinner must be at ${fmtLong(gymLatestEnd(a))} or later, after the gym.`;
+  if (a.bed < a.dinner + DINNER_LENGTH + WIND_DOWN) return `Bed must be at ${fmtLong(a.dinner + DINNER_LENGTH + WIND_DOWN)} or later, after dinner and the wind down.`;
+  if (a.bed >= DAY_ROLLOVER + 1440) return `Bed must be before ${fmtLong(DAY_ROLLOVER)}.`;
+  return null;
+}
+
+/** Anchors from stored data (a document's settings, a day's entry): the three times if they make a day, else the defaults. */
+export function anchorsOf(x: unknown): DayAnchors {
+  if (typeof x !== 'object' || x === null) return { ...DEFAULT_ANCHORS };
+  const { gymStart, dinner, bed } = x as Record<string, unknown>;
+  const a = { gymStart, dinner, bed } as DayAnchors;
+  return anchorsProblem(a) === null ? a : { ...DEFAULT_ANCHORS };
+}
 /** The shortest core block, unless it is the last of the core. */
 const MIN_BLOCK = 40;
 /** The shortest optional block, and the least room a break must leave after it. */
@@ -95,6 +142,10 @@ export interface DayPlan {
   /** Nothing is planned after this: wind down before bed, or Friday's sundown. */
   stop: number;
   notes: string[];
+  /** The anchors the plan was made with. */
+  anchors: DayAnchors;
+  /** The sundown that ends the day (the eve of a rest day), or null; a replan with a new bed time keeps it. */
+  sundown: number | null;
 }
 
 /** 9:45am; times past midnight wrap. */
@@ -108,8 +159,18 @@ export function fmt(m: number): string {
 /** 9:45 am, for sentences. */
 export const fmtLong = (m: number): string => fmt(m).replace(/(am|pm)$/, ' $1');
 
-const GYM_NOTE = 'The gym window, 2:00 to 2:30 pm, has passed or does not fit today.';
+const GYM_NOTE_START = 'The gym window, ';
+/** "The gym window, 2:00 to 2:30 pm, ...": the first start's am or pm is left out when the last start shares it. */
+function gymNote(a: Readonly<DayAnchors>): string {
+  const s = gymStarts(a);
+  const first = fmtLong(s[0] as number);
+  const last = fmtLong(s[s.length - 1] as number);
+  const from = first.slice(-2) === last.slice(-2) ? first.replace(/ [ap]m$/, '') : first;
+  return `${GYM_NOTE_START}${from} to ${last}, has passed or does not fit today.`;
+}
+const isGymNote = (n: string): boolean => n.startsWith(GYM_NOTE_START);
 const LUNCH_TITLE = 'Lunch';
+const DINNER_TITLE = 'Dinner';
 const unplacedNote = (f: FixedBlock): string =>
   (f.at === undefined ? `${f.title}, ${f.minutes} minutes, does not fit today.` : `${f.title} at ${fmtLong(f.at)} does not fit today.`);
 const REPLANNED = 'Replanned from ';
@@ -127,6 +188,7 @@ interface Ctx {
   fixed: readonly PlacedFixed[];
   /** Pinned blocks may start from here: the wake time, or a replan's time. */
   pinFrom: number;
+  anchors: Readonly<DayAnchors>;
 }
 
 interface Built { slots: Slot[]; core: number; optional: number; coreEnd: number | null; gym: number | null; unplaced: PlacedFixed[] }
@@ -173,7 +235,8 @@ function buildOnce(g: number | null, c: Ctx): Built {
     else if (c.lunch && clear(g + GYM, g + GYM + LUNCH)) events.push(fixed(g + GYM, g + GYM + LUNCH, 'meal', LUNCH_TITLE, 'After the gym today'));
     events.push(fixed(g, g + GYM, 'gym', 'Gym', '90 minutes including travel'));
   }
-  if (c.dinner && clear(DINNER, DINNER + DINNER_LENGTH)) events.push(fixed(DINNER, DINNER + DINNER_LENGTH, 'meal', 'Dinner'));
+  const dinner = c.anchors.dinner;
+  if (c.dinner && clear(dinner, dinner + DINNER_LENGTH)) events.push(fixed(dinner, dinner + DINNER_LENGTH, 'meal', DINNER_TITLE));
   const busy = [...kept, ...events].sort((a, b) => a.start - b.start);
 
   const free: [number, number][] = [];
@@ -234,10 +297,10 @@ function better(p: Built, best: Built): boolean {
   return (p.coreEnd ?? Infinity) < (best.coreEnd ?? Infinity);
 }
 
-/** The gym tries each start in GYM_STARTS and keeps the best build (see `better`). */
+/** The gym tries each of its starts (`gymStarts`) and keeps the best build (see `better`). */
 function choose(c: Ctx): Built {
   let best: Built | null = null;
-  for (const g of [...GYM_STARTS, null]) {
+  for (const g of [...gymStarts(c.anchors), null]) {
     const p = build(g, c);
     if (best === null || better(p, best)) best = p;
   }
@@ -258,16 +321,18 @@ const placed = (fixed: readonly FixedBlock[]): PlacedFixed[] => fixed.map((f, in
  * (Friday, or the eve of a yom tov) ends at sundown; a rest day (Saturday, a yom tov) starts
  * after it, and a rest day followed by another has no plan. `rest` names the rest days, today
  * and tomorrow (holidays.ts `restOf`); without it, Saturday is today's and Friday's tomorrow's.
- * The gym tries each start in GYM_STARTS and keeps the one that
+ * The gym tries each of its starts (`gymStarts`) and keeps the one that
  * places every fixed block, then fits the most core study, then finishes the core
  * earliest. `fixed` blocks go first, in order, each in the earliest free stretch it fits.
+ * `anchors` sets the gym's first start, dinner, and bed; it must pass `anchorsProblem`.
  */
 export function planDay(
   wake: number, weekday: number, sunset: number, fixed: readonly FixedBlock[] = [],
   rest: RestDays = { today: weekday === 6 ? 'Shabbat' : null, tomorrow: weekday === 5 ? 'Shabbat' : null },
+  anchors: Readonly<DayAnchors> = DEFAULT_ANCHORS,
 ): DayPlan {
   let start = wake + GET_GOING;
-  let stop = BED - WIND_DOWN;
+  let stop = anchors.bed - WIND_DOWN;
   const notes: string[] = [];
   if (rest.today !== null && rest.tomorrow !== null) {
     // Plain, no wishes (mastery/APP-LANGUAGE.md): "Shabbat. Nothing scheduled until Shabbat ends."
@@ -286,10 +351,13 @@ export function planDay(
       start = sunset;
     }
   }
-  const chosen = choose({ start, stop, kept: [], gym: true, lunch: true, dinner: true, fixed: placed(fixed), pinFrom: wake });
-  if (chosen.gym === null && rest.today === null) notes.push(GYM_NOTE);
+  const chosen = choose({ start, stop, kept: [], gym: true, lunch: true, dinner: true, fixed: placed(fixed), pinFrom: wake, anchors });
+  if (chosen.gym === null && rest.today === null) notes.push(gymNote(anchors));
   notes.push(...chosen.unplaced.map(unplacedNote));
-  return { slots: chosen.slots, core: chosen.core, optional: chosen.optional, coreEnd: chosen.coreEnd, gym: chosen.gym, start, stop, notes };
+  return {
+    slots: chosen.slots, core: chosen.core, optional: chosen.optional, coreEnd: chosen.coreEnd, gym: chosen.gym, start, stop, notes,
+    anchors: { ...anchors }, sundown: rest.tomorrow !== null ? sunset : null,
+  };
 }
 
 /**
@@ -298,9 +366,12 @@ export function planDay(
  * already under way stay as they are; everything else from `at` on is planned afresh
  * around them, for the core and optional minutes still missing. The gym is placed again
  * only if it has not been kept, and lunch only with it. `fixed` must be the list `plan`
- * was made with; blocks of it not kept are placed again.
+ * was made with; blocks of it not kept are placed again. `anchors`, the plan's own by
+ * default, places the gym, dinner, and the day's end afresh: new anchors apply from `at`.
  */
-export function replanDay(plan: DayPlan, at: number, ticks: readonly number[], fixed: readonly FixedBlock[] = []): DayPlan {
+export function replanDay(
+  plan: DayPlan, at: number, ticks: readonly number[], fixed: readonly FixedBlock[] = [], anchors: Readonly<DayAnchors> = plan.anchors,
+): DayPlan {
   const ticked = new Set(ticks);
   const keepGym = plan.slots.find((s) => s.kind === 'gym' && (ticked.has(s.start) || s.start <= at));
   const kept = plan.slots.filter((s) =>
@@ -312,21 +383,27 @@ export function replanDay(plan: DayPlan, at: number, ticks: readonly number[], f
   const has = (f: (s: Slot) => boolean): boolean => kept.some(f);
   const done = new Set(kept.flatMap((s) => (s.fixed === undefined ? [] : [s.fixed.index])));
   const start = Math.max(at, plan.start);
+  // The same anchors give the plan's own stop; a new bed time moves it, never past the sundown that ends the day.
+  const stop = Math.min(anchors.bed - WIND_DOWN, plan.sundown ?? Infinity);
   const chosen = choose({
-    start, stop: plan.stop, kept,
+    start, stop, kept,
     gym: keepGym === undefined,
     lunch: !has((s) => s.kind === 'meal' && s.title === LUNCH_TITLE),
-    dinner: !has((s) => s.kind === 'meal' && s.start === DINNER),
+    dinner: !has((s) => s.kind === 'meal' && s.title === DINNER_TITLE),
     fixed: placed(fixed).filter((f) => !done.has(f.index)),
     pinFrom: at,
+    anchors,
   });
   const gym = keepGym?.start ?? chosen.gym;
-  const dropped = new Set([GYM_NOTE, ...placed(fixed).map(unplacedNote)]);
-  const notes = plan.notes.filter((n) => !dropped.has(n) && !n.startsWith(REPLANNED));
-  if (gym === null && (plan.gym !== null || plan.notes.includes(GYM_NOTE))) notes.push(GYM_NOTE);
+  const dropped = new Set(placed(fixed).map(unplacedNote));
+  const notes = plan.notes.filter((n) => !dropped.has(n) && !isGymNote(n) && !n.startsWith(REPLANNED));
+  if (gym === null && (plan.gym !== null || plan.notes.some(isGymNote))) notes.push(gymNote(anchors));
   notes.push(...chosen.unplaced.map(unplacedNote));
   notes.push(`${REPLANNED}${fmtLong(start)}.`);
-  return { slots: chosen.slots, core: chosen.core, optional: chosen.optional, coreEnd: chosen.coreEnd, gym, start: plan.start, stop: plan.stop, notes };
+  return {
+    slots: chosen.slots, core: chosen.core, optional: chosen.optional, coreEnd: chosen.coreEnd, gym, start: plan.start, stop, notes,
+    anchors: { ...anchors }, sundown: plan.sundown,
+  };
 }
 
 // ---------------------------------------------------------------- Brooklyn sundown
@@ -388,8 +465,8 @@ export function isDate(s: string): boolean {
 }
 
 /** The plan for a date and a wake time in plan minutes. */
-export function planFor(date: string, wake: number, fixed: readonly FixedBlock[] = []): DayPlan {
-  return planDay(wake, weekdayOf(date), sunsetMinutes(date), fixed, restDaysOf(date));
+export function planFor(date: string, wake: number, fixed: readonly FixedBlock[] = [], anchors: Readonly<DayAnchors> = DEFAULT_ANCHORS): DayPlan {
+  return planDay(wake, weekdayOf(date), sunsetMinutes(date), fixed, restDaysOf(date), anchors);
 }
 
 /** The rest days (Shabbat or a yom tov) on `date` and the day after, by name. */

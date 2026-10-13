@@ -18,7 +18,31 @@ export interface Settings {
   implicitCredit: boolean;
   /** Course id to its share of new-lesson time; a course not listed weighs 1 (`planSession`). */
   courseWeights: Record<string, number>;
+  /**
+   * The day planner's anchors, as the app chose them; absent until the learner first sets
+   * them, and the app then uses its own defaults. Optional, so documents without it need no
+   * migration, and a build before it ignores the field (an unknown field is a warning).
+   */
+  dayAnchors?: DayAnchorChoice;
 }
+
+/**
+ * The app's day planner anchors, in its plan minutes (minutes after midnight, past 1440
+ * after midnight). The engine only stores them; the app checks they make a day. They are
+ * one choice with its own time (`changedAt`), merged last writer wins like the fields in
+ * `CHOICE_FIELDS`, but dated here so documents without it keep their `changedAt` shape.
+ */
+export interface DayAnchorChoice {
+  /** The gym's first start. */
+  gymStart: number;
+  dinner: number;
+  bed: number;
+  /** ms since the epoch the learner chose these. */
+  changedAt: number;
+}
+
+/** Plan minutes run to two days; anything past is not a time of the plan's day. */
+export const MAX_PLAN_MINUTE = 2 * 24 * 60;
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = { budgetMinutes: 60, implicitCredit: true, courseWeights: {} };
 
@@ -350,6 +374,8 @@ export interface Choices {
   implicitCredit?: boolean;
   courseWeights?: Record<string, number>;
   courses?: string[];
+  /** The day planner's anchors, dated `now` when they differ from the stored ones. */
+  dayAnchors?: Omit<DayAnchorChoice, 'changedAt'>;
 }
 
 /**
@@ -373,6 +399,11 @@ export function withChoices(p: Readonly<Progress>, c: Readonly<Choices>, now: nu
   if (c.courseWeights !== undefined && !same(sortedRecord(c.courseWeights), sortedRecord(settings.courseWeights))) {
     settings.courseWeights = { ...c.courseWeights };
     changedAt.courseWeights = now;
+  }
+  const d = c.dayAnchors;
+  const was = settings.dayAnchors;
+  if (d !== undefined && (was === undefined || was.gymStart !== d.gymStart || was.dinner !== d.dinner || was.bed !== d.bed)) {
+    settings.dayAnchors = { gymStart: d.gymStart, dinner: d.dinner, bed: d.bed, changedAt: now };
   }
   if (c.courses !== undefined && !same(c.courses, courses)) {
     courses = [...c.courses];
@@ -604,6 +635,23 @@ function checkRedos(c: Checker, x: unknown): Redo[] {
   return out;
 }
 
+/**
+ * The day planner's anchors, or undefined when absent or malformed. Malformed is a warning,
+ * not an error: an optional preference is dropped (the app falls back to its defaults)
+ * rather than refusing the whole document.
+ */
+function checkDayAnchors(c: Checker, x: unknown): DayAnchorChoice | undefined {
+  if (x === undefined) return undefined;
+  const path = '$.settings.dayAnchors';
+  const minute = (v: unknown): boolean => isNat(v) && v < MAX_PLAN_MINUTE;
+  if (!isObj(x) || !minute(x.gymStart) || !minute(x.dinner) || !minute(x.bed) || !(isNum(x.changedAt) && x.changedAt >= 0)) {
+    c.warnings.push(`${path}: expected plan minutes in [0, ${MAX_PLAN_MINUTE}) and a time in ms, got ${show(x)}; ignored`);
+    return undefined;
+  }
+  c.extraKeys(x, ['gymStart', 'dinner', 'bed', 'changedAt'], path);
+  return { gymStart: x.gymStart as number, dinner: x.dinner as number, bed: x.bed as number, changedAt: x.changedAt as number };
+}
+
 function checkV7(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progress | null {
   const TOP = [
     'version', 'courseId', 'createdAt', 'updatedAt', 'settings', 'courses', 'placement', 'memory', 'learnedSinceQuiz', 'history',
@@ -617,11 +665,13 @@ function checkV7(c: Checker, d: Obj, known: ReadonlySet<string> | null): Progres
   let settings: Settings = { ...DEFAULT_SETTINGS, courseWeights: {} };
   if (c.need(isObj(d.settings), '$.settings', 'an object', d.settings)) {
     const s = d.settings as Obj;
-    c.extraKeys(s, ['budgetMinutes', 'implicitCredit', 'courseWeights'], '$.settings');
+    c.extraKeys(s, ['budgetMinutes', 'implicitCredit', 'courseWeights', 'dayAnchors'], '$.settings');
     c.need(isNum(s.budgetMinutes) && s.budgetMinutes > 0 && s.budgetMinutes <= 24 * 60, '$.settings.budgetMinutes', 'minutes in (0, 1440]', s.budgetMinutes);
     c.need(typeof s.implicitCredit === 'boolean', '$.settings.implicitCredit', 'true or false', s.implicitCredit);
     const courseWeights = checkCourseNumbers(c, s.courseWeights, '$.settings.courseWeights', MAX_COURSE_WEIGHT, `a weight in [0, ${MAX_COURSE_WEIGHT}]`);
     settings = { budgetMinutes: s.budgetMinutes as number, implicitCredit: s.implicitCredit as boolean, courseWeights };
+    const dayAnchors = checkDayAnchors(c, s.dayAnchors);
+    if (dayAnchors !== undefined) settings.dayAnchors = dayAnchors;
   }
 
   const courses: string[] = [];

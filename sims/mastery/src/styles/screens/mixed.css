@@ -1,0 +1,12 @@
+/*
+ * The blind mixed review in direction C, "Plate": the problem on a plate, the summary list
+ * ruled on paper. Scoped to .ds-mixed.
+ */
+.ds-mixed .ds-card { border-radius: var(--r-lg); }
+.ds-mixed .ds-note { max-width: var(--measure); }
+.ds-mixed .ds-row { gap: var(--g3); flex-wrap: wrap; }
+@media (max-width: 599px) {
+  .ds-mixed .ds-row .ds-btn { flex: 1 1 auto; min-height: 52px; }
+}
+.ds-mixed .ds-list .ds-li { border-color: var(--rule); }
+.ds-mixed .ds-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }

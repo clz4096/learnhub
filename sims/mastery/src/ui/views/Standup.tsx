@@ -1,6 +1,6 @@
 /**
- * The cohort's daily standup (#/standup): the day's updates in speaking order, each with a
- * monogram portrait, then Albert's own (the StandupSlot). Play reads the updates aloud, a
+ * The cohort's daily standup (#/standup): Albert's own update first (the StandupSlot), then
+ * the classmates' updates in speaking order, each with a monogram portrait, folded on a phone. Play reads the updates aloud, a
  * voice per classmate where the browser has them; Stop ends it. Read aloud never starts by
  * itself, is off while muted (You, Settings), and under reduced motion the page does not
  * scroll to follow the speaker.
@@ -24,6 +24,8 @@ import { StandupSlot } from '@/ui/StandupSlot';
 import { CalendarLink } from '@/ui/cohort/CalendarLink';
 import { Monogram } from '@/ui/cohort/Monogram';
 import { speakAll, synth } from '@/ui/cohort/speech';
+import { Fold } from '@/ui/Fold';
+import '@/styles/screens/standup.css';
 
 const longDate = (date: string): string =>
   new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
@@ -57,6 +59,7 @@ export function StandupView() {
   const [speaker, setSpeaker] = useState<string | null>(null);
   const [active, setActive] = useState(false);
   const stop = useRef<(() => void) | null>(null);
+  const others = useRef<HTMLDetailsElement>(null);
   useEffect(() => () => stop.current?.(), []);
   useEffect(() => {
     if (speaker === null || reducedMotion()) return;
@@ -78,6 +81,8 @@ export function StandupView() {
       return c === undefined ? [] : [{ id: c.id, text: spokenText(c, u), who: c }];
     });
     setActive(true);
+    // The classmates fold opens with the reading, so the speaker's row can be followed.
+    if (others.current !== null) others.current.open = true;
     stop.current = speakAll(passages, (id) => {
       setSpeaker(id);
       if (id === null) {
@@ -109,8 +114,7 @@ export function StandupView() {
       <div class="ds-eyebrow">Standup · {date === null ? 'the cohort' : longDate(date)}</div>
       <h1 id="su-page-title" class="ds-h1">Standup</h1>
       <p class="ds-meta">{fmtLong(st.minutes)} · {STANDUP_LENGTH} minutes · the {PROGRAMME.name}</p>
-      <CalendarLink />
-      <p class="ds-note su-status" role="status">{saved.enabled ? status : 'Standups are off in You, so none is planned or missed. The cohort still meets.'}</p>
+      <p class="ds-note su-status" role="status">{saved.enabled ? status : 'Standups are off in Settings, so none is planned or missed. The cohort still meets.'}</p>
 
       {date === null
         ? <p class="ds-note">The programme's first standup is on {longDate(next)}.</p>
@@ -122,24 +126,40 @@ export function StandupView() {
               </button>
               <button type="button" class="d-text" aria-pressed={st.muted} onClick={toggleMute}>{st.muted ? 'Unmute read aloud' : 'Mute read aloud'}</button>
               {synth() === null && <span class="ds-meta">This browser cannot read aloud.</span>}
+              {/* The update is the one thing to do here: one press reaches it and puts focus on it. */}
+              {held && saved.enabled && !attended && (
+                <button
+                  type="button" class="ds-btn ghost su-jump"
+                  onClick={() => {
+                    const el = document.getElementById('su-self');
+                    el?.scrollIntoView?.({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+                    el?.focus({ preventScroll: true });
+                  }}
+                >
+                  Your update
+                </button>
+              )}
             </div>
-            <ol class="su-list" aria-label={`Updates, ${longDate(date)}`}>
-              {updates.map((u) => {
-                const c = classmateById(u.who);
-                return c === undefined ? null : <UpdateRow key={c.id} c={c} u={u} on={speaker === c.id} />;
-              })}
-              <li class="su-row su-self">
-                <Monogram id="albert" name={LEARNER_NAME} />
-                <div class="su-body">
-                  <div class="su-who"><b>{LEARNER_NAME}</b><span class="su-bg">Your update</span></div>
-                  {held && saved.enabled
-                    ? <StandupSlot date={date} onDone={reloadStandup} />
-                    : <p class="su-line quiet">{attended ? 'Given.' : 'Not given.'} Your next update is on {longDate(next)}.</p>}
-                </div>
-              </li>
-            </ol>
+            <div id="su-self" class="su-row su-self" tabIndex={-1}>
+              <Monogram id="albert" name={LEARNER_NAME} />
+              <div class="su-body">
+                <div class="su-who"><b>{LEARNER_NAME}</b><span class="su-bg">Your update</span></div>
+                {held && saved.enabled
+                  ? <StandupSlot date={date} onDone={reloadStandup} />
+                  : <p class="su-line quiet">{attended ? 'Given.' : 'Not given.'} Your next update is on {longDate(next)}.</p>}
+              </div>
+            </div>
+            <Fold id="su-others" title="Classmates' updates" detailsRef={others}>
+              <ol class="su-list" aria-label={`Updates, ${longDate(date)}`}>
+                {updates.map((u) => {
+                  const c = classmateById(u.who);
+                  return c === undefined ? null : <UpdateRow key={c.id} c={c} u={u} on={speaker === c.id} />;
+                })}
+              </ol>
+            </Fold>
           </>
         )}
+      <CalendarLink />
     </section>
   );
 }

@@ -12,7 +12,8 @@
  *   #/problem/<topic id>/<problem id>  one Cambridge problem, opened from a redo on Today
  *   #/book        the Course tab: the degree as a book, its contents; #/book/<chapter id> one chapter
  *   #/map         the prerequisite map; #/map/<id> with a topic open
- *   #/progress    per course, backup, settings
+ *   #/progress    You: predicted outcomes and each course's progress
+ *   #/settings    Settings (under You): theme, study plan, standup, sync, backup, Start over
  *   #/glossary    every term; #/glossary/<id> at one entry
  *   #/campaign    the Cambridge Entry campaign; #/paper/<id> one past paper in exam mode
  *   #/papers      the campaign's past papers (Admission's Papers tab)
@@ -46,6 +47,7 @@ export type Route =
   | { view: 'problem'; topicId: string; problemId: string }
   | { view: 'map'; topicId: string | null }
   | { view: 'progress' }
+  | { view: 'settings' }
   | { view: 'glossary'; termId: string | null }
   | { view: 'campaign' }
   | { view: 'paper'; paperId: string }
@@ -85,6 +87,7 @@ export function parseRoute(hash: string): Route {
     case 'problem': return id !== null && arg2 !== undefined && ID.test(arg2) ? { view: 'problem', topicId: id, problemId: arg2 } : { view: 'today' };
     case 'map': return { view: 'map', topicId: id };
     case 'progress': return { view: 'progress' };
+    case 'settings': return { view: 'settings' };
     case 'glossary': return { view: 'glossary', termId: id };
     case 'campaign': return { view: 'campaign' };
     case 'paper': return id === null ? { view: 'campaign' } : { view: 'paper', paperId: id };
@@ -118,6 +121,7 @@ export function hrefOf(r: Route): string {
     case 'problem': return `#/problem/${encodeURIComponent(r.topicId)}/${encodeURIComponent(r.problemId)}`;
     case 'map': return r.topicId === null ? '#/map' : `#/map/${encodeURIComponent(r.topicId)}`;
     case 'progress': return '#/progress';
+    case 'settings': return '#/settings';
     case 'glossary': return r.termId === null ? '#/glossary' : `#/glossary/${encodeURIComponent(r.termId)}`;
     case 'campaign': return '#/campaign';
     case 'paper': return `#/paper/${encodeURIComponent(r.paperId)}`;

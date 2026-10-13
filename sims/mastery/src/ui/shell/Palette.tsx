@@ -21,6 +21,7 @@ import { trapTab } from '@/ui/help/focus';
 import { ladderRoute } from '@/ui/ladderShared';
 import { helpOpen } from '@/ui/help/state';
 import { loadRecent, paletteOpen } from '@/ui/shell/state';
+import '@/styles/screens/palette.css';
 
 const THEMES: readonly Theme[] = ['system', 'light', 'dark'];
 
@@ -53,6 +54,7 @@ function actions(): Action[] {
     a('ladder', 'Climb the timed ladder', '', () => go(ladderRoute())),
     a('mixed', 'Start a mixed review', '', () => go({ view: 'mixed' })),
     a('glossary', 'Open the glossary', '', () => go({ view: 'glossary', termId: null })),
+    a('settings', 'Open settings', '', () => go({ view: 'settings' })),
     a('help', 'Help', '', () => { helpOpen.value = true; }),
     a('theme', 'Switch the theme', '', cycleTheme),
   ];

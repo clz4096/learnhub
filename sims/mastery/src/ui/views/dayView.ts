@@ -1,14 +1,14 @@
 /**
- * One day as the planner shows it, computed once for Today's header (the Now card, Later
- * today, the side column) and for the full planner below it: the plan from the wake time,
+ * One day as the planner shows it, computed once for Today's header (the Now card, the
+ * side column) and for the planner's timeline below it: the plan from the wake time,
  * the queue filled into its study blocks, what is still to do, and the block running now.
  *
  * The queue (`dayItems`) runs the scheduler round after round, so it is cached per
  * progress document, budget, and day; the header and the planner share one computation.
  */
 import type { Progress } from '@learnhub/mastery';
-import { CORE, fillBlocks, parseClock, planDate, planMinute, sunsetMinutes, tickedMinutes, weekOf, weekdayOf, addDays, type DayPlan, type FixedBlock, type Slot } from '@/model/day';
-import { planOf, type DayEntry, type DayLog } from '@/model/dayLog';
+import { CORE, anchorsOf, fillBlocks, parseClock, planDate, planMinute, sunsetMinutes, tickedMinutes, weekOf, weekdayOf, addDays, type DayAnchors, type DayPlan, type FixedBlock, type Slot } from '@/model/day';
+import { planOf, withAnchors, type DayEntry, type DayLog } from '@/model/dayLog';
 import { yomTovBetween } from '@/model/holidays';
 import { dayItems, type DayItem } from '@/model/dayQueue';
 import { localDay } from '@/model/learner';
@@ -17,9 +17,6 @@ import { loadMixed } from '@/model/mixedStore';
 
 export const DEFAULT_WAKE = '09:00';
 export const WEEK_TARGET_HOURS = 36;
-
-/** One entry of Up next: a queue item, or a timed paper with its block. */
-export type Next = { item: DayItem; slot: Slot | null } | { paper: Slot };
 
 export interface DayView {
   date: string;
@@ -39,12 +36,14 @@ export interface DayView {
   left: DayItem[];
   /** Fill blocks with nothing in them, today. */
   dryBlocks: number;
-  upNext: Next[];
   /** The block running now, today; never a break. */
   cur: Slot | undefined;
   /** Core study minutes done: ticked blocks whole, the running one by the clock. */
   coreDone: number;
 }
+
+/** The anchors chosen in Settings, or the defaults: what a day not yet planned, and Plan from now, use. */
+export const currentAnchors = (p: Progress): DayAnchors => anchorsOf(p.settings.dayAnchors);
 
 /** Minutes the queue fills on a plan: its study and optional blocks, less timed papers. */
 export const fillMinutes = (plan: DayPlan): number =>
@@ -77,10 +76,11 @@ export function budgetFor(p: Progress, plan: DayPlan, t: number): number {
 
 export function dayView(p: Progress, log: DayLog, date: string, t: number, fixedFor: (date: string) => readonly FixedBlock[]): DayView {
   const today = planDate(t);
-  const entry: DayEntry = log[date] ?? { wake: DEFAULT_WAKE, ticks: [] };
+  // A day not planned yet takes the anchors in Settings; a planned one keeps its own.
+  const entry: DayEntry = log[date] ?? { wake: DEFAULT_WAKE, ticks: [], ...withAnchors(currentAnchors(p)) };
   const wake = parseClock(entry.wake) ?? (parseClock(DEFAULT_WAKE) as number);
   const fixed = fixedFor(date);
-  const plan = planOf(date, entry, fixed) ?? (planOf(date, { wake: DEFAULT_WAKE, ticks: [] }, fixed) as DayPlan);
+  const plan = planOf(date, entry, fixed) ?? (planOf(date, { wake: DEFAULT_WAKE, ticks: [], ...withAnchors(currentAnchors(p)) }, fixed) as DayPlan);
   const isToday = date === today;
   const nowMin = planMinute(t);
   const ticks = new Set(entry.ticks);
@@ -93,23 +93,13 @@ export function dayView(p: Progress, log: DayLog, date: string, t: number, fixed
   const fill = new Map<Slot, DayItem[]>(fillSlots.map((s, i) => [s, filled[i] ?? []]));
   const dryBlocks = isToday ? fillSlots.filter((s) => (fill.get(s) ?? []).length === 0).length : 0;
 
-  const upNext: Next[] = [];
-  for (const s of studySlots) {
-    if (s.fixed !== undefined) {
-      if (!ticks.has(s.start) && !(isToday && s.end <= nowMin)) upNext.push({ paper: s });
-      continue;
-    }
-    for (const x of fill.get(s) ?? []) if (!x.done) upNext.push({ item: x, slot: s });
-  }
-  for (const x of left) if (!x.done) upNext.push({ item: x, slot: null });
-
   const cur = isToday ? plan.slots.find((s) => s.kind !== 'break' && nowMin >= s.start && nowMin < s.end) : undefined;
   const coreDone = Math.min(CORE, plan.slots.filter((s) => s.kind === 'study').reduce((a, s) => {
     const len = s.end - s.start;
     if (ticks.has(s.start)) return a + len;
     return isToday ? a + Math.min(len, Math.max(0, nowMin - s.start)) : a;
   }, 0));
-  return { date, isToday, entry, wake, plan, fixed, nowMin, ticks, queue, budget, studySlots, fill, left, dryBlocks, upNext, cur, coreDone };
+  return { date, isToday, entry, wake, plan, fixed, nowMin, ticks, queue, budget, studySlots, fill, left, dryBlocks, cur, coreDone };
 }
 
 /** Minutes ticked off on each day of the week holding `date`, Sunday first. */

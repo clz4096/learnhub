@@ -23,6 +23,8 @@ import { forecastFor } from '@/model/readinessBar';
 import { progress, now } from '@/model/store';
 import { AppLink, CopyBlock, WithAdmissions, shortStamp } from '@/ui/campaignShared';
 import { BackLink } from '@/ui/BackLink';
+import '@/styles/screens/admission.css';
+import '@/styles/screens/paper.css';
 
 const update = (f: (c: Campaign) => Campaign): void => {
   const c = campaign.value;

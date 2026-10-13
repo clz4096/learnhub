@@ -20,7 +20,9 @@
  *   imported result is never lost; two results for one nonce keep the earlier import.
  * - Redos, by problem and the nonce that set them: a done redo beats an open one, so a
  *   done redo stays done.
- * - Settings and chosen courses: last writer wins, field by field (`changedAt`).
+ * - Settings and chosen courses: last writer wins, field by field (`changedAt`). The day
+ *   planner's anchors carry their own time (`DayAnchorChoice.changedAt`); a copy without
+ *   them loses to one with them.
  * - Lesson minutes per course: the larger count. Minutes spent on both devices offline
  *   are under-counted, never double counted.
  * - Topics learned since the last quiz: unioned. A quiz taken on one device does not clear
@@ -177,11 +179,14 @@ function mergeChoices(a: Readonly<Progress>, b: Readonly<Progress>): Pick<Progre
   const pick = (f: ChoiceField): Readonly<Progress> =>
     maxBy(a, b, (p) => [p.changedAt[f], canonicalJson(choiceValue(p, f))]);
   const from = Object.fromEntries(CHOICE_FIELDS.map((f) => [f, pick(f)])) as Record<ChoiceField, Readonly<Progress>>;
+  // Dated inside the choice; a copy without it loses to any copy with it.
+  const anchors = maxBy(a, b, (p) => [p.settings.dayAnchors?.changedAt ?? -1, canonicalJson(p.settings.dayAnchors ?? null)]).settings.dayAnchors;
   return {
     settings: {
       budgetMinutes: from.budgetMinutes.settings.budgetMinutes,
       implicitCredit: from.implicitCredit.settings.implicitCredit,
       courseWeights: { ...from.courseWeights.settings.courseWeights },
+      ...(anchors === undefined ? {} : { dayAnchors: { ...anchors } }),
     },
     courses: [...from.courses.courses],
     changedAt: {

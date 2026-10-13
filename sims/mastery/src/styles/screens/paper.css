@@ -1,0 +1,15 @@
+/*
+ * The timed sitting (a paper or a ladder rung) in direction C, "Plate": the clock on its
+ * own plate, flags on paper below it. Scoped to .ds-timed.
+ */
+.ds-timed .ds-big {
+  margin: var(--g5) 0 0; padding: var(--g6) var(--g4) var(--g5); border-radius: var(--r-lg); background: var(--plate);
+  font: 400 clamp(56px, 18vw, 88px) / 1 var(--sans);
+}
+.ds-timed .ds-big + .ds-meta { margin-top: var(--g2); }
+.ds-timed .ds-flags { padding-top: var(--g4); border-top: 1px solid var(--rule); }
+.ds-timed .ds-flags .ds-chip { touch-action: manipulation; }
+.ds-timed .ds-flag-form input { border: 1px solid var(--rule-strong); border-radius: var(--r-sm); padding: 0 var(--g3); background: var(--paper); color: var(--ink); }
+.ds-timed .ds-flag-form input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.ds-timed .ds-stack { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.ds-timed .ds-stack .ds-btn { min-height: 52px; }

@@ -17,6 +17,7 @@ import { go, hrefOf, type Route } from '@/model/route';
 import { now, progress } from '@/model/store';
 import { BackLink } from '@/ui/BackLink';
 import { plainChapter, stageOf } from '@/ui/views/stages';
+import '@/styles/screens/course.css';
 
 const AFTER_PREP = 'Opens after the Preparation campaign';
 
@@ -89,21 +90,6 @@ function Sections({ ch, p, states, next, open }: { ch: BookChapter; p: Progress;
   );
 }
 
-/** Today's "continue" line: the next step in book order, linked to its lesson. */
-export function ContinueReading({ p }: { p: Progress }) {
-  const next = nextInBook(p);
-  if (next === undefined) return null;
-  return (
-    <p class="book-continue">
-      <span class="book-k">Continue reading</span>{' '}
-      <BookLink to={{ view: 'learn', topicId: next.step.topicId, from: 'book' }} cls="book-next">{titleOf(next.step.topicId)}</BookLink>
-      <span class="book-where">
-        <BookLink to={{ view: 'chapter', chapterId: next.chapter.id }}>{next.chapter.title}</BookLink>, {next.section.title}
-      </span>
-    </p>
-  );
-}
-
 /** A chapter on the Course tab: its plain name, the exam it belongs to as a small tag, and its lesson count. */
 function StageChapter({ ch, p, here }: { ch: BookChapter; p: Progress; here: boolean }) {
   const c = chapterProgress(p, ch);
@@ -133,7 +119,7 @@ function StageChapters({ y, p, here }: { y: BookYear; p: Progress; here: BookCha
         const out = term.chapters.filter((c) => c.status === 'out');
         return (
           <div key={term.name} class="book-term">
-            {y.terms.length > 1 && <h3 class="ds-eyebrow">{term.name}</h3>}
+            {y.terms.length > 1 && <h2 class="ds-eyebrow">{term.name}</h2>}
             {main.length > 0 && <ul class="ds-chlist">{main.map((c) => <StageChapter key={c.id} ch={c} p={p} here={c === here} />)}</ul>}
             {opt.length > 0 && (
               <details class="book-opt" open={opt.includes(here as BookChapter)}>
@@ -226,7 +212,8 @@ export function ChapterView({ chapterId }: { chapterId: string }) {
       <p class="book-kicker">{join([year?.label.split(',')[0] ?? '', ch.termName, TRACK_NAMES[ch.track]])}</p>
       <h1 id="chapter-title">{ch.title}</h1>
       <p class="lead">
-        {join([lectures(ch.lectures), `${ch.sections.length} section${ch.sections.length === 1 ? '' : 's'}`, ch.runs,
+        {/* A chapter's units are counted in one noun, lessons, by the progress line; a chapter with none counts its syllabus sections. */}
+        {join([lectures(ch.lectures), c.steps > 0 ? '' : `${ch.sections.length} section${ch.sections.length === 1 ? '' : 's'}`, ch.runs,
           ch.status === 'opt' ? 'optional' : ch.status === 'out' ? 'left out' : ''])}
       </p>
       {ch.overlap !== '' && <p class="book-note">{ch.overlap}.</p>}
@@ -235,7 +222,7 @@ export function ChapterView({ chapterId }: { chapterId: string }) {
       {c.steps > 0 && (
         <div class="d-progress">
           <div class="d-bar"><i style={{ width: `${pct}%` }} /></div>
-          <div class="d-lbl"><span>{c.learned} of {c.steps} steps learned</span><span>{c.written} written</span></div>
+          <div class="d-lbl"><span>{c.learned} of {c.steps} lessons learned</span><span>{c.written} written</span></div>
         </div>
       )}
       {ch.sections.length === 0

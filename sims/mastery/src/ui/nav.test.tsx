@@ -47,6 +47,12 @@ const toExamples = (): void => {
   click('Next: worked examples');
 };
 const heading = (): string | null | undefined => document.querySelector('main h1')?.textContent;
+/** Today's link to the session's first task, in the day's timeline. */
+const firstTask = (): Promise<Element> => waitFor(() => {
+  const a = document.querySelector('.d-tl a[href="#/task/0"]');
+  if (a === null) throw new Error('no link to task 0 yet');
+  return a;
+});
 
 beforeEach(async () => {
   Element.prototype.scrollTo ??= () => {};
@@ -71,7 +77,7 @@ describe('the start', () => {
     await flush();
     expect(location.hash).toBe('#/');
     expect(heading()).toBe(TODAY);
-    await screen.findByText('Fractions and ratios', { selector: '.task-title' });
+    await screen.findByText('Fractions and ratios', { selector: '.d-tl .d-item-title' });
     await flush();
     expect(progress.value?.session?.tasks.map((t) => [t.kind, t.topicIds[0]])).toEqual([
       ['lesson', 'pre.fractions'], ['lesson', 'pre.indices'], ['lesson', 'pre.algebraic-manipulation'],
@@ -138,7 +144,7 @@ describe('progress saved by the placement test of earlier builds', () => {
     render(<App />);
     expect(route.value.view).toBe('today');
     expect(heading()).toBe(TODAY);
-    await screen.findByText('Fractions and ratios', { selector: '.task-title' });
+    await screen.findByText('Fractions and ratios', { selector: '.d-tl .d-item-title' });
     expect(screen.queryByText('The product rule for counting')).toBeNull();
     // The migrated document was saved, so the next load needs no migration.
     await flush();
@@ -166,8 +172,7 @@ describe('a learner with a course', () => {
   it('Back walks the views in order: Today, a lesson, Today, the course, the map, a topic, You, the glossary', async () => {
     await started();
     render(<App />);
-    await screen.findByText('Fractions and ratios', { selector: '.task-title' });
-    click('Start');
+    fireEvent.click(await firstTask());
     expect(location.hash).toBe('#/task/0');
     // A lesson is a focus screen: no tabs; the bar's way back goes to Today, where it was opened.
     expect(document.querySelector('nav.ds-nav')).toBeNull();
@@ -227,7 +232,7 @@ describe('a learner with a course', () => {
     click('Back to today');
     expect(location.hash).toBe('#/');
     expect(loadPlace(`lesson-${progress.value?.session?.startedAt ?? 0}-0.pre.fractions`)).toMatchObject({ stage: 'practice', practice: { attempts: 1 } });
-    click('Start');
+    fireEvent.click(await firstTask());
     expect(screen.getByText(/^Problem 2 of /)).toBeTruthy();
 
     // A reload in the same tab resumes too.
@@ -264,7 +269,7 @@ describe('a learner with a course', () => {
   it('a dialog closes when Back changes the view', async () => {
     await started();
     go({ view: 'map', topicId: null });
-    go({ view: 'progress' });
+    go({ view: 'settings' });
     render(<App />);
     click(/^Help/);
     expect(helpOpen.value).toBe(true);

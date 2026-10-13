@@ -142,7 +142,8 @@ describe('focus mode', () => {
     await lessonNext();
     expect(nav()).toBeNull();
     expect(document.querySelector('.app')?.classList.contains('focus')).toBe(true);
-    expect(document.querySelector('.ds-fbar-back')?.textContent).toBe('← Course');
+    // The arrow is a drawn icon now, so the button's text is the label alone.
+    expect(document.querySelector('.ds-fbar-back')?.textContent).toBe('Course');
     // Number keys do nothing in focus mode.
     key('3');
     expect(location.hash).toBe('#/learn/pre.fractions/book');
@@ -280,16 +281,55 @@ describe('the timed paper', () => {
 });
 
 describe('You', () => {
-  it('mounts the OutcomePanel, How predictions work, settings, help, and Progress', async () => {
+  it('mounts the OutcomePanel, How predictions work, the courses, and the rows to Settings and the glossary; no setting', async () => {
     go({ view: 'progress' });
     render(<App />);
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Predicted outcomes');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Progress and outcomes');
     expect(document.querySelector('[data-slot="OutcomePanel"]')).not.toBeNull();
     const how = screen.getByText('How predictions work').closest('details') as HTMLDetailsElement;
     expect(how.open).toBe(false);
     expect(how.textContent).toContain('only papers you sat under time');
     expect(screen.getByText('Glossary', { selector: '.ds-x' }).closest('a')?.getAttribute('href')).toBe('#/glossary');
-    expect(screen.getByRole('group', { name: 'Theme' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Progress' })).toBeTruthy();
+    expect(screen.getByText('Settings', { selector: '.ds-x' }).closest('a')?.getAttribute('href')).toBe('#/settings');
+    expect(screen.getByRole('heading', { name: 'Your courses' }).closest('details')).not.toBeNull();
+    expect(screen.queryByRole('group', { name: 'Theme' })).toBeNull();
+    expect(screen.queryByLabelText('Minutes a day')).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Help/ })).toBeNull();
+    fireEvent.click(screen.getByText('Settings', { selector: '.ds-x' }));
+    expect(location.hash).toBe('#/settings');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Settings');
+  });
+
+  it('Settings holds one theme control, the study plan, the standup, help, sync and backup, and Start over', async () => {
+    go({ view: 'settings' });
+    render(<App />);
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Settings');
+    // Under the You tab.
+    expect(document.querySelector('nav.ds-nav a[data-nav="you"]')?.getAttribute('aria-current')).toBe('page');
+    expect(screen.getAllByRole('group', { name: 'Theme' })).toHaveLength(1);
+    expect(screen.queryAllByRole('radio')).toEqual([]);
+    fireEvent.click(within(screen.getByRole('group', { name: 'Theme' })).getByRole('button', { name: 'Dark' }));
+    expect(localStorage.getItem('mastery.theme.v1')).toBe('dark');
+    expect(screen.getByLabelText('Minutes a day')).toBeTruthy();
+    expect(screen.getByLabelText('Standup time')).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Daily standup' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^Help/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^Take the tour again/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Export progress file' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Erase my progress' })).toBeTruthy();
+    for (const name of ['General', 'Study plan', 'Day and standup', 'Sync and backup']) {
+      expect(screen.getByRole('heading', { name }).closest('details')).not.toBeNull();
+    }
+  });
+
+  it('the palette opens Settings', async () => {
+    render(<App />);
+    key('k', { metaKey: true });
+    const input = await waitFor(() => document.querySelector('.ds-cmd-in') as HTMLInputElement);
+    fireEvent.input(input, { target: { value: 'settings' } });
+    expect(options()).toContain('Open settings');
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await flush();
+    expect(location.hash).toBe('#/settings');
   });
 });

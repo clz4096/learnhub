@@ -1,0 +1,34 @@
+/*
+ * The command palette, direction C "Plate" (design pass, 2026-10-13). Scoped to .ds-cmd.
+ * Opens with a short fade and lift (opacity and transform, under 200 ms); none with
+ * reduced motion. The active row carries the green edge, so the selection reads without
+ * relying on the tint alone.
+ */
+
+.ds-cmd {
+  padding-left: max(var(--g3), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--g3), env(safe-area-inset-right, 0px));
+  padding-bottom: max(var(--g3), env(safe-area-inset-bottom, 0px));
+}
+.ds-cmd .ds-cmd-box { background: var(--paper); }
+.ds-cmd .ds-cmd-in { border-bottom-color: var(--rule) !important; }
+.ds-cmd .ds-cmd-res > li[role='option'] { position: relative; }
+.ds-cmd .ds-cmd-res > li.on { background: var(--plate); box-shadow: inset 3px 0 0 var(--green); }
+.ds-cmd .ds-cmd-res > li > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-cmd .ds-cmd-res kbd { flex: none; }
+.ds-cmd .ds-cmd-res .ds-cmd-h { text-transform: none; letter-spacing: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ds-cmd { animation: ds-cmd-fade var(--dur-quick) var(--ease-out); }
+  .ds-cmd .ds-cmd-box { animation: ds-cmd-lift var(--dur-open) var(--ease-out); }
+}
+@keyframes ds-cmd-fade { from { opacity: 0; } }
+@keyframes ds-cmd-lift { from { opacity: 0; transform: translateY(-6px) scale(0.99); } }
+
+/* phones: the box sits under the status bar and the list takes the rest of the screen */
+@media (max-width: 599px) {
+  .ds-cmd { padding-top: max(var(--g3), env(safe-area-inset-top, 0px)); }
+  .ds-cmd .ds-cmd-box { border-radius: var(--r); }
+  .ds-cmd .ds-cmd-in { font-size: var(--fs-ui) !important; padding: var(--g3) var(--g4) !important; }
+  .ds-cmd .ds-cmd-res { max-height: calc(100dvh - 56px - 2 * var(--g3) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+}

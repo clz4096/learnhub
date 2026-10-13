@@ -21,6 +21,7 @@ import { commit, now, progress } from '@/model/store';
 import { ProblemCard } from '@/ui/ProblemCard';
 import { Rich } from '@/ui/Rich';
 import { buzz } from '@/ui/shell/state';
+import '@/styles/screens/gym.css';
 
 type GymTab = 'recall' | 'order' | 'drill' | 'listen';
 const GYM_TABS: readonly { id: GymTab; label: string }[] = [

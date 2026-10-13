@@ -5,7 +5,7 @@ describe('routes', () => {
   const all: Route[] = [
     { view: 'today' }, { view: 'start' }, { view: 'task', index: 3 }, { view: 'learn', topicId: 'pre.fractions' },
     { view: 'problem', topicId: 'prob.event-spaces', problemId: 'q4-definitions' },
-    { view: 'map', topicId: null }, { view: 'map', topicId: 'num.gcd' }, { view: 'progress' },
+    { view: 'map', topicId: null }, { view: 'map', topicId: 'num.gcd' }, { view: 'progress' }, { view: 'settings' },
     { view: 'glossary', termId: null }, { view: 'glossary', termId: 'union' },
     { view: 'book' }, { view: 'chapter', chapterId: 'ia-discrete-mathematics' }, { view: 'learn', topicId: 'proof.direct', from: 'book' },
     { view: 'gym' }, { view: 'papers' },

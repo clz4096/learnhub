@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BED, CORE, GYM, OPTIONAL, WIND_DOWN, addDays, clockValue, fillBlocks, fmt, isDate, nyParts, parseClock, planDate, planDay, planFor,
+  BED, CORE, DEFAULT_ANCHORS, DINNER, GYM, GYM_STARTS, OPTIONAL, WIND_DOWN, addDays, anchorsOf, anchorsProblem, gymStarts, clockValue, fillBlocks, fmt, isDate, nyParts, parseClock, planDate, planDay, planFor,
   planMinute, replanDay, sunsetMinutes, tickedMinutes, weekOf, weekdayOf, type DayPlan, type Fillable, type FixedBlock,
 } from './day';
 
@@ -425,3 +425,86 @@ describe('replanDay', () => {
 });
 
 const GYM_START_OK = (g: number): boolean => [at(14), at(14, 15), at(14, 30)].includes(g);
+
+describe('anchors the learner chooses', () => {
+  const ordered = (p: DayPlan): boolean => p.slots.every((x, i) => x.start < x.end && (i === 0 || (p.slots[i - 1] as DayPlan['slots'][number]).end <= x.start));
+
+  it('the defaults are the constants, and planning with them changes nothing', () => {
+    expect(DEFAULT_ANCHORS).toEqual({ gymStart: 840, dinner: DINNER, bed: BED });
+    expect(gymStarts(DEFAULT_ANCHORS)).toEqual(GYM_STARTS);
+    for (const [d, w] of [[MON, at(9)], [MON, at(13)], [MON, at(15)], [FRI, at(9)], [SAT, at(10)]] as const) {
+      const p = planFor(d, w);
+      expect(planFor(d, w, [], { ...DEFAULT_ANCHORS })).toEqual(p);
+      expect(p.anchors).toEqual(DEFAULT_ANCHORS);
+      expect(replanDay(p, at(16), [], [], { ...DEFAULT_ANCHORS })).toEqual(replanDay(p, at(16), []));
+    }
+    expect(planFor(MON, at(15)).notes).toEqual(['The gym window, 2:00 to 2:30 pm, has passed or does not fit today.']);
+  });
+
+  it('a 5:00 pm gym, dinner at 7:30 pm, and bed at 11:00 pm make their own day', () => {
+    const p = planFor(MON, at(9), [], { gymStart: at(17), dinner: at(19, 30), bed: at(23) });
+    expect(p.gym).toBe(at(17));
+    expect(p.stop).toBe(at(23) - WIND_DOWN);
+    expect(p.core).toBe(CORE);
+    expect(p.optional).toBe(OPTIONAL);
+    expect(rows(p)).toEqual([
+      '9:45am-11:15am study', '11:15am-11:30am break', '11:30am-1:00pm study', '1:00pm-1:15pm break', '1:15pm-2:45pm study',
+      '2:45pm-3:00pm break', '3:00pm-4:30pm study', '4:30pm-5:00pm meal', '5:00pm-6:30pm gym', '6:30pm-7:30pm optional',
+      '7:30pm-8:30pm meal', '8:30pm-9:30pm optional',
+    ]);
+    expect(ordered(p)).toBe(true);
+  });
+
+  it('bed after midnight: 2:30 am is plan minute 1590, and the day runs to its wind down', () => {
+    const p = planFor(MON, at(11), [], { gymStart: at(14), dinner: at(21), bed: 1590 });
+    expect(p.stop).toBe(1560);
+    expect(Math.max(...p.slots.map((s) => s.end))).toBeLessThanOrEqual(1560);
+    expect(rows(p).slice(-3)).toEqual(['10:00pm-11:30pm optional', '11:30pm-11:45pm break', '11:45pm-12:15am optional']);
+    expect(of(p, 'meal').map((s) => fmt(s.start))).toEqual(['1:30pm', '9:00pm']);
+    expect(ordered(p)).toBe(true);
+  });
+
+  it('the gym note names the chosen window', () => {
+    expect(planFor(MON, at(15), [], { gymStart: at(11, 45), dinner: DINNER, bed: BED }).notes)
+      .toEqual(['The gym window, 11:45 am to 12:15 pm, has passed or does not fit today.']);
+  });
+
+  it('a replan applies new anchors from now, keeping the past and ticks', () => {
+    const p = planFor(MON, at(9));
+    const r = replanDay(p, at(10), [at(9, 45)], [], { gymStart: at(16), dinner: at(21), bed: at(24) });
+    expect(r.slots[0]).toEqual(p.slots[0]);
+    expect(r.gym).toBe(at(16));
+    expect(of(r, 'meal').map((s) => `${fmt(s.start)} ${s.title}`)).toEqual(['3:30pm Lunch', '9:00pm Dinner']);
+    expect(r.stop).toBe(at(24) - WIND_DOWN);
+    expect(r.anchors).toEqual({ gymStart: at(16), dinner: at(21), bed: at(24) });
+    expect(ordered(r)).toBe(true);
+    // A replan with no anchors keeps the plan's own.
+    expect(replanDay(r, at(11), []).anchors).toEqual(r.anchors);
+  });
+
+  it('a later bed never moves the end of a day past Friday sundown', () => {
+    const p = planFor(FRI, at(9));
+    const r = replanDay(p, at(10), [], [], { gymStart: at(14), dinner: at(20), bed: 1620 });
+    expect(r.stop).toBe(p.stop);
+    expect(r.stop).toBe(sunsetMinutes(FRI));
+  });
+
+  it('checks the anchors make a day: dinner after the gym, bed after dinner and the wind down, bed before 5:00 am', () => {
+    expect(anchorsProblem(DEFAULT_ANCHORS)).toBeNull();
+    expect(anchorsProblem({ gymStart: at(17), dinner: at(19), bed: at(23) })).toBeNull();
+    expect(anchorsProblem({ gymStart: at(17), dinner: at(18, 45), bed: at(23) })).toBe('Dinner must be at 7:00 pm or later, after the gym.');
+    expect(anchorsProblem({ gymStart: at(14), dinner: at(22), bed: at(23) })).toBe('Bed must be at 11:30 pm or later, after dinner and the wind down.');
+    expect(anchorsProblem({ gymStart: at(14), dinner: at(22), bed: at(23, 30) })).toBeNull();
+    expect(anchorsProblem({ gymStart: at(14), dinner: at(22), bed: 1740 })).toBe('Bed must be before 5:00 am.');
+    expect(anchorsProblem({ gymStart: at(14), dinner: at(22), bed: 1725 })).toBeNull();
+    expect(anchorsProblem({ gymStart: at(4, 45), dinner: at(20), bed: BED })).toBe('The gym must start at 5:00 am or later.');
+    expect(anchorsProblem({ gymStart: 840.5, dinner: at(20), bed: BED })).toBe('Choose a time for each.');
+  });
+
+  it('reads stored anchors, falling back to the defaults for anything that is not a day', () => {
+    expect(anchorsOf(undefined)).toEqual(DEFAULT_ANCHORS);
+    expect(anchorsOf({ gymStart: at(17), dinner: at(19), bed: at(23), changedAt: 5 })).toEqual({ gymStart: at(17), dinner: at(19), bed: at(23) });
+    expect(anchorsOf({ gymStart: at(17), dinner: at(18), bed: at(23) })).toEqual(DEFAULT_ANCHORS);
+    expect(anchorsOf({ gymStart: '17:00', dinner: at(19), bed: at(23) })).toEqual(DEFAULT_ANCHORS);
+  });
+});

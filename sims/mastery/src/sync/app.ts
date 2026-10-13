@@ -51,8 +51,9 @@ export function takeAuthFragment(): FragmentResult | null {
   if (syncSetup.value.config === null || typeof location === 'undefined') return null;
   const r = readAuthFragment(location.hash, now());
   if (r === null) return null;
-  history.replaceState(null, '', `${location.pathname}${location.search}#/progress`);
-  go({ view: 'progress' }, { replace: true });
+  // Settings, where the sync card shows who signed in.
+  history.replaceState(null, '', `${location.pathname}${location.search}#/settings`);
+  go({ view: 'settings' }, { replace: true });
   return r;
 }
 

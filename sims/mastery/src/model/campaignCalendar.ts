@@ -92,7 +92,7 @@ function dayMinutes(log: DayLog, date: string): number {
   const e = log[date];
   const w = e === undefined ? null : parseClock(e.wake);
   // The standup moves the blocks around it, so the plan the ticks name has it in.
-  return e === undefined || w === null ? 0 : tickedMinutes(planFor(date, w, standupFixed(date)), e.ticks);
+  return e === undefined || w === null ? 0 : tickedMinutes(planFor(date, w, standupFixed(date), e.anchors), e.ticks);
 }
 
 /** Hours ticked off this week (Sunday to Saturday). */

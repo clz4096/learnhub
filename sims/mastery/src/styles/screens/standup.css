@@ -1,0 +1,14 @@
+/*
+ * The standup page (ui/views/Standup.tsx): Albert's update leads; the classmates' updates
+ * fold under it (ui/Fold.tsx) and the calendar options close the page. Scoped to .su.
+ */
+.su .su-self { border-top: 1px solid var(--rule); border-bottom: 0; }
+.su .ds-fold { margin-top: 0; }
+.su .ds-fold .su-list { border-top: 0; }
+.su .su-cal { margin-top: var(--g5); }
+
+@media (max-width: 599px) {
+  .su .su-ctl { margin: var(--g3) 0 var(--g2); gap: var(--g2) var(--g4); }
+  .su .su-row { gap: var(--g3); padding: var(--g3) 0; }
+  .su .ds-standup { padding: var(--g4); }
+}

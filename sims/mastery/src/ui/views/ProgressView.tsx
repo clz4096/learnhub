@@ -1,7 +1,9 @@
 /**
- * Progress: per course, how much is learned and how the time has split; settings (daily
- * minutes, course weights, theme); export and import of the progress file; and a Start
- * over that needs the exact phrase typed, as in the cache simulator.
+ * The parts of You and Settings that read or change the progress document: per course, how
+ * much is learned (You); the study plan, daily minutes and course weights; export and
+ * import of the progress file; and a Start over that needs the exact phrase typed, as in
+ * the cache simulator (Settings). Each part is a section's body: its heading is the
+ * Fold around it.
  */
 import { useState } from 'preact/hooks';
 import { MAX_COURSE_WEIGHT, withChoices, type Progress } from '@learnhub/mastery';
@@ -9,20 +11,19 @@ import { ALL_COURSES, closureOf, courseOf, shortName } from '@/model/courses';
 import { MAX_MINUTES, MIN_MINUTES, courseStats, finishOpenPlacement, localDay, withoutSelfReport, withoutStaleLapses } from '@/model/learner';
 import { go } from '@/model/route';
 import { KNOWN_IDS, commit, erase, now, progress, selfReportWarning } from '@/model/store';
-import { setTheme, theme, type Theme } from '@/model/theme';
 import { backupText, readBackup } from '@/sync/backup';
 import type { LearnerState } from '@/sync/learner/envelope';
 import { applyLearner, collectLearner } from '@/sync/local';
-import { SyncCard, SyncOffNote, syncSignedIn } from '@/ui/Sync';
+import { SyncOffNote, syncSignedIn } from '@/ui/Sync';
+import '@/styles/screens/you.css';
 
 export const CONFIRM_PHRASE = 'start over';
 export const confirms = (typed: string): boolean => typed.trim().toLowerCase() === CONFIRM_PHRASE;
 
-function Courses({ p }: { p: Progress }) {
+export function Courses({ p }: { p: Progress }) {
   const t = now();
   return (
-    <section class="card" aria-labelledby="pc-title">
-      <h2 id="pc-title">Your courses</h2>
+    <>
       <div class="course-grid">
         {p.courses.map((id) => {
           const s = courseStats(p, id, t);
@@ -42,11 +43,12 @@ function Courses({ p }: { p: Progress }) {
         })}
       </div>
       <p class="small muted">Topics shared by both courses count in each. Each is learned once.</p>
-    </section>
+    </>
   );
 }
 
-function Settings({ p }: { p: Progress }) {
+/** Minutes a day, the courses, and how new lessons split between them. */
+export function StudyPlan({ p }: { p: Progress }) {
   const [minutes, setMinutes] = useState(String(p.settings.budgetMinutes));
   const [weights, setWeights] = useState<Record<string, string>>(
     Object.fromEntries(p.courses.map((c) => [c, String(p.settings.courseWeights[c] ?? 1)])),
@@ -64,59 +66,47 @@ function Settings({ p }: { p: Progress }) {
     if (!ok) return;
     const ordered = ALL_COURSES.map((c) => c.id).filter((id) => courses.includes(id));
     void commit(withChoices(p, { courses: ordered, budgetMinutes: m, courseWeights: w }, now()))
-      .then(() => setSaved('Saved. Today\'s plan keeps its tasks; use "Plan the rest of today again" on Today to apply the change now.'));
+      .then(() => setSaved('Saved. Today\'s plan keeps its tasks; use "Plan from now" on Today to apply the change now.'));
   };
 
   return (
-    <section class="card" aria-labelledby="ps-title">
-      <h2 id="ps-title">Settings</h2>
-      <form onSubmit={(e) => { e.preventDefault(); save(); }}>
-        <div class="field narrow">
-          <label for="set-minutes">Minutes a day</label>
-          <input id="set-minutes" type="number" inputMode="numeric" min={MIN_MINUTES} max={MAX_MINUTES} step={5} value={minutes}
-            onInput={(e) => { setMinutes((e.currentTarget as HTMLInputElement).value); setSaved(''); }} />
-          {!minutesOk && <span class="small error-text">Choose a whole number from {MIN_MINUTES} to {MAX_MINUTES}.</span>}
-        </div>
-        <fieldset class="fieldset">
-          <legend>Courses and how to split new lessons</legend>
-          <p class="small muted">Weights share the new-lesson time: 1 and 1 is an even split; 2 and 1 gives the first two thirds. A weight of 0 pauses a course's new lessons; its reviews continue.</p>
-          {ALL_COURSES.map((c) => {
-            const on = courses.includes(c.id);
-            const share = on && total > 0 ? Math.round((100 * (w[c.id] ?? 0)) / total) : 0;
-            return (
-              <div key={c.id} class="weight-row">
-                <label class="toggle">
-                  <input type="checkbox" checked={on} onChange={() => { setCourses(on ? courses.filter((x) => x !== c.id) : [...courses, c.id]); setSaved(''); }} />
-                  <span>{c.title}</span>
-                </label>
-                {on && (
-                  <label class="inline-field small">
-                    <span>Weight</span>
-                    <input type="number" inputMode="decimal" min={0} max={MAX_COURSE_WEIGHT} step={0.5} value={weights[c.id] ?? '1'} class="weight"
-                      onInput={(e) => { setWeights({ ...weights, [c.id]: (e.currentTarget as HTMLInputElement).value }); setSaved(''); }} />
-                    <span class="muted">{share}% of new lessons</span>
-                  </label>
-                )}
-              </div>
-            );
-          })}
-          {!weightsOk && <p class="small error-text">Weights must be numbers from 0 to {MAX_COURSE_WEIGHT}, and at least one must be above 0.</p>}
-          {courses.length === 0 && <p class="small error-text">Keep at least one course.</p>}
-          <p class="small muted">{closureOf(courses).size} topics in the chosen courses.</p>
-        </fieldset>
-        <button type="submit" class="btn btn-primary" disabled={!ok}>Save settings</button>
-        <p class="small" role="status">{saved}</p>
-      </form>
+    <form class="study-plan" onSubmit={(e) => { e.preventDefault(); save(); }}>
+      <div class="field narrow">
+        <label for="set-minutes">Minutes a day</label>
+        <input id="set-minutes" type="number" inputMode="numeric" min={MIN_MINUTES} max={MAX_MINUTES} step={5} value={minutes}
+          onInput={(e) => { setMinutes((e.currentTarget as HTMLInputElement).value); setSaved(''); }} />
+        {!minutesOk && <span class="small error-text">Choose a whole number from {MIN_MINUTES} to {MAX_MINUTES}.</span>}
+      </div>
       <fieldset class="fieldset">
-        <legend>Appearance</legend>
-        {(['system', 'light', 'dark'] as Theme[]).map((x) => (
-          <label key={x} class="toggle">
-            <input type="radio" name="theme" checked={theme.value === x} onChange={() => setTheme(x)} />
-            <span>{x === 'system' ? 'Match this device' : x === 'light' ? 'Light' : 'Dark'}</span>
-          </label>
-        ))}
+        <legend>Courses and how to split new lessons</legend>
+        <p class="small muted">Weights share the new-lesson time: 1 and 1 is an even split; 2 and 1 gives the first two thirds. A weight of 0 pauses a course's new lessons; its reviews continue.</p>
+        {ALL_COURSES.map((c) => {
+          const on = courses.includes(c.id);
+          const share = on && total > 0 ? Math.round((100 * (w[c.id] ?? 0)) / total) : 0;
+          return (
+            <div key={c.id} class="weight-row">
+              <label class="toggle">
+                <input type="checkbox" checked={on} onChange={() => { setCourses(on ? courses.filter((x) => x !== c.id) : [...courses, c.id]); setSaved(''); }} />
+                <span>{c.title}</span>
+              </label>
+              {on && (
+                <label class="inline-field small">
+                  <span>Weight</span>
+                  <input type="number" inputMode="decimal" min={0} max={MAX_COURSE_WEIGHT} step={0.5} value={weights[c.id] ?? '1'} class="weight"
+                    onInput={(e) => { setWeights({ ...weights, [c.id]: (e.currentTarget as HTMLInputElement).value }); setSaved(''); }} />
+                  <span class="muted">{share}% of new lessons</span>
+                </label>
+              )}
+            </div>
+          );
+        })}
+        {!weightsOk && <p class="small error-text">Weights must be numbers from 0 to {MAX_COURSE_WEIGHT}, and at least one must be above 0.</p>}
+        {courses.length === 0 && <p class="small error-text">Keep at least one course.</p>}
+        <p class="small muted">{closureOf(courses).size} topics in the chosen courses.</p>
       </fieldset>
-    </section>
+      <button type="submit" class="btn btn-primary" disabled={!ok}>Save settings</button>
+      <p class="small" role="status">{saved}</p>
+    </form>
   );
 }
 
@@ -189,7 +179,8 @@ export function ImportFile({ onDone }: { onDone?: () => void }) {
   );
 }
 
-function Backup({ p }: { p: Progress }) {
+/** Export and import of the progress file, and the one line saying when sync is off. */
+export function Backup({ p }: { p: Progress }) {
   const [status, setStatus] = useState('');
 
   const download = (): void => {
@@ -206,8 +197,7 @@ function Backup({ p }: { p: Progress }) {
   };
 
   return (
-    <section class="card" aria-labelledby="pb-title">
-      <h2 id="pb-title">Back up and move</h2>
+    <div class="backup">
       <p class="small muted">Progress is saved in this browser only. Export a file to keep a copy or to move to another device, then Import it there.</p>
       <SyncOffNote />
       <div class="actions">
@@ -215,7 +205,7 @@ function Backup({ p }: { p: Progress }) {
       </div>
       <p class="small" role="status">{status}</p>
       <ImportFile />
-    </section>
+    </div>
   );
 }
 
@@ -242,21 +232,5 @@ export function StartOver() {
       </label>
       <button type="button" class="btn btn-danger" disabled={!ready} onClick={doErase}>Erase my progress</button>
     </details>
-  );
-}
-
-/** `embedded`: a section of the You tab, under its own heading, rather than a page. */
-export function ProgressView({ embedded = false }: { embedded?: boolean }) {
-  const p = progress.value;
-  if (p === null) return null;
-  return (
-    <section class="page progress-page" aria-labelledby="pv-title">
-      {embedded ? <h2 id="pv-title" class="ds-h2">Progress</h2> : <h1 id="pv-title">Progress</h1>}
-      <Courses p={p} />
-      <Settings key={p.createdAt} p={p} />
-      <SyncCard />
-      <Backup p={p} />
-      <StartOver />
-    </section>
   );
 }

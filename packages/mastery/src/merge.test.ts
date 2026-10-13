@@ -77,6 +77,7 @@ function step(rng: Rng, p: Progress): Progress {
     case 6: {
       const f = pick(rng, CHOICE_FIELDS);
       const at = time(rng);
+      if (rng() < 0.2) return withChoices(q, { dayAnchors: { gymStart: pick(rng, [840, 900]), dinner: pick(rng, [1140, 1200]), bed: pick(rng, [1440, 1500]) } }, at);
       if (f === 'budgetMinutes') return withChoices(q, { budgetMinutes: pick(rng, [30, 45, 90]) }, at);
       if (f === 'implicitCredit') return withChoices(q, { implicitCredit: rng() < 0.5 }, at);
       if (f === 'courseWeights') return withChoices(q, { courseWeights: { [pick(rng, COURSES)]: randInt(rng, 0, 3) } }, at);
@@ -295,6 +296,19 @@ describe('merge rules, case by case', () => {
     const m = mergeProgress(mac, phone);
     expect(m.settings.budgetMinutes).toBe(90);
     expect(m.courses).toEqual(COURSES);
+  });
+
+  it('day anchors: the newer choice wins, and a copy without them never undoes them', () => {
+    const anchors = { gymStart: 900, dinner: 1140, bed: 1440 };
+    const mac = withChoices(base(), { dayAnchors: anchors }, T0 + 100);
+    const phone = withChoices(base(), { dayAnchors: { ...anchors, bed: 1500 } }, T0 + 50);
+    expect(mergeProgress(mac, phone).settings.dayAnchors).toEqual({ ...anchors, changedAt: T0 + 100 });
+    expect(mergeProgress(phone, mac).settings.dayAnchors).toEqual({ ...anchors, changedAt: T0 + 100 });
+    const plain = withChoices(base(), { budgetMinutes: 90 }, T0 + 500);
+    const m = mergeProgress(plain, mac);
+    expect(m.settings).toEqual({ budgetMinutes: 90, implicitCredit: true, courseWeights: {}, dayAnchors: { ...anchors, changedAt: T0 + 100 } });
+    expect(mergeProgress(plain, plain).settings.dayAnchors).toBeUndefined();
+    expect('dayAnchors' in mergeProgress(plain, plain).settings).toBe(false);
   });
 
   it('settings merge field by field, each to its newer choice', () => {

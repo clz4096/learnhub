@@ -14,6 +14,7 @@ import { contentStore } from '@/model/content';
 import { WEAK_BELOW, WEAK_MIN_ATTEMPTS, percentOf, revisitCandidates, revisitRows, sortRevisit, type RevisitSort } from '@/model/struggle';
 import { BackLink } from '@/ui/BackLink';
 import { AppLink } from '@/ui/campaignShared';
+import '@/styles/screens/you.css';
 
 const SORTS: readonly { id: RevisitSort; label: string }[] = [
   { id: 'accuracy', label: 'Lowest accuracy' },

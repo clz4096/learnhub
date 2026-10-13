@@ -1,0 +1,17 @@
+/*
+ * The gym in direction C, "Plate": the card is a plate, the grades are pills on paper.
+ * Scoped to .ds-gym. No motion beyond the existing press scale.
+ */
+.ds-gym .ds-flash, .ds-gym .ds-card { border-radius: var(--r-lg); }
+.ds-gym .ds-flash { min-height: clamp(240px, 46vh, 360px); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.ds-gym .ds-flash:focus-visible, .ds-gym .ds-step:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ds-gym .ds-flash-l { max-width: 32ch; line-height: var(--lh-ui); text-wrap: balance; }
+.ds-gym .ds-flash-q { font-size: var(--fs-h3); max-width: 28ch; text-wrap: balance; }
+@media (min-width: 600px) {
+  .ds-gym .ds-flash-q { font-size: 25px; }
+}
+.ds-gym .ds-grade3 button, .ds-gym .ds-grade2 button:not(.ds-btn) { color: var(--ink); touch-action: manipulation; }
+.ds-gym .ds-grade3 button:focus-visible, .ds-gym .ds-grade2 button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ds-gym .ds-grade3 + .ds-note, .ds-gym .ds-grade2 + .ds-note { margin-top: var(--g4); text-align: center; text-wrap: balance; }
+.ds-gym .ds-step { touch-action: manipulation; }
+.ds-gym .ds-verdict { border-radius: var(--r); }

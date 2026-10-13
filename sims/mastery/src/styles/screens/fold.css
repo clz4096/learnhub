@@ -1,0 +1,32 @@
+/*
+ * Folded sections (ui/Fold.tsx): a ruled run of headings on a phone, each opening in
+ * place. Consecutive folds share one hairline, so closed sections read as one list.
+ * No motion: opening a section is a frequent action.
+ */
+.ds-fold { margin-top: var(--g5); border-top: 1px solid var(--rule); }
+.ds-fold + .ds-fold { margin-top: 0; }
+.ds-fold:not(:has(+ .ds-fold)) { border-bottom: 1px solid var(--rule); }
+.ds-fold > details > summary {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--g2);
+  min-height: 48px; padding: var(--g2) 0; cursor: pointer; list-style: none;
+  touch-action: manipulation;
+}
+.ds-fold > details > summary::-webkit-details-marker { display: none; }
+.ds-fold > details > summary::before {
+  content: '+'; flex: none; width: 1em; font: 400 17px/1 var(--sans); color: var(--mute);
+}
+.ds-fold > details[open] > summary::before { content: '\2212'; }
+.ds-fold .ds-fold-h { flex: 1 1 auto; margin: 0; font: 700 16px/1.4 var(--sans); color: var(--ink); }
+.ds-fold > details > summary:hover .ds-fold-h { color: var(--green); }
+.ds-fold .ds-fold-s { margin-left: auto; text-align: right; font: 15px/1.4 var(--sans); color: var(--mute); font-variant-numeric: tabular-nums; }
+.ds-fold > details > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ds-fold-b { padding: var(--g1) 0 var(--g4); }
+.ds-fold-b > :first-child { margin-top: 0; }
+
+/* A fold inside a fold: indented by its marker, no outer rule doubling. */
+.ds-fold-b .ds-fold { margin-top: 0; }
+.ds-fold-b .ds-fold .ds-fold-h { font-size: 15.5px; }
+
+@media (min-width: 900px) {
+  .ds-fold { margin-top: var(--g6); }
+}

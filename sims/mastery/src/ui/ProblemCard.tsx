@@ -40,6 +40,7 @@ import { AnswerInput } from '@/ui/AnswerInput';
 import { Rich } from '@/ui/Rich';
 import { FilledTable, TableAnswer } from '@/ui/TableAnswer';
 import { Tex } from '@/ui/Tex';
+import { RevealIcon } from '@/ui/shell/Icons';
 
 /** `cambridge`: an original Cambridge problem in a lesson; it does not count towards mastery and can be tried again. */
 export type CardMode = 'practice' | 'review' | 'quiz' | 'cambridge';
@@ -88,16 +89,22 @@ export interface CambridgeHelp {
 }
 
 /** The hints opened so far, and the button for the next one while any are left. */
-function Hints({ hints, open, onMore, id }: { hints: readonly RichText[]; open: number; onMore?: () => void; id: string }) {
+function Hints({ hints, open, onMore, id, list = true, button = true }: {
+  hints: readonly RichText[]; open: number; onMore?: () => void; id: string;
+  /** In a result block the list and its button sit in different parts (the hints, the actions). */
+  list?: boolean; button?: boolean;
+}) {
   if (hints.length === 0) return null;
+  const more = button && onMore !== undefined && open < hints.length;
+  if ((!list || open === 0) && !more) return null;
   return (
     <div class="hints">
-      {open > 0 && (
+      {list && open > 0 && (
         <ol class="hint-list" aria-label="Hints">
           {hints.slice(0, open).map((h, i) => <Rich key={i} as="li" text={h} />)}
         </ol>
       )}
-      {onMore !== undefined && open < hints.length && (
+      {more && (
         <button type="button" class="btn" id={`${id}-hint`} onClick={onMore}>{open === 0 ? 'Show a hint' : 'Show the next hint'}</button>
       )}
     </div>
@@ -130,6 +137,15 @@ function reveal(block: HTMLElement): void {
 }
 
 type Shown = 'right' | 'wrong' | 'gave-up' | 'broken';
+
+/** A mouse or trackpad (no on-screen keyboard to open). jsdom has no matchMedia: treated as fine. */
+function finePointer(): boolean {
+  try {
+    return typeof window.matchMedia !== 'function' || window.matchMedia('(pointer: fine)').matches;
+  } catch {
+    return true;
+  }
+}
 
 export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, onAnswer, consequence, afterWrong, oneMoreTry = false, help }: {
   /** With the generator id and seed (data attributes), enough to reproduce the problem in a bug report. */
@@ -186,6 +202,7 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
   const editRef = useRef<HTMLButtonElement>(null);
   const blockRef = useRef<HTMLDivElement>(null);
   const shownAt = useRef(0);
+  const mounted = useRef(false);
   /** When this problem appeared, and when it was answered, for the time taken. */
   const startedAt = useRef(Date.now());
   const answeredAt = useRef<number | null>(null);
@@ -205,7 +222,11 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
     setSaid({ n: 0, text: '' });
     startedAt.current = Date.now();
     answeredAt.current = null;
-    inputRef.current?.focus({ preventScroll: true });
+    // On arrival, focus goes to the answer only where it cannot open a keyboard over the page or
+    // jump past other problems: one card on the page, and a mouse or trackpad. Moving on to the
+    // next problem (a new index) follows the learner's own press, so focus goes there.
+    if (mounted.current || (idBase === undefined && finePointer())) inputRef.current?.focus({ preventScroll: true });
+    mounted.current = true;
   }, [index]);
 
   const checked = fb !== null || gaveUp;
@@ -382,12 +403,12 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
       <div class="confirm-form reveal-confirm">
         <p id={`${id}-reveal`} class="small">{REVEAL_WARNING}</p>
         <div class="actions">
-          <button type="button" class="btn" aria-describedby={`${id}-reveal`} onClick={giveUp}>Show the solution</button>
+          <button type="button" class="btn btn-cost" aria-describedby={`${id}-reveal`} onClick={giveUp}><RevealIcon />Show the solution</button>
           <button type="button" class="btn btn-primary" onClick={() => setAsking(false)}>Keep trying</button>
         </div>
       </div>
     )
-    : <div class="actions"><button type="button" class="btn" onClick={giveUp}>Show me the solution</button></div>;
+    : <div class="actions"><button type="button" class="btn btn-cost" onClick={giveUp}><RevealIcon />Show me the solution</button></div>;
 
   const headId = `${id}-result`;
   let block = null;
@@ -453,9 +474,20 @@ export function ProblemCard({ topicId, instance, mode, index, idBase, onDone, on
           </div>
         ) : null}
         {effect !== undefined && effect.effect !== '' && <p class="result-effect">{effect.effect}</p>}
-        {resting && help !== undefined && <Hints hints={help.hints} open={hintsOpen} onMore={moreHint} id={id} />}
-        {resting && revealButton}
-        {shown === 'wrong' && afterWrong?.(yoursPlain)}
+        {/* A held-back miss, in parts: the verdict above, then the hints, the actions, and supervision. */}
+        {resting && help !== undefined && hintsOpen > 0 && (
+          <div class="rb-part rb-hints">
+            <p class="rb-label" aria-hidden="true">Hints</p>
+            <Hints hints={help.hints} open={hintsOpen} id={id} button={false} />
+          </div>
+        )}
+        {resting && (
+          <div class="rb-part rb-actions">
+            {help !== undefined && <Hints hints={help.hints} open={hintsOpen} onMore={moreHint} id={id} list={false} />}
+            <div class="rb-cost">{revealButton}</div>
+          </div>
+        )}
+        {shown === 'wrong' && afterWrong !== undefined && <div class="rb-part rb-after">{afterWrong(yoursPlain)}</div>}
       </div>
     );
   }

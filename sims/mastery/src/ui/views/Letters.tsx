@@ -18,6 +18,8 @@ import { AppLink, WithAdmissions, shortStamp, useDeliverLetters } from '@/ui/cam
 import { AdmissionTabs } from '@/ui/views/Campaign';
 import { Certificate, EXAMPLE_DEGREE, EXAMPLE_OFFER, OfferLetter, offerData, type OfferData } from '@/ui/Documents';
 import { Arms, Seal } from '@/ui/Seal';
+import { Fold } from '@/ui/Fold';
+import '@/styles/screens/admission.css';
 
 const LEAD = 'Written by the study plan from your real results at each milestone.';
 
@@ -36,8 +38,7 @@ function Head() {
 /** The two documents; `offer` is the real offer letter's data, or null for the example. */
 function DocumentsSection({ offer }: { offer: OfferData | null }) {
   return (
-    <section class="sec docs" aria-labelledby="documents">
-      <div class="sec-h"><h2 id="documents">Documents</h2></div>
+    <Fold id="documents" title="Documents" cls="docs">
       <h3 class="c-h3">The offer</h3>
       {offer === null && (
         <p class="doc-cap"><b>Example.</b> Your own offer letter is written here from your results when Act IV, the interview, is complete.</p>
@@ -55,7 +56,7 @@ function DocumentsSection({ offer }: { offer: OfferData | null }) {
         <span class="doc-tag" aria-hidden="true">Example</span>
         <Certificate d={EXAMPLE_DEGREE} />
       </div>
-    </section>
+    </Fold>
   );
 }
 

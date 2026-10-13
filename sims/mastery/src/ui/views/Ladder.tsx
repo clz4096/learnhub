@@ -27,6 +27,7 @@ import { now, progress } from '@/model/store';
 import { AppLink, CopyBlock, WithAdmissions, shortStamp } from '@/ui/campaignShared';
 import { AdmissionTabs } from '@/ui/views/Campaign';
 import { TimedScreen } from '@/ui/views/Paper';
+import '@/styles/screens/admission.css';
 
 /** Rung names short enough for a row's narrow left column. */
 const RUNG_SHORT: Readonly<Record<Rung, string>> = { question: '1 question', half: 'half', full: 'full' };

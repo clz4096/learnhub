@@ -1,0 +1,41 @@
+/*
+ * Admission: the campaign, ladder, past papers and letters (ui/views/Campaign.tsx, Ladder.tsx,
+ * Paper.tsx, Letters.tsx), direction C "Plate". Scoped to .camp and .ds-timed.
+ * Letters sit on tinted plates, like figures in a lesson; scores and timers use tabular
+ * figures so they do not jitter as they change.
+ */
+.camp .c-btn,
+.ds-timed .c-btn { min-height: var(--touch); }
+
+.camp .ds-rail,
+.camp .c-num,
+.camp .c-stat,
+.camp .c-mark,
+.ds-timed .c-num,
+.ds-timed .c-mark,
+.ds-timed .timer { font-variant-numeric: tabular-nums; }
+
+.camp article.letter {
+  background: var(--plate);
+  border-top: 0;
+  border-radius: var(--r);
+  padding: var(--g5);
+  margin-top: var(--g4);
+}
+.camp article.letter + article.letter { margin-top: var(--g4); }
+
+.camp a:focus-visible,
+.camp button:focus-visible,
+.camp summary:focus-visible,
+.ds-timed a:focus-visible,
+.ds-timed button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.camp,
+.ds-timed { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+@media (max-width: 600px) {
+  .camp article.letter { padding: var(--g4); }
+}

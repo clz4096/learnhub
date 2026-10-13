@@ -8,6 +8,7 @@ import { go } from '@/model/route';
 import { commit, flush, init, setClock } from '@/model/store';
 import { emptyStory, NO_NUMBERS } from '@/model/story';
 import { saveStory } from '@/model/storyStore';
+import { STANDUP_CFG_KEY, reloadStandup } from '@/model/standupStore';
 import { App } from '@/ui/App';
 import { placeOf } from '@learnhub/content/book';
 import { hasContent } from '@learnhub/content';
@@ -94,7 +95,9 @@ describe('the Course tab: the degree as a book', () => {
     expect(text()).toContain('Part IA · Michaelmas · Computer Science');
     expect(text()).toContain('Opens after the Preparation campaign. Reading ahead is fine; nothing is locked.');
     // Proof is recall since CS-0 Proof teaches it (graph/reviews/cambridge-prep.md); Numbers keeps 13 steps.
-    expect(text()).toMatch(/0 of 13 steps learned/);
+    // One noun for a chapter's units: lessons, counted once, by the progress line.
+    expect(text()).toMatch(/0 of 13 lessons learned/);
+    expect(text()).not.toMatch(/\d+ sections?\b|\bsteps\b/);
     const secs = [...document.querySelectorAll('.book-sec')].map((s) => s.querySelector('.t')?.textContent);
     expect(secs).toEqual(['Proof', 'Numbers', 'Sets', 'Formal languages and automata']);
     expect(document.querySelectorAll('.book-sec details[open]')).toHaveLength(1);
@@ -119,14 +122,21 @@ describe('the Course tab: the degree as a book', () => {
     expect(approx?.querySelector('.book-flag')?.textContent).toBe('Builds on The Poisson distribution, later in the book.');
   });
 
-  it("Today shows where to continue reading", async () => {
-    localStorage.setItem('mastery.wholeday.v1', '1');
+  it("Today's Now card says where its lesson is in the book, once", async () => {
+    // T0 is Simchat Torah, with nothing planned; the Monday after is a study day. No standup, so the first block is study.
+    setClock(() => T0 + 86_400_000);
+    localStorage.setItem(STANDUP_CFG_KEY, JSON.stringify({ enabled: false }));
+    reloadStandup();
     go({ view: 'today' });
     render(<App />);
     await flush();
-    const line = await screen.findByText('Continue reading', undefined, { timeout: 5000 });
-    const p = line.closest('p');
-    expect(p?.querySelector('a.book-next')?.textContent).toBe('Fractions and ratios');
-    expect(p?.querySelector('.book-where')?.textContent).toMatch(/^STEP Foundation, Block 1: Algebra and graphs, Assignment 1:/);
+    const card = await screen.findByText('Fractions and ratios', { selector: '.ds-now-t' }, { timeout: 5000 });
+    const chapter = placeOf('pre.fractions')?.chapter.title as string;
+    expect(chapter).toMatch(/^STEP Foundation, Block 1: Algebra and graphs/);
+    expect(card.closest('.ds-now')?.querySelector('.ds-meta')?.textContent).toBe(`Lesson · ${chapter}`);
+    // The next lesson in the book is in the plan, so no separate "Continue reading" line repeats it.
+    expect(screen.queryByText('Continue reading')).toBeNull();
+    localStorage.removeItem(STANDUP_CFG_KEY);
+    reloadStandup();
   });
 });

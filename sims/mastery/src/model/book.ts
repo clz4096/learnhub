@@ -23,7 +23,7 @@ export const STEP_TEXT: Readonly<Record<StepState, string>> = {
   ready: 'ready',
   unwritten: 'to write',
   towrite: 'to write',
-  locked: 'needs earlier steps',
+  locked: 'needs earlier lessons',
 };
 
 /** Where a topic sits in the book, for the lesson header's journey line: "Preparation › Writing proofs › 4 of 11". */

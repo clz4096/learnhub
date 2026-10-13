@@ -1,0 +1,72 @@
+/*
+ * Today, direction C "Plate" (design pass, 2026-10-13). Scoped to .ds-today.
+ * DESIGN-AUDIT #4: each item of the day is read once, in the timeline; the Now card points
+ * at the one to start. Later today, Up next, and the session list are gone.
+ */
+
+/* the Now card: the one tinted plate on the page, with the green "now" edge */
+.ds-today .ds-now {
+  border-left: 3px solid var(--green);
+  border-radius: 0 var(--r) var(--r) 0;
+  padding: var(--g5) var(--g5) var(--g5) calc(var(--g5) - 3px);
+}
+.ds-today .ds-now .ds-meta { color: var(--ink-2); }
+.ds-today .ds-now .ds-now-why { margin: var(--g1) 0 0; }
+.ds-today .ds-now .ds-row .ds-btn { min-height: var(--touch); }
+
+/* the one planning control, under the status line */
+.ds-today .d-plan { margin-top: var(--g3); }
+
+/* what unlocks the first timed question: one quiet line under the card, while it is locked */
+.ds-today .ds-unlock { font-size: var(--fs-xs); margin: var(--g2) 0 0; }
+
+/* status lines under the card: one quiet group, not separate rules */
+.ds-today .ds-sceneline { margin-top: 0; }
+.ds-today .ds-sceneline .ds-go { min-height: var(--touch); display: inline-flex; align-items: center; }
+
+/* the day's timeline, straight after the card and its lines */
+.ds-today .day { margin-top: var(--g5); }
+.ds-today .supervision-today { margin-top: var(--g6); }
+
+/* the side column: a plate, so the week reads as reference, not as work */
+.ds-today .ds-side .d-week { margin-top: var(--g3); }
+.ds-today .ds-side-note { font-size: var(--fs-xs); margin: var(--g2) 0 0; }
+.ds-today .ds-track { min-height: 3px; }
+@media (min-width: 900px) {
+  .ds-today .ds-side {
+    background: var(--plate); border-radius: var(--r); padding: var(--g4) var(--g5); align-self: start;
+  }
+  .ds-today .ds-side .ds-sect { margin-top: var(--g4); }
+}
+/*
+ * Below 900 px the column folds into one row after the day ("This week 1.8 of 36 h · streak
+ * 6 days"), which opens the week, Shabbat, and the streak in place.
+ */
+.ds-today .ds-side-row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--g3); width: 100%; min-height: var(--touch);
+  padding: 0; border: 0; background: none; font: 15px/1.4 var(--sans); color: var(--ink-2); text-align: left; cursor: pointer;
+}
+.ds-today .ds-side-row b { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ds-today .ds-side-row:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: var(--r-sm); }
+.ds-today .ds-side-chev {
+  width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.ds-today .ds-side.open .ds-side-chev { transform: rotate(180deg); }
+@media (min-width: 900px) { .ds-today .ds-side-row { display: none; } }
+@media (max-width: 899px) {
+  .ds-today .ds-side { display: block; margin-top: var(--g4); padding-top: var(--g1); border-top: 1px solid var(--rule); }
+  .ds-today .ds-side:not(.open) .ds-side-body { display: none; }
+  .ds-today .ds-side-body { padding-bottom: var(--g3); }
+  .ds-today .ds-side .ds-sect { margin-top: var(--g5); }
+}
+
+/* phones: a tighter card, so the day starts higher on the first screen */
+@media (max-width: 599px) {
+  .ds-today .ds-now { padding: var(--g4) var(--g4) var(--g4) calc(var(--g4) - 3px); margin-top: var(--g4); }
+}
+
+/* phones: keep content clear of the notch and home indicator */
+@media (max-width: 599px) {
+  .ds-today { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+}

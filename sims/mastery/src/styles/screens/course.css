@@ -1,0 +1,28 @@
+/*
+ * Course overview and chapter view (ui/views/Book.tsx), direction C "Plate". Scoped to .book.
+ * Counts line up in columns so a learner can scan progress down the list; hover states change
+ * colour only (no transition) because rows are tapped often.
+ */
+.book .ds-chlist,
+.book .ds-stage-n,
+.book .ds-num,
+.book .ds-chip,
+.book .book-pn { font-variant-numeric: tabular-nums; }
+
+.book a.ds-now:hover { background: var(--plate-2); }
+.book a.ds-now:active { transform: scale(0.99); }
+
+.book a:focus-visible,
+.book button:focus-visible,
+.book summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+/* The last row clears the iPhone home indicator when the page scrolls to its end. */
+.book { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .book a.ds-now:active { transform: none; }
+}

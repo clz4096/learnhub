@@ -76,6 +76,7 @@ const ROUTES: Route[] = [
   { view: 'learn', topicId: 'pre.fractions', section: 1 },
   { view: 'more', topicId: 'pre.fractions' },
   { view: 'progress' },
+  { view: 'settings' },
   { view: 'revisit' },
   { view: 'glossary', termId: null },
   { view: 'glossary', termId: 'union' },
@@ -215,7 +216,7 @@ describe('Escape closes every overlay', () => {
 
   it('the help dialog, a glossary term, and the tour', async () => {
     await STATES['a learner with a course']();
-    go({ view: 'progress' });
+    go({ view: 'settings' });
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /^Help/ }));
     expect(helpOpen.value).toBe(true);

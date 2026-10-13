@@ -1,0 +1,30 @@
+/*
+ * The lesson's plates (ui/views/Lesson.tsx): a definition, a theorem, Check yourself,
+ * Where it breaks, a worked example, and a Venn figure. One size system, so no kind of
+ * plate reads as bigger than another: the same width, the same padding, the same heading.
+ *
+ * A wide screen: every plate breaks out of the column by --bleed, and its padding is the
+ * same --bleed, so the text inside lines up with the column's. A phone: every plate is the
+ * column's width (no breakout), with a 16 px inset.
+ */
+.lesson { --lp-x: var(--g4); --lp-y: var(--g4); }
+@media (min-width: 760px) { .lesson { --lp-x: var(--bleed); --lp-y: var(--g5); } }
+
+.lesson .lp {
+  background: var(--plate); border: 0; border-radius: var(--r);
+  margin: var(--g5) 0; padding: var(--lp-y) var(--lp-x);
+  max-width: none; box-sizing: border-box;
+}
+@media (min-width: 760px) { .lesson .lp { margin-inline: calc(-1 * var(--bleed)); } }
+.lesson .lp > :first-child { margin-top: 0; }
+.lesson .lp > :last-child { margin-bottom: 0; }
+
+/* One heading for every plate: the sans label, the size of a definition's "Definition 2.1". */
+.lesson .lp .lp-h { font: 700 15px/1.4 var(--sans); margin: 0 0 var(--g2); color: var(--ink); }
+.lesson .lp .lab { font: 700 15px var(--sans); }
+.lesson .quick-check .lp-h { color: var(--green); }
+.lesson .pitfall .lp-h { color: var(--red); }
+
+/* A caption under a hairline, the same in a definition and a figure. */
+.lesson .lp .plain,
+.lesson .venn figcaption { margin: var(--g4) 0 0; padding-top: var(--g3); border-top: 1px solid var(--rule); }

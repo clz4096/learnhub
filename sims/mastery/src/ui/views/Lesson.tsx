@@ -18,7 +18,8 @@
  * learner moves on here first, which then counts as the latest place).
  */
 import type { ComponentChildren } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { render } from 'preact';
 import {
   answerText, citationText, FIRST_PROOF_TOPIC, type AutoProblem, formalNumbers, grade, hasContent, isProofWriteUp, lessonSections, plain, readAnswer, type Block, type CambridgeProblem,
   type MasteryRule, type QuickCheck, type SupervisionProblem, type TopicContent, type WorkedExample, type Why,
@@ -37,6 +38,7 @@ import { loadHints, saveHints } from '@/model/hintsStore';
 import { commit, now, progress } from '@/model/store';
 import { PROOF_CHECKLIST, problemKey } from '@/model/supervision';
 import { CopyForSupervision, PasteResult } from '@/ui/Supervision';
+import { MathPreview } from '@/ui/MathPreview';
 import { learnerSynced } from '@/model/learnerChange';
 import { clearPlace, loadPlace, loadWriteUp, placeEntry, savePlace, saveWriteUp, type LessonPlace, type LessonStage } from '@/model/lessonState';
 import { answer, freshPractice, outcomeOf, practiceInstance, practiceSet, tallyOf, type PracticeItem, type PracticeState } from '@/model/practice';
@@ -50,6 +52,8 @@ import { Rich } from '@/ui/Rich';
 import { AnswerInput } from '@/ui/AnswerInput';
 import { TexText } from '@/ui/Tex';
 import { ContentGate, ContentStatus, useTopicContent } from '@/ui/ContentGate';
+import { ChevIcon, RevealIcon, TickIcon, UpIcon } from '@/ui/shell/Icons';
+import '@/styles/screens/lesson.css';
 
 export interface LessonEnd {
   passed: boolean;
@@ -91,8 +95,8 @@ export function QuickCheckView({ b, id, topicId }: { b: QuickCheck; id: string; 
     setResult(grade(b.problem, text).correct ? 'right' : 'wrong');
   };
   return (
-    <form class="quick-check" aria-label="Check yourself" onSubmit={(e) => { e.preventDefault(); check(); }}>
-      <p class="small muted qc-label">Check yourself</p>
+    <form class="quick-check lp" aria-label="Check yourself" onSubmit={(e) => { e.preventDefault(); check(); }}>
+      <p class="lp-h qc-label">Check yourself</p>
       <Rich as="p" class="qc-prompt" text={b.problem.prompt} />
       {a.kind === 'choice'
         ? (
@@ -172,7 +176,7 @@ export function BlockView({ b, id, topicId, num = null }: { b: Block; id: string
       );
     case 'definition':
       return (
-        <section class="amsdef" aria-label={num === null ? 'Definition' : `Definition ${num}`}>
+        <section class="amsdef lp" aria-label={num === null ? 'Definition' : `Definition ${num}`}>
           <p class="ams-body">
             <span class="lab">Definition{num === null ? '' : ` ${num}`}</span> <span class="nm">(<Rich text={b.name} />)</span>. <Rich text={b.formal} />
           </p>
@@ -181,7 +185,7 @@ export function BlockView({ b, id, topicId, num = null }: { b: Block; id: string
       );
     case 'theorem':
       return (
-        <section class="amsthm" aria-label={num === null ? 'Theorem' : `Theorem ${num}`}>
+        <section class="amsthm lp" aria-label={num === null ? 'Theorem' : `Theorem ${num}`}>
           <p class="ams-body">
             <span class="lab">Theorem{num === null ? '' : ` ${num}`}</span>
             {b.name !== undefined && <> <span class="nm">(<Rich text={b.name} />)</span></>}
@@ -192,8 +196,8 @@ export function BlockView({ b, id, topicId, num = null }: { b: Block; id: string
     case 'check': return <QuickCheckView b={b} id={id} topicId={topicId} />;
     case 'pitfall':
       return (
-        <aside class="pitfall" aria-label="Where it breaks">
-          <p class="small muted pitfall-label">Where it breaks</p>
+        <aside class="pitfall lp" aria-label="Where it breaks">
+          <p class="lp-h pitfall-label">Where it breaks</p>
           <Rich as="p" text={b.claim} />
           <Rich as="p" class="pitfall-counter" text={b.counterexample} />
         </aside>
@@ -212,7 +216,7 @@ export function BlockView({ b, id, topicId, num = null }: { b: Block; id: string
       );
     case 'venn':
       return (
-        <figure class="venn">
+        <figure class="venn lp">
           <svg viewBox="0 0 320 190" role="img" aria-label={`Venn diagram of ${b.a} and ${b.b}`}>
             <rect x="4" y="4" width="312" height="182" rx="8" class="venn-box" />
             <circle cx="125" cy="98" r="72" class="venn-a" />
@@ -234,8 +238,8 @@ export function Example({ e, n }: { e: WorkedExample; n: number }) {
   const [shown, setShown] = useState(0);
   const all = shown >= e.steps.length;
   return (
-    <article class="example">
-      <h3>Example {n}: <Rich text={e.title} /></h3>
+    <article class="example lp">
+      <h3 class="lp-h">Example {n}: <Rich text={e.title} /></h3>
       {e.source !== undefined && <p class="citation small">{e.source.adapted === true ? citationText(e.source) : `From ${citationText(e.source)}`}</p>}
       <Rich as="p" class="prompt" text={e.prompt} />
       <ol>{e.steps.slice(0, shown).map((s, i) => <Rich key={i} as="li" text={s} />)}</ol>
@@ -448,7 +452,7 @@ function ModelOutline({ k, p }: { k: string; p: SupervisionProblem }) {
       <div class="confirm-form reveal-confirm">
         <p id={id} class="small">{REVEAL_WARNING}</p>
         <div class="actions">
-          <button type="button" class="btn" aria-describedby={id} onClick={show}>Show the outline</button>
+          <button type="button" class="btn btn-cost" aria-describedby={id} onClick={show}><RevealIcon />Show the outline</button>
           <button type="button" class="btn btn-primary" onClick={() => setAsking(false)}>Keep trying</button>
         </div>
       </div>
@@ -468,23 +472,33 @@ function SupervisionCard({ topicId, p }: { topicId: string; p: SupervisionProble
     <div class="supervision">
       <Rich as="p" class="prompt" text={p.prompt} />
       <p class="small muted">This one asks for {WRITE_UP_KIND[p.writeUp]}, so it is not marked here: it goes to a supervision session.</p>
-      <label for={box}>Your write-up</label>
-      <textarea
-        id={box}
-        rows={6}
-        value={text}
-        onInput={(e) => {
-          const v = (e.currentTarget as HTMLTextAreaElement).value;
-          setText(v);
-          saveWriteUp(topicId, p.id, v);
-        }}
-      />
-      <p id={`${box}-how`} class="small muted">
-        Copy for supervision copies the problem, its source, the write-up, and the recent attempts. Paste it into a supervision
-        session in Claude Code, then paste the result block it prints back here with Paste result.
-      </p>
-      <CopyForSupervision problemKey={k} writeUp={text} describedBy={`${box}-how`} />
-      <PasteResult expected={k} id={box} />
+      {/* The round trip is a real sequence (write, copy, paste the result back), so it reads as one. */}
+      <ol class="sup-steps">
+        <li>
+          <label for={box} class="sup-step-h">Your write-up</label>
+          <textarea
+            id={box}
+            rows={6}
+            value={text}
+            onInput={(e) => {
+              const v = (e.currentTarget as HTMLTextAreaElement).value;
+              setText(v);
+              saveWriteUp(topicId, p.id, v);
+            }}
+          />
+          <MathPreview text={text} id={`${box}-preview`} />
+        </li>
+        <li>
+          <p id={`${box}-how`} class="small muted">
+            Copy for supervision copies the problem, its source, the write-up, and the recent attempts. Paste it into a supervision
+            session in Claude Code, then paste the result block it prints back here with Paste result.
+          </p>
+          <CopyForSupervision problemKey={k} writeUp={text} describedBy={`${box}-how`} />
+        </li>
+        <li>
+          <PasteResult expected={k} id={box} />
+        </li>
+      </ol>
       <LastResult k={k} />
       <ModelOutline k={k} p={p} />
     </div>
@@ -705,28 +719,38 @@ function RestingProblem({ k, p, returnsAt, help, onReveal }: { k: string; p: Aut
   return (
     <div class="problem problem-resting" data-resting={k}>
       <Rich as="p" class="prompt" text={p.instance.problem.prompt} />
-      <p class="result-why" role="status">Not right yet. It comes back on {returnDay(returnsAt)}, and a right answer then still counts.</p>
-      {help.hints.length > 0 && (
-        <div class="hints">
-          {open > 0 && <ol class="hint-list" aria-label="Hints">{help.hints.slice(0, open).map((h, i) => <Rich key={i} as="li" text={h} />)}</ol>}
-          {open < help.hints.length && (
-            <button type="button" class="btn" id={`${id}-hint`} onClick={() => { const m = open + 1; setOpen(m); help.onHint(m); }}>
-              {open === 0 ? 'Show a hint' : 'Show the next hint'}
-            </button>
-          )}
-        </div>
-      )}
-      {asking
-        ? (
-          <div class="confirm-form reveal-confirm">
-            <p id={`${id}-reveal`} class="small">{REVEAL_WARNING}</p>
-            <div class="actions">
-              <button type="button" class="btn" aria-describedby={`${id}-reveal`} onClick={reveal}>Show the solution</button>
-              <button type="button" class="btn btn-primary" onClick={() => setAsking(false)}>Keep trying</button>
-            </div>
+      {/* The same parts as a miss's result: the verdict, the hints, the actions. */}
+      <div class="result-block bad resting">
+        <p class="result-why" role="status">Not right yet. It comes back on {returnDay(returnsAt)}, and a right answer then still counts.</p>
+        {help.hints.length > 0 && open > 0 && (
+          <div class="rb-part rb-hints">
+            <p class="rb-label" aria-hidden="true">Hints</p>
+            <div class="hints"><ol class="hint-list" aria-label="Hints">{help.hints.slice(0, open).map((h, i) => <Rich key={i} as="li" text={h} />)}</ol></div>
           </div>
-        )
-        : <div class="actions"><button type="button" class="btn" onClick={reveal}>Show me the solution</button></div>}
+        )}
+        <div class="rb-part rb-actions">
+          {help.hints.length > 0 && open < help.hints.length && (
+            <div class="hints">
+              <button type="button" class="btn" id={`${id}-hint`} onClick={() => { const m = open + 1; setOpen(m); help.onHint(m); }}>
+                {open === 0 ? 'Show a hint' : 'Show the next hint'}
+              </button>
+            </div>
+          )}
+          <div class="rb-cost">
+            {asking
+              ? (
+                <div class="confirm-form reveal-confirm">
+                  <p id={`${id}-reveal`} class="small">{REVEAL_WARNING}</p>
+                  <div class="actions">
+                    <button type="button" class="btn btn-cost" aria-describedby={`${id}-reveal`} onClick={reveal}><RevealIcon />Show the solution</button>
+                    <button type="button" class="btn btn-primary" onClick={() => setAsking(false)}>Keep trying</button>
+                  </div>
+                </div>
+              )
+              : <div class="actions"><button type="button" class="btn btn-cost" onClick={reveal}><RevealIcon />Show me the solution</button></div>}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -807,21 +831,106 @@ function Segments({ pos }: { pos: Position }) {
   );
 }
 
-/** The header's outline: the section names, done ones struck through, "you are here" on the current one. Each opens its section. */
+/**
+ * The outline of sections as a stepper (design/DESIGN.md, direction C): the current section's
+ * name in the top bar; opened, every section, done ones ticked, "you are here" on the
+ * current one. Each opens its section. Escape or a press outside closes it.
+ */
 function Outline({ pos }: { pos: Position }) {
+  const ref = useRef<HTMLDetailsElement>(null);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent): void => {
+      const d = ref.current;
+      if (d !== null && !d.contains(e.target as Node)) d.open = false;
+    };
+    document.addEventListener('pointerdown', away);
+    return () => document.removeEventListener('pointerdown', away);
+  }, [open]);
+  const cur = pos.outline[pos.cur];
   return (
-    <ol class="outline" aria-label="This lesson's sections">
-      {pos.outline.map((e, i) => (
-        <li key={i} class={i === pos.cur ? 'cur' : pos.done(i) ? 'done' : undefined}>
-          <button type="button" class="linklike" aria-current={i === pos.cur ? 'step' : undefined} onClick={() => pos.go(i)}>
-            <Rich text={e.title} />
-          </button>
-          {i === pos.cur && <span class="here">you are here</span>}
-          {i !== pos.cur && pos.done(i) && <span class="visually-hidden"> (done)</span>}
-        </li>
-      ))}
-    </ol>
+    <details
+      ref={ref}
+      class="stepper"
+      onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
+      onKeyDown={(e) => {
+        // Escape closes the list before it can leave the lesson (App's Escape skips a handled key).
+        if (e.key === 'Escape' && ref.current?.open === true) {
+          e.preventDefault();
+          ref.current.open = false;
+          (ref.current.querySelector('summary') as HTMLElement | null)?.focus();
+        }
+      }}
+    >
+      <summary>
+        <span class="visually-hidden">Section: </span>
+        <span class="cur-t">{cur !== undefined && <Rich text={cur.title} />}</span>
+        <ChevIcon />
+      </summary>
+      <ol class="outline" aria-label="This lesson's sections">
+        {pos.outline.map((e, i) => (
+          <li key={i} class={i === pos.cur ? 'cur' : pos.done(i) ? 'done' : undefined}>
+            <button
+              type="button" aria-current={i === pos.cur ? 'step' : undefined}
+              onClick={() => { if (ref.current !== null) ref.current.open = false; pos.go(i); }}
+            >
+              <Rich text={e.title} />
+            </button>
+            {i === pos.cur && <span class="here">you are here</span>}
+            {i !== pos.cur && pos.done(i) && <><TickIcon /><span class="visually-hidden"> (done)</span></>}
+          </li>
+        ))}
+      </ol>
+    </details>
   );
+}
+
+/**
+ * The lesson's bar: the stepper and the segments. In focus mode they sit in the shell's top
+ * bar (its slot, `#ds-fbar-slot`), between the way back and search; elsewhere, sticky at the
+ * top of the lesson.
+ */
+function LessonBar({ pos }: { pos: Position }) {
+  const [slot, setSlot] = useState<Element | null>(null);
+  useLayoutEffect(() => { setSlot(typeof document === 'undefined' ? null : document.getElementById('ds-fbar-slot')); }, []);
+  const bar = <><Outline pos={pos} /><Segments pos={pos} /></>;
+  // A small portal (preact/compat's would change event handling app-wide): the bar is rendered
+  // into the slot on every update and removed with the lesson.
+  useLayoutEffect(() => { if (slot !== null) render(bar, slot); });
+  useLayoutEffect(() => () => { if (slot !== null) render(null, slot); }, [slot]);
+  return slot !== null ? null : <div class="lesson-bar">{bar}</div>;
+}
+
+/**
+ * The two named sets of a lesson (A and B) keep one colour each wherever they are typeset,
+ * and pointing at one lights up every copy of it (design/DESIGN.md). Presentation only: the
+ * letters are found in the rendered maths and tagged.
+ */
+function useNamedSets(root: { current: HTMLElement | null }, key: unknown): void {
+  useEffect(() => {
+    const el = root.current;
+    if (el === null) return;
+    const tag = (): void => {
+      for (const v of el.querySelectorAll('.katex .mathnormal:not(.set-a):not(.set-b)')) {
+        const t = v.textContent;
+        if (t === 'A' || t === 'B') v.classList.add(`set-${t.toLowerCase()}`);
+      }
+    };
+    tag();
+    // Results, hints, and solutions typeset more maths as they open.
+    const seen = typeof MutationObserver === 'undefined' ? null : new MutationObserver(tag);
+    seen?.observe(el, { childList: true, subtree: true });
+    const on = (e: PointerEvent): void => {
+      const v = (e.target as Element).closest?.('.set-a, .set-b');
+      el.classList.toggle('lit-set-a', v?.classList.contains('set-a') === true);
+      el.classList.toggle('lit-set-b', v?.classList.contains('set-b') === true);
+    };
+    const off = (): void => { el.classList.remove('lit-set-a', 'lit-set-b'); };
+    el.addEventListener('pointerover', on);
+    el.addEventListener('pointerleave', off);
+    return () => { seen?.disconnect(); el.removeEventListener('pointerover', on); el.removeEventListener('pointerleave', off); };
+  }, [key]);
 }
 
 /**
@@ -834,9 +943,18 @@ export function LessonRunner(props: LessonProps) {
   const { state, retry } = useTopicContent(topicId);
   if (t === undefined) return <p class="page">Unknown topic {topicId}.</p>;
   // The header (TEACHING-STYLE.md, "How it looks"): the journey line, the title, the goal and
-  // why, the time, and the outline of sections. No counts anywhere.
+  // why, the time. Shown once, on the lesson's first section; later sections carry the title
+  // as a running head, and the outline is the stepper in the top bar. No counts anywhere.
   const journey = journeyOf(topicId);
-  const head = (c: TopicContent | null, pos?: Position) => (
+  const head = (c: TopicContent | null, pos?: Position) => (pos !== undefined && pos.cur !== 0
+    ? (
+      <header class="lesson-head running">
+        {back !== undefined && <BackLink to={back.to} label={back.label} />}
+        <h1>{t.title}</h1>
+        <RecommendedNext topicId={topicId} />
+      </header>
+    )
+    : (
     <header class="lesson-head">
       {back !== undefined && <BackLink to={back.to} label={back.label} />}
       <p class="journey">
@@ -853,9 +971,8 @@ export function LessonRunner(props: LessonProps) {
       <p class="lesson-meta">about {c?.minutes ?? t.estMinutes} min</p>
       {c !== null && <p class="lesson-more small"><MoreLink topicId={topicId} /></p>}
       <RecommendedNext topicId={topicId} />
-      {pos !== undefined && <Outline pos={pos} />}
     </header>
-  );
+  ));
 
   if (!hasContent(topicId)) {
     return (
@@ -969,10 +1086,12 @@ function LessonBody({ salt, onEnd, c, head, title, section: openAt }: LessonProp
     el.scrollIntoView?.({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     el.focus({ preventScroll: true });
   };
-  const topLink = <button type="button" class="ds-link" onClick={toTop}><span aria-hidden="true">↑ </span>Top of section</button>;
+  const topLink = <button type="button" class="ds-link" onClick={toTop}><UpIcon />Top of section</button>;
+  const pageRef = useRef<HTMLElement>(null);
+  useNamedSets(pageRef, `${at}/${run}`);
   return (
-    <section class="page lesson" aria-label={title}>
-      <Segments pos={pos} />
+    <section ref={pageRef} class="page lesson" aria-label={title}>
+      <LessonBar pos={pos} />
       {head(pos)}
       {offer !== null && (
         <div class="ds-note other-device" role="status">

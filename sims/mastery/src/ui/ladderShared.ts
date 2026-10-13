@@ -1,5 +1,5 @@
 /**
- * The timed ladder as the rest of the app sees it: the suggestion on Today's Up next and
+ * The timed ladder as the rest of the app sees it: the suggestion under Today's timeline and
  * where the palette's ladder action goes. Both read the app's state (the registry, the
  * campaign, the stored attempts); the rules are in model/ladderNext.ts.
  */
@@ -32,7 +32,7 @@ export interface LadderSuggestion {
   to: Route;
 }
 
-/** Up next on the ladder: the suggested exam's next rung, its running clock, or marks to enter; null while the registry loads or when nothing is left. */
+/** Next on the ladder: the suggested exam's next rung, its running clock, or marks to enter; null while the registry loads or when nothing is left. */
 export function ladderSuggestion(): LadderSuggestion | null {
   const adm = admissions.value;
   if (adm === null) return null;

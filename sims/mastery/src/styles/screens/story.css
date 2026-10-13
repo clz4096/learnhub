@@ -1,0 +1,56 @@
+/*
+ * The Story tab in direction C, "Plate": the featured scene and each chapter list sit on
+ * tinted plates; Replay is a quiet text action so a long list of seen scenes reads as a
+ * record, and Play (a scene waiting) is the one filled action. Scoped to .ds-story.
+ */
+.ds-story .ds-track { height: 6px; border-radius: var(--r-pill); background: var(--plate-2); }
+.ds-story .ds-track i { border-radius: var(--r-pill); }
+
+.ds-story .ds-scenecard { border-radius: var(--r-lg); margin-top: var(--g5); }
+.ds-story .ds-art { height: clamp(168px, 34vw, 280px); }
+.ds-story .ds-cap { padding: var(--g4) var(--g5) var(--g5); }
+.ds-story .ds-cap .ds-meta { display: block; margin-top: var(--g1); }
+.ds-story .ds-cap .ds-btn { flex: none; }
+
+/* Ratings and cohort side by side on a wide screen. */
+.ds-story .story-pair { display: grid; gap: 0 var(--g6); }
+@media (min-width: 900px) {
+  .ds-story .story-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+}
+.ds-story .rt-card { border-radius: var(--r-lg); }
+.ds-story .rt-ovr { font: 400 var(--fs-display) / 1 var(--serif); color: var(--green); }
+
+/* Ratings and cohort are folds (ui/Fold.tsx); on a phone they join the run of folds below. */
+.ds-story .story-pair + .ds-fold { margin-top: 0; }
+@media (max-width: 899px) {
+  .ds-story .story-pair > .ds-fold:last-child { border-bottom: 0; }
+}
+@media (min-width: 900px) {
+  .ds-story .story-pair > .ds-fold { margin-top: var(--g6); border-bottom: 0; }
+  .ds-story .story-pair + .ds-fold { margin-top: var(--g6); }
+}
+
+/* Chapters: one plate per book, its heading the fold's summary, rows ruled inside it. */
+.ds-story .ds-fold.story-book { background: var(--plate); border: 0; border-radius: var(--r-lg); padding: 0 var(--g4); }
+.ds-story .ds-fold.story-book + .ds-fold.story-book { margin-top: var(--g2); }
+.ds-story .ds-fold.story-book .ds-fold-b { padding: 0 0 var(--g3); }
+.ds-story .story-book .ruled > li { border-color: var(--rule); }
+.ds-story .story-book .ruled > li > span:first-child { font-family: var(--serif); font-size: 17.5px; }
+.ds-story .story-scenes .s { font: var(--fs-sm) / var(--lh-ui) var(--sans); color: var(--mute); }
+
+.ds-story .story-play {
+  min-height: var(--touch); min-width: var(--touch); padding: 0 var(--g3); border: 0; border-radius: var(--r-pill);
+  background: none; color: var(--green); font: 600 var(--fs-ui) var(--sans); cursor: pointer;
+  margin-right: calc(-1 * var(--g3));
+  touch-action: manipulation;
+}
+.ds-story .story-play:hover { background: var(--plate-2); }
+.ds-story .story-play:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* A scene waiting to play: the filled action. */
+.ds-story .story-play[aria-label^='Play '] { background: var(--ink); color: var(--paper); padding: 0 var(--g4); margin-right: 0; }
+.ds-story .story-play[aria-label^='Play ']:hover { background: var(--ink-2); }
+.ds-story .story-locked .r { color: var(--mute); font: var(--fs-sm) var(--sans); }
+
+.ds-story .story-rel .ruled > li > span:first-child { font-family: var(--serif); font-size: 17.5px; }
+.ds-story .story-rel .r { color: var(--green); font: 600 var(--fs-sm) var(--sans); }
+.ds-story .note { font: var(--fs-sm) / var(--lh-ui) var(--sans); color: var(--mute); margin-top: var(--g6); }

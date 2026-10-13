@@ -41,6 +41,7 @@ import { BookView, ChapterView } from '@/ui/views/Book';
 import { MapView } from '@/ui/views/MapView';
 import { StartOver } from '@/ui/views/ProgressView';
 import { YouView } from '@/ui/views/You';
+import { SettingsView } from '@/ui/views/Settings';
 import { Start } from '@/ui/views/Start';
 import { LearnView, TaskView } from '@/ui/views/Task';
 import { ProblemView } from '@/ui/views/Lesson';
@@ -61,7 +62,7 @@ import { StoryPlayer } from '@/ui/story/Player';
 import { useStoryDirector } from '@/ui/story/director';
 import { playing } from '@/model/storyStore';
 import { Arms, SealDefs } from '@/ui/Seal';
-import { SearchIcon, TabIcon } from '@/ui/shell/Icons';
+import { BackIcon, SearchIcon, TabIcon } from '@/ui/shell/Icons';
 import { Palette, timedPaperRoute } from '@/ui/shell/Palette';
 import { RestTimer } from '@/ui/shell/RestTimer';
 import { addRecent, focusOrigin, paletteOpen } from '@/ui/shell/state';
@@ -108,6 +109,7 @@ function View({ r }: { r: Route }) {
     case 'problem': return <ProblemView key={`${r.topicId}/${r.problemId}`} topicId={r.topicId} problemId={r.problemId} />;
     case 'map': return <MapView topicId={r.topicId} />;
     case 'progress': return <YouView />;
+    case 'settings': return <SettingsView />;
     case 'glossary': return <GlossaryView termId={r.termId} />;
     case 'gym': return <GymView />;
     // Only reached with a course chosen (see App), so the progress document is loaded.
@@ -140,12 +142,13 @@ function FocusBar({ kind }: { kind: FocusKind }) {
   return (
     <div class="ds-fbar" role="navigation" aria-label="Focus mode">
       <button type="button" class="ds-fbar-back" onClick={exitFocus} aria-label={`Back to ${backLabel(to)} (Escape)`}>
-        <span aria-hidden="true">← </span>{backLabel(to)}
+        <BackIcon />{backLabel(to)}
       </button>
-      <span class="ds-fbar-mid">{FOCUS_LABEL[kind]}</span>
+      {/* A lesson puts its stepper and segments here (Lesson.tsx, LessonBar). */}
+      {kind === 'lesson' ? <div id="ds-fbar-slot" class="ds-fbar-slot" /> : <span class="ds-fbar-mid">{FOCUS_LABEL[kind]}</span>}
       {kind === 'gym'
         ? <RestTimer />
-        : <button type="button" class="ds-fbar-k" onClick={() => { paletteOpen.value = true; }} aria-label={`Search (${paletteKey()})`}>{paletteKey()}</button>}
+        : <button type="button" class="ds-fbar-k" onClick={() => { paletteOpen.value = true; }} aria-label={`Search (${paletteKey()})`}><SearchIcon /><kbd aria-hidden="true">{paletteKey()}</kbd></button>}
     </div>
   );
 }
@@ -236,7 +239,7 @@ export function App() {
         <h1>The saved progress could not be read</h1>
         <p>Nothing has been changed or erased. What is wrong:</p>
         <ul class="error small">{loadErrors.value.map((e, i) => <li key={i}>{e}</li>)}</ul>
-        <p>With an exported progress file, start over here and then import it in Progress.</p>
+        <p>With an exported progress file, start over here and then import it in Settings.</p>
         <StartOver />
       </section>
     );
@@ -300,7 +303,7 @@ export function App() {
               <SearchIcon />
             </button>
           )}
-          {volatile.value && <p class="banner warning small">This browser does not offer storage here, so progress will be lost when the tab closes. Export a file in You to keep it.</p>}
+          {volatile.value && <p class="banner warning small">This browser does not offer storage here, so progress will be lost when the tab closes. Export a file in Settings to keep it.</p>}
           {saveError.value !== null && <p class="banner error small" role="alert">Saving failed: {saveError.value}. Export a progress file to keep the work.</p>}
           {loadWarnings.value.length > 0 && <p class="banner warning small">Some saved data was out of date and was dropped: {loadWarnings.value.slice(0, 3).join('; ')}.</p>}
           <main id="main" tabIndex={-1}>{body}</main>

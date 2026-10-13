@@ -11,9 +11,14 @@
  *
  * Changing the wake time on a device marks the old wake time's ticks and replans out (the
  * app clears them), so going back to it later does not bring them back.
+ *
+ * The anchors a day was planned with travel with its wake time (absent for the defaults),
+ * and a replan's anchors are part of its mark. Both are optional, so state from a build
+ * before them reads as the defaults; such a build drops a replan's anchors when it writes
+ * the replan back, and that replan then reads as made with the defaults.
  */
-import { isDate, parseClock } from '@/model/day';
-import { KEEP_DAYS, type DayEntry, type DayLog, type Replan } from '@/model/dayLog';
+import { isDate, parseClock, sameAnchors, DEFAULT_ANCHORS, type DayAnchors } from '@/model/day';
+import { KEEP_DAYS, parseAnchors, type DayEntry, type DayLog, type Replan } from '@/model/dayLog';
 import {
   canonicalJson, cmp, isObj, isTime, markTo, maxBy, mergeMarks, parseMarks, put, rec, sortedRec, stampAfter, type MarkSet,
 } from './join';
@@ -24,6 +29,8 @@ export interface DaySyncEntry {
   wakeAt: number;
   /** `t|<wake>|<start minute>` for a tick, `r|<wake>|<replan JSON>` for a replan. */
   marks: MarkSet;
+  /** The anchors the day was planned with; absent for the defaults. Set with the wake time. */
+  anchors?: DayAnchors;
 }
 
 export interface DaySync {
@@ -33,7 +40,9 @@ export interface DaySync {
 export const emptyDaySync = (): DaySync => ({ days: rec() });
 
 const tKey = (wake: string, start: number): string => `t|${wake}|${start}`;
-const rKey = (wake: string, r: Replan): string => `r|${wake}|${canonicalJson({ at: r.at, ticks: r.ticks })}`;
+// Without anchors, the key is the one builds before them wrote (canonical JSON drops an undefined field).
+const rKey = (wake: string, r: Replan): string => `r|${wake}|${canonicalJson({ at: r.at, ticks: r.ticks, anchors: r.anchors })}`;
+const anchorsOfEntry = (e: { anchors?: DayAnchors }): DayAnchors => e.anchors ?? DEFAULT_ANCHORS;
 const ofWake = (wake: string) => (k: string): boolean => k.startsWith(`t|${wake}|`) || k.startsWith(`r|${wake}|`);
 
 /** The day as the app stores it: the winning wake time's ticks and replans. */
@@ -51,14 +60,14 @@ export function dayEntryOf(e: DaySyncEntry): DayEntry {
       try {
         const r: unknown = JSON.parse(k.slice(rp.length));
         if (isObj(r) && Number.isInteger(r.at) && Array.isArray(r.ticks) && r.ticks.every((t) => Number.isInteger(t))) {
-          replans.push({ at: r.at as number, ticks: [...(r.ticks as number[])] });
+          replans.push({ at: r.at as number, ticks: [...(r.ticks as number[])], ...parseAnchors(r.anchors) });
         }
       } catch {
         // Not a replan: skipped.
       }
     }
   }
-  const entry: DayEntry = { wake: e.wake, ticks: ticks.sort((a, b) => a - b) };
+  const entry: DayEntry = { wake: e.wake, ticks: ticks.sort((a, b) => a - b), ...parseAnchors(e.anchors) };
   if (replans.length > 0) entry.replans = replans.sort((x, y) => x.at - y.at || cmp(canonicalJson(x), canonicalJson(y)));
   return entry;
 }
@@ -74,7 +83,7 @@ export function normalizeDay(s: DaySync): DaySync {
   const days = rec<DaySyncEntry>();
   for (const d of Object.keys(s.days).sort().slice(-KEEP_DAYS)) {
     const e = s.days[d] as DaySyncEntry;
-    put(days, d, { wake: e.wake, wakeAt: e.wakeAt, marks: sortedRec(e.marks) });
+    put(days, d, { wake: e.wake, wakeAt: e.wakeAt, marks: sortedRec(e.marks), ...parseAnchors(e.anchors) });
   }
   return { days };
 }
@@ -90,8 +99,8 @@ export function mergeDay(a0: DaySync, b0: DaySync): DaySync {
       put(days, d, (x ?? y)!);
       continue;
     }
-    const w = maxBy(x, y, (e) => [e.wakeAt, e.wake]);
-    put(days, d, { wake: w.wake, wakeAt: w.wakeAt, marks: mergeMarks(x.marks, y.marks) });
+    const w = maxBy(x, y, (e) => [e.wakeAt, e.wake, canonicalJson(e.anchors ?? null)]);
+    put(days, d, { wake: w.wake, wakeAt: w.wakeAt, marks: mergeMarks(x.marks, y.marks), ...parseAnchors(w.anchors) });
   }
   return normalizeDay({ days });
 }
@@ -104,13 +113,18 @@ export function observeDay(s0: DaySync, cur: DayLog, now: number): DaySync {
   for (const [d, e] of Object.entries(cur)) {
     const want = new Set([...e.ticks.map((t) => tKey(e.wake, t)), ...(e.replans ?? []).map((r) => rKey(e.wake, r))]);
     const was = days[d];
+    const anchors = parseAnchors(e.anchors);
     if (was === undefined) {
-      put(days, d, { wake: e.wake, wakeAt: now, marks: markTo(rec(), want, () => false, now) });
+      put(days, d, { wake: e.wake, wakeAt: now, marks: markTo(rec(), want, () => false, now), ...anchors });
       continue;
     }
     const moved = was.wake !== e.wake;
+    // New anchors with the same wake time are a new plan of the day too: they win over the old the same way.
+    const replanned = moved || !sameAnchors(anchorsOfEntry(was), anchorsOfEntry(e));
     const scope = moved ? (k: string): boolean => ofWake(was.wake)(k) || ofWake(e.wake)(k) : ofWake(e.wake);
-    put(days, d, { wake: e.wake, wakeAt: moved ? stampAfter(now, was.wakeAt) : was.wakeAt, marks: markTo(was.marks, want, scope, now) });
+    put(days, d, {
+      wake: e.wake, wakeAt: replanned ? stampAfter(now, was.wakeAt) : was.wakeAt, marks: markTo(was.marks, want, scope, now), ...anchors,
+    });
   }
   return mergeDay(s, { days });
 }
@@ -120,7 +134,7 @@ export function parseDaySync(x: unknown): DaySync | null {
   const days = rec<DaySyncEntry>();
   for (const [d, e] of Object.entries(x.days)) {
     if (!isDate(d) || !isObj(e) || typeof e.wake !== 'string' || parseClock(e.wake) === null || !isTime(e.wakeAt)) continue;
-    put(days, d, { wake: e.wake, wakeAt: e.wakeAt, marks: parseMarks(e.marks) });
+    put(days, d, { wake: e.wake, wakeAt: e.wakeAt, marks: parseMarks(e.marks), ...parseAnchors(e.anchors) });
   }
   return normalizeDay({ days });
 }

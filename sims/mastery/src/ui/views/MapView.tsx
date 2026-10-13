@@ -19,6 +19,7 @@ import { go } from '@/model/route';
 import { now, progress } from '@/model/store';
 import { Sources, gateRule } from '@/ui/views/Lesson';
 import { TexText } from '@/ui/Tex';
+import { CloseIcon } from '@/ui/shell/Icons';
 
 export const STATUS_TEXT: Record<TopicStatus, string> = {
   mastered: 'Mastered',
@@ -29,6 +30,17 @@ export const STATUS_TEXT: Record<TopicStatus, string> = {
   unwritten: 'Lesson not written yet',
   locked: 'Locked: learn its prerequisites first',
 };
+
+/** The key's entries, in the order the course moves through them. */
+const KEY: readonly (readonly [TopicStatus, string])[] = [
+  ['mastered', 'Mastered'], ['review', 'Needs review'], ['gate', 'Needs the Cambridge problem'], ['due', 'Review due'],
+  ['ready', 'Ready'], ['unwritten', 'Lesson not written yet'], ['locked', 'Locked'],
+];
+
+/** A status's swatch: the node's own box, small. */
+function Swatch({ s }: { s: TopicStatus }) {
+  return <svg class={`sw st-${s}`} viewBox="0 0 18 13" aria-hidden="true" focusable="false"><rect x="1" y="1" width="16" height="11" rx="3" /></svg>;
+}
 
 export const ALL_EDGES_KEY = 'learnhub.mastery.map.allEdges';
 
@@ -101,8 +113,8 @@ function GateLinks({ id }: { id: string }) {
   return (
     <>
       <h3 class="small">To master it</h3>
-      <p class="small">{gateRule()}</p>
-      <ul class="small links">
+      <Fold text={gateRule()} />
+      <ul class="small links gate-links">
         {gate.map((pid) => (
           <li key={pid}>
             <button type="button" class="linklike" onClick={() => go({ view: 'problem', topicId: id, problemId: pid })}>{catalogProblem(id, pid)?.title ?? pid}</button>
@@ -110,6 +122,17 @@ function GateLinks({ id }: { id: string }) {
         ))}
       </ul>
     </>
+  );
+}
+
+/** A paragraph folded to one line, with "more" to read the rest (presentation only: the text is all there). */
+function Fold({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <p class={`small fold${open ? ' open' : ''}`}>
+      <span>{text}</span>
+      <button type="button" class="linklike" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? 'less' : 'more'}</button>
+    </p>
   );
 }
 
@@ -150,7 +173,7 @@ function Details({ p, id, status }: { p: Progress; id: string; status: TopicStat
       <h2>{t.title}</h2>
       <p class="small muted">{LEVEL_NAMES[t.level]}, {AREA_NAMES[t.area] ?? t.area}. In {inCourses.join(' and ') || 'no chosen course'}.</p>
       <p><span class={`status-chip st-${status ?? 'locked'}`}>{status === undefined ? 'Not in your courses' : STATUS_TEXT[status]}</span></p>
-      <p><TexText text={t.summary} /></p>
+      <p class="lead"><TexText text={t.summary} /></p>
       {mem !== undefined && (
         <p class="small muted">
           Next review {daysFrom(now(), mem.due) <= 0 ? 'is due now' : `in ${daysFrom(now(), mem.due)} day${daysFrom(now(), mem.due) === 1 ? '' : 's'}`}.
@@ -258,140 +281,157 @@ export function MapView({ topicId }: { topicId: string | null }) {
     <section class="page map" aria-labelledby="map-title">
       <div class="map-head">
         <h1 id="map-title">Map</h1>
-        <div class="map-controls">
-          <label class="inline-field small">
-            <span class="visually-hidden">Course</span>
-            <select value={filter} onChange={(e) => setFilter((e.currentTarget as HTMLSelectElement).value)} aria-label="Show course">
-              <option value="all">{courses.length > 1 ? 'Both courses' : 'My course'}</option>
-              {courses.length > 1 && courses.map((c) => <option key={c} value={c}>{shortName(c)} only</option>)}
-            </select>
-          </label>
-          <div class="segmented" role="group" aria-label="View">
-            <button type="button" class={mode === 'graph' ? 'on' : ''} aria-pressed={mode === 'graph'} onClick={() => setMode('graph')}>Graph</button>
-            <button type="button" class={mode === 'list' ? 'on' : ''} aria-pressed={mode === 'list'} onClick={() => setMode('list')}>List</button>
-          </div>
-          {mode === 'graph' && (
-            <label class="toggle small all-edges">
-              <input type="checkbox" checked={allEdges} onChange={(e) => toggleAllEdges((e.currentTarget as HTMLInputElement).checked)} />
-              <span>Show all connections</span>
-            </label>
-          )}
-          {mode === 'graph' && (
-            <div class="segmented" role="group" aria-label="Zoom">
-              <button type="button" aria-label="Zoom out" onClick={() => setScale(Math.max(0.25, scale / 1.25))}>−</button>
-              <button type="button" onClick={fit}>Fit</button>
-              <button type="button" aria-label="Zoom in" onClick={() => setScale(Math.min(2, scale * 1.25))}>+</button>
+      </div>
+      <div class="map-body">
+        {/* The map is a plate: the graph or list, its controls and key docked under it, and what the key means as its caption. */}
+        <figure class="map-plate" aria-labelledby="map-title">
+          {mode === 'graph' ? (
+            <div
+              ref={scroller}
+              class="map-scroll"
+              onPointerDown={onDown}
+              onPointerMove={onMove}
+              onPointerUp={onUp}
+              onPointerLeave={onUp}
+            >
+              {scale > 0 && (
+                <svg
+                  class="map-svg"
+                  width={lay.width * scale}
+                  height={lay.height * scale}
+                  viewBox={`0 0 ${lay.width} ${lay.height}`}
+                  role="img"
+                  aria-label={`Knowledge map of ${shown.length} topics. Use the List view to read it as text.`}
+                >
+                  {lay.bands.map((b) => (
+                    <g key={b.level}>
+                      <rect class={`band band-${LEVELS.indexOf(b.level as Topic['level'])}`} x={0} y={b.y} width={lay.width} height={b.height} />
+                      <text class="band-label" x={8} y={b.y + 18}>{LEVEL_NAMES[b.level]}</text>
+                    </g>
+                  ))}
+                  {/* The node boxes cut out of the edge layer, so no edge shows through a faded box or
+                      crosses a label: an edge reads as running from one box border to the next. */}
+                  <defs>
+                    <mask id="map-edge-mask" maskUnits="userSpaceOnUse" x={0} y={0} width={lay.width} height={lay.height}>
+                      <rect x={0} y={0} width={lay.width} height={lay.height} fill="#fff" />
+                      {shown.map((t) => {
+                        const n = lay.nodes.get(t.id);
+                        return n === undefined ? null : <rect key={t.id} x={n.x} y={n.y} width={NODE_W} height={NODE_H} rx={10} fill="#000" />;
+                      })}
+                    </mask>
+                  </defs>
+                  <g class="edges" mask="url(#map-edge-mask)">
+                    {/* Unrelated edges first, so the selected topic's are drawn on top. */}
+                    {edgesToDraw(lay.edges, topicId, allEdges).sort((x, y) => Number(x.dir !== null) - Number(y.dir !== null)).map((e) => {
+                      const a = lay.nodes.get(e.from);
+                      const z = lay.nodes.get(e.to);
+                      if (a === undefined || z === undefined) return null;
+                      const x1 = a.x + NODE_W / 2;
+                      const y1 = a.y + NODE_H;
+                      const x2 = z.x + NODE_W / 2;
+                      const y2 = z.y;
+                      const my = (y1 + y2) / 2;
+                      const cls = e.dir === null ? (topicId !== null ? ' faded' : '') : ` hot ${e.dir}`;
+                      return <path key={`${e.from}>${e.to}`} class={`edge${cls}`} d={`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`} />;
+                    })}
+                  </g>
+                  {shown.map((t) => {
+                    const n = lay.nodes.get(t.id);
+                    if (n === undefined) return null;
+                    const st = status.get(t.id) ?? 'locked';
+                    const lines = wrap(t.title);
+                    const sel = t.id === topicId;
+                    return (
+                      <g
+                        key={t.id}
+                        class={`node st-${st}${sel ? ' selected' : ''}${topicId !== null && !related.has(t.id) ? ' faded' : ''}`}
+                        transform={`translate(${n.x},${n.y})`}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`${t.title}: ${STATUS_TEXT[st]}`}
+                        onClick={() => go({ view: 'map', topicId: t.id })}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go({ view: 'map', topicId: t.id }); } }}
+                      >
+                        <rect width={NODE_W} height={NODE_H} rx={10} />
+                        {lines.map((l, i) => <text key={i} x={10} y={(NODE_H - lines.length * LINE_PX) / 2 + LABEL_PX * 0.8 + i * LINE_PX}>{l}</text>)}
+                        {hasContent(t.id) && <circle class="has-lesson" cx={NODE_W - 9} cy={9} r={4} />}
+                      </g>
+                    );
+                  })}
+                </svg>
+              )}
+            </div>
+          ) : (
+            <div class="map-list">
+              {LEVELS.map((lv) => {
+                const ts = shown.filter((t) => t.level === lv);
+                if (ts.length === 0) return null;
+                return (
+                  <section key={lv}>
+                    <h2 class="small">{LEVEL_NAMES[lv]}</h2>
+                    <ul>
+                      {ts.map((t) => {
+                        const st = status.get(t.id) ?? 'locked';
+                        return (
+                          <li key={t.id}>
+                            <button type="button" class={`list-topic${t.id === topicId ? ' selected' : ''}`} onClick={() => go({ view: 'map', topicId: t.id })}>
+                              <span class={`status-dot st-${st}`} aria-hidden="true" />
+                              <span>{t.title}</span>
+                              <span class="small muted">{STATUS_TEXT[st].split(':')[0]}{hasContent(t.id) ? ', lesson written' : ''}</span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
+                );
+              })}
             </div>
           )}
-        </div>
-      </div>
-      <p class="legend small">
-        <span class="status-chip st-mastered">Mastered {counts('mastered')}</span>
-        <span class="status-chip st-review">Needs review {counts('review')}</span>
-        <span class="status-chip st-gate">Needs the Cambridge problem {counts('gate')}</span>
-        <span class="status-chip st-due">Review due {counts('due')}</span>
-        <span class="status-chip st-ready">Ready {counts('ready')}</span>
-        <span class="status-chip st-unwritten">Lesson not written yet {counts('unwritten')}</span>
-        <span class="status-chip st-locked">Locked {counts('locked')}</span>
-        <span class="muted">
-          {shown.length} topics. A dot marks a written lesson.
-          {retests !== null && ` Cold retests passed: ${retests.passed} of ${retests.taken}.`}
-          {mode === 'graph' && !allEdges && (topicId === null ? ' Choose a topic to see its connections.' : ' Lines show what the chosen topic builds on and what builds on it.')}
-        </span>
-      </p>
-      <div class="map-body">
-        {mode === 'graph' ? (
-          <div
-            ref={scroller}
-            class="map-scroll"
-            onPointerDown={onDown}
-            onPointerMove={onMove}
-            onPointerUp={onUp}
-            onPointerLeave={onUp}
-          >
-            {scale > 0 && (
-              <svg
-                class="map-svg"
-                width={lay.width * scale}
-                height={lay.height * scale}
-                viewBox={`0 0 ${lay.width} ${lay.height}`}
-                role="img"
-                aria-label={`Knowledge map of ${shown.length} topics. Use the List view to read it as text.`}
-              >
-                {lay.bands.map((b) => (
-                  <g key={b.level}>
-                    <rect class={`band band-${LEVELS.indexOf(b.level as Topic['level'])}`} x={0} y={b.y} width={lay.width} height={b.height} />
-                    <text class="band-label" x={8} y={b.y + 18}>{LEVEL_NAMES[b.level]}</text>
-                  </g>
-                ))}
-                {/* Unrelated edges first, so the selected topic's are drawn on top. */}
-                {edgesToDraw(lay.edges, topicId, allEdges).sort((x, y) => Number(x.dir !== null) - Number(y.dir !== null)).map((e) => {
-                  const a = lay.nodes.get(e.from);
-                  const z = lay.nodes.get(e.to);
-                  if (a === undefined || z === undefined) return null;
-                  const x1 = a.x + NODE_W / 2;
-                  const y1 = a.y + NODE_H;
-                  const x2 = z.x + NODE_W / 2;
-                  const y2 = z.y;
-                  const my = (y1 + y2) / 2;
-                  const cls = e.dir === null ? (topicId !== null ? ' faded' : '') : ` hot ${e.dir}`;
-                  return <path key={`${e.from}>${e.to}`} class={`edge${cls}`} d={`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`} />;
-                })}
-                {shown.map((t) => {
-                  const n = lay.nodes.get(t.id);
-                  if (n === undefined) return null;
-                  const st = status.get(t.id) ?? 'locked';
-                  const lines = wrap(t.title);
-                  const sel = t.id === topicId;
-                  return (
-                    <g
-                      key={t.id}
-                      class={`node st-${st}${sel ? ' selected' : ''}${topicId !== null && !related.has(t.id) ? ' faded' : ''}`}
-                      transform={`translate(${n.x},${n.y})`}
-                      tabIndex={0}
-                      role="button"
-                      aria-label={`${t.title}: ${STATUS_TEXT[st]}`}
-                      onClick={() => go({ view: 'map', topicId: t.id })}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go({ view: 'map', topicId: t.id }); } }}
-                    >
-                      <rect width={NODE_W} height={NODE_H} rx={8} />
-                      {lines.map((l, i) => <text key={i} x={10} y={(NODE_H - lines.length * LINE_PX) / 2 + LABEL_PX * 0.8 + i * LINE_PX}>{l}</text>)}
-                      {hasContent(t.id) && <circle class="has-lesson" cx={NODE_W - 9} cy={9} r={4} />}
-                    </g>
-                  );
-                })}
-              </svg>
-            )}
+          <div class="dock">
+            <div class="map-controls">
+              <label class="inline-field small">
+                <span class="visually-hidden">Course</span>
+                <select value={filter} onChange={(e) => setFilter((e.currentTarget as HTMLSelectElement).value)} aria-label="Show course">
+                  <option value="all">{courses.length > 1 ? 'Both courses' : 'My course'}</option>
+                  {courses.length > 1 && courses.map((c) => <option key={c} value={c}>{shortName(c)} only</option>)}
+                </select>
+              </label>
+              <div class="segmented" role="group" aria-label="View">
+                <button type="button" class={mode === 'graph' ? 'on' : ''} aria-pressed={mode === 'graph'} onClick={() => setMode('graph')}>Graph</button>
+                <button type="button" class={mode === 'list' ? 'on' : ''} aria-pressed={mode === 'list'} onClick={() => setMode('list')}>List</button>
+              </div>
+              {mode === 'graph' && (
+                <label class="toggle small all-edges">
+                  <input type="checkbox" checked={allEdges} onChange={(e) => toggleAllEdges((e.currentTarget as HTMLInputElement).checked)} />
+                  <span>Show all connections</span>
+                </label>
+              )}
+              {mode === 'graph' && (
+                <div class="segmented zoom" role="group" aria-label="Zoom">
+                  <button type="button" aria-label="Zoom out" onClick={() => setScale(Math.max(0.25, scale / 1.25))}>−</button>
+                  <button type="button" onClick={fit}>Fit</button>
+                  <button type="button" aria-label="Zoom in" onClick={() => setScale(Math.min(2, scale * 1.25))}>+</button>
+                </div>
+              )}
+            </div>
+            {/* The key: only the statuses on the map now; the rest are named in the caption. */}
+            <ul class="map-key" aria-label="Key">
+              {KEY.filter(([s]) => counts(s) > 0).map(([s, label]) => (
+                <li key={s}><Swatch s={s} />{label} <span class="n">{counts(s)}</span></li>
+              ))}
+            </ul>
           </div>
-        ) : (
-          <div class="map-list">
-            {LEVELS.map((lv) => {
-              const ts = shown.filter((t) => t.level === lv);
-              if (ts.length === 0) return null;
-              return (
-                <section key={lv}>
-                  <h2 class="small">{LEVEL_NAMES[lv]}</h2>
-                  <ul>
-                    {ts.map((t) => {
-                      const st = status.get(t.id) ?? 'locked';
-                      return (
-                        <li key={t.id}>
-                          <button type="button" class={`list-topic${t.id === topicId ? ' selected' : ''}`} onClick={() => go({ view: 'map', topicId: t.id })}>
-                            <span class={`status-dot st-${st}`} aria-hidden="true" />
-                            <span>{t.title}</span>
-                            <span class="small muted">{STATUS_TEXT[st].split(':')[0]}{hasContent(t.id) ? ', lesson written' : ''}</span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </section>
-              );
-            })}
-          </div>
-        )}
+          <figcaption>
+            {shown.length} topics. A dot marks a written lesson.
+            {retests !== null && ` Cold retests passed: ${retests.passed} of ${retests.taken}.`}
+            {mode === 'graph' && !allEdges && (topicId === null ? ' Choose a topic to see its connections.' : ' Lines show what the chosen topic builds on and what builds on it.')}
+            {KEY.some(([s]) => counts(s) === 0) && ` None now: ${KEY.filter(([s]) => counts(s) === 0).map(([, label]) => label.charAt(0).toLowerCase() + label.slice(1)).join(', ')}.`}
+          </figcaption>
+        </figure>
         <aside class={`map-details${topicId !== null ? ' open' : ''}`} aria-label="Topic details">
-          {topicId !== null && <button type="button" class="btn btn-small sheet-close" onClick={() => go({ view: 'map', topicId: null })}>Close</button>}
+          {topicId !== null && <span class="grab" aria-hidden="true" />}
+          {topicId !== null && <button type="button" class="sheet-close" aria-label="Close" onClick={() => go({ view: 'map', topicId: null })}><CloseIcon /></button>}
           {topicId === null
             ? <p class="small muted">Choose a topic to see what it covers, where it is taught, and how far it has got.</p>
             : <Details p={p} id={topicId} status={status.get(topicId)} />}

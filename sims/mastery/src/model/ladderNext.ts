@@ -1,6 +1,6 @@
 /**
  * What the timed ladder (ladder.ts) puts in front of the learner: the exam to suggest, and
- * the one thing to do next on it. Today's Up next, the palette, and the ladder screen use
+ * the one thing to do next on it. Today's timeline, the palette, and the ladder screen use
  * this; the rules for opening rungs stay in ladder.ts. Pure: no clock, storage, or app state.
  */
 import type { RegistryPaper } from '@learnhub/content/admissions';

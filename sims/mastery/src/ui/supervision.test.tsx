@@ -10,9 +10,11 @@ import { IDBFactory } from 'fake-indexeddb';
 import type { IdbFactoryLike } from '@learnhub/mastery';
 import { DAY_MS } from '@learnhub/mastery';
 import { DEFAULT_COURSES, startLearner } from '@/model/learner';
-import { route } from '@/model/route';
+import { hrefOf, route } from '@/model/route';
 import { commit, flush, init, progress, setClock } from '@/model/store';
 import { PACKET_HEADER, formatResult } from '@/model/supervision';
+import { problemRoute } from '@/ui/Supervision';
+import { mathParts } from '@/ui/MathPreview';
 import { LessonRunner, ProblemView } from '@/ui/views/Lesson';
 import { Today } from '@/ui/views/Today';
 import { CONTENT_IDS } from '@learnhub/content';
@@ -231,6 +233,56 @@ describe('a wrong auto-checked Cambridge problem', () => {
     render(<ProblemView topicId="prob.event-spaces" problemId="q6-b-event" />);
     expect(screen.getByText(/"Infinitely often" is an event/)).toBeTruthy();
     expect(screen.getByText('Back to today')).toBeTruthy();
+  });
+});
+
+describe('a redo due today on Today', () => {
+  it('is listed once, in the day\'s plan, with the weak points under it; not again under Supervision', async () => {
+    const nonce = await copyProof();
+    paste(item('q4-a-finite'), block(nonce));
+    await within(item('q4-a-finite')).findByText(/^Imported: 12\/20/);
+    await flush();
+    cleanup();
+    // The next day, when the redo is due.
+    setClock(() => T0 + DAY_MS + 2 * 3600_000);
+    render(<Today />);
+    const href = hrefOf(problemRoute(OTHER));
+    const link = await waitFor(() => {
+      const el = document.querySelector(`.day a[href="${href}"]`);
+      if (el === null) throw new Error('no redo in the plan yet');
+      return el as HTMLElement;
+    });
+    expect(link.parentElement?.textContent).toMatch(/Weak points from that supervision: Empty set not shown to be an event\./);
+    expect([...document.querySelectorAll(`.ds-today a[href="${href}"]`)].filter((a) => a.closest('.ds-now') === null)).toHaveLength(1);
+    expect(document.querySelector(`[data-redo="${OTHER}"]`)).toBeNull();
+  });
+});
+
+describe('the write-up preview', () => {
+  it('reads $...$ as inline maths and $$...$$ as display maths; \\$ and an unclosed $ stay as typed', () => {
+    expect(mathParts('Let $x^2$ be $$\\int f$$ and \\$5, or $half')).toEqual([
+      { kind: 'text', s: 'Let ' }, { kind: 'inline', s: 'x^2' }, { kind: 'text', s: ' be ' }, { kind: 'display', s: '\\int f' }, { kind: 'text', s: ' and $5, or $half' },
+    ]);
+    expect(mathParts('a $$b')).toEqual([{ kind: 'text', s: 'a $$b' }]);
+    expect(mathParts('$ $')).toEqual([{ kind: 'text', s: '$ $' }]);
+  });
+
+  it('typesets the write-up\'s maths under the box after a pause, keeping the last render while typing', async () => {
+    openCambridge('prob.event-spaces');
+    const card = item('q4-a-finite');
+    const preview = card.querySelector('.sup-preview') as HTMLElement;
+    expect(preview.textContent).toContain('Maths typed between dollar signs');
+    const box = within(card).getByLabelText('Your write-up');
+    fireEvent.input(box, { target: { value: 'So $A \\cup B$ is an event.' } });
+    // Not at once: it follows after a pause in typing.
+    expect(preview.querySelector('.katex')).toBeNull();
+    await waitFor(() => expect(preview.querySelector('.katex')).not.toBeNull());
+    expect(preview.textContent).toContain('So ');
+    expect(preview.textContent).toContain(' is an event.');
+    fireEvent.input(box, { target: { value: 'So $A \\cup B$ is an event. $$\\bigcup_i A_i$$' } });
+    // The last render stays on screen meanwhile.
+    expect(preview.querySelectorAll('.katex')).toHaveLength(1);
+    await waitFor(() => expect(preview.querySelectorAll('.math-display .katex-display')).toHaveLength(1));
   });
 });
 

@@ -501,6 +501,30 @@ describe('choices', () => {
     expect(importProgress(exportProgress(q)).ok).toBe(true);
   });
 
+  it('dates the day anchors inside the choice, keeps the date when unchanged, and round-trips them', () => {
+    expect(sample().settings.dayAnchors).toBeUndefined();
+    const p = withChoices(sample(), { dayAnchors: { gymStart: 900, dinner: 1140, bed: 1440 } }, NOW + 5);
+    expect(p.settings.dayAnchors).toEqual({ gymStart: 900, dinner: 1140, bed: 1440, changedAt: NOW + 5 });
+    expect(p.changedAt).toEqual(sample().changedAt);
+    expect(withChoices(p, { dayAnchors: { gymStart: 900, dinner: 1140, bed: 1440 } }, NOW + 6).settings.dayAnchors?.changedAt).toBe(NOW + 5);
+    expect(withChoices(p, { dayAnchors: { gymStart: 900, dinner: 1140, bed: 1500 } }, NOW + 6).settings.dayAnchors).toEqual({ gymStart: 900, dinner: 1140, bed: 1500, changedAt: NOW + 6 });
+    const r = importProgress(exportProgress(p));
+    expect(r).toEqual({ ok: true, value: p, warnings: [] });
+  });
+
+  it('a malformed day anchors field is dropped with a warning, not an error', () => {
+    for (const bad of [null, 5, { gymStart: 900, dinner: 1140 }, { gymStart: -1, dinner: 1140, bed: 1440, changedAt: 0 }, { gymStart: 900, dinner: 1140, bed: 2880, changedAt: 0 }, { gymStart: 900.5, dinner: 1140, bed: 1440, changedAt: 0 }]) {
+      const d = JSON.parse(exportProgress(sample()));
+      d.settings.dayAnchors = bad;
+      const r = importProgress(d);
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        expect(r.value.settings.dayAnchors).toBeUndefined();
+        expect(r.warnings.join('\n')).toMatch(/\$\.settings\.dayAnchors: .*ignored/);
+      }
+    }
+  });
+
   it('weights in a different key order are the same choice', () => {
     const p = withChoices(sample(), { courseWeights: { a: 1, b: 2 } }, NOW + 1);
     const q = withChoices(p, { courseWeights: { b: 2, a: 1 } }, NOW + 2);

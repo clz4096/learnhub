@@ -21,10 +21,12 @@ import { loadDays } from '@/model/dayLog';
 import { go, route, type Route } from '@/model/route';
 import { now } from '@/model/store';
 import { LadderLinks } from '@/ui/views/Ladder';
+import { Fold } from '@/ui/Fold';
 import {
   COHORT_ENTRY, COHORT_START, DECISIONS_DATE, MILESTONES, PROGRAMME, PROGRAMME_TERMS, eventsBy, termOf, type MilestoneId,
 } from '@/model/cohort';
 import { AppLink, CopyBlock, ROMAN, WithAdmissions, entryLine, longDay, shortStamp, useDeliverLetters } from '@/ui/campaignShared';
+import '@/styles/screens/admission.css';
 
 const update = (f: (c: CampaignState) => CampaignState): void => {
   const c = campaign.value;
@@ -81,13 +83,12 @@ function CampaignBody({ adm, c, p }: { adm: Admissions; c: CampaignState; p: Pro
       <ApplicationSection c={c} s={s} />
       <InterviewSection c={c} s={s} />
       <LettersSection adm={adm} c={c} s={s} />
-      <section class="sec" aria-labelledby="how-in">
-        <div class="sec-h"><h2 id="how-in">How you get in</h2></div>
+      <Fold id="how-in" title="How you get in">
         <p class="c-body">
           Finish each act's chapters and sit its papers. Completing Act V admits you and opens Part IA Michaelmas. Scores never
           block you; the <AppLink to={{ view: 'report' }}>report</AppLink> shows where they would have landed.
         </p>
-      </section>
+      </Fold>
     </section>
   );
 }
@@ -234,8 +235,7 @@ function ChoicesSection({ c, s }: { c: CampaignState; s: Summary }) {
   const college = collegeOf(c.college);
   const f = college?.formats[c.route];
   return (
-    <section class="sec" aria-labelledby="choices">
-      <div class="sec-h"><h2 id="choices">Choices</h2></div>
+    <Fold id="choices" title="Choices">
       <ul class="ruled">
         <li>
           <span>Route</span>
@@ -300,7 +300,7 @@ function ChoicesSection({ c, s }: { c: CampaignState; s: Summary }) {
           <span class="s">{locks.sitting ?? 'October is three months earlier, so Act II must finish sooner. Mature colleges accept the January sitting.'}</span>
         </li>
       </ul>
-    </section>
+    </Fold>
   );
 }
 
@@ -308,8 +308,7 @@ function Standing({ s }: { s: Summary }) {
   const on = new Set(s.effects.map((e) => e.id));
   const label = (id: string): string => s.stats.find((x) => x.id === id)?.label ?? id;
   return (
-    <section class="sec" aria-labelledby="standing">
-      <div class="sec-h"><h2 id="standing">Standing</h2><span>Albert, mature applicant, Brooklyn</span></div>
+    <Fold id="standing" title="Standing" aside="Albert, mature applicant, Brooklyn">
       <ul class="ruled">
         {s.stats.map((st) => (
           <li key={st.id} class="c-stat" title={st.basis}>
@@ -329,7 +328,7 @@ function Standing({ s }: { s: Summary }) {
           </li>
         ))}
       </ul>
-    </section>
+    </Fold>
   );
 }
 
@@ -348,8 +347,7 @@ function cohortNews(id: MilestoneId, today: string): string {
 function CohortCalendar({ today }: { today: string }) {
   const term = termOf(today);
   return (
-    <section class="sec" aria-labelledby="cohort-cal">
-      <div class="sec-h"><h2 id="cohort-cal">The cohort</h2><span>{PROGRAMME.name}</span></div>
+    <Fold id="cohort-cal" title="The cohort" aside={PROGRAMME.name}>
       <p class="c-body">
         The {PROGRAMME.society}'s programme for adults from unconventional paths: six classmates and you, from{' '}
         {longDay(COHORT_START)}, applying together for October {COHORT_ENTRY} entry. Standup every weekday; see{' '}
@@ -378,7 +376,7 @@ function CohortCalendar({ today }: { today: string }) {
         </table>
       </div>
       <p class="note">*Approximate, or the 2027-entry date a year on. Programme dates are the programme's own.</p>
-    </section>
+    </Fold>
   );
 }
 
@@ -386,8 +384,7 @@ function CalendarSection({ s }: { s: Summary }) {
   const { projection: pr, cycle: cy } = s;
   const deadlines = actDeadlines(cy);
   return (
-    <section class="sec" aria-labelledby="calendar">
-      <div class="sec-h"><h2 id="calendar">The calendar</h2></div>
+    <Fold id="calendar" title="The calendar">
       <p class={`c-entry${pr.slipped ? ' warn' : ''}`}>{entryLine(pr)}</p>
       <p class="c-tiny">
         Pace: {hours(s.pace.hoursPerWeek)} h a week{s.pace.logged ? ', from the blocks ticked off in the day planner over the last two weeks' : `, the ${TARGET_WEEK_HOURS}-hour target (no hours ticked off in the last two weeks)`}.
@@ -417,7 +414,7 @@ function CalendarSection({ s }: { s: Summary }) {
         results days are approximate. Hours for chapters the book does not have yet are estimates: TMUA notes {ESTIMATE_HOURS.tmuaNotes} h,
         statement {ESTIMATE_HOURS.statement} h, Stage B {ESTIMATE_HOURS.stageB} h, Stage C {ESTIMATE_HOURS.stageC} h.
       </p>
-    </section>
+    </Fold>
   );
 }
 
@@ -473,8 +470,7 @@ function ApplicationSection({ c, s }: { c: CampaignState; s: Summary }) {
   const college = collegeOf(c.college);
   const canFile = s.act >= 3 && c.college !== null && c.applicationFiledAt === null;
   return (
-    <section class="sec" aria-labelledby="application">
-      <div class="sec-h"><h2 id="application">The application</h2><span>Act III</span></div>
+    <Fold id="application" title="The application" aside="Act III">
       {c.applicationFiledAt !== null ? (
         <p class="c-body">Filed on {shortStamp(c.applicationFiledAt)}: {ROUTE_NAMES[c.route]} at {college?.name ?? 'your college'}, January round.</p>
       ) : (
@@ -487,7 +483,7 @@ function ApplicationSection({ c, s }: { c: CampaignState; s: Summary }) {
           <p class="c-tiny">{s.act < 3 ? 'Opens in Act III.' : c.college === null ? 'Choose a college first.' : ''}</p>
         </>
       )}
-    </section>
+    </Fold>
   );
 }
 
@@ -496,8 +492,7 @@ function InterviewSection({ c, s }: { c: CampaignState; s: Summary }) {
   const f = collegeOf(c.college)?.formats[c.route];
   const second = s.effects.some((e) => e.id === 'second-mock');
   return (
-    <section class="sec" aria-labelledby="mock-interviews">
-      <div class="sec-h"><h2 id="mock-interviews">Mock interviews</h2><span>Act IV</span></div>
+    <Fold id="mock-interviews" title="Mock interviews" aside="Act IV">
       <p class="c-body">
         {f === undefined ? 'Choose a college to use its real format.' : `${collegeOf(c.college)?.name}: ${f.interviews}. Test at interview: ${f.test}.${f.verified ? '' : ' Unverified.'}`}
         {' '}Copy the packet into a Claude Code session; it runs the interview and prints a mark out of {INTERVIEW_MAX} ({INTERVIEW_PASS} is a pass) with notes.
@@ -527,7 +522,7 @@ function InterviewSection({ c, s }: { c: CampaignState; s: Summary }) {
           {[...c.interviews].reverse().map((i) => <InterviewRow key={i.id} i={i} />)}
         </ul>
       )}
-    </section>
+    </Fold>
   );
 }
 
@@ -572,8 +567,7 @@ function InterviewRow({ i }: { i: InterviewRecord }) {
 
 function LettersSection({ adm, c, s }: { adm: Admissions; c: CampaignState; s: Summary }) {
   return (
-    <section class="sec" aria-labelledby="letters">
-      <div class="sec-h"><h2 id="letters">Letters</h2></div>
+    <Fold id="letters" title="Letters">
       {c.letters.length === 0
         ? <p class="c-body">None yet. The first arrives when your application is filed.</p>
         : (
@@ -586,6 +580,6 @@ function LettersSection({ adm, c, s }: { adm: Admissions; c: CampaignState; s: S
             ))}
           </ul>
         )}
-    </section>
+    </Fold>
   );
 }

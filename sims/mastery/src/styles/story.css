@@ -140,17 +140,17 @@ svg.sp-art { position: absolute; inset: -3%; width: 106%; height: 106%; }
 /* The Story tab: the minimal look of the other tabs. */
 .story-rel .r, .story-scenes .r { white-space: normal; }
 .story-scenes li.story-locked > span:first-child { color: var(--mute); }
-.story-scenes .s { font-size: 14px; }
-.story-play { min-height: var(--touch); background: none; border: 1px solid var(--line); color: var(--fg); font: inherit; font-size: 14.5px; padding: 0 14px; cursor: pointer; border-radius: var(--radius-sm); }
-.story-play:hover { border-color: var(--cam); }
+.story-scenes .s { font-size: 15px; }
+.story-play { min-height: var(--touch); background: none; border: 1px solid var(--rule-strong); color: var(--fg); font: 600 15px var(--sans); padding: 0 var(--g4); cursor: pointer; border-radius: var(--r-pill); }
+.story-play:hover { background: var(--plate); }
 
-/* the ratings card (Story tab): mono numbers on hairline bars, design v4 */
-.rt-card { display: flex; gap: 18px; align-items: flex-start; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0; }
-.rt-ovr { font: 400 44px/1 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: var(--fg); min-width: 2.2ch; }
+/* the ratings card (Story tab): tabular numbers on hairline bars */
+.rt-card { display: flex; gap: var(--g5); align-items: flex-start; background: var(--plate); border-radius: var(--r); padding: var(--g4) var(--g5); }
+.rt-ovr { font: 400 48px/1 var(--sans); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: var(--fg); min-width: 2.2ch; }
 .rt-list { list-style: none; margin: 0; padding: 0; flex: 1; display: grid; gap: 7px; }
 .rt-list li { display: grid; grid-template-columns: 1fr auto; column-gap: 10px; align-items: baseline; }
-.rt-l { font: 12px var(--mono); color: var(--mute); }
-.rt-v { font: 500 13px var(--mono); font-variant-numeric: tabular-nums; color: var(--fg); }
-.rt-bar { grid-column: 1 / -1; height: 1px; background: var(--line); position: relative; margin-top: 3px; }
+.rt-l { font: 14px var(--sans); color: var(--mute); }
+.rt-v { font: 700 14.5px var(--sans); font-variant-numeric: tabular-nums; color: var(--fg); }
+.rt-bar { grid-column: 1 / -1; height: 3px; border-radius: 2px; background: var(--plate-2); position: relative; margin-top: 3px; }
 .rt-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--cam); }
 .rt-note { margin-top: 8px; }

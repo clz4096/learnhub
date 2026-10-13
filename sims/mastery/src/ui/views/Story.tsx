@@ -24,6 +24,8 @@ import { cohortDayOf } from '@/model/cohort';
 import { albertStanding } from '@/model/cohortStory';
 import { planDate } from '@/model/day';
 import { Monogram } from '@/ui/cohort/Monogram';
+import { Fold } from '@/ui/Fold';
+import '@/styles/screens/story.css';
 
 const sentence = (s: string): string => `${s.charAt(0).toUpperCase()}${s.slice(1)}.`;
 
@@ -100,8 +102,7 @@ function RatingsCard({ rs }: { rs: readonly Rating[] }) {
   const ovr = overall(rs);
   const share = (v: number): number => Math.round((100 * (v - RATING_MIN)) / (RATING_MAX - RATING_MIN));
   return (
-    <section class="ds-sect story-ratings" aria-labelledby="story-ratings">
-      <div class="ds-eyebrow ds-sect-h"><h2 id="story-ratings">Ratings</h2><span>Overall</span></div>
+    <Fold id="story-ratings" title="Ratings" aside="Overall" cls="story-ratings">
       <div class="rt-card">
         <div class="rt-ovr" aria-label={`Overall rating ${ovr}`}>{ovr}</div>
         <ul class="rt-list">
@@ -117,7 +118,7 @@ function RatingsCard({ rs }: { rs: readonly Rating[] }) {
       <p class="ds-meta rt-note">
         From 40 to 99. Only gated mastery, passed supervisions, and timed papers raise a rating; drills and gym alone stop at {DRILL_CAP}.
       </p>
-    </section>
+    </Fold>
   );
 }
 
@@ -133,8 +134,7 @@ function CohortCard({ p }: { p: Progress }) {
   if (cohortDayOf(today) < 0) return null;
   const { rows, rank } = albertStanding(p, today);
   return (
-    <section class="ds-sect story-cohort" aria-labelledby="story-cohort">
-      <div class="ds-eyebrow ds-sect-h"><h2 id="story-cohort">Cohort standing</h2><span>{ordinal(rank)} of {rows.length}</span></div>
+    <Fold id="story-cohort" title="Cohort standing" aside={`${ordinal(rank)} of ${rows.length}`} cls="story-cohort">
       <ol class="ruled co-list">
         {rows.map((r) => (
           <li key={r.id} class={r.id === 'albert' ? 'me' : undefined}>
@@ -146,7 +146,7 @@ function CohortCard({ p }: { p: Progress }) {
         ))}
       </ol>
       <p class="ds-meta rt-note">Topics mastered (drills passed and the gate met), in the same book. Classmates' numbers are simulated from the programme's start.</p>
-    </section>
+    </Fold>
   );
 }
 
@@ -187,32 +187,27 @@ export function StoryView({ p }: { p: Progress }) {
         <CohortCard p={p} />
       </div>
 
-      <section class="ds-sect story-scenes" aria-labelledby="story-chapters">
-        <div class="ds-eyebrow ds-sect-h"><h2 id="story-chapters">Chapters</h2><span>{seen} / {written.length}</span></div>
+      <Fold id="story-chapters" title="Chapters" aside={`${seen} / ${written.length}`} cls="story-scenes">
         {BOOKS.map((b) => (
-          <section key={b.n} class="sec story-book" aria-labelledby={`story-book-${b.n}`}>
-            <div class="sec-h"><h3 id={`story-book-${b.n}`}>{b.title}</h3></div>
+          <Fold key={b.n} id={`story-book-${b.n}`} title={b.title} level={3} cls="story-book">
             <ul class="ruled">
               {SCENES.filter((x) => x.book === b.n && strandOf(x) === 'main').map((x) => <SceneRow key={x.id} s={x} st={st} rest={rest} />)}
             </ul>
-          </section>
+          </Fold>
         ))}
-        <section class="sec story-book" aria-labelledby="story-side">
-          <div class="sec-h"><h3 id="story-side">Side scenes and beats</h3></div>
+        <Fold id="story-side" title="Side scenes and beats" level={3} cls="story-book">
           <ul class="ruled">
             {extras.map((x) => <SceneRow key={x.id} s={x} st={st} rest={rest} />)}
           </ul>
-        </section>
-        <section class="sec story-book" aria-labelledby="story-later">
-          <div class="sec-h"><h3 id="story-later">Later books</h3></div>
+        </Fold>
+        <Fold id="story-later" title="Later books" level={3} cls="story-book">
           <ul class="ruled">
             {LATER_BOOKS.map((t) => <li key={t} class="story-locked"><span>{t}</span><span class="r">not yet written</span></li>)}
           </ul>
-        </section>
-      </section>
+        </Fold>
+      </Fold>
 
-      <section class="ds-sect story-rel" aria-labelledby="story-rel">
-        <div class="ds-eyebrow ds-sect-h"><h2 id="story-rel">Relationships</h2></div>
+      <Fold id="story-rel" title="Relationships" cls="story-rel">
         <ul class="ruled">
           {REL_IDS.map((id) => (
             <li key={id}>
@@ -222,10 +217,9 @@ export function StoryView({ p }: { p: Progress }) {
             </li>
           ))}
         </ul>
-      </section>
+      </Fold>
 
-      <section class="ds-sect" aria-labelledby="story-rep">
-        <div class="ds-eyebrow ds-sect-h"><h2 id="story-rep">Reputation</h2><span>{rep} REP</span></div>
+      <Fold id="story-rep" title="Reputation" aside={`${rep} REP`}>
         <ul class="ruled">
           <li>
             <span>{level.name}</span>
@@ -238,7 +232,7 @@ export function StoryView({ p }: { p: Progress }) {
             </li>
           ))}
         </ul>
-      </section>
+      </Fold>
       <p class="note">Scenes play as soon as your work triggers them, except during a timed paper, from Friday sundown to Saturday sundown, and on yom tov from sundown to sundown; then they wait, and Today shows that one is ready.</p>
     </section>
   );
