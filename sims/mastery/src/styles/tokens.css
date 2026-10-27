@@ -41,7 +41,7 @@
   /* ---- type */
   --serif: 'Libertinus Serif', 'Libertinus Math', Georgia, 'Times New Roman', serif;
   --sans: 'Libertinus Sans', 'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif;
-  --math: 'Libertinus Math', 'Libertinus Serif', 'Cambria Math', serif;
+  --math: 'Libertinus Math', 'Libertinus Serif', 'Cambria Math', 'KaTeX_Main', serif;
   /* raw text the learner copies (the supervision block): a real monospace */
   --code: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   /* the scale (Bringhurst's classic 6 7 8 9 10 11 12 14 16 18 21 24 36 48, at a 19 px body) */
