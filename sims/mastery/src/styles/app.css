@@ -89,9 +89,9 @@ progress.bar::-moz-progress-bar { background: var(--green); }
  * a larger script size so their numerals stay readable; display maths gets room around it.
  */
 .num { font-variant-numeric: lining-nums; white-space: nowrap; }
-.katex { font-size: 1em; font-family: var(--serif); text-rendering: auto; }
+.katex { font-size: 1em; font-family: 'Libertinus Serif', 'Libertinus Math', 'KaTeX_Main', Georgia, 'Times New Roman', serif; text-rendering: auto; }
 .katex .mathnormal, .katex .mathit { font-family: 'Libertinus Serif', serif; font-style: italic; }
-.katex .mathrm, .katex .textrm, .katex .mord.mtight { font-family: 'Libertinus Serif', serif; }
+.katex .mathrm, .katex .textrm, .katex .mord.mtight { font-family: 'Libertinus Serif', 'KaTeX_Main', serif; }
 .katex .mbin, .katex .mrel, .katex .mop, .katex .mopen, .katex .mclose, .katex .mpunct, .katex .minner { font-family: var(--math); }
 .katex .mfrac .katex-sizing.reset-size6.size3 { font-size: 0.8em; }
 .katex .mfrac .frac-line { border-bottom-width: 0.05em !important; }
